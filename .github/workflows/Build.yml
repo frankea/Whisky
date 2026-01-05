@@ -66,6 +66,9 @@ jobs:
         with:
           xcode-version: latest
 
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
       - name: Build
         run: |
           xcodebuild -project Whisky.xcodeproj \

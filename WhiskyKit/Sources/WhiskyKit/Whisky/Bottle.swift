@@ -53,9 +53,20 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
             self.settings = try BottleSettings.decode(from: metadataURL)
         } catch {
             Logger.wineKit.error(
-              "Failed to load settings for bottle `\(metadataURL.path(percentEncoded: false))`: \(error)"
+                "Failed to load settings for bottle `\(metadataURL.path(percentEncoded: false))`: \(error)"
             )
+            // Create default settings if decode fails
             self.settings = BottleSettings()
+            // Try to create the metadata file with default settings
+            do {
+                try self.settings.encode(to: metadataURL)
+                Logger.wineKit.info("Created default settings for bottle `\(metadataURL.path(percentEncoded: false))`")
+            } catch {
+                let path = metadataURL.path(percentEncoded: false)
+                Logger.wineKit.error(
+                    "Failed to create default settings for bottle `\(path)`: \(error)"
+                )
+            }
         }
 
         // Get rid of duplicates and pins that reference removed files
@@ -74,6 +85,11 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
             let legallyRemoved = pin.removable && volume == nil
             return FileManager.default.fileExists(atPath: urlPath) || legallyRemoved
         }
+    }
+
+    /// Public method to save bottle settings (exposed for BottleVM)
+    public func saveBottleSettings() {
+        saveSettings()
     }
 
     /// Encode and save the bottle settings

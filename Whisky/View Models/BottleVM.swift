@@ -20,6 +20,28 @@ import Foundation
 import SemanticVersion
 import WhiskyKit
 
+// MARK: - Bottle Creation Errors
+
+enum BottleCreationError: LocalizedError {
+    case directoryCreationFailed
+    case metadataCreationFailed
+    case wineVersionChangeFailed
+    case persistenceSaveFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .directoryCreationFailed:
+            return "Failed to create bottle directory"
+        case .metadataCreationFailed:
+            return "Failed to create bottle metadata"
+        case .wineVersionChangeFailed:
+            return "Failed to configure Windows version"
+        case .persistenceSaveFailed:
+            return "Failed to save bottle to persistence"
+        }
+    }
+}
+
 // swiftlint:disable:next todo
 // TODO: Don't use unchecked!
 final class BottleVM: ObservableObject, @unchecked Sendable {
@@ -43,8 +65,17 @@ final class BottleVM: ObservableObject, @unchecked Sendable {
         Task.detached {
             var bottleId: Bottle?
             do {
-                try FileManager.default.createDirectory(atPath: newBottleDir.path(percentEncoded: false),
-                                                        withIntermediateDirectories: true)
+                // Create directory with proper error handling
+                let fileManager = FileManager.default
+                try fileManager.createDirectory(at: newBottleDir,
+                                                 withIntermediateDirectories: true,
+                                                 attributes: nil)
+
+                // Verify directory was created
+                guard fileManager.fileExists(atPath: newBottleDir.path(percentEncoded: false)) else {
+                    throw BottleCreationError.directoryCreationFailed
+                }
+
                 let bottle = Bottle(bottleUrl: newBottleDir, inFlight: true)
                 bottleId = bottle
 
@@ -57,13 +88,21 @@ final class BottleVM: ObservableObject, @unchecked Sendable {
                 try await Wine.changeWinVersion(bottle: bottle, win: winVersion)
                 let wineVer = try await Wine.wineVersion()
                 bottle.settings.wineVersion = SemanticVersion(wineVer) ?? SemanticVersion(0, 0, 0)
-                // Add record
+
+                // Ensure metadata plist is saved before adding to persistence
+                bottle.saveBottleSettings()
+
+                // Add record to persistence
                 await MainActor.run {
-                    self.bottlesList.paths.append(newBottleDir)
+                    // Check for duplicates before adding
+                    if !self.bottlesList.paths.contains(newBottleDir) {
+                        self.bottlesList.paths.append(newBottleDir)
+                    }
                     self.loadBottles()
                 }
             } catch {
                 print("Failed to create new bottle: \(error)")
+                // Clean up on failure
                 if let bottle = bottleId {
                     await MainActor.run {
                         if let index = self.bottles.firstIndex(of: bottle) {
@@ -71,6 +110,8 @@ final class BottleVM: ObservableObject, @unchecked Sendable {
                         }
                     }
                 }
+                // Try to clean up the directory
+                try? FileManager.default.removeItem(at: newBottleDir)
             }
         }
         return newBottleDir

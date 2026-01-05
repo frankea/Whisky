@@ -18,6 +18,14 @@
 
 import Foundation
 import SemanticVersion
+import os.log
+
+// Minimal BottleData for fallback encoding
+private struct BottleDataMinimal: Codable {
+    var paths: [URL]
+}
+
+// MARK: - BottleData
 
 public struct BottleData: Codable {
     public static let containerDir = FileManager.default.homeDirectoryForCurrentUser
@@ -74,12 +82,15 @@ public struct BottleData: Codable {
         do {
             let data = try Data(contentsOf: Self.bottleEntriesDir)
             self = try decoder.decode(BottleData.self, from: data)
-            if self.fileVersion != Self.currentVersion {
-                print("Invalid file version \(self.fileVersion)")
+            let loadedVersion = self.fileVersion
+            let currentVersion = Self.currentVersion
+            if loadedVersion != currentVersion {
+                Logger.wineKit.warning("Invalid file version \(loadedVersion), expected \(currentVersion)")
                 return false
             }
             return true
         } catch {
+            Logger.wineKit.error("Failed to decode BottleData: \(error)")
             return false
         }
     }
@@ -92,9 +103,29 @@ public struct BottleData: Codable {
         do {
             try FileManager.default.createDirectory(at: Self.containerDir, withIntermediateDirectories: true)
             let data = try encoder.encode(self)
-            try data.write(to: Self.bottleEntriesDir)
+            try data.write(to: Self.bottleEntriesDir, options: .atomic)
             return true
         } catch {
+            Logger.wineKit.error("Failed to encode BottleData: \(error)")
+            // Try alternative encoding without version check
+            return encodeFallback()
+        }
+    }
+
+    private func encodeFallback() -> Bool {
+        // Fallback: try to recover existing paths and save minimal data
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+
+        do {
+            try FileManager.default.createDirectory(at: Self.containerDir, withIntermediateDirectories: true)
+            // Create a minimal BottleData with just the paths
+            let fallbackData = BottleDataMinimal(paths: self.paths)
+            let data = try encoder.encode(fallbackData)
+            try data.write(to: Self.bottleEntriesDir, options: .atomic)
+            return true
+        } catch {
+            Logger.wineKit.error("Failed to encode fallback BottleData: \(error)")
             return false
         }
     }

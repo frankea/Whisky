@@ -113,6 +113,9 @@ public struct BottleMetalConfig: Codable, Equatable {
     var metalHud: Bool = false
     var metalTrace: Bool = false
     var dxrEnabled: Bool = false
+    var metalValidation: Bool = false
+    var forceGPUFamily: String?
+    var sequoiaCompatMode: Bool = true  // Enable Sequoia compatibility by default
 
     public init() {}
 
@@ -121,6 +124,9 @@ public struct BottleMetalConfig: Codable, Equatable {
         self.metalHud = try container.decodeIfPresent(Bool.self, forKey: .metalHud) ?? false
         self.metalTrace = try container.decodeIfPresent(Bool.self, forKey: .metalTrace) ?? false
         self.dxrEnabled = try container.decodeIfPresent(Bool.self, forKey: .dxrEnabled) ?? false
+        self.metalValidation = try container.decodeIfPresent(Bool.self, forKey: .metalValidation) ?? false
+        self.forceGPUFamily = try container.decodeIfPresent(String.self, forKey: .forceGPUFamily)
+        self.sequoiaCompatMode = try container.decodeIfPresent(Bool.self, forKey: .sequoiaCompatMode) ?? true
     }
 }
 
@@ -225,6 +231,16 @@ public struct BottleSettings: Codable, Equatable {
         set { metalConfig.dxrEnabled = newValue }
     }
 
+    public var metalValidation: Bool {
+        get { return metalConfig.metalValidation }
+        set { metalConfig.metalValidation = newValue }
+    }
+
+    public var sequoiaCompatMode: Bool {
+        get { return metalConfig.sequoiaCompatMode }
+        set { metalConfig.sequoiaCompatMode = newValue }
+    }
+
     public var dxvk: Bool {
         get { return dxvkConfig.dxvk }
         set { dxvkConfig.dxvk = newValue }
@@ -324,6 +340,28 @@ public struct BottleSettings: Codable, Equatable {
 
         if dxrEnabled {
             wineEnv.updateValue("1", forKey: "D3DM_SUPPORT_DXR")
+        }
+
+        // Metal validation - useful for debugging but can impact performance
+        if metalValidation {
+            wineEnv.updateValue("1", forKey: "MTL_DEBUG_LAYER")
+        }
+
+        // macOS Sequoia compatibility mode (#1310, #1372)
+        // Applies additional fixes for graphics and launcher issues on macOS 15.x
+        if sequoiaCompatMode {
+            // Disable problematic Metal shader validation on Sequoia
+            // This helps fix graphics corruption issues (#1310)
+            if wineEnv["MTL_DEBUG_LAYER"] == nil {
+                wineEnv.updateValue("0", forKey: "MTL_DEBUG_LAYER")
+            }
+
+            // Stability improvements for D3DMetal on macOS 15.x
+            wineEnv.updateValue("0", forKey: "D3DM_VALIDATION")
+
+            // Help with Steam and launcher compatibility (#1307, #1372)
+            // Disable Wine's fsync which has issues on Sequoia
+            wineEnv.updateValue("0", forKey: "WINEFSYNC")
         }
     }
 }

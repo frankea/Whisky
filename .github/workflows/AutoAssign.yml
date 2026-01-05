@@ -1,0 +1,24 @@
+name: Auto Assign
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+
+jobs:
+  assign:
+    name: Assign
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign to maintainers
+        uses: actions/github@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              assignees: ['frankea']  // Replace with your GitHub username
+            })

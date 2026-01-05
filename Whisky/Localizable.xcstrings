@@ -4084,6 +4084,26 @@
         }
       }
     },
+    "config.sequoiaCompat" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sequoia Compatibility Mode"
+          }
+        }
+      }
+    },
+    "config.sequoiaCompat.info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies fixes for Steam and graphics issues on macOS 15.x"
+          }
+        }
+      }
+    },
     "config.dxvk" : {
       "localizations" : {
         "ar" : {

@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  ConfigView.swift
 //  Whisky
@@ -26,6 +27,7 @@ enum LoadingState {
     case failed
 }
 
+// swiftlint:disable:next type_body_length
 struct ConfigView: View {
     @ObservedObject var bottle: Bottle
     @State private var buildVersion: Int = 0
@@ -39,6 +41,7 @@ struct ConfigView: View {
     @AppStorage("wineSectionExpanded") private var wineSectionExpanded: Bool = true
     @AppStorage("dxvkSectionExpanded") private var dxvkSectionExpanded: Bool = true
     @AppStorage("metalSectionExpanded") private var metalSectionExpanded: Bool = true
+    @AppStorage("performanceSectionExpanded") private var performanceSectionExpanded: Bool = true
 
     var body: some View {
         Form {
@@ -162,11 +165,70 @@ struct ConfigView: View {
                     }
                 }
             }
+            Section("config.title.performance", isExpanded: $performanceSectionExpanded) {
+                Picker("config.performancePreset", selection: $bottle.settings.performancePreset) {
+                    ForEach(PerformancePreset.allCases, id: \.self) { preset in
+                        Text(preset.description()).tag(preset)
+                    }
+                }
+                // Show description of current preset
+                if bottle.settings.performancePreset != .balanced {
+                    HStack {
+                        Image(systemName: presetIcon(for: bottle.settings.performancePreset))
+                            .foregroundColor(.secondary)
+                        Text(presetDescription(for: bottle.settings.performancePreset))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                Toggle(isOn: $bottle.settings.shaderCacheEnabled) {
+                    VStack(alignment: .leading) {
+                        Text("config.shaderCache")
+                        Text("config.shaderCache.info")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                Toggle(isOn: $bottle.settings.forceD3D11) {
+                    VStack(alignment: .leading) {
+                        Text("config.forceD3D11")
+                        Text("config.forceD3D11.info")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                // Install VC++ Runtime button for Unity games
+                if !bottle.settings.vcRedistInstalled {
+                    Button {
+                        Task {
+                            await Winetricks.runCommand(command: "vcrun2019", bottle: bottle)
+                            bottle.settings.vcRedistInstalled = true
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "wrench.and.screwdriver")
+                            VStack(alignment: .leading) {
+                                Text("config.installVcRedist")
+                                Text("config.installVcRedist.info")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                } else {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        Text("config.vcRedistInstalled")
+                    }
+                }
+            }
         }
         .formStyle(.grouped)
         .animation(.whiskyDefault, value: wineSectionExpanded)
         .animation(.whiskyDefault, value: dxvkSectionExpanded)
         .animation(.whiskyDefault, value: metalSectionExpanded)
+        .animation(.whiskyDefault, value: performanceSectionExpanded)
         .bottomBar {
             HStack {
                 Spacer()
@@ -273,6 +335,34 @@ struct ConfigView: View {
                 print(error)
                 buildVersionLoadingState = .failed
             }
+        }
+    }
+
+    // MARK: - Performance Preset Helpers
+
+    func presetIcon(for preset: PerformancePreset) -> String {
+        switch preset {
+        case .balanced:
+            return "scale.3d"
+        case .performance:
+            return "bolt.fill"
+        case .quality:
+            return "sparkles"
+        case .unity:
+            return "cube.fill"
+        }
+    }
+
+    func presetDescription(for preset: PerformancePreset) -> String {
+        switch preset {
+        case .balanced:
+            return String(localized: "config.preset.balanced.desc")
+        case .performance:
+            return String(localized: "config.preset.performance.desc")
+        case .quality:
+            return String(localized: "config.preset.quality.desc")
+        case .unity:
+            return String(localized: "config.preset.unity.desc")
         }
     }
 }

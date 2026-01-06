@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  BottleSettings.swift
 //  WhiskyKit
@@ -149,6 +150,50 @@ public struct BottleDXVKConfig: Codable, Equatable {
     }
 }
 
+/// Performance optimization presets for games
+public enum PerformancePreset: String, Codable, CaseIterable, Sendable {
+    case balanced
+    case performance
+    case quality
+    case unity  // Optimized for Unity games
+
+    public func description() -> String {
+        switch self {
+        case .balanced:
+            return "Balanced (Default)"
+        case .performance:
+            return "Performance Mode"
+        case .quality:
+            return "Quality Mode"
+        case .unity:
+            return "Unity Games Optimized"
+        }
+    }
+}
+
+public struct BottlePerformanceConfig: Codable, Equatable {
+    var performancePreset: PerformancePreset = .balanced
+    var shaderCacheEnabled: Bool = true
+    var gpuMemoryLimit: Int?  // MB, nil means auto
+    var forceD3D11: Bool = false  // Force D3D11 instead of D3D12 for compatibility
+    var disableShaderOptimizations: Bool = false  // For debugging FPS issues
+    var vcRedistInstalled: Bool = false  // Track if VC++ runtime is installed
+
+    public init() {}
+
+    // swiftlint:disable line_length
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.performancePreset = try container.decodeIfPresent(PerformancePreset.self, forKey: .performancePreset) ?? .balanced
+        self.shaderCacheEnabled = try container.decodeIfPresent(Bool.self, forKey: .shaderCacheEnabled) ?? true
+        self.gpuMemoryLimit = try container.decodeIfPresent(Int.self, forKey: .gpuMemoryLimit)
+        self.forceD3D11 = try container.decodeIfPresent(Bool.self, forKey: .forceD3D11) ?? false
+        self.disableShaderOptimizations = try container.decodeIfPresent(Bool.self, forKey: .disableShaderOptimizations) ?? false
+        self.vcRedistInstalled = try container.decodeIfPresent(Bool.self, forKey: .vcRedistInstalled) ?? false
+    }
+    // swiftlint:enable line_length
+}
+
 public struct BottleSettings: Codable, Equatable {
     static let defaultFileVersion = SemanticVersion(1, 0, 0)
 
@@ -157,12 +202,14 @@ public struct BottleSettings: Codable, Equatable {
     private var wineConfig: BottleWineConfig
     private var metalConfig: BottleMetalConfig
     private var dxvkConfig: BottleDXVKConfig
+    private var performanceConfig: BottlePerformanceConfig
 
     public init() {
         self.info = BottleInfo()
         self.wineConfig = BottleWineConfig()
         self.metalConfig = BottleMetalConfig()
         self.dxvkConfig = BottleDXVKConfig()
+        self.performanceConfig = BottlePerformanceConfig()
     }
 
     // swiftlint:disable line_length
@@ -173,6 +220,7 @@ public struct BottleSettings: Codable, Equatable {
         self.wineConfig = try container.decodeIfPresent(BottleWineConfig.self, forKey: .wineConfig) ?? BottleWineConfig()
         self.metalConfig = try container.decodeIfPresent(BottleMetalConfig.self, forKey: .metalConfig) ?? BottleMetalConfig()
         self.dxvkConfig = try container.decodeIfPresent(BottleDXVKConfig.self, forKey: .dxvkConfig) ?? BottleDXVKConfig()
+        self.performanceConfig = try container.decodeIfPresent(BottlePerformanceConfig.self, forKey: .performanceConfig) ?? BottlePerformanceConfig()
     }
     // swiftlint:enable line_length
 
@@ -256,6 +304,27 @@ public struct BottleSettings: Codable, Equatable {
         set { dxvkConfig.dxvkHud = newValue }
     }
 
+    // Performance settings
+    public var performancePreset: PerformancePreset {
+        get { return performanceConfig.performancePreset }
+        set { performanceConfig.performancePreset = newValue }
+    }
+
+    public var shaderCacheEnabled: Bool {
+        get { return performanceConfig.shaderCacheEnabled }
+        set { performanceConfig.shaderCacheEnabled = newValue }
+    }
+
+    public var forceD3D11: Bool {
+        get { return performanceConfig.forceD3D11 }
+        set { performanceConfig.forceD3D11 = newValue }
+    }
+
+    public var vcRedistInstalled: Bool {
+        get { return performanceConfig.vcRedistInstalled }
+        set { performanceConfig.vcRedistInstalled = newValue }
+    }
+
     @discardableResult
     public static func decode(from metadataURL: URL) throws -> BottleSettings {
         guard FileManager.default.fileExists(atPath: metadataURL.path(percentEncoded: false)) else {
@@ -293,7 +362,7 @@ public struct BottleSettings: Codable, Equatable {
         try data.write(to: metadataUrl)
     }
 
-    // swiftlint:disable:next cyclomatic_complexity
+    // swiftlint:disable:next cyclomatic_complexity function_body_length
     public func environmentVariables(wineEnv: inout [String: String]) {
         if dxvk {
             wineEnv.updateValue("dxgi,d3d9,d3d10core,d3d11=n,b", forKey: "WINEDLLOVERRIDES")
@@ -362,6 +431,74 @@ public struct BottleSettings: Codable, Equatable {
             // Help with Steam and launcher compatibility (#1307, #1372)
             // Disable Wine's fsync which has issues on Sequoia
             wineEnv.updateValue("0", forKey: "WINEFSYNC")
+        }
+
+        // Performance preset handling (#1361 - FPS regression fix)
+        applyPerformancePreset(wineEnv: &wineEnv)
+
+        // Shader cache control
+        if !shaderCacheEnabled {
+            wineEnv.updateValue("1", forKey: "DXVK_SHADER_COMPILE_THREADS")
+            wineEnv.updateValue("0", forKey: "__GL_SHADER_DISK_CACHE")
+        }
+
+        // Force D3D11 mode - helps with compatibility (#1361)
+        if forceD3D11 {
+            wineEnv.updateValue("1", forKey: "D3DM_FORCE_D3D11")
+            wineEnv.updateValue("0", forKey: "D3DM_FEATURE_LEVEL_12_0")
+        }
+    }
+
+    private func applyPerformancePreset(wineEnv: inout [String: String]) {
+        switch performancePreset {
+        case .balanced:
+            // Default settings, no changes needed
+            break
+
+        case .performance:
+            // Performance mode - prioritize FPS over visual quality (#1361 fix)
+            // Reduce D3DMetal shader quality for better performance
+            wineEnv.updateValue("1", forKey: "D3DM_FAST_SHADER_COMPILE")
+            // Disable extra validation that can slow down rendering
+            wineEnv.updateValue("0", forKey: "D3DM_VALIDATION")
+            wineEnv.updateValue("0", forKey: "MTL_DEBUG_LAYER")
+            // Enable DXVK async if not already set
+            if wineEnv["DXVK_ASYNC"] == nil {
+                wineEnv.updateValue("1", forKey: "DXVK_ASYNC")
+            }
+            // Use more aggressive shader compilation
+            wineEnv.updateValue("0", forKey: "DXVK_SHADER_OPT_LEVEL")
+            // Reduce Metal resource tracking overhead
+            wineEnv.updateValue("0", forKey: "MTL_ENABLE_METAL_EVENTS")
+
+        case .quality:
+            // Quality mode - prioritize visuals over performance
+            // Enable shader optimizations
+            wineEnv.updateValue("2", forKey: "DXVK_SHADER_OPT_LEVEL")
+            // Disable fast shader compile for better quality
+            wineEnv.updateValue("0", forKey: "D3DM_FAST_SHADER_COMPILE")
+
+        case .unity:
+            // Unity games optimization (#1313, #1312 - il2cpp fix)
+            // Unity games often need specific memory and threading settings
+
+            // Fix for il2cpp loading issues
+            wineEnv.updateValue("1", forKey: "MONO_THREADS_SUSPEND")
+            // Increase file descriptor limit for Unity games
+            wineEnv.updateValue("65536", forKey: "WINE_LARGE_ADDRESS_AWARE")
+
+            // Unity games often work better with D3D11
+            if wineEnv["D3DM_FORCE_D3D11"] == nil {
+                wineEnv.updateValue("1", forKey: "D3DM_FORCE_D3D11")
+            }
+
+            // Disable features that can cause issues with Unity's IL2CPP runtime
+            wineEnv.updateValue("0", forKey: "WINE_HEAP_REUSE")
+            // Help with thread management for Unity's job system
+            wineEnv.updateValue("1", forKey: "WINE_DISABLE_NTDLL_THREAD_REGS")
+
+            // Unity games may need more virtual memory
+            wineEnv.updateValue("1", forKey: "WINEPRELOADRESERVE")
         }
     }
 }

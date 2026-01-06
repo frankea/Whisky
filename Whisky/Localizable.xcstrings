@@ -4104,6 +4104,136 @@
         }
       }
     },
+    "config.title.performance" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Performance"
+          }
+        }
+      }
+    },
+    "config.performancePreset" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Performance Preset"
+          }
+        }
+      }
+    },
+    "config.shaderCache" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shader Cache"
+          }
+        }
+      }
+    },
+    "config.shaderCache.info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cache compiled shaders for faster loading"
+          }
+        }
+      }
+    },
+    "config.forceD3D11" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Force DirectX 11"
+          }
+        }
+      }
+    },
+    "config.forceD3D11.info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use D3D11 mode for better compatibility with older games"
+          }
+        }
+      }
+    },
+    "config.installVcRedist" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install VC++ Runtime"
+          }
+        }
+      }
+    },
+    "config.installVcRedist.info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Required for Unity games (fixes il2cpp errors)"
+          }
+        }
+      }
+    },
+    "config.vcRedistInstalled" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VC++ Runtime Installed"
+          }
+        }
+      }
+    },
+    "config.preset.balanced.desc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default settings for most games"
+          }
+        }
+      }
+    },
+    "config.preset.performance.desc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prioritizes FPS over visual quality. Good for FPS drops."
+          }
+        }
+      }
+    },
+    "config.preset.quality.desc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prioritizes visual quality over performance."
+          }
+        }
+      }
+    },
+    "config.preset.unity.desc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optimized for Unity/IL2CPP games (Genshin, etc.)"
+          }
+        }
+      }
+    },
     "config.dxvk" : {
       "localizations" : {
         "ar" : {

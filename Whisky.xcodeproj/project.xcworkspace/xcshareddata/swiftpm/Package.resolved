@@ -1,4 +1,5 @@
 {
+  "originHash" : "10089079d78380f130f96af5e7c1cfaca419c05af09feef934de813f8b0c2041",
   "pins" : [
     {
       "identity" : "progress.swift",
@@ -23,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sparkle-project/Sparkle",
       "state" : {
-        "branch" : "2.x",
-        "revision" : "8de8db001ea3c781f5e2b1c9abe851209dd8c08a"
+        "revision" : "5581748cef2bae787496fe6d61139aebe0a451f6",
+        "version" : "2.8.1"
       }
     },
     {
@@ -46,5 +47,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }

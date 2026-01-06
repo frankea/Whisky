@@ -77,8 +77,11 @@ struct WhiskyApp: App {
                     panel.begin { result in
                         if result == .OK {
                             if let url = panel.urls.first {
-                                BottleVM.shared.bottlesList.paths.append(url)
-                                BottleVM.shared.loadBottles()
+                                // Ensure we're on the MainActor when modifying @MainActor-isolated BottleVM
+                                Task { @MainActor in
+                                    BottleVM.shared.bottlesList.paths.append(url)
+                                    BottleVM.shared.loadBottles()
+                                }
                             }
                         }
                     }

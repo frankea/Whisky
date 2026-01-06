@@ -53,6 +53,7 @@ public struct MacOSVersion: Comparable, Sendable {
     }
 }
 
+// swiftlint:disable:next type_body_length
 public class Wine {
     /// URL to the installed `DXVK` folder
     private static let dxvkFolder: URL = WhiskyWineInstaller.libraryFolder.appending(path: "DXVK")
@@ -243,8 +244,9 @@ public class Wine {
         return result.joined()
     }
 
-    @discardableResult
     /// Run a `wine` command without a bottle context (e.g., for --version queries)
+    @discardableResult
+    @MainActor
     public static func runWineWithoutBottle(
         _ args: [String], environment: [String: String] = [:]
     ) async throws -> String {
@@ -264,6 +266,7 @@ public class Wine {
         return result.joined()
     }
 
+    @MainActor
     public static func wineVersion() async throws -> String {
         var output = try await runWineWithoutBottle(["--version"])
         output.replace("wine-", with: "")

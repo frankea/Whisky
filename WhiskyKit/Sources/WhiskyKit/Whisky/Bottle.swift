@@ -31,7 +31,7 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
     @Published public var inFlight: Bool = false
     public var isAvailable: Bool = false
 
-    // MARK: - Sendable Conformance (nonisolated properties for cross-actor use)
+    // MARK: - Cross-actor access (nonisolated members on @MainActor Bottle)
 
     /// Unique identifier usable from any thread
     nonisolated public var id: URL {

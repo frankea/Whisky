@@ -49,7 +49,7 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
 
     public let peFile: PEFile?
 
-    // MARK: - Sendable Conformance (nonisolated properties for cross-actor use)
+    // MARK: - Cross-actor access (nonisolated members on @MainActor type)
 
     /// Unique identifier usable from any thread
     nonisolated public var id: URL {

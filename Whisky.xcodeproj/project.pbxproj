@@ -1020,8 +1020,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sparkle-project/Sparkle";
 			requirement = {
-				branch = 2.x;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.0;
 			};
 		};
 		6E5967682A9A421800D64F70 /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {

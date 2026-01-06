@@ -34,7 +34,7 @@ public class Rosetta2 {
         process.arguments = ["--install-rosetta", "--agree-to-license"]
         process.standardOutput = fileHandle
         process.standardError = fileHandle
-        fileHandle.writeApplicaitonInfo()
+        fileHandle.writeApplicationInfo()
         fileHandle.writeInfo(for: process)
 
         return try await withCheckedThrowingContinuation { continuation in

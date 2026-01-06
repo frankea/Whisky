@@ -288,10 +288,16 @@ public class Wine {
         return try await runWine(["cmd", "/c", url.path(percentEncoded: false)], bottle: bottle)
     }
 
+    /// Kill all processes in a bottle's wineserver (fire-and-forget)
+    /// - Note: This is intentionally non-blocking. Errors are logged but not propagated.
     @MainActor
-    public static func killBottle(bottle: Bottle) throws {
+    public static func killBottle(bottle: Bottle) {
         Task {
-            try await runWineserver(["-k"], bottle: bottle)
+            do {
+                _ = try await runWineserver(["-k"], bottle: bottle)
+            } catch {
+                Logger.wineKit.error("Failed to kill bottle '\(bottle.settings.name)': \(error.localizedDescription)")
+            }
         }
     }
 

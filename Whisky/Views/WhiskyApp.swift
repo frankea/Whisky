@@ -127,11 +127,8 @@ struct WhiskyApp: App {
 
     static func killBottles() {
         for bottle in BottleVM.shared.bottles {
-            do {
-                try Wine.killBottle(bottle: bottle)
-            } catch {
-                logger.error("Failed to kill bottle: \(error.localizedDescription)")
-            }
+            // killBottle is fire-and-forget; errors are logged internally
+            Wine.killBottle(bottle: bottle)
         }
     }
 

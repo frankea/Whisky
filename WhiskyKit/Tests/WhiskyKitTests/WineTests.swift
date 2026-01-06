@@ -149,9 +149,8 @@ final class WineTests: XCTestCase {
         let testURL = URL(fileURLWithPath: "/Applications/Test App.exe")
         let escaped = testURL.esc
 
-        // The escaped string should handle spaces and special characters properly
+        // Verify the exact expected escaped output
         XCTAssertFalse(escaped.isEmpty)
-        XCTAssertTrue(escaped.contains("\\ "), "Spaces should be escaped")
         XCTAssertEqual(escaped, "/Applications/Test\\ App.exe")
     }
 

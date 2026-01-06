@@ -178,12 +178,18 @@ final class EnvironmentVariablesTests: XCTestCase {
     func testEnvironmentVariablesWithPerformancePreset() {
         var settings = BottleSettings()
         settings.performancePreset = .performance
+        settings.sequoiaCompatMode = false  // Disable to test performance preset in isolation
 
         var env: [String: String] = [:]
         settings.environmentVariables(wineEnv: &env)
 
+        // Performance preset - prioritize FPS over visual quality
         XCTAssertEqual(env["D3DM_FAST_SHADER_COMPILE"], "1")
         XCTAssertEqual(env["D3DM_VALIDATION"], "0")
+        XCTAssertEqual(env["MTL_DEBUG_LAYER"], "0")
+        XCTAssertEqual(env["DXVK_ASYNC"], "1")
+        XCTAssertEqual(env["DXVK_SHADER_OPT_LEVEL"], "0")
+        XCTAssertEqual(env["MTL_ENABLE_METAL_EVENTS"], "0")
     }
 
     func testEnvironmentVariablesWithQualityPreset() {
@@ -206,10 +212,13 @@ final class EnvironmentVariablesTests: XCTestCase {
         var env: [String: String] = [:]
         settings.environmentVariables(wineEnv: &env)
 
+        // Unity preset - il2cpp and threading optimizations
         XCTAssertEqual(env["MONO_THREADS_SUSPEND"], "1")
         XCTAssertEqual(env["WINE_LARGE_ADDRESS_AWARE"], "65536")
         XCTAssertEqual(env["D3DM_FORCE_D3D11"], "1")
         XCTAssertEqual(env["WINE_HEAP_REUSE"], "0")
+        XCTAssertEqual(env["WINE_DISABLE_NTDLL_THREAD_REGS"], "1")
+        XCTAssertEqual(env["WINEPRELOADRESERVE"], "1")
     }
 
     // MARK: - D3D11 and Shader Cache

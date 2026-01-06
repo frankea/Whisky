@@ -13,7 +13,9 @@ updates:
       - "dependencies"
     open-pull-requests-limit: 5
     
-  # Maintain dependencies for Swift Package Manager (WhiskyKit)
+  # Maintain dependencies for WhiskyKit's standalone Swift package (WhiskyKit/Package.swift only)
+  # Note: Main Whisky project dependencies (Sparkle, etc.) are in Xcode project-based SPM
+  # which Dependabot doesn't support - only standalone Package.swift files are tracked
   - package-ecosystem: "swift"
     directory: "/WhiskyKit"
     schedule:
@@ -24,7 +26,3 @@ updates:
     labels:
       - "dependencies"
     open-pull-requests-limit: 5
-    ignore:
-      # Ignore patch versions for Sparkle to avoid noise
-      - dependency-name: "Sparkle"
-        update-types: ["version-update:semver-patch"]

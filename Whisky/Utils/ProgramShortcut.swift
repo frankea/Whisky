@@ -41,6 +41,7 @@ class ProgramShortcut {
         </plist>
         """
 
+    @MainActor
     private static func generateThumbnail(for url: URL) async -> NSImage? {
         let request = QLThumbnailGenerator.Request(fileAt: url,
                                                    size: CGSize(width: 512, height: 512),

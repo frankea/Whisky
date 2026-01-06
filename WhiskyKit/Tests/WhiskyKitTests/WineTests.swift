@@ -104,12 +104,12 @@ final class WineTests: XCTestCase {
     }
 
     func testMacOSVersionGreaterThanOrEqual() {
-        let version15_3 = MacOSVersion.sequoia15_3
-        let version15_4 = MacOSVersion.sequoia15_4
+        let sequoia153 = MacOSVersion.sequoia15_3
+        let sequoia154 = MacOSVersion.sequoia15_4
 
-        XCTAssertTrue(version15_4 >= version15_3)
-        XCTAssertTrue(version15_3 >= version15_3)
-        XCTAssertFalse(version15_3 >= version15_4)
+        XCTAssertTrue(sequoia154 >= sequoia153)
+        XCTAssertTrue(sequoia153 >= sequoia153)
+        XCTAssertFalse(sequoia153 >= sequoia154)
     }
 
     // MARK: - RegistryType Tests

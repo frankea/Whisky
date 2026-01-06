@@ -82,7 +82,7 @@ struct BottleListEntry: View {
                         if result == .OK {
                             if let url = panel.url {
                                 Task {
-                                    await bottle.exportAsArchive(destination: url)
+                                    bottle.exportAsArchive(destination: url)
                                 }
                             }
                         }

@@ -153,12 +153,13 @@ public class Wine {
     public static func generateRunCommand(
         at url: URL, bottle: Bottle, args: String, environment: [String: String]
     ) -> String {
-        // Escape args to prevent shell injection from user-editable settings
+        // Escape args and environment values to prevent shell injection from user-editable settings
         let escapedArgs = args.esc
         var wineCmd = "\(wineBinary.esc) start /unix \(url.esc) \(escapedArgs)"
         let wineEnv = constructWineEnvironment(for: bottle, environment: environment)
         for envVar in wineEnv {
-            wineCmd = "\(envVar.key)=\"\(envVar.value)\" " + wineCmd
+            // Escape both key and value to prevent shell injection
+            wineCmd = "\(envVar.key.esc)=\"\(envVar.value.esc)\" " + wineCmd
         }
 
         return wineCmd
@@ -167,7 +168,7 @@ public class Wine {
     @MainActor
     public static func generateTerminalEnvironmentCommand(bottle: Bottle) -> String {
         var cmd = """
-        export PATH=\"\(WhiskyWineInstaller.binFolder.path):$PATH\"
+        export PATH=\"\(WhiskyWineInstaller.binFolder.path.esc):$PATH\"
         export WINE=\"wine64\"
         alias wine=\"wine64\"
         alias winecfg=\"wine64 winecfg\"
@@ -182,8 +183,9 @@ public class Wine {
         """
 
         let env = constructWineEnvironment(for: bottle, environment: constructWineEnvironment(for: bottle))
-        for environment in env {
-            cmd += "\nexport \(environment.key)=\"\(environment.value)\""
+        for envVar in env {
+            // Escape both key and value to prevent shell injection
+            cmd += "\nexport \(envVar.key.esc)=\"\(envVar.value.esc)\""
         }
 
         return cmd

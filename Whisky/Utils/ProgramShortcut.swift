@@ -63,7 +63,8 @@ class ProgramShortcut {
             let script = "#!/bin/bash\n\(program.generateTerminalCommand())"
             let scriptUrl = macos.appending(path: "launch")
             try script.write(to: scriptUrl, atomically: false, encoding: .utf8)
-            try FileManager.default.setAttributes([.posixPermissions: 0o777],
+            // Use 0o755 (owner write, world read+execute) for security - prevents other users from modifying
+            try FileManager.default.setAttributes([.posixPermissions: 0o755],
                                                   ofItemAtPath: scriptUrl.path(percentEncoded: false))
 
             try infoPlist.write(to: contents.appending(path: "Info").appendingPathExtension("plist"),

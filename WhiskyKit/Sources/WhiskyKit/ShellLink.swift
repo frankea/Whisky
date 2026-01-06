@@ -20,6 +20,7 @@ import Foundation
 import AppKit
 
 public struct ShellLinkHeader {
+    @MainActor
     public static func getProgram(url: URL, handle: FileHandle, bottle: Bottle) -> Program? {
         var offset: UInt64 = 0
         let headerSize = handle.extract(UInt32.self) ?? 0
@@ -57,6 +58,7 @@ public struct LinkFlags: OptionSet, Hashable, Sendable {
     static let hasIconLocation = LinkFlags(rawValue: 1 << 6)
 }
 
+@MainActor
 public struct LinkInfo: Hashable {
     public var linkInfoFlags: LinkInfoFlags
     public var program: Program?

@@ -45,6 +45,7 @@ class Winetricks {
     static let winetricksURL: URL = WhiskyWineInstaller.libraryFolder
         .appending(path: "winetricks")
 
+    @MainActor
     static func runCommand(command: String, bottle: Bottle) async {
         guard let resourcesURL = Bundle.main.url(forResource: "cabextract", withExtension: nil)?
             .deletingLastPathComponent() else { return }

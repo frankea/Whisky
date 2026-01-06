@@ -20,9 +20,8 @@ import Foundation
 import SwiftUI
 import os.log
 
-// swiftlint:disable:next todo
-// TODO: Should not be unchecked!
-public final class Program: ObservableObject, Equatable, Hashable, Identifiable, @unchecked Sendable {
+@MainActor
+public final class Program: ObservableObject, Equatable, Hashable, Identifiable {
     public let bottle: Bottle
     public let url: URL
     public let settingsURL: URL
@@ -49,6 +48,13 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable,
     }
 
     public let peFile: PEFile?
+
+    // MARK: - Sendable Conformance (nonisolated properties for cross-actor use)
+
+    /// Unique identifier usable from any thread
+    nonisolated public var id: URL {
+        url
+    }
 
     public init(url: URL, bottle: Bottle) {
         let name = url.lastPathComponent
@@ -99,19 +105,13 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable,
 
     // MARK: - Equatable
 
-    public static func == (lhs: Program, rhs: Program) -> Bool {
+    nonisolated public static func == (lhs: Program, rhs: Program) -> Bool {
         return lhs.url == rhs.url
     }
 
     // MARK: - Hashable
 
-    public func hash(into hasher: inout Hasher) {
-        return hasher.combine(url)
-    }
-
-    // MARK: - Identifiable
-
-    public var id: URL {
-        self.url
+    nonisolated public func hash(into hasher: inout Hasher) {
+        hasher.combine(url)
     }
 }

@@ -101,6 +101,7 @@ public class Wine {
     }
 
     /// Run a `wine` process with the given arguments and environment variables returning a stream of output
+    @MainActor
     public static func runWineProcess(
         name: String? = nil, args: [String], bottle: Bottle, environment: [String: String] = [:]
     ) throws -> AsyncStream<ProcessOutput> {
@@ -116,6 +117,7 @@ public class Wine {
     }
 
     /// Run a `wineserver` process with the given arguments and environment variables returning a stream of output
+    @MainActor
     public static func runWineserverProcess(
         name: String? = nil, args: [String], bottle: Bottle, environment: [String: String] = [:]
     ) throws -> AsyncStream<ProcessOutput> {
@@ -131,6 +133,7 @@ public class Wine {
     }
 
     /// Execute a `wine start /unix {url}` command returning the output result
+    @MainActor
     public static func runProgram(
         at url: URL, args: [String] = [], bottle: Bottle, environment: [String: String] = [:]
     ) async throws {
@@ -145,6 +148,7 @@ public class Wine {
         ) { }
     }
 
+    @MainActor
     public static func generateRunCommand(
         at url: URL, bottle: Bottle, args: String, environment: [String: String]
     ) -> String {
@@ -157,6 +161,7 @@ public class Wine {
         return wineCmd
     }
 
+    @MainActor
     public static func generateTerminalEnvironmentCommand(bottle: Bottle) -> String {
         var cmd = """
         export PATH=\"\(WhiskyWineInstaller.binFolder.path):$PATH\"
@@ -182,6 +187,7 @@ public class Wine {
     }
 
     /// Run a `wineserver` command with the given arguments and return the output result
+    @MainActor
     private static func runWineserver(_ args: [String], bottle: Bottle) async throws -> String {
         var result: [ProcessOutput] = []
 
@@ -200,19 +206,37 @@ public class Wine {
     }
 
     @discardableResult
+    @MainActor
     /// Run a `wine` command with the given arguments and return the output result
     public static func runWine(
-        _ args: [String], bottle: Bottle?, environment: [String: String] = [:]
+        _ args: [String], bottle: Bottle, environment: [String: String] = [:]
     ) async throws -> String {
         var result: [String] = []
         let fileHandle = try makeFileHandle()
         fileHandle.writeApplicationInfo()
-        var environment = environment
+        fileHandle.writeInfo(for: bottle)
+        let environment = constructWineEnvironment(for: bottle, environment: environment)
 
-        if let bottle = bottle {
-            fileHandle.writeInfo(for: bottle)
-            environment = constructWineEnvironment(for: bottle, environment: environment)
+        for await output in try runWineProcess(args: args, environment: environment, fileHandle: fileHandle) {
+            switch output {
+            case .started, .terminated:
+                break
+            case .message(let message), .error(let message):
+                result.append(message)
+            }
         }
+
+        return result.joined()
+    }
+
+    @discardableResult
+    /// Run a `wine` command without a bottle context (e.g., for --version queries)
+    public static func runWineWithoutBottle(
+        _ args: [String], environment: [String: String] = [:]
+    ) async throws -> String {
+        var result: [String] = []
+        let fileHandle = try makeFileHandle()
+        fileHandle.writeApplicationInfo()
 
         for await output in try runWineProcess(args: args, environment: environment, fileHandle: fileHandle) {
             switch output {
@@ -227,23 +251,25 @@ public class Wine {
     }
 
     public static func wineVersion() async throws -> String {
-        var output = try await runWine(["--version"], bottle: nil)
+        var output = try await runWineWithoutBottle(["--version"])
         output.replace("wine-", with: "")
 
         // Deal with WineCX version names
         if let index = output.firstIndex(where: { $0.isWhitespace }) {
             return String(output.prefix(upTo: index))
         }
-        return output.trimmingCharacters(in: .whitespacesAndNewlines)
+        return output.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
     }
 
     @discardableResult
+    @MainActor
     public static func runBatchFile(url: URL, bottle: Bottle) async throws -> String {
         return try await runWine(["cmd", "/c", url.path(percentEncoded: false)], bottle: bottle)
     }
 
+    @MainActor
     public static func killBottle(bottle: Bottle) throws {
-        Task.detached(priority: .userInitiated) {
+        Task {
             try await runWineserver(["-k"], bottle: bottle)
         }
     }
@@ -260,6 +286,7 @@ public class Wine {
     }
 
     /// Construct an environment merging the bottle values with the given values
+    @MainActor
     private static func constructWineEnvironment(
         for bottle: Bottle, environment: [String: String] = [:]
     ) -> [String: String] {
@@ -279,6 +306,7 @@ public class Wine {
     }
 
     /// Construct an environment merging the bottle values with the given values
+    @MainActor
     private static func constructWineServerEnvironment(
         for bottle: Bottle, environment: [String: String] = [:]
     ) -> [String: String] {

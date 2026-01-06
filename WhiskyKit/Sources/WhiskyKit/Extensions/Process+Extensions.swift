@@ -19,7 +19,7 @@
 import Foundation
 import os.log
 
-public enum ProcessOutput: Hashable {
+public enum ProcessOutput: Hashable, @unchecked Sendable {
     case started(Process)
     case message(String)
     case error(String)

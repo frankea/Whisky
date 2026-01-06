@@ -57,6 +57,7 @@ public struct BottleData: Codable {
         }
     }
 
+    @MainActor
     public mutating func loadBottles() -> [Bottle] {
         var bottles: [Bottle] = []
 

@@ -40,10 +40,11 @@ struct Whisky: ParsableCommand {
 }
 
 extension Whisky {
-    struct List: ParsableCommand {
+    struct List: AsyncParsableCommand {
         static let configuration = CommandConfiguration(abstract: "List existing bottles.")
 
-        mutating func run() throws {
+        @MainActor
+        mutating func run() async throws {
             var bottlesList = BottleData()
             let bottles = bottlesList.loadBottles()
 
@@ -62,12 +63,13 @@ extension Whisky {
         }
     }
 
-    struct Create: ParsableCommand {
+    struct Create: AsyncParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Create a new bottle.")
 
         @Argument var name: String
 
-        mutating func run() throws {
+        @MainActor
+        mutating func run() async throws {
             let bottleURL = BottleData.defaultBottleDir.appending(path: UUID().uuidString)
 
             do {
@@ -113,12 +115,13 @@ extension Whisky {
         }
     }
 
-    struct Delete: ParsableCommand {
+    struct Delete: AsyncParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Delete an existing bottle from disk.")
 
         @Argument var name: String
 
-        mutating func run() throws {
+        @MainActor
+        mutating func run() async throws {
             var bottlesList = BottleData()
             let bottles = bottlesList.loadBottles()
 
@@ -138,13 +141,14 @@ extension Whisky {
         }
     }
 
-    struct Remove: ParsableCommand {
+    struct Remove: AsyncParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Remove an existing bottle from Whisky.",
                                                         discussion: "This will not remove the bottle from disk.")
 
         @Argument var name: String
 
-        mutating func run() throws {
+        @MainActor
+        mutating func run() async throws {
             var bottlesList = BottleData()
             let bottles = bottlesList.loadBottles()
 
@@ -158,14 +162,15 @@ extension Whisky {
         }
     }
 
-    struct Run: ParsableCommand {
+    struct Run: AsyncParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Run a program with Whisky.")
 
         @Argument var bottleName: String
         @Argument var path: String
         @Argument var args: [String] = []
 
-        mutating func run() throws {
+        @MainActor
+        mutating func run() async throws {
             var bottlesList = BottleData()
             let bottles = bottlesList.loadBottles()
 
@@ -179,12 +184,13 @@ extension Whisky {
         }
     }
 
-    struct Shellenv: ParsableCommand {
+    struct Shellenv: AsyncParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Prints export statements for a Bottle for eval.")
 
         @Argument var bottleName: String
 
-        mutating func run() throws {
+        @MainActor
+        mutating func run() async throws {
             var bottlesList = BottleData()
             let bottles = bottlesList.loadBottles()
 

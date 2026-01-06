@@ -81,8 +81,8 @@ struct BottleListEntry: View {
                     panel.begin { result in
                         if result == .OK {
                             if let url = panel.url {
-                                Task.detached(priority: .background) {
-                                    bottle.exportAsArchive(destination: url)
+                                Task {
+                                    await bottle.exportAsArchive(destination: url)
                                 }
                             }
                         }

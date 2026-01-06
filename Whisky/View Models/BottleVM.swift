@@ -48,15 +48,13 @@ private let bottleVMLogger = Logger(
     category: "BottleVM"
 )
 
-// swiftlint:disable:next todo
-// TODO: Don't use unchecked!
-final class BottleVM: ObservableObject, @unchecked Sendable {
-    @MainActor static let shared = BottleVM()
+@MainActor
+final class BottleVM: ObservableObject {
+    static let shared = BottleVM()
 
     var bottlesList = BottleData()
     @Published var bottles: [Bottle] = []
 
-    @MainActor
     func loadBottles() {
         bottles = bottlesList.loadBottles()
     }
@@ -68,10 +66,10 @@ final class BottleVM: ObservableObject, @unchecked Sendable {
     func createNewBottle(bottleName: String, winVersion: WinVersion, bottleURL: URL) -> URL {
         let newBottleDir = bottleURL.appending(path: UUID().uuidString)
 
-        Task.detached {
+        Task {
             var bottleId: Bottle?
             do {
-                // Create directory with proper error handling
+                // Create directory with proper error handling (FileManager is thread-safe)
                 let fileManager = FileManager.default
                 try fileManager.createDirectory(at: newBottleDir,
                                                  withIntermediateDirectories: true,
@@ -82,38 +80,34 @@ final class BottleVM: ObservableObject, @unchecked Sendable {
                     throw BottleCreationError.directoryCreationFailed
                 }
 
+                // Create bottle on main actor (since Bottle is @MainActor)
                 let bottle = Bottle(bottleUrl: newBottleDir, inFlight: true)
                 bottleId = bottle
+                self.bottles.append(bottle)
 
-                await MainActor.run {
-                    self.bottles.append(bottle)
-                }
-
+                // Configure bottle settings (all on MainActor)
                 bottle.settings.windowsVersion = winVersion
                 bottle.settings.name = bottleName
+
+                // Wine operations are async and can run on background threads
                 try await Wine.changeWinVersion(bottle: bottle, win: winVersion)
                 let wineVer = try await Wine.wineVersion()
                 bottle.settings.wineVersion = SemanticVersion(wineVer) ?? SemanticVersion(0, 0, 0)
 
-                // Ensure metadata plist is saved before adding to persistence
+                // Save settings
                 bottle.saveBottleSettings()
 
                 // Add record to persistence
-                await MainActor.run {
-                    // Check for duplicates before adding
-                    if !self.bottlesList.paths.contains(newBottleDir) {
-                        self.bottlesList.paths.append(newBottleDir)
-                    }
-                    self.loadBottles()
+                if !self.bottlesList.paths.contains(newBottleDir) {
+                    self.bottlesList.paths.append(newBottleDir)
                 }
+                self.loadBottles()
             } catch {
                 bottleVMLogger.error("Failed to create new bottle: \(error.localizedDescription)")
                 // Clean up on failure
                 if let bottle = bottleId {
-                    await MainActor.run {
-                        if let index = self.bottles.firstIndex(of: bottle) {
-                            self.bottles.remove(at: index)
-                        }
+                    if let index = self.bottles.firstIndex(of: bottle) {
+                        self.bottles.remove(at: index)
                     }
                 }
                 // Try to clean up the directory

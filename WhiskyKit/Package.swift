@@ -1,6 +1,6 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 //
-//  PortableExecutable.swift
+//  Package.swift
 //  WhiskyKit
 //
 //  This file is part of Whisky.
@@ -31,7 +31,7 @@ let package = Package(
         )
     ],
     dependencies: [
-      .package(url: "git@github.com:SwiftPackageIndex/SemanticVersion.git", from: "0.3.0")
+        .package(url: "https://github.com/SwiftPackageIndex/SemanticVersion.git", from: "0.4.0")
     ],
     targets: [
         .target(

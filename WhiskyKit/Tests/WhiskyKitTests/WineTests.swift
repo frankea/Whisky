@@ -145,20 +145,33 @@ final class WineTests: XCTestCase {
     // MARK: - URL Escape Extension Tests
 
     func testURLEscapeExtension() {
-        // If the URL extension exists, test it
+        // Test the existing esc extension from WhiskyKit
         let testURL = URL(fileURLWithPath: "/Applications/Test App.exe")
         let escaped = testURL.esc
 
-        // The escaped string should handle spaces properly
+        // The escaped string should handle spaces and special characters properly
         XCTAssertFalse(escaped.isEmpty)
+        XCTAssertTrue(escaped.contains("\\ "), "Spaces should be escaped")
+        XCTAssertEqual(escaped, "/Applications/Test\\ App.exe")
     }
-}
 
-// MARK: - URL Extension for Testing (if not already defined)
+    func testURLEscapeExtensionWithSpecialCharacters() {
+        // Test escaping of various special shell characters
+        let testURL = URL(fileURLWithPath: "/path/with (parentheses) & other$chars.exe")
+        let escaped = testURL.esc
 
-extension URL {
-    /// Escaped path for shell commands
-    var esc: String {
-        return self.path(percentEncoded: false).replacingOccurrences(of: " ", with: "\\ ")
+        XCTAssertTrue(escaped.contains("\\("), "Parentheses should be escaped")
+        XCTAssertTrue(escaped.contains("\\&"), "Ampersand should be escaped")
+        XCTAssertTrue(escaped.contains("\\$"), "Dollar sign should be escaped")
+    }
+
+    func testStringEscapeExtension() {
+        // Test the String.esc extension
+        let testString = "file with spaces & special$chars"
+        let escaped = testString.esc
+
+        XCTAssertTrue(escaped.contains("\\ "), "Spaces should be escaped")
+        XCTAssertTrue(escaped.contains("\\&"), "Ampersand should be escaped")
+        XCTAssertTrue(escaped.contains("\\$"), "Dollar sign should be escaped")
     }
 }

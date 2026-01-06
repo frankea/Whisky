@@ -31,9 +31,6 @@ jobs:
       - name: Build WhiskyKit
         run: swift build --package-path WhiskyKit
       
-      - name: Run Tests
-        run: swift test --package-path WhiskyKit
-      
       - name: Run Tests with Code Coverage
         run: |
           swift test --package-path WhiskyKit --enable-code-coverage

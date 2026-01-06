@@ -234,8 +234,9 @@ final class BottleSettingsTests: XCTestCase {
         var env: [String: String] = [:]
         settings.environmentVariables(wineEnv: &env)
 
+        // When MSync is enabled, both WINEMSYNC and WINEESYNC must be set.
+        // This is required for D3DM compatibility - values are hardcoded in lid3dshared.dylib
         XCTAssertEqual(env["WINEMSYNC"], "1")
-        // MSync also sets ESYNC for D3DM compatibility
         XCTAssertEqual(env["WINEESYNC"], "1")
     }
 

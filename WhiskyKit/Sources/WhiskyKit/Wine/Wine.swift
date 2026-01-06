@@ -206,9 +206,23 @@ public class Wine {
     }
 
     /// Run a `wine` command with the given arguments and return the output result
+    /// - Note: This overload maintains backward compatibility with optional Bottle parameter
     @discardableResult
     @MainActor
     public static func runWine(
+        _ args: [String], bottle: Bottle?, environment: [String: String] = [:]
+    ) async throws -> String {
+        if let bottle {
+            return try await runWineWithBottle(args, bottle: bottle, environment: environment)
+        } else {
+            return try await runWineWithoutBottle(args, environment: environment)
+        }
+    }
+
+    /// Run a `wine` command with the given arguments and a bottle context
+    @discardableResult
+    @MainActor
+    private static func runWineWithBottle(
         _ args: [String], bottle: Bottle, environment: [String: String] = [:]
     ) async throws -> String {
         var result: [String] = []

@@ -19,11 +19,17 @@
 import Foundation
 import os.log
 
-public enum ProcessOutput: Hashable, @unchecked Sendable {
-    case started(Process)
+/// Output events from a running process
+/// - Note: Uses Int32 termination status instead of Process references for thread safety
+public enum ProcessOutput: Hashable, Sendable {
+    /// Process has started
+    case started
+    /// Message from stdout
     case message(String)
+    /// Message from stderr
     case error(String)
-    case terminated(Process)
+    /// Process terminated with exit code
+    case terminated(Int32)
 }
 
 public extension Process {
@@ -55,7 +61,7 @@ public extension Process {
                 }
             }
 
-            continuation.yield(.started(self))
+            continuation.yield(.started)
 
             pipe.fileHandleForReading.readabilityHandler = { pipe in
                 guard let line = pipe.nextLine() else { return }
@@ -83,7 +89,7 @@ public extension Process {
                 }
 
                 process.logTermination(name: name)
-                continuation.yield(.terminated(process))
+                continuation.yield(.terminated(process.terminationStatus))
                 continuation.finish()
             }
         }

@@ -13,9 +13,9 @@ updates:
       - "dependencies"
     open-pull-requests-limit: 5
     
-  # Maintain dependencies for Swift Package Manager
+  # Maintain dependencies for Swift Package Manager (WhiskyKit)
   - package-ecosystem: "swift"
-    directory: "/"
+    directory: "/WhiskyKit"
     schedule:
       interval: "weekly"
       day: "monday"

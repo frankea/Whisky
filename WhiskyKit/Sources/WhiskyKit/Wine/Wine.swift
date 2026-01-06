@@ -205,9 +205,9 @@ public class Wine {
         }.joined()
     }
 
+    /// Run a `wine` command with the given arguments and return the output result
     @discardableResult
     @MainActor
-    /// Run a `wine` command with the given arguments and return the output result
     public static func runWine(
         _ args: [String], bottle: Bottle, environment: [String: String] = [:]
     ) async throws -> String {
@@ -258,7 +258,7 @@ public class Wine {
         if let index = output.firstIndex(where: { $0.isWhitespace }) {
             return String(output.prefix(upTo: index))
         }
-        return output.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        return output.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     @discardableResult

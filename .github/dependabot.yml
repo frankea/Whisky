@@ -1,0 +1,30 @@
+version: 2
+updates:
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "ci-cd"
+      - "dependencies"
+    open-pull-requests-limit: 5
+    
+  # Maintain dependencies for Swift Package Manager (WhiskyKit)
+  - package-ecosystem: "swift"
+    directory: "/WhiskyKit"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 5
+    ignore:
+      # Ignore patch versions for Sparkle to avoid noise
+      - dependency-name: "Sparkle"
+        update-types: ["version-update:semver-patch"]

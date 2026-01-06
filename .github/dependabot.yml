@@ -26,5 +26,5 @@ updates:
     open-pull-requests-limit: 5
     ignore:
       # Ignore patch versions for Sparkle to avoid noise
-      - dependency-name: "sparkle-project/Sparkle"
+      - dependency-name: "Sparkle"
         update-types: ["version-update:semver-patch"]

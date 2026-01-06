@@ -153,10 +153,12 @@ public class Wine {
     public static func generateRunCommand(
         at url: URL, bottle: Bottle, args: String, environment: [String: String]
     ) -> String {
-        var wineCmd = "\(wineBinary.esc) start /unix \(url.esc) \(args)"
-        let env = constructWineEnvironment(for: bottle, environment: environment)
-        for environment in env {
-            wineCmd = "\(environment.key)=\"\(environment.value)\" " + wineCmd
+        // Escape args to prevent shell injection from user-editable settings
+        let escapedArgs = args.esc
+        var wineCmd = "\(wineBinary.esc) start /unix \(url.esc) \(escapedArgs)"
+        let wineEnv = constructWineEnvironment(for: bottle, environment: environment)
+        for envVar in wineEnv {
+            wineCmd = "\(envVar.key)=\"\(envVar.value)\" " + wineCmd
         }
 
         return wineCmd
@@ -230,9 +232,9 @@ public class Wine {
         let fileHandle = try makeFileHandle()
         fileHandle.writeApplicationInfo()
         fileHandle.writeInfo(for: bottle)
-        let environment = constructWineEnvironment(for: bottle, environment: environment)
+        let wineEnvironment = constructWineEnvironment(for: bottle, environment: environment)
 
-        for await output in try runWineProcess(args: args, environment: environment, fileHandle: fileHandle) {
+        for await output in try runWineProcess(args: args, environment: wineEnvironment, fileHandle: fileHandle) {
             switch output {
             case .started, .terminated:
                 break
@@ -247,7 +249,7 @@ public class Wine {
     /// Run a `wine` command without a bottle context (e.g., for --version queries)
     @discardableResult
     @MainActor
-    public static func runWineWithoutBottle(
+    private static func runWineWithoutBottle(
         _ args: [String], environment: [String: String] = [:]
     ) async throws -> String {
         var result: [String] = []

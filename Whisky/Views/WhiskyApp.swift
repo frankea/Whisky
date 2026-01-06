@@ -77,8 +77,8 @@ struct WhiskyApp: App {
                     panel.begin { result in
                         if result == .OK {
                             if let url = panel.urls.first {
-                                // Ensure we're on the MainActor when modifying @MainActor-isolated BottleVM
-                                Task { @MainActor in
+                                // Task inherits main actor context from SwiftUI commands builder
+                                Task {
                                     BottleVM.shared.bottlesList.paths.append(url)
                                     BottleVM.shared.loadBottles()
                                 }

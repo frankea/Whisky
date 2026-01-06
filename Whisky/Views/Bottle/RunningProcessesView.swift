@@ -45,12 +45,12 @@ struct RunningProcessesView: View {
                     HStack {
                         Spacer()
                         Button("process.table.refresh") {
-                            Task.detached(priority: .userInitiated) {
+                            Task {
                                 await fetchProcesses()
                             }
                         }
                         Button("process.table.kill") {
-                            Task.detached(priority: .userInitiated) {
+                            Task {
                                 await killProcess()
                             }
                         }
@@ -70,7 +70,7 @@ struct RunningProcessesView: View {
             }
         }
         .onAppear {
-            Task.detached(priority: .userInitiated) {
+            Task {
                 await fetchProcesses()
             }
         }

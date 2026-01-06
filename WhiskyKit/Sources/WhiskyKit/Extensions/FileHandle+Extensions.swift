@@ -44,7 +44,7 @@ extension FileHandle {
     }
 
     // swiftlint:disable line_length
-    func writeApplicaitonInfo() {
+    func writeApplicationInfo() {
         var header = String()
         let macOSVersion = ProcessInfo.processInfo.operatingSystemVersion
 

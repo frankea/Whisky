@@ -22,6 +22,37 @@ import QuickLookThumbnailing
 import WhiskyKit
 
 class ProgramShortcut {
+    private static let infoPlist = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>CFBundleExecutable</key>
+            <string>launch</string>
+            <key>CFBundleSupportedPlatforms</key>
+            <array>
+                <string>MacOSX</string>
+            </array>
+            <key>LSMinimumSystemVersion</key>
+            <string>14.0</string>
+            <key>LSApplicationCategoryType</key>
+            <string>public.app-category.games</string>
+        </dict>
+        </plist>
+        """
+
+    private static func generateThumbnail(for url: URL) async -> NSImage? {
+        let request = QLThumbnailGenerator.Request(fileAt: url,
+                                                   size: CGSize(width: 512, height: 512),
+                                                   scale: 2.0,
+                                                   representationTypes: .thumbnail)
+        return await withCheckedContinuation { continuation in
+            QLThumbnailGenerator.shared.generateBestRepresentation(for: request) { thumbnail, _ in
+                continuation.resume(returning: thumbnail?.nsImage)
+            }
+        }
+    }
+
     @MainActor
     public static func createShortcut(_ program: Program, app: URL, name: String) async {
         let contents = app.appending(path: "Contents")
@@ -29,53 +60,20 @@ class ProgramShortcut {
         do {
             try FileManager.default.createDirectory(at: macos, withIntermediateDirectories: true)
 
-            // First create shell script
-            let script = """
-            #!/bin/bash
-            \(program.generateTerminalCommand())
-            """
+            let script = "#!/bin/bash\n\(program.generateTerminalCommand())"
             let scriptUrl = macos.appending(path: "launch")
-            try script.write(to: scriptUrl,
-                             atomically: false,
-                             encoding: .utf8)
-
-            // Make shell script runable
+            try script.write(to: scriptUrl, atomically: false, encoding: .utf8)
             try FileManager.default.setAttributes([.posixPermissions: 0o777],
                                                   ofItemAtPath: scriptUrl.path(percentEncoded: false))
 
-            // Create Info.plist (set category for Game mode)
-            let info = """
-            <?xml version="1.0" encoding="UTF-8"?>
-            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-            <plist version="1.0">
-            <dict>
-                <key>CFBundleExecutable</key>
-                <string>launch</string>
-                <key>CFBundleSupportedPlatforms</key>
-                <array>
-                    <string>MacOSX</string>
-                </array>
-                <key>LSMinimumSystemVersion</key>
-                <string>14.0</string>
-                <key>LSApplicationCategoryType</key>
-                <string>public.app-category.games</string>
-            </dict>
-            </plist>
-            """
-            try info.write(to: contents.appending(path: "Info")
-                                       .appendingPathExtension("plist"),
-                           atomically: false,
-                           encoding: .utf8)
+            try infoPlist.write(to: contents.appending(path: "Info").appendingPathExtension("plist"),
+                                atomically: false, encoding: .utf8)
 
-            // Set bundle icon
-            let request = QLThumbnailGenerator.Request(fileAt: program.url,
-                                                       size: CGSize(width: 512, height: 512),
-                                                       scale: 2.0,
-                                                       representationTypes: .thumbnail)
-            let thumbnail = try await QLThumbnailGenerator.shared.generateBestRepresentation(for: request)
-            NSWorkspace.shared.setIcon(thumbnail.nsImage,
-                                       forFile: app.path(percentEncoded: false),
-                                       options: NSWorkspace.IconCreationOptions())
+            let programUrl = program.url
+            if let image = await generateThumbnail(for: programUrl) {
+                NSWorkspace.shared.setIcon(image, forFile: app.path(percentEncoded: false),
+                                           options: NSWorkspace.IconCreationOptions())
+            }
             NSWorkspace.shared.activateFileViewerSelecting([app])
         } catch {
             print(error)

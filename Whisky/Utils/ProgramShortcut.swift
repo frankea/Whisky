@@ -18,7 +18,7 @@
 
 import Foundation
 import AppKit
-import QuickLookThumbnailing
+@preconcurrency import QuickLookThumbnailing
 import WhiskyKit
 
 class ProgramShortcut {
@@ -47,11 +47,10 @@ class ProgramShortcut {
                                                    size: CGSize(width: 512, height: 512),
                                                    scale: 2.0,
                                                    representationTypes: .thumbnail)
-        return await withCheckedContinuation { continuation in
-            QLThumbnailGenerator.shared.generateBestRepresentation(for: request) { thumbnail, _ in
-                continuation.resume(returning: thumbnail?.nsImage)
-            }
+        guard let thumbnail = try? await QLThumbnailGenerator.shared.generateBestRepresentation(for: request) else {
+            return nil
         }
+        return thumbnail.nsImage
     }
 
     @MainActor

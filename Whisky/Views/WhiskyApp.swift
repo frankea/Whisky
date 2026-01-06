@@ -19,6 +19,9 @@
 import SwiftUI
 import Sparkle
 import WhiskyKit
+import os.log
+
+private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.franke.Whisky", category: "WhiskyApp")
 
 @main
 struct WhiskyApp: App {
@@ -124,7 +127,7 @@ struct WhiskyApp: App {
             do {
                 try Wine.killBottle(bottle: bottle)
             } catch {
-                print("Failed to kill bottle: \(error)")
+                logger.error("Failed to kill bottle: \(error.localizedDescription)")
             }
         }
     }
@@ -160,7 +163,7 @@ struct WhiskyApp: App {
             do {
                 try FileManager.default.removeItem(at: log)
             } catch {
-                print("Failed to delete log: \(error)")
+                logger.warning("Failed to delete log: \(error.localizedDescription)")
             }
         }
     }
@@ -174,27 +177,30 @@ struct WhiskyApp: App {
         do {
             try getconf.run()
         } catch {
+            logger.error("Failed to run getconf: \(error.localizedDescription)")
             return
         }
         getconf.waitUntilExit()
-        let getconfOutput = {() -> Data in
-            if #available(macOS 10.15, *) {
-                do {
-                    return try pipe.fileHandleForReading.readToEnd() ?? Data()
-                } catch {
-                    return Data()
-                }
-            } else {
-                return pipe.fileHandleForReading.readDataToEndOfFile()
-            }
-        }()
-        guard let getconfOutputString = String(data: getconfOutput, encoding: .utf8) else {return}
+
+        let getconfOutput: Data
+        do {
+            getconfOutput = try pipe.fileHandleForReading.readToEnd() ?? Data()
+        } catch {
+            logger.error("Failed to read getconf output: \(error.localizedDescription)")
+            return
+        }
+
+        guard let getconfOutputString = String(data: getconfOutput, encoding: .utf8) else {
+            logger.error("Failed to decode getconf output as UTF-8")
+            return
+        }
         let d3dmPath = URL(fileURLWithPath: getconfOutputString.trimmingCharacters(in: .whitespacesAndNewlines))
             .appending(path: "d3dm").path
         do {
             try FileManager.default.removeItem(atPath: d3dmPath)
+            logger.info("Successfully cleared shader caches")
         } catch {
-            return
+            logger.warning("Failed to remove shader cache at \(d3dmPath): \(error.localizedDescription)")
         }
     }
 }

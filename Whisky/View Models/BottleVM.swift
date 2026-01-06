@@ -19,6 +19,7 @@
 import Foundation
 import SemanticVersion
 import WhiskyKit
+import os.log
 
 // MARK: - Bottle Creation Errors
 
@@ -41,6 +42,11 @@ enum BottleCreationError: LocalizedError {
         }
     }
 }
+
+private let bottleVMLogger = Logger(
+    subsystem: Bundle.main.bundleIdentifier ?? "com.franke.Whisky",
+    category: "BottleVM"
+)
 
 // swiftlint:disable:next todo
 // TODO: Don't use unchecked!
@@ -101,7 +107,7 @@ final class BottleVM: ObservableObject, @unchecked Sendable {
                     self.loadBottles()
                 }
             } catch {
-                print("Failed to create new bottle: \(error)")
+                bottleVMLogger.error("Failed to create new bottle: \(error.localizedDescription)")
                 // Clean up on failure
                 if let bottle = bottleId {
                     await MainActor.run {

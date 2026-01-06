@@ -37,6 +37,10 @@ let package = Package(
         .target(
             name: "WhiskyKit",
             dependencies: ["SemanticVersion"]
+        ),
+        .testTarget(
+            name: "WhiskyKitTests",
+            dependencies: ["WhiskyKit"]
         )
     ],
     swiftLanguageVersions: [.version("6")]

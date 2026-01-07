@@ -107,15 +107,23 @@ jobs:
       - name: Generate Coverage Report
         run: |
           cd WhiskyKit
-          # Find the test executable dynamically since naming varies by Swift version
-          TEST_BINARY=$(find .build/debug -name "*.xctest" -type d | head -1)/Contents/MacOS/*
-          if [ -f "$TEST_BINARY" ]; then
-            xcrun llvm-cov export \
-              "$TEST_BINARY" \
-              -instr-profile=.build/debug/codecov/default.profdata \
-              -format=lcov > coverage.lcov
+          # Find the test executable - the xctest bundle contains a binary with the same name
+          XCTEST_BUNDLE=$(find .build/debug -name "*.xctest" -type d | head -1)
+          if [ -n "$XCTEST_BUNDLE" ]; then
+            # Get the bundle name without path and extension to find the binary
+            BUNDLE_NAME=$(basename "$XCTEST_BUNDLE" .xctest)
+            TEST_BINARY="$XCTEST_BUNDLE/Contents/MacOS/$BUNDLE_NAME"
+            if [ -f "$TEST_BINARY" ]; then
+              xcrun llvm-cov export \
+                "$TEST_BINARY" \
+                -instr-profile=.build/debug/codecov/default.profdata \
+                -format=lcov > coverage.lcov
+              echo "Coverage report generated successfully"
+            else
+              echo "Warning: Test binary not found at $TEST_BINARY"
+            fi
           else
-            echo "Warning: Test binary not found, skipping coverage report"
+            echo "Warning: No xctest bundle found, skipping coverage report"
           fi
         continue-on-error: true
       

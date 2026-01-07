@@ -158,8 +158,8 @@ public class Wine {
         var wineCmd = "\(wineBinary.esc) start /unix \(url.esc) \(escapedArgs)"
         let wineEnv = constructWineEnvironment(for: bottle, environment: environment)
         for envVar in wineEnv {
-            // Escape both key and value to prevent shell injection
-            wineCmd = "\(envVar.key.esc)=\"\(envVar.value.esc)\" " + wineCmd
+            // Only escape values - keys are valid shell identifiers (alphanumeric + underscore)
+            wineCmd = "\(envVar.key)=\"\(envVar.value.esc)\" " + wineCmd
         }
 
         return wineCmd
@@ -184,8 +184,8 @@ public class Wine {
 
         let env = constructWineEnvironment(for: bottle)
         for envVar in env {
-            // Escape both key and value to prevent shell injection
-            cmd += "\nexport \(envVar.key.esc)=\"\(envVar.value.esc)\""
+            // Only escape values - keys are valid shell identifiers (alphanumeric + underscore)
+            cmd += "\nexport \(envVar.key)=\"\(envVar.value.esc)\""
         }
 
         return cmd

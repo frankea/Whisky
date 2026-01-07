@@ -20,7 +20,7 @@ import Foundation
 import os.log
 
 /// Output events from a running process
-/// - Note: Uses Int32 termination status instead of Process references for thread safety
+/// - Note: Uses Int32 termination status instead of Process references for Sendable conformance
 public enum ProcessOutput: Hashable, Sendable {
     /// Process has started
     case started

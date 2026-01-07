@@ -82,6 +82,8 @@ jobs:
         with:
           xcode-version: ${{ env.XCODE_VERSION }}
       
+      # Cache includes WhiskyKit/.build because swift build/test creates
+      # build artifacts there (unlike xcodebuild which uses DerivedData)
       - name: Cache SPM Dependencies
         uses: actions/cache@v4
         with:

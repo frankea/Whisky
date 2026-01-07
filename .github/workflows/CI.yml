@@ -107,10 +107,16 @@ jobs:
       - name: Generate Coverage Report
         run: |
           cd WhiskyKit
-          xcrun llvm-cov export \
-            .build/debug/WhiskyKitPackageTests.xctest/Contents/MacOS/WhiskyKitPackageTests \
-            -instr-profile=.build/debug/codecov/default.profdata \
-            -format=lcov > coverage.lcov
+          # Find the test executable dynamically since naming varies by Swift version
+          TEST_BINARY=$(find .build/debug -name "*.xctest" -type d | head -1)/Contents/MacOS/*
+          if [ -f "$TEST_BINARY" ]; then
+            xcrun llvm-cov export \
+              "$TEST_BINARY" \
+              -instr-profile=.build/debug/codecov/default.profdata \
+              -format=lcov > coverage.lcov
+          else
+            echo "Warning: Test binary not found, skipping coverage report"
+          fi
         continue-on-error: true
       
       - name: Upload Coverage Report

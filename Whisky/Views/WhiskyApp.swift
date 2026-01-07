@@ -77,8 +77,11 @@ struct WhiskyApp: App {
                     panel.begin { result in
                         if result == .OK {
                             if let url = panel.urls.first {
-                                BottleVM.shared.bottlesList.paths.append(url)
-                                BottleVM.shared.loadBottles()
+                                // Task inherits main actor context from SwiftUI commands builder
+                                Task {
+                                    BottleVM.shared.bottlesList.paths.append(url)
+                                    BottleVM.shared.loadBottles()
+                                }
                             }
                         }
                     }
@@ -122,13 +125,11 @@ struct WhiskyApp: App {
         }
     }
 
+    @MainActor
     static func killBottles() {
         for bottle in BottleVM.shared.bottles {
-            do {
-                try Wine.killBottle(bottle: bottle)
-            } catch {
-                logger.error("Failed to kill bottle: \(error.localizedDescription)")
-            }
+            // killBottle is fire-and-forget; errors are logged internally
+            Wine.killBottle(bottle: bottle)
         }
     }
 

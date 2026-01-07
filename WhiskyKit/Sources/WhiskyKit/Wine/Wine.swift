@@ -53,6 +53,7 @@ public struct MacOSVersion: Comparable, Sendable {
     }
 }
 
+// swiftlint:disable:next type_body_length
 public class Wine {
     /// URL to the installed `DXVK` folder
     private static let dxvkFolder: URL = WhiskyWineInstaller.libraryFolder.appending(path: "DXVK")
@@ -101,6 +102,7 @@ public class Wine {
     }
 
     /// Run a `wine` process with the given arguments and environment variables returning a stream of output
+    @MainActor
     public static func runWineProcess(
         name: String? = nil, args: [String], bottle: Bottle, environment: [String: String] = [:]
     ) throws -> AsyncStream<ProcessOutput> {
@@ -116,6 +118,7 @@ public class Wine {
     }
 
     /// Run a `wineserver` process with the given arguments and environment variables returning a stream of output
+    @MainActor
     public static func runWineserverProcess(
         name: String? = nil, args: [String], bottle: Bottle, environment: [String: String] = [:]
     ) throws -> AsyncStream<ProcessOutput> {
@@ -131,6 +134,7 @@ public class Wine {
     }
 
     /// Execute a `wine start /unix {url}` command returning the output result
+    @MainActor
     public static func runProgram(
         at url: URL, args: [String] = [], bottle: Bottle, environment: [String: String] = [:]
     ) async throws {
@@ -145,21 +149,26 @@ public class Wine {
         ) { }
     }
 
+    @MainActor
     public static func generateRunCommand(
         at url: URL, bottle: Bottle, args: String, environment: [String: String]
     ) -> String {
-        var wineCmd = "\(wineBinary.esc) start /unix \(url.esc) \(args)"
-        let env = constructWineEnvironment(for: bottle, environment: environment)
-        for environment in env {
-            wineCmd = "\(environment.key)=\"\(environment.value)\" " + wineCmd
+        // Escape args and environment values to prevent shell injection from user-editable settings
+        let escapedArgs = args.esc
+        var wineCmd = "\(wineBinary.esc) start /unix \(url.esc) \(escapedArgs)"
+        let wineEnv = constructWineEnvironment(for: bottle, environment: environment)
+        for envVar in wineEnv {
+            // Only escape values - keys are valid shell identifiers (alphanumeric + underscore)
+            wineCmd = "\(envVar.key)=\"\(envVar.value.esc)\" " + wineCmd
         }
 
         return wineCmd
     }
 
+    @MainActor
     public static func generateTerminalEnvironmentCommand(bottle: Bottle) -> String {
         var cmd = """
-        export PATH=\"\(WhiskyWineInstaller.binFolder.path):$PATH\"
+        export PATH=\"\(WhiskyWineInstaller.binFolder.path.esc):$PATH\"
         export WINE=\"wine64\"
         alias wine=\"wine64\"
         alias winecfg=\"wine64 winecfg\"
@@ -173,15 +182,17 @@ public class Wine {
         alias winepath=\"wine64 winepath\"
         """
 
-        let env = constructWineEnvironment(for: bottle, environment: constructWineEnvironment(for: bottle))
-        for environment in env {
-            cmd += "\nexport \(environment.key)=\"\(environment.value)\""
+        let env = constructWineEnvironment(for: bottle)
+        for envVar in env {
+            // Only escape values - keys are valid shell identifiers (alphanumeric + underscore)
+            cmd += "\nexport \(envVar.key)=\"\(envVar.value.esc)\""
         }
 
         return cmd
     }
 
     /// Run a `wineserver` command with the given arguments and return the output result
+    @MainActor
     private static func runWineserver(_ args: [String], bottle: Bottle) async throws -> String {
         var result: [ProcessOutput] = []
 
@@ -199,20 +210,53 @@ public class Wine {
         }.joined()
     }
 
-    @discardableResult
     /// Run a `wine` command with the given arguments and return the output result
+    /// - Note: This overload maintains backward compatibility with optional Bottle parameter
+    @discardableResult
+    @MainActor
     public static func runWine(
         _ args: [String], bottle: Bottle?, environment: [String: String] = [:]
+    ) async throws -> String {
+        if let bottle {
+            return try await runWineWithBottle(args, bottle: bottle, environment: environment)
+        } else {
+            return try await runWineWithoutBottle(args, environment: environment)
+        }
+    }
+
+    /// Run a `wine` command with the given arguments and a bottle context
+    @discardableResult
+    @MainActor
+    private static func runWineWithBottle(
+        _ args: [String], bottle: Bottle, environment: [String: String] = [:]
     ) async throws -> String {
         var result: [String] = []
         let fileHandle = try makeFileHandle()
         fileHandle.writeApplicationInfo()
-        var environment = environment
+        fileHandle.writeInfo(for: bottle)
+        let wineEnvironment = constructWineEnvironment(for: bottle, environment: environment)
 
-        if let bottle = bottle {
-            fileHandle.writeInfo(for: bottle)
-            environment = constructWineEnvironment(for: bottle, environment: environment)
+        for await output in try runWineProcess(args: args, environment: wineEnvironment, fileHandle: fileHandle) {
+            switch output {
+            case .started, .terminated:
+                break
+            case .message(let message), .error(let message):
+                result.append(message)
+            }
         }
+
+        return result.joined()
+    }
+
+    /// Run a `wine` command without a bottle context (e.g., for --version queries)
+    @discardableResult
+    @MainActor
+    private static func runWineWithoutBottle(
+        _ args: [String], environment: [String: String] = [:]
+    ) async throws -> String {
+        var result: [String] = []
+        let fileHandle = try makeFileHandle()
+        fileHandle.writeApplicationInfo()
 
         for await output in try runWineProcess(args: args, environment: environment, fileHandle: fileHandle) {
             switch output {
@@ -226,8 +270,9 @@ public class Wine {
         return result.joined()
     }
 
+    @MainActor
     public static func wineVersion() async throws -> String {
-        var output = try await runWine(["--version"], bottle: nil)
+        var output = try await runWineWithoutBottle(["--version"])
         output.replace("wine-", with: "")
 
         // Deal with WineCX version names
@@ -238,16 +283,25 @@ public class Wine {
     }
 
     @discardableResult
+    @MainActor
     public static func runBatchFile(url: URL, bottle: Bottle) async throws -> String {
         return try await runWine(["cmd", "/c", url.path(percentEncoded: false)], bottle: bottle)
     }
 
-    public static func killBottle(bottle: Bottle) throws {
-        Task.detached(priority: .userInitiated) {
-            try await runWineserver(["-k"], bottle: bottle)
+    /// Kill all processes in a bottle's wineserver (fire-and-forget)
+    /// - Note: This is intentionally non-blocking. Errors are logged but not propagated.
+    @MainActor
+    public static func killBottle(bottle: Bottle) {
+        Task {
+            do {
+                _ = try await runWineserver(["-k"], bottle: bottle)
+            } catch {
+                Logger.wineKit.error("Failed to kill bottle '\(bottle.settings.name)': \(error.localizedDescription)")
+            }
         }
     }
 
+    @MainActor
     public static func enableDXVK(bottle: Bottle) throws {
         try FileManager.default.replaceDLLs(
             in: bottle.url.appending(path: "drive_c").appending(path: "windows").appending(path: "system32"),
@@ -260,6 +314,7 @@ public class Wine {
     }
 
     /// Construct an environment merging the bottle values with the given values
+    @MainActor
     private static func constructWineEnvironment(
         for bottle: Bottle, environment: [String: String] = [:]
     ) -> [String: String] {
@@ -279,6 +334,7 @@ public class Wine {
     }
 
     /// Construct an environment merging the bottle values with the given values
+    @MainActor
     private static func constructWineServerEnvironment(
         for bottle: Bottle, environment: [String: String] = [:]
     ) -> [String: String] {
@@ -385,6 +441,7 @@ extension Wine {
         case desktop = #"HKCU\Control Panel\Desktop"#
     }
 
+    @MainActor
     private static func addRegistryKey(
         bottle: Bottle, key: String, name: String, data: String, type: RegistryType
     ) async throws {
@@ -394,6 +451,7 @@ extension Wine {
         )
     }
 
+    @MainActor
     private static func queryRegistryKey(
         bottle: Bottle, key: String, name: String, type: RegistryType
     ) async throws -> String? {
@@ -406,6 +464,7 @@ extension Wine {
         return String(value)
     }
 
+    @MainActor
     public static func changeBuildVersion(bottle: Bottle, version: Int) async throws {
         try await addRegistryKey(bottle: bottle, key: RegistryKey.currentVersion.rawValue,
                                 name: "CurrentBuild", data: "\(version)", type: .string)
@@ -413,6 +472,7 @@ extension Wine {
                                 name: "CurrentBuildNumber", data: "\(version)", type: .string)
     }
 
+    @MainActor
     public static func winVersion(bottle: Bottle) async throws -> WinVersion {
         let output = try await Wine.runWine(["winecfg", "-v"], bottle: bottle)
         let lines = output.split(whereSeparator: \.isNewline)
@@ -428,6 +488,7 @@ extension Wine {
         throw WineInterfaceError.invalidResponse
     }
 
+    @MainActor
     public static func buildVersion(bottle: Bottle) async throws -> String? {
         return try await Wine.queryRegistryKey(
             bottle: bottle, key: RegistryKey.currentVersion.rawValue,
@@ -435,6 +496,7 @@ extension Wine {
         )
     }
 
+    @MainActor
     public static func retinaMode(bottle: Bottle) async throws -> Bool {
         let values: Set<String> = ["y", "n"]
         guard let output = try await Wine.queryRegistryKey(
@@ -446,6 +508,7 @@ extension Wine {
         return output == "y"
     }
 
+    @MainActor
     public static func changeRetinaMode(bottle: Bottle, retinaMode: Bool) async throws {
         try await Wine.addRegistryKey(
             bottle: bottle, key: RegistryKey.macDriver.rawValue, name: "RetinaMode", data: retinaMode ? "y" : "n",
@@ -453,6 +516,7 @@ extension Wine {
         )
     }
 
+    @MainActor
     public static func dpiResolution(bottle: Bottle) async throws -> Int? {
         guard let output = try await Wine.queryRegistryKey(bottle: bottle, key: RegistryKey.desktop.rawValue,
                                                      name: "LogPixels", type: .dword
@@ -464,6 +528,7 @@ extension Wine {
         return int
     }
 
+    @MainActor
     public static func changeDpiResolution(bottle: Bottle, dpi: Int) async throws {
         try await Wine.addRegistryKey(
             bottle: bottle, key: RegistryKey.desktop.rawValue, name: "LogPixels", data: String(dpi),
@@ -472,21 +537,25 @@ extension Wine {
     }
 
     @discardableResult
+    @MainActor
     public static func control(bottle: Bottle) async throws -> String {
         return try await Wine.runWine(["control"], bottle: bottle)
     }
 
     @discardableResult
+    @MainActor
     public static func regedit(bottle: Bottle) async throws -> String {
         return try await Wine.runWine(["regedit"], bottle: bottle)
     }
 
     @discardableResult
+    @MainActor
     public static func cfg(bottle: Bottle) async throws -> String {
         return try await Wine.runWine(["winecfg"], bottle: bottle)
     }
 
     @discardableResult
+    @MainActor
     public static func changeWinVersion(bottle: Bottle, win: WinVersion) async throws -> String {
         return try await Wine.runWine(["winecfg", "-v", win.rawValue], bottle: bottle)
     }

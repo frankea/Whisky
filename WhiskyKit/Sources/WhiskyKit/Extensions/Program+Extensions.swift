@@ -33,15 +33,13 @@ extension Program {
         let arguments = settings.arguments.split { $0.isWhitespace }.map(String.init)
         let environment = generateEnvironment()
 
-        Task.detached(priority: .userInitiated) {
+        Task {
             do {
                 try await Wine.runProgram(
                     at: self.url, args: arguments, bottle: self.bottle, environment: environment
                 )
             } catch {
-                await MainActor.run {
-                    self.showRunError(message: error.localizedDescription)
-                }
+                self.showRunError(message: error.localizedDescription)
             }
         }
     }
@@ -62,7 +60,7 @@ extension Program {
         end tell
         """
 
-        Task.detached(priority: .userInitiated) {
+        Task {
             var error: NSDictionary?
             guard let appleScript = NSAppleScript(source: script) else { return }
             appleScript.executeAndReturnError(&error)
@@ -70,7 +68,7 @@ extension Program {
             if let error = error {
                 Logger.wineKit.error("Failed to run terminal script \(error)")
                 guard let description = error["NSAppleScriptErrorMessage"] as? String else { return }
-                await self.showRunError(message: String(describing: description))
+                self.showRunError(message: String(describing: description))
             }
         }
     }

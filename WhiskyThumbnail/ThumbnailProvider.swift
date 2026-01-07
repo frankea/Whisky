@@ -17,7 +17,7 @@
 //
 
 import Foundation
-import QuickLookThumbnailing
+@preconcurrency import QuickLookThumbnailing
 import AppKit
 import WhiskyKit
 

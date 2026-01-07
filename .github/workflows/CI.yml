@@ -46,12 +46,15 @@ jobs:
         with:
           xcode-version: ${{ env.XCODE_VERSION }}
 
+      # Cache includes WhiskyKit/.build for consistency with test job cache paths
+      # (swift build creates artifacts there, xcodebuild uses DerivedData)
       - name: Cache SPM Dependencies
         uses: actions/cache@v4
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData/*/SourcePackages
             .build
+            WhiskyKit/.build
           key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-

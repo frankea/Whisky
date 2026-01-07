@@ -125,6 +125,7 @@ struct WhiskyApp: App {
         }
     }
 
+    @MainActor
     static func killBottles() {
         for bottle in BottleVM.shared.bottles {
             // killBottle is fire-and-forget; errors are logged internally

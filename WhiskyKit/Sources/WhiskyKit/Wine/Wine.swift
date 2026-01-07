@@ -182,7 +182,7 @@ public class Wine {
         alias winepath=\"wine64 winepath\"
         """
 
-        let env = constructWineEnvironment(for: bottle, environment: constructWineEnvironment(for: bottle))
+        let env = constructWineEnvironment(for: bottle)
         for envVar in env {
             // Escape both key and value to prevent shell injection
             cmd += "\nexport \(envVar.key.esc)=\"\(envVar.value.esc)\""

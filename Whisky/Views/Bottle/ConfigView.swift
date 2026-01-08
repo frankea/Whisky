@@ -19,6 +19,9 @@
 
 import SwiftUI
 import WhiskyKit
+import os
+
+private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "ConfigView")
 
 enum LoadingState {
     case loading
@@ -64,7 +67,7 @@ struct ConfigView: View {
                                     try await Wine.changeBuildVersion(bottle: bottle, version: buildVersion)
                                     buildVersionLoadingState = .success
                                 } catch {
-                                    print("Failed to change build version")
+                                    logger.error("Failed to change build version: \(error.localizedDescription)")
                                     buildVersionLoadingState = .failed
                                 }
                             }
@@ -79,7 +82,7 @@ struct ConfigView: View {
                                     try await Wine.changeRetinaMode(bottle: bottle, retinaMode: newValue)
                                     retinaModeLoadingState = .success
                                 } catch {
-                                    print("Failed to change build version")
+                                    logger.error("Failed to change retina mode: \(error.localizedDescription)")
                                     retinaModeLoadingState = .failed
                                 }
                             }
@@ -237,7 +240,7 @@ struct ConfigView: View {
                         do {
                             try await Wine.control(bottle: bottle)
                         } catch {
-                            print("Failed to launch control")
+                            logger.error("Failed to launch control: \(error.localizedDescription)")
                         }
                     }
                 }
@@ -246,7 +249,7 @@ struct ConfigView: View {
                         do {
                             try await Wine.regedit(bottle: bottle)
                         } catch {
-                            print("Failed to launch regedit")
+                            logger.error("Failed to launch regedit: \(error.localizedDescription)")
                         }
                     }
                 }
@@ -255,7 +258,7 @@ struct ConfigView: View {
                         do {
                             try await Wine.cfg(bottle: bottle)
                         } catch {
-                            print("Failed to launch winecfg")
+                            logger.error("Failed to launch winecfg: \(error.localizedDescription)")
                         }
                     }
                 }
@@ -273,7 +276,7 @@ struct ConfigView: View {
                     retinaMode = try await Wine.retinaMode(bottle: bottle)
                     retinaModeLoadingState = .success
                 } catch {
-                    print(error)
+                    logger.error("Failed to get retina mode: \(error.localizedDescription)")
                     retinaModeLoadingState = .failed
                 }
             }
@@ -282,7 +285,7 @@ struct ConfigView: View {
                     dpiConfig = try await Wine.dpiResolution(bottle: bottle) ?? 0
                     dpiConfigLoadingState = .success
                 } catch {
-                    print(error)
+                    logger.debug("DPI resolution not set in registry: \(error.localizedDescription)")
                     // If DPI has not yet been edited, there will be no registry entry
                     dpiConfigLoadingState = .success
                 }
@@ -299,7 +302,7 @@ struct ConfigView: View {
                         bottle.settings.windowsVersion = newValue
                         loadBuildName()
                     } catch {
-                        print(error)
+                        logger.error("Failed to change Windows version: \(error.localizedDescription)")
                         winVersionLoadingState = .failed
                     }
                 }
@@ -313,7 +316,7 @@ struct ConfigView: View {
                         try await Wine.changeDpiResolution(bottle: bottle, dpi: dpiConfig)
                         dpiConfigLoadingState = .success
                     } catch {
-                        print(error)
+                        logger.error("Failed to change DPI resolution: \(error.localizedDescription)")
                         dpiConfigLoadingState = .failed
                     }
                 }
@@ -332,7 +335,7 @@ struct ConfigView: View {
 
                 buildVersionLoadingState = .success
             } catch {
-                print(error)
+                logger.error("Failed to load build version: \(error.localizedDescription)")
                 buildVersionLoadingState = .failed
             }
         }

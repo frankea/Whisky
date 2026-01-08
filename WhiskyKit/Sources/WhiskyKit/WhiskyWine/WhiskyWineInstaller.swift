@@ -18,6 +18,9 @@
 
 import Foundation
 import SemanticVersion
+import os
+
+private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "WhiskyWineInstaller")
 
 public class WhiskyWineInstaller {
     /// The Whisky application folder
@@ -48,7 +51,7 @@ public class WhiskyWineInstaller {
             try Tar.untar(tarBall: from, toURL: applicationFolder)
             try FileManager.default.removeItem(at: from)
         } catch {
-            print("Failed to install WhiskyWine: \(error)")
+            logger.error("Failed to install WhiskyWine: \(error.localizedDescription)")
         }
     }
 
@@ -56,7 +59,7 @@ public class WhiskyWineInstaller {
         do {
             try FileManager.default.removeItem(at: libraryFolder)
         } catch {
-            print("Failed to uninstall WhiskyWine: \(error)")
+            logger.error("Failed to uninstall WhiskyWine: \(error.localizedDescription)")
         }
     }
 
@@ -79,10 +82,10 @@ public class WhiskyWineInstaller {
                             return
                         }
                         if let error = error {
-                            print(error)
+                            logger.warning("Failed to fetch remote version: \(error.localizedDescription)")
                         }
                     } catch {
-                        print(error)
+                        logger.warning("Failed to decode remote version: \(error.localizedDescription)")
                     }
 
                     continuation.resume(returning: nil)
@@ -110,7 +113,7 @@ public class WhiskyWineInstaller {
             let info = try decoder.decode(WhiskyWineVersion.self, from: data)
             return info.version
         } catch {
-            print(error)
+            logger.debug("WhiskyWine version not found: \(error.localizedDescription)")
             return nil
         }
     }

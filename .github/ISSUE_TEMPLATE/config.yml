@@ -1,4 +1,5 @@
 blank_issues_enabled: false
-- name: Discord Support
-    url: https://discord.gg/K4AQukwAke
-    about: Please ask for support first to confirm the issue before submitting a report.
+contact_links:
+  - name: GitHub Issues
+    url: https://github.com/frankea/Whisky/issues
+    about: Search existing issues or open a new one for bug reports and feature requests.

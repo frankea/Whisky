@@ -1,15 +1,15 @@
 <div align="center">
 
-  # Whisky 🥃 
+  # Whisky 🥃
   *Wine but a bit stronger*
   
-  ![](https://img.shields.io/github/actions/workflow/status/IsaacMarovitz/Whisky/SwiftLint.yml?style=for-the-badge)
-  [![](https://img.shields.io/discord/1115955071549702235?style=for-the-badge)](https://discord.gg/CsqAfs9CnM)
+  ![](https://img.shields.io/github/actions/workflow/status/frankea/Whisky/SwiftLint.yml?style=for-the-badge)
+  [![](https://img.shields.io/github/issues/frankea/Whisky?style=for-the-badge)](https://github.com/frankea/Whisky/issues)
 </div>
 
-## Maintenance Notice
+## About This Fork
 
-[Whisky is no longer actively maintained](https://docs.getwhisky.app/maintenance-notice). Apps and games may break at any time.
+This repository is a community fork of the original [Whisky](https://github.com/IsaacMarovitz/Whisky) project, maintained by [@frankea](https://github.com/frankea). The original project is no longer under active development, and this fork aims to continue development and support for the community.
 
 <img width="650" alt="Config" src="https://github.com/Whisky-App/Whisky/assets/42140194/d0a405e8-76ee-48f0-92b5-165d184a576b">
 
@@ -44,7 +44,7 @@ Whisky is on homebrew! Install with
 
 ## My game isn't working!
 
-Some games need special steps to get working. Check out the [wiki](https://github.com/IsaacMarovitz/Whisky/wiki/Game-Support).
+Some games need special steps to get working. Check out the [wiki](https://github.com/frankea/Whisky/wiki/Game-Support).
 
 ---
 
@@ -62,7 +62,7 @@ Whisky is possible thanks to the magic of several projects:
 - [CrossOver 22.1.1](https://www.codeweavers.com/crossover) by CodeWeavers and WineHQ
 - D3DMetal by Apple
 
-Special thanks to Gcenx, ohaiibuzzle, and Nat Brown for their support and contributions!
+Special thanks to Gcenx, ohaiibuzzle, Nat Brown, and [Isaac Marovitz](https://github.com/IsaacMarovitz) (original author) for their support and contributions!
 
 ---
 

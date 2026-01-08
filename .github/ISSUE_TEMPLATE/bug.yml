@@ -31,13 +31,12 @@ body:
       render: bash
     validations:
       required: true
-  - type: dropdown
+  - type: input
     id: whisky-version
     attributes:
       label: What version of Whisky are you using?
-      options:
-        - "2.3.2"
-        - "<2.3.2"
+      description: You can find this in Whisky → About Whisky
+      placeholder: "e.g., 2.3.2"
     validations:
       required: true
   - type: dropdown
@@ -45,6 +44,7 @@ body:
     attributes:
       label: What version of macOS are you using?
       options:
+        - "Sequoia (macOS 15)"
         - "Sonoma (macOS 14)"
     validations:
       required: true

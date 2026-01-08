@@ -9,7 +9,7 @@ on:
 
 # Shared environment variables for consistency across jobs
 env:
-  XCODE_VERSION: '16.2'
+  XCODE_VERSION: 'latest-stable'
 
 # Prevent duplicate runs on the same PR
 concurrency:

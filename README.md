@@ -1,10 +1,10 @@
 <div align="center">
 
-  # Whisky 🥃 
+  # Whisky 🥃
   *Wine but a bit stronger*
   
   ![](https://img.shields.io/github/actions/workflow/status/frankea/Whisky/SwiftLint.yml?style=for-the-badge)
-  [![](https://img.shields.io/discord/1115955071549702235?style=for-the-badge)](https://discord.gg/CsqAfs9CnM)
+  [![](https://img.shields.io/github/issues/frankea/Whisky?style=for-the-badge)](https://github.com/frankea/Whisky/issues)
 </div>
 
 ## About This Fork

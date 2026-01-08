@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A2B3C4D2E0107F000AABBCC /* TextTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4E2E0107F000AABBCC /* TextTable.swift */; };
 		6330DD962B1B0EA4007A625A /* RenameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6330DD952B1B0EA4007A625A /* RenameView.swift */; };
 		6365C4C12B1AA69D00AAE1FD /* Animation+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6365C4C02B1AA69D00AAE1FD /* Animation+Extensions.swift */; };
 		6365C4C32B1AA8CD00AAE1FD /* BottleListEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6365C4C22B1AA8CD00AAE1FD /* BottleListEntry.swift */; };
@@ -44,8 +45,6 @@
 		6E7C07BE2AAE7B0100F6E66B /* ProgramShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E7C07BD2AAE7B0100F6E66B /* ProgramShortcut.swift */; };
 		6E7C07C02AAF570100F6E66B /* FileOpenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E7C07BF2AAF570100F6E66B /* FileOpenView.swift */; };
 		6E95F66D2AB3EF3A00D585D1 /* WhiskyCmd in Embed WhiskyCmd */ = {isa = PBXBuildFile; fileRef = 6E70A4982A9A2197007799E9 /* WhiskyCmd */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		6E95F6702AB3F33C00D585D1 /* SwiftyTextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 6E95F66F2AB3F33C00D585D1 /* SwiftyTextTable */; };
-		6E95F6732AB3F67200D585D1 /* Progress in Frameworks */ = {isa = PBXBuildFile; productRef = 6E95F6722AB3F67200D585D1 /* Progress */; };
 		6EB58AC92AEACE5E00B1ED3F /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 6EB58AC82AEACE5E00B1ED3F /* Localizable.xcstrings */; };
 		6EF557982A410599001A4F09 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EF557972A410599001A4F09 /* SetupView.swift */; };
 		6EFDF64C2AAE2DA800EF622F /* QuickLookThumbnailing.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EFDF64B2AAE2DA800EF622F /* QuickLookThumbnailing.framework */; };
@@ -110,6 +109,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1A2B3C4E2E0107F000AABBCC /* TextTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTable.swift; sourceTree = "<group>"; };
 		6330DD952B1B0EA4007A625A /* RenameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenameView.swift; sourceTree = "<group>"; };
 		6365C4C02B1AA69D00AAE1FD /* Animation+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Animation+Extensions.swift"; sourceTree = "<group>"; };
 		6365C4C22B1AA8CD00AAE1FD /* BottleListEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottleListEntry.swift; sourceTree = "<group>"; };
@@ -179,9 +179,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8C2AEFCA2AED79CD00CB568F /* WhiskyKit in Frameworks */,
-				6E95F6732AB3F67200D585D1 /* Progress in Frameworks */,
 				6E5B61B62AC34E6D007B1913 /* SemanticVersion in Frameworks */,
-				6E95F6702AB3F33C00D585D1 /* SwiftyTextTable in Frameworks */,
 				6E59676B2A9A424900D64F70 /* ArgumentParser in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -379,6 +377,7 @@
 			isa = PBXGroup;
 			children = (
 				6E70A49A2A9A2197007799E9 /* Main.swift */,
+				1A2B3C4E2E0107F000AABBCC /* TextTable.swift */,
 			);
 			path = WhiskyCmd;
 			sourceTree = "<group>";
@@ -438,8 +437,6 @@
 			name = WhiskyCmd;
 			packageProductDependencies = (
 				6E59676A2A9A424900D64F70 /* ArgumentParser */,
-				6E95F66F2AB3F33C00D585D1 /* SwiftyTextTable */,
-				6E95F6722AB3F67200D585D1 /* Progress */,
 				6E5B61B52AC34E6D007B1913 /* SemanticVersion */,
 				8C2AEFC92AED79CD00CB568F /* WhiskyKit */,
 			);
@@ -522,8 +519,6 @@
 				6E064B1029DD32A200D9A2D2 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				EB58FB532A499896002DC184 /* XCRemoteSwiftPackageReference "SemanticVersion" */,
 				6E5967682A9A421800D64F70 /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
-				6E95F66E2AB3F33C00D585D1 /* XCRemoteSwiftPackageReference "SwiftyTextTable" */,
-				6E95F6712AB3F67200D585D1 /* XCRemoteSwiftPackageReference "Progress" */,
 				8C2AEFC62AED79B700CB568F /* XCLocalSwiftPackageReference "WhiskyKit" */,
 			);
 			productRefGroup = 6E40495329CCA19C006E3F1B /* Products */;
@@ -628,6 +623,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6E70A49B2A9A2197007799E9 /* Main.swift in Sources */,
+				1A2B3C4D2E0107F000AABBCC /* TextTable.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1032,22 +1028,6 @@
 				minimumVersion = 1.2.3;
 			};
 		};
-		6E95F66E2AB3F33C00D585D1 /* XCRemoteSwiftPackageReference "SwiftyTextTable" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/scottrhoyt/SwiftyTextTable";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.9.0;
-			};
-		};
-		6E95F6712AB3F67200D585D1 /* XCRemoteSwiftPackageReference "Progress" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/jkandzi/Progress.swift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.4.0;
-			};
-		};
 		EB58FB532A499896002DC184 /* XCRemoteSwiftPackageReference "SemanticVersion" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SwiftPackageIndex/SemanticVersion";
@@ -1073,16 +1053,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = EB58FB532A499896002DC184 /* XCRemoteSwiftPackageReference "SemanticVersion" */;
 			productName = SemanticVersion;
-		};
-		6E95F66F2AB3F33C00D585D1 /* SwiftyTextTable */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6E95F66E2AB3F33C00D585D1 /* XCRemoteSwiftPackageReference "SwiftyTextTable" */;
-			productName = SwiftyTextTable;
-		};
-		6E95F6722AB3F67200D585D1 /* Progress */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6E95F6712AB3F67200D585D1 /* XCRemoteSwiftPackageReference "Progress" */;
-			productName = Progress;
 		};
 		8C2AEFC72AED79B700CB568F /* WhiskyKit */ = {
 			isa = XCSwiftPackageProductDependency;

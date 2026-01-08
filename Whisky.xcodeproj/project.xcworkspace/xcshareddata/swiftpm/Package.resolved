@@ -1,15 +1,6 @@
 {
-  "originHash" : "10089079d78380f130f96af5e7c1cfaca419c05af09feef934de813f8b0c2041",
+  "originHash" : "78dd2afad38d29f5a26dda4c6a2e5f6034804c772810302dc5c20ce36a9ab427",
   "pins" : [
-    {
-      "identity" : "progress.swift",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/jkandzi/Progress.swift",
-      "state" : {
-        "revision" : "fed6598735d7982058690acf8f52a0a5fdaeb3e0",
-        "version" : "0.4.0"
-      }
-    },
     {
       "identity" : "semanticversion",
       "kind" : "remoteSourceControl",
@@ -35,15 +26,6 @@
       "state" : {
         "revision" : "41982a3656a71c768319979febd796c6fd111d5c",
         "version" : "1.5.0"
-      }
-    },
-    {
-      "identity" : "swiftytexttable",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/scottrhoyt/SwiftyTextTable",
-      "state" : {
-        "revision" : "c6df6cf533d120716bff38f8ff9885e1ce2a4ac3",
-        "version" : "0.9.0"
       }
     }
   ],

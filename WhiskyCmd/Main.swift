@@ -18,8 +18,6 @@
 
 import Foundation
 import WhiskyKit
-import SwiftyTextTable
-import Progress
 import SemanticVersion
 import ArgumentParser
 
@@ -48,11 +46,7 @@ extension Whisky {
             var bottlesList = BottleData()
             let bottles = bottlesList.loadBottles()
 
-            let nameCol = TextTableColumn(header: "Name")
-            let winVerCol = TextTableColumn(header: "Windows Version")
-            let pathCol = TextTableColumn(header: "Path")
-
-            var table = TextTable(columns: [nameCol, winVerCol, pathCol])
+            var table = TextTable(headers: ["Name", "Windows Version", "Path"])
             for bottle in bottles {
                 table.addRow(values: [bottle.settings.name,
                                       bottle.settings.windowsVersion.pretty(),

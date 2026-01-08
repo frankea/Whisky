@@ -50,16 +50,15 @@ This audit identifies all documentation and configuration references that need u
 | **Current** | `"https://github.com/Whisky-App/Whisky"` |
 | **Recommended** | `"https://github.com/frankea/Whisky"` |
 | **Justification** | Help → GitHub menu item opens wrong repository. Users cannot find correct issue tracker or documentation. |
-| **Status** | ❌ Needs code change |
+| **Status** | ✅ Fixed - GitHub link updated to frankea/Whisky |
 
-### 5. Whisky/Views/WhiskyApp.swift - Help Menu Website Link
+### 5. Whisky/Views/WhiskyApp.swift - Help Menu Items Restructured
 | Attribute | Details |
 |-----------|---------|
-| **File** | [`Whisky/Views/WhiskyApp.swift`](Whisky/Views/WhiskyApp.swift:107) |
-| **Current** | `"https://getwhisky.app/"` |
-| **Recommended** | Consider: Keep as-is (community reference) OR update to fork-specific URL |
-| **Justification** | The getwhisky.app domain is controlled by original project. If it goes offline, help link breaks. |
-| **Status** | ⚠️ Needs decision |
+| **File** | [`Whisky/Views/WhiskyApp.swift`](Whisky/Views/WhiskyApp.swift:103) |
+| **Changes** | - Removed "Website" menu item (getwhisky.app domain)<br>- Removed "Discord" menu item (no Discord server)<br>- Added "Report Issues" menu item linking to GitHub Issues |
+| **Justification** | Website/Discord links pointed to original project. Replaced with GitHub Issues for support. |
+| **Status** | ✅ Fixed - Help menu restructured |
 
 ### 6. Whisky/Info.plist - Sparkle Update Feed URL
 | Attribute | Details |
@@ -109,14 +108,13 @@ This audit identifies all documentation and configuration references that need u
 | **Recommended** | `https://github.com/frankea/Whisky/wiki/Game-Support` |
 | **Status** | ✅ Fixed in PR #30 (but wiki needs to be created/migrated) |
 
-### 11. .github/ISSUE_TEMPLATE/config.yml - Discord Link
+### 11. .github/ISSUE_TEMPLATE/config.yml - Discord Link Removed
 | Attribute | Details |
 |-----------|---------|
 | **File** | [`.github/ISSUE_TEMPLATE/config.yml`](.github/ISSUE_TEMPLATE/config.yml:3) |
-| **Current** | `https://discord.gg/K4AQukwAke` |
-| **Recommended** | Verify this Discord is active/appropriate for fork support |
-| **Justification** | Discord may be original project's community. Consider if fork needs its own support channel. |
-| **Status** | ⚠️ Needs verification |
+| **Changes** | Discord support link replaced with GitHub Issues link |
+| **Justification** | Fork does not have a Discord server. GitHub Issues is now the primary support channel. |
+| **Status** | ✅ Fixed - Discord link removed, GitHub Issues added |
 
 ### 12. .github/ISSUE_TEMPLATE/bug.yml - Whisky Version Dropdown
 | Attribute | Details |
@@ -143,10 +141,10 @@ This audit identifies all documentation and configuration references that need u
 | File | Status | Notes |
 |------|--------|-------|
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | ✅ OK | No repository-specific URLs |
-| [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) | ✅ OK | Standard Contributor Covenant, Discord link is appropriate |
+| [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) | ✅ Updated | Discord link replaced with GitHub Issues |
 | [`LICENSE`](LICENSE) | ✅ OK | GPL-3.0 - no attribution changes needed for fork |
 | [`.github/workflows/CI.yml`](.github/workflows/CI.yml) | ✅ OK | No hardcoded URLs to original repo |
-| [`.github/workflows/Release.yml`](.github/workflows/Release.yml) | ✅ OK | Already uses `frankea/Whisky` |
+| [`.github/workflows/Release.yml`](.github/workflows/Release.yml) | ✅ Updated | Discord webhook removed |
 | [`.github/workflows/AutoAssign.yml`](.github/workflows/AutoAssign.yml) | ✅ OK | Uses `afranke` (correct maintainer handle) |
 | [`.github/dependabot.yml`](.github/dependabot.yml) | ✅ OK | No external dependencies |
 | [`.github/ISSUE_TEMPLATE/feature-request.yml`](.github/ISSUE_TEMPLATE/feature-request.yml) | ✅ OK | No URLs or version info |
@@ -201,17 +199,25 @@ The following external URLs depend on original project infrastructure (`data.get
 - [x] Update README with fork notice
 - [x] Update FUNDING.yml
 
+### Additional Changes (Included in PR #30)
+- [x] Update Help menu GitHub link in WhiskyApp.swift
+- [x] Remove Discord help menu item, add Report Issues item
+- [x] Remove website help menu item
+- [x] Add help.issues localization key
+- [x] Update bug report template macOS versions (added Sequoia)
+- [x] Add SECURITY.md
+- [x] Remove Discord badge from README (replaced with GitHub Issues badge)
+- [x] Update CODE_OF_CONDUCT.md Discord link to GitHub Issues
+- [x] Update issue template config.yml Discord to GitHub Issues
+- [x] Remove Discord webhook from Release.yml workflow
+
 ### Short-term Actions (New PRs Needed)
-1. [ ] Update Help menu GitHub link in WhiskyApp.swift
-2. [ ] Update bug report template macOS versions
-3. [ ] Create Wiki with Game-Support page
-4. [ ] Add SECURITY.md
+1. [ ] Create Wiki with Game-Support page
 
 ### Long-term Decisions Required
 1. [ ] Decide on auto-update infrastructure (keep original, fork, or disable)
 2. [ ] Decide on Wine distribution strategy
 3. [ ] Decide on bundle identifier for new installations
-4. [ ] Establish Discord/support channel strategy
 
 ---
 

@@ -16,8 +16,10 @@ We recommend always using the latest version of Whisky for the best security and
 If you discover a security vulnerability in Whisky, please report it responsibly:
 
 1. **Do not** open a public GitHub issue for security vulnerabilities
-2. **Email** the maintainer directly at the email associated with [@frankea](https://github.com/frankea)
-3. **Include** the following information:
+2. **Use** GitHub's private vulnerability reporting feature via the **Security** tab of this repository:
+   - Navigate to **Security** → **Report a vulnerability**
+   - Or use this direct link: [Report a vulnerability](https://github.com/frankea/Whisky/security/advisories/new)
+3. **Include** the following information in your report:
    - Description of the vulnerability
    - Steps to reproduce the issue
    - Potential impact assessment

@@ -9,7 +9,7 @@
 
 ## About This Fork
 
-This repository is a community fork of the original [Whisky](https://github.com/IsaacMarovitz/Whisky) project, now actively maintained by [@frankea](https://github.com/frankea). The original project is no longer actively maintained, and this fork aims to continue development and support for the community.
+This repository is a community fork of the original [Whisky](https://github.com/IsaacMarovitz/Whisky) project, maintained by [@frankea](https://github.com/frankea). The original project is no longer under active development, and this fork aims to continue development and support for the community.
 
 <img width="650" alt="Config" src="https://github.com/Whisky-App/Whisky/assets/42140194/d0a405e8-76ee-48f0-92b5-165d184a576b">
 

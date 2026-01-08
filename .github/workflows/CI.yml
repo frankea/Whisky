@@ -71,10 +71,26 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
 
-  # Test job for WhiskyKit
+  # Check if WhiskyKit files changed
+  changes:
+    name: Check Changes
+    runs-on: ubuntu-latest
+    outputs:
+      whiskykit: ${{ steps.filter.outputs.whiskykit }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            whiskykit:
+              - 'WhiskyKit/**'
+
+  # Test job for WhiskyKit - only runs when WhiskyKit files change
   test:
     name: Run Tests
-    needs: lint
+    needs: [lint, changes]
+    if: needs.changes.outputs.whiskykit == 'true'
     runs-on: macos-14
     
     steps:
@@ -132,8 +148,8 @@ jobs:
         continue-on-error: true
       
       - name: Upload Coverage Report
+        if: hashFiles('WhiskyKit/coverage.lcov') != ''
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: WhiskyKit/coverage.lcov
-        continue-on-error: true

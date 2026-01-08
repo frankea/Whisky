@@ -85,6 +85,7 @@ jobs:
           filters: |
             whiskykit:
               - 'WhiskyKit/**'
+              - '.github/workflows/CI.yml'
 
   # Test job for WhiskyKit - only runs when WhiskyKit files change
   test:

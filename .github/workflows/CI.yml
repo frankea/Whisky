@@ -1,0 +1,158 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Shared environment variables for consistency across jobs
+env:
+  XCODE_VERSION: 'latest-stable'
+
+# Prevent duplicate runs on the same PR
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Lint job runs first on cheaper ubuntu runner
+  lint:
+    name: SwiftLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: SwiftLint
+        uses: norio-nomura/action-swiftlint@3.2.1
+        with:
+          args: --strict
+
+  # Matrix build for all schemes - runs in parallel after lint
+  build:
+    name: Build ${{ matrix.scheme }}
+    needs: lint
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        scheme: [Whisky, WhiskyCmd, WhiskyThumbnail]
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      # Cache includes WhiskyKit/.build for consistency with test job cache paths
+      # (swift build creates artifacts there, xcodebuild uses DerivedData)
+      - name: Cache SPM Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData/*/SourcePackages
+            .build
+            WhiskyKit/.build
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      # SwiftLint build phase automatically skips when CI=true (set by GitHub Actions)
+      - name: Build
+        run: |
+          xcodebuild -project Whisky.xcodeproj \
+            -scheme ${{ matrix.scheme }} \
+            -configuration Debug \
+            build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+  # Check if WhiskyKit files changed
+  changes:
+    name: Check Changes
+    runs-on: ubuntu-latest
+    outputs:
+      whiskykit: ${{ steps.filter.outputs.whiskykit }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            whiskykit:
+              - 'WhiskyKit/**'
+              - '.github/workflows/CI.yml'
+
+  # Test job for WhiskyKit - only runs when WhiskyKit files change
+  test:
+    name: Run Tests
+    needs: [lint, changes]
+    if: needs.changes.outputs.whiskykit == 'true'
+    runs-on: macos-14
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+      
+      # Cache includes WhiskyKit/.build because swift build/test creates
+      # build artifacts there (unlike xcodebuild which uses DerivedData)
+      - name: Cache SPM Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData/*/SourcePackages
+            .build
+            WhiskyKit/.build
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+      
+      - name: Show Swift version
+        run: swift --version
+      
+      - name: Build WhiskyKit
+        run: swift build --package-path WhiskyKit
+      
+      - name: Run Tests with Code Coverage
+        run: swift test --package-path WhiskyKit --enable-code-coverage
+          
+      - name: Generate Coverage Report
+        id: coverage
+        run: |
+          cd WhiskyKit
+          # Find the test executable - the xctest bundle contains a binary with the same name
+          XCTEST_BUNDLE=$(find .build/debug -name "*.xctest" -type d | head -1)
+          if [ -n "$XCTEST_BUNDLE" ]; then
+            # Get the bundle name without path and extension to find the binary
+            BUNDLE_NAME=$(basename "$XCTEST_BUNDLE" .xctest)
+            TEST_BINARY="$XCTEST_BUNDLE/Contents/MacOS/$BUNDLE_NAME"
+            if [ -f "$TEST_BINARY" ]; then
+              xcrun llvm-cov export \
+                "$TEST_BINARY" \
+                -instr-profile=.build/debug/codecov/default.profdata \
+                -format=lcov > coverage.lcov
+              echo "Coverage report generated successfully"
+              echo "has_coverage=true" >> $GITHUB_OUTPUT
+            else
+              echo "Warning: Test binary not found at $TEST_BINARY"
+            fi
+          else
+            echo "Warning: No xctest bundle found, skipping coverage report"
+          fi
+        continue-on-error: true
+      
+      - name: Upload Coverage Report
+        if: steps.coverage.outputs.has_coverage == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: WhiskyKit/coverage.lcov

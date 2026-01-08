@@ -145,7 +145,7 @@ This audit identifies all documentation and configuration references that need u
 | [`LICENSE`](LICENSE) | ✅ OK | GPL-3.0 - no attribution changes needed for fork |
 | [`.github/workflows/CI.yml`](.github/workflows/CI.yml) | ✅ OK | No hardcoded URLs to original repo |
 | [`.github/workflows/Release.yml`](.github/workflows/Release.yml) | ✅ Updated | Discord webhook removed |
-| [`.github/workflows/AutoAssign.yml`](.github/workflows/AutoAssign.yml) | ✅ OK | Uses `afranke` (correct maintainer handle) |
+| [`.github/workflows/AutoAssign.yml`](.github/workflows/AutoAssign.yml) | ✅ Updated | Uses `frankea` (corrected from `afranke`) |
 | [`.github/dependabot.yml`](.github/dependabot.yml) | ✅ OK | No external dependencies |
 | [`.github/ISSUE_TEMPLATE/feature-request.yml`](.github/ISSUE_TEMPLATE/feature-request.yml) | ✅ OK | No URLs or version info |
 

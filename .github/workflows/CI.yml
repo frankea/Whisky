@@ -126,6 +126,7 @@ jobs:
         run: swift test --package-path WhiskyKit --enable-code-coverage
           
       - name: Generate Coverage Report
+        id: coverage
         run: |
           cd WhiskyKit
           # Find the test executable - the xctest bundle contains a binary with the same name
@@ -140,6 +141,7 @@ jobs:
                 -instr-profile=.build/debug/codecov/default.profdata \
                 -format=lcov > coverage.lcov
               echo "Coverage report generated successfully"
+              echo "has_coverage=true" >> $GITHUB_OUTPUT
             else
               echo "Warning: Test binary not found at $TEST_BINARY"
             fi
@@ -149,7 +151,7 @@ jobs:
         continue-on-error: true
       
       - name: Upload Coverage Report
-        if: hashFiles('WhiskyKit/coverage.lcov') != ''
+        if: steps.coverage.outputs.has_coverage == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report

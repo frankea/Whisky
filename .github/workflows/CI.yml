@@ -79,7 +79,7 @@ jobs:
       whiskykit: ${{ steps.filter.outputs.whiskykit }}
     steps:
       - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@5bbc8f6da7590ea4cd1570d5b4c328958d3070e1
+      - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |

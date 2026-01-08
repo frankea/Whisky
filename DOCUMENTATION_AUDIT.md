@@ -132,7 +132,7 @@ This audit identifies all documentation and configuration references that need u
 | **Current** | Only "Sonoma (macOS 14)" |
 | **Recommended** | Add "Sequoia (macOS 15)" and other supported versions |
 | **Justification** | macOS Sequoia is now available; template is outdated. |
-| **Status** | ❌ Needs update |
+| **Status** | ✅ Fixed - Added macOS Sequoia |
 
 ---
 

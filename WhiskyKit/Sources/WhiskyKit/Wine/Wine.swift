@@ -1,4 +1,3 @@
-// swiftlint:disable file_length
 //
 //  Wine.swift
 //  Whisky
@@ -20,43 +19,9 @@
 import Foundation
 import os.log
 
-// MARK: - macOS Version Detection
-
-/// Represents macOS version for compatibility checks
-public struct MacOSVersion: Comparable, Sendable {
-    public let major: Int
-    public let minor: Int
-    public let patch: Int
-
-    public static let current: MacOSVersion = {
-        let version = ProcessInfo.processInfo.operatingSystemVersion
-        return MacOSVersion(major: version.majorVersion, minor: version.minorVersion, patch: version.patchVersion)
-    }()
-
-    // swiftlint:disable identifier_name
-    /// macOS 15.3 (Sequoia)
-    public static let sequoia15_3 = MacOSVersion(major: 15, minor: 3, patch: 0)
-    /// macOS 15.4 (Sequoia)
-    public static let sequoia15_4 = MacOSVersion(major: 15, minor: 4, patch: 0)
-    /// macOS 15.4.1 (Sequoia)
-    public static let sequoia15_4_1 = MacOSVersion(major: 15, minor: 4, patch: 1)
-    // swiftlint:enable identifier_name
-
-    public static func < (lhs: MacOSVersion, rhs: MacOSVersion) -> Bool {
-        if lhs.major != rhs.major { return lhs.major < rhs.major }
-        if lhs.minor != rhs.minor { return lhs.minor < rhs.minor }
-        return lhs.patch < rhs.patch
-    }
-
-    public var description: String {
-        return "\(major).\(minor).\(patch)"
-    }
-}
-
-// swiftlint:disable:next type_body_length
 public class Wine {
     /// URL to the installed `DXVK` folder
-    private static let dxvkFolder: URL = WhiskyWineInstaller.libraryFolder.appending(path: "DXVK")
+    static let dxvkFolder: URL = WhiskyWineInstaller.libraryFolder.appending(path: "DXVK")
     /// Path to the `wine64` binary
     public static let wineBinary: URL = WhiskyWineInstaller.binFolder.appending(path: "wine64")
     /// Parth to the `wineserver` binary
@@ -312,109 +277,10 @@ public class Wine {
             withContentsIn: Wine.dxvkFolder.appending(path: "x32")
         )
     }
-
-    /// Construct an environment merging the bottle values with the given values
-    @MainActor
-    private static func constructWineEnvironment(
-        for bottle: Bottle, environment: [String: String] = [:]
-    ) -> [String: String] {
-        var result: [String: String] = [
-            "WINEPREFIX": bottle.url.path,
-            "WINEDEBUG": "fixme-all",
-            "GST_DEBUG": "1"
-        ]
-
-        // Apply macOS 15.x compatibility fixes
-        applyMacOSCompatibilityFixes(to: &result)
-
-        bottle.settings.environmentVariables(wineEnv: &result)
-        guard !environment.isEmpty else { return result }
-        result.merge(environment, uniquingKeysWith: { $1 })
-        return result
-    }
-
-    /// Construct an environment merging the bottle values with the given values
-    @MainActor
-    private static func constructWineServerEnvironment(
-        for bottle: Bottle, environment: [String: String] = [:]
-    ) -> [String: String] {
-        var result: [String: String] = [
-            "WINEPREFIX": bottle.url.path,
-            "WINEDEBUG": "fixme-all",
-            "GST_DEBUG": "1"
-        ]
-
-        // Apply macOS 15.x compatibility fixes
-        applyMacOSCompatibilityFixes(to: &result)
-
-        guard !environment.isEmpty else { return result }
-        result.merge(environment, uniquingKeysWith: { $1 })
-        return result
-    }
-
-    // MARK: - macOS Compatibility
-
-    /// Apply environment variable fixes for macOS 15.x (Sequoia) compatibility
-    /// These fixes address issues #1372, #1310, #1307
-    private static func applyMacOSCompatibilityFixes(to environment: inout [String: String]) {
-        let currentVersion = MacOSVersion.current
-
-        // Log macOS version for debugging
-        Logger.wineKit.info("Running on macOS \(currentVersion.description)")
-
-        // macOS 15.3+ compatibility fixes
-        if currentVersion >= .sequoia15_3 {
-            // Fix for graphics issues on macOS 15.3 (#1310)
-            // Disable certain Metal validation that can cause rendering issues
-            environment["MTL_DEBUG_LAYER"] = "0"
-
-            // Improve D3DMetal stability on newer macOS
-            environment["D3DM_VALIDATION"] = "0"
-
-            // Workaround for Wine preloader issues on Sequoia
-            // This helps with Steam and other launcher initialization
-            environment["WINE_DISABLE_NTDLL_THREAD_REGS"] = "1"
-        }
-
-        // macOS 15.4+ specific fixes
-        if currentVersion >= .sequoia15_4 {
-            // Fix for Steam crashes on macOS 15.4.1 (#1372)
-            // The new security model in 15.4 changes how Wine handles certain syscalls
-            environment["WINEFSYNC"] = "0"
-
-            // Disable problematic features that conflict with 15.4 security changes
-            environment["WINE_ENABLE_PIPE_SYNC_FOR_APP"] = "0"
-
-            // Force synchronization mode that works better with macOS 15.4
-            if environment["WINEMSYNC"] == nil && environment["WINEESYNC"] == nil {
-                environment["WINEESYNC"] = "1"
-            }
-
-            // Additional fix for Steam web helper issues
-            environment["STEAM_RUNTIME"] = "0"
-        }
-
-        // macOS 15.4.1 specific fixes
-        if currentVersion >= .sequoia15_4_1 {
-            // Specific workaround for 15.4.1 regression (#1372)
-            // Apple changed mach port handling which affects Wine
-            environment["WINE_MACH_PORT_TIMEOUT"] = "30000"
-
-            // Disable CEF sandbox which causes issues
-            environment["STEAM_DISABLE_CEF_SANDBOX"] = "1"
-        }
-    }
 }
 
 enum WineInterfaceError: Error {
     case invalidResponse
-}
-
-enum RegistryType: String {
-    case binary = "REG_BINARY"
-    case dword = "REG_DWORD"
-    case qword = "REG_QWORD"
-    case string = "REG_SZ"
 }
 
 extension Wine {
@@ -431,132 +297,5 @@ extension Wine {
         let fileURL = Self.logsFolder.appending(path: dateString).appendingPathExtension("log")
         try "".write(to: fileURL, atomically: true, encoding: .utf8)
         return try FileHandle(forWritingTo: fileURL)
-    }
-}
-
-extension Wine {
-    private enum RegistryKey: String {
-        case currentVersion = #"HKLM\Software\Microsoft\Windows NT\CurrentVersion"#
-        case macDriver = #"HKCU\Software\Wine\Mac Driver"#
-        case desktop = #"HKCU\Control Panel\Desktop"#
-    }
-
-    @MainActor
-    private static func addRegistryKey(
-        bottle: Bottle, key: String, name: String, data: String, type: RegistryType
-    ) async throws {
-        try await runWine(
-            ["reg", "add", key, "-v", name, "-t", type.rawValue, "-d", data, "-f"],
-            bottle: bottle
-        )
-    }
-
-    @MainActor
-    private static func queryRegistryKey(
-        bottle: Bottle, key: String, name: String, type: RegistryType
-    ) async throws -> String? {
-        let output = try await runWine(["reg", "query", key, "-v", name], bottle: bottle)
-        let lines = output.split(omittingEmptySubsequences: true, whereSeparator: \.isNewline)
-
-        guard let line = lines.first(where: { $0.contains(type.rawValue) }) else { return nil }
-        let array = line.split(omittingEmptySubsequences: true, whereSeparator: \.isWhitespace)
-        guard let value = array.last else { return nil }
-        return String(value)
-    }
-
-    @MainActor
-    public static func changeBuildVersion(bottle: Bottle, version: Int) async throws {
-        try await addRegistryKey(bottle: bottle, key: RegistryKey.currentVersion.rawValue,
-                                name: "CurrentBuild", data: "\(version)", type: .string)
-        try await addRegistryKey(bottle: bottle, key: RegistryKey.currentVersion.rawValue,
-                                name: "CurrentBuildNumber", data: "\(version)", type: .string)
-    }
-
-    @MainActor
-    public static func winVersion(bottle: Bottle) async throws -> WinVersion {
-        let output = try await Wine.runWine(["winecfg", "-v"], bottle: bottle)
-        let lines = output.split(whereSeparator: \.isNewline)
-
-        if let lastLine = lines.last {
-            let winString = String(lastLine)
-
-            if let version = WinVersion(rawValue: winString) {
-                return version
-            }
-        }
-
-        throw WineInterfaceError.invalidResponse
-    }
-
-    @MainActor
-    public static func buildVersion(bottle: Bottle) async throws -> String? {
-        return try await Wine.queryRegistryKey(
-            bottle: bottle, key: RegistryKey.currentVersion.rawValue,
-            name: "CurrentBuild", type: .string
-        )
-    }
-
-    @MainActor
-    public static func retinaMode(bottle: Bottle) async throws -> Bool {
-        let values: Set<String> = ["y", "n"]
-        guard let output = try await Wine.queryRegistryKey(
-            bottle: bottle, key: RegistryKey.macDriver.rawValue, name: "RetinaMode", type: .string
-        ), values.contains(output) else {
-            try await changeRetinaMode(bottle: bottle, retinaMode: false)
-            return false
-        }
-        return output == "y"
-    }
-
-    @MainActor
-    public static func changeRetinaMode(bottle: Bottle, retinaMode: Bool) async throws {
-        try await Wine.addRegistryKey(
-            bottle: bottle, key: RegistryKey.macDriver.rawValue, name: "RetinaMode", data: retinaMode ? "y" : "n",
-            type: .string
-        )
-    }
-
-    @MainActor
-    public static func dpiResolution(bottle: Bottle) async throws -> Int? {
-        guard let output = try await Wine.queryRegistryKey(bottle: bottle, key: RegistryKey.desktop.rawValue,
-                                                     name: "LogPixels", type: .dword
-        ) else { return nil }
-
-        let noPrefix = output.replacingOccurrences(of: "0x", with: "")
-        let int = Int(noPrefix, radix: 16)
-        guard let int = int else { return nil }
-        return int
-    }
-
-    @MainActor
-    public static func changeDpiResolution(bottle: Bottle, dpi: Int) async throws {
-        try await Wine.addRegistryKey(
-            bottle: bottle, key: RegistryKey.desktop.rawValue, name: "LogPixels", data: String(dpi),
-            type: .dword
-        )
-    }
-
-    @discardableResult
-    @MainActor
-    public static func control(bottle: Bottle) async throws -> String {
-        return try await Wine.runWine(["control"], bottle: bottle)
-    }
-
-    @discardableResult
-    @MainActor
-    public static func regedit(bottle: Bottle) async throws -> String {
-        return try await Wine.runWine(["regedit"], bottle: bottle)
-    }
-
-    @discardableResult
-    @MainActor
-    public static func cfg(bottle: Bottle) async throws -> String {
-        return try await Wine.runWine(["winecfg"], bottle: bottle)
-    }
-
-    @discardableResult
-    @MainActor
-    public static func changeWinVersion(bottle: Bottle, win: WinVersion) async throws -> String {
-        return try await Wine.runWine(["winecfg", "-v", win.rawValue], bottle: bottle)
     }
 }

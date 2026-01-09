@@ -1,4 +1,3 @@
-// swiftlint:disable file_length
 //
 //  ConfigView.swift
 //  Whisky
@@ -23,14 +22,6 @@ import os
 
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ConfigView")
 
-enum LoadingState {
-    case loading
-    case modifying
-    case success
-    case failed
-}
-
-// swiftlint:disable:next type_body_length
 struct ConfigView: View {
     @ObservedObject var bottle: Bottle
     @State private var buildVersion: Int = 0
@@ -48,184 +39,21 @@ struct ConfigView: View {
 
     var body: some View {
         Form {
-            Section("config.title.wine", isExpanded: $wineSectionExpanded) {
-                SettingItemView(title: "config.winVersion", loadingState: winVersionLoadingState) {
-                    Picker("config.winVersion", selection: $bottle.settings.windowsVersion) {
-                        ForEach(WinVersion.allCases.reversed(), id: \.self) {
-                            Text($0.pretty())
-                        }
-                    }
-                }
-                SettingItemView(title: "config.buildVersion", loadingState: buildVersionLoadingState) {
-                    TextField("config.buildVersion", value: $buildVersion, formatter: NumberFormatter())
-                        .multilineTextAlignment(.trailing)
-                        .textFieldStyle(PlainTextFieldStyle())
-                        .onSubmit {
-                            buildVersionLoadingState = .modifying
-                            Task(priority: .userInitiated) {
-                                do {
-                                    try await Wine.changeBuildVersion(bottle: bottle, version: buildVersion)
-                                    buildVersionLoadingState = .success
-                                } catch {
-                                    logger.error("Failed to change build version: \(error.localizedDescription)")
-                                    buildVersionLoadingState = .failed
-                                }
-                            }
-                        }
-                }
-                SettingItemView(title: "config.retinaMode", loadingState: retinaModeLoadingState) {
-                    Toggle("config.retinaMode", isOn: $retinaMode)
-                        .onChange(of: retinaMode, { _, newValue in
-                            Task(priority: .userInitiated) {
-                                retinaModeLoadingState = .modifying
-                                do {
-                                    try await Wine.changeRetinaMode(bottle: bottle, retinaMode: newValue)
-                                    retinaModeLoadingState = .success
-                                } catch {
-                                    logger.error("Failed to change retina mode: \(error.localizedDescription)")
-                                    retinaModeLoadingState = .failed
-                                }
-                            }
-                        })
-                }
-                Picker("config.enhancedSync", selection: $bottle.settings.enhancedSync) {
-                    Text("config.enhancedSync.none").tag(EnhancedSync.none)
-                    Text("config.enhacnedSync.esync").tag(EnhancedSync.esync)
-                    Text("config.enhacnedSync.msync").tag(EnhancedSync.msync)
-                }
-                SettingItemView(title: "config.dpi", loadingState: dpiConfigLoadingState) {
-                    Button("config.inspect") {
-                        dpiSheetPresented = true
-                    }
-                    .sheet(isPresented: $dpiSheetPresented) {
-                        DPIConfigSheetView(
-                            dpiConfig: $dpiConfig,
-                            isRetinaMode: $retinaMode,
-                            presented: $dpiSheetPresented
-                        )
-                    }
-                }
-                if #available(macOS 15, *) {
-                    Toggle(isOn: $bottle.settings.avxEnabled) {
-                        VStack(alignment: .leading) {
-                            Text("config.avx")
-                            if bottle.settings.avxEnabled {
-                                HStack(alignment: .firstTextBaseline) {
-                                    Image(systemName: "exclamationmark.triangle.fill")
-                                        .symbolRenderingMode(.multicolor)
-                                        .font(.subheadline)
-                                    Text("config.avx.warning")
-                                        .fontWeight(.light)
-                                        .font(.subheadline)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            Section("config.title.dxvk", isExpanded: $dxvkSectionExpanded) {
-                Toggle(isOn: $bottle.settings.dxvk) {
-                    Text("config.dxvk")
-                }
-                Toggle(isOn: $bottle.settings.dxvkAsync) {
-                    Text("config.dxvk.async")
-                }
-                .disabled(!bottle.settings.dxvk)
-                Picker("config.dxvkHud", selection: $bottle.settings.dxvkHud) {
-                    Text("config.dxvkHud.full").tag(DXVKHUD.full)
-                    Text("config.dxvkHud.partial").tag(DXVKHUD.partial)
-                    Text("config.dxvkHud.fps").tag(DXVKHUD.fps)
-                    Text("config.dxvkHud.off").tag(DXVKHUD.off)
-                }
-                .disabled(!bottle.settings.dxvk)
-            }
-            Section("config.title.metal", isExpanded: $metalSectionExpanded) {
-                Toggle(isOn: $bottle.settings.metalHud) {
-                    Text("config.metalHud")
-                }
-                Toggle(isOn: $bottle.settings.metalTrace) {
-                    Text("config.metalTrace")
-                    Text("config.metalTrace.info")
-                }
-                if let device = MTLCreateSystemDefaultDevice() {
-                    // Represents the Apple family 9 GPU features that correspond to the Apple A17, M3, and M4 GPUs.
-                    if device.supportsFamily(.apple9) {
-                        Toggle(isOn: $bottle.settings.dxrEnabled) {
-                            Text("config.dxr")
-                            Text("config.dxr.info")
-                        }
-                    }
-                }
-                // Sequoia compatibility mode - helps with macOS 15.x issues
-                if #available(macOS 15, *) {
-                    Toggle(isOn: $bottle.settings.sequoiaCompatMode) {
-                        VStack(alignment: .leading) {
-                            Text("config.sequoiaCompat")
-                            Text("config.sequoiaCompat.info")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-            }
-            Section("config.title.performance", isExpanded: $performanceSectionExpanded) {
-                Picker("config.performancePreset", selection: $bottle.settings.performancePreset) {
-                    ForEach(PerformancePreset.allCases, id: \.self) { preset in
-                        Text(preset.description()).tag(preset)
-                    }
-                }
-                // Show description of current preset
-                if bottle.settings.performancePreset != .balanced {
-                    HStack {
-                        Image(systemName: presetIcon(for: bottle.settings.performancePreset))
-                            .foregroundColor(.secondary)
-                        Text(presetDescription(for: bottle.settings.performancePreset))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                Toggle(isOn: $bottle.settings.shaderCacheEnabled) {
-                    VStack(alignment: .leading) {
-                        Text("config.shaderCache")
-                        Text("config.shaderCache.info")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                Toggle(isOn: $bottle.settings.forceD3D11) {
-                    VStack(alignment: .leading) {
-                        Text("config.forceD3D11")
-                        Text("config.forceD3D11.info")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                // Install VC++ Runtime button for Unity games
-                if !bottle.settings.vcRedistInstalled {
-                    Button {
-                        Task {
-                            await Winetricks.runCommand(command: "vcrun2019", bottle: bottle)
-                            bottle.settings.vcRedistInstalled = true
-                        }
-                    } label: {
-                        HStack {
-                            Image(systemName: "wrench.and.screwdriver")
-                            VStack(alignment: .leading) {
-                                Text("config.installVcRedist")
-                                Text("config.installVcRedist.info")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                } else {
-                    HStack {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                        Text("config.vcRedistInstalled")
-                    }
-                }
-            }
+            WineConfigSection(
+                bottle: bottle,
+                isExpanded: $wineSectionExpanded,
+                buildVersion: $buildVersion,
+                retinaMode: $retinaMode,
+                dpiConfig: $dpiConfig,
+                winVersionLoadingState: $winVersionLoadingState,
+                buildVersionLoadingState: $buildVersionLoadingState,
+                retinaModeLoadingState: $retinaModeLoadingState,
+                dpiConfigLoadingState: $dpiConfigLoadingState,
+                dpiSheetPresented: $dpiSheetPresented
+            )
+            DXVKConfigSection(bottle: bottle, isExpanded: $dxvkSectionExpanded)
+            MetalConfigSection(bottle: bottle, isExpanded: $metalSectionExpanded)
+            PerformanceConfigSection(bottle: bottle, isExpanded: $performanceSectionExpanded)
         }
         .formStyle(.grouped)
         .animation(.whiskyDefault, value: wineSectionExpanded)
@@ -338,134 +166,6 @@ struct ConfigView: View {
                 logger.error("Failed to load build version: \(error.localizedDescription)")
                 buildVersionLoadingState = .failed
             }
-        }
-    }
-
-    // MARK: - Performance Preset Helpers
-
-    func presetIcon(for preset: PerformancePreset) -> String {
-        switch preset {
-        case .balanced:
-            return "scale.3d"
-        case .performance:
-            return "bolt.fill"
-        case .quality:
-            return "sparkles"
-        case .unity:
-            return "cube.fill"
-        }
-    }
-
-    func presetDescription(for preset: PerformancePreset) -> String {
-        switch preset {
-        case .balanced:
-            return String(localized: "config.preset.balanced.desc")
-        case .performance:
-            return String(localized: "config.preset.performance.desc")
-        case .quality:
-            return String(localized: "config.preset.quality.desc")
-        case .unity:
-            return String(localized: "config.preset.unity.desc")
-        }
-    }
-}
-
-struct DPIConfigSheetView: View {
-    @Binding var dpiConfig: Int
-    @Binding var isRetinaMode: Bool
-    @Binding var presented: Bool
-    @State var stagedChanges: Float
-    @FocusState var textFocused: Bool
-
-    init(dpiConfig: Binding<Int>, isRetinaMode: Binding<Bool>, presented: Binding<Bool>) {
-        self._dpiConfig = dpiConfig
-        self._isRetinaMode = isRetinaMode
-        self._presented = presented
-        self.stagedChanges = Float(dpiConfig.wrappedValue)
-    }
-
-    var body: some View {
-        VStack {
-            HStack {
-                Text("configDpi.title")
-                    .fontWeight(.bold)
-                Spacer()
-            }
-            Divider()
-            GroupBox(label: Label("configDpi.preview", systemImage: "text.magnifyingglass")) {
-                VStack {
-                    HStack {
-                        Text("configDpi.previewText")
-                            .padding(16)
-                            .font(.system(size:
-                                (10 * CGFloat(stagedChanges)) / 72 *
-                                          (isRetinaMode ? 0.5 : 1)
-                            ))
-                        Spacer()
-                    }
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity, maxHeight: 80)
-            }
-            HStack {
-                Slider(value: $stagedChanges, in: 96...480, step: 24, onEditingChanged: { _ in
-                    textFocused = false
-                })
-                TextField(String(), value: $stagedChanges, format: .number)
-                    .frame(width: 40)
-                    .focused($textFocused)
-                Text("configDpi.dpi")
-            }
-            Spacer()
-            HStack {
-                Spacer()
-                Button("create.cancel") {
-                    presented = false
-                }
-                .keyboardShortcut(.cancelAction)
-                Button("button.ok") {
-                    dpiConfig = Int(stagedChanges)
-                    presented = false
-                }
-                .keyboardShortcut(.defaultAction)
-            }
-        }
-        .padding()
-        .frame(width: ViewWidth.medium, height: 240)
-    }
-}
-
-struct SettingItemView<Content: View>: View {
-    let title: String.LocalizationValue
-    let loadingState: LoadingState
-    @ViewBuilder var content: () -> Content
-
-    @Namespace private var viewId
-    @Namespace private var progressViewId
-
-    var body: some View {
-        HStack {
-            Text(String(localized: title))
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            HStack {
-                switch loadingState {
-                case .loading, .modifying:
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .controlSize(.small)
-                        .matchedGeometryEffect(id: progressViewId, in: viewId)
-                case .success:
-                    content()
-                        .labelsHidden()
-                        .disabled(loadingState != .success)
-                case .failed:
-                    Text("config.notAvailable")
-                        .font(.caption).foregroundStyle(.red)
-                        .multilineTextAlignment(.trailing)
-                }
-            }.animation(.default, value: loadingState)
         }
     }
 }

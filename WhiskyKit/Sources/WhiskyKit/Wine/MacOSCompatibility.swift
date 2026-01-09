@@ -57,7 +57,7 @@ extension Wine {
 
     /// Apply environment variable fixes for macOS 15.x (Sequoia) compatibility
     /// These fixes address issues #1372, #1310, #1307
-    static func applyMacOSCompatibilityFixes(to environment: inout [String: String]) {
+    internal static func applyMacOSCompatibilityFixes(to environment: inout [String: String]) {
         let currentVersion = MacOSVersion.current
 
         // Log macOS version for debugging

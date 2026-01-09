@@ -22,6 +22,12 @@
 		6E2B25C12B0E20F50084A67A /* PinAddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E2B25C02B0E20F50084A67A /* PinAddView.swift */; };
 		6E2FB15E2B589A7800E344C6 /* cabextract in Embed WhiskyCmd */ = {isa = PBXBuildFile; fileRef = 6E2FB15D2B589A7800E344C6 /* cabextract */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		6E355E5829D78249002D83BE /* ConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E355E5729D78249002D83BE /* ConfigView.swift */; };
+		2E9E4AD3124BDF8D5238BE32 /* DPIConfigSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3735C5328F7A6ABD2D1248 /* DPIConfigSheetView.swift */; };
+		E24B756A38C48A1EE4374F25 /* SettingItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAE15F0C1EF1F06C7DB73DF5 /* SettingItemView.swift */; };
+		744CFC7F2B2281370D39A466 /* WineConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258BF9104045ED48882E009D /* WineConfigSection.swift */; };
+		396CD6101FAF0380C459ACEE /* DXVKConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5770D2EE01AEF235634646 /* DXVKConfigSection.swift */; };
+		52513FA35312809A9760BCB2 /* MetalConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2699006F97F862815633C9F /* MetalConfigSection.swift */; };
+		C08ECD035DDFEDB70ACA1D1B /* PerformanceConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3724CE6DD2C1B22D80442DB6 /* PerformanceConfigSection.swift */; };
 		6E355E5A29D782B2002D83BE /* ProgramsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E355E5929D782B2002D83BE /* ProgramsView.swift */; };
 		6E355E5E29D7D85D002D83BE /* ProgramView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E355E5D29D7D85D002D83BE /* ProgramView.swift */; };
 		6E40495629CCA19C006E3F1B /* WhiskyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E40495529CCA19C006E3F1B /* WhiskyApp.swift */; };
@@ -123,6 +129,12 @@
 		6E2B25C02B0E20F50084A67A /* PinAddView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinAddView.swift; sourceTree = "<group>"; };
 		6E2FB15D2B589A7800E344C6 /* cabextract */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = cabextract; sourceTree = "<group>"; };
 		6E355E5729D78249002D83BE /* ConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigView.swift; sourceTree = "<group>"; };
+		DD3735C5328F7A6ABD2D1248 /* DPIConfigSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DPIConfigSheetView.swift; sourceTree = "<group>"; };
+		EAE15F0C1EF1F06C7DB73DF5 /* SettingItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingItemView.swift; sourceTree = "<group>"; };
+		258BF9104045ED48882E009D /* WineConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineConfigSection.swift; sourceTree = "<group>"; };
+		CA5770D2EE01AEF235634646 /* DXVKConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DXVKConfigSection.swift; sourceTree = "<group>"; };
+		E2699006F97F862815633C9F /* MetalConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalConfigSection.swift; sourceTree = "<group>"; };
+		3724CE6DD2C1B22D80442DB6 /* PerformanceConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceConfigSection.swift; sourceTree = "<group>"; };
 		6E355E5929D782B2002D83BE /* ProgramsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramsView.swift; sourceTree = "<group>"; };
 		6E355E5D29D7D85D002D83BE /* ProgramView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramView.swift; sourceTree = "<group>"; };
 		6E40495229CCA19C006E3F1B /* Whisky.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Whisky.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -252,6 +264,12 @@
 				6365C4C22B1AA8CD00AAE1FD /* BottleListEntry.swift */,
 				6E50D98429CDF25B008C39F6 /* BottleCreationView.swift */,
 				6E355E5729D78249002D83BE /* ConfigView.swift */,
+				DD3735C5328F7A6ABD2D1248 /* DPIConfigSheetView.swift */,
+				EAE15F0C1EF1F06C7DB73DF5 /* SettingItemView.swift */,
+				258BF9104045ED48882E009D /* WineConfigSection.swift */,
+				CA5770D2EE01AEF235634646 /* DXVKConfigSection.swift */,
+				E2699006F97F862815633C9F /* MetalConfigSection.swift */,
+				3724CE6DD2C1B22D80442DB6 /* PerformanceConfigSection.swift */,
 				6E182FC92B0BF64E00AADE81 /* WinetricksView.swift */,
 				AB0BCABC2B61036E00E21C31 /* RunningProcessesView.swift */,
 				6E17B6422AF3FD6E00831173 /* Pins */,
@@ -591,6 +609,12 @@
 				DB696FC82AFAE5DA0037EB2F /* PinCreationView.swift in Sources */,
 				6E7C07BE2AAE7B0100F6E66B /* ProgramShortcut.swift in Sources */,
 				6E355E5829D78249002D83BE /* ConfigView.swift in Sources */,
+				2E9E4AD3124BDF8D5238BE32 /* DPIConfigSheetView.swift in Sources */,
+				E24B756A38C48A1EE4374F25 /* SettingItemView.swift in Sources */,
+				744CFC7F2B2281370D39A466 /* WineConfigSection.swift in Sources */,
+				396CD6101FAF0380C459ACEE /* DXVKConfigSection.swift in Sources */,
+				52513FA35312809A9760BCB2 /* MetalConfigSection.swift in Sources */,
+				C08ECD035DDFEDB70ACA1D1B /* PerformanceConfigSection.swift in Sources */,
 				63FFDE862ADF0C7700178665 /* BottomBar.swift in Sources */,
 				6E6C0CF62A419A8300356232 /* WhiskyWineDownloadView.swift in Sources */,
 				6365C4C32B1AA8CD00AAE1FD /* BottleListEntry.swift in Sources */,

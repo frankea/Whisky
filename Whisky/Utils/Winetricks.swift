@@ -19,6 +19,9 @@
 import Foundation
 import AppKit
 import WhiskyKit
+import os
+
+private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "Winetricks")
 
 enum WinetricksCategories: String {
     case apps
@@ -64,7 +67,7 @@ class Winetricks {
             appleScript.executeAndReturnError(&error)
 
             if let error = error {
-                print(error)
+                logger.error("AppleScript error: \(error)")
                 if let description = error["NSAppleScriptErrorMessage"] as? String {
                     await MainActor.run {
                         let alert = NSAlert()

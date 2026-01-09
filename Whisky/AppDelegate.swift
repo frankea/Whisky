@@ -18,6 +18,10 @@
 
 import Foundation
 import SwiftUI
+import WhiskyKit
+import os
+
+private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "AppDelegate")
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     @AppStorage("hasShownMoveToApplicationsAlert") private var hasShownMoveToApplicationsAlert = false
@@ -82,7 +86,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 _ = try FileManager.default.replaceItemAt(AppDelegate.expectedUrl, withItemAt: appURL)
                 NSWorkspace.shared.open(AppDelegate.expectedUrl)
             } catch {
-                print("Failed to move the app: \(error)")
+                logger.error("Failed to move the app: \(error.localizedDescription)")
             }
         }
     }

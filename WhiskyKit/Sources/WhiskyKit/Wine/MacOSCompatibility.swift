@@ -102,7 +102,14 @@ extension Wine {
             environment["WINE_MACH_PORT_TIMEOUT"] = "30000"
 
             // Disable CEF sandbox which causes issues
-            environment["STEAM_DISABLE_CEF_SANDBOX"] = "1"
+            // Disable CEF sandbox only when explicitly requested.
+            // This avoids weakening Steam's browser sandbox by default.
+            if environment["WHISKY_ENABLE_STEAM_CEF_SANDBOX_WORKAROUND"] == "1" {
+                Logger.wineKit.info("Applying Steam CEF sandbox compatibility workaround (disabling sandbox) due to WHISKY_ENABLE_STEAM_CEF_SANDBOX_WORKAROUND=1")
+                environment["STEAM_DISABLE_CEF_SANDBOX"] = "1"
+            } else {
+                Logger.wineKit.info("Not disabling Steam CEF sandbox. Set WHISKY_ENABLE_STEAM_CEF_SANDBOX_WORKAROUND=1 to apply the compatibility workaround on macOS 15.4.1+ if needed.")
+            }
         }
     }
 }

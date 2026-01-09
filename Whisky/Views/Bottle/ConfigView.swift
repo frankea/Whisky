@@ -21,7 +21,7 @@ import SwiftUI
 import WhiskyKit
 import os
 
-private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "ConfigView")
+private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ConfigView")
 
 enum LoadingState {
     case loading

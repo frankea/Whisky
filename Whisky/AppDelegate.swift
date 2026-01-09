@@ -18,9 +18,10 @@
 
 import Foundation
 import SwiftUI
+import WhiskyKit
 import os
 
-private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "AppDelegate")
+private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "AppDelegate")
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     @AppStorage("hasShownMoveToApplicationsAlert") private var hasShownMoveToApplicationsAlert = false

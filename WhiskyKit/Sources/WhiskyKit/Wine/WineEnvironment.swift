@@ -21,7 +21,7 @@ import Foundation
 extension Wine {
     /// Construct an environment merging the bottle values with the given values
     @MainActor
-    static func constructWineEnvironment(
+    internal static func constructWineEnvironment(
         for bottle: Bottle, environment: [String: String] = [:]
     ) -> [String: String] {
         var result: [String: String] = [
@@ -41,7 +41,7 @@ extension Wine {
 
     /// Construct an environment merging the bottle values with the given values
     @MainActor
-    static func constructWineServerEnvironment(
+    internal static func constructWineServerEnvironment(
         for bottle: Bottle, environment: [String: String] = [:]
     ) -> [String: String] {
         var result: [String: String] = [

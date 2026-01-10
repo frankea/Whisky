@@ -18,6 +18,7 @@
 
 import SwiftUI
 import WhiskyKit
+import SemanticVersion
 
 struct WhiskyWineDownloadView: View {
     @State private var fractionProgress: Double = 0
@@ -27,6 +28,8 @@ struct WhiskyWineDownloadView: View {
     @State private var downloadTask: URLSessionDownloadTask?
     @State private var observation: NSKeyValueObservation?
     @State private var startTime: Date?
+    @State private var wineVersion: SemanticVersion?
+    @State private var downloadError: String?
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
     var body: some View {
@@ -65,34 +68,8 @@ struct WhiskyWineDownloadView: View {
         .frame(width: 400, height: 200)
         .onAppear {
             Task {
-                if let url: URL = URL(string: "https://data.getwhisky.app/Wine/Libraries.tar.gz") {
-                    downloadTask = URLSession(configuration: .ephemeral).downloadTask(with: url) { url, _, _ in
-                        Task.detached {
-                            await MainActor.run {
-                                if let url = url {
-                                    tarLocation = url
-                                    proceed()
-                                }
-                            }
-                        }
-                    }
-                    observation = downloadTask?.observe(\.countOfBytesReceived) { task, _ in
-                        Task {
-                            await MainActor.run {
-                                let currentTime = Date()
-                                let elapsedTime = currentTime.timeIntervalSince(startTime ?? currentTime)
-                                if completedBytes > 0 {
-                                    downloadSpeed = Double(completedBytes) / elapsedTime
-                                }
-                                totalBytes = task.countOfBytesExpectedToReceive
-                                completedBytes = task.countOfBytesReceived
-                                fractionProgress = Double(completedBytes) / Double(totalBytes)
-                            }
-                        }
-                    }
-                    startTime = Date()
-                    downloadTask?.resume()
-                }
+                // First, fetch the version information
+                await fetchVersionAndDownload()
             }
         }
     }
@@ -124,5 +101,96 @@ struct WhiskyWineDownloadView: View {
 
     func proceed() {
         path.append(.whiskyWineInstall)
+    }
+    
+    func fetchVersionAndDownload() async {
+        // Fetch version from GitHub Pages
+        guard let versionURL = URL(string: DistributionConfig.versionPlistURL) else {
+            downloadError = "Invalid version URL"
+            return
+        }
+        
+        do {
+            let (data, _) = try await URLSession(configuration: .ephemeral).data(from: versionURL)
+            let decoder = PropertyListDecoder()
+            let versionInfo = try decoder.decode(WhiskyWineVersion.self, from: data)
+            wineVersion = versionInfo.version
+            
+            // Construct download URL from version
+            let versionString = "\(versionInfo.version.major).\(versionInfo.version.minor).\(versionInfo.version.patch)"
+            let downloadURLString = DistributionConfig.librariesURL(version: versionString)
+            
+            guard let downloadURL = URL(string: downloadURLString) else {
+                downloadError = "Invalid download URL"
+                return
+            }
+            
+            // Start download
+            await MainActor.run {
+                downloadTask = URLSession(configuration: .ephemeral).downloadTask(with: downloadURL) { url, response, error in
+                    Task.detached {
+                        await MainActor.run {
+                            if let error = error {
+                                downloadError = error.localizedDescription
+                                return
+                            }
+                            
+                            if let url = url {
+                                tarLocation = url
+                                proceed()
+                            } else {
+                                downloadError = "Download failed: no file received"
+                            }
+                        }
+                    }
+                }
+                
+                observation = downloadTask?.observe(\.countOfBytesReceived) { task, _ in
+                    Task {
+                        await MainActor.run {
+                            let currentTime = Date()
+                            let elapsedTime = currentTime.timeIntervalSince(startTime ?? currentTime)
+                            if completedBytes > 0 {
+                                downloadSpeed = Double(completedBytes) / elapsedTime
+                            }
+                            totalBytes = task.countOfBytesExpectedToReceive
+                            completedBytes = task.countOfBytesReceived
+                            if totalBytes > 0 {
+                                fractionProgress = Double(completedBytes) / Double(totalBytes)
+                            }
+                        }
+                    }
+                }
+                
+                startTime = Date()
+                downloadTask?.resume()
+            }
+        } catch {
+            await MainActor.run {
+                downloadError = "Failed to fetch version: \(error.localizedDescription)"
+            }
+        }
+    }
+}
+
+// Helper struct to decode version plist
+private struct WhiskyWineVersion: Codable {
+    var version: SemanticVersion
+    
+    enum CodingKeys: String, CodingKey {
+        case version
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let versionDict = try container.nestedContainer(keyedBy: VersionKeys.self, forKey: .version)
+        let major = try versionDict.decode(Int.self, forKey: .major)
+        let minor = try versionDict.decode(Int.self, forKey: .minor)
+        let patch = try versionDict.decode(Int.self, forKey: .patch)
+        version = SemanticVersion(major, minor, patch)
+    }
+    
+    private enum VersionKeys: String, CodingKey {
+        case major, minor, patch
     }
 }

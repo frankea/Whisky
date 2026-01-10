@@ -125,7 +125,7 @@ The Whisky fork uses the following infrastructure for distribution:
 
 ### Wine Libraries
 - Version check: `https://frankea.github.io/Whisky/WhiskyWineVersion.plist`
-- Download: `https://github.com/frankea/Whisky/releases/download/v{VERSION}/Libraries.tar.gz`
+- Download: `https://github.com/frankea/Whisky/releases/download/v{VERSION}-wine/Libraries.tar.gz`
 
 ### Application Updates
 - Appcast: `https://frankea.github.io/Whisky/appcast.xml`

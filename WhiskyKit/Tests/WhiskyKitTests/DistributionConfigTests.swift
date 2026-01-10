@@ -114,7 +114,10 @@ final class DistributionConfigTests: XCTestCase {
         
         // Verify the URL follows the expected pattern
         let pattern = "^https://github\\.com/frankea/Whisky/releases/download/v\\d+\\.\\d+\\.\\d+-wine/Libraries\\.tar\\.gz$"
-        let regex = try! NSRegularExpression(pattern: pattern)
+        guard let regex = try? NSRegularExpression(pattern: pattern) else {
+            XCTFail("Invalid regex pattern: \(pattern)")
+            return
+        }
         let range = NSRange(location: 0, length: url.utf16.count)
         
         XCTAssertNotNil(regex.firstMatch(in: url, options: [], range: range), 

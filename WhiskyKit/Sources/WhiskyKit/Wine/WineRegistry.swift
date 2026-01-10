@@ -18,7 +18,7 @@
 
 import Foundation
 
-public enum RegistryType: String {
+enum RegistryType: String {
     case binary = "REG_BINARY"
     case dword = "REG_DWORD"
     case qword = "REG_QWORD"

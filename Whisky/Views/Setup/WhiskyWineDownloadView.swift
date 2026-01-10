@@ -220,6 +220,10 @@ struct WhiskyWineDownloadView: View {
         guard currentDownloadTaskID == taskID else { return }
 
         if let error = error {
+            // Don't show error when download was explicitly cancelled (e.g., during retry)
+            if (error as NSError).code == NSURLErrorCancelled {
+                return
+            }
             downloadError = String(
                 format: String(localized: "setup.whiskywine.error.downloadFailed"),
                 error.localizedDescription

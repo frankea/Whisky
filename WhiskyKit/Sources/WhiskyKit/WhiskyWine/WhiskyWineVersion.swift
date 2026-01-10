@@ -32,14 +32,14 @@ import SemanticVersion
 ///     <integer>0</integer>
 /// </dict>
 /// ```
-struct WhiskyWineVersion: Codable {
-    var version: SemanticVersion
+public struct WhiskyWineVersion: Codable {
+    public var version: SemanticVersion
     
     enum CodingKeys: String, CodingKey {
         case version
     }
     
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let versionDict = try container.nestedContainer(keyedBy: VersionKeys.self, forKey: .version)
         let major = try versionDict.decode(Int.self, forKey: .major)

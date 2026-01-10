@@ -1,4 +1,3 @@
-// swiftlint:disable file_length
 //
 //  BottleSettings.swift
 //  WhiskyKit
@@ -58,140 +57,6 @@ public struct BottleInfo: Codable, Equatable {
         self.pins = try container.decodeIfPresent([PinnedProgram].self, forKey: .pins) ?? []
         self.blocklist = try container.decodeIfPresent([URL].self, forKey: .blocklist) ?? []
     }
-}
-
-public enum WinVersion: String, CaseIterable, Codable, Sendable {
-    case winXP = "winxp64"
-    case win7 = "win7"
-    case win8 = "win8"
-    case win81 = "win81"
-    case win10 = "win10"
-    case win11 = "win11"
-
-    public func pretty() -> String {
-        switch self {
-        case .winXP:
-            return "Windows XP"
-        case .win7:
-            return "Windows 7"
-        case .win8:
-            return "Windows 8"
-        case .win81:
-            return "Windows 8.1"
-        case .win10:
-            return "Windows 10"
-        case .win11:
-            return "Windows 11"
-        }
-    }
-}
-
-public enum EnhancedSync: Codable, Equatable {
-    case none, esync, msync
-}
-
-public struct BottleWineConfig: Codable, Equatable {
-    static let defaultWineVersion = SemanticVersion(7, 7, 0)
-    var wineVersion: SemanticVersion = Self.defaultWineVersion
-    var windowsVersion: WinVersion = .win10
-    var enhancedSync: EnhancedSync = .msync
-    var avxEnabled: Bool = false
-
-    public init() {}
-
-    // swiftlint:disable line_length
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.wineVersion = try container.decodeIfPresent(SemanticVersion.self, forKey: .wineVersion) ?? Self.defaultWineVersion
-        self.windowsVersion = try container.decodeIfPresent(WinVersion.self, forKey: .windowsVersion) ?? .win10
-        self.enhancedSync = try container.decodeIfPresent(EnhancedSync.self, forKey: .enhancedSync) ?? .msync
-        self.avxEnabled = try container.decodeIfPresent(Bool.self, forKey: .avxEnabled) ?? false
-    }
-    // swiftlint:enable line_length
-}
-
-public struct BottleMetalConfig: Codable, Equatable {
-    var metalHud: Bool = false
-    var metalTrace: Bool = false
-    var dxrEnabled: Bool = false
-    var metalValidation: Bool = false
-    var forceGPUFamily: String?
-    var sequoiaCompatMode: Bool = true  // Enable Sequoia compatibility by default
-
-    public init() {}
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.metalHud = try container.decodeIfPresent(Bool.self, forKey: .metalHud) ?? false
-        self.metalTrace = try container.decodeIfPresent(Bool.self, forKey: .metalTrace) ?? false
-        self.dxrEnabled = try container.decodeIfPresent(Bool.self, forKey: .dxrEnabled) ?? false
-        self.metalValidation = try container.decodeIfPresent(Bool.self, forKey: .metalValidation) ?? false
-        self.forceGPUFamily = try container.decodeIfPresent(String.self, forKey: .forceGPUFamily)
-        self.sequoiaCompatMode = try container.decodeIfPresent(Bool.self, forKey: .sequoiaCompatMode) ?? true
-    }
-}
-
-public enum DXVKHUD: Codable, Equatable {
-    case full, partial, fps, off
-}
-
-public struct BottleDXVKConfig: Codable, Equatable {
-    var dxvk: Bool = false
-    var dxvkAsync: Bool = true
-    var dxvkHud: DXVKHUD = .off
-
-    public init() {}
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.dxvk = try container.decodeIfPresent(Bool.self, forKey: .dxvk) ?? false
-        self.dxvkAsync = try container.decodeIfPresent(Bool.self, forKey: .dxvkAsync) ?? true
-        self.dxvkHud = try container.decodeIfPresent(DXVKHUD.self, forKey: .dxvkHud) ?? .off
-    }
-}
-
-/// Performance optimization presets for games
-public enum PerformancePreset: String, Codable, CaseIterable, Sendable {
-    case balanced
-    case performance
-    case quality
-    case unity  // Optimized for Unity games
-
-    public func description() -> String {
-        switch self {
-        case .balanced:
-            return "Balanced (Default)"
-        case .performance:
-            return "Performance Mode"
-        case .quality:
-            return "Quality Mode"
-        case .unity:
-            return "Unity Games Optimized"
-        }
-    }
-}
-
-public struct BottlePerformanceConfig: Codable, Equatable {
-    var performancePreset: PerformancePreset = .balanced
-    var shaderCacheEnabled: Bool = true
-    var gpuMemoryLimit: Int?  // MB, nil means auto
-    var forceD3D11: Bool = false  // Force D3D11 instead of D3D12 for compatibility
-    var disableShaderOptimizations: Bool = false  // For debugging FPS issues
-    var vcRedistInstalled: Bool = false  // Track if VC++ runtime is installed
-
-    public init() {}
-
-    // swiftlint:disable line_length
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.performancePreset = try container.decodeIfPresent(PerformancePreset.self, forKey: .performancePreset) ?? .balanced
-        self.shaderCacheEnabled = try container.decodeIfPresent(Bool.self, forKey: .shaderCacheEnabled) ?? true
-        self.gpuMemoryLimit = try container.decodeIfPresent(Int.self, forKey: .gpuMemoryLimit)
-        self.forceD3D11 = try container.decodeIfPresent(Bool.self, forKey: .forceD3D11) ?? false
-        self.disableShaderOptimizations = try container.decodeIfPresent(Bool.self, forKey: .disableShaderOptimizations) ?? false
-        self.vcRedistInstalled = try container.decodeIfPresent(Bool.self, forKey: .vcRedistInstalled) ?? false
-    }
-    // swiftlint:enable line_length
 }
 
 public struct BottleSettings: Codable, Equatable {
@@ -384,7 +249,16 @@ public struct BottleSettings: Codable, Equatable {
 
         switch enhancedSync {
         case .none:
-            break
+            // On macOS 15.4+, WINEESYNC is required for stability
+            if MacOSVersion.current < .sequoia15_4 {
+                wineEnv.removeValue(forKey: "WINEESYNC")
+                wineEnv.removeValue(forKey: "WINEMSYNC")
+            } else {
+                // Ensure a stable default on newer macOS versions:
+                // enable ESYNC and clear any conflicting MSYNC setting.
+                wineEnv.updateValue("1", forKey: "WINEESYNC")
+                wineEnv.removeValue(forKey: "WINEMSYNC")
+            }
         case .esync:
             wineEnv.updateValue("1", forKey: "WINEESYNC")
         case .msync:
@@ -418,12 +292,10 @@ public struct BottleSettings: Codable, Equatable {
 
         // macOS Sequoia compatibility mode (#1310, #1372)
         // Applies additional fixes for graphics and launcher issues on macOS 15.x
-        if sequoiaCompatMode {
+        if sequoiaCompatMode && MacOSVersion.current.major >= 15 {
             // Disable problematic Metal shader validation on Sequoia
             // This helps fix graphics corruption issues (#1310)
-            if wineEnv["MTL_DEBUG_LAYER"] == nil {
-                wineEnv.updateValue("0", forKey: "MTL_DEBUG_LAYER")
-            }
+            wineEnv.updateValue("0", forKey: "MTL_DEBUG_LAYER")
 
             // Stability improvements for D3DMetal on macOS 15.x
             wineEnv.updateValue("0", forKey: "D3DM_VALIDATION")

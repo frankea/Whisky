@@ -100,8 +100,13 @@ final class EnvironmentVariablesTests: XCTestCase {
         var env: [String: String] = [:]
         settings.environmentVariables(wineEnv: &env)
 
-        XCTAssertNil(env["WINEESYNC"])
-        XCTAssertNil(env["WINEMSYNC"])
+        if MacOSVersion.current >= .sequoia15_4 {
+            XCTAssertEqual(env["WINEESYNC"], "1")
+            XCTAssertNil(env["WINEMSYNC"])
+        } else {
+            XCTAssertNil(env["WINEESYNC"])
+            XCTAssertNil(env["WINEMSYNC"])
+        }
     }
 
     // MARK: - Metal Environment Variables
@@ -129,6 +134,7 @@ final class EnvironmentVariablesTests: XCTestCase {
     func testEnvironmentVariablesWithMetalValidation() {
         var settings = BottleSettings()
         settings.metalValidation = true
+        settings.sequoiaCompatMode = false
 
         var env: [String: String] = [:]
         settings.environmentVariables(wineEnv: &env)
@@ -168,9 +174,15 @@ final class EnvironmentVariablesTests: XCTestCase {
         var env: [String: String] = [:]
         settings.environmentVariables(wineEnv: &env)
 
-        XCTAssertEqual(env["MTL_DEBUG_LAYER"], "0")
-        XCTAssertEqual(env["D3DM_VALIDATION"], "0")
-        XCTAssertEqual(env["WINEFSYNC"], "0")
+        if MacOSVersion.current.major >= 15 {
+            XCTAssertEqual(env["MTL_DEBUG_LAYER"], "0")
+            XCTAssertEqual(env["D3DM_VALIDATION"], "0")
+            XCTAssertEqual(env["WINEFSYNC"], "0")
+        } else {
+            XCTAssertNil(env["MTL_DEBUG_LAYER"])
+            XCTAssertNil(env["D3DM_VALIDATION"])
+            XCTAssertNil(env["WINEFSYNC"])
+        }
     }
 
     // MARK: - Performance Preset Environment Variables

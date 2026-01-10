@@ -101,9 +101,8 @@ extension Wine {
             // Apple changed mach port handling which affects Wine
             environment["WINE_MACH_PORT_TIMEOUT"] = "30000"
 
-            // Disable CEF sandbox which causes issues
-            // For macOS 15.4.1+ this workaround is applied unconditionally
-            // to maintain compatibility with existing behaviour.
+            // Disable CEF sandbox which causes issues on macOS 15.4.1+
+            // This workaround preserves compatibility with existing behaviour.
             environment["STEAM_DISABLE_CEF_SANDBOX"] = "1"
             // swiftlint:disable:next line_length
             Logger.wineKit.info("Applying Steam CEF sandbox compatibility workaround: disabling sandbox on macOS 15.4.1+")

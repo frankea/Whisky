@@ -20,9 +20,8 @@ import SwiftUI
 import WhiskyKit
 import os
 
-private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ConfigView")
-
 struct WineConfigSection: View {
+    private static let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ConfigView")
     @ObservedObject var bottle: Bottle
     @Binding var isExpanded: Bool
     @Binding var buildVersion: Int
@@ -54,7 +53,7 @@ struct WineConfigSection: View {
                                 try await Wine.changeBuildVersion(bottle: bottle, version: buildVersion)
                                 buildVersionLoadingState = .success
                             } catch {
-                                logger.error("Failed to change build version: \(error.localizedDescription)")
+                                Self.logger.error("Failed to change build version: \(error.localizedDescription)")
                                 buildVersionLoadingState = .failed
                             }
                         }
@@ -69,7 +68,7 @@ struct WineConfigSection: View {
                                 try await Wine.changeRetinaMode(bottle: bottle, retinaMode: newValue)
                                 retinaModeLoadingState = .success
                             } catch {
-                                logger.error("Failed to change retina mode: \(error.localizedDescription)")
+                                Self.logger.error("Failed to change retina mode: \(error.localizedDescription)")
                                 retinaModeLoadingState = .failed
                             }
                         }

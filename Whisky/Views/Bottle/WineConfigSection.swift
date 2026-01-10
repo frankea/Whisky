@@ -20,6 +20,8 @@ import SwiftUI
 import WhiskyKit
 import os
 
+private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ConfigView")
+
 struct WineConfigSection: View {
     @ObservedObject var bottle: Bottle
     @Binding var isExpanded: Bool
@@ -31,8 +33,6 @@ struct WineConfigSection: View {
     @Binding var retinaModeLoadingState: LoadingState
     @Binding var dpiConfigLoadingState: LoadingState
     @Binding var dpiSheetPresented: Bool
-
-    private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ConfigView")
 
     var body: some View {
         Section("config.title.wine", isExpanded: $isExpanded) {

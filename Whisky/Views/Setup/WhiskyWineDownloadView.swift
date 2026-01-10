@@ -31,6 +31,7 @@ struct WhiskyWineDownloadView: View {
     @State private var downloadError: String?
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
+    @Binding var showSetup: Bool
     var body: some View {
         VStack {
             VStack {
@@ -62,6 +63,9 @@ struct WhiskyWineDownloadView: View {
                                 completedBytes = 0
                                 totalBytes = 0
                                 downloadTask?.cancel()
+                                observation?.invalidate()
+                                observation = nil
+                                downloadTask = nil
                                 Task {
                                     await fetchVersionAndDownload()
                                 }
@@ -70,10 +74,8 @@ struct WhiskyWineDownloadView: View {
                             .keyboardShortcut(.defaultAction)
                             
                             Button("setup.quit") {
-                                // Cancel the setup by going back
-                                if !path.isEmpty {
-                                    path.removeLast()
-                                }
+                                // Dismiss the setup entirely
+                                showSetup = false
                             }
                             .buttonStyle(.bordered)
                             .keyboardShortcut(.cancelAction)
@@ -149,7 +151,7 @@ struct WhiskyWineDownloadView: View {
     func fetchVersionAndDownload() async {
         // Fetch version from GitHub Pages
         guard let versionURL = URL(string: DistributionConfig.versionPlistURL) else {
-            downloadError = "Invalid version URL"
+            downloadError = String(localized: "setup.whiskywine.error.invalidVersionURL")
             return
         }
         
@@ -163,43 +165,60 @@ struct WhiskyWineDownloadView: View {
             let downloadURLString = DistributionConfig.librariesURL(version: versionString)
             
             guard let downloadURL = URL(string: downloadURLString) else {
-                downloadError = "Invalid download URL"
+                downloadError = String(localized: "setup.whiskywine.error.invalidDownloadURL")
                 return
             }
             
             // Start download
             await MainActor.run {
                 downloadTask = URLSession(configuration: .ephemeral).downloadTask(with: downloadURL) { url, response, error in
-                    Task.detached {
-                        await MainActor.run {
-                            if let error = error {
-                                downloadError = error.localizedDescription
+                    Task { @MainActor in
+                        if let error = error {
+                            downloadError = error.localizedDescription
+                            return
+                        }
+                        
+                        // Validate HTTP response
+                        if let httpResponse = response as? HTTPURLResponse {
+                            guard (200...299).contains(httpResponse.statusCode) else {
+                                let statusMessage: String
+                                switch httpResponse.statusCode {
+                                case 404:
+                                    statusMessage = String(localized: "setup.whiskywine.error.fileNotFound")
+                                case 403:
+                                    statusMessage = String(localized: "setup.whiskywine.error.accessDenied")
+                                case 429:
+                                    statusMessage = String(localized: "setup.whiskywine.error.rateLimit")
+                                case 500...599:
+                                    statusMessage = String(localized: "setup.whiskywine.error.serverError")
+                                default:
+                                    statusMessage = String(format: String(localized: "setup.whiskywine.error.httpError"), httpResponse.statusCode)
+                                }
+                                downloadError = String(format: String(localized: "setup.whiskywine.error.downloadFailed"), statusMessage)
                                 return
                             }
-                            
-                            if let url = url {
-                                tarLocation = url
-                                proceed()
-                            } else {
-                                downloadError = "Download failed: no file received"
-                            }
+                        }
+                        
+                        if let url = url {
+                            tarLocation = url
+                            proceed()
+                        } else {
+                            downloadError = String(localized: "setup.whiskywine.error.noFileReceived")
                         }
                     }
                 }
                 
                 observation = downloadTask?.observe(\.countOfBytesReceived) { task, _ in
-                    Task {
-                        await MainActor.run {
-                            let currentTime = Date()
-                            let elapsedTime = currentTime.timeIntervalSince(startTime ?? currentTime)
-                            if completedBytes > 0 {
-                                downloadSpeed = Double(completedBytes) / elapsedTime
-                            }
-                            totalBytes = task.countOfBytesExpectedToReceive
-                            completedBytes = task.countOfBytesReceived
-                            if totalBytes > 0 {
-                                fractionProgress = Double(completedBytes) / Double(totalBytes)
-                            }
+                    Task { @MainActor in
+                        let currentTime = Date()
+                        let elapsedTime = currentTime.timeIntervalSince(startTime ?? currentTime)
+                        if completedBytes > 0 {
+                            downloadSpeed = Double(completedBytes) / elapsedTime
+                        }
+                        totalBytes = task.countOfBytesExpectedToReceive
+                        completedBytes = task.countOfBytesReceived
+                        if totalBytes > 0 {
+                            fractionProgress = Double(completedBytes) / Double(totalBytes)
                         }
                     }
                 }
@@ -209,7 +228,7 @@ struct WhiskyWineDownloadView: View {
             }
         } catch {
             await MainActor.run {
-                downloadError = "Failed to fetch version: \(error.localizedDescription)"
+                downloadError = String(format: String(localized: "setup.whiskywine.error.fetchVersionFailed"), error.localizedDescription)
             }
         }
     }

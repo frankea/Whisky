@@ -249,7 +249,8 @@ public struct BottleSettings: Codable, Equatable {
 
         switch enhancedSync {
         case .none:
-            break
+            wineEnv.removeValue(forKey: "WINEESYNC")
+            wineEnv.removeValue(forKey: "WINEMSYNC")
         case .esync:
             wineEnv.updateValue("1", forKey: "WINEESYNC")
         case .msync:

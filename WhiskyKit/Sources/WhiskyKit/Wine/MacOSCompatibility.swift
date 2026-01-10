@@ -105,8 +105,8 @@ extension Wine {
             // For macOS 15.4.1+ this workaround is applied unconditionally
             // to maintain compatibility with existing behaviour.
             environment["STEAM_DISABLE_CEF_SANDBOX"] = "1"
-            Logger.wineKit.info("Applying Steam CEF sandbox compatibility workaround: " +
-                                "disabling sandbox on macOS 15.4.1+")
+            // swiftlint:disable:next line_length
+            Logger.wineKit.info("Applying Steam CEF sandbox compatibility workaround: disabling sandbox on macOS 15.4.1+")
         }
     }
 }

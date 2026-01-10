@@ -34,15 +34,15 @@ import SemanticVersion
 /// ```
 public struct WhiskyWineVersion: Codable {
     public var version: SemanticVersion
-    
+
     enum CodingKeys: String, CodingKey {
         case version
     }
-    
+
     public init(version: SemanticVersion) {
         self.version = version
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let versionDict = try container.nestedContainer(keyedBy: VersionKeys.self, forKey: .version)
@@ -51,7 +51,7 @@ public struct WhiskyWineVersion: Codable {
         let patch = try versionDict.decode(Int.self, forKey: .patch)
         version = SemanticVersion(major, minor, patch)
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         var versionDict = container.nestedContainer(keyedBy: VersionKeys.self, forKey: .version)
@@ -59,7 +59,7 @@ public struct WhiskyWineVersion: Codable {
         try versionDict.encode(version.minor, forKey: .minor)
         try versionDict.encode(version.patch, forKey: .patch)
     }
-    
+
     private enum VersionKeys: String, CodingKey {
         case major, minor, patch
     }

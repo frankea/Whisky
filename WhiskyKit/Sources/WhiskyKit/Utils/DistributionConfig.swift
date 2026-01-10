@@ -21,16 +21,16 @@ import Foundation
 public enum DistributionConfig {
     /// Base URL for GitHub Pages distribution
     public static let baseURL = "https://frankea.github.io/Whisky"
-    
+
     /// URL for the WhiskyWine version plist file
     public static let versionPlistURL = "\(baseURL)/WhiskyWineVersion.plist"
-    
+
     /// Base URL for GitHub Releases downloads
     public static let releasesBaseURL = "https://github.com/frankea/Whisky/releases/download"
-    
+
     /// URL for the Sparkle appcast feed
     public static let appcastURL = "\(baseURL)/appcast.xml"
-    
+
     /// Constructs the download URL for Wine Libraries from GitHub Releases
     /// - Parameter version: The version string (e.g., "2.5.0")
     /// - Returns: The full URL to download Libraries.tar.gz from GitHub Releases

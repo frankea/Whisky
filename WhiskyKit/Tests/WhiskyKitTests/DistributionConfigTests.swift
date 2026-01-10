@@ -73,7 +73,7 @@ final class DistributionConfigTests: XCTestCase {
         let version = "2.5.0"
         let url = DistributionConfig.librariesURL(version: version)
         let expectedURL = "https://github.com/frankea/Whisky/releases/download/v2.5.0-wine/Libraries.tar.gz"
-        
+
         XCTAssertEqual(url, expectedURL)
     }
 
@@ -81,7 +81,7 @@ final class DistributionConfigTests: XCTestCase {
         let version = "1.0.0"
         let url = DistributionConfig.librariesURL(version: version)
         let expectedURL = "https://github.com/frankea/Whisky/releases/download/v1.0.0-wine/Libraries.tar.gz"
-        
+
         XCTAssertEqual(url, expectedURL)
     }
 
@@ -89,14 +89,14 @@ final class DistributionConfigTests: XCTestCase {
         let version = "10.20.30"
         let url = DistributionConfig.librariesURL(version: version)
         let expectedURL = "https://github.com/frankea/Whisky/releases/download/v10.20.30-wine/Libraries.tar.gz"
-        
+
         XCTAssertEqual(url, expectedURL)
     }
 
     func testLibrariesURLIncludesWineSuffix() {
         let version = "2.5.0"
         let url = DistributionConfig.librariesURL(version: version)
-        
+
         XCTAssertTrue(url.contains("-wine"), "URL should include -wine suffix")
         XCTAssertTrue(url.hasSuffix("Libraries.tar.gz"), "URL should end with Libraries.tar.gz")
     }
@@ -104,24 +104,27 @@ final class DistributionConfigTests: XCTestCase {
     func testLibrariesURLIsValid() {
         let version = "2.5.0"
         let urlString = DistributionConfig.librariesURL(version: version)
-        
+
         XCTAssertNotNil(URL(string: urlString), "Libraries URL should be a valid URL")
     }
 
     func testLibrariesURLFormat() {
         let version = "2.5.0"
         let url = DistributionConfig.librariesURL(version: version)
-        
+
         // Verify the URL follows the expected pattern
-        let pattern = "^https://github\\.com/frankea/Whisky/releases/download/v\\d+\\.\\d+\\.\\d+-wine/Libraries\\.tar\\.gz$"
+        let pattern = "^https://github\\.com/frankea/Whisky/releases/download/"
+            + "v\\d+\\.\\d+\\.\\d+-wine/Libraries\\.tar\\.gz$"
         guard let regex = try? NSRegularExpression(pattern: pattern) else {
             XCTFail("Invalid regex pattern: \(pattern)")
             return
         }
         let range = NSRange(location: 0, length: url.utf16.count)
-        
-        XCTAssertNotNil(regex.firstMatch(in: url, options: [], range: range), 
-                       "URL should match expected format pattern")
+
+        XCTAssertNotNil(
+            regex.firstMatch(in: url, options: [], range: range),
+            "URL should match expected format pattern"
+        )
     }
 
     // MARK: - Version String Construction Tests
@@ -129,14 +132,14 @@ final class DistributionConfigTests: XCTestCase {
     func testVersionStringFromSemanticVersion() {
         let version = SemanticVersion(2, 5, 0)
         let versionString = "\(version.major).\(version.minor).\(version.patch)"
-        
+
         XCTAssertEqual(versionString, "2.5.0")
     }
 
     func testVersionStringWithDifferentValues() {
         let version = SemanticVersion(10, 20, 30)
         let versionString = "\(version.major).\(version.minor).\(version.patch)"
-        
+
         XCTAssertEqual(versionString, "10.20.30")
     }
 
@@ -144,9 +147,11 @@ final class DistributionConfigTests: XCTestCase {
         let version = SemanticVersion(2, 5, 0)
         let versionString = "\(version.major).\(version.minor).\(version.patch)"
         let urlString = DistributionConfig.librariesURL(version: versionString)
-        
-        XCTAssertNotNil(URL(string: urlString), 
-                       "Version string should construct a valid URL")
+
+        XCTAssertNotNil(
+            URL(string: urlString),
+            "Version string should construct a valid URL"
+        )
     }
 
     // MARK: - Integration Tests
@@ -156,30 +161,39 @@ final class DistributionConfigTests: XCTestCase {
         // This is an indirect test - we verify the URL format matches what DistributionConfig provides
         let expectedURL = DistributionConfig.versionPlistURL
         let expectedURLObject = URL(string: expectedURL)
-        
-        XCTAssertNotNil(expectedURLObject, 
-                       "DistributionConfig should provide a valid URL for WhiskyWineInstaller")
-        XCTAssertEqual(expectedURL, "https://frankea.github.io/Whisky/WhiskyWineVersion.plist",
-                      "WhiskyWineInstaller should use GitHub Pages URL")
+
+        XCTAssertNotNil(
+            expectedURLObject,
+            "DistributionConfig should provide a valid URL for WhiskyWineInstaller"
+        )
+        XCTAssertEqual(
+            expectedURL,
+            "https://frankea.github.io/Whisky/WhiskyWineVersion.plist",
+            "WhiskyWineInstaller should use GitHub Pages URL"
+        )
     }
 
     func testLibrariesURLMatchesReleaseTagFormat() {
         // Verify that the constructed URL matches the expected GitHub Release tag format
         // Tag format: v{VERSION}-wine
         // URL format: v{VERSION}-wine/Libraries.tar.gz
-        
+
         let version = "2.5.0"
         let url = DistributionConfig.librariesURL(version: version)
-        
+
         // Extract the tag portion from the URL
         let components = url.components(separatedBy: "/releases/download/")
         XCTAssertEqual(components.count, 2, "URL should contain releases/download path")
-        
+
         let tagAndFile = components[1]
-        XCTAssertTrue(tagAndFile.hasPrefix("v\(version)-wine/"),
-                     "URL should start with v{version}-wine/")
-        XCTAssertTrue(tagAndFile.hasSuffix("Libraries.tar.gz"),
-                     "URL should end with Libraries.tar.gz")
+        XCTAssertTrue(
+            tagAndFile.hasPrefix("v\(version)-wine/"),
+            "URL should start with v{version}-wine/"
+        )
+        XCTAssertTrue(
+            tagAndFile.hasSuffix("Libraries.tar.gz"),
+            "URL should end with Libraries.tar.gz"
+        )
     }
 
     // MARK: - End-to-End Workflow Tests
@@ -194,35 +208,36 @@ final class DistributionConfigTests: XCTestCase {
                 "patch": 0
             ]
         ]
-        
+
         let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
         let decoder = PropertyListDecoder()
         let versionInfo = try decoder.decode(WhiskyWineVersion.self, from: data)
-        
+
         // Construct version string as done in fetchVersionAndDownload()
-        let versionString = "\(versionInfo.version.major).\(versionInfo.version.minor).\(versionInfo.version.patch)"
-        
+        let version = versionInfo.version
+        let versionString = "\(version.major).\(version.minor).\(version.patch)"
+
         // Construct download URL
         let downloadURLString = DistributionConfig.librariesURL(version: versionString)
-        
+
         // Verify the complete URL
         let expectedURL = "https://github.com/frankea/Whisky/releases/download/v2.5.0-wine/Libraries.tar.gz"
         XCTAssertEqual(downloadURLString, expectedURL)
-        
+
         // Verify URL is valid
         XCTAssertNotNil(URL(string: downloadURLString), "Constructed URL should be valid")
     }
 
     /// Tests the workflow with different versions to ensure proper URL construction
     func testWorkflowWithVariousVersions() throws {
-        let testCases: [(major: Int, minor: Int, patch: Int, expectedTag: String)] = [
-            (1, 0, 0, "v1.0.0-wine"),
-            (2, 5, 0, "v2.5.0-wine"),
-            (10, 20, 30, "v10.20.30-wine"),
-            (0, 1, 0, "v0.1.0-wine"),
-            (99, 99, 99, "v99.99.99-wine")
+        let testCases: [VersionTestCase] = [
+            VersionTestCase(major: 1, minor: 0, patch: 0, expectedTag: "v1.0.0-wine"),
+            VersionTestCase(major: 2, minor: 5, patch: 0, expectedTag: "v2.5.0-wine"),
+            VersionTestCase(major: 10, minor: 20, patch: 30, expectedTag: "v10.20.30-wine"),
+            VersionTestCase(major: 0, minor: 1, patch: 0, expectedTag: "v0.1.0-wine"),
+            VersionTestCase(major: 99, minor: 99, patch: 99, expectedTag: "v99.99.99-wine")
         ]
-        
+
         for testCase in testCases {
             // Create plist data
             let plist: [String: Any] = [
@@ -232,24 +247,29 @@ final class DistributionConfigTests: XCTestCase {
                     "patch": testCase.patch
                 ]
             ]
-            
+
             let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
             let decoder = PropertyListDecoder()
             let versionInfo = try decoder.decode(WhiskyWineVersion.self, from: data)
-            
+
             // Construct version string
-            let versionString = "\(versionInfo.version.major).\(versionInfo.version.minor).\(versionInfo.version.patch)"
-            
+            let version = versionInfo.version
+            let versionString = "\(version.major).\(version.minor).\(version.patch)"
+
             // Construct download URL
             let downloadURL = DistributionConfig.librariesURL(version: versionString)
-            
+
             // Verify URL contains expected tag
-            XCTAssertTrue(downloadURL.contains(testCase.expectedTag),
-                         "URL should contain tag \(testCase.expectedTag), got \(downloadURL)")
-            
+            XCTAssertTrue(
+                downloadURL.contains(testCase.expectedTag),
+                "URL should contain tag \(testCase.expectedTag), got \(downloadURL)"
+            )
+
             // Verify URL is valid
-            XCTAssertNotNil(URL(string: downloadURL),
-                          "URL should be valid for version \(testCase.major).\(testCase.minor).\(testCase.patch)")
+            XCTAssertNotNil(
+                URL(string: downloadURL),
+                "URL should be valid for version \(testCase.major).\(testCase.minor).\(testCase.patch)"
+            )
         }
     }
 
@@ -257,7 +277,7 @@ final class DistributionConfigTests: XCTestCase {
     func testInvalidVersionPlistHandling() {
         // Missing version key
         let invalidPlist: [String: Any] = [:]
-        
+
         do {
             let data = try PropertyListSerialization.data(fromPropertyList: invalidPlist, format: .xml, options: 0)
             let decoder = PropertyListDecoder()
@@ -273,64 +293,70 @@ final class DistributionConfigTests: XCTestCase {
     func testURLConstructionEdgeCases() {
         // Test with zero version
         let zeroURL = DistributionConfig.librariesURL(version: "0.0.0")
-        XCTAssertEqual(zeroURL, "https://github.com/frankea/Whisky/releases/download/v0.0.0-wine/Libraries.tar.gz")
+        let expectedZeroURL = "https://github.com/frankea/Whisky/releases/download/v0.0.0-wine/Libraries.tar.gz"
+        XCTAssertEqual(zeroURL, expectedZeroURL)
         XCTAssertNotNil(URL(string: zeroURL))
-        
+
         // Test with large version numbers
         let largeURL = DistributionConfig.librariesURL(version: "999.999.999")
-        XCTAssertEqual(largeURL, "https://github.com/frankea/Whisky/releases/download/v999.999.999-wine/Libraries.tar.gz")
+        let expectedLargeURL = "https://github.com/frankea/Whisky/releases/download/v999.999.999-wine/Libraries.tar.gz"
+        XCTAssertEqual(largeURL, expectedLargeURL)
         XCTAssertNotNil(URL(string: largeURL))
     }
 
     // MARK: - HTTP Error Code Tests
-    
+
     /// Documents the HTTP status code handling in fetchVersionAndDownload
     /// These tests verify the expected error messages for various HTTP status codes
     func testHTTPStatusCodeErrorMessages() {
         // These test cases document the HTTP error handling in WhiskyWineDownloadView
-        // The actual error handling is in the view, but these tests verify the expected behavior
-        
-        let errorCases: [(statusCode: Int, expectedBehavior: String)] = [
-            (200, "success"),
-            (201, "success"),
-            (299, "success"),
-            (404, "fileNotFound"),
-            (403, "accessDenied"),
-            (429, "rateLimit"),
-            (500, "serverError"),
-            (502, "serverError"),
-            (503, "serverError"),
-            (400, "httpError"),
-            (401, "httpError"),
-            (418, "httpError")
+        let errorCases: [HTTPErrorTestCase] = [
+            HTTPErrorTestCase(statusCode: 200, expectedBehavior: "success"),
+            HTTPErrorTestCase(statusCode: 201, expectedBehavior: "success"),
+            HTTPErrorTestCase(statusCode: 299, expectedBehavior: "success"),
+            HTTPErrorTestCase(statusCode: 404, expectedBehavior: "fileNotFound"),
+            HTTPErrorTestCase(statusCode: 403, expectedBehavior: "accessDenied"),
+            HTTPErrorTestCase(statusCode: 429, expectedBehavior: "rateLimit"),
+            HTTPErrorTestCase(statusCode: 500, expectedBehavior: "serverError"),
+            HTTPErrorTestCase(statusCode: 502, expectedBehavior: "serverError"),
+            HTTPErrorTestCase(statusCode: 503, expectedBehavior: "serverError"),
+            HTTPErrorTestCase(statusCode: 400, expectedBehavior: "httpError"),
+            HTTPErrorTestCase(statusCode: 401, expectedBehavior: "httpError"),
+            HTTPErrorTestCase(statusCode: 418, expectedBehavior: "httpError")
         ]
-        
+
         for testCase in errorCases {
             let isSuccess = (200...299).contains(testCase.statusCode)
-            
+
             if testCase.expectedBehavior == "success" {
                 XCTAssertTrue(isSuccess, "Status \(testCase.statusCode) should be success")
             } else {
                 XCTAssertFalse(isSuccess, "Status \(testCase.statusCode) should not be success")
-                
+
                 // Verify error categorization matches expected behavior
-                let expectedCategory: String
-                switch testCase.statusCode {
-                case 404:
-                    expectedCategory = "fileNotFound"
-                case 403:
-                    expectedCategory = "accessDenied"
-                case 429:
-                    expectedCategory = "rateLimit"
-                case 500...599:
-                    expectedCategory = "serverError"
-                default:
-                    expectedCategory = "httpError"
-                }
-                
-                XCTAssertEqual(expectedCategory, testCase.expectedBehavior,
-                              "Status \(testCase.statusCode) should map to \(testCase.expectedBehavior)")
+                let expectedCategory = categorizeHTTPError(statusCode: testCase.statusCode)
+
+                XCTAssertEqual(
+                    expectedCategory,
+                    testCase.expectedBehavior,
+                    "Status \(testCase.statusCode) should map to \(testCase.expectedBehavior)"
+                )
             }
+        }
+    }
+
+    private func categorizeHTTPError(statusCode: Int) -> String {
+        switch statusCode {
+        case 404:
+            return "fileNotFound"
+        case 403:
+            return "accessDenied"
+        case 429:
+            return "rateLimit"
+        case 500...599:
+            return "serverError"
+        default:
+            return "httpError"
         }
     }
 
@@ -341,17 +367,31 @@ final class DistributionConfigTests: XCTestCase {
         XCTAssertNotNil(versionURL, "Version plist URL should be valid")
         XCTAssertEqual(versionURL?.scheme, "https")
         XCTAssertEqual(versionURL?.host, "frankea.github.io")
-        
+
         // Libraries download URL
         let librariesURL = URL(string: DistributionConfig.librariesURL(version: "2.5.0"))
         XCTAssertNotNil(librariesURL, "Libraries URL should be valid")
         XCTAssertEqual(librariesURL?.scheme, "https")
         XCTAssertEqual(librariesURL?.host, "github.com")
-        
+
         // Appcast URL
         let appcastURL = URL(string: DistributionConfig.appcastURL)
         XCTAssertNotNil(appcastURL, "Appcast URL should be valid")
         XCTAssertEqual(appcastURL?.scheme, "https")
         XCTAssertEqual(appcastURL?.host, "frankea.github.io")
     }
+}
+
+// MARK: - Test Helper Types
+
+private struct VersionTestCase {
+    let major: Int
+    let minor: Int
+    let patch: Int
+    let expectedTag: String
+}
+
+private struct HTTPErrorTestCase {
+    let statusCode: Int
+    let expectedBehavior: String
 }

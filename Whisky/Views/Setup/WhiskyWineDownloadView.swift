@@ -28,7 +28,6 @@ struct WhiskyWineDownloadView: View {
     @State private var downloadTask: URLSessionDownloadTask?
     @State private var observation: NSKeyValueObservation?
     @State private var startTime: Date?
-    @State private var wineVersion: SemanticVersion?
     @State private var downloadError: String?
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
@@ -173,24 +172,3 @@ struct WhiskyWineDownloadView: View {
     }
 }
 
-// Helper struct to decode version plist
-private struct WhiskyWineVersion: Codable {
-    var version: SemanticVersion
-    
-    enum CodingKeys: String, CodingKey {
-        case version
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let versionDict = try container.nestedContainer(keyedBy: VersionKeys.self, forKey: .version)
-        let major = try versionDict.decode(Int.self, forKey: .major)
-        let minor = try versionDict.decode(Int.self, forKey: .minor)
-        let patch = try versionDict.decode(Int.self, forKey: .patch)
-        version = SemanticVersion(major, minor, patch)
-    }
-    
-    private enum VersionKeys: String, CodingKey {
-        case major, minor, patch
-    }
-}

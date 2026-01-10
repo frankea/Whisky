@@ -69,6 +69,9 @@ The Whisky fork uses the following infrastructure for distribution:
 1. **Generate Sparkle Signature**
    ```bash
    # Using Sparkle's generate_appcast tool
+   # NOTE: ~/.ssh/sparkle_eddsa_key.pem is an example path. Replace it with the actual path
+   # to your Sparkle EdDSA private key. See the Sparkle documentation for key generation:
+   # https://sparkle-project.org/documentation/signing-updates/
    generate_appcast --ed-key-file ~/.ssh/sparkle_eddsa_key.pem path/to/releases/
    ```
 
@@ -95,7 +98,7 @@ The Whisky fork uses the following infrastructure for distribution:
    <item>
        <title>Version 1.0.0</title>
        <sparkle:releaseNotesLink>https://github.com/frankea/Whisky/releases/tag/v1.0.0</sparkle:releaseNotesLink>
-       <pubDate>Mon, 01 Jan 2024 00:00:00 +0000</pubDate>
+       <pubDate>Thu, 01 Jan 2026 00:00:00 +0000</pubDate>
        <enclosure url="https://github.com/frankea/Whisky/releases/download/v1.0.0/Whisky.app.zip"
                   sparkle:version="1.0.0"
                   sparkle:shortVersionString="1.0.0"

@@ -11,11 +11,11 @@
         <item>
             <title>Version X.Y.Z</title>
             <sparkle:releaseNotesLink>https://github.com/frankea/Whisky/releases/tag/vX.Y.Z</sparkle:releaseNotesLink>
-            <pubDate>Mon, 01 Jan 2024 00:00:00 +0000</pubDate>
+            <pubDate>Thu, 01 Jan 2026 00:00:00 +0000</pubDate>
             <enclosure url="https://github.com/frankea/Whisky/releases/download/vX.Y.Z/Whisky.app.zip"
                        sparkle:version="X.Y.Z"
                        sparkle:shortVersionString="X.Y.Z"
-                       length="0"
+                       length="SIZE_IN_BYTES"
                        type="application/octet-stream"
                        sparkle:edSignature="SIGNATURE_HERE"/>
         </item>

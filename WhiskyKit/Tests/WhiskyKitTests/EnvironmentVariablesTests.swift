@@ -100,8 +100,13 @@ final class EnvironmentVariablesTests: XCTestCase {
         var env: [String: String] = [:]
         settings.environmentVariables(wineEnv: &env)
 
-        XCTAssertNil(env["WINEESYNC"])
-        XCTAssertNil(env["WINEMSYNC"])
+        if MacOSVersion.current >= .sequoia15_4 {
+            XCTAssertEqual(env["WINEESYNC"], "1")
+            XCTAssertNil(env["WINEMSYNC"])
+        } else {
+            XCTAssertNil(env["WINEESYNC"])
+            XCTAssertNil(env["WINEMSYNC"])
+        }
     }
 
     // MARK: - Metal Environment Variables

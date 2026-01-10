@@ -159,6 +159,7 @@ struct WhiskyWineDownloadView: View {
         path.append(.whiskyWineInstall)
     }
 
+    @MainActor
     func fetchVersionAndDownload() async {
         guard let versionURL = URL(string: DistributionConfig.versionPlistURL) else {
             downloadError = String(localized: "setup.whiskywine.error.invalidVersionURL")
@@ -180,13 +181,11 @@ struct WhiskyWineDownloadView: View {
 
             await startDownload(from: downloadURL)
         } catch {
-            await MainActor.run {
-                let errorMessage = error.localizedDescription
-                downloadError = String(
-                    format: String(localized: "setup.whiskywine.error.fetchVersionFailed"),
-                    errorMessage
-                )
-            }
+            let errorMessage = error.localizedDescription
+            downloadError = String(
+                format: String(localized: "setup.whiskywine.error.fetchVersionFailed"),
+                errorMessage
+            )
         }
     }
 
@@ -221,7 +220,10 @@ struct WhiskyWineDownloadView: View {
         guard currentDownloadTaskID == taskID else { return }
 
         if let error = error {
-            downloadError = error.localizedDescription
+            downloadError = String(
+                format: String(localized: "setup.whiskywine.error.downloadFailed"),
+                error.localizedDescription
+            )
             return
         }
 

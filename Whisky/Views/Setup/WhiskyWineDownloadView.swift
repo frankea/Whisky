@@ -229,11 +229,12 @@ struct WhiskyWineDownloadView: View {
                         
                         let currentTime = Date()
                         let elapsedTime = currentTime.timeIntervalSince(startTime ?? currentTime)
-                        if completedBytes > 0 {
-                            downloadSpeed = Double(completedBytes) / elapsedTime
+                        let currentBytes = task.countOfBytesReceived
+                        if currentBytes > 0 {
+                            downloadSpeed = Double(currentBytes) / elapsedTime
                         }
                         totalBytes = task.countOfBytesExpectedToReceive
-                        completedBytes = task.countOfBytesReceived
+                        completedBytes = currentBytes
                         if totalBytes > 0 {
                             fractionProgress = Double(completedBytes) / Double(totalBytes)
                         }

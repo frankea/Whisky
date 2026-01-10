@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Whisky Updates</title>
+        <link>https://frankea.github.io/Whisky/appcast.xml</link>
+        <description>Most recent updates to Whisky</description>
+        <language>en</language>
+        
+        <!-- Add items here when creating releases -->
+        <!-- Example item structure:
+        <item>
+            <title>Version X.Y.Z</title>
+            <sparkle:releaseNotesLink>https://github.com/frankea/Whisky/releases/tag/vX.Y.Z</sparkle:releaseNotesLink>
+            <pubDate>Mon, 01 Jan 2024 00:00:00 +0000</pubDate>
+            <enclosure url="https://github.com/frankea/Whisky/releases/download/vX.Y.Z/Whisky.app.zip"
+                       sparkle:version="X.Y.Z"
+                       sparkle:shortVersionString="X.Y.Z"
+                       length="0"
+                       type="application/octet-stream"
+                       sparkle:edSignature="SIGNATURE_HERE"/>
+        </item>
+        -->
+    </channel>
+</rss>

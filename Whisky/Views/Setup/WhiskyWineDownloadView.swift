@@ -41,25 +41,69 @@ struct WhiskyWineDownloadView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Spacer()
-                VStack {
-                    ProgressView(value: fractionProgress, total: 1)
-                    HStack {
-                        HStack {
-                            Text(String(format: String(localized: "setup.whiskywine.progress"),
-                                        formatBytes(bytes: completedBytes),
-                                        formatBytes(bytes: totalBytes)))
-                            + Text(String(" "))
-                            + (shouldShowEstimate() ?
-                               Text(String(format: String(localized: "setup.whiskywine.eta"),
-                                           formatRemainingTime(remainingBytes: totalBytes - completedBytes)))
-                               : Text(String()))
-                            Spacer()
+                
+                if let error = downloadError {
+                    // Error state
+                    VStack(spacing: 16) {
+                        Image(systemName: "xmark.circle")
+                            .resizable()
+                            .foregroundStyle(.red)
+                            .frame(width: 80, height: 80)
+                            .padding(.bottom, 8)
+                        Text(error)
+                            .font(.subheadline)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                        
+                        HStack(spacing: 12) {
+                            Button("setup.retry") {
+                                downloadError = nil
+                                fractionProgress = 0
+                                completedBytes = 0
+                                totalBytes = 0
+                                downloadTask?.cancel()
+                                Task {
+                                    await fetchVersionAndDownload()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .keyboardShortcut(.defaultAction)
+                            
+                            Button("setup.quit") {
+                                // Cancel the setup by going back
+                                if !path.isEmpty {
+                                    path.removeLast()
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                            .keyboardShortcut(.cancelAction)
                         }
-                        .font(.subheadline)
-                        .monospacedDigit()
+                        .padding(.top, 8)
                     }
+                    .padding()
+                } else {
+                    // Download progress state
+                    VStack {
+                        ProgressView(value: fractionProgress, total: 1)
+                        HStack {
+                            HStack {
+                                Text(String(format: String(localized: "setup.whiskywine.progress"),
+                                            formatBytes(bytes: completedBytes),
+                                            formatBytes(bytes: totalBytes)))
+                                + Text(String(" "))
+                                + (shouldShowEstimate() ?
+                                   Text(String(format: String(localized: "setup.whiskywine.eta"),
+                                               formatRemainingTime(remainingBytes: totalBytes - completedBytes)))
+                                   : Text(String()))
+                                Spacer()
+                            }
+                            .font(.subheadline)
+                            .monospacedDigit()
+                        }
+                    }
+                    .padding(.horizontal)
                 }
-                .padding(.horizontal)
+                
                 Spacer()
             }
             Spacer()

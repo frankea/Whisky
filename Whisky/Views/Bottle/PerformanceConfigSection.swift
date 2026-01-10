@@ -77,7 +77,7 @@ struct PerformanceConfigSection: View {
             } else {
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.green)
+                        .foregroundColor(.green)
                     Text("config.vcRedistInstalled")
                 }
             }

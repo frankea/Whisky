@@ -48,6 +48,14 @@ public struct WhiskyWineVersion: Codable {
         version = SemanticVersion(major, minor, patch)
     }
     
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        var versionDict = container.nestedContainer(keyedBy: VersionKeys.self, forKey: .version)
+        try versionDict.encode(version.major, forKey: .major)
+        try versionDict.encode(version.minor, forKey: .minor)
+        try versionDict.encode(version.patch, forKey: .patch)
+    }
+    
     private enum VersionKeys: String, CodingKey {
         case major, minor, patch
     }

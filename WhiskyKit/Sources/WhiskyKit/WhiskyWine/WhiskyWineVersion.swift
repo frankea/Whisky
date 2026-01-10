@@ -39,6 +39,10 @@ public struct WhiskyWineVersion: Codable {
         case version
     }
     
+    public init(version: SemanticVersion) {
+        self.version = version
+    }
+    
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let versionDict = try container.nestedContainer(keyedBy: VersionKeys.self, forKey: .version)

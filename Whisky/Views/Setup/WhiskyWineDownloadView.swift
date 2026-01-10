@@ -33,6 +33,7 @@ struct WhiskyWineDownloadView: View {
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
+
     var body: some View {
         VStack {
             VStack {
@@ -43,71 +44,13 @@ struct WhiskyWineDownloadView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Spacer()
-                
+
                 if let error = downloadError {
-                    // Error state
-                    VStack(spacing: 16) {
-                        Image(systemName: "xmark.circle")
-                            .resizable()
-                            .foregroundStyle(.red)
-                            .frame(width: 80, height: 80)
-                            .padding(.bottom, 8)
-                        Text(error)
-                            .font(.subheadline)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                        
-                        HStack(spacing: 12) {
-                            Button("setup.retry") {
-                                downloadError = nil
-                                fractionProgress = 0
-                                completedBytes = 0
-                                totalBytes = 0
-                                downloadTask?.cancel()
-                                observation?.invalidate()
-                                observation = nil
-                                downloadTask = nil
-                                currentDownloadTaskID = nil
-                                Task {
-                                    await fetchVersionAndDownload()
-                                }
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .keyboardShortcut(.defaultAction)
-                            
-                            Button("setup.quit") {
-                                // Dismiss the setup entirely
-                                showSetup = false
-                            }
-                            .buttonStyle(.bordered)
-                            .keyboardShortcut(.cancelAction)
-                        }
-                        .padding(.top, 8)
-                    }
-                    .padding()
+                    errorView(error: error)
                 } else {
-                    // Download progress state
-                    VStack {
-                        ProgressView(value: fractionProgress, total: 1)
-                        HStack {
-                            HStack {
-                                Text(String(format: String(localized: "setup.whiskywine.progress"),
-                                            formatBytes(bytes: completedBytes),
-                                            formatBytes(bytes: totalBytes)))
-                                + Text(String(" "))
-                                + (shouldShowEstimate() ?
-                                   Text(String(format: String(localized: "setup.whiskywine.eta"),
-                                               formatRemainingTime(remainingBytes: totalBytes - completedBytes)))
-                                   : Text(String()))
-                                Spacer()
-                            }
-                            .font(.subheadline)
-                            .monospacedDigit()
-                        }
-                    }
-                    .padding(.horizontal)
+                    progressView
                 }
-                
+
                 Spacer()
             }
             Spacer()
@@ -115,9 +58,75 @@ struct WhiskyWineDownloadView: View {
         .frame(width: 400, height: 200)
         .onAppear {
             Task {
-                // First, fetch the version information
                 await fetchVersionAndDownload()
             }
+        }
+    }
+
+    private func errorView(error: String) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "xmark.circle")
+                .resizable()
+                .foregroundStyle(.red)
+                .frame(width: 80, height: 80)
+                .padding(.bottom, 8)
+            Text(error)
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+
+            HStack(spacing: 12) {
+                Button("setup.retry") {
+                    retryDownload()
+                }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.defaultAction)
+
+                Button("setup.quit") {
+                    showSetup = false
+                }
+                .buttonStyle(.bordered)
+                .keyboardShortcut(.cancelAction)
+            }
+            .padding(.top, 8)
+        }
+        .padding()
+    }
+
+    private var progressView: some View {
+        VStack {
+            ProgressView(value: fractionProgress, total: 1)
+            HStack {
+                HStack {
+                    Text(String(format: String(localized: "setup.whiskywine.progress"),
+                                formatBytes(bytes: completedBytes),
+                                formatBytes(bytes: totalBytes)))
+                    + Text(String(" "))
+                    + (shouldShowEstimate() ?
+                       Text(String(format: String(localized: "setup.whiskywine.eta"),
+                                   formatRemainingTime(remainingBytes: totalBytes - completedBytes)))
+                       : Text(String()))
+                    Spacer()
+                }
+                .font(.subheadline)
+                .monospacedDigit()
+            }
+        }
+        .padding(.horizontal)
+    }
+
+    private func retryDownload() {
+        downloadError = nil
+        fractionProgress = 0
+        completedBytes = 0
+        totalBytes = 0
+        downloadTask?.cancel()
+        observation?.invalidate()
+        observation = nil
+        downloadTask = nil
+        currentDownloadTaskID = nil
+        Task {
+            await fetchVersionAndDownload()
         }
     }
 

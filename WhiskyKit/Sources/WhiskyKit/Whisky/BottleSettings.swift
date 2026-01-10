@@ -295,9 +295,7 @@ public struct BottleSettings: Codable, Equatable {
         if sequoiaCompatMode {
             // Disable problematic Metal shader validation on Sequoia
             // This helps fix graphics corruption issues (#1310)
-            if wineEnv["MTL_DEBUG_LAYER"] == nil {
-                wineEnv.updateValue("0", forKey: "MTL_DEBUG_LAYER")
-            }
+            wineEnv.updateValue("0", forKey: "MTL_DEBUG_LAYER")
 
             // Stability improvements for D3DMetal on macOS 15.x
             wineEnv.updateValue("0", forKey: "D3DM_VALIDATION")

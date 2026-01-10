@@ -157,7 +157,6 @@ struct WhiskyWineDownloadView: View {
             let (data, _) = try await URLSession(configuration: .ephemeral).data(from: versionURL)
             let decoder = PropertyListDecoder()
             let versionInfo = try decoder.decode(WhiskyWineVersion.self, from: data)
-            wineVersion = versionInfo.version
             
             // Construct download URL from version
             let versionString = "\(versionInfo.version.major).\(versionInfo.version.minor).\(versionInfo.version.patch)"

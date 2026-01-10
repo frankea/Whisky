@@ -76,8 +76,8 @@ struct WineConfigSection: View {
             }
             Picker("config.enhancedSync", selection: $bottle.settings.enhancedSync) {
                 Text("config.enhancedSync.none").tag(EnhancedSync.none)
-                Text("config.enhacnedSync.esync").tag(EnhancedSync.esync)
-                Text("config.enhacnedSync.msync").tag(EnhancedSync.msync)
+                Text("config.enhancedSync.esync").tag(EnhancedSync.esync)
+                Text("config.enhancedSync.msync").tag(EnhancedSync.msync)
             }
             SettingItemView(title: "config.dpi", loadingState: dpiConfigLoadingState) {
                 Button("config.inspect") {

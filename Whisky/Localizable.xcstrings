@@ -5036,7 +5036,7 @@
         }
       }
     },
-    "config.enhacnedSync.esync" : {
+    "config.enhancedSync.esync" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5172,7 +5172,7 @@
         }
       }
     },
-    "config.enhacnedSync.msync" : {
+    "config.enhancedSync.msync" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {

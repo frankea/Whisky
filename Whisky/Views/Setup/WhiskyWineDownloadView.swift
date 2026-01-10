@@ -29,6 +29,7 @@ struct WhiskyWineDownloadView: View {
     @State private var observation: NSKeyValueObservation?
     @State private var startTime: Date?
     @State private var downloadError: String?
+    @State private var currentDownloadTaskID: UUID?
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
@@ -66,6 +67,7 @@ struct WhiskyWineDownloadView: View {
                                 observation?.invalidate()
                                 observation = nil
                                 downloadTask = nil
+                                currentDownloadTaskID = nil
                                 Task {
                                     await fetchVersionAndDownload()
                                 }
@@ -171,8 +173,17 @@ struct WhiskyWineDownloadView: View {
             
             // Start download
             await MainActor.run {
-                downloadTask = URLSession(configuration: .ephemeral).downloadTask(with: downloadURL) { url, response, error in
+                let taskID = UUID()
+                currentDownloadTaskID = taskID
+                
+                downloadTask = URLSession(configuration: .ephemeral).downloadTask(with: downloadURL) { [taskID] url, response, error in
                     Task { @MainActor in
+                        // Check if this completion handler belongs to the current download task
+                        // This prevents stale handlers from cancelled downloads from updating state
+                        guard self.currentDownloadTaskID == taskID else {
+                            return
+                        }
+                        
                         if let error = error {
                             downloadError = error.localizedDescription
                             return
@@ -208,8 +219,14 @@ struct WhiskyWineDownloadView: View {
                     }
                 }
                 
-                observation = downloadTask?.observe(\.countOfBytesReceived) { task, _ in
+                observation = downloadTask?.observe(\.countOfBytesReceived) { [taskID] task, _ in
                     Task { @MainActor in
+                        // Check if this observation belongs to the current download task
+                        // This prevents stale observations from cancelled downloads from updating state
+                        guard self.currentDownloadTaskID == taskID else {
+                            return
+                        }
+                        
                         let currentTime = Date()
                         let elapsedTime = currentTime.timeIntervalSince(startTime ?? currentTime)
                         if completedBytes > 0 {

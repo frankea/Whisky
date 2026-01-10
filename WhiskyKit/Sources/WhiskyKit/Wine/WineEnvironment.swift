@@ -30,14 +30,13 @@ extension Wine {
             "GST_DEBUG": "1"
         ]
 
-        bottle.settings.environmentVariables(wineEnv: &result)
-        if !environment.isEmpty {
-            result.merge(environment, uniquingKeysWith: { $1 })
-        }
-
         // Apply macOS 15.x compatibility fixes
         applyMacOSCompatibilityFixes(to: &result)
 
+        bottle.settings.environmentVariables(wineEnv: &result)
+
+        guard !environment.isEmpty else { return result }
+        result.merge(environment, uniquingKeysWith: { $1 })
         return result
     }
 
@@ -52,13 +51,11 @@ extension Wine {
             "GST_DEBUG": "1"
         ]
 
-        if !environment.isEmpty {
-            result.merge(environment, uniquingKeysWith: { $1 })
-        }
-
         // Apply macOS 15.x compatibility fixes
         applyMacOSCompatibilityFixes(to: &result)
 
+        guard !environment.isEmpty else { return result }
+        result.merge(environment, uniquingKeysWith: { $1 })
         return result
     }
 }

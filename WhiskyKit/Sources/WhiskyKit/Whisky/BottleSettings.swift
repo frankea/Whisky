@@ -249,8 +249,11 @@ public struct BottleSettings: Codable, Equatable {
 
         switch enhancedSync {
         case .none:
-            wineEnv.removeValue(forKey: "WINEESYNC")
-            wineEnv.removeValue(forKey: "WINEMSYNC")
+            // On macOS 15.4+, WINEESYNC is required for stability
+            if MacOSVersion.current < .sequoia15_4 {
+                wineEnv.removeValue(forKey: "WINEESYNC")
+                wineEnv.removeValue(forKey: "WINEMSYNC")
+            }
         case .esync:
             wineEnv.updateValue("1", forKey: "WINEESYNC")
         case .msync:

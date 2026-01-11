@@ -51,12 +51,19 @@ extension Program {
     }
 
     public func runInTerminal() {
-        let wineCmd = generateTerminalCommand().replacingOccurrences(of: "\\", with: "\\\\")
+        // Escape for AppleScript string embedding:
+        // 1. Escape backslashes (\ → \\) - must be first to avoid double-escaping
+        // 2. Escape double quotes (" → \") - prevents breaking out of the AppleScript string
+        // Without step 2, a shell-escaped quote \" becomes \\" in AppleScript,
+        // where \\ is a literal backslash and " closes the string, enabling injection.
+        let appleScriptEscaped = generateTerminalCommand()
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
 
         let script = """
         tell application "Terminal"
             activate
-            do script "\(wineCmd)"
+            do script "\(appleScriptEscaped)"
         end tell
         """
 

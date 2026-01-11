@@ -82,10 +82,6 @@ public enum Architecture: Hashable {
 ///
 /// ## Topics
 ///
-/// ### Creating a PEFile
-/// - ``init(url:)-5k6lu``
-/// - ``init(url:)-8ql55``
-///
 /// ### File Information
 /// - ``url``
 /// - ``architecture``

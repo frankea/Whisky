@@ -11,7 +11,7 @@ coverage:
         target: 50%
         # Allow coverage to drop by this much without failing
         threshold: 5%
-        # Only measure coverage for changed files
+        # Set coverage status to error if CI build fails
         if_ci_failed: error
     # Per-patch (diff) coverage requirements
     patch:

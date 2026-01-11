@@ -19,11 +19,31 @@
 import Foundation
 
 extension String {
+    /// Escapes shell metacharacters and removes control characters for safe shell interpolation.
+    ///
+    /// This property returns a string safe for use in shell commands by:
+    /// 1. Removing control characters (newlines, tabs, etc.) that could cause command injection
+    /// 2. Escaping shell metacharacters with backslashes
+    ///
+    /// - Important: Control characters are stripped rather than escaped because
+    ///   backslash-escaped newlines in shell are line continuations, not literal newlines.
     public var esc: String {
-        let esc = ["\\", "\"", "'", " ", "(", ")", "[", "]", "{", "}", "&", "|",
-                   ";", "<", ">", "`", "$", "!", "*", "?", "#", "~", "="]
-        var str = self
-        for char in esc {
+        // First, remove control characters (newlines, tabs, carriage returns, etc.)
+        // These could be used for command injection if present in filenames or arguments
+        var str = self.filter { char in
+            // Allow only printable characters (ASCII 32-126) and extended Unicode
+            // Reject control characters (ASCII 0-31 and 127)
+            guard let ascii = char.asciiValue else {
+                // Non-ASCII characters (Unicode) are allowed
+                return true
+            }
+            return ascii >= 32 && ascii != 127
+        }
+
+        // Escape shell metacharacters
+        let metacharacters = ["\\", "\"", "'", " ", "(", ")", "[", "]", "{", "}", "&", "|",
+                              ";", "<", ">", "`", "$", "!", "*", "?", "#", "~", "="]
+        for char in metacharacters {
             str = str.replacingOccurrences(of: char, with: "\\" + char)
         }
         return str

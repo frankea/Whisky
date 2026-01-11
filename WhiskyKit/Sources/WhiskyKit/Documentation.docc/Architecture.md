@@ -171,7 +171,7 @@ WhiskyKit is extended through several mechanisms:
 
 - **Extensions**: Additional functionality on core types in `Extensions/`
 - **Configuration Types**: Modular settings in separate config structs
-- **Wine Registry**: Direct registry manipulation via Wine registry methods on ``Wine``
+- **Wine Registry**: Direct registry manipulation via methods on ``Wine`` (e.g., `retinaMode`, `changeDpiResolution`, `changeWinVersion`)
 
 ## See Also
 

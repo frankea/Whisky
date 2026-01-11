@@ -24,7 +24,7 @@ public struct BottleMetalConfig: Codable, Equatable {
     var dxrEnabled: Bool = false
     var metalValidation: Bool = false
     var forceGPUFamily: String?
-    var sequoiaCompatMode: Bool = true  // Enable Sequoia compatibility by default
+    var sequoiaCompatMode: Bool = true // Enable Sequoia compatibility by default
 
     public init() {}
 

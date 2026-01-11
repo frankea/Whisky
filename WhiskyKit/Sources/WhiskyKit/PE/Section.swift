@@ -1,5 +1,5 @@
 //
-//  PortableExecutable+Section.swift
+//  Section.swift
 //  WhiskyKit
 //
 //  This file is part of Whisky.
@@ -18,11 +18,11 @@
 
 import Foundation
 
-extension PEFile {
+public extension PEFile {
     /// Section Table (Section Headers)
     ///
     /// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#section-table-section-headers
-    public struct Section: Hashable, Equatable, Sendable {
+    struct Section: Hashable, Equatable, Sendable {
         public let name: String
         public let virtualSize: UInt32
         public let virtualAddress: UInt32

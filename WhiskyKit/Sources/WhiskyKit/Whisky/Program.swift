@@ -17,8 +17,8 @@
 //
 
 import Foundation
-import SwiftUI
 import os.log
+import SwiftUI
 
 /// Represents a Windows executable program within a ``Bottle``.
 ///
@@ -128,7 +128,7 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
     ///
     /// This property is `nonisolated` to allow access from any thread,
     /// making it safe to use in collections and async contexts.
-    nonisolated public var id: URL {
+    public nonisolated var id: URL {
         url
     }
 
@@ -197,13 +197,13 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
 
     // MARK: - Equatable
 
-    nonisolated public static func == (lhs: Program, rhs: Program) -> Bool {
-        return lhs.url == rhs.url
+    public nonisolated static func == (lhs: Program, rhs: Program) -> Bool {
+        lhs.url == rhs.url
     }
 
     // MARK: - Hashable
 
-    nonisolated public func hash(into hasher: inout Hasher) {
+    public nonisolated func hash(into hasher: inout Hasher) {
         hasher.combine(url)
     }
 }

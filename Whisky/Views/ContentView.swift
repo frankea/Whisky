@@ -16,10 +16,10 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import SemanticVersion
 import SwiftUI
 import UniformTypeIdentifiers
 import WhiskyKit
-import SemanticVersion
 
 struct ContentView: View {
     @AppStorage("selectedBottleURL") private var selectedBottleURL: URL?
@@ -78,9 +78,11 @@ struct ContentView: View {
             SetupView(showSetup: $showSetup, firstTime: false)
         }
         .sheet(item: $openedFileURL) { url in
-            FileOpenView(fileURL: url,
-                         currentBottle: selected,
-                         bottles: bottleVM.bottles)
+            FileOpenView(
+                fileURL: url,
+                currentBottle: selected,
+                bottles: bottleVM.bottles
+            )
         }
         .onChange(of: selected) {
             selectedBottleURL = selected
@@ -105,16 +107,18 @@ struct ContentView: View {
                 showSetup = true
             }
             let task = Task.detached {
-                return await WhiskyWineInstaller.shouldUpdateWhiskyWine()
+                await WhiskyWineInstaller.shouldUpdateWhiskyWine()
             }
             let updateInfo = await task.value
             if updateInfo.0 {
                 let alert = NSAlert()
                 alert.messageText = String(localized: "update.whiskywine.title")
-                alert.informativeText = String(format: String(localized: "update.whiskywine.description"),
-                                               String(WhiskyWineInstaller.whiskyWineVersion()
-                                                      ?? SemanticVersion(0, 0, 0)),
-                                               String(updateInfo.1))
+                alert.informativeText = String(
+                    format: String(localized: "update.whiskywine.description"),
+                    String(WhiskyWineInstaller.whiskyWineVersion()
+                        ?? SemanticVersion(0, 0, 0)),
+                    String(updateInfo.1)
+                )
                 alert.alertStyle = .warning
                 alert.addButton(withTitle: String(localized: "update.whiskywine.update"))
                 alert.addButton(withTitle: String(localized: "button.removeAlert.cancel"))
@@ -175,7 +179,7 @@ struct ContentView: View {
                     .id(bottle.url)
             }
         } else {
-            if (bottleVM.bottles.isEmpty || bottleVM.countActive() == 0) && bottlesLoaded {
+            if bottleVM.bottles.isEmpty || bottleVM.countActive() == 0, bottlesLoaded {
                 VStack {
                     Text("main.createFirst")
                     Button {

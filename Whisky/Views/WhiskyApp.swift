@@ -16,10 +16,10 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import SwiftUI
-import Sparkle
-import WhiskyKit
 import os.log
+import Sparkle
+import SwiftUI
+import WhiskyKit
 
 private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.franke.Whisky", category: "WhiskyApp")
 
@@ -31,9 +31,11 @@ struct WhiskyApp: App {
     private let updaterController: SPUStandardUpdaterController
 
     init() {
-        updaterController = SPUStandardUpdaterController(startingUpdater: true,
-                                                         updaterDelegate: nil,
-                                                         userDriverDelegate: nil)
+        updaterController = SPUStandardUpdaterController(
+            startingUpdater: true,
+            updaterDelegate: nil,
+            userDriverDelegate: nil
+        )
     }
 
     var body: some Scene {
@@ -137,7 +139,9 @@ struct WhiskyApp: App {
 
         guard let urls = try? FileManager.default.contentsOfDirectory(
             at: Wine.logsFolder,
-            includingPropertiesForKeys: [.creationDateKey]) else {
+            includingPropertiesForKeys: [.creationDateKey]
+        )
+        else {
             return
         }
 

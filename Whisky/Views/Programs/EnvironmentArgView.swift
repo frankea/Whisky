@@ -29,10 +29,10 @@ enum Focusable: Hashable {
 
 class Key: Identifiable {
     static func == (lhs: Key, rhs: Key) -> Bool {
-        return lhs.id == rhs.id
+        lhs.id == rhs.id
     }
 
-    var id: UUID = UUID()
+    var id: UUID = .init()
     @Published var key: String
     @Published var value: String
 
@@ -53,14 +53,16 @@ struct EnvironmentArgView: View {
     var body: some View {
         Section(isExpanded: $isExpanded) {
             List(environmentKeys, id: \.id) { key in
-                KeyItem(focus: _focus,
-                        environmentKeys: $environmentKeys,
-                        key: key)
+                KeyItem(
+                    focus: _focus,
+                    environmentKeys: $environmentKeys,
+                    key: key
+                )
             }
             .alternatingRowBackgrounds(.enabled)
             .onAppear {
                 let keys = program.settings.environment.map { (key: String, value: String) in
-                    return Key(key: key, value: value)
+                    Key(key: key, value: value)
                 }
                 environmentKeys = keys.sorted(by: { $0.key < $1.key })
             }
@@ -84,12 +86,12 @@ struct EnvironmentArgView: View {
         }
         .onChange(of: focus) { oldValue, newValue in
             switch oldValue {
-            case .row(let id, let section):
+            case let .row(id, section):
                 if let key = environmentKeys.first(where: { $0.id == id }) {
                     switch newValue {
-                    case .row(let newId, _):
+                    case let .row(newId, _):
                         // Remove empty keys
-                        if key.key.isEmpty && newId != id {
+                        if key.key.isEmpty, newId != id {
                             environmentKeys.removeAll(where: { $0.id == key.id })
                             focus = nil
                             return
@@ -98,7 +100,7 @@ struct EnvironmentArgView: View {
                     }
 
                     // A key with this value already exists, so its invalid
-                    if environmentKeys.contains(where: { $0.key == key.key && $0.id != key.id }) && !movedToIllegalKey {
+                    if environmentKeys.contains(where: { $0.key == key.key && $0.id != key.id }), !movedToIllegalKey {
                         movedToIllegalKey = true
                         focus = .row(id: key.id, section: .key)
                         return
@@ -106,7 +108,7 @@ struct EnvironmentArgView: View {
 
                     movedToIllegalKey = false
 
-                    if newValue == nil && section == .value {
+                    if newValue == nil, section == .value {
                         // Value has been submitted, move ot next row
                         if var index = environmentKeys.firstIndex(where: { $0.id == id }) {
                             index += 1

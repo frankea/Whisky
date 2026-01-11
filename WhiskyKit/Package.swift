@@ -22,17 +22,17 @@ import PackageDescription
 let package = Package(
     name: "WhiskyKit",
     platforms: [
-        .macOS(.v14)
+        .macOS(.v14),
     ],
     products: [
         .library(
             name: "WhiskyKit",
             targets: ["WhiskyKit"]
-        )
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/SwiftPackageIndex/SemanticVersion.git", from: "0.4.0"),
-        .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.3")
+        .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.3"),
     ],
     targets: [
         .target(
@@ -42,7 +42,7 @@ let package = Package(
         .testTarget(
             name: "WhiskyKitTests",
             dependencies: ["WhiskyKit"]
-        )
+        ),
     ],
     swiftLanguageModes: [.v6]
 )

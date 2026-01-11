@@ -37,15 +37,15 @@ public enum ResourceDirectoryEntry {
 
         /// Check if the entry is a directory entry
         var isDirectory: Bool {
-            (rawOffset & 0x80000000) != 0
+            (rawOffset & 0x8000_0000) != 0
         }
 
         /// The offset of the entry
         var offset: UInt32 {
             if isDirectory {
-                return rawOffset & 0x7FFFFFFF
+                rawOffset & 0x7FFF_FFFF
             } else {
-                return rawOffset
+                rawOffset
             }
         }
     }

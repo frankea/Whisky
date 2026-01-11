@@ -16,26 +16,25 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import os
+import SemanticVersion
 import SwiftUI
 import WhiskyKit
-import SemanticVersion
-import os
 
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "WhiskyWineDownloadView")
 
 private func formatHTTPError(statusCode: Int) -> String {
-    let statusMessage: String
-    switch statusCode {
+    let statusMessage = switch statusCode {
     case 404:
-        statusMessage = String(localized: "setup.whiskywine.error.fileNotFound")
+        String(localized: "setup.whiskywine.error.fileNotFound")
     case 403:
-        statusMessage = String(localized: "setup.whiskywine.error.accessDenied")
+        String(localized: "setup.whiskywine.error.accessDenied")
     case 429:
-        statusMessage = String(localized: "setup.whiskywine.error.rateLimit")
-    case 500...599:
-        statusMessage = String(localized: "setup.whiskywine.error.serverError")
+        String(localized: "setup.whiskywine.error.rateLimit")
+    case 500 ... 599:
+        String(localized: "setup.whiskywine.error.serverError")
     default:
-        statusMessage = String(
+        String(
             format: String(localized: "setup.whiskywine.error.httpError"),
             statusCode
         )
@@ -124,14 +123,18 @@ struct WhiskyWineDownloadView: View {
             ProgressView(value: fractionProgress, total: 1)
             HStack {
                 HStack {
-                    Text(String(format: String(localized: "setup.whiskywine.progress"),
-                                formatBytes(bytes: completedBytes),
-                                formatBytes(bytes: totalBytes)))
-                    + Text(String(" "))
-                    + (shouldShowEstimate() ?
-                       Text(String(format: String(localized: "setup.whiskywine.eta"),
-                                   formatRemainingTime(remainingBytes: totalBytes - completedBytes)))
-                       : Text(String()))
+                    Text(String(
+                        format: String(localized: "setup.whiskywine.progress"),
+                        formatBytes(bytes: completedBytes),
+                        formatBytes(bytes: totalBytes)
+                    ))
+                        + Text(String(" "))
+                        + (shouldShowEstimate() ?
+                            Text(String(
+                                format: String(localized: "setup.whiskywine.eta"),
+                                formatRemainingTime(remainingBytes: totalBytes - completedBytes)
+                            ))
+                            : Text(String()))
                     Spacer()
                 }
                 .font(.subheadline)
@@ -199,7 +202,8 @@ struct WhiskyWineDownloadView: View {
 
             // Check HTTP status code before attempting to decode
             if let httpResponse = response as? HTTPURLResponse,
-               !(200...299).contains(httpResponse.statusCode) {
+               !(200 ... 299).contains(httpResponse.statusCode)
+            {
                 downloadError = formatHTTPError(statusCode: httpResponse.statusCode)
                 return
             }
@@ -282,7 +286,7 @@ struct WhiskyWineDownloadView: View {
     ) {
         guard currentDownloadTaskID == taskID else { return }
 
-        if let error = error {
+        if let error {
             // Don't show error when download was explicitly cancelled (e.g., during retry)
             if (error as NSError).code == NSURLErrorCancelled {
                 return
@@ -295,7 +299,8 @@ struct WhiskyWineDownloadView: View {
         }
 
         if let httpResponse = response as? HTTPURLResponse,
-           !(200...299).contains(httpResponse.statusCode) {
+           !(200 ... 299).contains(httpResponse.statusCode)
+        {
             downloadError = formatHTTPError(statusCode: httpResponse.statusCode)
             return
         }

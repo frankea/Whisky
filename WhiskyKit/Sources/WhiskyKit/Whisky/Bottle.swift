@@ -17,8 +17,8 @@
 //
 
 import Foundation
-import SwiftUI
 import os.log
+import SwiftUI
 
 /// Represents an isolated Wine environment for running Windows applications.
 ///
@@ -86,6 +86,7 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
     @Published public var settings: BottleSettings {
         didSet { saveSettings() }
     }
+
     /// The list of discovered Windows programs in this bottle.
     ///
     /// Programs are typically populated by scanning the bottle's drive_c directory.
@@ -101,7 +102,7 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
     ///
     /// This property is `nonisolated` to allow access from any thread,
     /// making it safe to use in collections and async contexts.
-    nonisolated public var id: URL {
+    public nonisolated var id: URL {
         url
     }
 
@@ -111,9 +112,12 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
     /// corresponding program objects, excluding pins for programs that no longer exist.
     ///
     /// - Returns: A tuple array containing the pin, program, and a unique identifier string.
-    public var pinnedPrograms: [(pin: PinnedProgram, program: Program, // swiftlint:disable:this large_tuple
-                                 id: String)] {
-        return settings.pins.compactMap { pin in
+    public var pinnedPrograms: [(
+        pin: PinnedProgram,
+        program: Program, // swiftlint:disable:this large_tuple
+        id: String
+    )] {
+        settings.pins.compactMap { pin in
             let exists = FileManager.default.fileExists(atPath: pin.url?.path(percentEncoded: false) ?? "")
             guard let program = programs.first(where: { $0.url == pin.url && exists }) else { return nil }
             return (pin, program, "\(pin.name)//\(program.url)")
@@ -197,13 +201,13 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
 
     // MARK: - Equatable
 
-    nonisolated public static func == (lhs: Bottle, rhs: Bottle) -> Bool {
-        return lhs.url == rhs.url
+    public nonisolated static func == (lhs: Bottle, rhs: Bottle) -> Bool {
+        lhs.url == rhs.url
     }
 
     // MARK: - Hashable
 
-    nonisolated public func hash(into hasher: inout Hasher) {
+    public nonisolated func hash(into hasher: inout Hasher) {
         hasher.combine(url)
     }
 
@@ -223,7 +227,7 @@ public extension Sequence where Iterator.Element == Program {
     /// Use this to filter a collection of programs to show favorites or
     /// frequently-used applications.
     var pinned: [Program] {
-        return self.filter({ $0.pinned })
+        self.filter(\.pinned)
     }
 
     /// Returns only the unpinned programs from the sequence.
@@ -231,6 +235,6 @@ public extension Sequence where Iterator.Element == Program {
     /// Use this alongside ``pinned`` to separate programs into categories
     /// in the user interface.
     var unpinned: [Program] {
-        return self.filter({ !$0.pinned })
+        self.filter { !$0.pinned }
     }
 }

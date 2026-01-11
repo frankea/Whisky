@@ -16,12 +16,11 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import XCTest
-@testable import WhiskyKit
 import SemanticVersion
+@testable import WhiskyKit
+import XCTest
 
 final class BottleSettingsTests: XCTestCase {
-
     // MARK: - BottleSettings Default Values
 
     func testBottleSettingsDefaultValues() {

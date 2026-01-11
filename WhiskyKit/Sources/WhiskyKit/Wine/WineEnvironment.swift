@@ -27,13 +27,13 @@ extension Wine {
     /// Invalid environment variable keys (those not matching `[A-Za-z_][A-Za-z0-9_]*`)
     /// are filtered out with a debug log message, as macOS silently ignores them.
     @MainActor
-    internal static func constructWineEnvironment(
+    static func constructWineEnvironment(
         for bottle: Bottle, environment: [String: String] = [:]
     ) -> [String: String] {
         var result: [String: String] = [
             "WINEPREFIX": bottle.url.path,
             "WINEDEBUG": "fixme-all",
-            "GST_DEBUG": "1"
+            "GST_DEBUG": "1",
         ]
 
         // Apply macOS 15.x compatibility fixes
@@ -59,13 +59,13 @@ extension Wine {
     /// Invalid environment variable keys (those not matching `[A-Za-z_][A-Za-z0-9_]*`)
     /// are filtered out with a debug log message, as macOS silently ignores them.
     @MainActor
-    internal static func constructWineServerEnvironment(
+    static func constructWineServerEnvironment(
         for bottle: Bottle, environment: [String: String] = [:]
     ) -> [String: String] {
         var result: [String: String] = [
             "WINEPREFIX": bottle.url.path,
             "WINEDEBUG": "fixme-all",
-            "GST_DEBUG": "1"
+            "GST_DEBUG": "1",
         ]
 
         // Apply macOS 15.x compatibility fixes

@@ -1,5 +1,5 @@
 //
-//  PortableExecutable+Magic.swift
+//  Magic.swift
 //  WhiskyKit
 //
 //  This file is part of Whisky.
@@ -18,22 +18,22 @@
 
 import Foundation
 
-extension PEFile {
-    public enum Magic: UInt16, Hashable, Equatable, CustomStringConvertible, Sendable {
+public extension PEFile {
+    enum Magic: UInt16, Hashable, Equatable, CustomStringConvertible, Sendable {
         case unknown = 0x0
-        case pe32 = 0x10b
-        case pe32Plus = 0x20b
+        case pe32 = 0x10B
+        case pe32Plus = 0x20B
 
         // MARK: - CustomStringConvertible
 
         public var description: String {
             switch self {
             case .unknown:
-                return "unknown"
+                "unknown"
             case .pe32:
-                return "PE32"
+                "PE32"
             case .pe32Plus:
-                return "PE32+"
+                "PE32+"
             }
         }
     }

@@ -1,5 +1,5 @@
 //
-//  Bundle+Extension.swift
+//  Bundle+Extensions.swift
 //  WhiskyKit
 //
 //  This file is part of Whisky.
@@ -20,6 +20,6 @@ import Foundation
 
 public extension Bundle {
     static var whiskyBundleIdentifier: String {
-        return Bundle.main.bundleIdentifier ?? "com.franke.Whisky"
+        Bundle.main.bundleIdentifier ?? "com.franke.Whisky"
     }
 }

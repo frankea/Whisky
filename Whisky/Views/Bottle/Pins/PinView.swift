@@ -33,7 +33,7 @@ struct PinView: View {
     var body: some View {
         VStack {
             Group {
-                if let image = image {
+                if let image {
                     image
                         .resizable()
                 } else {

@@ -16,8 +16,8 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import SwiftUI
 import Sparkle
+import SwiftUI
 
 struct SparkleView: View {
     @ObservedObject private var checkForUpdatesViewModel: CheckForUpdatesViewModel

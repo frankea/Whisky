@@ -16,9 +16,9 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import Metal
 import SwiftUI
 import WhiskyKit
-import Metal
 
 struct MetalConfigSection: View {
     @ObservedObject var bottle: Bottle

@@ -23,18 +23,18 @@ public enum PerformancePreset: String, Codable, CaseIterable, Sendable {
     case balanced
     case performance
     case quality
-    case unity  // Optimized for Unity games
+    case unity // Optimized for Unity games
 
     public func description() -> String {
         switch self {
         case .balanced:
-            return "Balanced (Default)"
+            "Balanced (Default)"
         case .performance:
-            return "Performance Mode"
+            "Performance Mode"
         case .quality:
-            return "Quality Mode"
+            "Quality Mode"
         case .unity:
-            return "Unity Games Optimized"
+            "Unity Games Optimized"
         }
     }
 }
@@ -42,21 +42,23 @@ public enum PerformancePreset: String, Codable, CaseIterable, Sendable {
 public struct BottlePerformanceConfig: Codable, Equatable {
     var performancePreset: PerformancePreset = .balanced
     var shaderCacheEnabled: Bool = true
-    var gpuMemoryLimit: Int?  // MB, nil means auto
-    var forceD3D11: Bool = false  // Force D3D11 instead of D3D12 for compatibility
-    var disableShaderOptimizations: Bool = false  // For debugging FPS issues
-    var vcRedistInstalled: Bool = false  // Track if VC++ runtime is installed
+    var gpuMemoryLimit: Int? // MB, nil means auto
+    var forceD3D11: Bool = false // Force D3D11 instead of D3D12 for compatibility
+    var disableShaderOptimizations: Bool = false // For debugging FPS issues
+    var vcRedistInstalled: Bool = false // Track if VC++ runtime is installed
 
     public init() {}
 
     // swiftlint:disable line_length
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.performancePreset = try container.decodeIfPresent(PerformancePreset.self, forKey: .performancePreset) ?? .balanced
+        self.performancePreset = try container
+            .decodeIfPresent(PerformancePreset.self, forKey: .performancePreset) ?? .balanced
         self.shaderCacheEnabled = try container.decodeIfPresent(Bool.self, forKey: .shaderCacheEnabled) ?? true
         self.gpuMemoryLimit = try container.decodeIfPresent(Int.self, forKey: .gpuMemoryLimit)
         self.forceD3D11 = try container.decodeIfPresent(Bool.self, forKey: .forceD3D11) ?? false
-        self.disableShaderOptimizations = try container.decodeIfPresent(Bool.self, forKey: .disableShaderOptimizations) ?? false
+        self.disableShaderOptimizations = try container
+            .decodeIfPresent(Bool.self, forKey: .disableShaderOptimizations) ?? false
         self.vcRedistInstalled = try container.decodeIfPresent(Bool.self, forKey: .vcRedistInstalled) ?? false
     }
     // swiftlint:enable line_length

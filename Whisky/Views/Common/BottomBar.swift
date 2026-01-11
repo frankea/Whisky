@@ -19,9 +19,9 @@
 import SwiftUI
 
 extension View {
-    func bottomBar<Content>(
-        @ViewBuilder content: () -> Content
-    ) -> some View where Content: View {
+    func bottomBar(
+        @ViewBuilder content: () -> some View
+    ) -> some View {
         modifier(BottomBarViewModifier(barContent: content()))
     }
 }
@@ -61,12 +61,10 @@ struct BottomBarButtonStyle: PrimitiveButtonStyle {
     .bottomBar {
         HStack {
             Spacer()
-            Button {
-            } label: {
+            Button {} label: {
                 Text(String("Button 1"))
             }
-            Button {
-            } label: {
+            Button {} label: {
                 Text(String("Button 2"))
             }
         }

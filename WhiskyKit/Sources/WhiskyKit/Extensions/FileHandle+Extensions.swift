@@ -25,7 +25,7 @@ extension FileHandle {
         do {
             try self.seek(toOffset: offset)
             if let data = try self.read(upToCount: MemoryLayout<T>.size) {
-                return data.withUnsafeBytes { $0.loadUnaligned(as: T.self)}
+                return data.withUnsafeBytes { $0.loadUnaligned(as: T.self) }
             } else {
                 return nil
             }
@@ -53,6 +53,7 @@ extension FileHandle {
         header += "macOS Version: \(macOSVersion.majorVersion).\(macOSVersion.minorVersion).\(macOSVersion.patchVersion)\n\n"
         write(line: header)
     }
+
     // swiftlint:enable line_length
 
     func writeInfo(for process: Process) {

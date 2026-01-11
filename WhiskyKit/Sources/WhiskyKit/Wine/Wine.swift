@@ -100,20 +100,20 @@ public class Wine {
     ///
     /// - Parameter key: The environment variable name to validate.
     /// - Returns: `true` if the key is safe to use in shell commands.
-    internal static func isValidEnvKey(_ key: String) -> Bool {
+    static func isValidEnvKey(_ key: String) -> Bool {
         guard let first = key.first else { return false }
         guard isAsciiLetter(first) || first == "_" else { return false }
         return key.allSatisfy { isAsciiLetter($0) || isAsciiDigit($0) || $0 == "_" }
     }
 
     /// Checks if a character is an ASCII letter (A-Z, a-z).
-    internal static func isAsciiLetter(_ char: Character) -> Bool {
+    static func isAsciiLetter(_ char: Character) -> Bool {
         guard let ascii = char.asciiValue else { return false }
         return (ascii >= 65 && ascii <= 90) || (ascii >= 97 && ascii <= 122) // A-Z or a-z
     }
 
     /// Checks if a character is an ASCII digit (0-9).
-    internal static func isAsciiDigit(_ char: Character) -> Bool {
+    static func isAsciiDigit(_ char: Character) -> Bool {
         guard let ascii = char.asciiValue else { return false }
         return ascii >= 48 && ascii <= 57 // 0-9
     }
@@ -140,7 +140,7 @@ public class Wine {
         name: String? = nil, args: [String], environment: [String: String] = [:],
         fileHandle: FileHandle?
     ) throws -> AsyncStream<ProcessOutput> {
-        return try runProcess(
+        try runProcess(
             name: name, args: args, environment: environment, executableURL: wineBinary,
             fileHandle: fileHandle
         )
@@ -151,7 +151,7 @@ public class Wine {
         name: String? = nil, args: [String], environment: [String: String] = [:],
         fileHandle: FileHandle?
     ) throws -> AsyncStream<ProcessOutput> {
-        return try runProcess(
+        try runProcess(
             name: name, args: args, environment: environment, executableURL: wineserverBinary,
             fileHandle: fileHandle
         )
@@ -230,7 +230,7 @@ public class Wine {
     ///         .appendingPathComponent("drive_c")
     ///         .appendingPathComponent("Games")
     ///         .appendingPathComponent("MyGame.exe")
-    ///     
+    ///
     ///     try await Wine.runProgram(at: gameURL, bottle: bottle)
     /// }
     /// ```
@@ -249,11 +249,11 @@ public class Wine {
             try enableDXVK(bottle: bottle)
         }
 
-        for await _ in try Self.runWineProcess(
+        for await _ in try runWineProcess(
             name: url.lastPathComponent,
             args: ["start", "/unix", url.path(percentEncoded: false)] + args,
             bottle: bottle, environment: environment
-        ) { }
+        ) {}
     }
 
     /// Generates a shell command string for running a Windows program.
@@ -349,7 +349,7 @@ public class Wine {
             switch output {
             case .started, .terminated:
                 return nil
-            case .message(let message), .error(let message):
+            case let .message(message), let .error(message):
                 return message
             }
         }.joined()
@@ -375,9 +375,9 @@ public class Wine {
         _ args: [String], bottle: Bottle?, environment: [String: String] = [:]
     ) async throws -> String {
         if let bottle {
-            return try await runWineWithBottle(args, bottle: bottle, environment: environment)
+            try await runWineWithBottle(args, bottle: bottle, environment: environment)
         } else {
-            return try await runWineWithoutBottle(args, environment: environment)
+            try await runWineWithoutBottle(args, environment: environment)
         }
     }
 
@@ -397,7 +397,7 @@ public class Wine {
             switch output {
             case .started, .terminated:
                 break
-            case .message(let message), .error(let message):
+            case let .message(message), let .error(message):
                 result.append(message)
             }
         }
@@ -419,7 +419,7 @@ public class Wine {
             switch output {
             case .started, .terminated:
                 break
-            case .message(let message), .error(let message):
+            case let .message(message), let .error(message):
                 result.append(message)
             }
         }
@@ -469,7 +469,7 @@ public class Wine {
     @discardableResult
     @MainActor
     public static func runBatchFile(url: URL, bottle: Bottle) async throws -> String {
-        return try await runWine(["cmd", "/c", url.path(percentEncoded: false)], bottle: bottle)
+        try await runWine(["cmd", "/c", url.path(percentEncoded: false)], bottle: bottle)
     }
 
     /// Terminates all Wine processes running in a bottle.
@@ -525,12 +525,13 @@ enum WineInterfaceError: Error {
 }
 
 // MARK: - Logging Support
-extension Wine {
+
+public extension Wine {
     /// The URL to the directory where Wine process logs are stored.
     ///
     /// Logs are stored in `~/Library/Logs/{bundle-identifier}/` with ISO 8601
     /// timestamps as filenames.
-    public static let logsFolder = FileManager.default.urls(
+    static let logsFolder = FileManager.default.urls(
         for: .libraryDirectory, in: .userDomainMask
     )[0].appending(path: "Logs").appending(path: Bundle.whiskyBundleIdentifier)
 
@@ -541,9 +542,9 @@ extension Wine {
     ///
     /// - Returns: A `FileHandle` open for writing to the new log file.
     /// - Throws: An error if the log directory or file cannot be created.
-    public static func makeFileHandle() throws -> FileHandle {
-        if !FileManager.default.fileExists(atPath: Self.logsFolder.path) {
-            try FileManager.default.createDirectory(at: Self.logsFolder, withIntermediateDirectories: true)
+    static func makeFileHandle() throws -> FileHandle {
+        if !FileManager.default.fileExists(atPath: logsFolder.path) {
+            try FileManager.default.createDirectory(at: logsFolder, withIntermediateDirectories: true)
         }
 
         let dateString = Date.now.ISO8601Format()

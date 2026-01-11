@@ -17,8 +17,8 @@
 //
 
 import SwiftUI
-import WhiskyKit
 import UniformTypeIdentifiers
+import WhiskyKit
 
 struct BottleListEntry: View {
     let bottle: Bottle
@@ -100,11 +100,16 @@ struct BottleListEntry: View {
     }
 
     func showRemoveAlert(bottle: Bottle) {
-        let checkbox = NSButton(checkboxWithTitle: String(localized: "button.removeAlert.checkbox"),
-                                target: self, action: nil)
+        let checkbox = NSButton(
+            checkboxWithTitle: String(localized: "button.removeAlert.checkbox"),
+            target: self,
+            action: nil
+        )
         let alert = NSAlert()
-        alert.messageText = String(format: String(localized: "button.removeAlert.msg"),
-                                   bottle.settings.name)
+        alert.messageText = String(
+            format: String(localized: "button.removeAlert.msg"),
+            bottle.settings.name
+        )
         alert.informativeText = String(localized: "button.removeAlert.info")
         alert.alertStyle = .warning
         let delete = alert.addButton(withTitle: String(localized: "button.removeAlert.delete"))

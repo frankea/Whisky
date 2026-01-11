@@ -34,7 +34,7 @@ struct WinetricksView: View {
             .padding(.bottom)
 
             // Tabbed view
-            if let winetricks = winetricks {
+            if let winetricks {
                 TabView {
                     ForEach(winetricks, id: \.category) { category in
                         Table(category.verbs, selection: $selectedTrick) {
@@ -55,11 +55,11 @@ struct WinetricksView: View {
                     }
                     ToolbarItem(placement: .primaryAction) {
                         Button("button.run") {
-                            guard let selectedTrick = selectedTrick else {
+                            guard let selectedTrick else {
                                 return
                             }
 
-                            let trick = winetricks.flatMap { $0.verbs }.first(where: { $0.id == selectedTrick })
+                            let trick = winetricks.flatMap(\.verbs).first(where: { $0.id == selectedTrick })
                             if let trickName = trick?.name {
                                 Task.detached {
                                     await Winetricks.runCommand(command: trickName, bottle: bottle)

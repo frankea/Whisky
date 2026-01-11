@@ -16,8 +16,8 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import Foundation
 import AppKit
+import Foundation
 
 /// An error that occurred while parsing a PE file.
 public struct PEError: Error {
@@ -46,11 +46,11 @@ public enum Architecture: Hashable {
     public func toString() -> String? {
         switch self {
         case .x32:
-            return "32-bit"
+            "32-bit"
         case .x64:
-            return "64-bit"
+            "64-bit"
         default:
-            return nil
+            nil
         }
     }
 }
@@ -144,7 +144,7 @@ public struct PEFile: Hashable, Equatable, Sendable {
             throw PEError.invalidPEFile
         }
         // Check signature ("PE\0\0")
-        guard peHeader.bigEndian == 0x50450000 else {
+        guard peHeader.bigEndian == 0x5045_0000 else {
             throw PEError.invalidPEFile
         }
 
@@ -160,7 +160,7 @@ public struct PEFile: Hashable, Equatable, Sendable {
         }
 
         var sections: [Section] = []
-        for _ in 0..<coffFileHeader.numberOfSections {
+        for _ in 0 ..< coffFileHeader.numberOfSections {
             if let section = Section(handle: fileHandle, offset: offset) {
                 sections.append(section)
             }
@@ -173,29 +173,29 @@ public struct PEFile: Hashable, Equatable, Sendable {
     public var architecture: Architecture {
         switch optionalHeader?.magic {
         case .pe32:
-            return .x32
+            .x32
         case .pe32Plus:
-            return .x64
+            .x64
         default:
-            return .unknown
+            .unknown
         }
     }
 
     /// Read the resource section
-    /// 
+    ///
     /// - Parameters:
     ///   - handle: The `FileHandle` to read the resource table section from.
     ///   - types: Only read entrys of the given types. Only applies to the root table. Default includes all types.
     /// - Returns: The resource table section
     private func rsrc(handle: FileHandle, types: [ResourceType] = ResourceType.allCases) -> ResourceDirectoryTable? {
         if let resourceSection = sections.first(where: { $0.name == ".rsrc" }) {
-            return ResourceDirectoryTable(
+            ResourceDirectoryTable(
                 handle: handle,
                 pointerToRawData: UInt64(resourceSection.pointerToRawData),
                 types: types
             )
         } else {
-            return nil
+            nil
         }
     }
 
@@ -245,7 +245,7 @@ public struct PEFile: Hashable, Equatable, Sendable {
 
                 return nil
             }
-            .filter { $0.isValid }
+            .filter(\.isValid)
 
         if !icons.isEmpty {
             return icons.max(by: { $0.size.height < $1.size.height })

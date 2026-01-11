@@ -18,8 +18,8 @@
 //
 
 import Foundation
-import SemanticVersion
 import os.log
+import SemanticVersion
 
 /// Represents a pinned program entry in a bottle's quick-access list.
 ///
@@ -166,18 +166,26 @@ public struct BottleSettings: Codable, Equatable {
     // swiftlint:disable line_length
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.fileVersion = try container.decodeIfPresent(SemanticVersion.self, forKey: .fileVersion) ?? Self.defaultFileVersion
+        self.fileVersion = try container.decodeIfPresent(SemanticVersion.self, forKey: .fileVersion) ?? Self
+            .defaultFileVersion
         self.info = try container.decodeIfPresent(BottleInfo.self, forKey: .info) ?? BottleInfo()
-        self.wineConfig = try container.decodeIfPresent(BottleWineConfig.self, forKey: .wineConfig) ?? BottleWineConfig()
-        self.metalConfig = try container.decodeIfPresent(BottleMetalConfig.self, forKey: .metalConfig) ?? BottleMetalConfig()
-        self.dxvkConfig = try container.decodeIfPresent(BottleDXVKConfig.self, forKey: .dxvkConfig) ?? BottleDXVKConfig()
-        self.performanceConfig = try container.decodeIfPresent(BottlePerformanceConfig.self, forKey: .performanceConfig) ?? BottlePerformanceConfig()
+        self.wineConfig = try container
+            .decodeIfPresent(BottleWineConfig.self, forKey: .wineConfig) ?? BottleWineConfig()
+        self.metalConfig = try container
+            .decodeIfPresent(BottleMetalConfig.self, forKey: .metalConfig) ?? BottleMetalConfig()
+        self.dxvkConfig = try container
+            .decodeIfPresent(BottleDXVKConfig.self, forKey: .dxvkConfig) ?? BottleDXVKConfig()
+        self.performanceConfig = try container.decodeIfPresent(
+            BottlePerformanceConfig.self,
+            forKey: .performanceConfig
+        ) ?? BottlePerformanceConfig()
     }
+
     // swiftlint:enable line_length
 
     /// The display name of this bottle.
     public var name: String {
-        get { return info.name }
+        get { info.name }
         set { info.name = newValue }
     }
 
@@ -185,7 +193,7 @@ public struct BottleSettings: Codable, Equatable {
     ///
     /// This is automatically updated when Wine is upgraded.
     public var wineVersion: SemanticVersion {
-        get { return wineConfig.wineVersion }
+        get { wineConfig.wineVersion }
         set { wineConfig.wineVersion = newValue }
     }
 
@@ -194,7 +202,7 @@ public struct BottleSettings: Codable, Equatable {
     /// Different Windows versions may provide better compatibility
     /// for different applications. Windows 10 is recommended for most games.
     public var windowsVersion: WinVersion {
-        get { return wineConfig.windowsVersion }
+        get { wineConfig.windowsVersion }
         set { wineConfig.windowsVersion = newValue }
     }
 
@@ -203,13 +211,13 @@ public struct BottleSettings: Codable, Equatable {
     /// Enable this via Rosetta 2 for programs that require AVX instructions.
     /// Only applicable on Apple Silicon Macs.
     public var avxEnabled: Bool {
-        get { return wineConfig.avxEnabled }
+        get { wineConfig.avxEnabled }
         set { wineConfig.avxEnabled = newValue }
     }
 
     /// The list of pinned programs for quick access.
     public var pins: [PinnedProgram] {
-        get { return info.pins }
+        get { info.pins }
         set { info.pins = newValue }
     }
 
@@ -217,7 +225,7 @@ public struct BottleSettings: Codable, Equatable {
     ///
     /// Use this to hide unwanted executables like installers or utilities.
     public var blocklist: [URL] {
-        get { return info.blocklist }
+        get { info.blocklist }
         set { info.blocklist = newValue }
     }
 
@@ -226,7 +234,7 @@ public struct BottleSettings: Codable, Equatable {
     /// Enhanced sync modes (ESync/MSync) can improve performance for some applications
     /// by using more efficient synchronization primitives.
     public var enhancedSync: EnhancedSync {
-        get { return wineConfig.enhancedSync }
+        get { wineConfig.enhancedSync }
         set { wineConfig.enhancedSync = newValue }
     }
 
@@ -234,7 +242,7 @@ public struct BottleSettings: Codable, Equatable {
     ///
     /// Shows frame rate and GPU statistics during gameplay.
     public var metalHud: Bool {
-        get { return metalConfig.metalHud }
+        get { metalConfig.metalHud }
         set { metalConfig.metalHud = newValue }
     }
 
@@ -242,7 +250,7 @@ public struct BottleSettings: Codable, Equatable {
     ///
     /// Useful for debugging graphics issues with Xcode's GPU debugger.
     public var metalTrace: Bool {
-        get { return metalConfig.metalTrace }
+        get { metalConfig.metalTrace }
         set { metalConfig.metalTrace = newValue }
     }
 
@@ -250,7 +258,7 @@ public struct BottleSettings: Codable, Equatable {
     ///
     /// Enable this for games that support ray tracing features.
     public var dxrEnabled: Bool {
-        get { return metalConfig.dxrEnabled }
+        get { metalConfig.dxrEnabled }
         set { metalConfig.dxrEnabled = newValue }
     }
 
@@ -259,7 +267,7 @@ public struct BottleSettings: Codable, Equatable {
     /// Useful for debugging but impacts performance. Keep disabled
     /// for normal gameplay.
     public var metalValidation: Bool {
-        get { return metalConfig.metalValidation }
+        get { metalConfig.metalValidation }
         set { metalConfig.metalValidation = newValue }
     }
 
@@ -268,7 +276,7 @@ public struct BottleSettings: Codable, Equatable {
     /// Applies additional fixes for graphics and launcher issues
     /// specific to macOS 15.x. Enable if experiencing problems.
     public var sequoiaCompatMode: Bool {
-        get { return metalConfig.sequoiaCompatMode }
+        get { metalConfig.sequoiaCompatMode }
         set { metalConfig.sequoiaCompatMode = newValue }
     }
 
@@ -277,7 +285,7 @@ public struct BottleSettings: Codable, Equatable {
     /// DXVK often provides better performance than Wine's built-in
     /// DirectX implementation, especially for DirectX 9/10/11 games.
     public var dxvk: Bool {
-        get { return dxvkConfig.dxvk }
+        get { dxvkConfig.dxvk }
         set { dxvkConfig.dxvk = newValue }
     }
 
@@ -286,7 +294,7 @@ public struct BottleSettings: Codable, Equatable {
     /// Reduces stuttering during gameplay by compiling shaders
     /// asynchronously, at the cost of potential visual glitches.
     public var dxvkAsync: Bool {
-        get { return dxvkConfig.dxvkAsync }
+        get { dxvkConfig.dxvkAsync }
         set { dxvkConfig.dxvkAsync = newValue }
     }
 
@@ -294,17 +302,18 @@ public struct BottleSettings: Codable, Equatable {
     ///
     /// Controls what information is shown in the DXVK overlay.
     public var dxvkHud: DXVKHUD {
-        get {  return dxvkConfig.dxvkHud }
+        get { dxvkConfig.dxvkHud }
         set { dxvkConfig.dxvkHud = newValue }
     }
 
     // MARK: - Performance settings
+
     /// The performance optimization preset.
     ///
     /// Presets configure multiple settings at once for different
     /// use cases like gaming, quality, or Unity games.
     public var performancePreset: PerformancePreset {
-        get { return performanceConfig.performancePreset }
+        get { performanceConfig.performancePreset }
         set { performanceConfig.performancePreset = newValue }
     }
 
@@ -313,7 +322,7 @@ public struct BottleSettings: Codable, Equatable {
     /// Shader caching reduces stuttering after the first run
     /// by storing compiled shaders on disk.
     public var shaderCacheEnabled: Bool {
-        get { return performanceConfig.shaderCacheEnabled }
+        get { performanceConfig.shaderCacheEnabled }
         set { performanceConfig.shaderCacheEnabled = newValue }
     }
 
@@ -322,7 +331,7 @@ public struct BottleSettings: Codable, Equatable {
     /// Some games have better compatibility with D3D11. Enable
     /// this if experiencing issues with graphics or crashes.
     public var forceD3D11: Bool {
-        get { return performanceConfig.forceD3D11 }
+        get { performanceConfig.forceD3D11 }
         set { performanceConfig.forceD3D11 = newValue }
     }
 
@@ -330,7 +339,7 @@ public struct BottleSettings: Codable, Equatable {
     ///
     /// Track this to avoid redundant installation prompts.
     public var vcRedistInstalled: Bool {
-        get { return performanceConfig.vcRedistInstalled }
+        get { performanceConfig.vcRedistInstalled }
         set { performanceConfig.vcRedistInstalled = newValue }
     }
 
@@ -458,7 +467,7 @@ public struct BottleSettings: Codable, Equatable {
 
         // macOS Sequoia compatibility mode (#1310, #1372)
         // Applies additional fixes for graphics and launcher issues on macOS 15.x
-        if sequoiaCompatMode && MacOSVersion.current.major >= 15 {
+        if sequoiaCompatMode, MacOSVersion.current.major >= 15 {
             // Disable problematic Metal shader validation on Sequoia
             // This helps fix graphics corruption issues (#1310)
             wineEnv.updateValue("0", forKey: "MTL_DEBUG_LAYER")
@@ -486,6 +495,7 @@ public struct BottleSettings: Codable, Equatable {
             wineEnv.updateValue("0", forKey: "D3DM_FEATURE_LEVEL_12_0")
         }
     }
+
     // swiftlint:enable cyclomatic_complexity function_body_length
 
     private func applyPerformancePreset(wineEnv: inout [String: String]) {

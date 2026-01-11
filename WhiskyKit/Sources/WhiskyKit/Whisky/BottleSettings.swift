@@ -346,12 +346,13 @@ public struct BottleSettings: Codable, Equatable {
     @discardableResult
     public static func decode(from metadataURL: URL) throws -> BottleSettings {
         guard FileManager.default.fileExists(atPath: metadataURL.path(percentEncoded: false)) else {
-            let decoder = PropertyListDecoder()
-            let settings = try decoder.decode(BottleSettings.self, from: Data(contentsOf: metadataURL))
+            // File doesn't exist - create default settings and save them
+            let settings = BottleSettings()
             try settings.encode(to: metadataURL)
             return settings
         }
 
+        // File exists - read and decode it
         let decoder = PropertyListDecoder()
         let data = try Data(contentsOf: metadataURL)
         var settings = try decoder.decode(BottleSettings.self, from: data)

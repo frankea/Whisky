@@ -120,6 +120,8 @@ struct WhiskyWineDownloadView: View {
         fractionProgress = 0
         completedBytes = 0
         totalBytes = 0
+        downloadSpeed = 0
+        startTime = nil
         downloadTask?.cancel()
         observation?.invalidate()
         observation = nil

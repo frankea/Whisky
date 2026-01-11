@@ -384,7 +384,7 @@ public struct BottleSettings: Codable, Equatable {
         try data.write(to: metadataUrl)
     }
 
-    // swiftlint:disable:next orphaned_doc_comment
+    // swiftlint:disable cyclomatic_complexity function_body_length
     /// Populates a Wine environment dictionary based on these settings.
     ///
     /// This method examines all configuration options and adds the appropriate
@@ -393,7 +393,6 @@ public struct BottleSettings: Codable, Equatable {
     ///
     /// - Parameter wineEnv: The environment dictionary to populate.
     ///   Existing values may be modified or removed based on settings.
-    // swiftlint:disable:next cyclomatic_complexity function_body_length
     public func environmentVariables(wineEnv: inout [String: String]) {
         if dxvk {
             wineEnv.updateValue("dxgi,d3d9,d3d10core,d3d11=n,b", forKey: "WINEDLLOVERRIDES")
@@ -486,6 +485,7 @@ public struct BottleSettings: Codable, Equatable {
             wineEnv.updateValue("0", forKey: "D3DM_FEATURE_LEVEL_12_0")
         }
     }
+    // swiftlint:enable cyclomatic_complexity function_body_length
 
     private func applyPerformancePreset(wineEnv: inout [String: String]) {
         switch performancePreset {

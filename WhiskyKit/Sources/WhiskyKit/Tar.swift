@@ -32,7 +32,7 @@ public enum TarError: LocalizedError {
         case .pathTraversal(let path):
             return "Archive contains unsafe path that escapes target directory: \(path)"
         case .unsafeSymlink(let path, let target):
-            return "Archive contains symlink '\(path)' with unsafe target '\(target)' that could escape target directory"
+            return "Archive contains symlink '\(path)' with unsafe target '\(target)'"
         case .commandFailed(let output):
             return "Tar command failed: \(output)"
         }

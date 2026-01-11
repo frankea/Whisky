@@ -54,6 +54,7 @@ extension Bottle {
     }
 
     @discardableResult
+    // swiftlint:disable:next function_body_length
     func getStartMenuPrograms() -> [Program] {
         let globalStartMenu = url
             .appending(path: "drive_c")

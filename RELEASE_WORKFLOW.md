@@ -56,14 +56,14 @@ Replace the placeholder in `Whisky/Info.plist`:
 
 1. **Create GitHub Release**
    ```bash
-   # Create a new release tag (e.g., v2.5.0-wine)
-   git tag v2.5.0-wine
-   git push origin v2.5.0-wine
+   # Create a new release tag (e.g., v2.5.0)
+   git tag v2.5.0
+   git push origin v2.5.0
    ```
 
 2. **Create Release on GitHub**
    - Go to https://github.com/frankea/Whisky/releases/new
-   - Select tag: `v2.5.0-wine`
+   - Select tag: `v2.5.0`
    - Title: `Wine Libraries v2.5.0`
    - Description: Include changelog or notes about Wine version
    - Upload `Libraries.tar.gz` as a release asset
@@ -86,7 +86,7 @@ Replace the placeholder in `Whisky/Info.plist`:
 4. **Verify Download URL**
    The download URL will be:
    ```
-   https://github.com/frankea/Whisky/releases/download/v2.5.0-wine/Libraries.tar.gz
+   https://github.com/frankea/Whisky/releases/download/v2.5.0/Libraries.tar.gz
    ```
    
    Note: The version in the URL must match the GitHub Release tag exactly.
@@ -153,7 +153,7 @@ Replace the placeholder in `Whisky/Info.plist`:
 ## Version Numbering
 
 - **Wine Libraries**: Use semantic versioning (e.g., `2.5.0`)
-  - Tag format: `v2.5.0-wine` (suffix helps distinguish from app releases)
+  - Tag format: `v2.5.0`
   - Release title: `Wine Libraries v2.5.0`
 
 - **Application**: Use semantic versioning (e.g., `1.0.0`)
@@ -164,7 +164,7 @@ Replace the placeholder in `Whisky/Info.plist`:
 
 ### Wine Libraries
 - Version check: `https://frankea.github.io/Whisky/WhiskyWineVersion.plist`
-- Download: `https://github.com/frankea/Whisky/releases/download/v{VERSION}-wine/Libraries.tar.gz`
+- Download: `https://github.com/frankea/Whisky/releases/download/v{VERSION}/Libraries.tar.gz`
 
 ### Application Updates
 - Appcast: `https://frankea.github.io/Whisky/appcast.xml`

@@ -34,8 +34,7 @@ public enum DistributionConfig {
     /// Constructs the download URL for Wine Libraries from GitHub Releases
     /// - Parameter version: The version string (e.g., "2.5.0")
     /// - Returns: The full URL to download Libraries.tar.gz from GitHub Releases
-    /// - Note: The URL includes the `-wine` suffix to match the release tag format (e.g., v2.5.0-wine)
     public static func librariesURL(version: String) -> String {
-        return "\(releasesBaseURL)/v\(version)-wine/Libraries.tar.gz"
+        return "\(releasesBaseURL)/v\(version)/Libraries.tar.gz"
     }
 }

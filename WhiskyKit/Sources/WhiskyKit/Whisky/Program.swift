@@ -47,6 +47,10 @@ import os.log
 /// }
 /// ```
 ///
+/// - Note: The argument splitting shown above is simplified and doesn't handle
+///   quoted arguments. The `arguments` string is expected to contain simple
+///   space-separated values like `-windowed -nosound`.
+///
 /// ## Pinning Programs
 ///
 /// Pin frequently-used programs for quick access:

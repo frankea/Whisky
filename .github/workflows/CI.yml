@@ -36,8 +36,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install SwiftFormat
         run: |
-          # Install SwiftFormat via apt (faster than building from source)
-          wget -q https://github.com/nicklockwood/SwiftFormat/releases/download/0.54.6/swiftformat_linux.zip
+          # Install SwiftFormat via pre-built binary
+          wget -q https://github.com/nicklockwood/SwiftFormat/releases/download/0.58.7/swiftformat_linux.zip
           unzip -q swiftformat_linux.zip
           chmod +x swiftformat_linux
           sudo mv swiftformat_linux /usr/local/bin/swiftformat

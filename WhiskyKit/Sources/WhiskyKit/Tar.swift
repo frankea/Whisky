@@ -22,6 +22,8 @@ import Foundation
 public enum TarError: LocalizedError {
     /// The archive contains paths that would escape the target directory.
     case pathTraversal(path: String)
+    /// The archive contains a symlink with an unsafe target.
+    case unsafeSymlink(path: String, target: String)
     /// The tar command failed with the given output.
     case commandFailed(output: String)
 
@@ -29,6 +31,8 @@ public enum TarError: LocalizedError {
         switch self {
         case .pathTraversal(let path):
             return "Archive contains unsafe path that escapes target directory: \(path)"
+        case .unsafeSymlink(let path, let target):
+            return "Archive contains symlink '\(path)' with unsafe target '\(target)' that could escape target directory"
         case .commandFailed(let output):
             return "Tar command failed: \(output)"
         }
@@ -97,17 +101,23 @@ public class Tar {
 
     /// Validates that all paths in a tarball are safe and won't escape the target directory.
     ///
+    /// This method also validates symlinks to prevent symlink-based path traversal attacks
+    /// where a malicious archive creates a symlink pointing outside the target directory,
+    /// then writes files through that symlink.
+    ///
     /// - Parameters:
     ///   - tarBall: The URL to the tarball file to validate.
     ///   - targetDirectory: The intended extraction directory.
-    /// - Throws: `TarError.pathTraversal` if any path would escape the target directory.
+    /// - Throws: `TarError.pathTraversal` if any path would escape the target directory,
+    ///   or `TarError.unsafeSymlink` if a symlink target would escape the target directory.
     private static func validateArchivePaths(tarBall: URL, targetDirectory: URL) throws {
         let process = Process()
         let pipe = Pipe()
 
         process.executableURL = tarBinary
-        // List archive contents without extracting
-        process.arguments = ["-tzf", "\(tarBall.path)"]
+        // Use verbose listing to see file types and symlink targets
+        // Format: "lrwxr-xr-x  0 user group    0 Jan 10 12:00 linkname -> target"
+        process.arguments = ["-tvzf", "\(tarBall.path)"]
         process.standardOutput = pipe
         process.standardError = pipe
 
@@ -120,15 +130,23 @@ public class Tar {
         }
 
         let targetPath = targetDirectory.standardizedFileURL.path
-        let paths = listing.components(separatedBy: .newlines).filter { !$0.isEmpty }
+        let lines = listing.components(separatedBy: .newlines).filter { !$0.isEmpty }
 
-        for archivePath in paths {
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            // Parse the archive entry - extract file path and check for symlinks
+            let (archivePath, symlinkTarget) = parseVerboseTarLine(trimmed)
+
+            guard !archivePath.isEmpty else { continue }
+
             // Check for absolute paths
             if archivePath.hasPrefix("/") {
                 throw TarError.pathTraversal(path: archivePath)
             }
 
-            // Check for path traversal sequences
+            // Check for path traversal sequences (fast rejection for obvious cases)
+            // Note: The resolved path check below is the authoritative security boundary
             if archivePath.contains("../") || archivePath.hasPrefix("..") {
                 throw TarError.pathTraversal(path: archivePath)
             }
@@ -140,6 +158,116 @@ public class Tar {
             if !resolvedPath.hasPrefix(targetPath) {
                 throw TarError.pathTraversal(path: archivePath)
             }
+
+            // Validate symlink targets to prevent symlink-based path traversal
+            if let target = symlinkTarget {
+                try validateSymlinkTarget(
+                    symlinkPath: archivePath,
+                    target: target,
+                    targetDirectory: targetDirectory
+                )
+            }
+        }
+    }
+
+    /// Parses a verbose tar listing line to extract the file path and symlink target (if any).
+    ///
+    /// Verbose tar output format:
+    /// - Regular file: "-rw-r--r--  0 user group  1234 Jan 10 12:00 path/to/file"
+    /// - Directory:    "drwxr-xr-x  0 user group     0 Jan 10 12:00 path/to/dir/"
+    /// - Symlink:      "lrwxr-xr-x  0 user group     0 Jan 10 12:00 linkname -> target"
+    ///
+    /// - Parameter line: A line from `tar -tvzf` output.
+    /// - Returns: A tuple of (archivePath, symlinkTarget) where symlinkTarget is nil for non-symlinks.
+    private static func parseVerboseTarLine(_ line: String) -> (path: String, symlinkTarget: String?) {
+        // Check if this is a symlink (line starts with 'l')
+        let isSymlink = line.hasPrefix("l")
+
+        if isSymlink, let arrowRange = line.range(of: " -> ") {
+            // Extract symlink path (before " -> ") and target (after " -> ")
+            let beforeArrow = String(line[..<arrowRange.lowerBound])
+            let target = String(line[arrowRange.upperBound...]).trimmingCharacters(in: .whitespaces)
+
+            // The path is the last whitespace-separated component before " -> "
+            // We need to find where the path starts after the metadata columns
+            if let path = extractPathFromTarLine(beforeArrow) {
+                return (path, target)
+            }
+            return ("", target)
+        } else {
+            // Regular file or directory - extract path from the line
+            if let path = extractPathFromTarLine(line) {
+                return (path, nil)
+            }
+            return ("", nil)
+        }
+    }
+
+    /// Extracts the file path from a tar verbose listing line.
+    ///
+    /// The format has variable-width columns, so we find the path by looking for
+    /// the timestamp pattern and taking everything after it.
+    ///
+    /// - Parameter line: A line or partial line from `tar -tvzf` output.
+    /// - Returns: The extracted file path, or nil if parsing fails.
+    private static func extractPathFromTarLine(_ line: String) -> String? {
+        // Tar verbose format: "perms links user group size month day time path"
+        // Example: "-rw-r--r--  0 user group  1234 Jan 10 12:00 path/to/file"
+        // We look for the time pattern (HH:MM or HH:MM:SS) followed by the path
+
+        // Pattern: month (3 chars) + space + day (1-2 digits) + space + time (HH:MM) + space + path
+        // swiftlint:disable:next line_length
+        let pattern = #"[A-Za-z]{3}\s+\d{1,2}\s+\d{1,2}:\d{2}(?::\d{2})?\s+(.+)$"#
+
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []),
+              let match = regex.firstMatch(
+                in: line,
+                options: [],
+                range: NSRange(line.startIndex..., in: line)
+              ),
+              let pathRange = Range(match.range(at: 1), in: line) else {
+            return nil
+        }
+
+        return String(line[pathRange]).trimmingCharacters(in: .whitespaces)
+    }
+
+    /// Validates that a symlink target is safe and won't allow escaping the target directory.
+    ///
+    /// This prevents symlink-based path traversal attacks where a malicious archive:
+    /// 1. Creates a symlink pointing to a directory outside the target (e.g., `/etc`)
+    /// 2. Extracts files "through" that symlink (e.g., `badlink/passwd` → `/etc/passwd`)
+    ///
+    /// - Parameters:
+    ///   - symlinkPath: The path of the symlink within the archive.
+    ///   - target: The symlink's target path.
+    ///   - targetDirectory: The extraction target directory.
+    /// - Throws: `TarError.unsafeSymlink` if the symlink target would escape the target directory.
+    private static func validateSymlinkTarget(
+        symlinkPath: String,
+        target: String,
+        targetDirectory: URL
+    ) throws {
+        // Reject absolute symlink targets - these always escape
+        if target.hasPrefix("/") {
+            throw TarError.unsafeSymlink(path: symlinkPath, target: target)
+        }
+
+        // For relative symlink targets, resolve from the symlink's parent directory
+        // E.g., if symlink is "foo/bar/link" with target "../../../etc",
+        // resolve from "foo/bar/" to check if it escapes
+
+        let symlinkURL = targetDirectory.appendingPathComponent(symlinkPath)
+        let symlinkParent = symlinkURL.deletingLastPathComponent()
+
+        // Resolve the target relative to the symlink's location
+        let resolvedTarget = symlinkParent.appendingPathComponent(target).standardizedFileURL
+        let resolvedPath = resolvedTarget.path
+        let targetPath = targetDirectory.standardizedFileURL.path
+
+        // Check if the resolved symlink target stays within the target directory
+        if !resolvedPath.hasPrefix(targetPath) {
+            throw TarError.unsafeSymlink(path: symlinkPath, target: target)
         }
     }
 }

@@ -216,7 +216,6 @@ public class Tar {
         // We look for the time pattern (HH:MM or HH:MM:SS) followed by the path
 
         // Pattern: month (3 chars) + space + day (1-2 digits) + space + time (HH:MM) + space + path
-        // swiftlint:disable:next line_length
         let pattern = #"[A-Za-z]{3}\s+\d{1,2}\s+\d{1,2}:\d{2}(?::\d{2})?\s+(.+)$"#
 
         guard let regex = try? NSRegularExpression(pattern: pattern, options: []),

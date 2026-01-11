@@ -63,8 +63,7 @@ public enum Locales: String, Codable, CaseIterable {
     /// For example, Japanese returns "日本語" rather than "Japanese".
     ///
     /// - Returns: The localized display name for this locale.
-    // swiftlint:disable:next cyclomatic_complexity
-    public func pretty() -> String {
+    public func pretty() -> String { // swiftlint:disable:this cyclomatic_complexity
         switch self {
         case .auto:
             return String(localized: "locale.auto")

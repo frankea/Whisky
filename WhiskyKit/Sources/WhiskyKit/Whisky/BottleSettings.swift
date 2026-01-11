@@ -392,8 +392,7 @@ public struct BottleSettings: Codable, Equatable {
     ///
     /// - Parameter wineEnv: The environment dictionary to populate.
     ///   Existing values may be modified or removed based on settings.
-    // swiftlint:disable:next cyclomatic_complexity function_body_length
-    public func environmentVariables(wineEnv: inout [String: String]) {
+    public func environmentVariables(wineEnv: inout [String: String]) { // swiftlint:disable:this cyclomatic_complexity function_body_length
         if dxvk {
             wineEnv.updateValue("dxgi,d3d9,d3d10core,d3d11=n,b", forKey: "WINEDLLOVERRIDES")
             switch dxvkHud {

@@ -28,10 +28,32 @@ jobs:
         with:
           args: --strict
 
-  # Matrix build for all schemes - runs in parallel after lint
+  # Format check job runs in parallel with lint
+  format:
+    name: SwiftFormat
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install SwiftFormat
+        run: |
+          # Install SwiftFormat via apt (faster than building from source)
+          wget -q https://github.com/nicklockwood/SwiftFormat/releases/download/0.54.6/swiftformat_linux.zip
+          unzip -q swiftformat_linux.zip
+          chmod +x swiftformat_linux
+          sudo mv swiftformat_linux /usr/local/bin/swiftformat
+      - name: Check Formatting
+        run: |
+          swiftformat --lint . || {
+            echo ""
+            echo "❌ Code formatting issues found!"
+            echo "Run 'swiftformat .' locally to fix formatting."
+            exit 1
+          }
+
+  # Matrix build for all schemes - runs in parallel after lint and format
   build:
     name: Build ${{ matrix.scheme }}
-    needs: lint
+    needs: [lint, format]
     runs-on: macos-14
     strategy:
       fail-fast: false
@@ -90,7 +112,7 @@ jobs:
   # Test job for WhiskyKit - only runs when WhiskyKit files change
   test:
     name: Run Tests
-    needs: [lint, changes]
+    needs: [lint, format, changes]
     if: needs.changes.outputs.whiskykit == 'true'
     runs-on: macos-14
     

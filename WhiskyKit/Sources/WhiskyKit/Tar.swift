@@ -232,12 +232,19 @@ public class Tar {
     /// - Parameter line: A line or partial line from `tar -tvzf` output.
     /// - Returns: The extracted file path, or nil if parsing fails.
     private static func extractPathFromTarLine(_ line: String) -> String? {
-        // Tar verbose format: "perms links user group size month day time path"
-        // Example: "-rw-r--r--  0 user group  1234 Jan 10 12:00 path/to/file"
-        // We look for the time pattern (HH:MM or HH:MM:SS) followed by the path
+        // Tar verbose format: "perms links user group size month day time/year path"
+        // macOS BSD tar uses two timestamp formats:
+        // - Recent files (< ~6 months): "Jan 10 12:00" (month day time)
+        // - Older files (> ~6 months):  "Dec  4  2015" (month day year)
+        //
+        // Examples:
+        // "-rw-r--r--  0 user group  1234 Jan 10 12:00 path/to/file"
+        // "-rw-r--r--  0 user group  1234 Dec  4  2015 path/to/old/file"
 
-        // Pattern: month (3 chars) + space + day (1-2 digits) + space + time (HH:MM) + space + path
-        let pattern = #"[A-Za-z]{3}\s+\d{1,2}\s+\d{1,2}:\d{2}(?::\d{2})?\s+(.+)$"#
+        // Pattern: month (3 chars) + space + day (1-2 digits) + space + (time OR year) + space + path
+        // Time format: HH:MM or HH:MM:SS (e.g., "12:00" or "12:00:00")
+        // Year format: YYYY (e.g., "2015")
+        let pattern = #"[A-Za-z]{3}\s+\d{1,2}\s+(?:\d{1,2}:\d{2}(?::\d{2})?|\d{4})\s+(.+)$"#
 
         guard let regex = try? NSRegularExpression(pattern: pattern, options: []),
               let match = regex.firstMatch(

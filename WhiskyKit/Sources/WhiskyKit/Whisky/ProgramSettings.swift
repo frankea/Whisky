@@ -29,7 +29,7 @@ import Foundation
 /// ```swift
 /// program.settings.locale = .japanese
 /// ```
-public enum Locales: String, Codable, CaseIterable {
+public enum Locales: String, Codable, CaseIterable, Sendable {
     /// Automatic locale detection (uses system default).
     case auto = ""
     /// German (Germany) locale.

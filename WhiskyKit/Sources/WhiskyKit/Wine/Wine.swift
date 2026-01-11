@@ -86,6 +86,21 @@ public class Wine {
     /// URL to the `wineserver` binary for Wine server management.
     private static let wineserverBinary: URL = WhiskyWineInstaller.binFolder.appending(path: "wineserver")
 
+    /// Regex pattern for valid shell environment variable names.
+    ///
+    /// Valid names must start with a letter or underscore, followed by
+    /// any combination of letters, digits, or underscores.
+    /// This prevents shell injection through malicious environment variable keys.
+    private static let validEnvKeyPattern = /^[A-Za-z_][A-Za-z0-9_]*$/
+
+    /// Checks if an environment variable key is a valid shell identifier.
+    ///
+    /// - Parameter key: The environment variable name to validate.
+    /// - Returns: `true` if the key is safe to use in shell commands.
+    private static func isValidEnvKey(_ key: String) -> Bool {
+        return key.wholeMatch(of: validEnvKeyPattern) != nil
+    }
+
     /// Run a process on a executable file given by the `executableURL`
     private static func runProcess(
         name: String? = nil, args: [String], environment: [String: String], executableURL: URL, directory: URL? = nil,
@@ -239,8 +254,8 @@ public class Wine {
         let escapedArgs = args.esc
         var wineCmd = "\(wineBinary.esc) start /unix \(url.esc) \(escapedArgs)"
         let wineEnv = constructWineEnvironment(for: bottle, environment: environment)
-        for envVar in wineEnv {
-            // Only escape values - keys are valid shell identifiers (alphanumeric + underscore)
+        for envVar in wineEnv where isValidEnvKey(envVar.key) {
+            // Keys are validated to be safe shell identifiers; values are escaped
             wineCmd = "\(envVar.key)=\"\(envVar.value.esc)\" " + wineCmd
         }
 
@@ -283,8 +298,8 @@ public class Wine {
         """
 
         let env = constructWineEnvironment(for: bottle)
-        for envVar in env {
-            // Only escape values - keys are valid shell identifiers (alphanumeric + underscore)
+        for envVar in env where isValidEnvKey(envVar.key) {
+            // Keys are validated to be safe shell identifiers; values are escaped
             cmd += "\nexport \(envVar.key)=\"\(envVar.value.esc)\""
         }
 

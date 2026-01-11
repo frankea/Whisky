@@ -215,7 +215,7 @@ struct WhiskyWineDownloadView: View {
                 return
             }
 
-            await startDownload(from: downloadURL)
+            startDownload(from: downloadURL)
         } catch {
             let errorMessage = error.localizedDescription
             downloadError = String(

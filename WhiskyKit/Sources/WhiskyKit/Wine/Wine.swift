@@ -86,19 +86,18 @@ public class Wine {
     /// URL to the `wineserver` binary for Wine server management.
     private static let wineserverBinary: URL = WhiskyWineInstaller.binFolder.appending(path: "wineserver")
 
-    /// Regex pattern for valid shell environment variable names.
+    /// Checks if an environment variable key is a valid shell identifier.
     ///
     /// Valid names must start with a letter or underscore, followed by
     /// any combination of letters, digits, or underscores.
     /// This prevents shell injection through malicious environment variable keys.
-    private static let validEnvKeyPattern = /^[A-Za-z_][A-Za-z0-9_]*$/
-
-    /// Checks if an environment variable key is a valid shell identifier.
     ///
     /// - Parameter key: The environment variable name to validate.
     /// - Returns: `true` if the key is safe to use in shell commands.
     private static func isValidEnvKey(_ key: String) -> Bool {
-        return key.wholeMatch(of: validEnvKeyPattern) != nil
+        guard let first = key.first else { return false }
+        guard first.isLetter || first == "_" else { return false }
+        return key.allSatisfy { $0.isLetter || $0.isNumber || $0 == "_" }
     }
 
     /// Run a process on a executable file given by the `executableURL`

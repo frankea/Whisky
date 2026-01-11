@@ -22,11 +22,12 @@ extension String {
     /// Escapes shell metacharacters and removes control characters for safe shell interpolation.
     ///
     /// This property returns a string safe for use in shell commands by:
-    /// 1. Removing control characters (newlines, tabs, etc.) that could cause command injection
+    /// 1. Removing control characters like newlines that could enable command injection through command chaining
     /// 2. Escaping shell metacharacters with backslashes
     ///
     /// - Important: Control characters are stripped rather than escaped because
-    ///   backslash-escaped newlines in shell are line continuations, not literal newlines.
+    ///   backslash-escaped newlines in shell are treated as line continuations, which can enable command chaining
+    ///   instead of representing literal newlines.
     public var esc: String {
         // First, remove control characters (newlines, tabs, carriage returns, etc.)
         // These could be used for command injection if present in filenames or arguments

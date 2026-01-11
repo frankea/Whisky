@@ -76,10 +76,8 @@ import os.log
 public final class Program: ObservableObject, Equatable, Hashable, Identifiable {
     /// The ``Bottle`` that contains this program.
     public let bottle: Bottle
-    
     /// The file system URL to the program's executable file.
     public let url: URL
-    
     /// The URL where this program's settings are stored.
     public let settingsURL: URL
 

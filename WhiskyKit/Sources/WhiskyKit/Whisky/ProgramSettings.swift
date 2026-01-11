@@ -116,14 +116,12 @@ public struct ProgramSettings: Codable {
     /// Setting a specific locale can help with character encoding
     /// and localized content in games.
     public var locale: Locales = .auto
-    
     /// Custom environment variables for this program.
     ///
     /// These variables are added to the Wine environment when the
     /// program is executed. They can be used to enable debugging,
     /// configure Wine behavior, or pass application-specific settings.
     public var environment: [String: String] = [:]
-    
     /// Command-line arguments to pass to the program.
     ///
     /// Arguments are appended after the executable path when the

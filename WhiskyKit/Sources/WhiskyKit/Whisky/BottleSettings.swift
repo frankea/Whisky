@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  BottleSettings.swift
 //  WhiskyKit
@@ -28,10 +29,8 @@ import os.log
 public struct PinnedProgram: Codable, Hashable, Equatable {
     /// The display name for the pinned program.
     public var name: String
-    
     /// The URL to the program's executable file.
     public var url: URL?
-    
     /// Whether the program is stored on a removable volume.
     ///
     /// When `true`, the pin remains valid even if the volume is disconnected.
@@ -68,10 +67,8 @@ public struct PinnedProgram: Codable, Hashable, Equatable {
 public struct BottleInfo: Codable, Equatable {
     /// The display name of the bottle.
     var name: String = "Bottle"
-    
     /// The list of pinned programs for quick access.
     var pins: [PinnedProgram] = []
-    
     /// URLs of programs that should be hidden from the program list.
     var blocklist: [URL] = []
 
@@ -144,22 +141,16 @@ public struct BottleInfo: Codable, Equatable {
 public struct BottleSettings: Codable, Equatable {
     /// The current file format version for settings serialization.
     static let defaultFileVersion = SemanticVersion(1, 0, 0)
-
     /// The version of the settings file format.
     var fileVersion: SemanticVersion = Self.defaultFileVersion
-    
     /// Basic bottle information (name, pins).
     private var info: BottleInfo
-    
     /// Wine-specific configuration.
     private var wineConfig: BottleWineConfig
-    
     /// Metal graphics settings.
     private var metalConfig: BottleMetalConfig
-    
     /// DXVK translation layer settings.
     private var dxvkConfig: BottleDXVKConfig
-    
     /// Performance optimization settings.
     private var performanceConfig: BottlePerformanceConfig
 
@@ -308,7 +299,6 @@ public struct BottleSettings: Codable, Equatable {
     }
 
     // MARK: - Performance settings
-    
     /// The performance optimization preset.
     ///
     /// Presets configure multiple settings at once for different

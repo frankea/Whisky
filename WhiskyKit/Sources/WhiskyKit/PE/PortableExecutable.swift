@@ -104,16 +104,13 @@ public enum Architecture: Hashable {
 public struct PEFile: Hashable, Equatable, Sendable {
     /// The URL to the PE file on disk.
     public let url: URL
-    
     /// The COFF file header containing machine type and section count.
     public let coffFileHeader: COFFFileHeader
-    
     /// The optional header containing the magic number and image base.
     ///
     /// This header is optional in COFF object files but always present
     /// in executable images.
     public let optionalHeader: OptionalHeader?
-    
     /// The section table containing headers for each section.
     public let sections: [Section]
 

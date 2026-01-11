@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  Wine.swift
 //  Whisky
@@ -77,13 +78,11 @@ import os.log
 public class Wine {
     /// URL to the installed DXVK folder containing DirectX-to-Vulkan translation libraries.
     private static let dxvkFolder: URL = WhiskyWineInstaller.libraryFolder.appending(path: "DXVK")
-    
     /// The URL to the `wine64` binary executable.
     ///
     /// This is the main Wine binary used to execute Windows applications.
     /// The binary is located within the WhiskyWine installation directory.
     public static let wineBinary: URL = WhiskyWineInstaller.binFolder.appending(path: "wine64")
-    
     /// URL to the `wineserver` binary for Wine server management.
     private static let wineserverBinary: URL = WhiskyWineInstaller.binFolder.appending(path: "wineserver")
 
@@ -481,7 +480,6 @@ enum WineInterfaceError: Error {
 }
 
 // MARK: - Logging Support
-
 extension Wine {
     /// The URL to the directory where Wine process logs are stored.
     ///

@@ -17,9 +17,15 @@
 //
 
 import Foundation
+import os.log
+
+private let envLogger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "WineEnvironment")
 
 extension Wine {
-    /// Construct an environment merging the bottle values with the given values
+    /// Construct an environment merging the bottle values with the given values.
+    ///
+    /// Invalid environment variable keys (those not matching `[A-Za-z_][A-Za-z0-9_]*`)
+    /// are filtered out with a debug log message, as macOS silently ignores them.
     @MainActor
     internal static func constructWineEnvironment(
         for bottle: Bottle, environment: [String: String] = [:]
@@ -36,11 +42,22 @@ extension Wine {
         bottle.settings.environmentVariables(wineEnv: &result)
 
         guard !environment.isEmpty else { return result }
-        result.merge(environment, uniquingKeysWith: { $1 })
+
+        // Filter and merge user-provided environment, logging invalid keys
+        for (key, value) in environment {
+            if isValidEnvKey(key) {
+                result[key] = value
+            } else {
+                envLogger.debug("Skipping invalid environment key '\(key)' in constructWineEnvironment")
+            }
+        }
         return result
     }
 
-    /// Construct an environment merging the bottle values with the given values
+    /// Construct an environment merging the bottle values with the given values.
+    ///
+    /// Invalid environment variable keys (those not matching `[A-Za-z_][A-Za-z0-9_]*`)
+    /// are filtered out with a debug log message, as macOS silently ignores them.
     @MainActor
     internal static func constructWineServerEnvironment(
         for bottle: Bottle, environment: [String: String] = [:]
@@ -55,7 +72,15 @@ extension Wine {
         applyMacOSCompatibilityFixes(to: &result)
 
         guard !environment.isEmpty else { return result }
-        result.merge(environment, uniquingKeysWith: { $1 })
+
+        // Filter and merge user-provided environment, logging invalid keys
+        for (key, value) in environment {
+            if isValidEnvKey(key) {
+                result[key] = value
+            } else {
+                envLogger.debug("Skipping invalid environment key '\(key)' in constructWineServerEnvironment")
+            }
+        }
         return result
     }
 }

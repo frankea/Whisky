@@ -57,13 +57,13 @@ public enum Locales: String, Codable, CaseIterable {
     /// Traditional Chinese (Taiwan) locale.
     case chineseTraditional = "zh_TW.UTF-8"
 
-    // swiftlint:disable:next cyclomatic_complexity
     /// Returns a human-readable display name for the locale.
     ///
     /// The display name is shown in the locale's native script when available.
     /// For example, Japanese returns "日本語" rather than "Japanese".
     ///
     /// - Returns: The localized display name for this locale.
+    // swiftlint:disable:next cyclomatic_complexity
     public func pretty() -> String {
         switch self {
         case .auto:

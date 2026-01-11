@@ -272,7 +272,7 @@ public struct BottleSettings: Codable, Equatable {
         set { metalConfig.sequoiaCompatMode = newValue }
     }
 
-    /// Whether DXVK is enabled for DirectX-to-Vulkan translation.
+    /// Whether DXVK is enabled for Direct3D-to-Vulkan translation.
     ///
     /// DXVK often provides better performance than Wine's built-in
     /// DirectX implementation, especially for DirectX 9/10/11 games.

@@ -61,7 +61,7 @@ The ``Wine`` class provides the interface to the Wine runtime:
 - **Process Management**: Start and monitor Wine processes
 - **Environment Setup**: Configure environment variables for DirectX, Metal, and performance
 - **Logging**: Capture output and errors from Wine processes
-- **DXVK Integration**: Install and enable DXVK for DirectX-to-Vulkan translation
+- **DXVK Integration**: Install and enable DXVK for Direct3D-to-Vulkan translation
 
 Key execution flow:
 

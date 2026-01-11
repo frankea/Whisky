@@ -76,7 +76,7 @@ import os.log
 /// - ``generateRunCommand(at:bottle:args:environment:)``
 /// - ``generateTerminalEnvironmentCommand(bottle:)``
 public class Wine {
-    /// URL to the installed DXVK folder containing DirectX-to-Vulkan translation libraries.
+    /// URL to the installed DXVK folder containing Direct3D-to-Vulkan translation libraries.
     private static let dxvkFolder: URL = WhiskyWineInstaller.libraryFolder.appending(path: "DXVK")
     /// The URL to the `wine64` binary executable.
     ///

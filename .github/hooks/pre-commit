@@ -1,0 +1,44 @@
+#!/bin/bash
+# SwiftFormat pre-commit hook for Whisky
+# Install: cp .github/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+
+set -e
+
+# Check if SwiftFormat is installed
+if ! command -v swiftformat &> /dev/null; then
+    echo "⚠️  SwiftFormat not installed. Install with: brew install swiftformat"
+    echo "   Skipping format check..."
+    exit 0
+fi
+
+# Get staged Swift files
+STAGED_SWIFT_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.swift$' || true)
+
+if [ -z "$STAGED_SWIFT_FILES" ]; then
+    # No Swift files staged, nothing to do
+    exit 0
+fi
+
+echo "🔍 Checking formatting of staged Swift files..."
+
+# Check if files are properly formatted
+UNFORMATTED_FILES=""
+for file in $STAGED_SWIFT_FILES; do
+    if [ -f "$file" ]; then
+        # Check if file would be changed by swiftformat
+        if ! swiftformat --lint "$file" &> /dev/null; then
+            UNFORMATTED_FILES="$UNFORMATTED_FILES\n  - $file"
+        fi
+    fi
+done
+
+if [ -n "$UNFORMATTED_FILES" ]; then
+    echo "❌ The following files need formatting:$UNFORMATTED_FILES"
+    echo ""
+    echo "Run 'swiftformat .' to fix formatting, then stage the changes."
+    echo "Or run 'swiftformat --lint .' to see what would change."
+    exit 1
+fi
+
+echo "✅ All staged Swift files are properly formatted."
+exit 0

@@ -1,0 +1,34 @@
+# SwiftFormat Configuration for Whisky
+# https://github.com/nicklockwood/SwiftFormat
+
+# Format options
+--indent 4
+--indentcase false
+--trimwhitespace always
+--voidtype void
+--stripunusedargs closure-only
+--maxwidth 120
+--wraparguments before-first
+--wrapparameters before-first
+--wrapcollections before-first
+--closingparen balanced
+--commas always
+--decimalgrouping 3
+--elseposition same-line
+--guardelse next-line
+--header ignore
+--ifdef no-indent
+--importgrouping alpha
+--linebreaks lf
+--self remove
+--semicolons never
+--swiftversion 5.9
+
+# Excluded paths
+--exclude .build,WhiskyKit/.build,**/*.generated.swift
+
+# Disabled rules
+# Keep file headers as-is (managed by SwiftLint)
+--disable fileHeader
+# Allow explicit self where it improves clarity
+--disable redundantSelf

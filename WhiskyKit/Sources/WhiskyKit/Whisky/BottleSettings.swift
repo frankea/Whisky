@@ -223,7 +223,7 @@ public struct BottleSettings: Codable, Equatable {
 
     /// The synchronization mode for Wine.
     ///
-    /// Enhanced sync modes (ESync/MSync) can improve performance
+    /// Enhanced sync modes (ESync/MSync) can improve performance for some applications
     /// by using more efficient synchronization primitives.
     public var enhancedSync: EnhancedSync {
         get { return wineConfig.enhancedSync }

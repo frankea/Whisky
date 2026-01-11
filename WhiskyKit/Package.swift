@@ -31,7 +31,8 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/SwiftPackageIndex/SemanticVersion.git", from: "0.4.0")
+        .package(url: "https://github.com/SwiftPackageIndex/SemanticVersion.git", from: "0.4.0"),
+        .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.3")
     ],
     targets: [
         .target(
@@ -43,5 +44,5 @@ let package = Package(
             dependencies: ["WhiskyKit"]
         )
     ],
-    swiftLanguageVersions: [.version("6")]
+    swiftLanguageModes: [.v6]
 )

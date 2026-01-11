@@ -19,17 +19,30 @@
 import Foundation
 import AppKit
 
+/// An error that occurred while parsing a PE file.
 public struct PEError: Error {
+    /// A human-readable description of the error.
     public let message: String
 
+    /// Error indicating the file is not a valid PE executable.
     static let invalidPEFile = PEError(message: "Invalid PE file")
 }
 
+/// The processor architecture of a Windows executable.
+///
+/// This enum represents the target architecture for a PE file,
+/// which determines whether it's a 32-bit or 64-bit executable.
 public enum Architecture: Hashable {
+    /// 32-bit x86 architecture (PE32).
     case x32
+    /// 64-bit x86-64 architecture (PE32+).
     case x64
+    /// Unknown or unsupported architecture.
     case unknown
 
+    /// Returns a human-readable string representation of the architecture.
+    ///
+    /// - Returns: "32-bit", "64-bit", or `nil` for unknown architectures.
     public func toString() -> String? {
         switch self {
         case .x32:
@@ -42,24 +55,79 @@ public enum Architecture: Hashable {
     }
 }
 
-/// Microsoft Portable Executable
+/// A parser for Microsoft Portable Executable (PE) files.
 ///
-/// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format
+/// `PEFile` reads and parses Windows executable files (.exe, .dll) to extract
+/// metadata, icons, and architecture information. This is used by Whisky to
+/// display program information and icons in the UI.
+///
+/// ## Overview
+///
+/// The PE format is the standard executable format for Windows. This struct
+/// parses the key headers and sections needed to:
+/// - Determine if a file is 32-bit or 64-bit
+/// - Extract embedded icons for display
+/// - Read the resource section for additional metadata
+///
+/// ## Example
+///
+/// ```swift
+/// let peFile = try PEFile(url: executableURL)
+/// print("Architecture: \(peFile.architecture.toString() ?? "unknown")")
+///
+/// if let icon = peFile.bestIcon() {
+///     // Use icon in UI
+/// }
+/// ```
+///
+/// ## Topics
+///
+/// ### File Information
+/// - ``url``
+/// - ``architecture``
+///
+/// ### PE Headers
+/// - ``coffFileHeader``
+/// - ``optionalHeader``
+/// - ``sections``
+///
+/// ### Resources
+/// - ``rsrc``
+/// - ``bestIcon()``
+///
+/// ## See Also
+/// - [PE Format Documentation](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format)
 public struct PEFile: Hashable, Equatable, Sendable {
-    /// URL to the file
+    /// The URL to the PE file on disk.
     public let url: URL
-    /// COFF File Header (Object and Image)
+    /// The COFF file header containing machine type and section count.
     public let coffFileHeader: COFFFileHeader
-    /// The Optional Header
+    /// The optional header containing the magic number and image base.
+    ///
+    /// This header is optional in COFF object files but always present
+    /// in executable images.
     public let optionalHeader: OptionalHeader?
-    /// The Section Table (Section Headers)
+    /// The section table containing headers for each section.
     public let sections: [Section]
 
+    /// Creates a PEFile from an optional URL.
+    ///
+    /// - Parameter url: The URL to the PE file, or `nil`.
+    /// - Returns: A parsed `PEFile`, or `nil` if the URL was `nil`.
+    /// - Throws: ``PEError`` if the file is not a valid PE executable.
     public init?(url: URL?) throws {
         guard let url else { return nil }
         try self.init(url: url)
     }
 
+    /// Creates a PEFile by parsing the executable at the given URL.
+    ///
+    /// This initializer reads and parses the PE headers from the file.
+    /// It validates the PE signature and extracts the COFF header,
+    /// optional header, and section table.
+    ///
+    /// - Parameter url: The URL to the PE file.
+    /// - Throws: ``PEError/invalidPEFile`` if the file is not a valid PE executable.
     public init(url: URL) throws {
         self.url = url
         let fileHandle = try FileHandle(forReadingFrom: url)

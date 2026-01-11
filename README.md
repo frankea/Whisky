@@ -6,6 +6,7 @@
   ![](https://img.shields.io/github/actions/workflow/status/frankea/Whisky/CI.yml?style=for-the-badge&label=CI)
   [![](https://img.shields.io/codecov/c/github/frankea/Whisky?style=for-the-badge&logo=codecov&label=Coverage)](https://codecov.io/gh/frankea/Whisky)
   [![](https://img.shields.io/github/issues/frankea/Whisky?style=for-the-badge)](https://github.com/frankea/Whisky/issues)
+  [![Documentation](https://img.shields.io/badge/Documentation-DocC-blue?style=for-the-badge)](https://frankea.github.io/Whisky/documentation/whiskykit/)
 </div>
 
 ## About This Fork
@@ -37,6 +38,14 @@ Translated on [Crowdin](https://crowdin.com/project/whisky).
 ## System Requirements
 - CPU: Apple Silicon (M-series chips)
 - OS: macOS Sonoma 14.0 or later
+
+## Documentation
+
+WhiskyKit, the core framework powering Whisky, has comprehensive API documentation:
+
+- **[WhiskyKit API Documentation](https://frankea.github.io/Whisky/documentation/whiskykit/)** - Full API reference with usage examples
+- **[Getting Started Guide](https://frankea.github.io/Whisky/documentation/whiskykit/gettingstarted)** - Learn how to integrate WhiskyKit
+- **[Architecture Overview](https://frankea.github.io/Whisky/documentation/whiskykit/architecture)** - Understand how WhiskyKit components work together
 
 ## Homebrew
 

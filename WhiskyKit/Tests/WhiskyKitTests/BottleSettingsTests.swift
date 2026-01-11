@@ -290,4 +290,51 @@ final class BottleSettingsTests: XCTestCase {
 
         XCTAssertNotEqual(settings1, settings3)
     }
+
+    // MARK: - Decode Tests
+
+    func testDecodeCreatesDefaultSettingsWhenFileDoesNotExist() throws {
+        // Create a temporary directory for the test
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let metadataURL = tempDir.appendingPathComponent("Metadata.plist")
+
+        // File should not exist initially
+        XCTAssertFalse(FileManager.default.fileExists(atPath: metadataURL.path))
+
+        // Decode should create default settings without throwing
+        let settings = try BottleSettings.decode(from: metadataURL)
+
+        // Should return default settings
+        XCTAssertEqual(settings.name, "Bottle")
+        XCTAssertEqual(settings.windowsVersion, .win10)
+
+        // File should now exist (was created)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: metadataURL.path))
+    }
+
+    func testDecodeLoadsExistingSettings() throws {
+        // Create a temporary directory for the test
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let metadataURL = tempDir.appendingPathComponent("Metadata.plist")
+
+        // Create and save custom settings
+        var customSettings = BottleSettings()
+        customSettings.name = "CustomBottle"
+        customSettings.metalHud = true
+        try customSettings.encode(to: metadataURL)
+
+        // Decode should load the existing settings
+        let loadedSettings = try BottleSettings.decode(from: metadataURL)
+
+        XCTAssertEqual(loadedSettings.name, "CustomBottle")
+        XCTAssertTrue(loadedSettings.metalHud)
+    }
 }

@@ -195,8 +195,24 @@ struct WhiskyWineDownloadView: View {
         currentDownloadTaskID = taskID
 
         downloadTask = URLSession(configuration: .ephemeral).downloadTask(with: url) { fileURL, response, error in
+            // URLSession deletes the temporary file immediately after completion handler returns.
+            // We must move it to a safe location synchronously before the async Task executes.
+            var permanentURL: URL?
+            if let tempURL = fileURL {
+                let destinationURL = FileManager.default.temporaryDirectory
+                    .appendingPathComponent(UUID().uuidString)
+                    .appendingPathExtension("tar.gz")
+                do {
+                    try FileManager.default.moveItem(at: tempURL, to: destinationURL)
+                    permanentURL = destinationURL
+                } catch {
+                    // If move fails, the file will be nil and handled as an error below
+                    permanentURL = nil
+                }
+            }
+
             Task { @MainActor in
-                handleDownloadCompletion(taskID: taskID, fileURL: fileURL, response: response, error: error)
+                handleDownloadCompletion(taskID: taskID, fileURL: permanentURL, response: response, error: error)
             }
         }
 

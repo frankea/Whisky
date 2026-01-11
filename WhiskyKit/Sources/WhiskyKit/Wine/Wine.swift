@@ -20,6 +20,8 @@
 import Foundation
 import os.log
 
+private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "Wine")
+
 /// The core interface for interacting with Wine on macOS.
 ///
 /// The `Wine` class provides static methods for executing Wine processes, running Windows programs,
@@ -269,9 +271,13 @@ public class Wine {
         let escapedArgs = args.esc
         var wineCmd = "\(wineBinary.esc) start /unix \(url.esc) \(escapedArgs)"
         let wineEnv = constructWineEnvironment(for: bottle, environment: environment)
-        for envVar in wineEnv where isValidEnvKey(envVar.key) {
-            // Keys are validated to be safe shell identifiers; values are escaped
-            wineCmd = "\(envVar.key)=\"\(envVar.value.esc)\" " + wineCmd
+        for envVar in wineEnv {
+            if isValidEnvKey(envVar.key) {
+                // Keys are validated to be safe shell identifiers; values are escaped
+                wineCmd = "\(envVar.key)=\"\(envVar.value.esc)\" " + wineCmd
+            } else {
+                logger.debug("Skipping invalid environment key '\(envVar.key)' in generateRunCommand")
+            }
         }
 
         return wineCmd
@@ -313,9 +319,13 @@ public class Wine {
         """
 
         let env = constructWineEnvironment(for: bottle)
-        for envVar in env where isValidEnvKey(envVar.key) {
-            // Keys are validated to be safe shell identifiers; values are escaped
-            cmd += "\nexport \(envVar.key)=\"\(envVar.value.esc)\""
+        for envVar in env {
+            if isValidEnvKey(envVar.key) {
+                // Keys are validated to be safe shell identifiers; values are escaped
+                cmd += "\nexport \(envVar.key)=\"\(envVar.value.esc)\""
+            } else {
+                logger.debug("Skipping invalid environment key '\(envVar.key)' in generateTerminalEnvironmentCommand")
+            }
         }
 
         return cmd

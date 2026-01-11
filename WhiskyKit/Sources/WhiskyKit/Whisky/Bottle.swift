@@ -20,25 +20,102 @@ import Foundation
 import SwiftUI
 import os.log
 
+/// Represents an isolated Wine environment for running Windows applications.
+///
+/// A bottle is a Wine prefix—a self-contained directory containing a Windows-like
+/// filesystem, registry, and configuration. Each bottle can have different Windows
+/// versions, installed programs, and settings without affecting other bottles.
+///
+/// ## Overview
+///
+/// Bottles are the primary organizational unit in Whisky. Users can create multiple
+/// bottles for different games or applications, each with its own configuration.
+///
+/// ## Creating a Bottle
+///
+/// ```swift
+/// let bottleURL = FileManager.default.urls(
+///     for: .applicationSupportDirectory,
+///     in: .userDomainMask
+/// )[0].appendingPathComponent("MyBottle")
+///
+/// let bottle = Bottle(bottleUrl: bottleURL)
+/// bottle.settings.name = "Gaming Bottle"
+/// bottle.settings.windowsVersion = .win10
+/// ```
+///
+/// ## Running Programs
+///
+/// Use ``Wine/runProgram(at:args:bottle:environment:)`` to execute programs within a bottle:
+///
+/// ```swift
+/// try await Wine.runProgram(at: programURL, bottle: bottle)
+/// ```
+///
+/// ## Thread Safety
+///
+/// `Bottle` is `@MainActor` isolated. For cross-thread access to the identifier,
+/// use the `nonisolated` ``id`` property.
+///
+/// ## Topics
+///
+/// ### Creating Bottles
+/// - ``init(bottleUrl:inFlight:isAvailable:)``
+///
+/// ### Configuration
+/// - ``settings``
+/// - ``saveBottleSettings()``
+///
+/// ### Programs
+/// - ``programs``
+/// - ``pinnedPrograms``
+///
+/// ### State
+/// - ``url``
+/// - ``inFlight``
+/// - ``isAvailable``
 @MainActor
 public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, @preconcurrency Comparable {
+    /// The file system URL to this bottle's directory.
     public let url: URL
+    
+    /// URL to the bottle's metadata plist file.
     private let metadataURL: URL
+    
+    /// The bottle's configuration settings.
+    ///
+    /// Changes to settings are automatically persisted to disk.
     @Published public var settings: BottleSettings {
         didSet { saveSettings() }
     }
+    
+    /// The list of discovered Windows programs in this bottle.
+    ///
+    /// Programs are typically populated by scanning the bottle's drive_c directory.
     @Published public var programs: [Program] = []
+    
+    /// Indicates whether the bottle is currently being created or modified.
     @Published public var inFlight: Bool = false
+    
+    /// Indicates whether the bottle's directory exists and is accessible.
     public var isAvailable: Bool = false
 
     // MARK: - Cross-actor access (nonisolated members on @MainActor Bottle)
 
-    /// Unique identifier usable from any thread
+    /// The unique identifier for this bottle.
+    ///
+    /// This property is `nonisolated` to allow access from any thread,
+    /// making it safe to use in collections and async contexts.
     nonisolated public var id: URL {
         url
     }
 
-    /// All pins with their associated programs
+    /// Returns all pinned programs with their associated ``Program`` objects.
+    ///
+    /// This computed property filters and maps the pins in settings to their
+    /// corresponding program objects, excluding pins for programs that no longer exist.
+    ///
+    /// - Returns: A tuple array containing the pin, program, and a unique identifier string.
     public var pinnedPrograms: [(pin: PinnedProgram, program: Program, // swiftlint:disable:this large_tuple
                                  id: String)] {
         return settings.pins.compactMap { pin in
@@ -48,6 +125,16 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
         }
     }
 
+    /// Creates a new bottle instance from a directory URL.
+    ///
+    /// This initializer loads existing settings from the metadata file if present,
+    /// or creates default settings if the file doesn't exist or is corrupted.
+    /// Invalid pins (referencing deleted programs) are automatically cleaned up.
+    ///
+    /// - Parameters:
+    ///   - bottleUrl: The URL to the bottle's root directory.
+    ///   - inFlight: Whether the bottle is currently being created. Defaults to `false`.
+    ///   - isAvailable: Whether the bottle directory is accessible. Defaults to `false`.
     public init(bottleUrl: URL, inFlight: Bool = false, isAvailable: Bool = false) {
         let metadataURL = bottleUrl.appending(path: "Metadata").appendingPathExtension("plist")
         self.url = bottleUrl
@@ -93,7 +180,11 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
         }
     }
 
-    /// Public method to save bottle settings (exposed for BottleVM)
+    /// Manually saves the bottle settings to disk.
+    ///
+    /// Settings are automatically saved when modified through the ``settings`` property.
+    /// Use this method when you need to ensure settings are persisted immediately,
+    /// such as before app termination.
     public func saveBottleSettings() {
         saveSettings()
     }
@@ -128,14 +219,22 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
     }
 }
 
+// MARK: - Program Sequence Extensions
+
 @MainActor
 public extension Sequence where Iterator.Element == Program {
-    /// Filter all pinned programs
+    /// Returns only the pinned programs from the sequence.
+    ///
+    /// Use this to filter a collection of programs to show favorites or
+    /// frequently-used applications.
     var pinned: [Program] {
         return self.filter({ $0.pinned })
     }
 
-    /// Filter all unpinned programs
+    /// Returns only the unpinned programs from the sequence.
+    ///
+    /// Use this alongside ``pinned`` to separate programs into categories
+    /// in the user interface.
     var unpinned: [Program] {
         return self.filter({ !$0.pinned })
     }

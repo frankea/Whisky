@@ -169,7 +169,15 @@ struct WhiskyWineDownloadView: View {
         }
 
         do {
-            let (data, _) = try await URLSession(configuration: .ephemeral).data(from: versionURL)
+            let (data, response) = try await URLSession(configuration: .ephemeral).data(from: versionURL)
+
+            // Check HTTP status code before attempting to decode
+            if let httpResponse = response as? HTTPURLResponse,
+               !(200...299).contains(httpResponse.statusCode) {
+                downloadError = formatHTTPError(statusCode: httpResponse.statusCode)
+                return
+            }
+
             let versionInfo = try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)
 
             let version = versionInfo.version
@@ -200,6 +208,7 @@ struct WhiskyWineDownloadView: View {
             // URLSession deletes the temporary file immediately after completion handler returns.
             // We must move it to a safe location synchronously before the async Task executes.
             var permanentURL: URL?
+            var moveError: Error?
             if let tempURL = fileURL {
                 let destinationURL = FileManager.default.temporaryDirectory
                     .appendingPathComponent(UUID().uuidString)
@@ -208,13 +217,16 @@ struct WhiskyWineDownloadView: View {
                     try FileManager.default.moveItem(at: tempURL, to: destinationURL)
                     permanentURL = destinationURL
                 } catch {
-                    // If move fails, the file will be nil and handled as an error below
+                    // Capture move error to provide better error messaging
+                    moveError = error
                     permanentURL = nil
                 }
             }
 
+            // Prioritize network error, then move error
+            let effectiveError = error ?? moveError
             Task { @MainActor in
-                handleDownloadCompletion(taskID: taskID, fileURL: permanentURL, response: response, error: error)
+                handleDownloadCompletion(taskID: taskID, fileURL: permanentURL, response: response, error: effectiveError)
             }
         }
 

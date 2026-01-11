@@ -216,6 +216,11 @@ public class Wine {
     /// This is the primary method for launching Windows applications. It handles DXVK setup
     /// if enabled in the bottle settings and executes the program using `wine start /unix`.
     ///
+    /// - Note: If DXVK is enabled in the bottle's settings (`bottle.settings.dxvk`),
+    ///   the DXVK libraries will be automatically installed into the bottle before
+    ///   execution. This ensures Direct3D games use Vulkan translation for better
+    ///   performance on macOS.
+    ///
     /// ## Example
     ///
     /// ```swift

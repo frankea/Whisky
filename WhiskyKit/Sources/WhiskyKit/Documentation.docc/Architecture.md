@@ -50,7 +50,9 @@ MyBottle/
 │   ├── windows/
 │   ├── Program Files/
 │   └── users/
-├── Program Settings/       # Per-program configurations
+├── Program Settings/       # Per-program plist files
+│   ├── game.exe.plist      # Settings for game.exe
+│   └── launcher.exe.plist  # Settings for launcher.exe
 └── ...                     # Wine registry and other files
 ```
 

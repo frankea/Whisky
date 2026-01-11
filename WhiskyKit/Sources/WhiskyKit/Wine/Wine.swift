@@ -86,18 +86,34 @@ public class Wine {
     /// URL to the `wineserver` binary for Wine server management.
     private static let wineserverBinary: URL = WhiskyWineInstaller.binFolder.appending(path: "wineserver")
 
-    /// Checks if an environment variable key is a valid shell identifier.
+    /// Checks if an environment variable key is a valid POSIX shell identifier.
     ///
-    /// Valid names must start with a letter or underscore, followed by
-    /// any combination of letters, digits, or underscores.
+    /// Valid names must start with an ASCII letter or underscore, followed by
+    /// any combination of ASCII letters, digits, or underscores.
     /// This prevents shell injection through malicious environment variable keys.
+    ///
+    /// - Note: Uses explicit ASCII checks rather than Swift's Unicode-aware
+    ///   `isLetter`/`isNumber` methods, since POSIX shells only accept ASCII
+    ///   identifiers (`[A-Za-z_][A-Za-z0-9_]*`).
     ///
     /// - Parameter key: The environment variable name to validate.
     /// - Returns: `true` if the key is safe to use in shell commands.
     private static func isValidEnvKey(_ key: String) -> Bool {
         guard let first = key.first else { return false }
-        guard first.isLetter || first == "_" else { return false }
-        return key.allSatisfy { $0.isLetter || $0.isNumber || $0 == "_" }
+        guard isAsciiLetter(first) || first == "_" else { return false }
+        return key.allSatisfy { isAsciiLetter($0) || isAsciiDigit($0) || $0 == "_" }
+    }
+
+    /// Checks if a character is an ASCII letter (A-Z, a-z).
+    private static func isAsciiLetter(_ char: Character) -> Bool {
+        guard let ascii = char.asciiValue else { return false }
+        return (ascii >= 65 && ascii <= 90) || (ascii >= 97 && ascii <= 122) // A-Z or a-z
+    }
+
+    /// Checks if a character is an ASCII digit (0-9).
+    private static func isAsciiDigit(_ char: Character) -> Bool {
+        guard let ascii = char.asciiValue else { return false }
+        return ascii >= 48 && ascii <= 57 // 0-9
     }
 
     /// Run a process on a executable file given by the `executableURL`

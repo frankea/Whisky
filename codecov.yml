@@ -1,0 +1,60 @@
+# Codecov Configuration for Whisky
+# https://docs.codecov.io/docs/codecovyml-reference
+
+# Coverage settings
+coverage:
+  # Overall project coverage thresholds
+  status:
+    project:
+      default:
+        # Target coverage percentage (start low, increase over time)
+        target: 50%
+        # Allow coverage to drop by this much without failing
+        threshold: 5%
+        # Only measure coverage for changed files
+        if_ci_failed: error
+    # Per-patch (diff) coverage requirements
+    patch:
+      default:
+        # Require new code to have at least 60% coverage
+        target: 60%
+        threshold: 10%
+
+  # Precision of coverage percentage (2 decimal places)
+  precision: 2
+  round: down
+  range: "40...100"
+
+# Comment configuration for pull requests
+comment:
+  layout: "header, diff, flags, components"
+  behavior: default
+  require_changes: true
+  require_base: false
+  require_head: true
+
+# Flag management
+flags:
+  whiskykit:
+    paths:
+      - WhiskyKit/Sources/
+    carryforward: true
+
+# Ignore paths from coverage calculation
+ignore:
+  - "WhiskyKit/Tests/**/*"
+  - "**/*.generated.swift"
+  - "**/Preview Content/**"
+
+# Component definitions for better reporting
+component_management:
+  default_rules:
+    statuses:
+      - type: project
+        target: auto
+        threshold: 5%
+  individual_components:
+    - component_id: whiskykit
+      name: WhiskyKit
+      paths:
+        - WhiskyKit/Sources/**

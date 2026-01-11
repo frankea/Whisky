@@ -9,6 +9,42 @@ The Whisky fork uses the following infrastructure for distribution:
 - **GitHub Pages** (`gh-pages` branch): Hosts version metadata and Sparkle appcast
 - **GitHub Releases**: Hosts binary assets (Wine Libraries and application builds)
 
+## One-Time Setup: Sparkle EdDSA Keys
+
+Before publishing any application releases, you must generate a new Sparkle EdDSA key pair. This is required because this fork cannot use the original Whisky project's signing keys.
+
+### Generate Keys
+
+1. **Using Sparkle's built-in tool** (if Sparkle is installed via SPM):
+   ```bash
+   # Navigate to the Sparkle package in DerivedData or use swift package plugin
+   ./generate_keys
+   ```
+
+2. **Using the Sparkle framework** (if downloaded separately):
+   ```bash
+   ./Sparkle.framework/Versions/B/Resources/generate_keys
+   ```
+
+3. **Output**: The tool will generate:
+   - **Private key**: Store securely (e.g., in a password manager or secure file). You'll need this to sign every release.
+   - **Public key**: A base64-encoded string to put in `Info.plist`
+
+### Update Info.plist
+
+Replace the placeholder in `Whisky/Info.plist`:
+
+```xml
+<key>SUPublicEDKey</key>
+<string>YOUR_GENERATED_PUBLIC_KEY_HERE</string>
+```
+
+### Store Private Key Securely
+
+- **Never commit the private key** to version control
+- Store it in a secure location (password manager, encrypted file, etc.)
+- You'll need the private key path when running `generate_appcast` for releases
+
 ## Wine Libraries Release Process
 
 ### Prerequisites

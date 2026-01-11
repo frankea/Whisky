@@ -53,6 +53,7 @@ public enum Locales: String, Codable, CaseIterable {
     /// - Note: The enum case name `ukranian` is intentionally misspelled
     ///   for backward compatibility with existing settings files. The raw
     ///   value `"uk_UA.UTF-8"` is correct and is the intended locale identifier.
+    ///   Use ``ukrainian`` for the correctly-spelled version.
     case ukranian = "uk_UA.UTF-8"
     /// Thai (Thailand) locale.
     case thai = "th_TH.UTF-8"
@@ -60,6 +61,13 @@ public enum Locales: String, Codable, CaseIterable {
     case chineseSimplified = "zh_CN.UTF-8"
     /// Traditional Chinese (Taiwan) locale.
     case chineseTraditional = "zh_TW.UTF-8"
+
+    /// Ukrainian (Ukraine) locale with correct spelling.
+    ///
+    /// This is an alias for ``ukranian`` (misspelled) which is kept for
+    /// backward compatibility with existing settings files. New code should
+    /// prefer this correctly-spelled version.
+    public static let ukrainian: Locales = .ukranian
 
     /// Returns a human-readable display name for the locale.
     ///

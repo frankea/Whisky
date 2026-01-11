@@ -50,8 +50,9 @@ public enum Locales: String, Codable, CaseIterable {
     case russian = "ru_RU.UTF-8"
     /// Ukrainian (Ukraine) locale.
     ///
-    /// - Note: The case name `ukranian` is a misspelling of "ukrainian"
-    ///   and is kept for backwards compatibility with existing settings files.
+    /// - Note: The enum case name `ukranian` is intentionally misspelled
+    ///   for backward compatibility with existing settings files. The raw
+    ///   value `"uk_UA.UTF-8"` is correct and is the intended locale identifier.
     case ukranian = "uk_UA.UTF-8"
     /// Thai (Thailand) locale.
     case thai = "th_TH.UTF-8"

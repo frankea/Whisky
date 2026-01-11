@@ -49,7 +49,6 @@ public struct BottlePerformanceConfig: Codable, Equatable {
 
     public init() {}
 
-    // swiftlint:disable line_length
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.performancePreset = try container
@@ -61,5 +60,4 @@ public struct BottlePerformanceConfig: Codable, Equatable {
             .decodeIfPresent(Bool.self, forKey: .disableShaderOptimizations) ?? false
         self.vcRedistInstalled = try container.decodeIfPresent(Bool.self, forKey: .vcRedistInstalled) ?? false
     }
-    // swiftlint:enable line_length
 }

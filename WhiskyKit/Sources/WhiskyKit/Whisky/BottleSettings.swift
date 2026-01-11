@@ -163,7 +163,6 @@ public struct BottleSettings: Codable, Equatable {
         self.performanceConfig = BottlePerformanceConfig()
     }
 
-    // swiftlint:disable line_length
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.fileVersion = try container.decodeIfPresent(SemanticVersion.self, forKey: .fileVersion) ?? Self
@@ -180,8 +179,6 @@ public struct BottleSettings: Codable, Equatable {
             forKey: .performanceConfig
         ) ?? BottlePerformanceConfig()
     }
-
-    // swiftlint:enable line_length
 
     /// The display name of this bottle.
     public var name: String {

@@ -204,8 +204,8 @@ final class DistributionConfigTests: XCTestCase {
             "version": [
                 "major": 2,
                 "minor": 5,
-                "patch": 0,
-            ],
+                "patch": 0
+            ]
         ]
 
         let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
@@ -234,7 +234,7 @@ final class DistributionConfigTests: XCTestCase {
             VersionTestCase(major: 2, minor: 5, patch: 0, expectedTag: "v2.5.0"),
             VersionTestCase(major: 10, minor: 20, patch: 30, expectedTag: "v10.20.30"),
             VersionTestCase(major: 0, minor: 1, patch: 0, expectedTag: "v0.1.0"),
-            VersionTestCase(major: 99, minor: 99, patch: 99, expectedTag: "v99.99.99"),
+            VersionTestCase(major: 99, minor: 99, patch: 99, expectedTag: "v99.99.99")
         ]
 
         for testCase in testCases {
@@ -243,8 +243,8 @@ final class DistributionConfigTests: XCTestCase {
                 "version": [
                     "major": testCase.major,
                     "minor": testCase.minor,
-                    "patch": testCase.patch,
-                ],
+                    "patch": testCase.patch
+                ]
             ]
 
             let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
@@ -321,7 +321,7 @@ final class DistributionConfigTests: XCTestCase {
             HTTPErrorTestCase(statusCode: 503, expectedBehavior: "serverError"),
             HTTPErrorTestCase(statusCode: 400, expectedBehavior: "httpError"),
             HTTPErrorTestCase(statusCode: 401, expectedBehavior: "httpError"),
-            HTTPErrorTestCase(statusCode: 418, expectedBehavior: "httpError"),
+            HTTPErrorTestCase(statusCode: 418, expectedBehavior: "httpError")
         ]
 
         for testCase in errorCases {

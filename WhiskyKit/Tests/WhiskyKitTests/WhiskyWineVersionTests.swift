@@ -25,7 +25,7 @@ import XCTest
 final class WhiskyWineVersionDecodingTests: XCTestCase {
     func testDecodeValidPlist() throws {
         let plist: [String: Any] = [
-            "version": ["major": 2, "minor": 5, "patch": 0],
+            "version": ["major": 2, "minor": 5, "patch": 0]
         ]
 
         let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
@@ -43,7 +43,7 @@ final class WhiskyWineVersionDecodingTests: XCTestCase {
             VersionComponents(major: 2, minor: 5, patch: 0),
             VersionComponents(major: 10, minor: 20, patch: 30),
             VersionComponents(major: 0, minor: 0, patch: 1),
-            VersionComponents(major: 99, minor: 99, patch: 99),
+            VersionComponents(major: 99, minor: 99, patch: 99)
         ]
 
         for testCase in testCases {
@@ -51,8 +51,8 @@ final class WhiskyWineVersionDecodingTests: XCTestCase {
                 "version": [
                     "major": testCase.major,
                     "minor": testCase.minor,
-                    "patch": testCase.patch,
-                ],
+                    "patch": testCase.patch
+                ]
             ]
 
             let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
@@ -98,7 +98,7 @@ final class WhiskyWineVersionEncodingTests: XCTestCase {
             SemanticVersion(2, 5, 0),
             SemanticVersion(10, 20, 30),
             SemanticVersion(0, 0, 1),
-            SemanticVersion(99, 99, 99),
+            SemanticVersion(99, 99, 99)
         ]
 
         for version in testCases {
@@ -149,7 +149,7 @@ final class WhiskyWineVersionRoundTripTests: XCTestCase {
             SemanticVersion(1, 0, 0),
             SemanticVersion(2, 5, 0),
             SemanticVersion(10, 20, 30),
-            SemanticVersion(0, 0, 1),
+            SemanticVersion(0, 0, 1)
         ]
 
         for version in testVersions {

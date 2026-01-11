@@ -33,9 +33,9 @@ struct Whisky: ParsableCommand {
             Delete.self,
             Remove.self,
             Run.self,
-            Shellenv.self,
+            Shellenv.self
             /* Install.self,
-                Uninstall.self */
+             Uninstall.self */
         ]
     )
 }
@@ -54,7 +54,7 @@ extension Whisky {
                 table.addRow(values: [
                     bottle.settings.name,
                     bottle.settings.windowsVersion.pretty(),
-                    bottle.url.prettyPath(),
+                    bottle.url.prettyPath()
                 ])
             }
 

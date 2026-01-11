@@ -65,7 +65,7 @@ public extension String {
             "?",
             "#",
             "~",
-            "=",
+            "="
         ]
         for char in metacharacters {
             str = str.replacingOccurrences(of: char, with: "\\" + char)

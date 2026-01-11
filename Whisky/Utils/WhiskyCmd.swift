@@ -24,12 +24,10 @@ class WhiskyCmd {
         let whiskyCmdURL = Bundle.main.url(forResource: "WhiskyCmd", withExtension: nil)
 
         if let whiskyCmdURL {
-            // swiftlint:disable line_length
             let script = """
             do shell script "ln -fs \(whiskyCmdURL
                 .path(percentEncoded: false)) /usr/local/bin/whisky" with administrator privileges
             """
-            // swiftlint:enable line_length
 
             var error: NSDictionary?
             // Use AppleScript because somehow in 2023 Apple doesn't have good privileged file ops APIs

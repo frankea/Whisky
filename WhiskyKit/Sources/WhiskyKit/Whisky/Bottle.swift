@@ -112,9 +112,9 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
     /// corresponding program objects, excluding pins for programs that no longer exist.
     ///
     /// - Returns: A tuple array containing the pin, program, and a unique identifier string.
-    public var pinnedPrograms: [(
+    public var pinnedPrograms: [( // swiftlint:disable:this large_tuple
         pin: PinnedProgram,
-        program: Program, // swiftlint:disable:this large_tuple
+        program: Program,
         id: String
     )] {
         settings.pins.compactMap { pin in

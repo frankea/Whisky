@@ -12,7 +12,7 @@
 --wrapparameters before-first
 --wrapcollections before-first
 --closingparen balanced
---commas always
+--commas inline
 --decimalgrouping 3
 --elseposition same-line
 --guardelse next-line
@@ -32,3 +32,7 @@
 --disable fileHeader
 # Allow explicit self where it improves clarity
 --disable redundantSelf
+# Don't add trailing commas (conflicts with SwiftLint trailing_comma rule)
+--disable trailingCommas
+# Don't wrap opening braces to new line (conflicts with SwiftLint opening_brace rule)
+--disable wrapMultilineStatementBraces

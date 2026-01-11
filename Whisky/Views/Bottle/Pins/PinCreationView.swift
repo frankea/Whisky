@@ -45,7 +45,7 @@ struct PinCreationView: View {
                     panel.allowedContentTypes = [
                         UTType.exe,
                         UTType(exportedAs: "com.microsoft.msi-installer"),
-                        UTType(exportedAs: "com.microsoft.bat"),
+                        UTType(exportedAs: "com.microsoft.bat")
                     ]
                     panel.directoryURL = newPinURL ?? bottle.url.appending(path: "drive_c")
                     panel.canChooseDirectories = false
@@ -83,8 +83,7 @@ struct PinCreationView: View {
 
                 // Only reset newPinName if the textbox hasn't been modified
                 if newPinName.isEmpty ||
-                    newPinName == oldValue?.deletingPathExtension().lastPathComponent
-                {
+                    newPinName == oldValue?.deletingPathExtension().lastPathComponent {
                     newPinName = newValue.deletingPathExtension().lastPathComponent
                 }
 

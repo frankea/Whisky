@@ -33,7 +33,7 @@ extension Wine {
         var result: [String: String] = [
             "WINEPREFIX": bottle.url.path,
             "WINEDEBUG": "fixme-all",
-            "GST_DEBUG": "1",
+            "GST_DEBUG": "1"
         ]
 
         // Apply macOS 15.x compatibility fixes
@@ -65,7 +65,7 @@ extension Wine {
         var result: [String: String] = [
             "WINEPREFIX": bottle.url.path,
             "WINEDEBUG": "fixme-all",
-            "GST_DEBUG": "1",
+            "GST_DEBUG": "1"
         ]
 
         // Apply macOS 15.x compatibility fixes

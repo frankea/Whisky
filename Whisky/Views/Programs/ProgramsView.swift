@@ -134,7 +134,7 @@ struct ProgramsView: View {
         }
         sortedPrograms = [
             programs.pinned.sorted { $0.name < $1.name },
-            programs.unpinned.sorted { $0.name < $1.name },
+            programs.unpinned.sorted { $0.name < $1.name }
         ].flatMap { $0 }
     }
 }
@@ -165,8 +165,7 @@ struct ProgramItemView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             if showButtons {
                 if let peFile = program.peFile,
-                   let archString = peFile.architecture.toString()
-                {
+                   let archString = peFile.architecture.toString() {
                     Text(archString)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 5)

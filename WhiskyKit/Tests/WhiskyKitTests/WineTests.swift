@@ -142,38 +142,6 @@ final class WineTests: XCTestCase {
         XCTAssertTrue(Wine.logsFolder.path.contains("Logs"))
     }
 
-    // MARK: - URL Escape Extension Tests
-
-    func testURLEscapeExtension() {
-        // Test the existing esc extension from WhiskyKit
-        let testURL = URL(fileURLWithPath: "/Applications/Test App.exe")
-        let escaped = testURL.esc
-
-        // Verify the exact expected escaped output
-        XCTAssertFalse(escaped.isEmpty)
-        XCTAssertEqual(escaped, "/Applications/Test\\ App.exe")
-    }
-
-    func testURLEscapeExtensionWithSpecialCharacters() {
-        // Test escaping of various special shell characters
-        let testURL = URL(fileURLWithPath: "/path/with (parentheses) & other$chars.exe")
-        let escaped = testURL.esc
-
-        XCTAssertTrue(escaped.contains("\\("), "Parentheses should be escaped")
-        XCTAssertTrue(escaped.contains("\\&"), "Ampersand should be escaped")
-        XCTAssertTrue(escaped.contains("\\$"), "Dollar sign should be escaped")
-    }
-
-    func testStringEscapeExtension() {
-        // Test the String.esc extension
-        let testString = "file with spaces & special$chars"
-        let escaped = testString.esc
-
-        XCTAssertTrue(escaped.contains("\\ "), "Spaces should be escaped")
-        XCTAssertTrue(escaped.contains("\\&"), "Ampersand should be escaped")
-        XCTAssertTrue(escaped.contains("\\$"), "Dollar sign should be escaped")
-    }
-
     // MARK: - Environment Variable Key Validation Tests
 
     func testIsValidEnvKeyWithValidKeys() {

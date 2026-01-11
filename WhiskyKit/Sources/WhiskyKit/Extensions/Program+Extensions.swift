@@ -29,21 +29,6 @@ public extension Program {
         }
     }
 
-    internal func runInWine() {
-        let arguments = settings.arguments.split { $0.isWhitespace }.map(String.init)
-        let environment = generateEnvironment()
-
-        Task {
-            do {
-                try await Wine.runProgram(
-                    at: self.url, args: arguments, bottle: self.bottle, environment: environment
-                )
-            } catch {
-                self.showRunError(message: error.localizedDescription)
-            }
-        }
-    }
-
     func generateTerminalCommand() -> String {
         Wine.generateRunCommand(
             at: self.url, bottle: bottle, args: settings.arguments, environment: generateEnvironment()
@@ -89,5 +74,22 @@ public extension Program {
         alert.alertStyle = .critical
         alert.addButton(withTitle: String(localized: "button.ok"))
         alert.runModal()
+    }
+}
+
+extension Program {
+    func runInWine() {
+        let arguments = settings.arguments.split { $0.isWhitespace }.map(String.init)
+        let environment = generateEnvironment()
+
+        Task {
+            do {
+                try await Wine.runProgram(
+                    at: self.url, args: arguments, bottle: self.bottle, environment: environment
+                )
+            } catch {
+                self.showRunError(message: error.localizedDescription)
+            }
+        }
     }
 }

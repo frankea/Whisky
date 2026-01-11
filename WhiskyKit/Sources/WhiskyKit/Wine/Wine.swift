@@ -100,20 +100,20 @@ public class Wine {
     ///
     /// - Parameter key: The environment variable name to validate.
     /// - Returns: `true` if the key is safe to use in shell commands.
-    private static func isValidEnvKey(_ key: String) -> Bool {
+    internal static func isValidEnvKey(_ key: String) -> Bool {
         guard let first = key.first else { return false }
         guard isAsciiLetter(first) || first == "_" else { return false }
         return key.allSatisfy { isAsciiLetter($0) || isAsciiDigit($0) || $0 == "_" }
     }
 
     /// Checks if a character is an ASCII letter (A-Z, a-z).
-    private static func isAsciiLetter(_ char: Character) -> Bool {
+    internal static func isAsciiLetter(_ char: Character) -> Bool {
         guard let ascii = char.asciiValue else { return false }
         return (ascii >= 65 && ascii <= 90) || (ascii >= 97 && ascii <= 122) // A-Z or a-z
     }
 
     /// Checks if a character is an ASCII digit (0-9).
-    private static func isAsciiDigit(_ char: Character) -> Bool {
+    internal static func isAsciiDigit(_ char: Character) -> Bool {
         guard let ascii = char.asciiValue else { return false }
         return ascii >= 48 && ascii <= 57 // 0-9
     }

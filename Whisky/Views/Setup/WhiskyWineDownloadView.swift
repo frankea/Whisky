@@ -19,6 +19,32 @@
 import SwiftUI
 import WhiskyKit
 import SemanticVersion
+import os
+
+private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "WhiskyWineDownloadView")
+
+private func formatHTTPError(statusCode: Int) -> String {
+    let statusMessage: String
+    switch statusCode {
+    case 404:
+        statusMessage = String(localized: "setup.whiskywine.error.fileNotFound")
+    case 403:
+        statusMessage = String(localized: "setup.whiskywine.error.accessDenied")
+    case 429:
+        statusMessage = String(localized: "setup.whiskywine.error.rateLimit")
+    case 500...599:
+        statusMessage = String(localized: "setup.whiskywine.error.serverError")
+    default:
+        statusMessage = String(
+            format: String(localized: "setup.whiskywine.error.httpError"),
+            statusCode
+        )
+    }
+    return String(
+        format: String(localized: "setup.whiskywine.error.downloadFailed"),
+        statusMessage
+    )
+}
 
 struct WhiskyWineDownloadView: View {
     @State private var fractionProgress: Double = 0
@@ -217,7 +243,9 @@ struct WhiskyWineDownloadView: View {
                     try FileManager.default.moveItem(at: tempURL, to: destinationURL)
                     permanentURL = destinationURL
                 } catch {
-                    // Capture move error to provide better error messaging
+                    // Log and capture move error to provide better error messaging
+                    let errorDesc = error.localizedDescription
+                    logger.error("Failed to move file: \(errorDesc)")
                     moveError = error
                     permanentURL = nil
                 }
@@ -226,7 +254,12 @@ struct WhiskyWineDownloadView: View {
             // Prioritize network error, then move error
             let effectiveError = error ?? moveError
             Task { @MainActor in
-                handleDownloadCompletion(taskID: taskID, fileURL: permanentURL, response: response, error: effectiveError)
+                handleDownloadCompletion(
+                    taskID: taskID,
+                    fileURL: permanentURL,
+                    response: response,
+                    error: effectiveError
+                )
             }
         }
 

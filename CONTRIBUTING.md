@@ -16,6 +16,35 @@ SwiftLint does not fully check indentation, but we ask that you indent with 4-wi
 
 All added strings must be properly localised and added to the EN strings file. Do not add keys for other languages or translate within your PR. All translations should be handled on [Crowdin](https://crowdin.com/project/whisky).
 
+# Changelog
+
+We maintain a [CHANGELOG.md](CHANGELOG.md) following the [Keep a Changelog](https://keepachangelog.com/) format. When making changes, please update the changelog under the `[Unreleased]` section:
+
+1. Open `CHANGELOG.md`
+2. Add your changes under the appropriate category in the `[Unreleased]` section:
+   - **Added** - New features
+   - **Changed** - Changes in existing functionality
+   - **Deprecated** - Soon-to-be removed features
+   - **Removed** - Now removed features
+   - **Fixed** - Bug fixes
+   - **Security** - Vulnerability fixes
+   - **Documentation** - Documentation-only changes
+3. Use clear, concise descriptions of what changed
+
+Example entry:
+```markdown
+## [Unreleased]
+
+### Fixed
+- Fixed Steam crashes on macOS 15.4.1 (#123)
+```
+
+Note: Not every PR needs a changelog entry. Skip the changelog for:
+- Documentation fixes (typos, clarifications)
+- CI/build configuration changes
+- Test-only changes
+- Refactoring with no user-facing impact
+
 # Making your PR
 
 Please provide a detailed description of your changes in your PR. If your commits contain UI changes, we ask that you provide screenshots.

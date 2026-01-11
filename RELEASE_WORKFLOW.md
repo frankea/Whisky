@@ -54,22 +54,39 @@ Replace the placeholder in `Whisky/Info.plist`:
 
 ### Steps
 
-1. **Create GitHub Release**
+1. **Update CHANGELOG.md**
+   ```bash
+   # Move items from [Unreleased] to new version section
+   # Add release date in format YYYY-MM-DD
+   ```
+   
+   Example:
+   ```markdown
+   ## [2.5.0] - 2026-01-10
+   
+   ### Added
+   - New Wine libraries with GPTK support
+   
+   ### Fixed
+   - Compatibility issues with macOS Sequoia
+   ```
+
+2. **Create GitHub Release**
    ```bash
    # Create a new release tag (e.g., v2.5.0)
    git tag v2.5.0
    git push origin v2.5.0
    ```
 
-2. **Create Release on GitHub**
+3. **Create Release on GitHub**
    - Go to https://github.com/frankea/Whisky/releases/new
    - Select tag: `v2.5.0`
    - Title: `Wine Libraries v2.5.0`
-   - Description: Include changelog or notes about Wine version
+   - Description: Copy release notes from CHANGELOG.md
    - Upload `Libraries.tar.gz` as a release asset
    - Publish release
 
-3. **Update Version Plist on gh-pages**
+4. **Update Version Plist on gh-pages**
    ```bash
    git checkout gh-pages
    # Edit WhiskyWineVersion.plist to match the new version
@@ -83,7 +100,7 @@ Replace the placeholder in `Whisky/Info.plist`:
    git checkout main
    ```
 
-4. **Verify Download URL**
+5. **Verify Download URL**
    The download URL will be:
    ```
    https://github.com/frankea/Whisky/releases/download/v2.5.0/Libraries.tar.gz
@@ -102,7 +119,27 @@ Replace the placeholder in `Whisky/Info.plist`:
 
 ### Steps
 
-1. **Generate Sparkle Signature**
+1. **Update CHANGELOG.md**
+   ```bash
+   # Move items from [Unreleased] to new version section
+   # Add release date in format YYYY-MM-DD
+   # Update comparison links at bottom of file
+   ```
+   
+   Example:
+   ```markdown
+   ## [1.0.0] - 2026-02-01
+   
+   ### Added
+   - Initial release of Whisky application
+   - Bottle management for Wine prefixes
+   - Winetricks integration
+   
+   ### Fixed
+   - Memory leak in bottle creation
+   ```
+
+2. **Generate Sparkle Signature**
    ```bash
    # Using Sparkle's generate_appcast tool
    # NOTE: ~/.ssh/sparkle_eddsa_key.pem is an example path. Replace it with the actual path
@@ -111,21 +148,21 @@ Replace the placeholder in `Whisky/Info.plist`:
    generate_appcast --ed-key-file ~/.ssh/sparkle_eddsa_key.pem path/to/releases/
    ```
 
-2. **Create GitHub Release**
+3. **Create GitHub Release**
    ```bash
    git tag v1.0.0
    git push origin v1.0.0
    ```
 
-3. **Create Release on GitHub**
+4. **Create Release on GitHub**
    - Go to https://github.com/frankea/Whisky/releases/new
    - Select tag: `v1.0.0`
    - Title: `Whisky v1.0.0`
-   - Description: Include release notes
+   - Description: Copy release notes from CHANGELOG.md
    - Upload `Whisky.app.zip` as a release asset
    - Publish release
 
-4. **Update appcast.xml on gh-pages**
+5. **Update appcast.xml on gh-pages**
    ```bash
    git checkout gh-pages
    # Edit appcast.xml to add new item:
@@ -174,6 +211,7 @@ Replace the placeholder in `Whisky/Info.plist`:
 
 Before publishing a release:
 
+- [ ] CHANGELOG.md updated with release notes
 - [ ] Version plist/appcast updated on gh-pages
 - [ ] Release created on GitHub with correct tag
 - [ ] Assets uploaded to release

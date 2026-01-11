@@ -324,27 +324,4 @@ struct WhiskyWineDownloadView: View {
             fractionProgress = Double(completedBytes) / Double(totalBytes)
         }
     }
-
-    private func formatHTTPError(statusCode: Int) -> String {
-        let statusMessage: String
-        switch statusCode {
-        case 404:
-            statusMessage = String(localized: "setup.whiskywine.error.fileNotFound")
-        case 403:
-            statusMessage = String(localized: "setup.whiskywine.error.accessDenied")
-        case 429:
-            statusMessage = String(localized: "setup.whiskywine.error.rateLimit")
-        case 500...599:
-            statusMessage = String(localized: "setup.whiskywine.error.serverError")
-        default:
-            statusMessage = String(
-                format: String(localized: "setup.whiskywine.error.httpError"),
-                statusCode
-            )
-        }
-        return String(
-            format: String(localized: "setup.whiskywine.error.downloadFailed"),
-            statusMessage
-        )
-    }
 }

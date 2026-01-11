@@ -124,9 +124,13 @@ public class Tar {
         try process.run()
         process.waitUntilExit()
 
-        guard let output = try pipe.fileHandleForReading.readToEnd(),
-              let listing = String(data: output, encoding: .utf8) else {
-            return
+        let output = try pipe.fileHandleForReading.readToEnd() ?? Data()
+        let listing = String(data: output, encoding: .utf8) ?? ""
+
+        // Ensure the tar listing command succeeded - if it fails, we cannot
+        // safely validate the archive contents and must abort extraction
+        if process.terminationStatus != 0 {
+            throw TarError.commandFailed(output: listing)
         }
 
         let targetPath = targetDirectory.standardizedFileURL.path
@@ -155,7 +159,13 @@ public class Tar {
             let resolvedURL = targetDirectory.appendingPathComponent(archivePath).standardizedFileURL
             let resolvedPath = resolvedURL.path
 
-            if !resolvedPath.hasPrefix(targetPath) {
+            // Ensure that the target directory path ends with a separator so that we
+            // only treat true subpaths as inside the directory (and not siblings like
+            // "/foo/bar-malicious" when targetPath is "/foo/bar").
+            let normalizedTargetPrefix = targetPath.hasSuffix("/") ? targetPath : targetPath + "/"
+
+            // The resolved path must either be exactly the directory itself or a proper subpath
+            if resolvedPath != targetPath && !resolvedPath.hasPrefix(normalizedTargetPrefix) {
                 throw TarError.pathTraversal(path: archivePath)
             }
 
@@ -177,6 +187,11 @@ public class Tar {
     /// - Directory:    "drwxr-xr-x  0 user group     0 Jan 10 12:00 path/to/dir/"
     /// - Symlink:      "lrwxr-xr-x  0 user group     0 Jan 10 12:00 linkname -> target"
     ///
+    /// - Note: If parsing fails (e.g., due to locale differences or unexpected formats),
+    ///   this method returns a synthetic path containing `../` that will trigger path traversal
+    ///   detection. This ensures archives with unparseable entries are rejected rather than
+    ///   having those entries silently skipped, which could allow malicious paths through.
+    ///
     /// - Parameter line: A line from `tar -tvzf` output.
     /// - Returns: A tuple of (archivePath, symlinkTarget) where symlinkTarget is nil for non-symlinks.
     private static func parseVerboseTarLine(_ line: String) -> (path: String, symlinkTarget: String?) {
@@ -193,13 +208,19 @@ public class Tar {
             if let path = extractPathFromTarLine(beforeArrow) {
                 return (path, target)
             }
-            return ("", target)
+            // If we cannot parse the path from this line, treat it as an unsafe entry.
+            // Returning a synthetic path that will be detected as a traversal attempt
+            // ensures the archive is rejected rather than silently skipping validation.
+            return ("../__TAR_PARSE_ERROR__", target)
         } else {
             // Regular file or directory - extract path from the line
             if let path = extractPathFromTarLine(line) {
                 return (path, nil)
             }
-            return ("", nil)
+            // If we cannot parse the path from this line, treat it as an unsafe entry.
+            // Returning a synthetic path that will be detected as a traversal attempt
+            // ensures the archive is rejected rather than silently skipping validation.
+            return ("../__TAR_PARSE_ERROR__", nil)
         }
     }
 
@@ -264,8 +285,14 @@ public class Tar {
         let resolvedPath = resolvedTarget.path
         let targetPath = targetDirectory.standardizedFileURL.path
 
-        // Check if the resolved symlink target stays within the target directory
-        if !resolvedPath.hasPrefix(targetPath) {
+        // Ensure that the target directory path ends with a separator so that we
+        // only treat true subpaths as inside the directory (and not siblings like
+        // "/foo/bar-malicious" when targetPath is "/foo/bar").
+        let normalizedTargetPrefix = targetPath.hasSuffix("/") ? targetPath : targetPath + "/"
+
+        // Check if the resolved symlink target stays within the target directory:
+        // it must either be exactly the directory itself or a proper subpath.
+        if resolvedPath != targetPath && !resolvedPath.hasPrefix(normalizedTargetPrefix) {
             throw TarError.unsafeSymlink(path: symlinkPath, target: target)
         }
     }

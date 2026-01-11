@@ -37,7 +37,7 @@ comment:
 flags:
   whiskykit:
     paths:
-      - WhiskyKit/Sources/
+      - WhiskyKit/Sources/**
     carryforward: true
 
 # Ignore paths from coverage calculation

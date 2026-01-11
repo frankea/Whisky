@@ -54,9 +54,9 @@
 		</dict>
 	</array>
 	<key>SUFeedURL</key>
-	<string>https://data.getwhisky.app/appcast.xml</string>
+	<string>https://frankea.github.io/Whisky/appcast.xml</string>
 	<key>SUPublicEDKey</key>
-	<string>tnZFAvPUfCpM7Tr7Sx5gKRm6BUQQ6htJQeOMP44evms=</string>
+	<string>REPLACE_WITH_YOUR_SPARKLE_EDDSA_PUBLIC_KEY</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>

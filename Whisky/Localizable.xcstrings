@@ -18109,6 +18109,106 @@
         }
       }
     },
+    "setup.whiskywine.error.invalidVersionURL" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid version URL"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.invalidDownloadURL" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid download URL"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.fileNotFound" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File not found"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.accessDenied" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Access denied"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.rateLimit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rate limit exceeded. Please try again later."
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.serverError" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server error. Please try again later."
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.httpError" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HTTP error %d"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.downloadFailed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download failed: %@"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.noFileReceived" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download failed: no file received"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.fetchVersionFailed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to fetch version: %@"
+          }
+        }
+      }
+    },
     "showAlertOnFirstLaunch.button.dontMove" : {
       "localizations" : {
         "ar" : {

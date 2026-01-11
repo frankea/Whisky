@@ -42,7 +42,7 @@ flags:
 
 # Ignore paths from coverage calculation
 ignore:
-  - "WhiskyKit/Tests/**/*"
+  - "WhiskyKit/Tests/**"
   - "**/*.generated.swift"
   - "**/Preview Content/**"
 

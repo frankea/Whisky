@@ -10,7 +10,7 @@ WhiskyKit provides a high-level API for managing Wine bottles—isolated Windows
 
 Before using WhiskyKit, ensure that:
 
-1. Your app runs on macOS 14.0 or later
+1. Your app runs on macOS 15.0 or later
 2. WhiskyWine is installed via ``WhiskyWineInstaller``
 3. Rosetta 2 is installed (for Apple Silicon Macs)
 

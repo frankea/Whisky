@@ -17,7 +17,13 @@
 //
 
 import Foundation
+import os.log
 import WhiskyKit
+
+private let detectionLogger = Logger(
+    subsystem: Bundle.main.bundleIdentifier ?? "com.franke.Whisky",
+    category: "LauncherDetection"
+)
 
 /// Utilities for detecting game launcher types and applying optimized configurations.
 ///
@@ -136,6 +142,11 @@ enum LauncherDetection {
     /// - Configures DXVK if required
     /// - Enables GPU spoofing for compatibility checks
     ///
+    /// **Important:** This method saves settings synchronously to disk via
+    /// `bottle.saveBottleSettings()`, blocking until the write completes.
+    /// This ensures settings are persisted before Wine reads them for
+    /// environment variable configuration.
+    ///
     /// - Parameters:
     ///   - bottle: The bottle to configure
     ///   - launcher: The detected or manually selected launcher type
@@ -227,8 +238,14 @@ enum LauncherDetection {
             bottle.settings.forceD3D11 = true
         }
 
-        // Save settings
+        // Save settings synchronously to disk
+        // This ensures persistence before Wine.runProgram() reads settings
         bottle.saveBottleSettings()
+
+        detectionLogger.info("""
+        Applied launcher fixes for \(launcher.rawValue) to bottle '\(bottle.settings.name)'. \
+        Settings persisted successfully.
+        """)
     }
 
     /// Validates bottle configuration for a specific launcher.

@@ -179,11 +179,15 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
         }
     }
 
-    /// Manually saves the bottle settings to disk.
+    /// Manually saves the bottle settings to disk synchronously.
     ///
     /// Settings are automatically saved when modified through the ``settings`` property.
     /// Use this method when you need to ensure settings are persisted immediately,
-    /// such as before app termination.
+    /// such as before app termination or before launching programs that depend on
+    /// current settings (e.g., launcher compatibility fixes).
+    ///
+    /// - Note: This method completes synchronously and blocks until the file write
+    ///   finishes or fails. Any save errors are logged but not thrown.
     public func saveBottleSettings() {
         saveSettings()
     }

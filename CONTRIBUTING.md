@@ -18,9 +18,17 @@ Generally, it is not advised to disable a SwiftLint rule, but there are certain 
 
 We use [SwiftFormat](https://github.com/nicklockwood/SwiftFormat) to maintain consistent code formatting across the project. This is enforced in CI alongside SwiftLint.
 
+**Required Version: 0.58.7**
+
+Using a different version may produce different formatting results. CI uses this exact version.
+
 ### Installation
 
 ```bash
+# Install specific version (recommended)
+brew install swiftformat@0.58.7
+
+# Or install latest (may differ from CI)
 brew install swiftformat
 ```
 

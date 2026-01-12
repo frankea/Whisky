@@ -13,7 +13,7 @@ coverage:
         threshold: 5%
         # Set coverage status to error if CI build fails
         if_ci_failed: error
-        # Only check files that have been uploaded
+        # Only post coverage status on pull requests, not on commits to default branch
         only_pulls: true
     # Per-patch (diff) coverage requirements
     patch:

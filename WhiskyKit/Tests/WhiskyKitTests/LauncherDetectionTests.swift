@@ -240,9 +240,22 @@ final class LauncherDetectionTests: XCTestCase {
     }
 
     func testDetectParadoxFromDirectory() throws {
-        let url = URL(fileURLWithPath: "C:/Paradox/Launcher.exe")
+        let url = URL(fileURLWithPath: "C:/Paradox Launcher/Launcher.exe")
         let detected = LauncherType.detectFromPath(url)
-        XCTAssertEqual(detected, .paradox, "Should detect Paradox from directory and filename combo")
+        XCTAssertEqual(detected, .paradox, "Should detect Paradox from 'Paradox Launcher' directory")
+    }
+
+    func testDetectParadoxFromParadoxInteractive() throws {
+        let url = URL(fileURLWithPath: "C:/Program Files/Paradox Interactive/Launcher/Launcher.exe")
+        let detected = LauncherType.detectFromPath(url)
+        XCTAssertEqual(detected, .paradox, "Should detect Paradox from 'Paradox Interactive' directory")
+    }
+
+    func testGenericParadoxGameNotDetectedAsLauncher() throws {
+        // Paradox game folder (not the launcher)
+        let url = URL(fileURLWithPath: "C:/Games/Paradox Interactive/Europa Universalis/game.exe")
+        let detected = LauncherType.detectFromPath(url)
+        XCTAssertNil(detected, "Game in Paradox folder should not match Paradox Launcher")
     }
 
     // MARK: - False Positive Prevention Tests
@@ -476,9 +489,12 @@ extension LauncherType {
         }
 
         // Paradox Launcher detection
-        if filename.contains("paradox") ||
-            path.contains("/paradox") ||
-            (filename.contains("launcher") && path.contains("paradox")) {
+        // Be specific to avoid false positives
+        if filename.contains("paradox launcher") ||
+            filename.contains("paradoxlauncher") ||
+            path.contains("paradox launcher") ||
+            ((filename == "launcher.exe" || filename == "launcher") &&
+                path.contains("paradox interactive")) {
             return .paradox
         }
 

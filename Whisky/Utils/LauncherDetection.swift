@@ -165,10 +165,13 @@ enum LauncherDetection {
         }
 
         // Paradox Launcher detection
-        // Paradox Launcher.exe
-        if filename.contains("paradox") ||
-            path.contains("/paradox") ||
-            (filename.contains("launcher") && path.contains("paradox")) {
+        // Paradox Launcher.exe - Be specific to avoid false positives
+        // Common path: C:/Users/User/AppData/Local/Programs/Paradox Launcher/
+        if filename.contains("paradox launcher") ||
+            filename.contains("paradoxlauncher") ||
+            path.contains("paradox launcher") ||
+            ((filename == "launcher.exe" || filename == "launcher") &&
+                path.contains("paradox interactive")) {
             return .paradox
         }
 

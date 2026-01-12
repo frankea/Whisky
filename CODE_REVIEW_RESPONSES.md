@@ -336,9 +336,107 @@ The actual detection flow is:
 
 ---
 
+### 6. Silent Error Handling in Export Function ✅ **RESOLVED**
+
+**Feedback:**
+> The error handling in the exportReport function (line 283) silently ignores write failures with an empty catch block. Users should be notified if the export fails. Consider showing an alert dialog or at least logging the error.
+
+**Resolution:**
+- **Commit:** `6d68bc9b` - "fix: Add proper error handling for diagnostics report export"
+- **Files Updated:** 1 file (LauncherConfigSection.swift)
+- **Changes:** Added comprehensive error handling with user alerts
+
+**What Was Wrong:**
+
+```swift
+// Before (silent failure):
+do {
+    try report.write(to: url, atomically: true, encoding: .utf8)
+} catch {
+    // Handle error silently or show alert  ← Empty catch block!
+}
+```
+
+**Problems:**
+- ❌ Users not notified of export failures
+- ❌ No logging for debugging
+- ❌ Poor user experience
+- ❌ Errors swallowed silently
+
+**Solution Applied:**
+
+```swift
+// After (comprehensive error handling):
+do {
+    try report.write(to: url, atomically: true, encoding: .utf8)
+    
+    // Log success
+    launcherConfigLogger.info("Diagnostics report exported successfully to: \(url.path)")
+    
+    // Show success alert with file path
+    let successAlert = NSAlert()
+    successAlert.alertStyle = .informational
+    successAlert.messageText = "Export Successful"
+    successAlert.informativeText = "Diagnostics report saved to:\n\(url.path)"
+    successAlert.runModal()
+} catch {
+    // Log error for debugging
+    launcherConfigLogger.error("Failed to export diagnostics report: \(error.localizedDescription)")
+    
+    // Show error alert with details
+    let alert = NSAlert()
+    alert.alertStyle = .warning
+    alert.messageText = "Failed to Export Diagnostics Report"
+    alert.informativeText = """
+        An error occurred while saving the diagnostics report:
+        
+        \(error.localizedDescription)
+        
+        Please try again or choose a different location.
+        """
+    alert.addButton(withTitle: "OK")
+    alert.runModal()
+}
+```
+
+**Improvements:**
+
+1. **Success Feedback**
+   - Logs successful export with file path
+   - Shows informational alert confirming save
+   - Displays full file path so user can locate it
+
+2. **Error Feedback**
+   - Logs error with detailed description
+   - Shows warning alert with error message
+   - Provides actionable guidance ("try again or choose different location")
+   - Professional error presentation
+
+3. **Logging Added**
+   - Success: Info-level log with path
+   - Failure: Error-level log with exception details
+   - Helps developers debug file system issues
+
+**Benefits:**
+- ✅ Users immediately know if export succeeded/failed
+- ✅ Error messages are actionable (not just "failed")
+- ✅ Success confirmation shows where file was saved
+- ✅ Logs help developers troubleshoot issues
+- ✅ Professional UX (alerts match macOS HIG)
+
+**User Experience:**
+- **Before:** Silent failure (user clicks "Export", nothing happens)
+- **After:** Clear feedback (success shows path, failure shows reason)
+
+**Alert Styles (macOS HIG Compliant):**
+- Success: `.informational` (blue icon, positive message)
+- Error: `.warning` (yellow triangle, error message)
+
+---
+
 ## Summary of All Changes
 
-### Commits Applied (14 total)
+### Commits Applied (16 total)
 
 1. **88016fbe** - `feat: Implement comprehensive launcher compatibility system`
    - Initial implementation (2,151 lines)
@@ -380,6 +478,12 @@ The actual detection flow is:
 13. **44617111** - `refactor: Remove non-functional launcher detection code from Wine.runProgram` ⬅️ Review #4
     - Removed confusing dead code from WhiskyKit
 
+14. **d427845a** - `docs: Update code review responses with dead code removal`
+    - Documented fourth review round
+
+15. **6d68bc9b** - `fix: Add proper error handling for diagnostics report export` ⬅️ Review #5
+    - Added comprehensive error handling with user alerts
+
 ---
 
 ## Final Quality Status
@@ -395,6 +499,7 @@ The actual detection flow is:
 | **Code Review #2** | ✅ | Race condition eliminated |
 | **Code Review #3** | ✅ | Code duplication eliminated |
 | **Code Review #4** | ✅ | Dead code removed from Wine.runProgram |
+| **Code Review #5** | ✅ | Silent error handling fixed |
 | **Documentation** | ✅ | Comprehensive & accurate |
 | **Git Hygiene** | ✅ | Clean commit history |
 
@@ -407,7 +512,8 @@ The actual detection flow is:
 - **Review #2** (Race Condition): ~10 minutes to resolve
 - **Review #3** (Code Duplication): ~5 minutes to resolve
 - **Review #4** (Dead Code in Wine.swift): ~3 minutes to resolve
-- **Total:** All issues addressed in ~26 minutes
+- **Review #5** (Silent Error Handling): ~4 minutes to resolve
+- **Total:** All issues addressed in ~30 minutes
 
 ---
 

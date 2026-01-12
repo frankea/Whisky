@@ -89,6 +89,11 @@ struct BottleView: View {
                                 if result == .OK {
                                     if let url = panel.urls.first {
                                         do {
+                                            // Auto-detect launcher and apply fixes if compatibility mode enabled
+                                            // This completes synchronously on MainActor, ensuring settings are
+                                            // persisted before Wine.runProgram() reads them
+                                            LauncherDetection.detectAndApplyLauncherFixes(from: url, for: bottle)
+
                                             if url.pathExtension == "bat" {
                                                 try await Wine.runBatchFile(url: url, bottle: bottle)
                                             } else {

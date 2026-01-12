@@ -79,6 +79,13 @@ struct FileOpenView: View {
         if let bottle = bottles.first(where: { $0.url == selection }) {
             Task.detached(priority: .userInitiated) {
                 do {
+                    // Auto-detect launcher and apply fixes if compatibility mode enabled
+                    // This completes synchronously on MainActor, ensuring settings are
+                    // persisted before Wine.runProgram() reads them
+                    await MainActor.run {
+                        LauncherDetection.detectAndApplyLauncherFixes(from: fileURL, for: bottle)
+                    }
+
                     if fileURL.pathExtension == "bat" {
                         try await Wine.runBatchFile(
                             url: fileURL,

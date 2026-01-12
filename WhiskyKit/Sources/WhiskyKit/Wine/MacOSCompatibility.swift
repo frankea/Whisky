@@ -56,16 +56,48 @@ extension Wine {
     // MARK: - macOS Compatibility
 
     /// Apply environment variable fixes for macOS 15.x (Sequoia) compatibility
-    /// These fixes address issues #1372, #1310, #1307
+    /// These fixes address upstream issues whisky-app/whisky#1372, #1310, #1307
+    /// and frankea/Whisky#41 (launcher compatibility tracking issue)
     static func applyMacOSCompatibilityFixes(to environment: inout [String: String]) {
         let currentVersion = MacOSVersion.current
 
         // Log macOS version for debugging
         Logger.wineKit.info("Running on macOS \(currentVersion.description)")
 
+        // CEF (Chromium Embedded Framework) sandbox must be disabled under Wine
+        // Applies to Steam, Epic Games, EA App, Rockstar Launcher (frankea/Whisky#41)
+        //
+        // SECURITY NOTE: This disables CEF's security sandbox, which normally isolates
+        // embedded web content from the host process. However, the CEF sandbox fundamentally
+        // cannot function under Wine because:
+        // 1. Wine doesn't support all Linux/Windows kernel calls the sandbox requires
+        // 2. The sandbox expects native OS security features that Wine cannot translate
+        // 3. Without disabling it, launchers crash or hang completely (steamwebhelper, etc.)
+        //
+        // Security Implications:
+        // - Embedded browser content runs with full process privileges
+        // - A browser exploit could compromise the Wine process
+        // - Users should only use trusted launchers (Steam, Epic, EA are reputable)
+        //
+        // Alternative Considered:
+        // Making this opt-in would require users to enable "unsafe mode" for launchers to work,
+        // which defeats the purpose of frankea/Whisky#41. The CEF sandbox provides minimal
+        // protection under Wine anyway since Wine itself bypasses many OS security features.
+        //
+        // This is a necessary trade-off for Wine compatibility. Users running Windows apps
+        // via Wine are already accepting compatibility layer security implications.
+        environment["STEAM_DISABLE_CEF_SANDBOX"] = "1"
+        environment["CEF_DISABLE_SANDBOX"] = "1"
+
+        Logger.wineKit.debug("""
+        CEF sandbox disabled for Wine compatibility. \
+        This is required for Steam, Epic, EA App, and Rockstar launchers to function. \
+        Security: Embedded browser content runs with process privileges.
+        """)
+
         // macOS 15.3+ compatibility fixes
         if currentVersion >= .sequoia15_3 {
-            // Fix for graphics issues on macOS 15.3 (#1310)
+            // Fix for graphics issues on macOS 15.3 (whisky-app/whisky#1310)
             // Disable certain Metal validation that can cause rendering issues
             environment["MTL_DEBUG_LAYER"] = "0"
 
@@ -79,7 +111,7 @@ extension Wine {
 
         // macOS 15.4+ specific fixes
         if currentVersion >= .sequoia15_4 {
-            // Fix for Steam crashes on macOS 15.4.1 (#1372)
+            // Fix for Steam crashes on macOS 15.4.1 (whisky-app/whisky#1372)
             // The new security model in 15.4 changes how Wine handles certain syscalls
             environment["WINEFSYNC"] = "0"
 
@@ -93,17 +125,28 @@ extension Wine {
 
             // Additional fix for Steam web helper issues
             environment["STEAM_RUNTIME"] = "0"
+
+            // Enhanced thread management for wine-preloader issues (whisky-app/whisky#1372)
+            environment["WINE_CPU_TOPOLOGY"] = "8:8" // Match typical M-series config
+            environment["WINE_THREAD_PRIORITY_PRESERVE"] = "1"
+
+            // Signal handling improvements
+            environment["WINE_ENABLE_POSIX_SIGNALS"] = "1"
+            environment["WINE_SIGPIPE_IGNORE"] = "1"
+
+            // Process creation reliability
+            environment["WINE_PRELOADER_DEBUG"] = "0"
+            environment["WINE_DISABLE_FAST_PATH"] = "1"
         }
 
         // macOS 15.4.1 specific fixes
         if currentVersion >= .sequoia15_4_1 {
-            // Specific workaround for 15.4.1 regression (#1372)
+            // Specific workaround for 15.4.1 regression (whisky-app/whisky#1372)
             // Apple changed mach port handling which affects Wine
             environment["WINE_MACH_PORT_TIMEOUT"] = "30000"
 
-            // Disable CEF sandbox which causes issues on macOS 15.4.1+
-            // This workaround preserves compatibility with existing behaviour.
-            environment["STEAM_DISABLE_CEF_SANDBOX"] = "1"
+            // Additional thread affinity and mach port fixes
+            environment["WINE_MACH_PORT_RETRY_COUNT"] = "5"
         }
     }
 }

@@ -1,6 +1,12 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "(%@)" : {
+
+    },
+    "%llds" : {
+
+    },
     "alert.info" : {
       "localizations" : {
         "ar" : {
@@ -272,6 +278,18 @@
           }
         }
       }
+    },
+    "Auto-Enable DXVK for Launchers" : {
+
+    },
+    "Automatic" : {
+
+    },
+    "Automatic: Detects launcher from executable path\nManual: Use explicitly selected launcher type" : {
+
+    },
+    "Automatically enables DXVK when launcher requires it (e.g., Rockstar Games Launcher)" : {
+
     },
     "button.cDrive" : {
       "localizations" : {
@@ -5036,6 +5054,142 @@
         }
       }
     },
+    "config.enhancedSync" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مزامنة محسنة"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enhanced Sync"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enhanced Sync"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbessertes Sync"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enhanced Sync"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronización mejorada"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parannettu Synkronointi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sync Avancée"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enhanced Sync"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enhanced Sync"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "향상된 동기 처리"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enhanced Sync"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rodzaj synchronizacji"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enhanced Sync"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronização melhorada"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enhanced Sync"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Улучшенная синхронизация"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enhanced Sync"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Розширена синхронізація"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sync nâng cao"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "增强同步"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "增強同步"
+          }
+        }
+      }
+    },
     "config.enhancedSync.esync" : {
       "localizations" : {
         "ar" : {
@@ -5304,142 +5458,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "MSync"
-          }
-        }
-      }
-    },
-    "config.enhancedSync" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مزامنة محسنة"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enhanced Sync"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enhanced Sync"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verbessertes Sync"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enhanced Sync"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sincronización mejorada"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Parannettu Synkronointi"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sync Avancée"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enhanced Sync"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enhanced Sync"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "향상된 동기 처리"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enhanced Sync"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rodzaj synchronizacji"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enhanced Sync"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sincronização melhorada"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enhanced Sync"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Улучшенная синхронизация"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enhanced Sync"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Розширена синхронізація"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sync nâng cao"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "增强同步"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "增強同步"
           }
         }
       }
@@ -7906,6 +7924,12 @@
         }
       }
     },
+    "Configuration Warnings" : {
+
+    },
+    "Copy to Clipboard" : {
+
+    },
     "create.browse" : {
       "localizations" : {
         "ar" : {
@@ -8858,6 +8882,18 @@
         }
       }
     },
+    "Detected:" : {
+
+    },
+    "Detection Mode:" : {
+
+    },
+    "Done" : {
+
+    },
+    "Enables automatic fixes for Steam, Rockstar, EA App, Epic Games, and other game launchers (frankea/Whisky#41)" : {
+
+    },
     "environment.add" : {
       "localizations" : {
         "ar" : {
@@ -9129,6 +9165,24 @@
           }
         }
       }
+    },
+    "Export to File" : {
+
+    },
+    "Fixes Steam download stalls and connection timeouts" : {
+
+    },
+    "Forces %@ locale to fix steamwebhelper crashes" : {
+
+    },
+    "Generate Diagnostics Report" : {
+
+    },
+    "GPU Spoofing" : {
+
+    },
+    "GPU Vendor:" : {
+
     },
     "help.github" : {
       "localizations" : {
@@ -9811,6 +9865,24 @@
         }
       }
     },
+    "Launcher Compatibility" : {
+
+    },
+    "Launcher compatibility disables the Chromium sandbox (required for Wine). This allows Steam, Epic, EA App, and Rockstar launchers to function, but embedded browser content runs with full process privileges. Only use with trusted launchers from reputable companies." : {
+
+    },
+    "Launcher Compatibility Mode" : {
+
+    },
+    "Launcher Diagnostics Report" : {
+
+    },
+    "Launcher Type:" : {
+
+    },
+    "Locale Override:" : {
+
+    },
     "locale.auto" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10219,6 +10291,21 @@
           }
         }
       }
+    },
+    "Manual" : {
+
+    },
+    "Manually select the launcher type for this bottle" : {
+
+    },
+    "Network Timeout:" : {
+
+    },
+    "None" : {
+
+    },
+    "NVIDIA (recommended) provides best compatibility across launchers" : {
+
     },
     "open.bottle" : {
       "localizations" : {
@@ -14165,6 +14252,9 @@
         }
       }
     },
+    "Reports high-end GPU to pass launcher compatibility checks. Fixes EA App black screen and \"GPU not supported\" errors." : {
+
+    },
     "run.bottle" : {
       "localizations" : {
         "ar" : {
@@ -14436,6 +14526,9 @@
           }
         }
       }
+    },
+    "Security Note" : {
+
     },
     "settings.general" : {
       "localizations" : {
@@ -17565,6 +17658,106 @@
         }
       }
     },
+    "setup.whiskywine.error.accessDenied" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Access denied"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.downloadFailed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download failed: %@"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.fetchVersionFailed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to fetch version: %@"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.fileNotFound" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File not found"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.httpError" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HTTP error %d"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.invalidDownloadURL" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid download URL"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.invalidVersionURL" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid version URL"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.noFileReceived" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download failed: no file received"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.rateLimit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rate limit exceeded. Please try again later."
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.serverError" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server error. Please try again later."
+          }
+        }
+      }
+    },
     "setup.whiskywine.eta" : {
       "localizations" : {
         "ar" : {
@@ -18105,106 +18298,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%2$@ 中的 %1$@"
-          }
-        }
-      }
-    },
-    "setup.whiskywine.error.invalidVersionURL" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid version URL"
-          }
-        }
-      }
-    },
-    "setup.whiskywine.error.invalidDownloadURL" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid download URL"
-          }
-        }
-      }
-    },
-    "setup.whiskywine.error.fileNotFound" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "File not found"
-          }
-        }
-      }
-    },
-    "setup.whiskywine.error.accessDenied" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Access denied"
-          }
-        }
-      }
-    },
-    "setup.whiskywine.error.rateLimit" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rate limit exceeded. Please try again later."
-          }
-        }
-      }
-    },
-    "setup.whiskywine.error.serverError" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Server error. Please try again later."
-          }
-        }
-      }
-    },
-    "setup.whiskywine.error.httpError" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "HTTP error %d"
-          }
-        }
-      }
-    },
-    "setup.whiskywine.error.downloadFailed" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Download failed: %@"
-          }
-        }
-      }
-    },
-    "setup.whiskywine.error.noFileReceived" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Download failed: no file received"
-          }
-        }
-      }
-    },
-    "setup.whiskywine.error.fetchVersionFailed" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to fetch version: %@"
           }
         }
       }
@@ -18752,6 +18845,9 @@
           }
         }
       }
+    },
+    "Steam and Chromium-based launchers require en_US locale to avoid steamwebhelper crashes" : {
+
     },
     "tab.config" : {
       "localizations" : {

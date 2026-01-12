@@ -245,7 +245,16 @@ public class Wine {
     public static func runProgram(
         at url: URL, args: [String] = [], bottle: Bottle, environment: [String: String] = [:]
     ) async throws {
-        if bottle.settings.dxvk {
+        // Note: Launcher detection is handled at the app level (FileOpenView/BottleView)
+        // before calling this method. The detection logic uses LauncherDetection utility
+        // which is in the Whisky app target, not WhiskyKit framework.
+
+        // Enable DXVK if needed (either explicitly enabled or auto-enabled for launchers)
+        let shouldEnableDXVK = bottle.settings.dxvk ||
+            (bottle.settings.autoEnableDXVK &&
+                bottle.settings.detectedLauncher?.requiresDXVK == true)
+
+        if shouldEnableDXVK {
             try enableDXVK(bottle: bottle)
         }
 

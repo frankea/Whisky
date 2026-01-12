@@ -83,6 +83,7 @@ public struct BottleInfo: Codable, Equatable {
     }
 }
 
+// swiftlint:disable type_body_length
 /// The complete configuration settings for a Wine bottle.
 ///
 /// `BottleSettings` is the main configuration type for a bottle, containing all
@@ -153,6 +154,8 @@ public struct BottleSettings: Codable, Equatable {
     private var dxvkConfig: BottleDXVKConfig
     /// Performance optimization settings.
     private var performanceConfig: BottlePerformanceConfig
+    /// Game launcher compatibility settings.
+    private var launcherConfig: BottleLauncherConfig
 
     /// Creates a new BottleSettings instance with default values.
     public init() {
@@ -161,6 +164,7 @@ public struct BottleSettings: Codable, Equatable {
         self.metalConfig = BottleMetalConfig()
         self.dxvkConfig = BottleDXVKConfig()
         self.performanceConfig = BottlePerformanceConfig()
+        self.launcherConfig = BottleLauncherConfig()
     }
 
     public init(from decoder: Decoder) throws {
@@ -178,6 +182,10 @@ public struct BottleSettings: Codable, Equatable {
             BottlePerformanceConfig.self,
             forKey: .performanceConfig
         ) ?? BottlePerformanceConfig()
+        self.launcherConfig = try container.decodeIfPresent(
+            BottleLauncherConfig.self,
+            forKey: .launcherConfig
+        ) ?? BottleLauncherConfig()
     }
 
     /// The display name of this bottle.
@@ -340,6 +348,77 @@ public struct BottleSettings: Codable, Equatable {
         set { performanceConfig.vcRedistInstalled = newValue }
     }
 
+    // MARK: - Launcher compatibility settings
+
+    /// Whether launcher compatibility mode is enabled.
+    ///
+    /// When enabled, applies launcher-specific optimizations for Steam,
+    /// Rockstar, EA App, Epic Games, and other platforms (frankea/Whisky#41).
+    public var launcherCompatibilityMode: Bool {
+        get { launcherConfig.compatibilityMode }
+        set { launcherConfig.compatibilityMode = newValue }
+    }
+
+    /// The launcher detection mode (auto or manual).
+    ///
+    /// - **Auto**: Detects launcher from executable path automatically
+    /// - **Manual**: Uses explicitly selected launcher type
+    public var launcherMode: LauncherMode {
+        get { launcherConfig.launcherMode }
+        set { launcherConfig.launcherMode = newValue }
+    }
+
+    /// Manually selected or auto-detected launcher type.
+    ///
+    /// Used when `launcherCompatibilityMode` is enabled to apply
+    /// launcher-specific environment variables and settings.
+    public var detectedLauncher: LauncherType? {
+        get { launcherConfig.detectedLauncher }
+        set { launcherConfig.detectedLauncher = newValue }
+    }
+
+    /// Locale override for launcher compatibility.
+    ///
+    /// Steam and other Chromium-based launchers require `en_US.UTF-8`
+    /// to avoid steamwebhelper crashes (whisky-app/whisky#946, #1224, #1241).
+    public var launcherLocale: Locales {
+        get { launcherConfig.launcherLocale }
+        set { launcherConfig.launcherLocale = newValue }
+    }
+
+    /// Whether to enable GPU spoofing for launcher compatibility.
+    ///
+    /// Reports high-end GPU capabilities to pass launcher checks.
+    /// Fixes EA App black screen and "GPU not supported" errors.
+    public var gpuSpoofing: Bool {
+        get { launcherConfig.gpuSpoofing }
+        set { launcherConfig.gpuSpoofing = newValue }
+    }
+
+    /// GPU vendor to spoof when GPU spoofing is enabled.
+    ///
+    /// NVIDIA (default) provides best compatibility across launchers.
+    public var gpuVendor: GPUVendor {
+        get { launcherConfig.gpuVendor }
+        set { launcherConfig.gpuVendor = newValue }
+    }
+
+    /// Network timeout in milliseconds for launcher downloads.
+    ///
+    /// Addresses Steam download stalls and connection timeouts.
+    public var networkTimeout: Int {
+        get { launcherConfig.networkTimeout }
+        set { launcherConfig.networkTimeout = newValue }
+    }
+
+    /// Whether to automatically enable DXVK when launcher requires it.
+    ///
+    /// Rockstar Games Launcher requires DXVK to render logo screen.
+    public var autoEnableDXVK: Bool {
+        get { launcherConfig.autoEnableDXVK }
+        set { launcherConfig.autoEnableDXVK = newValue }
+    }
+
     /// Loads bottle settings from a metadata plist file.
     ///
     /// This method handles version migration and validation. If the settings
@@ -401,6 +480,11 @@ public struct BottleSettings: Codable, Equatable {
     /// - Parameter wineEnv: The environment dictionary to populate.
     ///   Existing values may be modified or removed based on settings.
     public func environmentVariables(wineEnv: inout [String: String]) {
+        // Apply launcher compatibility fixes first (frankea/Whisky#41)
+        if launcherCompatibilityMode {
+            applyLauncherCompatibility(wineEnv: &wineEnv)
+        }
+
         if dxvk {
             wineEnv.updateValue("dxgi,d3d9,d3d10core,d3d11=n,b", forKey: "WINEDLLOVERRIDES")
             switch dxvkHud {
@@ -462,23 +546,23 @@ public struct BottleSettings: Codable, Equatable {
             wineEnv.updateValue("1", forKey: "MTL_DEBUG_LAYER")
         }
 
-        // macOS Sequoia compatibility mode (#1310, #1372)
+        // macOS Sequoia compatibility mode (whisky-app/whisky#1310, #1372)
         // Applies additional fixes for graphics and launcher issues on macOS 15.x
         // Since macOS 15 is now the minimum deployment target, we only check the setting
         if sequoiaCompatMode {
             // Disable problematic Metal shader validation on Sequoia
-            // This helps fix graphics corruption issues (#1310)
+            // This helps fix graphics corruption issues (whisky-app/whisky#1310)
             wineEnv.updateValue("0", forKey: "MTL_DEBUG_LAYER")
 
             // Stability improvements for D3DMetal on macOS 15.x
             wineEnv.updateValue("0", forKey: "D3DM_VALIDATION")
 
-            // Help with Steam and launcher compatibility (#1307, #1372)
+            // Help with Steam and launcher compatibility (whisky-app/whisky#1307, #1372)
             // Disable Wine's fsync which has issues on Sequoia
             wineEnv.updateValue("0", forKey: "WINEFSYNC")
         }
 
-        // Performance preset handling (#1361 - FPS regression fix)
+        // Performance preset handling (whisky-app/whisky#1361 - FPS regression fix)
         applyPerformancePreset(wineEnv: &wineEnv)
 
         // Shader cache control
@@ -487,7 +571,7 @@ public struct BottleSettings: Codable, Equatable {
             wineEnv.updateValue("0", forKey: "__GL_SHADER_DISK_CACHE")
         }
 
-        // Force D3D11 mode - helps with compatibility (#1361)
+        // Force D3D11 mode - helps with compatibility (whisky-app/whisky#1361)
         if forceD3D11 {
             wineEnv.updateValue("1", forKey: "D3DM_FORCE_D3D11")
             wineEnv.updateValue("0", forKey: "D3DM_FEATURE_LEVEL_12_0")
@@ -503,7 +587,7 @@ public struct BottleSettings: Codable, Equatable {
             break
 
         case .performance:
-            // Performance mode - prioritize FPS over visual quality (#1361 fix)
+            // Performance mode - prioritize FPS over visual quality (whisky-app/whisky#1361 fix)
             // Reduce D3DMetal shader quality for better performance
             wineEnv.updateValue("1", forKey: "D3DM_FAST_SHADER_COMPILE")
             // Disable extra validation that can slow down rendering
@@ -526,7 +610,7 @@ public struct BottleSettings: Codable, Equatable {
             wineEnv.updateValue("0", forKey: "D3DM_FAST_SHADER_COMPILE")
 
         case .unity:
-            // Unity games optimization (#1313, #1312 - il2cpp fix)
+            // Unity games optimization (whisky-app/whisky#1313, #1312 - il2cpp fix)
             // Unity games often need specific memory and threading settings
 
             // Fix for il2cpp loading issues
@@ -548,4 +632,68 @@ public struct BottleSettings: Codable, Equatable {
             wineEnv.updateValue("1", forKey: "WINEPRELOADRESERVE")
         }
     }
+
+    /// Applies launcher-specific compatibility fixes based on detected or manual launcher type.
+    ///
+    /// This method implements the dual-mode launcher compatibility system from frankea/Whisky#41:
+    /// - Merges launcher-specific environment overrides
+    /// - Applies locale fixes for steamwebhelper crashes
+    /// - Configures GPU spoofing for launcher checks
+    /// - Sets network timeouts for download reliability
+    ///
+    /// - Parameter wineEnv: The environment dictionary to populate with launcher fixes
+    private func applyLauncherCompatibility(wineEnv: inout [String: String]) {
+        // Apply launcher-specific environment overrides if launcher detected
+        if let launcher = detectedLauncher {
+            let launcherEnv = launcher.environmentOverrides()
+            // Merge launcher overrides (launcher settings take precedence)
+            wineEnv.merge(launcherEnv) { _, new in new }
+
+            // Auto-enable DXVK if launcher requires it
+            if autoEnableDXVK, launcher.requiresDXVK {
+                wineEnv.updateValue("dxgi,d3d9,d3d10core,d3d11=n,b", forKey: "WINEDLLOVERRIDES")
+            }
+        }
+
+        // Apply locale override if specified (not using launcher default)
+        // Defensive: Also check rawValue is not empty to prevent setting LC_ALL/LANG to ""
+        // Only apply if launcher preset didn't already set LC_ALL (preserves launcher optimization)
+        if launcherLocale != .auto, !launcherLocale.rawValue.isEmpty, wineEnv["LC_ALL"] == nil {
+            wineEnv.updateValue(launcherLocale.rawValue, forKey: "LC_ALL")
+            wineEnv.updateValue(launcherLocale.rawValue, forKey: "LANG")
+            // Force C locale for date/time parsing to avoid ICU issues
+            wineEnv.updateValue("C", forKey: "LC_TIME")
+            wineEnv.updateValue("C", forKey: "LC_NUMERIC")
+        }
+        // Note: If launcher preset already set LC_ALL (e.g., Steam sets "en_US.UTF-8"),
+        // we don't overwrite it. This preserves launcher-optimized locale strings.
+
+        // Apply GPU spoofing if enabled
+        if gpuSpoofing {
+            let gpuEnv = GPUDetection.spoofWithVendor(gpuVendor)
+            wineEnv.merge(gpuEnv) { current, new in
+                // Don't override user-set values with GPU spoofing
+                current.isEmpty ? new : current
+            }
+        }
+
+        // Network timeout configuration
+        // Applied if user customized timeout (including launcher-set values)
+        // Launcher-specific timeouts are set via bottle.settings.networkTimeout by
+        // LauncherDetection.applyLauncherFixes(), giving users control via UI slider
+        if networkTimeout != 60_000 { // If not default (60s)
+            wineEnv.updateValue(String(networkTimeout), forKey: "WINHTTP_CONNECT_TIMEOUT")
+            wineEnv.updateValue(String(networkTimeout * 2), forKey: "WINHTTP_RECEIVE_TIMEOUT")
+        }
+
+        // Connection pooling fixes for download stalls (whisky-app/whisky#1148, #1072, #1176)
+        wineEnv.updateValue("10", forKey: "WINE_MAX_CONNECTIONS_PER_SERVER")
+        wineEnv.updateValue("1", forKey: "WINE_FORCE_HTTP11") // HTTP/2 issues in Wine
+
+        // SSL/TLS compatibility for launchers
+        wineEnv.updateValue("1", forKey: "WINE_ENABLE_SSL")
+        wineEnv.updateValue("TLS1.2", forKey: "WINE_SSL_VERSION_MIN")
+    }
 }
+
+// swiftlint:enable type_body_length

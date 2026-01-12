@@ -35,7 +35,7 @@ public enum Locales: String, Codable, CaseIterable, Sendable {
     /// German (Germany) locale.
     case german = "de_DE.UTF-8"
     /// English (United States) locale.
-    case english = "en_US"
+    case english = "en_US.UTF-8"
     /// Spanish (Spain) locale.
     case spanish = "es_ES.UTF-8"
     /// French (France) locale.

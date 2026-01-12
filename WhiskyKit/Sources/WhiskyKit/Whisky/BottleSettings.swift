@@ -83,6 +83,7 @@ public struct BottleInfo: Codable, Equatable {
     }
 }
 
+// swiftlint:disable type_body_length
 /// The complete configuration settings for a Wine bottle.
 ///
 /// `BottleSettings` is the main configuration type for a bottle, containing all
@@ -687,3 +688,4 @@ public struct BottleSettings: Codable, Equatable {
         wineEnv.updateValue("TLS1.2", forKey: "WINE_SSL_VERSION_MIN")
     }
 }
+// swiftlint:enable type_body_length

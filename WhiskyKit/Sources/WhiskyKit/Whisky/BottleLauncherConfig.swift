@@ -104,7 +104,7 @@ public struct BottleLauncherConfig: Codable, Equatable {
 /// Launcher detection mode for dual-mode configuration system.
 public enum LauncherMode: String, Codable, CaseIterable, Sendable {
     /// Automatically detect launcher type from executable path/name
-    case auto = "auto"
+    case auto
     /// Use manually specified launcher type
-    case manual = "manual"
+    case manual
 }

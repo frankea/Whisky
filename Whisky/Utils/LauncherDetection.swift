@@ -140,6 +140,8 @@ struct LauncherDetection {
     ///   - bottle: The bottle to configure
     ///   - launcher: The detected or manually selected launcher type
     ///   - force: If `true`, overrides existing settings; if `false`, only applies if not already configured
+    @MainActor
+    // swiftlint:disable:next cyclomatic_complexity
     static func applyLauncherFixes(for bottle: Bottle, launcher: LauncherType, force: Bool = false) {
         // Enable launcher compatibility mode
         if !bottle.settings.launcherCompatibilityMode || force {
@@ -238,6 +240,8 @@ struct LauncherDetection {
     ///   - bottle: The bottle to validate
     ///   - launcher: The launcher type to validate against
     /// - Returns: Array of warning messages (empty if configuration is optimal)
+    @MainActor
+    // swiftlint:disable:next cyclomatic_complexity
     static func validateBottleForLauncher(_ bottle: Bottle, launcher: LauncherType) -> [String] {
         var warnings: [String] = []
 
@@ -304,13 +308,17 @@ struct LauncherDetection {
     ///   - bottle: The bottle to summarize
     ///   - launcher: The launcher type
     /// - Returns: Multi-line string describing the current configuration
+    @MainActor
     static func generateConfigSummary(for bottle: Bottle, launcher: LauncherType) -> String {
         var summary = "Configuration for \(launcher.rawValue):\n\n"
 
         summary += "Compatibility Mode: \(bottle.settings.launcherCompatibilityMode ? "✅ Enabled" : "❌ Disabled")\n"
         summary += "Locale: \(bottle.settings.launcherLocale.pretty())\n"
         summary += "DXVK: \(bottle.settings.dxvk ? "✅ Enabled" : "❌ Disabled")\n"
-        summary += "GPU Spoofing: \(bottle.settings.gpuSpoofing ? "✅ Enabled (\(bottle.settings.gpuVendor.rawValue))" : "❌ Disabled")\n"
+        let gpuStatus = bottle.settings.gpuSpoofing
+            ? "✅ Enabled (\(bottle.settings.gpuVendor.rawValue))"
+            : "❌ Disabled"
+        summary += "GPU Spoofing: \(gpuStatus)\n"
         summary += "D3D11 Mode: \(bottle.settings.forceD3D11 ? "✅ Enabled" : "❌ Disabled")\n"
         summary += "Network Timeout: \(bottle.settings.networkTimeout)ms\n\n"
 

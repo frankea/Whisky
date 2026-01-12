@@ -59,7 +59,7 @@ struct LauncherDiagnostics {
         Whisky Launcher Diagnostics Report
         Generated: \(Date().formatted())
         ═══════════════════════════════════════════════════════
-        
+
         """
 
         // System Information
@@ -78,7 +78,7 @@ struct LauncherDiagnostics {
         report += generateRecommendations(for: bottle)
 
         report += """
-        
+
         ═══════════════════════════════════════════════════════
         End of Diagnostic Report
         ═══════════════════════════════════════════════════════
@@ -91,9 +91,9 @@ struct LauncherDiagnostics {
     @MainActor
     private static func generateSystemInfo() async -> String {
         var info = """
-        
+
         [SYSTEM INFORMATION]
-        
+
         """
 
         let version = MacOSVersion.current
@@ -115,10 +115,10 @@ struct LauncherDiagnostics {
 
         // Rosetta 2 status (for Apple Silicon)
         #if arch(arm64)
-        if Rosetta2.isRosetta2Available() {
-            info += "Rosetta 2: ✅ Available\n"
+        if Rosetta2.isRosettaInstalled {
+            info += "Rosetta 2: ✅ Installed\n"
         } else {
-            info += "Rosetta 2: ❌ Not Available\n"
+            info += "Rosetta 2: ❌ Not Installed\n"
         }
         #endif
 
@@ -131,7 +131,7 @@ struct LauncherDiagnostics {
     private static func generateBottleConfig(for bottle: Bottle) -> String {
         var config = """
         [BOTTLE CONFIGURATION]
-        
+
         """
 
         config += "Bottle Name: \(bottle.settings.name)\n"
@@ -184,7 +184,7 @@ struct LauncherDiagnostics {
     private static func generateEnvironmentSnapshot(for bottle: Bottle) -> String {
         var snapshot = """
         [ENVIRONMENT VARIABLES]
-        
+
         """
 
         var env: [String: String] = [:]
@@ -210,7 +210,7 @@ struct LauncherDiagnostics {
     private static func generateValidationResults(for bottle: Bottle) -> String {
         var validation = """
         [VALIDATION RESULTS]
-        
+
         """
 
         if let launcher = bottle.settings.detectedLauncher {
@@ -247,10 +247,11 @@ struct LauncherDiagnostics {
 
     /// Generates recommendations section.
     @MainActor
+    // swiftlint:disable:next cyclomatic_complexity
     private static func generateRecommendations(for bottle: Bottle) -> String {
         var recommendations = """
         [RECOMMENDATIONS]
-        
+
         """
 
         var hasRecommendations = false

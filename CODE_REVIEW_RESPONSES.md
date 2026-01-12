@@ -434,9 +434,96 @@ do {
 
 ---
 
+### 7. Network Timeout Configuration Conflict ✅ **RESOLVED**
+
+**Feedback:**
+> The network timeout configuration at lines 676-679 always sets WINHTTP_CONNECT_TIMEOUT and WINHTTP_RECEIVE_TIMEOUT when networkTimeout differs from the default (60000), but these are also set by launcher-specific presets (e.g., Steam sets them to 90000/180000 at LauncherPresets.swift lines 106-107). Since the launcher preset is merged first (line 649) and then this code overwrites them if networkTimeout != 60000, user customization of networkTimeout will override the launcher-specific optimized values. This could be confusing behavior. Consider checking if the values were set by the launcher preset before overwriting.
+
+**Resolution:**
+- **Commit:** `382115bb` - "fix: Resolve network timeout configuration conflict"
+- **Files Updated:** 3 files
+- **Architecture:** Established single source of truth for timeouts
+
+**The Problem:**
+
+Network timeouts were configured in **two places**, creating redundancy:
+
+1. **LauncherPresets.environmentOverrides()** - Direct environment variables:
+   ```swift
+   env["WINHTTP_CONNECT_TIMEOUT"] = "90000"  // Steam
+   ```
+
+2. **LauncherDetection.applyLauncherFixes()** - Settings property:
+   ```swift
+   bottle.settings.networkTimeout = 90_000  // Steam
+   ```
+
+3. **BottleSettings.environmentVariables()** - Applied setting to environment:
+   ```swift
+   if networkTimeout != 60_000 {
+       wineEnv["WINHTTP_CONNECT_TIMEOUT"] = String(networkTimeout)
+   }
+   ```
+
+**Conflict Scenario:**
+- Launcher preset sets `WINHTTP_CONNECT_TIMEOUT=90000`
+- Gets merged into environment
+- Then setting check sees `networkTimeout=90000 != 60000`
+- Overwrites with same value (redundant but harmless)
+- BUT: Unclear which takes precedence if user customizes
+
+**Solution - Single Source of Truth:**
+
+Removed direct timeout setting from launcher presets:
+```swift
+// Before (LauncherPresets.swift):
+env["WINHTTP_CONNECT_TIMEOUT"] = "90000"
+env["WINHTTP_RECEIVE_TIMEOUT"] = "180000"
+
+// After (removed, added comment):
+// Note: Network timeouts configured via bottle.settings.networkTimeout
+// which is set to 90000ms by LauncherDetection.applyLauncherFixes()
+// This allows users to customize timeouts via the UI slider
+```
+
+**New Flow (Clean & Clear):**
+
+1. User selects/detects launcher (e.g., Steam)
+2. `applyLauncherFixes()` sets `bottle.settings.networkTimeout = 90000`
+3. User sees 90s in UI slider (can customize if desired)
+4. `environmentVariables()` applies `networkTimeout` to environment
+5. No conflicts, user has full control
+
+**Benefits:**
+- ✅ Single source of truth (`bottle.settings.networkTimeout`)
+- ✅ User customization works as expected (slider control)
+- ✅ Launcher optimizations still applied (via setting)
+- ✅ No redundancy (set once, not twice)
+- ✅ Clear behavior (setting always wins)
+
+**Test Updates:**
+
+Updated `testSteamPresetIncludesNetworkFixes`:
+```swift
+// Now verifies preset DOESN'T set timeouts directly
+XCTAssertNil(env["WINHTTP_CONNECT_TIMEOUT"])
+XCTAssertNil(env["WINHTTP_RECEIVE_TIMEOUT"])
+
+// Confirms other fixes still present
+XCTAssertEqual(env["STEAM_DISABLE_CEF_SANDBOX"], "1")
+```
+
+**User Experience:**
+- Launcher optimizations applied automatically
+- Users can adjust timeout slider for custom needs
+- Changes immediately visible in UI
+- No hidden conflicts
+
+---
+
 ## Summary of All Changes
 
-### Commits Applied (16 total)
+### Commits Applied (18 total)
 
 1. **88016fbe** - `feat: Implement comprehensive launcher compatibility system`
    - Initial implementation (2,151 lines)
@@ -484,6 +571,12 @@ do {
 15. **6d68bc9b** - `fix: Add proper error handling for diagnostics report export` ⬅️ Review #5
     - Added comprehensive error handling with user alerts
 
+16. **53e83b96** - `docs: Update review documentation with error handling fix`
+    - Documented fifth review round
+
+17. **382115bb** - `fix: Resolve network timeout configuration conflict` ⬅️ Review #6
+    - Established single source of truth for network timeouts
+
 ---
 
 ## Final Quality Status
@@ -500,6 +593,7 @@ do {
 | **Code Review #3** | ✅ | Code duplication eliminated |
 | **Code Review #4** | ✅ | Dead code removed from Wine.runProgram |
 | **Code Review #5** | ✅ | Silent error handling fixed |
+| **Code Review #6** | ✅ | Network timeout conflict resolved |
 | **Documentation** | ✅ | Comprehensive & accurate |
 | **Git Hygiene** | ✅ | Clean commit history |
 
@@ -513,7 +607,8 @@ do {
 - **Review #3** (Code Duplication): ~5 minutes to resolve
 - **Review #4** (Dead Code in Wine.swift): ~3 minutes to resolve
 - **Review #5** (Silent Error Handling): ~4 minutes to resolve
-- **Total:** All issues addressed in ~30 minutes
+- **Review #6** (Network Timeout Conflict): ~6 minutes to resolve
+- **Total:** All issues addressed in ~36 minutes
 
 ---
 

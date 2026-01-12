@@ -54,7 +54,7 @@ jobs:
   build:
     name: Build ${{ matrix.scheme }}
     needs: [lint, format]
-    runs-on: macos-14
+    runs-on: macos-15
     strategy:
       fail-fast: false
       matrix:
@@ -97,7 +97,7 @@ jobs:
   test:
     name: Run Tests
     needs: [lint, format]
-    runs-on: macos-14
+    runs-on: macos-15
     
     steps:
       - name: Checkout

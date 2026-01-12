@@ -656,7 +656,8 @@ public struct BottleSettings: Codable, Equatable {
         }
 
         // Apply locale override if specified (not using launcher default)
-        if launcherLocale != .auto {
+        // Defensive: Also check rawValue is not empty to prevent setting LC_ALL/LANG to ""
+        if launcherLocale != .auto, !launcherLocale.rawValue.isEmpty {
             wineEnv.updateValue(launcherLocale.rawValue, forKey: "LC_ALL")
             wineEnv.updateValue(launcherLocale.rawValue, forKey: "LANG")
             // Force C locale for date/time parsing to avoid ICU issues

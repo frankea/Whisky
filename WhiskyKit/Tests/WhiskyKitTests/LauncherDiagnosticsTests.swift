@@ -318,6 +318,27 @@ final class LauncherDiagnosticsTests: XCTestCase {
         XCTAssertNil(env["LANG"], "Auto locale should not set LANG")
     }
 
+    func testAutoLocaleRawValueIsEmpty() {
+        // Verify .auto has empty rawValue (defensive check)
+        XCTAssertEqual(Locales.auto.rawValue, "", "Auto locale should have empty string as rawValue")
+
+        // Verify the defensive check in environmentVariables prevents empty string assignment
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try? FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempURL) }
+
+        let bottle = Bottle(bottleUrl: tempURL, inFlight: false, isAvailable: true)
+        bottle.settings.launcherCompatibilityMode = true
+        bottle.settings.launcherLocale = .auto // Empty rawValue
+
+        var env: [String: String] = [:]
+        bottle.settings.environmentVariables(wineEnv: &env)
+
+        // Should not set LC_ALL/LANG to empty string (defensive check prevents this)
+        XCTAssertNil(env["LC_ALL"], "Should not set LC_ALL to empty string")
+        XCTAssertNil(env["LANG"], "Should not set LANG to empty string")
+    }
+
     // MARK: - Network Timeout Tests
 
     func testNetworkTimeoutOnlyAppliedWhenNonDefault() throws {

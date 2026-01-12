@@ -464,7 +464,8 @@ public struct BottleSettings: Codable, Equatable {
 
         // macOS Sequoia compatibility mode (#1310, #1372)
         // Applies additional fixes for graphics and launcher issues on macOS 15.x
-        if sequoiaCompatMode, MacOSVersion.current.major >= 15 {
+        // Since macOS 15 is now the minimum deployment target, we only check the setting
+        if sequoiaCompatMode {
             // Disable problematic Metal shader validation on Sequoia
             // This helps fix graphics corruption issues (#1310)
             wineEnv.updateValue("0", forKey: "MTL_DEBUG_LAYER")

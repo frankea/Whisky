@@ -42,6 +42,34 @@ struct LauncherConfigSection: View {
                     """)
 
                 if bottle.settings.launcherCompatibilityMode {
+                    // Security notice about CEF sandbox
+                    HStack(alignment: .top, spacing: 8) {
+                        Image(systemName: "exclamationmark.shield.fill")
+                            .foregroundColor(.orange)
+                            .font(.title3)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Security Note")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.orange)
+
+                            Text("""
+                            Launcher compatibility disables the Chromium sandbox (required for Wine). \
+                            This allows Steam, Epic, EA App, and Rockstar launchers to function, but \
+                            embedded browser content runs with full process privileges. Only use with \
+                            trusted launchers from reputable companies.
+                            """)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(Color.orange.opacity(0.1))
+                    .cornerRadius(8)
+
                     Divider()
 
                     // Detection mode selection

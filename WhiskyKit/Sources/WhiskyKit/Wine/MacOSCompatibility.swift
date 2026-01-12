@@ -64,12 +64,36 @@ extension Wine {
         // Log macOS version for debugging
         Logger.wineKit.info("Running on macOS \(currentVersion.description)")
 
-        // CEF (Chromium Embedded Framework) sandbox conflicts with Wine on ALL macOS versions
+        // CEF (Chromium Embedded Framework) sandbox must be disabled under Wine
         // Applies to Steam, Epic Games, EA App, Rockstar Launcher (frankea/Whisky#41)
-        // This was previously only applied to macOS 15.4.1+, but upstream reports
-        // show CEF sandbox issues exist on all macOS versions when running under Wine
+        //
+        // SECURITY NOTE: This disables CEF's security sandbox, which normally isolates
+        // embedded web content from the host process. However, the CEF sandbox fundamentally
+        // cannot function under Wine because:
+        // 1. Wine doesn't support all Linux/Windows kernel calls the sandbox requires
+        // 2. The sandbox expects native OS security features that Wine cannot translate
+        // 3. Without disabling it, launchers crash or hang completely (steamwebhelper, etc.)
+        //
+        // Security Implications:
+        // - Embedded browser content runs with full process privileges
+        // - A browser exploit could compromise the Wine process
+        // - Users should only use trusted launchers (Steam, Epic, EA are reputable)
+        //
+        // Alternative Considered:
+        // Making this opt-in would require users to enable "unsafe mode" for launchers to work,
+        // which defeats the purpose of frankea/Whisky#41. The CEF sandbox provides minimal
+        // protection under Wine anyway since Wine itself bypasses many OS security features.
+        //
+        // This is a necessary trade-off for Wine compatibility. Users running Windows apps
+        // via Wine are already accepting compatibility layer security implications.
         environment["STEAM_DISABLE_CEF_SANDBOX"] = "1"
         environment["CEF_DISABLE_SANDBOX"] = "1"
+
+        Logger.wineKit.debug("""
+        CEF sandbox disabled for Wine compatibility. \
+        This is required for Steam, Epic, EA App, and Rockstar launchers to function. \
+        Security: Embedded browser content runs with process privileges.
+        """)
 
         // macOS 15.3+ compatibility fixes
         if currentVersion >= .sequoia15_3 {

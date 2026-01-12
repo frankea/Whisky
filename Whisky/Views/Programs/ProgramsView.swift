@@ -165,7 +165,8 @@ struct ProgramItemView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             if showButtons {
                 if let peFile = program.peFile,
-                   let archString = peFile.architecture.toString() {
+                   let archString = peFile.architecture.toString()
+                {
                     Text(archString)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 5)

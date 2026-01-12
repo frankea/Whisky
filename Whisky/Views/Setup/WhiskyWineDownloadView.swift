@@ -202,7 +202,8 @@ struct WhiskyWineDownloadView: View {
 
             // Check HTTP status code before attempting to decode
             if let httpResponse = response as? HTTPURLResponse,
-               !(200 ... 299).contains(httpResponse.statusCode) {
+               !(200 ... 299).contains(httpResponse.statusCode)
+            {
                 downloadError = formatHTTPError(statusCode: httpResponse.statusCode)
                 return
             }
@@ -298,7 +299,8 @@ struct WhiskyWineDownloadView: View {
         }
 
         if let httpResponse = response as? HTTPURLResponse,
-           !(200 ... 299).contains(httpResponse.statusCode) {
+           !(200 ... 299).contains(httpResponse.statusCode)
+        {
             downloadError = formatHTTPError(statusCode: httpResponse.statusCode)
             return
         }

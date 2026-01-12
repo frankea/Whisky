@@ -21,8 +21,8 @@ import Foundation
 public extension PEFile {
     enum Magic: UInt16, Hashable, Equatable, CustomStringConvertible, Sendable {
         case unknown = 0x0
-        case pe32 = 0x10b
-        case pe32Plus = 0x20b
+        case pe32 = 0x10B
+        case pe32Plus = 0x20B
 
         // MARK: - CustomStringConvertible
 

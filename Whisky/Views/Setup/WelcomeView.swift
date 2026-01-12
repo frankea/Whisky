@@ -72,7 +72,8 @@ struct WelcomeView: View {
             Spacer()
             HStack {
                 if let rosettaInstalled,
-                   let whiskyWineInstalled {
+                   let whiskyWineInstalled
+                {
                     if !rosettaInstalled || !whiskyWineInstalled {
                         Button("setup.quit") {
                             exit(0)

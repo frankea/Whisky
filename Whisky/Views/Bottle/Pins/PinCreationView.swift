@@ -83,7 +83,8 @@ struct PinCreationView: View {
 
                 // Only reset newPinName if the textbox hasn't been modified
                 if newPinName.isEmpty ||
-                    newPinName == oldValue?.deletingPathExtension().lastPathComponent {
+                    newPinName == oldValue?.deletingPathExtension().lastPathComponent
+                {
                     newPinName = newValue.deletingPathExtension().lastPathComponent
                 }
 

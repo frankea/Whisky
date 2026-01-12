@@ -196,9 +196,86 @@ Kept in Rockstar references because it's documented in `IMPLEMENTATION_COMPLETE.
 
 ---
 
+### 4. Code Duplication in Launcher Detection ✅ **RESOLVED**
+
+**Feedback:**
+> The launcher detection logic is duplicated between FileOpenView.swift (lines 82-96) and BottleView.swift (lines 92-104). Consider extracting this into a shared method in LauncherDetection or a view extension to avoid code duplication and maintain consistency.
+
+**Resolution:**
+- **Commit:** `89880ec7` - "refactor: Extract duplicated launcher detection logic into shared method"
+- **Files Updated:** 3 files
+- **Code Reduction:** 34 lines of duplication eliminated
+
+**What Was Duplicated:**
+
+Both FileOpenView and BottleView had ~30 lines of identical launcher detection logic:
+```swift
+await MainActor.run {
+    guard bottle.settings.launcherCompatibilityMode,
+          bottle.settings.launcherMode == .auto else { return }
+    guard let detectedLauncher = ... else { return }
+    if bottle.settings.detectedLauncher != detectedLauncher {
+        LauncherDetection.applyLauncherFixes(...)
+    }
+}
+```
+
+**New Shared Method Created:**
+
+Added to `LauncherDetection.swift`:
+```swift
+/// Detects and applies launcher fixes if compatibility mode is enabled.
+///
+/// This is the primary entry point for launcher detection and configuration.
+@MainActor
+@discardableResult
+static func detectAndApplyLauncherFixes(from url: URL, for bottle: Bottle) -> Bool {
+    guard bottle.settings.launcherCompatibilityMode,
+          bottle.settings.launcherMode == .auto else {
+        return false
+    }
+    
+    guard let detectedLauncher = detectLauncher(from: url) else {
+        return false
+    }
+    
+    guard bottle.settings.detectedLauncher != detectedLauncher else {
+        return false
+    }
+    
+    applyLauncherFixes(for: bottle, launcher: detectedLauncher)
+    return true
+}
+```
+
+**Simplified View Code:**
+
+Both views now use single line:
+```swift
+await MainActor.run {
+    LauncherDetection.detectAndApplyLauncherFixes(from: url, for: bottle)
+}
+```
+
+**Benefits:**
+- ✅ **DRY Principle**: Single source of truth
+- ✅ **Maintainability**: Changes in one place
+- ✅ **Consistency**: Identical behavior guaranteed
+- ✅ **Testability**: Can unit test shared method
+- ✅ **Readability**: View code simplified
+- ✅ **Safety**: All synchronous guarantees preserved
+
+**Code Metrics:**
+- FileOpenView.swift: -20 lines
+- BottleView.swift: -14 lines  
+- LauncherDetection.swift: +34 lines
+- **Net:** 0 lines added, but centralized and reusable
+
+---
+
 ## Summary of All Changes
 
-### Commits Applied (9 total)
+### Commits Applied (11 total)
 
 1. **88016fbe** - `feat: Implement comprehensive launcher compatibility system`
    - Initial implementation (2,151 lines)
@@ -228,6 +305,12 @@ Kept in Rockstar references because it's documented in `IMPLEMENTATION_COMPLETE.
 9. **3ddb22e6** - `docs: Complete repository prefix consistency for all issue references` ⬅️ Review #1b
    - Addressed incomplete prefixes in code comments
 
+10. **0528630e** - `docs: Add code review response documentation`
+    - Documented first review round resolutions
+
+11. **89880ec7** - `refactor: Extract duplicated launcher detection logic into shared method` ⬅️ Review #3
+    - Eliminated code duplication between views
+
 ---
 
 ## Final Quality Status
@@ -241,6 +324,7 @@ Kept in Rockstar references because it's documented in `IMPLEMENTATION_COMPLETE.
 | **Code Review #1a** | ✅ | Issue references clarified (doc comments) |
 | **Code Review #1b** | ✅ | Issue references clarified (inline comments) |
 | **Code Review #2** | ✅ | Race condition eliminated |
+| **Code Review #3** | ✅ | Code duplication eliminated |
 | **Documentation** | ✅ | Comprehensive & accurate |
 | **Git Hygiene** | ✅ | Clean commit history |
 
@@ -251,7 +335,8 @@ Kept in Rockstar references because it's documented in `IMPLEMENTATION_COMPLETE.
 - **Review #1a** (Issue References - Doc Comments): ~5 minutes to resolve
 - **Review #1b** (Issue References - Inline Comments): ~3 minutes to resolve
 - **Review #2** (Race Condition): ~10 minutes to resolve
-- **Total:** All issues addressed in ~18 minutes
+- **Review #3** (Code Duplication): ~5 minutes to resolve
+- **Total:** All issues addressed in ~23 minutes
 
 ---
 

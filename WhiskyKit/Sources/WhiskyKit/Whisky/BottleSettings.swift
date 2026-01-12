@@ -657,13 +657,16 @@ public struct BottleSettings: Codable, Equatable {
 
         // Apply locale override if specified (not using launcher default)
         // Defensive: Also check rawValue is not empty to prevent setting LC_ALL/LANG to ""
-        if launcherLocale != .auto, !launcherLocale.rawValue.isEmpty {
+        // Only apply if launcher preset didn't already set LC_ALL (preserves launcher optimization)
+        if launcherLocale != .auto, !launcherLocale.rawValue.isEmpty, wineEnv["LC_ALL"] == nil {
             wineEnv.updateValue(launcherLocale.rawValue, forKey: "LC_ALL")
             wineEnv.updateValue(launcherLocale.rawValue, forKey: "LANG")
             // Force C locale for date/time parsing to avoid ICU issues
             wineEnv.updateValue("C", forKey: "LC_TIME")
             wineEnv.updateValue("C", forKey: "LC_NUMERIC")
         }
+        // Note: If launcher preset already set LC_ALL (e.g., Steam sets "en_US.UTF-8"),
+        // we don't overwrite it. This preserves launcher-optimized locale strings.
 
         // Apply GPU spoofing if enabled
         if gpuSpoofing {

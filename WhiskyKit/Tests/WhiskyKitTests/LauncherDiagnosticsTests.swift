@@ -505,6 +505,54 @@ final class LauncherDiagnosticsTests: XCTestCase {
         XCTAssertEqual(decoded.autoEnableDXVK, false)
     }
 
+    // MARK: - Locale Preservation Tests
+
+    func testSteamLocaleNotOverwritten() throws {
+        // CRITICAL: Verify that Steam's "en_US.UTF-8" locale is not overwritten
+        // with "en_US" (missing .UTF-8 suffix) which would break steamwebhelper
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempURL) }
+
+        let bottle = Bottle(bottleUrl: tempURL, inFlight: false, isAvailable: true)
+        bottle.settings.launcherCompatibilityMode = true
+        bottle.settings.detectedLauncher = .steam
+        bottle.settings.launcherLocale = .english // This is set by LauncherDetection
+
+        // Get full Wine environment (includes launcher preset + bottle settings)
+        let env = Wine.constructWineEnvironment(for: bottle, environment: [:])
+
+        // CRITICAL: LC_ALL must be "en_US.UTF-8" (with .UTF-8 suffix) not just "en_US"
+        // The .UTF-8 suffix is essential for preventing steamwebhelper crashes
+        XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8", "Steam's LC_ALL must have .UTF-8 suffix")
+        XCTAssertEqual(env["LANG"], "en_US.UTF-8", "Steam's LANG must have .UTF-8 suffix")
+    }
+
+    func testEnglishLocaleIncludesUTF8() {
+        // Verify the Locales.english enum has .UTF-8 suffix (consistency check)
+        XCTAssertEqual(
+            Locales.english.rawValue,
+            "en_US.UTF-8",
+            "English locale must have .UTF-8 suffix for consistency"
+        )
+
+        // Verify all non-auto locales have .UTF-8 suffix
+        for locale in Locales.allCases where locale != .auto {
+            if locale == .english {
+                XCTAssertTrue(
+                    locale.rawValue.hasSuffix(".UTF-8"),
+                    "English locale must have .UTF-8 suffix"
+                )
+            } else {
+                // All other locales should also have .UTF-8
+                XCTAssertTrue(
+                    locale.rawValue.hasSuffix(".UTF-8"),
+                    "\(locale.rawValue) should have .UTF-8 suffix"
+                )
+            }
+        }
+    }
+
     // MARK: - Connection Pooling Tests
 
     func testConnectionPoolingEnvironmentApplied() throws {

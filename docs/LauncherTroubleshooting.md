@@ -610,7 +610,7 @@ Launcher compatibility mode disables the Chromium sandbox (required for Wine).
 - ❌ Don't browse untrusted websites in launchers
 - ❌ Don't use with unknown launcher software
 
-See [LAUNCHER_SECURITY_NOTES.md](../LAUNCHER_SECURITY_NOTES.md) for detailed security analysis.
+See [LauncherSecurityNotes.md](LauncherSecurityNotes.md) for detailed security analysis.
 
 ---
 
@@ -700,8 +700,8 @@ Before making changes:
 
 - **Issue Tracking:** frankea/Whisky#41
 - **Pull Request:** #53
-- **Security Notes:** [LAUNCHER_SECURITY_NOTES.md](../LAUNCHER_SECURITY_NOTES.md)
-- **Implementation Details:** [LAUNCHER_COMPATIBILITY_IMPLEMENTATION.md](../LAUNCHER_COMPATIBILITY_IMPLEMENTATION.md)
+- **Security Notes:** [LauncherSecurityNotes.md](LauncherSecurityNotes.md)
+- **Implementation Details:** [LauncherCompatibilityImplementation.md](LauncherCompatibilityImplementation.md)
 
 ---
 

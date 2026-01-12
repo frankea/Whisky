@@ -764,7 +764,7 @@ The launcher compatibility system addresses the majority of Steam issues documen
 
 **For additional help, see:**
 - [LauncherTroubleshooting.md](LauncherTroubleshooting.md) - All launchers
-- [LAUNCHER_SECURITY_NOTES.md](../LAUNCHER_SECURITY_NOTES.md) - Security info
+- [LauncherSecurityNotes.md](LauncherSecurityNotes.md) - Security info
 - GitHub: frankea/Whisky#41 - Report issues
 
 **Happy gaming on Steam via Whisky!** 🎮

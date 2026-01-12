@@ -18,15 +18,16 @@
 
 import AppKit
 import Foundation
+import WhiskyKit
 
 class WhiskyCmd {
     static func install() async {
         let whiskyCmdURL = Bundle.main.url(forResource: "WhiskyCmd", withExtension: nil)
 
         if let whiskyCmdURL {
+            // Use .esc to escape shell metacharacters and prevent command injection
             let script = """
-            do shell script "ln -fs \(whiskyCmdURL
-                .path(percentEncoded: false)) /usr/local/bin/whisky" with administrator privileges
+            do shell script "ln -fs \(whiskyCmdURL.esc) /usr/local/bin/whisky" with administrator privileges
             """
 
             var error: NSDictionary?

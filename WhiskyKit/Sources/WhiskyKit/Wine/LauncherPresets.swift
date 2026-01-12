@@ -21,7 +21,7 @@ import Foundation
 /// Represents different game launcher platforms with optimized configurations.
 ///
 /// This enum provides launcher-specific environment variable presets to address
-/// compatibility issues documented in Issue #41 and related upstream issues.
+/// compatibility issues documented in frankea/Whisky#41 and ~100 related upstream issues.
 ///
 /// ## Overview
 ///

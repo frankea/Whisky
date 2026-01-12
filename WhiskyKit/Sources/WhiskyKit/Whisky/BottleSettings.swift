@@ -353,7 +353,7 @@ public struct BottleSettings: Codable, Equatable {
     /// Whether launcher compatibility mode is enabled.
     ///
     /// When enabled, applies launcher-specific optimizations for Steam,
-    /// Rockstar, EA App, Epic Games, and other platforms (Issue #41).
+    /// Rockstar, EA App, Epic Games, and other platforms (frankea/Whisky#41).
     public var launcherCompatibilityMode: Bool {
         get { launcherConfig.compatibilityMode }
         set { launcherConfig.compatibilityMode = newValue }
@@ -480,7 +480,7 @@ public struct BottleSettings: Codable, Equatable {
     /// - Parameter wineEnv: The environment dictionary to populate.
     ///   Existing values may be modified or removed based on settings.
     public func environmentVariables(wineEnv: inout [String: String]) {
-        // Apply launcher compatibility fixes first (Issue #41)
+        // Apply launcher compatibility fixes first (frankea/Whisky#41)
         if launcherCompatibilityMode {
             applyLauncherCompatibility(wineEnv: &wineEnv)
         }
@@ -635,7 +635,7 @@ public struct BottleSettings: Codable, Equatable {
 
     /// Applies launcher-specific compatibility fixes based on detected or manual launcher type.
     ///
-    /// This method implements the dual-mode launcher compatibility system from Issue #41:
+    /// This method implements the dual-mode launcher compatibility system from frankea/Whisky#41:
     /// - Merges launcher-specific environment overrides
     /// - Applies locale fixes for steamwebhelper crashes
     /// - Configures GPU spoofing for launcher checks

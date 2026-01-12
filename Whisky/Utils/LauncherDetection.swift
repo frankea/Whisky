@@ -25,7 +25,7 @@ import WhiskyKit
 ///
 /// This system implements heuristic-based auto-detection of game launchers from
 /// executable paths and names. When a launcher is detected, it can automatically
-/// apply optimized settings to fix compatibility issues documented in Issue #41.
+/// apply optimized settings to fix compatibility issues documented in frankea/Whisky#41.
 ///
 /// ## Detection Strategy
 ///

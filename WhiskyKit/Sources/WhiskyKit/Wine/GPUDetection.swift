@@ -76,7 +76,7 @@ public enum GPUVendor: String, Codable, CaseIterable, Sendable {
 /// incomplete or incorrect information, causing launchers to report "GPU not supported"
 /// or display black screens.
 ///
-/// This system addresses Issue #41 by configuring environment variables that make
+/// This system addresses frankea/Whisky#41 by configuring environment variables that make
 /// Wine report high-end GPU capabilities, allowing launchers to pass their checks.
 ///
 /// ## Safety Note

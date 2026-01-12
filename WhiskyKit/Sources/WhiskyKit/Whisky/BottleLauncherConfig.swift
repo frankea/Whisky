@@ -20,8 +20,8 @@ import Foundation
 
 /// Configuration settings for game launcher compatibility.
 ///
-/// This configuration section addresses Issue #41 and related upstream issues
-/// with Steam, Rockstar Games Launcher, EA App, Epic Games, and other platforms.
+/// This configuration section addresses frankea/Whisky#41 (tracking issue) and
+/// ~100 related upstream issues with Steam, Rockstar, EA App, Epic, and other platforms.
 ///
 /// ## Overview
 ///

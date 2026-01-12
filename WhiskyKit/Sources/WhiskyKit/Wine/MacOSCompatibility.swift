@@ -56,7 +56,8 @@ extension Wine {
     // MARK: - macOS Compatibility
 
     /// Apply environment variable fixes for macOS 15.x (Sequoia) compatibility
-    /// These fixes address issues #1372, #1310, #1307, and #41 (launcher compatibility)
+    /// These fixes address upstream issues whisky-app/whisky#1372, #1310, #1307
+    /// and frankea/Whisky#41 (launcher compatibility tracking issue)
     static func applyMacOSCompatibilityFixes(to environment: inout [String: String]) {
         let currentVersion = MacOSVersion.current
 
@@ -64,7 +65,7 @@ extension Wine {
         Logger.wineKit.info("Running on macOS \(currentVersion.description)")
 
         // CEF (Chromium Embedded Framework) sandbox conflicts with Wine on ALL macOS versions
-        // Applies to Steam, Epic Games, EA App, Rockstar Launcher (Issue #41)
+        // Applies to Steam, Epic Games, EA App, Rockstar Launcher (frankea/Whisky#41)
         // This was previously only applied to macOS 15.4.1+, but upstream reports
         // show CEF sandbox issues exist on all macOS versions when running under Wine
         environment["STEAM_DISABLE_CEF_SANDBOX"] = "1"

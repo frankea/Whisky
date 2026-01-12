@@ -34,5 +34,3 @@
 --disable redundantSelf
 # Don't add trailing commas (conflicts with SwiftLint trailing_comma rule)
 --disable trailingCommas
-# Don't wrap opening braces to new line (conflicts with SwiftLint opening_brace rule)
---disable wrapMultilineStatementBraces

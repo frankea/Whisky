@@ -22,7 +22,7 @@ public extension PEFile {
     /// Section Table (Section Headers)
     ///
     /// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#section-table-section-headers
-    struct Section: Hashable, Equatable, Sendable {
+    public struct Section: Hashable, Equatable, Sendable {
         public let name: String
         public let virtualSize: UInt32
         public let virtualAddress: UInt32

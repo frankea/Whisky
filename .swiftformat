@@ -36,3 +36,5 @@
 --disable trailingCommas
 # Don't wrap multiline statement braces (conflicts with SwiftLint opening_brace rule)
 --disable wrapMultilineStatementBraces
+# Nested types don't inherit access from extensions, so explicit public is needed
+--disable extensionAccessControl

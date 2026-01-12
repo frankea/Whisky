@@ -16,8 +16,10 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import XCTest
 @testable import WhiskyKit
+import XCTest
+
+// swiftlint:disable file_length type_body_length
 
 /// Comprehensive tests for launcher detection heuristics.
 ///
@@ -129,7 +131,8 @@ final class LauncherDetectionTests: XCTestCase {
     // MARK: - Epic Games Detection Tests
 
     func testDetectEpicGamesFromStandardPath() throws {
-        let url = URL(fileURLWithPath: "C:/Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe")
+        let path = "C:/Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe"
+        let url = URL(fileURLWithPath: path)
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .epicGames, "Should detect Epic Games from standard path")
     }
@@ -371,7 +374,7 @@ final class LauncherDetectionTests: XCTestCase {
         let url = URL(fileURLWithPath: "C:/Program Files/Steam/steam.exe")
 
         measure {
-            for _ in 0 ..< 1000 {
+            for _ in 0 ..< 1_000 {
                 _ = LauncherType.detectFromPath(url)
             }
         }
@@ -383,8 +386,8 @@ final class LauncherDetectionTests: XCTestCase {
 // MARK: - Helper Extension for Testing
 
 extension LauncherType {
-    /// Test helper method that calls the actual detection logic.
-    /// This would normally be in LauncherDetection, but we need to test it from WhiskyKit tests.
+    // Test helper method that calls the actual detection logic.
+    // This would normally be in LauncherDetection, but we need to test it from WhiskyKit tests.
     fileprivate static func detectFromPath(_ url: URL) -> LauncherType? {
         let filename = url.lastPathComponent.lowercased()
         let path = url.path.lowercased()
@@ -399,8 +402,7 @@ extension LauncherType {
             path.contains("/rockstar") ||
             path.contains("\\rockstar") ||
             (filename == "launcher.exe" && (path.contains("rockstar") || path.contains("social club"))) ||
-            filename.contains("launcherpatcher")
-        {
+            filename.contains("launcherpatcher") {
             return .rockstar
         }
 
@@ -410,8 +412,7 @@ extension LauncherType {
             filename.contains("origin.exe") ||
             path.contains("/ea app/") ||
             path.contains("\\ea app\\") ||
-            path.contains("/origin/")
-        {
+            path.contains("/origin/") {
             return .eaApp
         }
 
@@ -420,8 +421,7 @@ extension LauncherType {
             filename.contains("epiclauncher") ||
             filename.contains("epicwebhelper") ||
             path.contains("/epic games/") ||
-            path.contains("\\epic games\\")
-        {
+            path.contains("\\epic games\\") {
             return .epicGames
         }
 
@@ -429,8 +429,7 @@ extension LauncherType {
         if filename.contains("ubisoft") ||
             filename.contains("uplay") ||
             filename.contains("upc.exe") ||
-            path.contains("/ubisoft")
-        {
+            path.contains("/ubisoft") {
             return .ubisoft
         }
 
@@ -438,19 +437,19 @@ extension LauncherType {
         if filename.contains("battle.net") ||
             filename.contains("battlenet") ||
             path.contains("/battle.net/") ||
-            path.contains("\\battle.net\\")
-        {
+            path.contains("\\battle.net\\") {
             return .battleNet
         }
 
         // Paradox Launcher detection
         if filename.contains("paradox") ||
             path.contains("/paradox") ||
-            (filename.contains("launcher") && path.contains("paradox"))
-        {
+            (filename.contains("launcher") && path.contains("paradox")) {
             return .paradox
         }
 
         return nil
     }
 }
+
+// swiftlint:enable file_length type_body_length

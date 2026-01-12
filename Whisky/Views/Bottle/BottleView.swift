@@ -90,8 +90,8 @@ struct BottleView: View {
                                     if let url = panel.urls.first {
                                         do {
                                             // Auto-detect launcher if compatibility mode enabled
-                                            if bottle.settings.launcherCompatibilityMode &&
-                                                bottle.settings.launcherMode == .auto {
+                                            if bottle.settings.launcherCompatibilityMode,
+                                               bottle.settings.launcherMode == .auto {
                                                 if let detectedLauncher = LauncherDetection.detectLauncher(from: url) {
                                                     // Only apply if not already detected or different launcher
                                                     if bottle.settings.detectedLauncher != detectedLauncher {

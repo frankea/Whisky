@@ -103,8 +103,8 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             env["DXVK_ASYNC"] = "1"
 
             // Network timeout fixes for download issues (#1148, #1072, #1176)
-            env["WINHTTP_CONNECT_TIMEOUT"] = "90000"  // 90 seconds
-            env["WINHTTP_RECEIVE_TIMEOUT"] = "180000"  // 3 minutes
+            env["WINHTTP_CONNECT_TIMEOUT"] = "90000" // 90 seconds
+            env["WINHTTP_RECEIVE_TIMEOUT"] = "180000" // 3 minutes
 
         case .rockstar:
             // Rockstar Launcher fixes (#1335, #835, #1120)
@@ -185,9 +185,9 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     public var requiresDXVK: Bool {
         switch self {
         case .rockstar:
-            return true
+            true
         default:
-            return false
+            false
         }
     }
 
@@ -198,9 +198,9 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     public var recommendedLocale: Locales {
         switch self {
         case .steam, .eaApp, .epicGames, .battleNet:
-            return .english
+            .english
         default:
-            return .auto
+            .auto
         }
     }
 
@@ -208,19 +208,19 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     public var fixesDescription: String {
         switch self {
         case .steam:
-            return "Fixes steamwebhelper crashes, download stalls, and connection issues"
+            "Fixes steamwebhelper crashes, download stalls, and connection issues"
         case .rockstar:
-            return "Fixes logo freeze and launcher initialization failures"
+            "Fixes logo freeze and launcher initialization failures"
         case .eaApp:
-            return "Fixes black screen and GPU detection errors"
+            "Fixes black screen and GPU detection errors"
         case .epicGames:
-            return "Fixes launcher UI rendering and web view issues"
+            "Fixes launcher UI rendering and web view issues"
         case .ubisoft:
-            return "Improves launcher stability and game compatibility"
+            "Improves launcher stability and game compatibility"
         case .battleNet:
-            return "Fixes authentication and launcher rendering issues"
+            "Fixes authentication and launcher rendering issues"
         case .paradox:
-            return "Fixes recursive resource lookup bugs and initialization"
+            "Fixes recursive resource lookup bugs and initialization"
         }
     }
 }

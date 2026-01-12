@@ -102,7 +102,7 @@ extension Wine {
             environment["STEAM_RUNTIME"] = "0"
 
             // Enhanced thread management for wine-preloader issues (#1372)
-            environment["WINE_CPU_TOPOLOGY"] = "8:8"  // Match typical M-series config
+            environment["WINE_CPU_TOPOLOGY"] = "8:8" // Match typical M-series config
             environment["WINE_THREAD_PRIORITY_PRESERVE"] = "1"
 
             // Signal handling improvements

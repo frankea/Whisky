@@ -79,7 +79,7 @@ public struct BottleLauncherConfig: Codable, Equatable {
     ///
     /// Addresses Steam download stalls at 99% and connection timeouts.
     /// Default: 60000ms (60 seconds)
-    var networkTimeout: Int = 60000
+    var networkTimeout: Int = 60_000
 
     /// Whether to automatically apply DXVK when launcher requires it.
     ///
@@ -96,7 +96,7 @@ public struct BottleLauncherConfig: Codable, Equatable {
         self.launcherLocale = try container.decodeIfPresent(Locales.self, forKey: .launcherLocale) ?? .auto
         self.gpuSpoofing = try container.decodeIfPresent(Bool.self, forKey: .gpuSpoofing) ?? true
         self.gpuVendor = try container.decodeIfPresent(GPUVendor.self, forKey: .gpuVendor) ?? .nvidia
-        self.networkTimeout = try container.decodeIfPresent(Int.self, forKey: .networkTimeout) ?? 60000
+        self.networkTimeout = try container.decodeIfPresent(Int.self, forKey: .networkTimeout) ?? 60_000
         self.autoEnableDXVK = try container.decodeIfPresent(Bool.self, forKey: .autoEnableDXVK) ?? true
     }
 }

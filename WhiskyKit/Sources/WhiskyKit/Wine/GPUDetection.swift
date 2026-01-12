@@ -34,11 +34,11 @@ public enum GPUVendor: String, Codable, CaseIterable, Sendable {
     public var vendorID: String {
         switch self {
         case .nvidia:
-            return "0x10DE"
+            "0x10DE"
         case .amd:
-            return "0x1002"
+            "0x1002"
         case .intel:
-            return "0x8086"
+            "0x8086"
         }
     }
 
@@ -46,11 +46,11 @@ public enum GPUVendor: String, Codable, CaseIterable, Sendable {
     public var deviceID: String {
         switch self {
         case .nvidia:
-            return "0x2684"  // RTX 4090
+            "0x2684" // RTX 4090
         case .amd:
-            return "0x73FF"  // RX 6900 XT
+            "0x73FF" // RX 6900 XT
         case .intel:
-            return "0x9BC5"  // UHD Graphics 730
+            "0x9BC5" // UHD Graphics 730
         }
     }
 
@@ -58,11 +58,11 @@ public enum GPUVendor: String, Codable, CaseIterable, Sendable {
     public var modelName: String {
         switch self {
         case .nvidia:
-            return "NVIDIA GeForce RTX 4090"
+            "NVIDIA GeForce RTX 4090"
         case .amd:
-            return "AMD Radeon RX 6900 XT"
+            "AMD Radeon RX 6900 XT"
         case .intel:
-            return "Intel UHD Graphics 730"
+            "Intel UHD Graphics 730"
         }
     }
 }
@@ -102,7 +102,7 @@ public enum GPUVendor: String, Codable, CaseIterable, Sendable {
 ///
 /// ### Vendor Configuration
 /// - ``GPUVendor``
-public struct GPUDetection {
+public enum GPUDetection {
     /// Configures environment to report specific GPU capabilities.
     ///
     /// This method sets environment variables that Wine and DirectX use to report
@@ -121,9 +121,9 @@ public struct GPUDetection {
         env["MESA_GLSL_VERSION_OVERRIDE"] = "460"
 
         // DirectX feature levels
-        env["D3DM_FEATURE_LEVEL_12_1"] = "1"  // DirectX 12.1 support
-        env["D3DM_FEATURE_LEVEL_12_0"] = "1"  // DirectX 12.0 support
-        env["D3DM_FEATURE_LEVEL_11_1"] = "1"  // DirectX 11.1 support
+        env["D3DM_FEATURE_LEVEL_12_1"] = "1" // DirectX 12.1 support
+        env["D3DM_FEATURE_LEVEL_12_0"] = "1" // DirectX 12.0 support
+        env["D3DM_FEATURE_LEVEL_11_1"] = "1" // DirectX 11.1 support
 
         // PCI vendor and device IDs
         env["GPU_VENDOR_ID"] = vendor.vendorID
@@ -136,7 +136,7 @@ public struct GPUDetection {
         env["VK_ICD_FILENAMES"] = "/usr/local/share/vulkan/icd.d/MoltenVK_icd.json"
 
         // VRAM reporting (8GB minimum for modern launchers)
-        env["GPU_MEMORY_SIZE"] = "8192"  // 8GB in MB
+        env["GPU_MEMORY_SIZE"] = "8192" // 8GB in MB
 
         // Shader model support
         env["D3DM_SHADER_MODEL"] = "6.5"
@@ -158,7 +158,7 @@ public struct GPUDetection {
         var env = spoofGPU(vendor: .nvidia, model: "Apple M-series (as NVIDIA RTX 4090)")
 
         // Additional Apple Silicon optimizations
-        env["MTL_HUD_ENABLED"] = "0"  // Disable by default for spoofing
+        env["MTL_HUD_ENABLED"] = "0" // Disable by default for spoofing
         env["METAL_DEVICE_WRAPPER_TYPE"] = "1"
 
         // Ensure Metal is properly initialized

@@ -16,8 +16,8 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import XCTest
 @testable import WhiskyKit
+import XCTest
 
 final class GPUDetectionTests: XCTestCase {
     func testNVIDIAVendorID() throws {

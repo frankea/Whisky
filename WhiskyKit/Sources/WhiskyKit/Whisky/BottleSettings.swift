@@ -650,7 +650,7 @@ public struct BottleSettings: Codable, Equatable {
             wineEnv.merge(launcherEnv) { _, new in new }
 
             // Auto-enable DXVK if launcher requires it
-            if autoEnableDXVK && launcher.requiresDXVK {
+            if autoEnableDXVK, launcher.requiresDXVK {
                 wineEnv.updateValue("dxgi,d3d9,d3d10core,d3d11=n,b", forKey: "WINEDLLOVERRIDES")
             }
         }
@@ -674,18 +674,19 @@ public struct BottleSettings: Codable, Equatable {
         }
 
         // Network timeout configuration (for all launchers)
-        if networkTimeout != 60000 {  // If not default
+        if networkTimeout != 60_000 { // If not default
             wineEnv.updateValue(String(networkTimeout), forKey: "WINHTTP_CONNECT_TIMEOUT")
             wineEnv.updateValue(String(networkTimeout * 2), forKey: "WINHTTP_RECEIVE_TIMEOUT")
         }
 
         // Connection pooling fixes for download stalls (#1148, #1072, #1176)
         wineEnv.updateValue("10", forKey: "WINE_MAX_CONNECTIONS_PER_SERVER")
-        wineEnv.updateValue("1", forKey: "WINE_FORCE_HTTP11")  // HTTP/2 issues in Wine
+        wineEnv.updateValue("1", forKey: "WINE_FORCE_HTTP11") // HTTP/2 issues in Wine
 
         // SSL/TLS compatibility for launchers
         wineEnv.updateValue("1", forKey: "WINE_ENABLE_SSL")
         wineEnv.updateValue("TLS1.2", forKey: "WINE_SSL_VERSION_MIN")
     }
 }
+
 // swiftlint:enable type_body_length

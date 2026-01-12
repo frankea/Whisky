@@ -31,9 +31,9 @@ struct LauncherConfigSection: View {
                 // Enable launcher compatibility mode
                 Toggle("Launcher Compatibility Mode", isOn: $bottle.settings.launcherCompatibilityMode)
                     .help("""
-                        Enables automatic fixes for Steam, Rockstar, EA App, Epic Games, \
-                        and other game launchers (Issue #41)
-                        """)
+                    Enables automatic fixes for Steam, Rockstar, EA App, Epic Games, \
+                    and other game launchers (Issue #41)
+                    """)
 
                 if bottle.settings.launcherCompatibilityMode {
                     Divider()
@@ -45,9 +45,9 @@ struct LauncherConfigSection: View {
                     }
                     .pickerStyle(.segmented)
                     .help("""
-                        Automatic: Detects launcher from executable path\n\
-                        Manual: Use explicitly selected launcher type
-                        """)
+                    Automatic: Detects launcher from executable path\n\
+                    Manual: Use explicitly selected launcher type
+                    """)
 
                     // Manual launcher selection (only shown in manual mode)
                     if bottle.settings.launcherMode == .manual {
@@ -93,15 +93,15 @@ struct LauncherConfigSection: View {
                             }
                         }
                         .help("""
-                            Steam and Chromium-based launchers require en_US locale \
-                            to avoid steamwebhelper crashes
-                            """)
+                        Steam and Chromium-based launchers require en_US locale \
+                        to avoid steamwebhelper crashes
+                        """)
 
                         if bottle.settings.launcherLocale != .auto {
                             Text("""
-                                Forces \(bottle.settings.launcherLocale.pretty()) locale \
-                                to fix steamwebhelper crashes
-                                """)
+                            Forces \(bottle.settings.launcherLocale.pretty()) locale \
+                            to fix steamwebhelper crashes
+                            """)
                             .font(.caption)
                             .foregroundColor(.secondary)
                         }
@@ -110,9 +110,9 @@ struct LauncherConfigSection: View {
                     // GPU spoofing
                     Toggle("GPU Spoofing", isOn: $bottle.settings.gpuSpoofing)
                         .help("""
-                            Reports high-end GPU to pass launcher compatibility checks. \
-                            Fixes EA App black screen and "GPU not supported" errors.
-                            """)
+                        Reports high-end GPU to pass launcher compatibility checks. \
+                        Fixes EA App black screen and "GPU not supported" errors.
+                        """)
 
                     if bottle.settings.gpuSpoofing {
                         Picker("GPU Vendor:", selection: $bottle.settings.gpuVendor) {
@@ -130,7 +130,7 @@ struct LauncherConfigSection: View {
                         HStack {
                             Text("Network Timeout:")
                             Spacer()
-                            Text("\(bottle.settings.networkTimeout / 1000)s")
+                            Text("\(bottle.settings.networkTimeout / 1_000)s")
                                 .foregroundColor(.secondary)
                         }
 
@@ -139,8 +139,8 @@ struct LauncherConfigSection: View {
                                 get: { Double(bottle.settings.networkTimeout) },
                                 set: { bottle.settings.networkTimeout = Int($0) }
                             ),
-                            in: 30000...180000,
-                            step: 15000
+                            in: 30_000 ... 180_000,
+                            step: 15_000
                         )
 
                         Text("Fixes Steam download stalls and connection timeouts")
@@ -151,9 +151,9 @@ struct LauncherConfigSection: View {
                     // Auto-enable DXVK
                     Toggle("Auto-Enable DXVK for Launchers", isOn: $bottle.settings.autoEnableDXVK)
                         .help("""
-                            Automatically enables DXVK when launcher requires it \
-                            (e.g., Rockstar Games Launcher)
-                            """)
+                        Automatically enables DXVK when launcher requires it \
+                        (e.g., Rockstar Games Launcher)
+                        """)
 
                     Divider()
 

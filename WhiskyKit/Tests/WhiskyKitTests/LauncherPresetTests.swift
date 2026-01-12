@@ -16,8 +16,8 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import XCTest
 @testable import WhiskyKit
+import XCTest
 
 final class LauncherPresetTests: XCTestCase {
     func testSteamPresetIncludesLocale() throws {
@@ -124,8 +124,10 @@ final class LauncherPresetTests: XCTestCase {
     func testFixesDescription() throws {
         // Each launcher should have a description of fixes
         for launcher in LauncherType.allCases {
-            XCTAssertFalse(launcher.fixesDescription.isEmpty,
-                          "\(launcher.rawValue) should have fixes description")
+            XCTAssertFalse(
+                launcher.fixesDescription.isEmpty,
+                "\(launcher.rawValue) should have fixes description"
+            )
         }
     }
 

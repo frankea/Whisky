@@ -43,7 +43,7 @@ import WhiskyKit
 /// print(report)
 /// // Export to file for support requests
 /// ```
-struct LauncherDiagnostics {
+enum LauncherDiagnostics {
     /// Generates a comprehensive diagnostic report for a bottle.
     ///
     /// This report includes system information, bottle configuration, environment
@@ -188,7 +188,7 @@ struct LauncherDiagnostics {
         """
 
         var env: [String: String] = [:]
-        Wine.constructWineEnvironment(for: bottle, environment: [:]).forEach { key, value in
+        for (key, value) in Wine.constructWineEnvironment(for: bottle, environment: [:]) {
             env[key] = value
         }
 
@@ -279,7 +279,7 @@ struct LauncherDiagnostics {
                     recommendations += "💡 Enable DXVK for better Steam performance\n"
                     hasRecommendations = true
                 }
-                if bottle.settings.networkTimeout < 90000 {
+                if bottle.settings.networkTimeout < 90_000 {
                     recommendations += "💡 Increase network timeout to 90000ms for Steam downloads\n"
                     hasRecommendations = true
                 }

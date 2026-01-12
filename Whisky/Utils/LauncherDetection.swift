@@ -45,7 +45,7 @@ import WhiskyKit
 ///     LauncherDetection.applyLauncherFixes(for: bottle, launcher: launcher)
 /// }
 /// ```
-struct LauncherDetection {
+enum LauncherDetection {
     /// Detects launcher type from executable URL using heuristic analysis.
     ///
     /// This method examines both the executable filename and full path to identify
@@ -167,7 +167,7 @@ struct LauncherDetection {
             bottle.settings.gpuSpoofing = true
 
             // Longer network timeout for downloads
-            bottle.settings.networkTimeout = 90000  // 90 seconds
+            bottle.settings.networkTimeout = 90_000 // 90 seconds
 
         case .rockstar:
             // Rockstar REQUIRES DXVK to display logo and UI
@@ -210,7 +210,7 @@ struct LauncherDetection {
             }
 
             // Longer timeout for Ubisoft's servers
-            bottle.settings.networkTimeout = 90000
+            bottle.settings.networkTimeout = 90_000
 
         case .battleNet:
             // Battle.net Chromium-based launcher
@@ -250,7 +250,7 @@ struct LauncherDetection {
             if !bottle.settings.dxvk {
                 warnings.append("⚠️ DXVK should be enabled for best Steam performance")
             }
-            if bottle.settings.launcherLocale != .english && bottle.settings.launcherLocale != .auto {
+            if bottle.settings.launcherLocale != .english, bottle.settings.launcherLocale != .auto {
                 warnings.append("⚠️ Steam may crash without en_US locale (steamwebhelper issue)")
             }
             if !bottle.settings.gpuSpoofing {

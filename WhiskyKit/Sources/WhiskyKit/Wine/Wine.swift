@@ -258,7 +258,7 @@ public class Wine {
         // Enable DXVK if needed
         let shouldEnableDXVK = bottle.settings.dxvk ||
             (bottle.settings.autoEnableDXVK &&
-             bottle.settings.detectedLauncher?.requiresDXVK == true)
+                bottle.settings.detectedLauncher?.requiresDXVK == true)
 
         if shouldEnableDXVK {
             try enableDXVK(bottle: bottle)

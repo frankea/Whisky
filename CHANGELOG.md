@@ -7,12 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Comprehensive Launcher Compatibility System including detection, diagnostics, and configuration
+- SwiftFormat integration for automated code formatting
+- DocC documentation for WhiskyKit public API
+- Code coverage reporting and badges
+- GitHub Pages and Releases infrastructure
+- WhiskyKit test infrastructure and initial test suite
+- Dependabot configuration for dependency updates
+
 ### Changed
+- Refactored `BottleSettings` and `Wine` modules into smaller, focused components
+- Replaced `print()` statements with `os.log` Logger for better debugging
+- Consolidated CI workflows for improved efficiency
+- Implemented proper thread safety by removing `@unchecked Sendable` usage
 - Raised minimum deployment target from macOS 14 (Sonoma) to macOS 15 (Sequoia)
 - AVX toggle and Sequoia compatibility mode are now always visible (no longer gated by OS version)
 
+### Fixed
+- Corrected Dependabot Swift configuration
+
 ### Removed
+- Unmaintained CLI dependencies (SwiftyTextTable, Progress.swift)
 - Removed `#available(macOS 15, *)` availability checks as macOS 15 is now the minimum
+
+### Documentation
+- Added comprehensive Launcher Troubleshooting and Steam Compatibility guides
+- Removed obsolete Markdown files from the root and `docs/` directory
+- Updated `README.md` and `CONTRIBUTING.md` to reflect current project state
+- Consolidated documentation into the `docs/` directory
 
 ## [2.5.0] - 2026-01-10
 

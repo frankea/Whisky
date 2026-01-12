@@ -89,23 +89,10 @@ struct BottleView: View {
                                 if result == .OK {
                                     if let url = panel.urls.first {
                                         do {
-                                            // Auto-detect launcher if compatibility mode enabled
-                                            // Detection and settings persistence must complete before
-                                            // Wine.runProgram() reads settings for environment vars
-                                            if bottle.settings.launcherCompatibilityMode,
-                                               bottle.settings.launcherMode == .auto,
-                                               let detectedLauncher = LauncherDetection.detectLauncher(from: url),
-                                               bottle.settings.detectedLauncher != detectedLauncher {
-                                                // Apply fixes and save settings synchronously
-                                                LauncherDetection.applyLauncherFixes(
-                                                    for: bottle,
-                                                    launcher: detectedLauncher
-                                                )
-                                                // Settings are now persisted to disk via bottle.saveBottleSettings()
-                                                // which is called synchronously by applyLauncherFixes()
-                                            }
-                                            // Settings are guaranteed to be saved before we proceed
-                                            // because all operations above are synchronous on MainActor
+                                            // Auto-detect launcher and apply fixes if compatibility mode enabled
+                                            // This completes synchronously on MainActor, ensuring settings are
+                                            // persisted before Wine.runProgram() reads them
+                                            LauncherDetection.detectAndApplyLauncherFixes(from: url, for: bottle)
 
                                             if url.pathExtension == "bat" {
                                                 try await Wine.runBatchFile(url: url, bottle: bottle)

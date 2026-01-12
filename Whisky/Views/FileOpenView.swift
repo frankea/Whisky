@@ -79,32 +79,12 @@ struct FileOpenView: View {
         if let bottle = bottles.first(where: { $0.url == selection }) {
             Task.detached(priority: .userInitiated) {
                 do {
-                    // Auto-detect launcher if compatibility mode enabled
-                    // This runs synchronously on MainActor to ensure settings are persisted
-                    // before Wine.runProgram() reads them for environment configuration
+                    // Auto-detect launcher and apply fixes if compatibility mode enabled
+                    // This completes synchronously on MainActor, ensuring settings are
+                    // persisted before Wine.runProgram() reads them
                     await MainActor.run {
-                        guard bottle.settings.launcherCompatibilityMode,
-                              bottle.settings.launcherMode == .auto
-                        else {
-                            return
-                        }
-
-                        guard let detectedLauncher = LauncherDetection.detectLauncher(from: fileURL) else {
-                            return
-                        }
-
-                        // Only apply if not already detected or different launcher
-                        if bottle.settings.detectedLauncher != detectedLauncher {
-                            LauncherDetection.applyLauncherFixes(
-                                for: bottle,
-                                launcher: detectedLauncher
-                            )
-                            // Note: applyLauncherFixes() calls bottle.saveBottleSettings()
-                            // synchronously, ensuring persistence before we proceed
-                        }
+                        LauncherDetection.detectAndApplyLauncherFixes(from: fileURL, for: bottle)
                     }
-                    // Settings are guaranteed to be persisted at this point since
-                    // MainActor.run completes synchronously and waits for the block to finish
 
                     if fileURL.pathExtension == "bat" {
                         try await Wine.runBatchFile(

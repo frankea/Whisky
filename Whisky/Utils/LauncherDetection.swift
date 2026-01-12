@@ -52,6 +52,46 @@ private let detectionLogger = Logger(
 /// }
 /// ```
 enum LauncherDetection {
+    /// Detects and applies launcher fixes if compatibility mode is enabled.
+    ///
+    /// This is the primary entry point for launcher detection and configuration.
+    /// It handles both auto-detection and manual modes, applying appropriate
+    /// settings and ensuring they're persisted before program execution.
+    ///
+    /// **Thread Safety:** This method must be called on the MainActor since it
+    /// accesses and modifies bottle settings.
+    ///
+    /// - Parameters:
+    ///   - url: The URL to the Windows executable file
+    ///   - bottle: The bottle context for launcher configuration
+    /// - Returns: `true` if launcher was detected and fixes applied, `false` otherwise
+    @MainActor
+    @discardableResult
+    static func detectAndApplyLauncherFixes(from url: URL, for bottle: Bottle) -> Bool {
+        // Check if launcher compatibility mode is enabled
+        guard bottle.settings.launcherCompatibilityMode,
+              bottle.settings.launcherMode == .auto
+        else {
+            return false
+        }
+
+        // Attempt to detect launcher type
+        guard let detectedLauncher = detectLauncher(from: url) else {
+            return false
+        }
+
+        // Only apply if not already detected or different launcher
+        guard bottle.settings.detectedLauncher != detectedLauncher else {
+            detectionLogger.debug("Launcher \(detectedLauncher.rawValue) already configured for bottle")
+            return false
+        }
+
+        // Apply launcher-specific fixes and save synchronously
+        applyLauncherFixes(for: bottle, launcher: detectedLauncher)
+
+        return true
+    }
+
     /// Detects launcher type from executable URL using heuristic analysis.
     ///
     /// This method examines both the executable filename and full path to identify

@@ -32,7 +32,7 @@
 --disable fileHeader
 # Allow explicit self where it improves clarity
 --disable redundantSelf
-# Don't add trailing commas (conflicts with SwiftLint trailing_comma rule)
+# Let SwiftLint manage trailing commas (avoid conflicting fixes between tools)
 --disable trailingCommas
 # Don't wrap multiline statement braces (conflicts with SwiftLint opening_brace rule)
 --disable wrapMultilineStatementBraces

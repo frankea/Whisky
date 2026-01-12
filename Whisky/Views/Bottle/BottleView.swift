@@ -154,8 +154,7 @@ struct BottleView: View {
         for startMenuProgram in startMenuPrograms {
             for program in bottle.programs where
                 // For some godforsaken reason "foo/bar" != "foo/Bar" so...
-                program.url.path().caseInsensitiveCompare(startMenuProgram.url.path()) == .orderedSame
-            {
+                program.url.path().caseInsensitiveCompare(startMenuProgram.url.path()) == .orderedSame {
                 program.pinned = true
                 guard !bottle.settings.pins.contains(where: { $0.url == program.url }) else { return }
                 bottle.settings.pins.append(PinnedProgram(

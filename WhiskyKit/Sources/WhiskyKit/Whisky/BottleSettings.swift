@@ -380,7 +380,7 @@ public struct BottleSettings: Codable, Equatable {
     /// Locale override for launcher compatibility.
     ///
     /// Steam and other Chromium-based launchers require `en_US.UTF-8`
-    /// to avoid steamwebhelper crashes (#946, #1224, #1241).
+    /// to avoid steamwebhelper crashes (whisky-app/whisky#946, #1224, #1241).
     public var launcherLocale: Locales {
         get { launcherConfig.launcherLocale }
         set { launcherConfig.launcherLocale = newValue }
@@ -546,23 +546,23 @@ public struct BottleSettings: Codable, Equatable {
             wineEnv.updateValue("1", forKey: "MTL_DEBUG_LAYER")
         }
 
-        // macOS Sequoia compatibility mode (#1310, #1372)
+        // macOS Sequoia compatibility mode (whisky-app/whisky#1310, #1372)
         // Applies additional fixes for graphics and launcher issues on macOS 15.x
         // Since macOS 15 is now the minimum deployment target, we only check the setting
         if sequoiaCompatMode {
             // Disable problematic Metal shader validation on Sequoia
-            // This helps fix graphics corruption issues (#1310)
+            // This helps fix graphics corruption issues (whisky-app/whisky#1310)
             wineEnv.updateValue("0", forKey: "MTL_DEBUG_LAYER")
 
             // Stability improvements for D3DMetal on macOS 15.x
             wineEnv.updateValue("0", forKey: "D3DM_VALIDATION")
 
-            // Help with Steam and launcher compatibility (#1307, #1372)
+            // Help with Steam and launcher compatibility (whisky-app/whisky#1307, #1372)
             // Disable Wine's fsync which has issues on Sequoia
             wineEnv.updateValue("0", forKey: "WINEFSYNC")
         }
 
-        // Performance preset handling (#1361 - FPS regression fix)
+        // Performance preset handling (whisky-app/whisky#1361 - FPS regression fix)
         applyPerformancePreset(wineEnv: &wineEnv)
 
         // Shader cache control
@@ -571,7 +571,7 @@ public struct BottleSettings: Codable, Equatable {
             wineEnv.updateValue("0", forKey: "__GL_SHADER_DISK_CACHE")
         }
 
-        // Force D3D11 mode - helps with compatibility (#1361)
+        // Force D3D11 mode - helps with compatibility (whisky-app/whisky#1361)
         if forceD3D11 {
             wineEnv.updateValue("1", forKey: "D3DM_FORCE_D3D11")
             wineEnv.updateValue("0", forKey: "D3DM_FEATURE_LEVEL_12_0")
@@ -587,7 +587,7 @@ public struct BottleSettings: Codable, Equatable {
             break
 
         case .performance:
-            // Performance mode - prioritize FPS over visual quality (#1361 fix)
+            // Performance mode - prioritize FPS over visual quality (whisky-app/whisky#1361 fix)
             // Reduce D3DMetal shader quality for better performance
             wineEnv.updateValue("1", forKey: "D3DM_FAST_SHADER_COMPILE")
             // Disable extra validation that can slow down rendering
@@ -610,7 +610,7 @@ public struct BottleSettings: Codable, Equatable {
             wineEnv.updateValue("0", forKey: "D3DM_FAST_SHADER_COMPILE")
 
         case .unity:
-            // Unity games optimization (#1313, #1312 - il2cpp fix)
+            // Unity games optimization (whisky-app/whisky#1313, #1312 - il2cpp fix)
             // Unity games often need specific memory and threading settings
 
             // Fix for il2cpp loading issues
@@ -679,7 +679,7 @@ public struct BottleSettings: Codable, Equatable {
             wineEnv.updateValue(String(networkTimeout * 2), forKey: "WINHTTP_RECEIVE_TIMEOUT")
         }
 
-        // Connection pooling fixes for download stalls (#1148, #1072, #1176)
+        // Connection pooling fixes for download stalls (whisky-app/whisky#1148, #1072, #1176)
         wineEnv.updateValue("10", forKey: "WINE_MAX_CONNECTIONS_PER_SERVER")
         wineEnv.updateValue("1", forKey: "WINE_FORCE_HTTP11") // HTTP/2 issues in Wine
 

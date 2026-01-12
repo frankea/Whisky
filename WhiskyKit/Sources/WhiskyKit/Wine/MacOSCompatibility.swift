@@ -73,7 +73,7 @@ extension Wine {
 
         // macOS 15.3+ compatibility fixes
         if currentVersion >= .sequoia15_3 {
-            // Fix for graphics issues on macOS 15.3 (#1310)
+            // Fix for graphics issues on macOS 15.3 (whisky-app/whisky#1310)
             // Disable certain Metal validation that can cause rendering issues
             environment["MTL_DEBUG_LAYER"] = "0"
 
@@ -87,7 +87,7 @@ extension Wine {
 
         // macOS 15.4+ specific fixes
         if currentVersion >= .sequoia15_4 {
-            // Fix for Steam crashes on macOS 15.4.1 (#1372)
+            // Fix for Steam crashes on macOS 15.4.1 (whisky-app/whisky#1372)
             // The new security model in 15.4 changes how Wine handles certain syscalls
             environment["WINEFSYNC"] = "0"
 
@@ -102,7 +102,7 @@ extension Wine {
             // Additional fix for Steam web helper issues
             environment["STEAM_RUNTIME"] = "0"
 
-            // Enhanced thread management for wine-preloader issues (#1372)
+            // Enhanced thread management for wine-preloader issues (whisky-app/whisky#1372)
             environment["WINE_CPU_TOPOLOGY"] = "8:8" // Match typical M-series config
             environment["WINE_THREAD_PRIORITY_PRESERVE"] = "1"
 
@@ -117,7 +117,7 @@ extension Wine {
 
         // macOS 15.4.1 specific fixes
         if currentVersion >= .sequoia15_4_1 {
-            // Specific workaround for 15.4.1 regression (#1372)
+            // Specific workaround for 15.4.1 regression (whisky-app/whisky#1372)
             // Apple changed mach port handling which affects Wine
             environment["WINE_MACH_PORT_TIMEOUT"] = "30000"
 

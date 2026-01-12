@@ -71,7 +71,7 @@ enum LauncherDetection {
 
         // Rockstar Games Launcher detection
         // Common paths: Launcher.exe in Rockstar Games directory
-        // LauncherPatcher.exe (workaround for #835)
+        // LauncherPatcher.exe (workaround for whisky-app/whisky#835)
         if filename.contains("rockstar") ||
             path.contains("/rockstar") ||
             path.contains("\\rockstar") ||

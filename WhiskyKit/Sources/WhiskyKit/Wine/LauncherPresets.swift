@@ -73,10 +73,10 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     /// Returns optimized environment variables for this launcher.
     ///
     /// These overrides address specific compatibility issues:
-    /// - **Steam**: Fixes steamwebhelper crashes (#946, #1224, #1241) via locale and CEF sandbox
-    /// - **Rockstar**: Requires DXVK for logo rendering (#1335, #835)
+    /// - **Steam**: Fixes steamwebhelper crashes (whisky-app/whisky#946, #1224, #1241) via locale and CEF sandbox
+    /// - **Rockstar**: Requires DXVK for logo rendering (whisky-app/whisky#1335, #835)
     /// - **EA App/Epic**: Chromium-based, need sandbox and locale fixes
-    /// - **Ubisoft**: Requires D3D11 mode for stability (#1004)
+    /// - **Ubisoft**: Requires D3D11 mode for stability (whisky-app/whisky#1004)
     ///
     /// - Returns: Dictionary of environment variable key-value pairs
     public func environmentOverrides() -> [String: String] {
@@ -84,7 +84,8 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
 
         switch self {
         case .steam:
-            // Steam-specific fixes for steamwebhelper crashes (#946, #1224, #1241)
+            // Steam-specific fixes for steamwebhelper crashes
+            // (whisky-app/whisky#946, #1224, #1241)
             // The Chromium Embedded Framework in Steam requires specific locale
             env["LC_ALL"] = "en_US.UTF-8"
             env["LANG"] = "en_US.UTF-8"
@@ -102,12 +103,13 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             // Reduce UI stuttering in Steam client
             env["DXVK_ASYNC"] = "1"
 
-            // Network timeout fixes for download issues (#1148, #1072, #1176)
+            // Network timeout fixes for download issues
+            // (whisky-app/whisky#1148, #1072, #1176)
             env["WINHTTP_CONNECT_TIMEOUT"] = "90000" // 90 seconds
             env["WINHTTP_RECEIVE_TIMEOUT"] = "180000" // 3 minutes
 
         case .rockstar:
-            // Rockstar Launcher fixes (#1335, #835, #1120)
+            // Rockstar Launcher fixes (whisky-app/whisky#1335, #835, #1120)
             // DXVK is REQUIRED for logo screen to render
             env["DXVK_REQUIRED"] = "1"
 
@@ -124,7 +126,7 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             env["LC_ALL"] = "en_US.UTF-8"
 
         case .eaApp:
-            // EA App (formerly Origin) fixes (#1195, #1322)
+            // EA App (formerly Origin) fixes (whisky-app/whisky#1195, #1322)
             // Chromium-based like Steam
             env["CEF_DISABLE_SANDBOX"] = "1"
             env["LC_ALL"] = "en_US.UTF-8"
@@ -149,7 +151,7 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             env["WINE_DISABLE_NTDLL_THREAD_REGS"] = "1"
 
         case .ubisoft:
-            // Ubisoft Connect fixes (#1004)
+            // Ubisoft Connect fixes (whisky-app/whisky#1004)
             // Requires D3D11 mode
             env["D3DM_FORCE_D3D11"] = "1"
 
@@ -168,7 +170,7 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             env["WINE_CPU_TOPOLOGY"] = "8:8"
 
         case .paradox:
-            // Paradox Launcher fixes (#1091)
+            // Paradox Launcher fixes (whisky-app/whisky#1091)
             // Resource lookup bug workaround
             env["WINE_DISABLE_FAST_PATH"] = "1"
 

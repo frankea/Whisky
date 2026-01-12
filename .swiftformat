@@ -38,3 +38,4 @@
 --disable wrapMultilineStatementBraces
 # Nested types don't inherit access from extensions, so explicit public is needed
 --disable extensionAccessControl
+--disable redundantExtensionACL

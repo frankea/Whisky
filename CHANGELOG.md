@@ -7,14 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- Nothing yet
-
 ### Changed
-- Nothing yet
+- Raised minimum deployment target from macOS 14 (Sonoma) to macOS 15 (Sequoia)
+- AVX toggle and Sequoia compatibility mode are now always visible (no longer gated by OS version)
 
-### Fixed
-- Nothing yet
+### Removed
+- Removed `#available(macOS 15, *)` availability checks as macOS 15 is now the minimum
 
 ## [2.5.0] - 2026-01-10
 

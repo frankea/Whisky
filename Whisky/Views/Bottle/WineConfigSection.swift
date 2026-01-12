@@ -91,19 +91,17 @@ struct WineConfigSection: View {
                     )
                 }
             }
-            if #available(macOS 15, *) {
-                Toggle(isOn: $bottle.settings.avxEnabled) {
-                    VStack(alignment: .leading) {
-                        Text("config.avx")
-                        if bottle.settings.avxEnabled {
-                            HStack(alignment: .firstTextBaseline) {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .symbolRenderingMode(.multicolor)
-                                    .font(.subheadline)
-                                Text("config.avx.warning")
-                                    .fontWeight(.light)
-                                    .font(.subheadline)
-                            }
+            Toggle(isOn: $bottle.settings.avxEnabled) {
+                VStack(alignment: .leading) {
+                    Text("config.avx")
+                    if bottle.settings.avxEnabled {
+                        HStack(alignment: .firstTextBaseline) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .symbolRenderingMode(.multicolor)
+                                .font(.subheadline)
+                            Text("config.avx.warning")
+                                .fontWeight(.light)
+                                .font(.subheadline)
                         }
                     }
                 }

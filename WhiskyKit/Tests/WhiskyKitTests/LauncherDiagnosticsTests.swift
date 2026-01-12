@@ -440,12 +440,12 @@ final class LauncherDiagnosticsTests: XCTestCase {
         bottle.settings.launcherCompatibilityMode = true
         bottle.settings.detectedLauncher = .steam
 
-        var env: [String: String] = [:]
-        bottle.settings.environmentVariables(wineEnv: &env)
+        // Use constructWineEnvironment to get full environment including macOS compat fixes
+        let env = Wine.constructWineEnvironment(for: bottle, environment: [:])
 
         // Verify Steam-specific environment variables are merged
-        XCTAssertEqual(env["STEAM_DISABLE_CEF_SANDBOX"], "1")
-        XCTAssertEqual(env["CEF_DISABLE_SANDBOX"], "1")
+        XCTAssertEqual(env["STEAM_DISABLE_CEF_SANDBOX"], "1", "Steam-specific CEF disable from preset")
+        XCTAssertEqual(env["CEF_DISABLE_SANDBOX"], "1", "Global CEF disable from MacOSCompatibility")
         XCTAssertEqual(env["STEAM_RUNTIME"], "0")
         XCTAssertEqual(env["DXVK_ASYNC"], "1")
     }

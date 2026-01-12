@@ -93,9 +93,9 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             env["LC_TIME"] = "C"
             env["LC_NUMERIC"] = "C"
 
-            // CEF sandbox conflicts with Wine's security model
+            // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
+            // for all launchers. We only set Steam-specific variant here.
             env["STEAM_DISABLE_CEF_SANDBOX"] = "1"
-            env["CEF_DISABLE_SANDBOX"] = "1"
 
             // Steam Runtime causes issues under Wine
             env["STEAM_RUNTIME"] = "0"
@@ -112,8 +112,7 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             // DXVK is REQUIRED for logo screen to render
             env["DXVK_REQUIRED"] = "1"
 
-            // CEF sandbox disable
-            env["CEF_DISABLE_SANDBOX"] = "1"
+            // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
 
             // Force D3D11 mode for better compatibility
             env["D3DM_FORCE_D3D11"] = "1"
@@ -126,8 +125,7 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
 
         case .eaApp:
             // EA App (formerly Origin) fixes (whisky-app/whisky#1195, #1322)
-            // Chromium-based like Steam
-            env["CEF_DISABLE_SANDBOX"] = "1"
+            // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
             env["LC_ALL"] = "en_US.UTF-8"
             env["LANG"] = "en_US.UTF-8"
 
@@ -138,8 +136,7 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
 
         case .epicGames:
             // Epic Games Store launcher fixes
-            // Uses Chromium Embedded Framework
-            env["CEF_DISABLE_SANDBOX"] = "1"
+            // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
             env["LC_ALL"] = "en_US.UTF-8"
 
             // Epic launcher stability improvements
@@ -161,7 +158,7 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
 
         case .battleNet:
             // Blizzard Battle.net launcher
-            env["CEF_DISABLE_SANDBOX"] = "1"
+            // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
             env["LC_ALL"] = "en_US.UTF-8"
 
             // Battle.net requires specific threading

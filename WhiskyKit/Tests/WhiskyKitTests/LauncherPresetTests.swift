@@ -35,9 +35,13 @@ final class LauncherPresetTests: XCTestCase {
     func testSteamPresetDisablesSandbox() throws {
         let env = LauncherType.steam.environmentOverrides()
 
-        // CEF sandbox must be disabled for Wine compatibility
+        // Steam-specific CEF sandbox disable
         XCTAssertEqual(env["STEAM_DISABLE_CEF_SANDBOX"], "1")
-        XCTAssertEqual(env["CEF_DISABLE_SANDBOX"], "1")
+
+        // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
+        // for all launchers, not in individual presets. This provides single
+        // point of control for the security-sensitive setting.
+        XCTAssertNil(env["CEF_DISABLE_SANDBOX"], "Should be set globally, not in preset")
 
         // Steam runtime causes issues under Wine
         XCTAssertEqual(env["STEAM_RUNTIME"], "0")
@@ -74,19 +78,20 @@ final class LauncherPresetTests: XCTestCase {
         // EA App needs D3D feature level reporting
         XCTAssertEqual(env["D3DM_FEATURE_LEVEL_12_1"], "1")
 
-        // Chromium-based, needs CEF sandbox disabled
-        XCTAssertEqual(env["CEF_DISABLE_SANDBOX"], "1")
+        // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
+        XCTAssertNil(env["CEF_DISABLE_SANDBOX"], "Should be set globally, not in preset")
     }
 
     func testEpicGamesPreset() throws {
         let env = LauncherType.epicGames.environmentOverrides()
 
-        // Epic Games launcher is Chromium-based
-        XCTAssertEqual(env["CEF_DISABLE_SANDBOX"], "1")
-        XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8")
+        // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
+        XCTAssertNil(env["CEF_DISABLE_SANDBOX"], "Should be set globally, not in preset")
 
-        // Threading improvements
+        // Epic-specific settings
+        XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8")
         XCTAssertEqual(env["WINE_DISABLE_NTDLL_THREAD_REGS"], "1")
+        XCTAssertEqual(env["D3DM_FORCE_D3D11"], "1")
     }
 
     func testUbisoftPreset() throws {
@@ -100,10 +105,11 @@ final class LauncherPresetTests: XCTestCase {
     func testBattleNetPreset() throws {
         let env = LauncherType.battleNet.environmentOverrides()
 
-        XCTAssertEqual(env["CEF_DISABLE_SANDBOX"], "1")
-        XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8")
+        // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
+        XCTAssertNil(env["CEF_DISABLE_SANDBOX"], "Should be set globally, not in preset")
 
-        // Threading configuration
+        // Battle.net-specific settings
+        XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8")
         XCTAssertEqual(env["WINE_CPU_TOPOLOGY"], "8:8")
     }
 

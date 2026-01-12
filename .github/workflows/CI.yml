@@ -93,27 +93,10 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
 
-  # Check if WhiskyKit files changed
-  changes:
-    name: Check Changes
-    runs-on: ubuntu-latest
-    outputs:
-      whiskykit: ${{ steps.filter.outputs.whiskykit }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            whiskykit:
-              - 'WhiskyKit/**'
-              - '.github/workflows/CI.yml'
-
-  # Test job for WhiskyKit - only runs when WhiskyKit files change
+  # Test job for WhiskyKit - always runs to ensure coverage is uploaded
   test:
     name: Run Tests
-    needs: [lint, format, changes]
-    if: needs.changes.outputs.whiskykit == 'true'
+    needs: [lint, format]
     runs-on: macos-14
     
     steps:
@@ -151,38 +134,82 @@ jobs:
         id: coverage
         run: |
           cd WhiskyKit
-          # Find the test executable - the xctest bundle contains a binary with the same name
-          XCTEST_BUNDLE=$(find .build/debug -name "*.xctest" -type d | head -1)
+          
+          # Debug: Show what's in the build directory
+          echo "=== Contents of .build/debug ==="
+          ls -la .build/debug/ || echo "No .build/debug directory"
+          
+          echo "=== Looking for test executables ==="
+          find .build/debug -type f -perm +111 -name "*Tests*" 2>/dev/null || echo "No test executables found"
+          
+          echo "=== Looking for profdata files ==="
+          find .build -name "*.profdata" 2>/dev/null || echo "No profdata files found"
+          
+          # For Swift Package Manager, the test binary is directly in .build/debug
+          # Try multiple possible locations
+          TEST_BINARY=""
+          
+          # Check for SPM test binary (format: PackageNamePackageTests.xctest/Contents/MacOS/PackageNamePackageTests)
+          XCTEST_BUNDLE=$(find .build/debug -name "*.xctest" -type d 2>/dev/null | head -1)
           if [ -n "$XCTEST_BUNDLE" ]; then
-            # Get the bundle name without path and extension to find the binary
             BUNDLE_NAME=$(basename "$XCTEST_BUNDLE" .xctest)
             TEST_BINARY="$XCTEST_BUNDLE/Contents/MacOS/$BUNDLE_NAME"
-            if [ -f "$TEST_BINARY" ]; then
+            echo "=== Found xctest bundle, trying: $TEST_BINARY ==="
+          fi
+          
+          # If not found, try direct executable (older SPM format)
+          if [ ! -f "$TEST_BINARY" ]; then
+            TEST_BINARY=$(find .build/debug -type f -perm +111 -name "WhiskyKitPackageTests" 2>/dev/null | head -1)
+            echo "=== Trying direct executable: $TEST_BINARY ==="
+          fi
+          
+          # If still not found, try any test executable
+          if [ ! -f "$TEST_BINARY" ]; then
+            TEST_BINARY=$(find .build/debug -type f -perm +111 -name "*PackageTests*" ! -name "*.o" 2>/dev/null | head -1)
+            echo "=== Trying any PackageTests executable: $TEST_BINARY ==="
+          fi
+          
+          if [ -f "$TEST_BINARY" ]; then
+            echo "=== Found test binary: $TEST_BINARY ==="
+            
+            PROFDATA=$(find .build -name "default.profdata" 2>/dev/null | head -1)
+            if [ -n "$PROFDATA" ]; then
+              echo "=== Using profdata: $PROFDATA ==="
               xcrun llvm-cov export \
                 "$TEST_BINARY" \
-                -instr-profile=.build/debug/codecov/default.profdata \
+                -instr-profile="$PROFDATA" \
                 -format=lcov > coverage.lcov
-              echo "Coverage report generated successfully"
-              echo "has_coverage=true" >> $GITHUB_OUTPUT
+              
+              # Verify the coverage file was created and has content
+              if [ -s coverage.lcov ]; then
+                echo "✅ Coverage report generated successfully"
+                echo "=== Coverage file size: $(wc -c < coverage.lcov) bytes ==="
+                echo "=== First 20 lines of coverage.lcov ==="
+                head -20 coverage.lcov
+                echo "has_coverage=true" >> $GITHUB_OUTPUT
+              else
+                echo "❌ Coverage file is empty"
+              fi
             else
-              echo "Warning: Test binary not found at $TEST_BINARY"
+              echo "❌ Warning: No profdata file found"
             fi
           else
-            echo "Warning: No xctest bundle found, skipping coverage report"
+            echo "❌ Warning: Could not find test binary"
+            echo "=== Listing all executables in .build/debug ==="
+            find .build/debug -type f -perm +111 2>/dev/null | head -20
           fi
-        continue-on-error: true
       
       - name: Upload Coverage to Codecov
         if: steps.coverage.outputs.has_coverage == 'true'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: WhiskyKit/coverage.lcov
           flags: whiskykit
           name: WhiskyKit-coverage
           fail_ci_if_error: false
           verbose: true
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          # Use token for private repos or to avoid rate limiting
+          token: ${{ secrets.CODECOV_TOKEN }}
       
       - name: Upload Coverage Report (Artifact)
         if: steps.coverage.outputs.has_coverage == 'true'

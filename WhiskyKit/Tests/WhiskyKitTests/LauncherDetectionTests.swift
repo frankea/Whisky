@@ -94,6 +94,38 @@ final class LauncherDetectionTests: XCTestCase {
         XCTAssertNil(detected, "Generic launcher.exe with no Rockstar path should return nil")
     }
 
+    func testGenericLauncherWithoutSpecificPath() throws {
+        // Test that launcher.exe alone is not enough - requires "rockstar games" or "social club" in path
+        let falsePaths = [
+            "C:/Program Files/MyLauncher/Launcher.exe",
+            "C:/Games/CustomLauncher/Launcher.exe",
+            "C:/Launcher.exe", // Just filename
+            "C:/rock/Launcher.exe" // Contains "rock" but not "rockstar games"
+        ]
+
+        for path in falsePaths {
+            let url = URL(fileURLWithPath: path)
+            let detected = LauncherType.detectFromPath(url)
+            XCTAssertNotEqual(detected, .rockstar, "Path '\(path)' should not match Rockstar (too generic)")
+            XCTAssertNil(detected, "Path '\(path)' should return nil (no specific launcher match)")
+        }
+    }
+
+    func testRockstarRequiresSpecificPath() throws {
+        // Verify Rockstar detection requires "rockstar games" or "social club" in full
+        let validRockstarPaths = [
+            "C:/Program Files/Rockstar Games/Launcher/Launcher.exe",
+            "C:/Rockstar Games/Social Club/Launcher.exe",
+            "C:/Program Files/Rockstar Games Launcher/Launcher.exe"
+        ]
+
+        for path in validRockstarPaths {
+            let url = URL(fileURLWithPath: path)
+            let detected = LauncherType.detectFromPath(url)
+            XCTAssertEqual(detected, .rockstar, "Valid Rockstar path should detect: \(path)")
+        }
+    }
+
     // MARK: - EA App / Origin Detection Tests
 
     func testDetectEAAppFromStandardPath() throws {
@@ -398,11 +430,13 @@ extension LauncherType {
         }
 
         // Rockstar Games detection
+        // Be specific about generic "launcher.exe" to avoid false positives
         if filename.contains("rockstar") ||
-            path.contains("/rockstar") ||
-            path.contains("\\rockstar") ||
-            (filename == "launcher.exe" && (path.contains("rockstar") || path.contains("social club"))) ||
-            filename.contains("launcherpatcher") {
+            filename.contains("launcherpatcher") ||
+            path.contains("rockstar games") ||
+            path.contains("rockstar games launcher") ||
+            (filename == "launcher.exe" &&
+                (path.contains("rockstar games") || path.contains("social club"))) {
             return .rockstar
         }
 

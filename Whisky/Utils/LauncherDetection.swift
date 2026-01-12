@@ -20,6 +20,9 @@ import Foundation
 import os.log
 import WhiskyKit
 
+// swiftlint:disable file_length
+// Comprehensive launcher detection and configuration requires extensive logic
+
 private let detectionLogger = Logger(
     subsystem: Bundle.main.bundleIdentifier ?? "com.franke.Whisky",
     category: "LauncherDetection"
@@ -112,11 +115,13 @@ enum LauncherDetection {
         // Rockstar Games Launcher detection
         // Common paths: Launcher.exe in Rockstar Games directory
         // LauncherPatcher.exe (workaround for whisky-app/whisky#835)
+        // Note: Be specific about generic "launcher.exe" to avoid false positives
         if filename.contains("rockstar") ||
-            path.contains("/rockstar") ||
-            path.contains("\\rockstar") ||
-            (filename == "launcher.exe" && (path.contains("rockstar") || path.contains("social club"))) ||
-            filename.contains("launcherpatcher") {
+            filename.contains("launcherpatcher") ||
+            path.contains("rockstar games") ||
+            path.contains("rockstar games launcher") ||
+            (filename == "launcher.exe" &&
+                (path.contains("rockstar games") || path.contains("social club"))) {
             return .rockstar
         }
 

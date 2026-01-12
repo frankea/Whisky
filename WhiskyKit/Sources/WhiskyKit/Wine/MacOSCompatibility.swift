@@ -56,12 +56,19 @@ extension Wine {
     // MARK: - macOS Compatibility
 
     /// Apply environment variable fixes for macOS 15.x (Sequoia) compatibility
-    /// These fixes address issues #1372, #1310, #1307
+    /// These fixes address issues #1372, #1310, #1307, and #41 (launcher compatibility)
     static func applyMacOSCompatibilityFixes(to environment: inout [String: String]) {
         let currentVersion = MacOSVersion.current
 
         // Log macOS version for debugging
         Logger.wineKit.info("Running on macOS \(currentVersion.description)")
+
+        // CEF (Chromium Embedded Framework) sandbox conflicts with Wine on ALL macOS versions
+        // Applies to Steam, Epic Games, EA App, Rockstar Launcher (Issue #41)
+        // This was previously only applied to macOS 15.4.1+, but upstream reports
+        // show CEF sandbox issues exist on all macOS versions when running under Wine
+        environment["STEAM_DISABLE_CEF_SANDBOX"] = "1"
+        environment["CEF_DISABLE_SANDBOX"] = "1"
 
         // macOS 15.3+ compatibility fixes
         if currentVersion >= .sequoia15_3 {
@@ -93,6 +100,18 @@ extension Wine {
 
             // Additional fix for Steam web helper issues
             environment["STEAM_RUNTIME"] = "0"
+
+            // Enhanced thread management for wine-preloader issues (#1372)
+            environment["WINE_CPU_TOPOLOGY"] = "8:8"  // Match typical M-series config
+            environment["WINE_THREAD_PRIORITY_PRESERVE"] = "1"
+
+            // Signal handling improvements
+            environment["WINE_ENABLE_POSIX_SIGNALS"] = "1"
+            environment["WINE_SIGPIPE_IGNORE"] = "1"
+
+            // Process creation reliability
+            environment["WINE_PRELOADER_DEBUG"] = "0"
+            environment["WINE_DISABLE_FAST_PATH"] = "1"
         }
 
         // macOS 15.4.1 specific fixes
@@ -101,9 +120,8 @@ extension Wine {
             // Apple changed mach port handling which affects Wine
             environment["WINE_MACH_PORT_TIMEOUT"] = "30000"
 
-            // Disable CEF sandbox which causes issues on macOS 15.4.1+
-            // This workaround preserves compatibility with existing behaviour.
-            environment["STEAM_DISABLE_CEF_SANDBOX"] = "1"
+            // Additional thread affinity and mach port fixes
+            environment["WINE_MACH_PORT_RETRY_COUNT"] = "5"
         }
     }
 }

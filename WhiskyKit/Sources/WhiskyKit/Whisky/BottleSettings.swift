@@ -673,8 +673,11 @@ public struct BottleSettings: Codable, Equatable {
             }
         }
 
-        // Network timeout configuration (for all launchers)
-        if networkTimeout != 60_000 { // If not default
+        // Network timeout configuration
+        // Applied if user customized timeout (including launcher-set values)
+        // Launcher-specific timeouts are set via bottle.settings.networkTimeout by
+        // LauncherDetection.applyLauncherFixes(), giving users control via UI slider
+        if networkTimeout != 60_000 { // If not default (60s)
             wineEnv.updateValue(String(networkTimeout), forKey: "WINHTTP_CONNECT_TIMEOUT")
             wineEnv.updateValue(String(networkTimeout * 2), forKey: "WINHTTP_RECEIVE_TIMEOUT")
         }

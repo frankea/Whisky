@@ -103,10 +103,9 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             // Reduce UI stuttering in Steam client
             env["DXVK_ASYNC"] = "1"
 
-            // Network timeout fixes for download issues
-            // (whisky-app/whisky#1148, #1072, #1176)
-            env["WINHTTP_CONNECT_TIMEOUT"] = "90000" // 90 seconds
-            env["WINHTTP_RECEIVE_TIMEOUT"] = "180000" // 3 minutes
+            // Note: Network timeouts for Steam are configured via bottle.settings.networkTimeout
+            // which is set to 90000ms by LauncherDetection.applyLauncherFixes()
+            // This allows users to customize timeouts via the UI slider
 
         case .rockstar:
             // Rockstar Launcher fixes (whisky-app/whisky#1335, #835, #1120)
@@ -135,8 +134,7 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             // GPU detection fixes for "GPU not supported" errors
             env["D3DM_FEATURE_LEVEL_12_1"] = "1"
 
-            // Network configuration
-            env["WINHTTP_CONNECT_TIMEOUT"] = "60000"
+            // Note: Network timeouts configured via bottle.settings.networkTimeout (default 60s)
 
         case .epicGames:
             // Epic Games Store launcher fixes
@@ -158,8 +156,8 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             // Anno 1800 and other Ubisoft games compatibility
             env["DXVK_ASYNC"] = "1"
 
-            // Ubisoft launcher network improvements
-            env["WINHTTP_CONNECT_TIMEOUT"] = "90000"
+            // Note: Network timeouts for Ubisoft are configured via bottle.settings.networkTimeout
+            // which is set to 90000ms by LauncherDetection.applyLauncherFixes()
 
         case .battleNet:
             // Blizzard Battle.net launcher

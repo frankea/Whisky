@@ -46,9 +46,15 @@ final class LauncherPresetTests: XCTestCase {
     func testSteamPresetIncludesNetworkFixes() throws {
         let env = LauncherType.steam.environmentOverrides()
 
-        // Network timeouts for download reliability
-        XCTAssertNotNil(env["WINHTTP_CONNECT_TIMEOUT"])
-        XCTAssertNotNil(env["WINHTTP_RECEIVE_TIMEOUT"])
+        // Network timeouts are now configured via bottle.settings.networkTimeout
+        // instead of directly in launcher presets. This allows user customization.
+        // Verify Steam preset doesn't set them (they're set by BottleSettings)
+        XCTAssertNil(env["WINHTTP_CONNECT_TIMEOUT"])
+        XCTAssertNil(env["WINHTTP_RECEIVE_TIMEOUT"])
+
+        // Steam should still set other important fixes
+        XCTAssertEqual(env["STEAM_DISABLE_CEF_SANDBOX"], "1")
+        XCTAssertEqual(env["DXVK_ASYNC"], "1")
     }
 
     func testRockstarRequiresDXVK() throws {

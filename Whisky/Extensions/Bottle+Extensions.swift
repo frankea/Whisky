@@ -29,8 +29,8 @@ extension Bottle {
     func openTerminal() {
         let whiskyCmdURL = Bundle.main.url(forResource: "WhiskyCmd", withExtension: nil)
         if let whiskyCmdURL {
-            let whiskyCmd = whiskyCmdURL.path(percentEncoded: false)
-            let cmd = "eval \\\"$(\\\"\(whiskyCmd)\\\" shellenv \\\"\(settings.name)\\\")\\\""
+            // Use .esc to escape shell metacharacters and prevent command injection
+            let cmd = "eval \\\"$(\\\"\(whiskyCmdURL.esc)\\\" shellenv \\\"\(settings.name.esc)\\\")\\\""
 
             let script = """
             tell application "Terminal"

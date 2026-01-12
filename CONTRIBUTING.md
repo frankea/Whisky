@@ -24,12 +24,27 @@ Using a different version may produce different formatting results. CI uses this
 
 ### Installation
 
+**Option 1: Homebrew (latest version)**
 ```bash
-# Install specific version (recommended)
-brew install swiftformat@0.58.7
-
-# Or install latest (may differ from CI)
 brew install swiftformat
+swiftformat --version  # Verify version matches 0.58.7
+```
+
+**Option 2: Download specific version (recommended)**
+```bash
+# Download pre-built binary for macOS
+curl -LO https://github.com/nicklockwood/SwiftFormat/releases/download/0.58.7/swiftformat.zip
+unzip swiftformat.zip
+sudo mv swiftformat /usr/local/bin/
+```
+
+**Option 3: Build from source**
+```bash
+git clone https://github.com/nicklockwood/SwiftFormat.git
+cd SwiftFormat
+git checkout 0.58.7
+swift build -c release
+sudo cp .build/release/swiftformat /usr/local/bin/
 ```
 
 ### Usage

@@ -18,7 +18,7 @@
 
 import Foundation
 
-extension String {
+public extension String {
     /// Escapes shell metacharacters and removes control characters for safe shell interpolation.
     ///
     /// This property returns a string safe for use in shell commands by:
@@ -28,7 +28,7 @@ extension String {
     /// - Important: Control characters are stripped rather than escaped because
     ///   backslash-escaped newlines in shell are treated as line continuations, which can enable command chaining
     ///   instead of representing literal newlines.
-    public var esc: String {
+    var esc: String {
         // First, remove control characters (newlines, tabs, carriage returns, etc.)
         // These could be used for command injection if present in filenames or arguments
         var str = self.filter { char in
@@ -42,8 +42,31 @@ extension String {
         }
 
         // Escape shell metacharacters
-        let metacharacters = ["\\", "\"", "'", " ", "(", ")", "[", "]", "{", "}", "&", "|",
-                              ";", "<", ">", "`", "$", "!", "*", "?", "#", "~", "="]
+        let metacharacters = [
+            "\\",
+            "\"",
+            "'",
+            " ",
+            "(",
+            ")",
+            "[",
+            "]",
+            "{",
+            "}",
+            "&",
+            "|",
+            ";",
+            "<",
+            ">",
+            "`",
+            "$",
+            "!",
+            "*",
+            "?",
+            "#",
+            "~",
+            "="
+        ]
         for char in metacharacters {
             str = str.replacingOccurrences(of: char, with: "\\" + char)
         }
@@ -51,12 +74,12 @@ extension String {
     }
 }
 
-extension URL {
-    public var esc: String {
+public extension URL {
+    var esc: String {
         path.esc
     }
 
-    public func prettyPath() -> String {
+    func prettyPath() -> String {
         var prettyPath = path(percentEncoded: false)
         prettyPath = prettyPath
             .replacingOccurrences(of: Bundle.main.bundleIdentifier ?? Bundle.whiskyBundleIdentifier, with: "Whisky")
@@ -65,7 +88,7 @@ extension URL {
     }
 
     // NOT to be used for logic only as UI decoration
-    public func prettyPath(_ bottle: Bottle) -> String {
+    func prettyPath(_ bottle: Bottle) -> String {
         var prettyPath = path(percentEncoded: false)
         prettyPath = prettyPath
             .replacingOccurrences(of: bottle.url.path(percentEncoded: false), with: "")
@@ -75,7 +98,7 @@ extension URL {
     }
 
     // There is probably a better way to do this
-    public func updateParentBottle(old: URL, new: URL) -> URL {
+    func updateParentBottle(old: URL, new: URL) -> URL {
         let originalPath = path(percentEncoded: false)
 
         var oldBottlePath = old.path(percentEncoded: false)
@@ -88,8 +111,10 @@ extension URL {
             newBottlePath += "/"
         }
 
-        let newPath = originalPath.replacingOccurrences(of: oldBottlePath,
-                                                        with: newBottlePath)
+        let newPath = originalPath.replacingOccurrences(
+            of: oldBottlePath,
+            with: newBottlePath
+        )
         return URL(filePath: newPath)
     }
 }

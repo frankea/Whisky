@@ -16,26 +16,26 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import Foundation
 import AppKit
+import Foundation
+import WhiskyKit
 
 class WhiskyCmd {
     static func install() async {
         let whiskyCmdURL = Bundle.main.url(forResource: "WhiskyCmd", withExtension: nil)
 
-        if let whiskyCmdURL = whiskyCmdURL {
-            // swiftlint:disable line_length
+        if let whiskyCmdURL {
+            // Use .esc to escape shell metacharacters and prevent command injection
             let script = """
-            do shell script "ln -fs \(whiskyCmdURL.path(percentEncoded: false)) /usr/local/bin/whisky" with administrator privileges
+            do shell script "ln -fs \(whiskyCmdURL.esc) /usr/local/bin/whisky" with administrator privileges
             """
-            // swiftlint:enable line_length
 
             var error: NSDictionary?
             // Use AppleScript because somehow in 2023 Apple doesn't have good privileged file ops APIs
             if let appleScript = NSAppleScript(source: script) {
                 appleScript.executeAndReturnError(&error)
 
-                if let error = error {
+                if let error {
                     print(error)
                     if let description = error["NSAppleScriptErrorMessage"] as? String {
                         await MainActor.run {

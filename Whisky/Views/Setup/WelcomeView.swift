@@ -49,13 +49,17 @@ struct WelcomeView: View {
             .padding(.horizontal)
             Spacer()
             Form {
-                InstallStatusView(isInstalled: $rosettaInstalled,
-                                  shouldCheckInstallStatus: $shouldCheckInstallStatus,
-                                  name: "Rosetta")
-                InstallStatusView(isInstalled: $whiskyWineInstalled,
-                                  shouldCheckInstallStatus: $shouldCheckInstallStatus,
-                                  showUninstall: true,
-                                  name: "WhiskyWine")
+                InstallStatusView(
+                    isInstalled: $rosettaInstalled,
+                    shouldCheckInstallStatus: $shouldCheckInstallStatus,
+                    name: "Rosetta"
+                )
+                InstallStatusView(
+                    isInstalled: $whiskyWineInstalled,
+                    shouldCheckInstallStatus: $shouldCheckInstallStatus,
+                    showUninstall: true,
+                    name: "WhiskyWine"
+                )
             }
             .formStyle(.grouped)
             .scrollDisabled(true)
@@ -67,8 +71,8 @@ struct WelcomeView: View {
             }
             Spacer()
             HStack {
-                if let rosettaInstalled = rosettaInstalled,
-                   let whiskyWineInstalled = whiskyWineInstalled {
+                if let rosettaInstalled,
+                   let whiskyWineInstalled {
                     if !rosettaInstalled || !whiskyWineInstalled {
                         Button("setup.quit") {
                             exit(0)
@@ -107,7 +111,7 @@ struct InstallStatusView: View {
     @Binding var shouldCheckInstallStatus: Bool
     @State var showUninstall: Bool = false
     @State var name: String
-    @State var text: String = String(localized: "setup.install.checking")
+    @State var text: String = .init(localized: "setup.install.checking")
 
     var body: some View {
         HStack {
@@ -121,10 +125,10 @@ struct InstallStatusView: View {
                 }
             }
             .frame(width: 10)
-            Text(String.init(format: text, name))
+            Text(String(format: text, name))
             Spacer()
             if let installed = isInstalled {
-                if installed && showUninstall {
+                if installed, showUninstall {
                     Button("setup.uninstall") {
                         uninstall()
                     }

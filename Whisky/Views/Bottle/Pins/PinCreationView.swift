@@ -42,9 +42,11 @@ struct PinCreationView: View {
                 ) {
                     let panel = NSOpenPanel()
                     panel.canChooseFiles = true
-                    panel.allowedContentTypes = [UTType.exe,
-                                                 UTType(exportedAs: "com.microsoft.msi-installer"),
-                                                 UTType(exportedAs: "com.microsoft.bat")]
+                    panel.allowedContentTypes = [
+                        UTType.exe,
+                        UTType(exportedAs: "com.microsoft.msi-installer"),
+                        UTType(exportedAs: "com.microsoft.bat")
+                    ]
                     panel.directoryURL = newPinURL ?? bottle.url.appending(path: "drive_c")
                     panel.canChooseDirectories = false
                     panel.allowsMultipleSelection = false
@@ -71,19 +73,17 @@ struct PinCreationView: View {
                     }
                     .keyboardShortcut(.defaultAction)
                     .disabled(newPinName.isEmpty || newPinURL == nil)
-                    .alert("pin.error.title", isPresented: $isDuplicate) {
-                    } message: {
+                    .alert("pin.error.title", isPresented: $isDuplicate) {} message: {
                         Text("pin.error.duplicate.\(newPinURL?.lastPathComponent ?? "unknown")")
                     }
                 }
             }
             .onChange(of: newPinURL, initial: true) { oldValue, newValue in
-                guard let newValue = newValue else { return }
+                guard let newValue else { return }
 
                 // Only reset newPinName if the textbox hasn't been modified
                 if newPinName.isEmpty ||
                     newPinName == oldValue?.deletingPathExtension().lastPathComponent {
-
                     newPinName = newValue.deletingPathExtension().lastPathComponent
                 }
 

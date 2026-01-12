@@ -17,8 +17,8 @@
 //
 
 import Foundation
-import SemanticVersion
 import os
+import SemanticVersion
 
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "WhiskyWineInstaller")
 
@@ -73,7 +73,7 @@ public class WhiskyWineInstaller {
     /// Located at `~/Library/Application Support/{bundle-identifier}/`.
     public static let applicationFolder = FileManager.default.urls(
         for: .applicationSupportDirectory, in: .userDomainMask
-        )[0].appending(path: Bundle.whiskyBundleIdentifier)
+    )[0].appending(path: Bundle.whiskyBundleIdentifier)
 
     /// The folder containing all library files including Wine and DXVK.
     ///
@@ -89,7 +89,7 @@ public class WhiskyWineInstaller {
     ///
     /// - Returns: `true` if WhiskyWine is installed and has a valid version file.
     public static func isWhiskyWineInstalled() -> Bool {
-        return whiskyWineVersion() != nil
+        whiskyWineVersion() != nil
     }
 
     /// Installs WhiskyWine from a downloaded tarball.
@@ -149,7 +149,7 @@ public class WhiskyWineInstaller {
             remoteVersion = await withCheckedContinuation { continuation in
                 URLSession(configuration: .ephemeral).dataTask(with: URLRequest(url: remoteUrl)) { data, _, error in
                     do {
-                        if error == nil, let data = data {
+                        if error == nil, let data {
                             let decoder = PropertyListDecoder()
                             let remoteInfo = try decoder.decode(WhiskyWineVersion.self, from: data)
                             let remoteVersion = remoteInfo.version
@@ -157,7 +157,7 @@ public class WhiskyWineInstaller {
                             continuation.resume(returning: remoteVersion)
                             return
                         }
-                        if let error = error {
+                        if let error {
                             logger.warning("Failed to fetch remote version: \(error.localizedDescription)")
                         }
                     } catch {
@@ -169,7 +169,7 @@ public class WhiskyWineInstaller {
             }
         }
 
-        if let localVersion = localVersion, let remoteVersion = remoteVersion {
+        if let localVersion, let remoteVersion {
             if localVersion < remoteVersion {
                 return (true, remoteVersion)
             }

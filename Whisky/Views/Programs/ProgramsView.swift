@@ -34,16 +34,16 @@ struct ProgramsView: View {
 
     private var searchResults: [Program] {
         guard !searchText.isEmpty else { return sortedPrograms }
-        return sortedPrograms.filter({ $0.name.localizedCaseInsensitiveContains(searchText) })
+        return sortedPrograms.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
     }
 
     private var searchedBlocklists: [URL] {
         guard !searchText.isEmpty else { return blocklist }
-        return blocklist.filter({ $0.absoluteString.localizedCaseInsensitiveContains(searchText) })
+        return blocklist.filter { $0.absoluteString.localizedCaseInsensitiveContains(searchText) }
     }
 
     private var selectedSearchedPrograms: [Program] {
-        searchResults.filter({ selectedPrograms.contains($0) })
+        searchResults.filter { selectedPrograms.contains($0) }
     }
 
     var body: some View {
@@ -55,9 +55,9 @@ struct ProgramsView: View {
                     )
                     .contextMenu {
                         let selectedPrograms = selectedSearchedPrograms
-                        if selectedPrograms.contains(program) && selectedPrograms.count > 1 {
+                        if selectedPrograms.contains(program), selectedPrograms.count > 1 {
                             Button("program.add.selected.blocklist", systemImage: "hand.raised") {
-                                bottle.settings.blocklist.append(contentsOf: selectedPrograms.map { $0.url })
+                                bottle.settings.blocklist.append(contentsOf: selectedPrograms.map(\.url))
                                 blocklist = bottle.settings.blocklist
                             }
                             .labelStyle(.titleAndIcon)
@@ -123,15 +123,15 @@ struct ProgramsView: View {
 
     private func loadData() {
         loadPrograms()
-        blocklist = bottle.settings.blocklist.filter({
-            return FileManager.default.fileExists(atPath: $0.path(percentEncoded: false))
-        })
+        blocklist = bottle.settings.blocklist.filter {
+            FileManager.default.fileExists(atPath: $0.path(percentEncoded: false))
+        }
     }
 
     private func loadPrograms() {
-        let programs = bottle.programs.filter({
-            return FileManager.default.fileExists(atPath: $0.url.path(percentEncoded: false))
-        })
+        let programs = bottle.programs.filter {
+            FileManager.default.fileExists(atPath: $0.url.path(percentEncoded: false))
+        }
         sortedPrograms = [
             programs.pinned.sorted { $0.name < $1.name },
             programs.unpinned.sorted { $0.name < $1.name }

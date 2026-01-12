@@ -25,7 +25,7 @@ struct BottleCreationView: View {
     @State private var newBottleName: String = ""
     @State private var newBottleVersion: WinVersion = .win10
     @State private var newBottleURL: URL = UserDefaults.standard.url(forKey: "defaultBottleLocation")
-                                           ?? BottleData.defaultBottleDir
+        ?? BottleData.defaultBottleDir
     @State private var nameValid: Bool = false
 
     @Environment(\.dismiss) private var dismiss
@@ -88,9 +88,11 @@ struct BottleCreationView: View {
     }
 
     func submit() {
-        newlyCreatedBottleURL = BottleVM.shared.createNewBottle(bottleName: newBottleName,
-                                                                winVersion: newBottleVersion,
-                                                                bottleURL: newBottleURL)
+        newlyCreatedBottleURL = BottleVM.shared.createNewBottle(
+            bottleName: newBottleName,
+            winVersion: newBottleVersion,
+            bottleURL: newBottleURL
+        )
         dismiss()
     }
 }

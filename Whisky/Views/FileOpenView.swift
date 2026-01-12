@@ -24,7 +24,7 @@ struct FileOpenView: View {
     var currentBottle: URL?
     var bottles: [Bottle]
 
-    @State private var selection: URL = URL(filePath: "")
+    @State private var selection: URL = .init(filePath: "")
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -80,8 +80,10 @@ struct FileOpenView: View {
             Task.detached(priority: .userInitiated) {
                 do {
                     if fileURL.pathExtension == "bat" {
-                        try await Wine.runBatchFile(url: fileURL,
-                                                    bottle: bottle)
+                        try await Wine.runBatchFile(
+                            url: fileURL,
+                            bottle: bottle
+                        )
                     } else {
                         try await Wine.runProgram(at: fileURL, bottle: bottle)
                     }

@@ -17,8 +17,8 @@
 //
 
 import Foundation
-import SemanticVersion
 import os.log
+import SemanticVersion
 
 // Minimal BottleData for fallback encoding
 private struct BottleDataMinimal: Codable {

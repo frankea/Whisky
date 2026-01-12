@@ -21,26 +21,26 @@ import SemanticVersion
 
 public enum WinVersion: String, CaseIterable, Codable, Sendable {
     case winXP = "winxp64"
-    case win7 = "win7"
-    case win8 = "win8"
-    case win81 = "win81"
-    case win10 = "win10"
-    case win11 = "win11"
+    case win7
+    case win8
+    case win81
+    case win10
+    case win11
 
     public func pretty() -> String {
         switch self {
         case .winXP:
-            return "Windows XP"
+            "Windows XP"
         case .win7:
-            return "Windows 7"
+            "Windows 7"
         case .win8:
-            return "Windows 8"
+            "Windows 8"
         case .win81:
-            return "Windows 8.1"
+            "Windows 8.1"
         case .win10:
-            return "Windows 10"
+            "Windows 10"
         case .win11:
-            return "Windows 11"
+            "Windows 11"
         }
     }
 }
@@ -58,13 +58,12 @@ public struct BottleWineConfig: Codable, Equatable {
 
     public init() {}
 
-    // swiftlint:disable line_length
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.wineVersion = try container.decodeIfPresent(SemanticVersion.self, forKey: .wineVersion) ?? Self.defaultWineVersion
+        self.wineVersion = try container.decodeIfPresent(SemanticVersion.self, forKey: .wineVersion) ?? Self
+            .defaultWineVersion
         self.windowsVersion = try container.decodeIfPresent(WinVersion.self, forKey: .windowsVersion) ?? .win10
         self.enhancedSync = try container.decodeIfPresent(EnhancedSync.self, forKey: .enhancedSync) ?? .msync
         self.avxEnabled = try container.decodeIfPresent(Bool.self, forKey: .avxEnabled) ?? false
     }
-    // swiftlint:enable line_length
 }

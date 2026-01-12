@@ -16,10 +16,10 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import Foundation
 import AppKit
+import Foundation
 
-public struct ShellLinkHeader {
+public enum ShellLinkHeader {
     @MainActor
     public static func getProgram(url: URL, handle: FileHandle, bottle: Bottle) -> Program? {
         var offset: UInt64 = 0
@@ -36,9 +36,11 @@ public struct ShellLinkHeader {
         }
 
         if linkFlags.contains(.hasLinkInfo) {
-            let linkInfo = LinkInfo(handle: handle,
-                                    bottle: bottle,
-                                    offset: &offset)
+            let linkInfo = LinkInfo(
+                handle: handle,
+                bottle: bottle,
+                offset: &offset
+            )
             return linkInfo.program
         } else {
             return nil
@@ -76,24 +78,28 @@ public struct LinkInfo: Hashable {
         linkInfoFlags = LinkInfoFlags(rawValue: rawLinkInfoFlags)
 
         if linkInfoFlags.contains(.volumeIDAndLocalBasePath) {
-            if linkInfoHeaderSize >= 0x00000024 {
+            if linkInfoHeaderSize >= 0x0000_0024 {
                 offset += 20
                 let localBasePathOffsetUnicode = handle.extract(UInt32.self, offset: offset) ?? 0
                 let localPathOffset = startOfSection + UInt64(localBasePathOffsetUnicode)
 
-                program = getProgram(handle: handle,
-                                     offset: localPathOffset,
-                                     bottle: bottle,
-                                     unicode: true)
+                program = getProgram(
+                    handle: handle,
+                    offset: localPathOffset,
+                    bottle: bottle,
+                    unicode: true
+                )
             } else {
                 offset += 8
                 let localBasePathOffset = handle.extract(UInt32.self, offset: offset) ?? 0
                 let localPathOffset = startOfSection + UInt64(localBasePathOffset)
 
-                program = getProgram(handle: handle,
-                                     offset: localPathOffset,
-                                     bottle: bottle,
-                                     unicode: false)
+                program = getProgram(
+                    handle: handle,
+                    offset: localPathOffset,
+                    bottle: bottle,
+                    unicode: false
+                )
             }
         }
 

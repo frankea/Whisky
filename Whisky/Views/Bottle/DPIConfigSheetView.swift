@@ -48,7 +48,7 @@ struct DPIConfigSheetView: View {
                             .padding(16)
                             .font(.system(size:
                                 (10 * CGFloat(stagedChanges)) / 72 *
-                                          (isRetinaMode ? 0.5 : 1)
+                                    (isRetinaMode ? 0.5 : 1)
                             ))
                         Spacer()
                     }
@@ -57,7 +57,7 @@ struct DPIConfigSheetView: View {
                 .frame(maxWidth: .infinity, maxHeight: 80)
             }
             HStack {
-                Slider(value: $stagedChanges, in: 96...480, step: 24, onEditingChanged: { _ in
+                Slider(value: $stagedChanges, in: 96 ... 480, step: 24, onEditingChanged: { _ in
                     textFocused = false
                 })
                 TextField(String(), value: $stagedChanges, format: .number)

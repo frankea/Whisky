@@ -1,5 +1,5 @@
 //
-//  PortableExecutable+Section.swift
+//  Section.swift
 //  WhiskyKit
 //
 //  This file is part of Whisky.
@@ -18,7 +18,7 @@
 
 import Foundation
 
-extension PEFile {
+public extension PEFile {
     /// Section Table (Section Headers)
     ///
     /// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#section-table-section-headers

@@ -16,8 +16,8 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import Foundation
 import AppKit
+import Foundation
 
 public struct BitmapInfoHeader: Hashable {
     public let size: UInt32
@@ -73,17 +73,17 @@ public struct BitmapInfoHeader: Hashable {
 
         // Handle bitfields later if necessary
 
-        for _ in 0..<Int(height / 2) {
+        for _ in 0 ..< Int(height / 2) {
             var pixelRow: [ColorQuad] = []
 
-            for _ in 0..<width {
+            for _ in 0 ..< width {
                 switch colorFormat {
                 case .indexed1:
                     // Swift has no data type equivelent to a single bit
                     // This will take some bitwise magic
                     break
                 case .indexed2:
-                    // Swift's smallest data type is 1 byte 
+                    // Swift's smallest data type is 1 byte
                     // Ditto .indexed1
                     break
                 case .indexed4:
@@ -103,10 +103,12 @@ public struct BitmapInfoHeader: Hashable {
                     let red = sample & 0x001F
                     let green = (sample & 0x03E0) >> 5
                     let blue = (sample & 0x7C00) >> 10
-                    pixels.append(ColorQuad(red: UInt8(red),
-                                            green: UInt8(green),
-                                            blue: UInt8(blue),
-                                            alpha: 1))
+                    pixels.append(ColorQuad(
+                        red: UInt8(red),
+                        green: UInt8(green),
+                        blue: UInt8(blue),
+                        alpha: 1
+                    ))
                     offset += 2
                 case .sampled24:
                     let blue = handle.extract(UInt8.self, offset: offset) ?? 0
@@ -115,10 +117,12 @@ public struct BitmapInfoHeader: Hashable {
                     offset += 1
                     let red = handle.extract(UInt8.self, offset: offset) ?? 0
                     offset += 1
-                    pixelRow.append(ColorQuad(red: red,
-                                              green: green,
-                                              blue: blue,
-                                              alpha: 1))
+                    pixelRow.append(ColorQuad(
+                        red: red,
+                        green: green,
+                        blue: blue,
+                        alpha: 1
+                    ))
                 case .sampled32:
                     let blue = handle.extract(UInt8.self, offset: offset) ?? 0
                     offset += 1
@@ -128,10 +132,12 @@ public struct BitmapInfoHeader: Hashable {
                     offset += 1
                     let alpha = handle.extract(UInt8.self, offset: offset) ?? 0
                     offset += 1
-                    pixelRow.append(ColorQuad(red: red,
-                                              green: green,
-                                              blue: blue,
-                                              alpha: alpha))
+                    pixelRow.append(ColorQuad(
+                        red: red,
+                        green: green,
+                        blue: blue,
+                        alpha: alpha
+                    ))
                 case .unknown:
                     break
                 }
@@ -150,7 +156,7 @@ public struct BitmapInfoHeader: Hashable {
     func buildColorTable(offset: inout UInt64, handle: FileHandle) -> [ColorQuad] {
         var colorTable: [ColorQuad] = []
 
-        for _ in 0..<clrUsed {
+        for _ in 0 ..< clrUsed {
             let blue = handle.extract(UInt8.self, offset: offset) ?? 0
             offset += 1
             let green = handle.extract(UInt8.self, offset: offset) ?? 0
@@ -158,10 +164,12 @@ public struct BitmapInfoHeader: Hashable {
             let red = handle.extract(UInt8.self, offset: offset) ?? 0
             offset += 2
 
-            colorTable.append(ColorQuad(red: red,
-                                        green: green,
-                                        blue: blue,
-                                        alpha: Int(red) + Int(green) + Int(blue) == 0 ? 0 : 255))
+            colorTable.append(ColorQuad(
+                red: red,
+                green: green,
+                blue: blue,
+                alpha: Int(red) + Int(green) + Int(blue) == 0 ? 0 : 255
+            ))
         }
 
         return colorTable
@@ -174,19 +182,23 @@ public struct BitmapInfoHeader: Hashable {
             let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue)
             let quadStride = MemoryLayout<ColorQuad>.stride
 
-            if let providerRef = CGDataProvider(data: Data(bytes: &pixels,
-                                                           count: pixels.count * quadStride) as CFData) {
-                if let cgImg = CGImage(width: Int(width),
-                                       height: Int(height / 2),
-                                       bitsPerComponent: 8,
-                                       bitsPerPixel: 32,
-                                       bytesPerRow: Int(width) * quadStride,
-                                       space: CGColorSpaceCreateDeviceRGB(),
-                                       bitmapInfo: bitmapInfo,
-                                       provider: providerRef,
-                                       decode: nil,
-                                       shouldInterpolate: true,
-                                       intent: .defaultIntent) {
+            if let providerRef = CGDataProvider(data: Data(
+                bytes: &pixels,
+                count: pixels.count * quadStride
+            ) as CFData) {
+                if let cgImg = CGImage(
+                    width: Int(width),
+                    height: Int(height / 2),
+                    bitsPerComponent: 8,
+                    bitsPerPixel: 32,
+                    bytesPerRow: Int(width) * quadStride,
+                    space: CGColorSpaceCreateDeviceRGB(),
+                    bitmapInfo: bitmapInfo,
+                    provider: providerRef,
+                    decode: nil,
+                    shouldInterpolate: true,
+                    intent: .defaultIntent
+                ) {
                     return NSImage(cgImage: cgImg, size: .zero)
                 }
             }

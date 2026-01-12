@@ -27,7 +27,7 @@ extension Wine {
     /// Invalid environment variable keys (those not matching `[A-Za-z_][A-Za-z0-9_]*`)
     /// are filtered out with a debug log message, as macOS silently ignores them.
     @MainActor
-    internal static func constructWineEnvironment(
+    static func constructWineEnvironment(
         for bottle: Bottle, environment: [String: String] = [:]
     ) -> [String: String] {
         var result: [String: String] = [
@@ -59,7 +59,7 @@ extension Wine {
     /// Invalid environment variable keys (those not matching `[A-Za-z_][A-Za-z0-9_]*`)
     /// are filtered out with a debug log message, as macOS silently ignores them.
     @MainActor
-    internal static func constructWineServerEnvironment(
+    static func constructWineServerEnvironment(
         for bottle: Bottle, environment: [String: String] = [:]
     ) -> [String: String] {
         var result: [String: String] = [

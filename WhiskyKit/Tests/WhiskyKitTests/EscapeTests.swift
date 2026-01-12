@@ -16,12 +16,11 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import XCTest
 @testable import WhiskyKit
+import XCTest
 
 /// Tests for String.esc and URL.esc shell escaping extensions
 final class EscapeTests: XCTestCase {
-
     // MARK: - URL Escape Extension Tests
 
     func testURLEscapeExtension() {

@@ -34,7 +34,7 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
     public let entries: [ResourceDataEntry]
 
     /// Read the Resource Directory Table
-    /// 
+    ///
     /// - Parameters:
     ///   - fileHandle: The file handle to read the data from.
     ///   - pointerToRawData: The offset to the Resource Directory Table in the file handle.
@@ -78,13 +78,13 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
         var subtables: [ResourceDirectoryTable] = []
         var entries: [ResourceDataEntry] = []
 
-        for _ in 0..<numberOfNameEntries {
+        for _ in 0 ..< numberOfNameEntries {
             // We don't care about named entries
             // the entries we're looking for are ID'd
             offset += 8
         }
 
-        for _ in 0..<numberOfIdEntries {
+        for _ in 0 ..< numberOfIdEntries {
             let directoryEntry = ResourceDirectoryEntry.ID(handle: handle, offset: offset)
             offset += 8
 

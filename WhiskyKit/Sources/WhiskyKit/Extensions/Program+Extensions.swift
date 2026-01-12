@@ -16,12 +16,12 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import Foundation
 import AppKit
+import Foundation
 import os.log
 
-extension Program {
-    public func run() {
+public extension Program {
+    func run() {
         if NSEvent.modifierFlags.contains(.shift) {
             self.runInTerminal()
         } else {
@@ -29,28 +29,13 @@ extension Program {
         }
     }
 
-    func runInWine() {
-        let arguments = settings.arguments.split { $0.isWhitespace }.map(String.init)
-        let environment = generateEnvironment()
-
-        Task {
-            do {
-                try await Wine.runProgram(
-                    at: self.url, args: arguments, bottle: self.bottle, environment: environment
-                )
-            } catch {
-                self.showRunError(message: error.localizedDescription)
-            }
-        }
-    }
-
-    public func generateTerminalCommand() -> String {
-        return Wine.generateRunCommand(
+    func generateTerminalCommand() -> String {
+        Wine.generateRunCommand(
             at: self.url, bottle: bottle, args: settings.arguments, environment: generateEnvironment()
         )
     }
 
-    public func runInTerminal() {
+    func runInTerminal() {
         // Escape for AppleScript string embedding:
         // 1. Escape backslashes (\ → \\) - must be first to avoid double-escaping
         // 2. Escape double quotes (" → \") - prevents breaking out of the AppleScript string
@@ -72,7 +57,7 @@ extension Program {
             guard let appleScript = NSAppleScript(source: script) else { return }
             appleScript.executeAndReturnError(&error)
 
-            if let error = error {
+            if let error {
                 Logger.wineKit.error("Failed to run terminal script \(error)")
                 guard let description = error["NSAppleScriptErrorMessage"] as? String else { return }
                 self.showRunError(message: String(describing: description))
@@ -84,10 +69,27 @@ extension Program {
         let alert = NSAlert()
         alert.messageText = String(localized: "alert.message")
         alert.informativeText = String(localized: "alert.info")
-        + " \(self.url.lastPathComponent): "
-        + message
+            + " \(self.url.lastPathComponent): "
+            + message
         alert.alertStyle = .critical
         alert.addButton(withTitle: String(localized: "button.ok"))
         alert.runModal()
+    }
+}
+
+extension Program {
+    func runInWine() {
+        let arguments = settings.arguments.split { $0.isWhitespace }.map(String.init)
+        let environment = generateEnvironment()
+
+        Task {
+            do {
+                try await Wine.runProgram(
+                    at: self.url, args: arguments, bottle: self.bottle, environment: environment
+                )
+            } catch {
+                self.showRunError(message: error.localizedDescription)
+            }
+        }
     }
 }

@@ -1,5 +1,5 @@
 //
-//  PortableExecutable+COFFFileHeader.swift
+//  COFFFileHeader.swift
 //  WhiskyKit
 //
 //  This file is part of Whisky.
@@ -18,7 +18,7 @@
 
 import Foundation
 
-extension PEFile {
+public extension PEFile {
     /// COFF File Header (Object and Image)
     ///
     /// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#coff-file-header-object-and-image

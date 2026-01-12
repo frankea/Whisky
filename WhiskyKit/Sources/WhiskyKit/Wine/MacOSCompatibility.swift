@@ -48,7 +48,7 @@ public struct MacOSVersion: Comparable, Sendable {
     }
 
     public var description: String {
-        return "\(major).\(minor).\(patch)"
+        "\(major).\(minor).\(patch)"
     }
 }
 
@@ -57,7 +57,7 @@ extension Wine {
 
     /// Apply environment variable fixes for macOS 15.x (Sequoia) compatibility
     /// These fixes address issues #1372, #1310, #1307
-    internal static func applyMacOSCompatibilityFixes(to environment: inout [String: String]) {
+    static func applyMacOSCompatibilityFixes(to environment: inout [String: String]) {
         let currentVersion = MacOSVersion.current
 
         // Log macOS version for debugging
@@ -87,7 +87,7 @@ extension Wine {
             environment["WINE_ENABLE_PIPE_SYNC_FOR_APP"] = "0"
 
             // Force synchronization mode that works better with macOS 15.4
-            if environment["WINEMSYNC"] == nil && environment["WINEESYNC"] == nil {
+            if environment["WINEMSYNC"] == nil, environment["WINEESYNC"] == nil {
                 environment["WINEESYNC"] = "1"
             }
 

@@ -16,12 +16,11 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import XCTest
 import SemanticVersion
 @testable import WhiskyKit
+import XCTest
 
 final class DistributionConfigTests: XCTestCase {
-
     // MARK: - Base URL Tests
 
     func testBaseURL() {
@@ -326,7 +325,7 @@ final class DistributionConfigTests: XCTestCase {
         ]
 
         for testCase in errorCases {
-            let isSuccess = (200...299).contains(testCase.statusCode)
+            let isSuccess = (200 ... 299).contains(testCase.statusCode)
 
             if testCase.expectedBehavior == "success" {
                 XCTAssertTrue(isSuccess, "Status \(testCase.statusCode) should be success")
@@ -348,15 +347,15 @@ final class DistributionConfigTests: XCTestCase {
     private func categorizeHTTPError(statusCode: Int) -> String {
         switch statusCode {
         case 404:
-            return "fileNotFound"
+            "fileNotFound"
         case 403:
-            return "accessDenied"
+            "accessDenied"
         case 429:
-            return "rateLimit"
-        case 500...599:
-            return "serverError"
+            "rateLimit"
+        case 500 ... 599:
+            "serverError"
         default:
-            return "httpError"
+            "httpError"
         }
     }
 

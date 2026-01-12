@@ -110,16 +110,16 @@ public extension Process {
     private func logProcessInfo(name: String) {
         Logger.wineKit.info("Running process \(name)")
 
-        if let arguments = arguments {
+        if let arguments {
             Logger.wineKit.info("Arguments: `\(arguments.joined(separator: " "))`")
         }
-        if let executableURL = executableURL {
+        if let executableURL {
             Logger.wineKit.info("Executable: `\(executableURL.path(percentEncoded: false))`")
         }
         if let directory = currentDirectoryURL {
             Logger.wineKit.info("Directory: `\(directory.path(percentEncoded: false))`")
         }
-        if let environment = environment {
+        if let environment {
             Logger.wineKit.info("Environment: \(environment)")
         }
     }

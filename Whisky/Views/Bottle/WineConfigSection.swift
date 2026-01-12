@@ -16,9 +16,9 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import os
 import SwiftUI
 import WhiskyKit
-import os
 
 struct WineConfigSection: View {
     private static let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ConfigView")
@@ -61,7 +61,7 @@ struct WineConfigSection: View {
             }
             SettingItemView(title: "config.retinaMode", loadingState: retinaModeLoadingState) {
                 Toggle("config.retinaMode", isOn: $retinaMode)
-                    .onChange(of: retinaMode, { _, newValue in
+                    .onChange(of: retinaMode) { _, newValue in
                         Task(priority: .userInitiated) {
                             retinaModeLoadingState = .modifying
                             do {
@@ -72,7 +72,7 @@ struct WineConfigSection: View {
                                 retinaModeLoadingState = .failed
                             }
                         }
-                    })
+                    }
             }
             Picker("config.enhancedSync", selection: $bottle.settings.enhancedSync) {
                 Text("config.enhancedSync.none").tag(EnhancedSync.none)

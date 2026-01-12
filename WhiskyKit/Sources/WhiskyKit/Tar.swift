@@ -29,18 +29,18 @@ public enum TarError: LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .pathTraversal(let path):
-            return "Archive contains unsafe path that escapes target directory: \(path)"
-        case .unsafeSymlink(let path, let target):
-            return "Archive contains symlink '\(path)' with unsafe target '\(target)'"
-        case .commandFailed(let output):
-            return "Tar command failed: \(output)"
+        case let .pathTraversal(path):
+            "Archive contains unsafe path that escapes target directory: \(path)"
+        case let .unsafeSymlink(path, target):
+            "Archive contains symlink '\(path)' with unsafe target '\(target)'"
+        case let .commandFailed(output):
+            "Tar command failed: \(output)"
         }
     }
 }
 
 public class Tar {
-    static let tarBinary: URL = URL(fileURLWithPath: "/usr/bin/tar")
+    static let tarBinary: URL = .init(fileURLWithPath: "/usr/bin/tar")
 
     public static func tar(folder: URL, toURL: URL) throws {
         let process = Process()
@@ -165,7 +165,7 @@ public class Tar {
             let normalizedTargetPrefix = targetPath.hasSuffix("/") ? targetPath : targetPath + "/"
 
             // The resolved path must either be exactly the directory itself or a proper subpath
-            if resolvedPath != targetPath && !resolvedPath.hasPrefix(normalizedTargetPrefix) {
+            if resolvedPath != targetPath, !resolvedPath.hasPrefix(normalizedTargetPrefix) {
                 throw TarError.pathTraversal(path: archivePath)
             }
 
@@ -248,11 +248,12 @@ public class Tar {
 
         guard let regex = try? NSRegularExpression(pattern: pattern, options: []),
               let match = regex.firstMatch(
-                in: line,
-                options: [],
-                range: NSRange(line.startIndex..., in: line)
+                  in: line,
+                  options: [],
+                  range: NSRange(line.startIndex..., in: line)
               ),
-              let pathRange = Range(match.range(at: 1), in: line) else {
+              let pathRange = Range(match.range(at: 1), in: line)
+        else {
             return nil
         }
 
@@ -299,7 +300,7 @@ public class Tar {
 
         // Check if the resolved symlink target stays within the target directory:
         // it must either be exactly the directory itself or a proper subpath.
-        if resolvedPath != targetPath && !resolvedPath.hasPrefix(normalizedTargetPrefix) {
+        if resolvedPath != targetPath, !resolvedPath.hasPrefix(normalizedTargetPrefix) {
             throw TarError.unsafeSymlink(path: symlinkPath, target: target)
         }
     }

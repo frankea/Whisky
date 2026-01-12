@@ -16,10 +16,10 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import Foundation
 import AppKit
-import WhiskyKit
+import Foundation
 import os
+import WhiskyKit
 
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "Winetricks")
 
@@ -51,7 +51,8 @@ class Winetricks {
     @MainActor
     static func runCommand(command: String, bottle: Bottle) async {
         guard let resourcesURL = Bundle.main.url(forResource: "cabextract", withExtension: nil)?
-            .deletingLastPathComponent() else { return }
+            .deletingLastPathComponent()
+        else { return }
         // swiftlint:disable:next line_length
         let winetricksCmd = #"PATH=\"\#(WhiskyWineInstaller.binFolder.path):\#(resourcesURL.path(percentEncoded: false)):$PATH\" WINE=wine64 WINEPREFIX=\"\#(bottle.url.path)\" \"\#(winetricksURL.path(percentEncoded: false))\" \#(command)"#
 
@@ -66,7 +67,7 @@ class Winetricks {
         if let appleScript = NSAppleScript(source: script) {
             appleScript.executeAndReturnError(&error)
 
-            if let error = error {
+            if let error {
                 logger.error("AppleScript error: \(error)")
                 if let description = error["NSAppleScriptErrorMessage"] as? String {
                     await MainActor.run {
@@ -105,7 +106,7 @@ class Winetricks {
             // Categories are label as "===== <name> ====="
             if line.starts(with: "=====") {
                 // If we have a current category, add it to the list
-                if let currentCategory = currentCategory {
+                if let currentCategory {
                     categories.append(currentCategory)
                 }
 
@@ -113,8 +114,10 @@ class Winetricks {
                 // Capitalize the first letter of the category name
                 let categoryName = line.replacingOccurrences(of: "=====", with: "").trimmingCharacters(in: .whitespaces)
                 if let cateogry = WinetricksCategories(rawValue: categoryName) {
-                    currentCategory = WinetricksCategory(category: cateogry,
-                                                         verbs: [])
+                    currentCategory = WinetricksCategory(
+                        category: cateogry,
+                        verbs: []
+                    )
                 } else {
                     currentCategory = nil
                 }
@@ -133,7 +136,7 @@ class Winetricks {
         }
 
         // Add the last category
-        if let currentCategory = currentCategory {
+        if let currentCategory {
             categories.append(currentCategory)
         }
 

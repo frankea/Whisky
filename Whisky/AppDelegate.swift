@@ -17,9 +17,9 @@
 //
 
 import Foundation
+import os
 import SwiftUI
 import WhiskyKit
-import os
 
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "AppDelegate")
 
@@ -37,7 +37,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        if !hasShownMoveToApplicationsAlert && !AppDelegate.insideAppsFolder {
+        if !hasShownMoveToApplicationsAlert, !AppDelegate.insideAppsFolder {
             DispatchQueue.main.asyncAfter(deadline: .now()) {
                 NSApp.activate(ignoringOtherApps: true)
                 self.showAlertOnFirstLaunch()
@@ -53,7 +53,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        return true
+        true
     }
 
     private static var appUrl: URL? {

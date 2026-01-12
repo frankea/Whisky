@@ -16,11 +16,10 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import XCTest
 @testable import WhiskyKit
+import XCTest
 
 final class WineTests: XCTestCase {
-
     // MARK: - MacOSVersion Tests
 
     func testMacOSVersionInitialization() {

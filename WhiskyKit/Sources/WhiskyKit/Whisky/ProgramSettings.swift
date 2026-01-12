@@ -78,31 +78,31 @@ public enum Locales: String, Codable, CaseIterable, Sendable {
     public func pretty() -> String { // swiftlint:disable:this cyclomatic_complexity
         switch self {
         case .auto:
-            return String(localized: "locale.auto")
+            String(localized: "locale.auto")
         case .german:
-            return "Deutsch"
+            "Deutsch"
         case .english:
-            return "English"
+            "English"
         case .spanish:
-            return "Español"
+            "Español"
         case .french:
-            return "Français"
+            "Français"
         case .italian:
-            return "Italiano"
+            "Italiano"
         case .japanese:
-            return "日本語"
+            "日本語"
         case .korean:
-            return "한국어"
+            "한국어"
         case .russian:
-            return "Русский"
+            "Русский"
         case .ukranian:
-            return "Українська"
+            "Українська"
         case .thai:
-            return "ไทย"
+            "ไทย"
         case .chineseSimplified:
-            return "简体中文"
+            "简体中文"
         case .chineseTraditional:
-            return "繁體中文"
+            "繁體中文"
         }
     }
 }

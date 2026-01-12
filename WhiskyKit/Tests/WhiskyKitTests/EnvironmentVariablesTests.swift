@@ -16,11 +16,10 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import XCTest
 @testable import WhiskyKit
+import XCTest
 
 final class EnvironmentVariablesTests: XCTestCase {
-
     // MARK: - DXVK Environment Variables
 
     func testEnvironmentVariablesWithDXVK() {
@@ -190,7 +189,7 @@ final class EnvironmentVariablesTests: XCTestCase {
     func testEnvironmentVariablesWithPerformancePreset() {
         var settings = BottleSettings()
         settings.performancePreset = .performance
-        settings.sequoiaCompatMode = false  // Disable to test performance preset in isolation
+        settings.sequoiaCompatMode = false // Disable to test performance preset in isolation
 
         var env: [String: String] = [:]
         settings.environmentVariables(wineEnv: &env)

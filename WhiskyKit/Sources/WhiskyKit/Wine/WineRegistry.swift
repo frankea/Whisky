@@ -25,7 +25,7 @@ enum RegistryType: String {
     case string = "REG_SZ"
 }
 
-extension Wine {
+public extension Wine {
     private enum RegistryKey: String {
         case currentVersion = #"HKLM\Software\Microsoft\Windows NT\CurrentVersion"#
         case macDriver = #"HKCU\Software\Wine\Mac Driver"#
@@ -56,15 +56,25 @@ extension Wine {
     }
 
     @MainActor
-    public static func changeBuildVersion(bottle: Bottle, version: Int) async throws {
-        try await addRegistryKey(bottle: bottle, key: RegistryKey.currentVersion.rawValue,
-                                name: "CurrentBuild", data: "\(version)", type: .string)
-        try await addRegistryKey(bottle: bottle, key: RegistryKey.currentVersion.rawValue,
-                                name: "CurrentBuildNumber", data: "\(version)", type: .string)
+    static func changeBuildVersion(bottle: Bottle, version: Int) async throws {
+        try await addRegistryKey(
+            bottle: bottle,
+            key: RegistryKey.currentVersion.rawValue,
+            name: "CurrentBuild",
+            data: "\(version)",
+            type: .string
+        )
+        try await addRegistryKey(
+            bottle: bottle,
+            key: RegistryKey.currentVersion.rawValue,
+            name: "CurrentBuildNumber",
+            data: "\(version)",
+            type: .string
+        )
     }
 
     @MainActor
-    public static func winVersion(bottle: Bottle) async throws -> WinVersion {
+    static func winVersion(bottle: Bottle) async throws -> WinVersion {
         let output = try await Wine.runWine(["winecfg", "-v"], bottle: bottle)
         let lines = output.split(whereSeparator: \.isNewline)
 
@@ -80,19 +90,20 @@ extension Wine {
     }
 
     @MainActor
-    public static func buildVersion(bottle: Bottle) async throws -> String? {
-        return try await Wine.queryRegistryKey(
+    static func buildVersion(bottle: Bottle) async throws -> String? {
+        try await Wine.queryRegistryKey(
             bottle: bottle, key: RegistryKey.currentVersion.rawValue,
             name: "CurrentBuild", type: .string
         )
     }
 
     @MainActor
-    public static func retinaMode(bottle: Bottle) async throws -> Bool {
+    static func retinaMode(bottle: Bottle) async throws -> Bool {
         let values: Set<String> = ["y", "n"]
         guard let output = try await Wine.queryRegistryKey(
             bottle: bottle, key: RegistryKey.macDriver.rawValue, name: "RetinaMode", type: .string
-        ), values.contains(output) else {
+        ), values.contains(output)
+        else {
             try await changeRetinaMode(bottle: bottle, retinaMode: false)
             return false
         }
@@ -100,7 +111,7 @@ extension Wine {
     }
 
     @MainActor
-    public static func changeRetinaMode(bottle: Bottle, retinaMode: Bool) async throws {
+    static func changeRetinaMode(bottle: Bottle, retinaMode: Bool) async throws {
         try await Wine.addRegistryKey(
             bottle: bottle, key: RegistryKey.macDriver.rawValue, name: "RetinaMode", data: retinaMode ? "y" : "n",
             type: .string
@@ -108,19 +119,23 @@ extension Wine {
     }
 
     @MainActor
-    public static func dpiResolution(bottle: Bottle) async throws -> Int? {
-        guard let output = try await Wine.queryRegistryKey(bottle: bottle, key: RegistryKey.desktop.rawValue,
-                                                     name: "LogPixels", type: .dword
-        ) else { return nil }
+    static func dpiResolution(bottle: Bottle) async throws -> Int? {
+        guard let output = try await Wine.queryRegistryKey(
+            bottle: bottle,
+            key: RegistryKey.desktop.rawValue,
+            name: "LogPixels",
+            type: .dword
+        )
+        else { return nil }
 
         let noPrefix = output.replacingOccurrences(of: "0x", with: "")
         let int = Int(noPrefix, radix: 16)
-        guard let int = int else { return nil }
+        guard let int else { return nil }
         return int
     }
 
     @MainActor
-    public static func changeDpiResolution(bottle: Bottle, dpi: Int) async throws {
+    static func changeDpiResolution(bottle: Bottle, dpi: Int) async throws {
         try await Wine.addRegistryKey(
             bottle: bottle, key: RegistryKey.desktop.rawValue, name: "LogPixels", data: String(dpi),
             type: .dword
@@ -129,25 +144,25 @@ extension Wine {
 
     @discardableResult
     @MainActor
-    public static func control(bottle: Bottle) async throws -> String {
-        return try await Wine.runWine(["control"], bottle: bottle)
+    static func control(bottle: Bottle) async throws -> String {
+        try await Wine.runWine(["control"], bottle: bottle)
     }
 
     @discardableResult
     @MainActor
-    public static func regedit(bottle: Bottle) async throws -> String {
-        return try await Wine.runWine(["regedit"], bottle: bottle)
+    static func regedit(bottle: Bottle) async throws -> String {
+        try await Wine.runWine(["regedit"], bottle: bottle)
     }
 
     @discardableResult
     @MainActor
-    public static func cfg(bottle: Bottle) async throws -> String {
-        return try await Wine.runWine(["winecfg"], bottle: bottle)
+    static func cfg(bottle: Bottle) async throws -> String {
+        try await Wine.runWine(["winecfg"], bottle: bottle)
     }
 
     @discardableResult
     @MainActor
-    public static func changeWinVersion(bottle: Bottle, win: WinVersion) async throws -> String {
-        return try await Wine.runWine(["winecfg", "-v", win.rawValue], bottle: bottle)
+    static func changeWinVersion(bottle: Bottle, win: WinVersion) async throws -> String {
+        try await Wine.runWine(["winecfg", "-v", win.rawValue], bottle: bottle)
     }
 }

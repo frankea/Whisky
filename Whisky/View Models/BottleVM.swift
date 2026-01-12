@@ -17,9 +17,9 @@
 //
 
 import Foundation
+import os.log
 import SemanticVersion
 import WhiskyKit
-import os.log
 
 // MARK: - Bottle Creation Errors
 
@@ -32,13 +32,13 @@ enum BottleCreationError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .directoryCreationFailed:
-            return "Failed to create bottle directory"
+            "Failed to create bottle directory"
         case .metadataCreationFailed:
-            return "Failed to create bottle metadata"
+            "Failed to create bottle metadata"
         case .wineVersionChangeFailed:
-            return "Failed to configure Windows version"
+            "Failed to configure Windows version"
         case .persistenceSaveFailed:
-            return "Failed to save bottle to persistence"
+            "Failed to save bottle to persistence"
         }
     }
 }
@@ -60,7 +60,7 @@ final class BottleVM: ObservableObject {
     }
 
     func countActive() -> Int {
-        return bottles.filter { $0.isAvailable == true }.count
+        bottles.filter { $0.isAvailable == true }.count
     }
 
     func createNewBottle(bottleName: String, winVersion: WinVersion, bottleURL: URL) -> URL {
@@ -71,9 +71,11 @@ final class BottleVM: ObservableObject {
             do {
                 // Create directory with proper error handling (FileManager is thread-safe)
                 let fileManager = FileManager.default
-                try fileManager.createDirectory(at: newBottleDir,
-                                                 withIntermediateDirectories: true,
-                                                 attributes: nil)
+                try fileManager.createDirectory(
+                    at: newBottleDir,
+                    withIntermediateDirectories: true,
+                    attributes: nil
+                )
 
                 // Verify directory was created
                 guard fileManager.fileExists(atPath: newBottleDir.path(percentEncoded: false)) else {

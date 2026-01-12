@@ -89,26 +89,26 @@ struct PerformanceConfigSection: View {
     func presetIcon(for preset: PerformancePreset) -> String {
         switch preset {
         case .balanced:
-            return "scale.3d"
+            "scale.3d"
         case .performance:
-            return "bolt.fill"
+            "bolt.fill"
         case .quality:
-            return "sparkles"
+            "sparkles"
         case .unity:
-            return "cube.fill"
+            "cube.fill"
         }
     }
 
     func presetDescription(for preset: PerformancePreset) -> String {
         switch preset {
         case .balanced:
-            return String(localized: "config.preset.balanced.desc")
+            String(localized: "config.preset.balanced.desc")
         case .performance:
-            return String(localized: "config.preset.performance.desc")
+            String(localized: "config.preset.performance.desc")
         case .quality:
-            return String(localized: "config.preset.quality.desc")
+            String(localized: "config.preset.quality.desc")
         case .unity:
-            return String(localized: "config.preset.unity.desc")
+            String(localized: "config.preset.unity.desc")
         }
     }
 }

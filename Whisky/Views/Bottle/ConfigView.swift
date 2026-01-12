@@ -16,9 +16,9 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import os
 import SwiftUI
 import WhiskyKit
-import os
 
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ConfigView")
 

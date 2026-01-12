@@ -17,8 +17,8 @@
 //
 
 import SwiftUI
-import WhiskyKit
 import UniformTypeIdentifiers
+import WhiskyKit
 
 struct ProgramView: View {
     @ObservedObject var program: Program

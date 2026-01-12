@@ -16,14 +16,13 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import XCTest
 import SemanticVersion
 @testable import WhiskyKit
+import XCTest
 
 // MARK: - Decoding Tests
 
 final class WhiskyWineVersionDecodingTests: XCTestCase {
-
     func testDecodeValidPlist() throws {
         let plist: [String: Any] = [
             "version": ["major": 2, "minor": 5, "patch": 0]
@@ -73,7 +72,6 @@ final class WhiskyWineVersionDecodingTests: XCTestCase {
 // MARK: - Encoding Tests
 
 final class WhiskyWineVersionEncodingTests: XCTestCase {
-
     func testEncodeToPlist() throws {
         let versionInfo = WhiskyWineVersion(version: SemanticVersion(2, 5, 0))
 
@@ -84,7 +82,7 @@ final class WhiskyWineVersionEncodingTests: XCTestCase {
         let plist = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
 
         XCTAssertNotNil(plist, "Encoded plist should be valid")
-        guard let plist = plist else { return }
+        guard let plist else { return }
 
         XCTAssertNotNil(plist["version"] as? [String: Any], "Version dictionary should exist")
         guard let versionDict = plist["version"] as? [String: Any] else { return }
@@ -113,8 +111,9 @@ final class WhiskyWineVersionEncodingTests: XCTestCase {
             let plist = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
             XCTAssertNotNil(plist, "Encoded plist should be valid")
 
-            guard let plist = plist,
-                  let versionDict = plist["version"] as? [String: Any] else {
+            guard let plist,
+                  let versionDict = plist["version"] as? [String: Any]
+            else {
                 XCTFail("Failed to decode encoded plist")
                 continue
             }
@@ -129,7 +128,6 @@ final class WhiskyWineVersionEncodingTests: XCTestCase {
 // MARK: - Round-Trip Tests
 
 final class WhiskyWineVersionRoundTripTests: XCTestCase {
-
     func testRoundTripEncodingDecoding() throws {
         let originalVersion = SemanticVersion(2, 5, 0)
         let original = WhiskyWineVersion(version: originalVersion)
@@ -174,7 +172,6 @@ final class WhiskyWineVersionRoundTripTests: XCTestCase {
 // MARK: - Error Handling Tests
 
 final class WhiskyWineVersionErrorTests: XCTestCase {
-
     func testDecodeMissingVersionKey() {
         let plist: [String: Any] = [:]
         assertDecodingError(for: plist)
@@ -240,7 +237,6 @@ final class WhiskyWineVersionErrorTests: XCTestCase {
 // MARK: - Initializer Tests
 
 final class WhiskyWineVersionInitializerTests: XCTestCase {
-
     func testInitializer() {
         let version = SemanticVersion(2, 5, 0)
         let versionInfo = WhiskyWineVersion(version: version)

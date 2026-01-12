@@ -35,6 +35,6 @@ public enum DistributionConfig {
     /// - Parameter version: The version string (e.g., "2.5.0")
     /// - Returns: The full URL to download Libraries.tar.gz from GitHub Releases
     public static func librariesURL(version: String) -> String {
-        return "\(releasesBaseURL)/v\(version)/Libraries.tar.gz"
+        "\(releasesBaseURL)/v\(version)/Libraries.tar.gz"
     }
 }

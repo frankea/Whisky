@@ -16,8 +16,14 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import os.log
 import SwiftUI
 import WhiskyKit
+
+private let launcherConfigLogger = Logger(
+    subsystem: Bundle.main.bundleIdentifier ?? "com.franke.Whisky",
+    category: "LauncherConfig"
+)
 
 struct LauncherConfigSection: View {
     @ObservedObject var bottle: Bottle
@@ -280,8 +286,33 @@ struct DiagnosticsReportView: View {
         if savePanel.runModal() == .OK, let url = savePanel.url {
             do {
                 try report.write(to: url, atomically: true, encoding: .utf8)
+
+                // Show success notification
+                launcherConfigLogger.info("Diagnostics report exported successfully to: \(url.path)")
+
+                // Optional: Show success alert
+                let successAlert = NSAlert()
+                successAlert.alertStyle = .informational
+                successAlert.messageText = "Export Successful"
+                successAlert.informativeText = "Diagnostics report saved to:\n\(url.path)"
+                successAlert.runModal()
             } catch {
-                // Handle error silently or show alert
+                // Log the error for debugging
+                launcherConfigLogger.error("Failed to export diagnostics report: \(error.localizedDescription)")
+
+                // Inform the user with an alert dialog
+                let alert = NSAlert()
+                alert.alertStyle = .warning
+                alert.messageText = "Failed to Export Diagnostics Report"
+                alert.informativeText = """
+                An error occurred while saving the diagnostics report:
+
+                \(error.localizedDescription)
+
+                Please try again or choose a different location.
+                """
+                alert.addButton(withTitle: "OK")
+                alert.runModal()
             }
         }
     }

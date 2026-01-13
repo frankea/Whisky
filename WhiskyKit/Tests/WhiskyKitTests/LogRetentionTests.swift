@@ -47,7 +47,8 @@ final class LogRetentionTests: XCTestCase {
             ofItemAtPath: log3.path
         )
 
-        // Total is 600 bytes; cap at 400 => should delete log1 (=> 500) and log2 (=> 300), keep log3.
+        // Total is 600 bytes; with a cap of 400, should delete log1 (total becomes 500),
+        // then log2 (total becomes 300), and keep log3.
         Wine.enforceLogRetention(in: dir, maxTotalBytes: 400)
 
         XCTAssertFalse(FileManager.default.fileExists(atPath: log1.path))

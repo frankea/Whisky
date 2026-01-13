@@ -84,6 +84,15 @@ public extension Process {
         case stderr
     }
 
+    private struct TerminationContext {
+        let name: String
+        let pipe: Pipe
+        let errorPipe: Pipe
+        let outputLock: NSLock
+        let continuation: AsyncStream<ProcessOutput>.Continuation
+        let fileHandle: FileHandle?
+    }
+
     private func makeStreamTerminationCallback()
         -> @Sendable (AsyncStream<ProcessOutput>.Continuation.Termination) -> Void {
         { termination in

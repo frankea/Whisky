@@ -69,12 +69,14 @@ public extension Process {
             )
 
             terminationHandler = self.makeProcessTerminationHandler(
-                name: name,
-                pipe: pipe,
-                errorPipe: errorPipe,
-                outputLock: outputLock,
-                continuation: continuation,
-                fileHandle: fileHandle
+                context: TerminationContext(
+                    name: name,
+                    pipe: pipe,
+                    errorPipe: errorPipe,
+                    outputLock: outputLock,
+                    continuation: continuation,
+                    fileHandle: fileHandle
+                )
             )
         }
     }
@@ -117,42 +119,37 @@ public extension Process {
     }
 
     private func makeProcessTerminationHandler(
-        name: String,
-        pipe: Pipe,
-        errorPipe: Pipe,
-        outputLock: NSLock,
-        continuation: AsyncStream<ProcessOutput>.Continuation,
-        fileHandle: FileHandle?
+        context: TerminationContext
     ) -> @Sendable (Process) -> Void {
         { process in
             do {
                 // Stop readability handlers first to avoid racing / double-consuming output.
-                pipe.fileHandleForReading.readabilityHandler = nil
-                errorPipe.fileHandleForReading.readabilityHandler = nil
+                context.pipe.fileHandleForReading.readabilityHandler = nil
+                context.errorPipe.fileHandleForReading.readabilityHandler = nil
 
-                outputLock.lock()
-                defer { outputLock.unlock() }
+                context.outputLock.lock()
+                defer { context.outputLock.unlock() }
 
                 try self.drainToLog(
-                    pipe.fileHandleForReading,
+                    context.pipe.fileHandleForReading,
                     kind: .stdout,
-                    continuation: continuation,
-                    fileHandle: fileHandle
+                    continuation: context.continuation,
+                    fileHandle: context.fileHandle
                 )
                 try self.drainToLog(
-                    errorPipe.fileHandleForReading,
+                    context.errorPipe.fileHandleForReading,
                     kind: .stderr,
-                    continuation: continuation,
-                    fileHandle: fileHandle
+                    continuation: context.continuation,
+                    fileHandle: context.fileHandle
                 )
-                try fileHandle?.closeWineLog()
+                try context.fileHandle?.closeWineLog()
             } catch {
                 Logger.wineKit.error("Error while clearing data: \(error)")
             }
 
-            process.logTermination(name: name)
-            continuation.yield(.terminated(process.terminationStatus))
-            continuation.finish()
+            process.logTermination(name: context.name)
+            context.continuation.yield(.terminated(process.terminationStatus))
+            context.continuation.finish()
         }
     }
 

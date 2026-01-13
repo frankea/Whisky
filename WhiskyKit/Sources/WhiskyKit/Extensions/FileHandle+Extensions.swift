@@ -193,18 +193,17 @@ extension FileHandle {
         try close()
     }
 
-    // swiftlint:disable line_length
     func writeApplicationInfo() {
         var header = String()
         let macOSVersion = ProcessInfo.processInfo.operatingSystemVersion
+        let macOSVersionString =
+            "\(macOSVersion.majorVersion).\(macOSVersion.minorVersion).\(macOSVersion.patchVersion)"
 
         header += "Whisky Version: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] ?? "")\n"
         header += "Date: \(ISO8601DateFormatter().string(from: Date.now))\n"
-        header += "macOS Version: \(macOSVersion.majorVersion).\(macOSVersion.minorVersion).\(macOSVersion.patchVersion)\n\n"
+        header += "macOS Version: \(macOSVersionString)\n\n"
         writeWineLog(line: header)
     }
-
-    // swiftlint:enable line_length
 
     func writeInfo(for process: Process) {
         var header = String()

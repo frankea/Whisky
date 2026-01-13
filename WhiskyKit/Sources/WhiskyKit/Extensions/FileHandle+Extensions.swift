@@ -187,7 +187,16 @@ extension FileHandle {
         }
 
         if let environment = process.environment, !environment.isEmpty {
-            header += "Environment:\n\(environment as AnyObject)\n\n"
+            // Avoid persisting raw environment values to logs (can contain secrets like tokens, API keys, etc.).
+            let maxKeysToLog = 200
+            let sortedKeys = environment.keys.sorted()
+            let keysToLog = sortedKeys.prefix(maxKeysToLog)
+            let keysDescription = keysToLog.joined(separator: ", ")
+            header += "Environment (keys only):\n\(keysDescription)"
+            if sortedKeys.count > maxKeysToLog {
+                header += "\n... (\(sortedKeys.count - maxKeysToLog) more)"
+            }
+            header += "\n\n"
         }
 
         writeWineLog(line: header)

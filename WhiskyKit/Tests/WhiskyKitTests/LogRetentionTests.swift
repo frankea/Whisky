@@ -136,6 +136,9 @@ final class LogRetentionTests: XCTestCase {
         let base = FileManager.default.temporaryDirectory
         let dir = base.appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: dir)
+        }
         return dir
     }
 

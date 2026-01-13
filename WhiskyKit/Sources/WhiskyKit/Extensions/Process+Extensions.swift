@@ -68,7 +68,7 @@ public extension Process {
                 continuation.yield(.message(line))
                 guard !line.isEmpty else { return }
                 Logger.wineKit.info("\(line, privacy: .public)")
-                fileHandle?.write(line: line)
+                fileHandle?.writeWineLog(line: line)
             }
 
             errorPipe.fileHandleForReading.readabilityHandler = { pipe in
@@ -76,14 +76,14 @@ public extension Process {
                 continuation.yield(.error(line))
                 guard !line.isEmpty else { return }
                 Logger.wineKit.warning("\(line, privacy: .public)")
-                fileHandle?.write(line: line)
+                fileHandle?.writeWineLog(line: line)
             }
 
             terminationHandler = { (process: Process) in
                 do {
                     _ = try pipe.fileHandleForReading.readToEnd()
                     _ = try errorPipe.fileHandleForReading.readToEnd()
-                    try fileHandle?.close()
+                    try fileHandle?.closeWineLog()
                 } catch {
                     Logger.wineKit.error("Error while clearing data: \(error)")
                 }

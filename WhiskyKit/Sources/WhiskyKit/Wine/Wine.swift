@@ -536,6 +536,21 @@ enum WineInterfaceError: Error {
 // MARK: - Logging Support
 
 public extension Wine {
+    /// Maximum size of a single Whisky log file written by Wine process logging.
+    ///
+    /// Policy: cap each individual log at 20 MiB.
+    static let maxLogFileBytes: Int64 = 20 * 1_024 * 1_024
+
+    /// Maximum total size allowed for all Whisky log files in `logsFolder`.
+    ///
+    /// Policy: cap total disk usage of Whisky's log directory at 200 MiB.
+    static let maxLogsFolderBytes: Int64 = 200 * 1_024 * 1_024
+
+    /// Marker appended once when file logging begins truncation.
+    ///
+    /// - Important: This marker is written at most once per log file and counts toward `maxLogFileBytes`.
+    static let logTruncationMarker = "\n[Whisky] Log truncated: reached 20 MiB cap; further output discarded.\n"
+
     /// The URL to the directory where Wine process logs are stored.
     ///
     /// Logs are stored in `~/Library/Logs/{bundle-identifier}/` with ISO 8601
@@ -543,6 +558,70 @@ public extension Wine {
     static let logsFolder = FileManager.default.urls(
         for: .libraryDirectory, in: .userDomainMask
     )[0].appending(path: "Logs").appending(path: Bundle.whiskyBundleIdentifier)
+
+    /// Enforces log retention policy by deleting the oldest `.log` files until total size is under the limit.
+    ///
+    /// - Important: This method only operates on the provided folder and only deletes regular files with a `.log`
+    ///   extension. It is intentionally best-effort: errors are logged but do not throw.
+    static func enforceLogRetention(in folder: URL, maxTotalBytes: Int64) {
+        do {
+            let keys: [URLResourceKey] = [
+                .isRegularFileKey,
+                .contentModificationDateKey,
+                .creationDateKey,
+                .fileSizeKey
+            ]
+            let urls = try FileManager.default.contentsOfDirectory(
+                at: folder,
+                includingPropertiesForKeys: keys,
+                options: [.skipsHiddenFiles]
+            )
+
+            struct LogFile {
+                let url: URL
+                let size: Int64
+                let date: Date
+            }
+
+            var files: [LogFile] = []
+            files.reserveCapacity(urls.count)
+
+            for url in urls {
+                guard url.pathExtension.lowercased() == "log" else { continue }
+                let values = try url.resourceValues(forKeys: Set(keys))
+                guard values.isRegularFile == true else { continue }
+                let size = Int64(values.fileSize ?? 0)
+                let date = values.contentModificationDate ?? values.creationDate ?? .distantPast
+                files.append(LogFile(url: url, size: size, date: date))
+            }
+
+            var total: Int64 = files.reduce(0) { $0 + $1.size }
+            guard total > maxTotalBytes else { return }
+
+            // Oldest first
+            files.sort { $0.date < $1.date }
+
+            for file in files {
+                guard total > maxTotalBytes else { break }
+                do {
+                    try FileManager.default.removeItem(at: file.url)
+                    total -= file.size
+                } catch {
+                    let logPath = file.url.path(percentEncoded: false)
+                    let errorDescription = error.localizedDescription
+                    Logger.wineKit.error(
+                        "Failed to remove log \(logPath, privacy: .public): \(errorDescription, privacy: .public)"
+                    )
+                }
+            }
+        } catch {
+            let folderPath = folder.path(percentEncoded: false)
+            let errorDescription = error.localizedDescription
+            Logger.wineKit.error(
+                "Failed to enforce retention in \(folderPath, privacy: .public): \(errorDescription, privacy: .public)"
+            )
+        }
+    }
 
     /// Creates a new file handle for logging Wine process output.
     ///
@@ -555,6 +634,10 @@ public extension Wine {
         if !FileManager.default.fileExists(atPath: logsFolder.path) {
             try FileManager.default.createDirectory(at: logsFolder, withIntermediateDirectories: true)
         }
+
+        // Enforce retention before creating a new log file.
+        // This is best-effort and only impacts Whisky's own log directory.
+        enforceLogRetention(in: logsFolder, maxTotalBytes: maxLogsFolderBytes)
 
         let dateString = Date.now.ISO8601Format()
         let fileURL = Self.logsFolder.appending(path: dateString).appendingPathExtension("log")

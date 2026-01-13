@@ -250,20 +250,27 @@ struct LauncherConfigSection: View {
             }
         }
         .sheet(isPresented: $showDiagnostics) {
-            DiagnosticsReportView(report: diagnosticReport)
+            DiagnosticsReportView(
+                title: "Launcher Diagnostics Report",
+                report: diagnosticReport,
+                defaultFilenamePrefix: "whisky-launcher-diagnostics"
+            )
         }
     }
 }
 
-/// View for displaying diagnostic report in a sheet
+/// View for displaying diagnostic report in a sheet (shared across the Whisky app target).
 struct DiagnosticsReportView: View {
+    let title: String
     let report: String
+    let defaultFilenamePrefix: String
+
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(spacing: 16) {
             HStack {
-                Text("Launcher Diagnostics Report")
+                Text(title)
                     .font(.title2)
                     .fontWeight(.bold)
 
@@ -309,26 +316,15 @@ struct DiagnosticsReportView: View {
     private func exportReport() {
         let savePanel = NSSavePanel()
         savePanel.allowedContentTypes = [.plainText]
-        savePanel.nameFieldStringValue = "whisky-diagnostics-\(Date().timeIntervalSince1970).txt"
+        savePanel.nameFieldStringValue = "\(defaultFilenamePrefix)-\(Date().timeIntervalSince1970).txt"
 
         if savePanel.runModal() == .OK, let url = savePanel.url {
             do {
                 try report.write(to: url, atomically: true, encoding: .utf8)
-
-                // Show success notification
                 launcherConfigLogger.info("Diagnostics report exported successfully to: \(url.path)")
-
-                // Optional: Show success alert
-                let successAlert = NSAlert()
-                successAlert.alertStyle = .informational
-                successAlert.messageText = "Export Successful"
-                successAlert.informativeText = "Diagnostics report saved to:\n\(url.path)"
-                successAlert.runModal()
             } catch {
-                // Log the error for debugging
                 launcherConfigLogger.error("Failed to export diagnostics report: \(error.localizedDescription)")
 
-                // Inform the user with an alert dialog
                 let alert = NSAlert()
                 alert.alertStyle = .warning
                 alert.messageText = "Failed to Export Diagnostics Report"

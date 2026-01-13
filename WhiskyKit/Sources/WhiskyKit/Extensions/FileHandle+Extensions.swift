@@ -110,7 +110,8 @@ private final class WineLogCapRegistry: @unchecked Sendable {
             return Int64(offset)
         } catch {
             Logger.wineKit.info("Failed to determine current file size; seekToEnd() threw: \(error)")
-            return 0
+            // If we can't determine the current size, assume the cap is already reached to avoid writing past it.
+            return Wine.maxLogFileBytes
         }
     }
 

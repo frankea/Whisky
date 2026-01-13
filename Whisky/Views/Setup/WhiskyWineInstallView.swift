@@ -21,6 +21,7 @@ import WhiskyKit
 
 struct WhiskyWineInstallView: View {
     @State var installing: Bool = true
+    @State private var installError: String?
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
@@ -35,7 +36,9 @@ struct WhiskyWineInstallView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Spacer()
-                if installing {
+                if let installError {
+                    errorView(error: installError)
+                } else if installing {
                     ProgressView()
                         .progressViewStyle(.circular)
                         .frame(width: 80)
@@ -52,12 +55,70 @@ struct WhiskyWineInstallView: View {
         .frame(width: 400, height: 200)
         .onAppear {
             Task.detached {
-                await WhiskyWineInstaller.install(from: tarLocation)
+                do {
+                    try await WhiskyWineInstaller.install(from: tarLocation)
+                    await MainActor.run {
+                        installing = false
+                    }
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    await proceed()
+                } catch {
+                    await MainActor.run {
+                        installing = false
+                        installError = error.localizedDescription
+                    }
+                }
+            }
+        }
+    }
+
+    private func errorView(error: String) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "xmark.circle")
+                .resizable()
+                .foregroundStyle(.red)
+                .frame(width: 80, height: 80)
+                .padding(.bottom, 8)
+
+            Text(error)
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+
+            HStack(spacing: 12) {
+                Button("setup.retry") {
+                    retryInstall()
+                }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.defaultAction)
+
+                Button("setup.quit") {
+                    showSetup = false
+                }
+                .buttonStyle(.bordered)
+                .keyboardShortcut(.cancelAction)
+            }
+            .padding(.top, 8)
+        }
+        .padding()
+    }
+
+    private func retryInstall() {
+        installError = nil
+        installing = true
+        Task.detached {
+            do {
+                try await WhiskyWineInstaller.install(from: tarLocation)
                 await MainActor.run {
                     installing = false
                 }
-                sleep(2)
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
                 await proceed()
+            } catch {
+                await MainActor.run {
+                    installing = false
+                    installError = error.localizedDescription
+                }
             }
         }
     }

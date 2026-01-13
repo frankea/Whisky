@@ -41,7 +41,7 @@ import WhiskyKit
 if !WhiskyWineInstaller.isWhiskyWineInstalled() {
     // Download and install WhiskyWine
     let tarballURL = // ... download WhiskyWine tarball
-    WhiskyWineInstaller.install(from: tarballURL)
+    try await WhiskyWineInstaller.install(from: tarballURL)
 }
 
 // Check for updates

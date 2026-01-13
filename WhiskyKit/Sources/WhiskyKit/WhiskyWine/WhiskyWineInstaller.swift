@@ -22,6 +22,42 @@ import SemanticVersion
 
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "WhiskyWineInstaller")
 
+public enum WhiskyWineInstallError: LocalizedError {
+    case missingLibrariesFolder
+    case missingVersionFile
+    case missingWineBinary
+    case invalidVersionFile(underlying: Error)
+    case installationInProgress
+
+    public var errorDescription: String? {
+        switch self {
+        case .missingLibrariesFolder:
+            "WhiskyWine install failed: could not locate extracted Libraries folder."
+        case .missingVersionFile:
+            "WhiskyWine install failed: missing WhiskyWineVersion.plist in Libraries folder."
+        case .missingWineBinary:
+            "WhiskyWine install failed: missing Wine binary (Wine/bin/wine64)."
+        case let .invalidVersionFile(underlying):
+            "WhiskyWine install failed: invalid version file (\(underlying.localizedDescription))."
+        case .installationInProgress:
+            "WhiskyWine install is already in progress. Please try again."
+        }
+    }
+}
+
+private actor WhiskyWineInstallCoordinator {
+    private var isInstalling = false
+
+    func begin() throws {
+        guard !isInstalling else { throw WhiskyWineInstallError.installationInProgress }
+        isInstalling = true
+    }
+
+    func end() {
+        isInstalling = false
+    }
+}
+
 /// Manages the installation and updates of the WhiskyWine runtime.
 ///
 /// `WhiskyWineInstaller` handles downloading, installing, and managing the
@@ -68,6 +104,8 @@ private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: 
 /// - ``uninstall()``
 /// - ``shouldUpdateWhiskyWine()``
 public class WhiskyWineInstaller {
+    private static let coordinator = WhiskyWineInstallCoordinator()
+
     /// The root application support folder for Whisky.
     ///
     /// Located at `~/Library/Application Support/{bundle-identifier}/`.
@@ -101,20 +139,68 @@ public class WhiskyWineInstaller {
     ///   The tarball is deleted after successful extraction.
     ///
     /// - Important: Ensure the tarball is from a trusted source.
-    public static func install(from: URL) {
+    public static func install(from: URL) async throws {
+        try await coordinator.begin()
+        defer { Task { await coordinator.end() } }
+
+        // Stage extraction in a temporary directory and then atomically swap Libraries/.
+        let fileManager = FileManager.default
+        let stagingRoot = fileManager.temporaryDirectory
+            .appendingPathComponent("whiskywine-install-\(UUID().uuidString)")
+        defer {
+            // Best-effort staging cleanup.
+            try? fileManager.removeItem(at: stagingRoot)
+        }
+
         do {
-            if !FileManager.default.fileExists(atPath: applicationFolder.path) {
-                try FileManager.default.createDirectory(at: applicationFolder, withIntermediateDirectories: true)
-            } else {
-                // Recreate it
-                try FileManager.default.removeItem(at: applicationFolder)
-                try FileManager.default.createDirectory(at: applicationFolder, withIntermediateDirectories: true)
+            try fileManager.createDirectory(at: stagingRoot, withIntermediateDirectories: true)
+            try Tar.untar(tarBall: from, toURL: stagingRoot)
+
+            guard let extractedLibraries = locateExtractedLibrariesFolder(in: stagingRoot) else {
+                throw WhiskyWineInstallError.missingLibrariesFolder
             }
 
-            try Tar.untar(tarBall: from, toURL: applicationFolder)
-            try FileManager.default.removeItem(at: from)
+            // Validate expected structure before touching the live install.
+            let versionPlist = extractedLibraries
+                .appending(path: "WhiskyWineVersion")
+                .appendingPathExtension("plist")
+            guard fileManager.fileExists(atPath: versionPlist.path(percentEncoded: false)) else {
+                throw WhiskyWineInstallError.missingVersionFile
+            }
+            _ = try decodeWhiskyWineVersion(from: versionPlist)
+
+            let wineBinary = extractedLibraries.appending(path: "Wine").appending(path: "bin").appending(path: "wine64")
+            guard fileManager.fileExists(atPath: wineBinary.path(percentEncoded: false)) else {
+                throw WhiskyWineInstallError.missingWineBinary
+            }
+
+            // Ensure application support root exists.
+            if !fileManager.fileExists(atPath: applicationFolder.path(percentEncoded: false)) {
+                try fileManager.createDirectory(at: applicationFolder, withIntermediateDirectories: true)
+            }
+
+            // Move libraries into a temp path under applicationFolder to support atomic replace.
+            let tempLibraries = applicationFolder.appending(path: "Libraries.new-\(UUID().uuidString)")
+            if fileManager.fileExists(atPath: tempLibraries.path(percentEncoded: false)) {
+                try? fileManager.removeItem(at: tempLibraries)
+            }
+            try fileManager.moveItem(at: extractedLibraries, to: tempLibraries)
+
+            if fileManager.fileExists(atPath: libraryFolder.path(percentEncoded: false)) {
+                _ = try fileManager.replaceItemAt(
+                    libraryFolder,
+                    withItemAt: tempLibraries,
+                    backupItemName: "Libraries.backup-\(Date().timeIntervalSince1970)"
+                )
+            } else {
+                try fileManager.moveItem(at: tempLibraries, to: libraryFolder)
+            }
+
+            // Clean up downloaded tarball.
+            try? fileManager.removeItem(at: from)
         } catch {
             logger.error("Failed to install WhiskyWine: \(error.localizedDescription)")
+            throw error
         }
     }
 
@@ -189,13 +275,50 @@ public class WhiskyWineInstaller {
                 .appending(path: "WhiskyWineVersion")
                 .appendingPathExtension("plist")
 
+            return try decodeWhiskyWineVersion(from: versionPlist)
+        } catch {
+            logger.debug("WhiskyWine version not found: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    // MARK: - Installation helpers (internal for testing)
+
+    static func decodeWhiskyWineVersion(from versionPlist: URL) throws -> SemanticVersion {
+        do {
             let decoder = PropertyListDecoder()
             let data = try Data(contentsOf: versionPlist)
             let info = try decoder.decode(WhiskyWineVersion.self, from: data)
             return info.version
         } catch {
-            logger.debug("WhiskyWine version not found: \(error.localizedDescription)")
-            return nil
+            throw WhiskyWineInstallError.invalidVersionFile(underlying: error)
         }
+    }
+
+    /// Attempts to locate the extracted `Libraries/` folder under a staging root.
+    ///
+    /// We primarily search for `WhiskyWineVersion.plist` and return its parent directory.
+    static func locateExtractedLibrariesFolder(in stagingRoot: URL) -> URL? {
+        let fileManager = FileManager.default
+        let enumerator = fileManager.enumerator(
+            at: stagingRoot,
+            includingPropertiesForKeys: [.isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        )
+
+        while let url = enumerator?.nextObject() as? URL {
+            if url.lastPathComponent == "WhiskyWineVersion.plist" {
+                return url.deletingLastPathComponent()
+            }
+        }
+
+        // Fallback: common layouts
+        let direct = stagingRoot.appending(path: "Libraries")
+        if fileManager.fileExists(atPath: direct.path(percentEncoded: false)) { return direct }
+
+        let nested = stagingRoot.appending(path: Bundle.whiskyBundleIdentifier).appending(path: "Libraries")
+        if fileManager.fileExists(atPath: nested.path(percentEncoded: false)) { return nested }
+
+        return nil
     }
 }

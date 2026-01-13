@@ -32,7 +32,7 @@ private final class WineLogCapRegistry: @unchecked Sendable {
 
     private let lock = NSLock()
     private var states: [ObjectIdentifier: State] = [:]
-    nonisolated(unsafe) private static var deinitObserverKey: UInt8 = 0
+    private nonisolated(unsafe) static var deinitObserverKey: UInt8 = 0
 
     private final class DeinitObserver {
         let onDeinit: () -> Void
@@ -112,9 +112,9 @@ private final class WineLogCapRegistry: @unchecked Sendable {
         } catch {
             Logger.wineKit.info("Failed to determine current file size; seekToEnd() threw: \(error)")
             // Fall back to `fstat` (doesn't require seeking) to avoid unnecessarily disabling logging.
-            var st = stat()
-            if fstat(handle.fileDescriptor, &st) == 0 {
-                return Int64(st.st_size)
+            var fileStat = stat()
+            if fstat(handle.fileDescriptor, &fileStat) == 0 {
+                return Int64(fileStat.st_size)
             }
 
             // If we still can't determine the current size, assume the cap is already reached to avoid writing past it.

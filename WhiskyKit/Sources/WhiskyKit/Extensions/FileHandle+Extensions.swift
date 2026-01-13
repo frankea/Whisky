@@ -18,6 +18,7 @@
 
 import Foundation
 @preconcurrency import ObjectiveC
+import Darwin
 import os.log
 import SemanticVersion
 

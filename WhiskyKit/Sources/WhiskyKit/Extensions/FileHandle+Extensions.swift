@@ -29,16 +29,21 @@ private final class WineLogCapRegistry: @unchecked Sendable {
     }
 
     private let lock = NSLock()
-    private var states: [ObjectIdentifier: State] = [:]
+    private final class StateBox: NSObject {
+        var state: State
+        init(_ state: State) { self.state = state }
+    }
+
+    /// Uses weak keys to avoid leaking state if a `FileHandle` is deallocated without calling `closeWineLog()`.
+    private let states = NSMapTable<FileHandle, StateBox>(keyOptions: .weakMemory, valueOptions: .strongMemory)
 
     private init() {}
 
     func write(_ data: Data, to handle: FileHandle) {
-        let key = ObjectIdentifier(handle)
         lock.lock()
         defer { lock.unlock() }
 
-        var state = states[key] ?? State(
+        var state = states.object(forKey: handle)?.state ?? State(
             bytesWritten: currentSizeBytes(for: handle),
             didWriteTruncationMarker: false
         )
@@ -71,14 +76,17 @@ private final class WineLogCapRegistry: @unchecked Sendable {
             writeTruncationMarkerIfPossible(markerData, maxBytes: maxBytes, state: &state, handle: handle)
         }
 
-        states[key] = state
+        if let box = states.object(forKey: handle) {
+            box.state = state
+        } else {
+            states.setObject(StateBox(state), forKey: handle)
+        }
     }
 
     func removeState(for handle: FileHandle) {
-        let key = ObjectIdentifier(handle)
         lock.lock()
         defer { lock.unlock() }
-        states.removeValue(forKey: key)
+        states.removeObject(forKey: handle)
     }
 
     private func currentSizeBytes(for handle: FileHandle) -> Int64 {

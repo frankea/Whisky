@@ -17,6 +17,7 @@
 //
 
 import Foundation
+@preconcurrency import ObjectiveC
 import os.log
 import SemanticVersion
 
@@ -29,21 +30,25 @@ private final class WineLogCapRegistry: @unchecked Sendable {
     }
 
     private let lock = NSLock()
-    private final class StateBox: NSObject {
-        var state: State
-        init(_ state: State) { self.state = state }
-    }
+    private var states: [ObjectIdentifier: State] = [:]
+    nonisolated(unsafe) private static var deinitObserverKey: UInt8 = 0
 
-    /// Uses weak keys to avoid leaking state if a `FileHandle` is deallocated without calling `closeWineLog()`.
-    private let states = NSMapTable<FileHandle, StateBox>(keyOptions: .weakMemory, valueOptions: .strongMemory)
+    private final class DeinitObserver {
+        let onDeinit: () -> Void
+        init(onDeinit: @escaping () -> Void) { self.onDeinit = onDeinit }
+        deinit { onDeinit() }
+    }
 
     private init() {}
 
     func write(_ data: Data, to handle: FileHandle) {
+        let key = ObjectIdentifier(handle)
+        attachDeinitObserverIfNeeded(to: handle, key: key)
+
         lock.lock()
         defer { lock.unlock() }
 
-        var state = states.object(forKey: handle)?.state ?? State(
+        var state = states[key] ?? State(
             bytesWritten: currentSizeBytes(for: handle),
             didWriteTruncationMarker: false
         )
@@ -76,17 +81,26 @@ private final class WineLogCapRegistry: @unchecked Sendable {
             writeTruncationMarkerIfPossible(markerData, maxBytes: maxBytes, state: &state, handle: handle)
         }
 
-        if let box = states.object(forKey: handle) {
-            box.state = state
-        } else {
-            states.setObject(StateBox(state), forKey: handle)
-        }
+        states[key] = state
     }
 
     func removeState(for handle: FileHandle) {
+        removeState(forKey: ObjectIdentifier(handle))
+    }
+
+    private func removeState(forKey key: ObjectIdentifier) {
         lock.lock()
         defer { lock.unlock() }
-        states.removeObject(forKey: handle)
+        states.removeValue(forKey: key)
+    }
+
+    private func attachDeinitObserverIfNeeded(to handle: FileHandle, key: ObjectIdentifier) {
+        // Ensure state is cleared even if `closeWineLog()` isn't called (e.g., early returns / errors).
+        if objc_getAssociatedObject(handle, &Self.deinitObserverKey) != nil { return }
+        let observer = DeinitObserver { [weak self] in
+            self?.removeState(forKey: key)
+        }
+        objc_setAssociatedObject(handle, &Self.deinitObserverKey, observer, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }
 
     private func currentSizeBytes(for handle: FileHandle) -> Int64 {

@@ -81,8 +81,26 @@ public extension Process {
 
             terminationHandler = { (process: Process) in
                 do {
-                    _ = try pipe.fileHandleForReading.readToEnd()
-                    _ = try errorPipe.fileHandleForReading.readToEnd()
+                    // Stop readability handlers first to avoid racing / double-consuming output.
+                    pipe.fileHandleForReading.readabilityHandler = nil
+                    errorPipe.fileHandleForReading.readabilityHandler = nil
+
+                    // Drain any remaining output. `readabilityHandler` may stop firing before the last bytes are consumed.
+                    if let remainingOut = try pipe.fileHandleForReading.readToEnd(),
+                       let out = String(data: remainingOut, encoding: .utf8),
+                       !out.isEmpty {
+                        continuation.yield(.message(out))
+                        Logger.wineKit.info("\(out, privacy: .public)")
+                        fileHandle?.writeWineLog(line: out)
+                    }
+
+                    if let remainingErr = try errorPipe.fileHandleForReading.readToEnd(),
+                       let err = String(data: remainingErr, encoding: .utf8),
+                       !err.isEmpty {
+                        continuation.yield(.error(err))
+                        Logger.wineKit.warning("\(err, privacy: .public)")
+                        fileHandle?.writeWineLog(line: err)
+                    }
                     try fileHandle?.closeWineLog()
                 } catch {
                     Logger.wineKit.error("Error while clearing data: \(error)")

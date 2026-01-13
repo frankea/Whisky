@@ -45,7 +45,7 @@ private final class WineLogCapRegistry: @unchecked Sendable {
 
         // Once truncation starts, discard further output without buffering.
         if state.didWriteTruncationMarker {
-            states[key] = state
+            // `state` isn't mutated in this branch, so writing it back to `states` would be redundant.
             return
         }
 

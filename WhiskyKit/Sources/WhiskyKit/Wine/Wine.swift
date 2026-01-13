@@ -258,11 +258,15 @@ public class Wine {
             try enableDXVK(bottle: bottle)
         }
 
-        for await _ in try runWineProcess(
+        let stream = try runWineProcess(
             name: url.lastPathComponent,
             args: ["start", "/unix", url.path(percentEncoded: false)] + args,
             bottle: bottle, environment: environment
-        ) {}
+        )
+
+        // Consume output off the main actor so UI remains responsive while the program runs.
+        // The process still runs to completion; we just avoid doing the aggregation work on the UI executor.
+        _ = try await collectOutputStringOffMain(from: stream)
     }
 
     /// Generates a shell command string for running a Windows program.
@@ -348,20 +352,8 @@ public class Wine {
     /// Run a `wineserver` command with the given arguments and return the output result
     @MainActor
     private static func runWineserver(_ args: [String], bottle: Bottle) async throws -> String {
-        var result: [ProcessOutput] = []
-
-        for await output in try Self.runWineserverProcess(args: args, bottle: bottle, environment: [:]) {
-            result.append(output)
-        }
-
-        return result.compactMap { output -> String? in
-            switch output {
-            case .started, .terminated:
-                return nil
-            case let .message(message), let .error(message):
-                return message
-            }
-        }.joined()
+        let stream = try Self.runWineserverProcess(args: args, bottle: bottle, environment: [:])
+        return try await collectOutputStringOffMain(from: stream)
     }
 
     /// Runs a Wine command and returns the collected output as a string.
@@ -396,22 +388,13 @@ public class Wine {
     private static func runWineWithBottle(
         _ args: [String], bottle: Bottle, environment: [String: String] = [:]
     ) async throws -> String {
-        var result: [String] = []
         let fileHandle = try makeFileHandle()
         fileHandle.writeApplicationInfo()
         fileHandle.writeInfo(for: bottle)
         let wineEnvironment = constructWineEnvironment(for: bottle, environment: environment)
 
-        for await output in try runWineProcess(args: args, environment: wineEnvironment, fileHandle: fileHandle) {
-            switch output {
-            case .started, .terminated:
-                break
-            case let .message(message), let .error(message):
-                result.append(message)
-            }
-        }
-
-        return result.joined()
+        let stream = try runWineProcess(args: args, environment: wineEnvironment, fileHandle: fileHandle)
+        return try await collectOutputStringOffMain(from: stream)
     }
 
     /// Run a `wine` command without a bottle context (e.g., for --version queries)
@@ -420,20 +403,11 @@ public class Wine {
     private static func runWineWithoutBottle(
         _ args: [String], environment: [String: String] = [:]
     ) async throws -> String {
-        var result: [String] = []
         let fileHandle = try makeFileHandle()
         fileHandle.writeApplicationInfo()
 
-        for await output in try runWineProcess(args: args, environment: environment, fileHandle: fileHandle) {
-            switch output {
-            case .started, .terminated:
-                break
-            case let .message(message), let .error(message):
-                result.append(message)
-            }
-        }
-
-        return result.joined()
+        let stream = try runWineProcess(args: args, environment: environment, fileHandle: fileHandle)
+        return try await collectOutputStringOffMain(from: stream)
     }
 
     /// Returns the version string of the installed Wine binary.
@@ -643,5 +617,31 @@ public extension Wine {
         let fileURL = Self.logsFolder.appending(path: dateString).appendingPathExtension("log")
         try "".write(to: fileURL, atomically: true, encoding: .utf8)
         return try FileHandle(forWritingTo: fileURL)
+    }
+}
+
+// MARK: - Output collection
+
+extension Wine {
+    /// Collects stdout/stderr output from a Process stream off the main actor.
+    ///
+    /// Many `Wine` entry points are `@MainActor` because they read bottle settings, but consuming the
+    /// process output stream on the main actor can starve UI rendering (e.g., ConfigView freeze reports).
+    static func collectOutputStringOffMain(from stream: AsyncStream<ProcessOutput>) async throws -> String {
+        try await Task.detached(priority: .userInitiated) {
+            var result: [String] = []
+            result.reserveCapacity(64)
+
+            for await output in stream {
+                switch output {
+                case .started, .terminated:
+                    break
+                case let .message(message), let .error(message):
+                    result.append(message)
+                }
+            }
+
+            return result.joined()
+        }.value
     }
 }

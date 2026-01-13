@@ -148,6 +148,11 @@ private final class WineLogCapRegistry: @unchecked Sendable {
 }
 
 extension FileHandle {
+    private enum Constants {
+        /// Prevents extremely large environments from bloating logs while still providing useful diagnostics.
+        static let maxEnvironmentKeysToLog = 200
+    }
+
     func extract<T>(_ type: T.Type, offset: UInt64 = 0) -> T? {
         do {
             try self.seek(toOffset: offset)
@@ -210,7 +215,7 @@ extension FileHandle {
 
         if let environment = process.environment, !environment.isEmpty {
             // Avoid persisting raw environment values to logs (can contain secrets like tokens, API keys, etc.).
-            let maxKeysToLog = 200
+            let maxKeysToLog = Constants.maxEnvironmentKeysToLog
             let sortedKeys = environment.keys.sorted()
             let keysToLog = sortedKeys.prefix(maxKeysToLog)
             let keysDescription = keysToLog.joined(separator: ", ")

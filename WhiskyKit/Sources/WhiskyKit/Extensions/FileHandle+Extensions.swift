@@ -95,6 +95,7 @@ private final class WineLogCapRegistry: @unchecked Sendable {
             let offset = try handle.seekToEnd()
             return Int64(offset)
         } catch {
+            Logger.wineKit.info("Failed to determine current file size; seekToEnd() threw: \(error)")
             return 0
         }
     }

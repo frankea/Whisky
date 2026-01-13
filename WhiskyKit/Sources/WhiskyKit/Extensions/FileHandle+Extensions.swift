@@ -16,9 +16,9 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import Darwin
 import Foundation
 @preconcurrency import ObjectiveC
-import Darwin
 import os.log
 import SemanticVersion
 

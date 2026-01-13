@@ -255,4 +255,32 @@ final class EnvironmentVariablesTests: XCTestCase {
         XCTAssertEqual(env["DXVK_SHADER_COMPILE_THREADS"], "1")
         XCTAssertEqual(env["__GL_SHADER_DISK_CACHE"], "0")
     }
+
+    // MARK: - Stability Safe Mode
+
+    func testEnvironmentVariablesWithStabilitySafeModeOverrides() {
+        var settings = BottleSettings()
+        settings.stabilitySafeMode = true
+        settings.dxrEnabled = true
+        settings.forceD3D11 = false
+        settings.enhancedSync = .msync
+        settings.metalValidation = true
+
+        var env: [String: String] = [:]
+        settings.environmentVariables(wineEnv: &env)
+
+        // Safe Mode forces D3D11 and disables DXR and validation.
+        XCTAssertEqual(env["D3DM_FORCE_D3D11"], "1")
+        XCTAssertEqual(env["D3DM_FEATURE_LEVEL_12_0"], "0")
+        XCTAssertEqual(env["D3DM_SUPPORT_DXR"], "0")
+        XCTAssertEqual(env["D3DM_VALIDATION"], "0")
+        XCTAssertEqual(env["MTL_DEBUG_LAYER"], "0")
+
+        // Safe Mode prefers ESYNC baseline and disables MSYNC to avoid conflicting modes.
+        XCTAssertEqual(env["WINEESYNC"], "1")
+        XCTAssertNil(env["WINEMSYNC"])
+
+        // Safe Mode disables fsync.
+        XCTAssertEqual(env["WINEFSYNC"], "0")
+    }
 }

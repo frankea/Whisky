@@ -348,6 +348,16 @@ public struct BottleSettings: Codable, Equatable {
         set { performanceConfig.vcRedistInstalled = newValue }
     }
 
+    /// Whether Stability Safe Mode is enabled.
+    ///
+    /// Safe Mode applies conservative environment overrides intended to mitigate
+    /// hard freezes, reboots, and kernel panics (Refs #40). It is opt-in and may
+    /// reduce performance or visual quality.
+    public var stabilitySafeMode: Bool {
+        get { performanceConfig.stabilitySafeMode }
+        set { performanceConfig.stabilitySafeMode = newValue }
+    }
+
     // MARK: - Launcher compatibility settings
 
     /// Whether launcher compatibility mode is enabled.
@@ -576,6 +586,11 @@ public struct BottleSettings: Codable, Equatable {
             wineEnv.updateValue("1", forKey: "D3DM_FORCE_D3D11")
             wineEnv.updateValue("0", forKey: "D3DM_FEATURE_LEVEL_12_0")
         }
+
+        // Stability Safe Mode (Refs #40) - apply last so it can override other toggles.
+        if stabilitySafeMode {
+            applyStabilitySafeMode(wineEnv: &wineEnv)
+        }
     }
 
     // swiftlint:enable cyclomatic_complexity function_body_length
@@ -693,6 +708,26 @@ public struct BottleSettings: Codable, Equatable {
         // SSL/TLS compatibility for launchers
         wineEnv.updateValue("1", forKey: "WINE_ENABLE_SSL")
         wineEnv.updateValue("TLS1.2", forKey: "WINE_SSL_VERSION_MIN")
+    }
+
+    private func applyStabilitySafeMode(wineEnv: inout [String: String]) {
+        // Conservative defaults to reduce risk of GPU/Metal-triggered instability.
+        wineEnv.updateValue("1", forKey: "D3DM_FORCE_D3D11")
+        wineEnv.updateValue("0", forKey: "D3DM_FEATURE_LEVEL_12_0")
+
+        // Prefer ESYNC as a baseline on newer macOS; disable MSYNC to avoid conflicting modes.
+        wineEnv.updateValue("1", forKey: "WINEESYNC")
+        wineEnv.removeValue(forKey: "WINEMSYNC")
+
+        // Disable fsync (known to interact poorly with some Sequoia builds).
+        wineEnv.updateValue("0", forKey: "WINEFSYNC")
+
+        // Disable DXR regardless of UI toggle.
+        wineEnv.updateValue("0", forKey: "D3DM_SUPPORT_DXR")
+
+        // Disable validation layers to reduce overhead / driver stress.
+        wineEnv.updateValue("0", forKey: "D3DM_VALIDATION")
+        wineEnv.updateValue("0", forKey: "MTL_DEBUG_LAYER")
     }
 }
 

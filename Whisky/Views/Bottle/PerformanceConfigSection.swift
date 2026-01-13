@@ -25,6 +25,14 @@ struct PerformanceConfigSection: View {
 
     var body: some View {
         Section("config.title.performance", isExpanded: $isExpanded) {
+            Toggle(isOn: $bottle.settings.stabilitySafeMode) {
+                VStack(alignment: .leading) {
+                    Text("Stability Safe Mode")
+                    Text("Applies conservative settings to mitigate hard freezes/reboots (Refs #40).")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
             Picker("config.performancePreset", selection: $bottle.settings.performancePreset) {
                 ForEach(PerformancePreset.allCases, id: \.self) { preset in
                     Text(preset.description()).tag(preset)

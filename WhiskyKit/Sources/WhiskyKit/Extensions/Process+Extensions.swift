@@ -45,6 +45,7 @@ public extension Process {
     private func makeStream(name: String, fileHandle: FileHandle?) -> AsyncStream<ProcessOutput> {
         let pipe = Pipe()
         let errorPipe = Pipe()
+        let outputLock = NSLock()
         standardOutput = pipe
         standardError = errorPipe
 
@@ -65,6 +66,8 @@ public extension Process {
 
             pipe.fileHandleForReading.readabilityHandler = { pipe in
                 guard let line = pipe.nextLine() else { return }
+                outputLock.lock()
+                defer { outputLock.unlock() }
                 continuation.yield(.message(line))
                 guard !line.isEmpty else { return }
                 Logger.wineKit.info("\(line, privacy: .public)")
@@ -73,6 +76,8 @@ public extension Process {
 
             errorPipe.fileHandleForReading.readabilityHandler = { pipe in
                 guard let line = pipe.nextLine() else { return }
+                outputLock.lock()
+                defer { outputLock.unlock() }
                 continuation.yield(.error(line))
                 guard !line.isEmpty else { return }
                 Logger.wineKit.warning("\(line, privacy: .public)")
@@ -84,6 +89,9 @@ public extension Process {
                     // Stop readability handlers first to avoid racing / double-consuming output.
                     pipe.fileHandleForReading.readabilityHandler = nil
                     errorPipe.fileHandleForReading.readabilityHandler = nil
+
+                    outputLock.lock()
+                    defer { outputLock.unlock() }
 
                     // Drain any remaining output. `readabilityHandler` may stop firing before the last bytes are consumed.
                     if let remainingOut = try pipe.fileHandleForReading.readToEnd(),

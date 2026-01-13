@@ -28,29 +28,17 @@ public class Rosetta2 {
         let process = Process()
         let fileHandle = try Wine.makeFileHandle()
 
-        process.launchPath = "/usr/sbin/softwareupdate"
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/softwareupdate")
         process.arguments = ["--install-rosetta", "--agree-to-license"]
-        process.standardOutput = fileHandle
-        process.standardError = fileHandle
         fileHandle.writeApplicationInfo()
-        fileHandle.writeInfo(for: process)
 
-        return try await withCheckedThrowingContinuation { continuation in
-            process.terminationHandler = { (process: Process) in
-                do {
-                    try fileHandle.close()
-                    continuation.resume(returning: process.terminationStatus == 0)
-                } catch {
-                    Logger.wineKit.error("Error while closing file handle: \(error)")
-                    continuation.resume(throwing: error)
-                }
-            }
-
-            do {
-                try process.run()
-            } catch {
-                continuation.resume(throwing: error)
+        let stream = try process.runStream(name: "Install Rosetta 2", fileHandle: fileHandle)
+        var status: Int32 = 1
+        for await output in stream {
+            if case let .terminated(code) = output {
+                status = code
             }
         }
+        return status == 0
     }
 }

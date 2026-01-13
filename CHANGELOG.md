@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Corrected Dependabot Swift configuration
+- Capped Wine process logs and pruned old logs to prevent excessive disk usage (Issue #46)
+
+### Security
+- Process environment logging now records keys only (not values) to avoid persisting secrets in logs
 
 ### Removed
 - Unmaintained CLI dependencies (SwiftyTextTable, Progress.swift)

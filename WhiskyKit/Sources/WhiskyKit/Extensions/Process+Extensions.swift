@@ -45,54 +45,145 @@ public extension Process {
     private func makeStream(name: String, fileHandle: FileHandle?) -> AsyncStream<ProcessOutput> {
         let pipe = Pipe()
         let errorPipe = Pipe()
+        let outputLock = NSLock()
         standardOutput = pipe
         standardError = errorPipe
 
         return AsyncStream<ProcessOutput> { continuation in
-            continuation.onTermination = { termination in
-                switch termination {
-                case .finished:
-                    break
-                case .cancelled:
-                    guard self.isRunning else { return }
-                    self.terminate()
-                @unknown default:
-                    break
-                }
-            }
-
             continuation.yield(.started)
 
-            pipe.fileHandleForReading.readabilityHandler = { pipe in
-                guard let line = pipe.nextLine() else { return }
-                continuation.yield(.message(line))
-                guard !line.isEmpty else { return }
-                Logger.wineKit.info("\(line, privacy: .public)")
-                fileHandle?.write(line: line)
-            }
+            continuation.onTermination = self.makeStreamTerminationCallback()
 
-            errorPipe.fileHandleForReading.readabilityHandler = { pipe in
-                guard let line = pipe.nextLine() else { return }
-                continuation.yield(.error(line))
-                guard !line.isEmpty else { return }
-                Logger.wineKit.warning("\(line, privacy: .public)")
-                fileHandle?.write(line: line)
-            }
+            pipe.fileHandleForReading.readabilityHandler = self.makeReadabilityHandler(
+                kind: .stdout,
+                outputLock: outputLock,
+                continuation: continuation,
+                fileHandle: fileHandle
+            )
 
-            terminationHandler = { (process: Process) in
-                do {
-                    _ = try pipe.fileHandleForReading.readToEnd()
-                    _ = try errorPipe.fileHandleForReading.readToEnd()
-                    try fileHandle?.close()
-                } catch {
-                    Logger.wineKit.error("Error while clearing data: \(error)")
-                }
+            errorPipe.fileHandleForReading.readabilityHandler = self.makeReadabilityHandler(
+                kind: .stderr,
+                outputLock: outputLock,
+                continuation: continuation,
+                fileHandle: fileHandle
+            )
 
-                process.logTermination(name: name)
-                continuation.yield(.terminated(process.terminationStatus))
-                continuation.finish()
+            terminationHandler = self.makeProcessTerminationHandler(
+                context: TerminationContext(
+                    name: name,
+                    pipe: pipe,
+                    errorPipe: errorPipe,
+                    outputLock: outputLock,
+                    continuation: continuation,
+                    fileHandle: fileHandle
+                )
+            )
+        }
+    }
+
+    private enum StreamKind {
+        case stdout
+        case stderr
+    }
+
+    private struct TerminationContext {
+        let name: String
+        let pipe: Pipe
+        let errorPipe: Pipe
+        let outputLock: NSLock
+        let continuation: AsyncStream<ProcessOutput>.Continuation
+        let fileHandle: FileHandle?
+    }
+
+    private func makeStreamTerminationCallback()
+        -> @Sendable (AsyncStream<ProcessOutput>.Continuation.Termination) -> Void {
+        { termination in
+            if case .cancelled = termination, self.isRunning {
+                self.terminate()
             }
         }
+    }
+
+    private func makeReadabilityHandler(
+        kind: StreamKind,
+        outputLock: NSLock,
+        continuation: AsyncStream<ProcessOutput>.Continuation,
+        fileHandle: FileHandle?
+    ) -> @Sendable (FileHandle) -> Void {
+        { pipeHandle in
+            guard let line = pipeHandle.nextLine() else { return }
+            outputLock.lock()
+            defer { outputLock.unlock() }
+            self.emit(line: line, kind: kind, continuation: continuation, fileHandle: fileHandle)
+        }
+    }
+
+    private func makeProcessTerminationHandler(
+        context: TerminationContext
+    ) -> @Sendable (Process) -> Void {
+        { process in
+            do {
+                // Stop readability handlers first to avoid racing / double-consuming output.
+                context.pipe.fileHandleForReading.readabilityHandler = nil
+                context.errorPipe.fileHandleForReading.readabilityHandler = nil
+
+                context.outputLock.lock()
+                defer { context.outputLock.unlock() }
+
+                try self.drainToLog(
+                    context.pipe.fileHandleForReading,
+                    kind: .stdout,
+                    continuation: context.continuation,
+                    fileHandle: context.fileHandle
+                )
+                try self.drainToLog(
+                    context.errorPipe.fileHandleForReading,
+                    kind: .stderr,
+                    continuation: context.continuation,
+                    fileHandle: context.fileHandle
+                )
+                try context.fileHandle?.closeWineLog()
+            } catch {
+                Logger.wineKit.error("Error while clearing data: \(error)")
+            }
+
+            process.logTermination(name: context.name)
+            context.continuation.yield(.terminated(process.terminationStatus))
+            context.continuation.finish()
+        }
+    }
+
+    private func drainToLog(
+        _ handle: FileHandle,
+        kind: StreamKind,
+        continuation: AsyncStream<ProcessOutput>.Continuation,
+        fileHandle: FileHandle?
+    ) throws {
+        // `readabilityHandler` may stop firing before the last bytes are consumed.
+        guard let remaining = try handle.readToEnd(),
+              let text = String(data: remaining, encoding: .utf8),
+              !text.isEmpty
+        else { return }
+        emit(line: text, kind: kind, continuation: continuation, fileHandle: fileHandle)
+    }
+
+    private func emit(
+        line: String,
+        kind: StreamKind,
+        continuation: AsyncStream<ProcessOutput>.Continuation,
+        fileHandle: FileHandle?
+    ) {
+        switch kind {
+        case .stdout:
+            continuation.yield(.message(line))
+            guard !line.isEmpty else { return }
+            Logger.wineKit.info("\(line, privacy: .public)")
+        case .stderr:
+            continuation.yield(.error(line))
+            guard !line.isEmpty else { return }
+            Logger.wineKit.warning("\(line, privacy: .public)")
+        }
+        fileHandle?.writeWineLog(line: line)
     }
 
     private func logTermination(name: String) {

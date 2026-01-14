@@ -121,8 +121,12 @@ struct WhiskyWineInstallView: View {
                         await MainActor.run {
                             diagnostics.installFinishedAt = Date()
                             diagnostics.record("Install finished (retry)")
-                            installing = false
-                            proceed()
+                            if WhiskyWineInstaller.isWhiskyWineInstalled() {
+                                installing = false
+                                proceed()
+                            } else {
+                                installError = String(localized: "setup.whiskywine.error.installFailed")
+                            }
                         }
                     }
                 }

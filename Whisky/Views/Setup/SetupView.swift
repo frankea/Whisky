@@ -184,9 +184,10 @@ struct WhiskyWineSetupDiagnostics: Codable, Sendable {
                 .volumeAvailableCapacityForImportantUsageKey,
                 .volumeAvailableCapacityKey
             ])
-            let bytes = values.volumeAvailableCapacityForImportantUsage ?? values.volumeAvailableCapacity
-            guard let bytes else { return nil }
-            return ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
+            let importantBytes = values.volumeAvailableCapacityForImportantUsage
+            let standardBytes = values.volumeAvailableCapacity.map(Int64.init)
+            guard let bytes = importantBytes ?? standardBytes else { return nil }
+            return ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
         } catch {
             return nil
         }

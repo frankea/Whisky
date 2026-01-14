@@ -69,6 +69,8 @@ struct WhiskyWineSetupDiagnostics: Codable, Sendable {
     private(set) var startedAt = Date()
     private(set) var events: [String] = []
 
+    private static let eventTimestampFormatStyle = Date.ISO8601FormatStyle()
+
     var versionPlistURL: String?
     var downloadURL: String?
     var versionHTTPStatus: Int?
@@ -101,7 +103,7 @@ struct WhiskyWineSetupDiagnostics: Codable, Sendable {
     }
 
     mutating func record(_ message: String) {
-        let timestamp = ISO8601DateFormatter().string(from: Date())
+        let timestamp = Date().formatted(Self.eventTimestampFormatStyle)
         events.append("[\(timestamp)] \(message)")
         if events.count > 200 {
             events.removeFirst(events.count - 200)

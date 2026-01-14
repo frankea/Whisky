@@ -67,6 +67,7 @@ struct SetupView: View {
 struct WhiskyWineSetupDiagnostics: Codable, Sendable {
     private(set) var sessionID = UUID()
     private(set) var startedAt = Date()
+    // NOTE: Do not record secrets/tokens in diagnostics. This is user-shareable.
     private(set) var events: [String] = []
 
     private static let eventTimestampFormatStyle = Date.ISO8601FormatStyle()
@@ -89,6 +90,12 @@ struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         sessionID = UUID()
         startedAt = Date()
         events = []
+        resetDownloadState()
+        installStartedAt = nil
+        installFinishedAt = nil
+    }
+
+    mutating func resetDownloadState(reason: String? = nil) {
         versionPlistURL = nil
         downloadURL = nil
         versionHTTPStatus = nil
@@ -98,8 +105,9 @@ struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         lastProgressAt = nil
         downloadStartedAt = nil
         downloadFinishedAt = nil
-        installStartedAt = nil
-        installFinishedAt = nil
+        if let reason {
+            record(reason)
+        }
     }
 
     mutating func record(_ message: String) {
@@ -117,8 +125,9 @@ struct WhiskyWineSetupDiagnostics: Codable, Sendable {
     }
 
     func reportString(stage: String, error: String? = nil) -> String {
+        let estimatedCapacity = max(200, events.count) + 20
         var lines: [String] = []
-        lines.reserveCapacity(128)
+        lines.reserveCapacity(estimatedCapacity)
 
         appendHeaderLines(into: &lines, stage: stage, error: error)
         appendNetworkLines(into: &lines)
@@ -180,13 +189,17 @@ struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         guard report.count > limit else { return report }
         let limitIndex = report.index(report.startIndex, offsetBy: limit, limitedBy: report.endIndex)
             ?? report.endIndex
-        if let lastNewline = report[..<limitIndex].lastIndex(of: "\n") {
+        let prefix = report[..<limitIndex]
+        if let lastNewline = prefix.lastIndex(of: "\n") {
             return String(report[..<lastNewline])
         }
-        return String(report[..<limitIndex])
+        if let lastWhitespace = prefix.lastIndex(where: { $0.isWhitespace }) {
+            return String(report[..<lastWhitespace])
+        }
+        return String(prefix)
     }
 
-    private func appendIfPresent(_ label: String, value: (some Any)?, into lines: inout [String]) {
+    private func appendIfPresent(_ label: String, value: (some CustomStringConvertible)?, into lines: inout [String]) {
         guard let value else { return }
         lines.append("\(label): \(value)")
     }

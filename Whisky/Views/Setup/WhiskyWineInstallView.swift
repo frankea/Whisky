@@ -126,6 +126,13 @@ struct WhiskyWineInstallView: View {
     private func startInstallation(startLogMessage: String, finishLogMessage: String) {
         Task.detached {
             await MainActor.run {
+                if let previousStart = diagnostics.installStartedAt {
+                    diagnostics.record("Previous install attempt started: \(previousStart.formatted())")
+                }
+                if let previousFinish = diagnostics.installFinishedAt {
+                    diagnostics.record("Previous install attempt finished: \(previousFinish.formatted())")
+                }
+                diagnostics.installFinishedAt = nil
                 diagnostics.installStartedAt = Date()
                 diagnostics.record(startLogMessage)
             }

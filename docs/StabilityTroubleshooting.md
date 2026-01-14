@@ -1,5 +1,7 @@
 # Feature: Stability Troubleshooting (frankea/Whisky#40)
-Last Updated: 2026-01-13
+**Last Updated:** January 13, 2026
+
+---
 
 This document is a contributor-facing playbook for triaging **critical stability issues**: crashes, hard freezes, reboots, and kernel panics.
 

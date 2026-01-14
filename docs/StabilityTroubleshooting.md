@@ -18,7 +18,7 @@ Use this guide for reports like:
 - **Enable Sequoia Compatibility Mode** (Bottle → Config → Metal → “Sequoia Compatibility Mode”): helps with macOS 15.x quirks.
 - **Disable DXR**: ray tracing can stress graphics paths on some systems.
 - **Force D3D11**: can avoid D3D12/D3DMetal paths that trigger instability in some titles.
-- **Kill Bottles** (menu item): terminates Wine processes for all bottles; use when those processes are stuck or the UI is unresponsive.
+- **Kill All Bottles** (menu item): terminates Wine processes for all bottles; use when those processes are stuck or the UI is unresponsive.
 
 ## Collect Diagnostics (Required for Actionable Triage)
 
@@ -39,7 +39,7 @@ Notes:
 
 ### 2) Wine logs folder
 
-In the app, use **Open Logs** (menu item) and attach the newest `.log` file(s) if requested.
+In the app, use **Open Logs Folder** (menu item) and attach the newest `.log` file(s) if requested.
 
 Whisky also enforces log size limits (per-file cap + folder cap) to avoid runaway disk usage.
 

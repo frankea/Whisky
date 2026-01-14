@@ -45,21 +45,21 @@ struct ContentView: View {
             detail
         }
         .alert(
-            "Bottle Creation Failed",
+            "bottle.creation.failed.title",
             isPresented: Binding(
                 get: { bottleVM.bottleCreationAlert != nil },
                 set: { if !$0 { bottleVM.bottleCreationAlert = nil } }
             ),
             presenting: bottleVM.bottleCreationAlert
         ) { alert in
-            Button("Copy Diagnostics") {
+            Button("bottle.creation.failed.copyDiagnostics") {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(alert.diagnostics, forType: .string)
             }
-            Button("Open Logs Folder") {
+            Button("open.logs") {
                 WhiskyApp.openLogsFolder()
             }
-            Button("OK", role: .cancel) {}
+            Button("button.ok", role: .cancel) {}
         } message: { alert in
             Text(alert.message)
         }

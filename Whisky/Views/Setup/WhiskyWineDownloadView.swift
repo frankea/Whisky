@@ -178,6 +178,8 @@ extension WhiskyWineDownloadView {
         observation = nil
         downloadTask = nil
         currentDownloadTaskID = nil
+        diagnostics.reset()
+        diagnostics.record("Retry requested")
         Task {
             await fetchVersionAndDownload()
         }

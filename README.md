@@ -61,7 +61,7 @@ WhiskyKit, the core framework powering Whisky, has comprehensive API documentati
 ### Troubleshooting
 
 - **[Launcher Troubleshooting](docs/LauncherTroubleshooting.md)** - Fix issues with Steam, Epic, Battle.net, etc.
-- **[Stability Troubleshooting](docs/StabilityTroubleshooting.md)** - Diagnose crashes, freezes, reboots, and kernel panics (Issue #40).
+- **[Stability Troubleshooting](docs/StabilityTroubleshooting.md)** - Diagnose crashes, freezes, reboots, and kernel panics (frankea/Whisky#40).
 - **[Steam Compatibility Guide](docs/SteamCompatibility.md)** - Detailed guide for Steam on Whisky.
 - **[Game Support Wiki](https://github.com/frankea/Whisky/wiki/Game-Support)** - Community-maintained game compatibility list.
 

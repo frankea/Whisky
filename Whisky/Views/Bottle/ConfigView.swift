@@ -32,6 +32,8 @@ struct ConfigView: View {
     @State private var retinaModeLoadingState: LoadingState = .loading
     @State private var dpiConfigLoadingState: LoadingState = .loading
     @State private var dpiSheetPresented: Bool = false
+    @State private var showStabilityDiagnostics: Bool = false
+    @State private var stabilityDiagnosticReport: String = ""
     @AppStorage("wineSectionExpanded") private var wineSectionExpanded: Bool = true
     @AppStorage("dxvkSectionExpanded") private var dxvkSectionExpanded: Bool = true
     @AppStorage("metalSectionExpanded") private var metalSectionExpanded: Bool = true
@@ -56,6 +58,15 @@ struct ConfigView: View {
             DXVKConfigSection(bottle: bottle, isExpanded: $dxvkSectionExpanded)
             MetalConfigSection(bottle: bottle, isExpanded: $metalSectionExpanded)
             PerformanceConfigSection(bottle: bottle, isExpanded: $performanceSectionExpanded)
+            Section("Stability") {
+                Button("Generate Stability Diagnostics") {
+                    Task {
+                        stabilityDiagnosticReport = await StabilityDiagnostics.generateDiagnosticReport(for: bottle)
+                        showStabilityDiagnostics = true
+                    }
+                }
+                .help("Generates a bounded, privacy-safe report for issue triage (Refs #40).")
+            }
         }
         .formStyle(.grouped)
         .animation(.whiskyDefault, value: wineSectionExpanded)
@@ -63,6 +74,13 @@ struct ConfigView: View {
         .animation(.whiskyDefault, value: dxvkSectionExpanded)
         .animation(.whiskyDefault, value: metalSectionExpanded)
         .animation(.whiskyDefault, value: performanceSectionExpanded)
+        .sheet(isPresented: $showStabilityDiagnostics) {
+            DiagnosticsReportView(
+                title: "Stability Diagnostics Report",
+                report: stabilityDiagnosticReport,
+                defaultFilenamePrefix: "whisky-stability-diagnostics"
+            )
+        }
         .bottomBar {
             HStack {
                 Spacer()

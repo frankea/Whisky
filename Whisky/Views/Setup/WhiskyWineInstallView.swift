@@ -96,48 +96,60 @@ struct WhiskyWineInstallView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
 
-            HStack(spacing: 12) {
-                Button("setup.whiskywine.copyDiagnostics") {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(
-                        diagnostics.reportString(stage: "install", error: error),
-                        forType: .string
-                    )
-                }
-                .buttonStyle(.bordered)
+            diagnosticsButtons(error: error)
+            retryButtons()
+        }
+        .padding()
+    }
 
-                Button("open.logs") {
-                    WhiskyApp.openLogsFolder()
-                }
-                .buttonStyle(.bordered)
+    private func diagnosticsButtons(error: String) -> some View {
+        HStack(spacing: 12) {
+            Button("setup.whiskywine.copyDiagnostics") {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(
+                    diagnostics.reportString(stage: "install", error: error),
+                    forType: .string
+                )
             }
+            .buttonStyle(.bordered)
 
-            HStack(spacing: 12) {
-                Button("setup.retry") {
-                    installError = nil
-                    installing = true
-                    Task.detached {
-                        await WhiskyWineInstaller.install(from: tarLocation)
-                        await MainActor.run {
-                            diagnostics.installFinishedAt = Date()
-                            diagnostics.record("Install finished (retry)")
-                            if WhiskyWineInstaller.isWhiskyWineInstalled() {
-                                installing = false
-                                proceed()
-                            } else {
-                                installError = String(localized: "setup.whiskywine.error.installFailed")
-                            }
+            Button("open.logs") {
+                WhiskyApp.openLogsFolder()
+            }
+            .buttonStyle(.bordered)
+        }
+    }
+
+    private func retryButtons() -> some View {
+        HStack(spacing: 12) {
+            Button("setup.retry") {
+                installError = nil
+                installing = true
+                Task.detached {
+                    await MainActor.run {
+                        diagnostics.installStartedAt = Date()
+                        diagnostics.record("Install started (retry)")
+                    }
+                    await WhiskyWineInstaller.install(from: tarLocation)
+                    await MainActor.run {
+                        diagnostics.installFinishedAt = Date()
+                        diagnostics.record("Install finished (retry)")
+                        if WhiskyWineInstaller.isWhiskyWineInstalled() {
+                            installing = false
+                            proceed()
+                        } else {
+                            installing = false
+                            installError = String(localized: "setup.whiskywine.error.installFailed")
                         }
                     }
                 }
-                .buttonStyle(.borderedProminent)
-
-                Button("setup.quit") {
-                    showSetup = false
-                }
-                .buttonStyle(.bordered)
             }
+            .buttonStyle(.borderedProminent)
+
+            Button("setup.quit") {
+                showSetup = false
+            }
+            .buttonStyle(.bordered)
         }
-        .padding()
     }
 }

@@ -27,9 +27,11 @@ Use this guide for reports like:
 If you're on a build that includes the Stability Diagnostics button (see `frankea/Whisky#56`), collect this report first:
 
 1. Open the affected bottle
-2. Go to **Config** → **Stability**
-3. Click **Generate Stability Diagnostics**
+2. Go to **Config**
+3. If you see a **Stability** section, click **Generate Stability Diagnostics**
 4. Export to file and attach it to the issue
+
+If you don't see this button/section, skip this step and attach Wine logs instead (below).
 
 Notes:
 - The stability report is **bounded** (safe to share)

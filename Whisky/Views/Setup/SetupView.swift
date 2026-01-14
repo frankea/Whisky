@@ -126,7 +126,8 @@ struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         appendDiskLines(into: &lines)
         appendEventLines(into: &lines)
 
-        return lines.joined(separator: "\n").prefix(8_000).description
+        let report = lines.joined(separator: "\n")
+        return truncateReport(report, limit: 8_000)
     }
 
     private func appendHeaderLines(into lines: inout [String], stage: String, error: String?) {
@@ -173,6 +174,16 @@ struct WhiskyWineSetupDiagnostics: Codable, Sendable {
     private func appendEventLines(into lines: inout [String]) {
         lines.append("[EVENTS]")
         lines.append(contentsOf: events)
+    }
+
+    private func truncateReport(_ report: String, limit: Int) -> String {
+        guard report.count > limit else { return report }
+        let limitIndex = report.index(report.startIndex, offsetBy: limit, limitedBy: report.endIndex)
+            ?? report.endIndex
+        if let lastNewline = report[..<limitIndex].lastIndex(of: "\n") {
+            return String(report[..<lastNewline])
+        }
+        return String(report[..<limitIndex])
     }
 
     private func appendIfPresent(_ label: String, value: (some Any)?, into lines: inout [String]) {

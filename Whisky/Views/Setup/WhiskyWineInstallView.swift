@@ -56,26 +56,10 @@ struct WhiskyWineInstallView: View {
         }
         .frame(width: 400, height: 200)
         .onAppear {
-            Task.detached {
-                await MainActor.run {
-                    diagnostics.installStartedAt = Date()
-                    diagnostics.record("Entered install stage")
-                }
-                await WhiskyWineInstaller.install(from: tarLocation)
-                await MainActor.run {
-                    diagnostics.installFinishedAt = Date()
-                    diagnostics.record("Install finished (installer returned)")
-                    if WhiskyWineInstaller.isWhiskyWineInstalled() {
-                        installing = false
-                        Task { @MainActor in
-                            try? await Task.sleep(for: .seconds(2))
-                            proceed()
-                        }
-                    } else {
-                        installError = String(localized: "setup.whiskywine.error.installFailed")
-                    }
-                }
-            }
+            startInstallation(
+                startLogMessage: "Entered install stage",
+                finishLogMessage: "Install finished (installer returned)"
+            )
         }
     }
 
@@ -125,27 +109,10 @@ struct WhiskyWineInstallView: View {
             Button("setup.retry") {
                 installError = nil
                 installing = true
-                Task.detached {
-                    await MainActor.run {
-                        diagnostics.installStartedAt = Date()
-                        diagnostics.record("Install started (retry)")
-                    }
-                    await WhiskyWineInstaller.install(from: tarLocation)
-                    await MainActor.run {
-                        diagnostics.installFinishedAt = Date()
-                        diagnostics.record("Install finished (retry)")
-                        if WhiskyWineInstaller.isWhiskyWineInstalled() {
-                            installing = false
-                            Task { @MainActor in
-                                try? await Task.sleep(for: .seconds(2))
-                                proceed()
-                            }
-                        } else {
-                            installing = false
-                            installError = String(localized: "setup.whiskywine.error.installFailed")
-                        }
-                    }
-                }
+                startInstallation(
+                    startLogMessage: "Install started (retry)",
+                    finishLogMessage: "Install finished (retry)"
+                )
             }
             .buttonStyle(.borderedProminent)
 
@@ -153,6 +120,32 @@ struct WhiskyWineInstallView: View {
                 showSetup = false
             }
             .buttonStyle(.bordered)
+        }
+    }
+
+    private func startInstallation(startLogMessage: String, finishLogMessage: String) {
+        Task.detached {
+            await MainActor.run {
+                diagnostics.installStartedAt = Date()
+                diagnostics.record(startLogMessage)
+            }
+            await WhiskyWineInstaller.install(from: tarLocation)
+            let isInstalled = WhiskyWineInstaller.isWhiskyWineInstalled()
+            await MainActor.run {
+                diagnostics.installFinishedAt = Date()
+                diagnostics.record(finishLogMessage)
+                installing = false
+                if isInstalled {
+                    installError = nil
+                } else {
+                    installError = String(localized: "setup.whiskywine.error.installFailed")
+                }
+            }
+            guard isInstalled else { return }
+            try? await Task.sleep(for: .seconds(2))
+            await MainActor.run {
+                proceed()
+            }
         }
     }
 }

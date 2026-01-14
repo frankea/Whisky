@@ -1,4 +1,6 @@
-# Feature: Stability Troubleshooting (frankea/Whisky#40)
+# Stability Troubleshooting Guide
+
+**Feature:** Stability Troubleshooting (frankea/Whisky#40)  
 **Last Updated:** January 13, 2026
 
 ---

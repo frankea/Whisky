@@ -18,11 +18,11 @@
 
 import Foundation
 
-public extension PEFile {
+extension PEFile {
     /// Optional Header
     ///
     /// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#optional-header-image-only
-    struct OptionalHeader: Hashable, Equatable, Sendable {
+    public struct OptionalHeader: Hashable, Equatable, Sendable {
         // Standard Fields
 
         public let magic: Magic

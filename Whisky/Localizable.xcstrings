@@ -1107,6 +1107,26 @@
         }
       }
     },
+    "bottle.creation.failed.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bottle Creation Failed"
+          }
+        }
+      }
+    },
+    "bottle.creation.failed.copyDiagnostics" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Diagnostics"
+          }
+        }
+      }
+    },
     "button.pin" : {
       "localizations" : {
         "ar" : {

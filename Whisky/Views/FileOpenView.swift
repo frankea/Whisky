@@ -82,8 +82,8 @@ struct FileOpenView: View {
                     // Auto-detect launcher and apply fixes if compatibility mode enabled
                     // This completes synchronously on MainActor, ensuring settings are
                     // persisted before Wine.runProgram() reads them
-                    _ = await MainActor.run {
-                        LauncherDetection.detectAndApplyLauncherFixes(from: fileURL, for: bottle)
+                    await MainActor.run {
+                        _ = LauncherDetection.detectAndApplyLauncherFixes(from: fileURL, for: bottle)
                     }
 
                     if fileURL.pathExtension == "bat" {

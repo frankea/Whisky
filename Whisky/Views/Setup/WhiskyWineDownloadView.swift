@@ -203,7 +203,7 @@ extension WhiskyWineDownloadView {
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.hour, .minute, .second]
         formatter.unitsStyle = .full
-        return shouldShowEstimate() ? (formatter.string(from: remainingTimeInSeconds) ?? "") : ""
+        return formatter.string(from: remainingTimeInSeconds) ?? ""
     }
 
     private func proceed() {

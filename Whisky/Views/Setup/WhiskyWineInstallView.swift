@@ -136,7 +136,10 @@ struct WhiskyWineInstallView: View {
                         diagnostics.record("Install finished (retry)")
                         if WhiskyWineInstaller.isWhiskyWineInstalled() {
                             installing = false
-                            proceed()
+                            Task { @MainActor in
+                                try? await Task.sleep(for: .seconds(2))
+                                proceed()
+                            }
                         } else {
                             installing = false
                             installError = String(localized: "setup.whiskywine.error.installFailed")

@@ -16,6 +16,7 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import AppKit
 import os
 import SemanticVersion
 import SwiftUI
@@ -58,6 +59,7 @@ struct WhiskyWineDownloadView: View {
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
+    @Binding var diagnostics: WhiskyWineSetupDiagnostics
 
     var body: some View {
         VStack {
@@ -83,6 +85,8 @@ struct WhiskyWineDownloadView: View {
         .frame(width: 400, height: 200)
         .onAppear {
             Task {
+                diagnostics.reset()
+                diagnostics.record("Entered download stage")
                 await fetchVersionAndDownload()
             }
         }
@@ -99,6 +103,22 @@ struct WhiskyWineDownloadView: View {
                 .font(.subheadline)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
+
+            HStack(spacing: 12) {
+                Button("setup.whiskywine.copyDiagnostics") {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(
+                        diagnostics.reportString(stage: "download", error: error),
+                        forType: .string
+                    )
+                }
+                .buttonStyle(.bordered)
+
+                Button("open.logs") {
+                    WhiskyApp.openLogsFolder()
+                }
+                .buttonStyle(.bordered)
+            }
 
             HStack(spacing: 12) {
                 Button("setup.retry") {
@@ -197,12 +217,16 @@ struct WhiskyWineDownloadView: View {
             return
         }
 
+        diagnostics.versionPlistURL = versionURL.absoluteString
+        diagnostics.record("Fetching version plist")
         do {
             let (data, response) = try await URLSession(configuration: .ephemeral).data(from: versionURL)
 
             // Check HTTP status code before attempting to decode
             if let httpResponse = response as? HTTPURLResponse,
                !(200 ... 299).contains(httpResponse.statusCode) {
+                diagnostics.versionHTTPStatus = httpResponse.statusCode
+                diagnostics.record("Version plist HTTP \(httpResponse.statusCode)")
                 downloadError = formatHTTPError(statusCode: httpResponse.statusCode)
                 return
             }
@@ -212,15 +236,18 @@ struct WhiskyWineDownloadView: View {
             let version = versionInfo.version
             let versionString = "\(version.major).\(version.minor).\(version.patch)"
             let downloadURLString = DistributionConfig.librariesURL(version: versionString)
+            diagnostics.record("Resolved version \(versionString)")
 
             guard let downloadURL = URL(string: downloadURLString) else {
                 downloadError = String(localized: "setup.whiskywine.error.invalidDownloadURL")
                 return
             }
 
+            diagnostics.downloadURL = downloadURL.absoluteString
             startDownload(from: downloadURL)
         } catch {
             let errorMessage = error.localizedDescription
+            diagnostics.record("Version fetch failed: \(errorMessage)")
             downloadError = String(
                 format: String(localized: "setup.whiskywine.error.fetchVersionFailed"),
                 errorMessage
@@ -233,6 +260,8 @@ struct WhiskyWineDownloadView: View {
         let taskID = UUID()
         currentDownloadTaskID = taskID
 
+        diagnostics.downloadStartedAt = Date()
+        diagnostics.record("Starting download")
         downloadTask = URLSession(configuration: .ephemeral).downloadTask(with: url) { fileURL, response, error in
             // URLSession deletes the temporary file immediately after completion handler returns.
             // We must move it to a safe location synchronously before the async Task executes.
@@ -294,19 +323,28 @@ struct WhiskyWineDownloadView: View {
                 format: String(localized: "setup.whiskywine.error.downloadFailed"),
                 error.localizedDescription
             )
+            diagnostics.downloadFinishedAt = Date()
+            diagnostics.record("Download failed: \(error.localizedDescription)")
             return
         }
 
         if let httpResponse = response as? HTTPURLResponse,
            !(200 ... 299).contains(httpResponse.statusCode) {
+            diagnostics.downloadHTTPStatus = httpResponse.statusCode
+            diagnostics.downloadFinishedAt = Date()
+            diagnostics.record("Download HTTP \(httpResponse.statusCode)")
             downloadError = formatHTTPError(statusCode: httpResponse.statusCode)
             return
         }
 
         if let url = fileURL {
             tarLocation = url
+            diagnostics.downloadFinishedAt = Date()
+            diagnostics.record("Download completed: moved to temp")
             proceed()
         } else {
+            diagnostics.downloadFinishedAt = Date()
+            diagnostics.record("Download completed but no file URL received")
             downloadError = String(localized: "setup.whiskywine.error.noFileReceived")
         }
     }
@@ -326,5 +364,6 @@ struct WhiskyWineDownloadView: View {
         if totalBytes > 0 {
             fractionProgress = Double(completedBytes) / Double(totalBytes)
         }
+        diagnostics.recordProgress(bytesReceived: completedBytes, bytesExpected: totalBytes)
     }
 }

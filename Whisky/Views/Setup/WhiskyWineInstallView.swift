@@ -16,14 +16,17 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import AppKit
 import SwiftUI
 import WhiskyKit
 
 struct WhiskyWineInstallView: View {
     @State var installing: Bool = true
+    @State private var installError: String?
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
+    @Binding var diagnostics: WhiskyWineSetupDiagnostics
 
     var body: some View {
         VStack {
@@ -35,7 +38,9 @@ struct WhiskyWineInstallView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Spacer()
-                if installing {
+                if let error = installError {
+                    errorView(error: error)
+                } else if installing {
                     ProgressView()
                         .progressViewStyle(.circular)
                         .frame(width: 80)
@@ -52,12 +57,24 @@ struct WhiskyWineInstallView: View {
         .frame(width: 400, height: 200)
         .onAppear {
             Task.detached {
+                await MainActor.run {
+                    diagnostics.installStartedAt = Date()
+                    diagnostics.record("Entered install stage")
+                }
                 await WhiskyWineInstaller.install(from: tarLocation)
                 await MainActor.run {
-                    installing = false
+                    diagnostics.installFinishedAt = Date()
+                    diagnostics.record("Install finished (installer returned)")
+                    if WhiskyWineInstaller.isWhiskyWineInstalled() {
+                        installing = false
+                        Task { @MainActor in
+                            try? await Task.sleep(for: .seconds(2))
+                            proceed()
+                        }
+                    } else {
+                        installError = String(localized: "setup.whiskywine.error.installFailed")
+                    }
                 }
-                sleep(2)
-                await proceed()
             }
         }
     }
@@ -65,5 +82,58 @@ struct WhiskyWineInstallView: View {
     @MainActor
     func proceed() {
         showSetup = false
+    }
+
+    private func errorView(error: String) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: "xmark.circle")
+                .resizable()
+                .foregroundStyle(.red)
+                .frame(width: 80, height: 80)
+                .padding(.bottom, 8)
+            Text(error)
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+
+            HStack(spacing: 12) {
+                Button("setup.whiskywine.copyDiagnostics") {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(
+                        diagnostics.reportString(stage: "install", error: error),
+                        forType: .string
+                    )
+                }
+                .buttonStyle(.bordered)
+
+                Button("open.logs") {
+                    WhiskyApp.openLogsFolder()
+                }
+                .buttonStyle(.bordered)
+            }
+
+            HStack(spacing: 12) {
+                Button("setup.retry") {
+                    installError = nil
+                    installing = true
+                    Task.detached {
+                        await WhiskyWineInstaller.install(from: tarLocation)
+                        await MainActor.run {
+                            diagnostics.installFinishedAt = Date()
+                            diagnostics.record("Install finished (retry)")
+                            installing = false
+                            proceed()
+                        }
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+
+                Button("setup.quit") {
+                    showSetup = false
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .padding()
     }
 }

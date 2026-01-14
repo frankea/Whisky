@@ -17678,6 +17678,26 @@
         }
       }
     },
+    "setup.whiskywine.copyDiagnostics" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Diagnostics"
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.installFailed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WhiskyWine installation failed. Please copy diagnostics and attach logs."
+          }
+        }
+      }
+    },
     "setup.whiskywine.error.accessDenied" : {
       "localizations" : {
         "en" : {

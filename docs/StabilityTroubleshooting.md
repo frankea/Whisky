@@ -13,7 +13,7 @@ Use this guide for reports like:
 
 ## Quick Mitigations (User-Facing)
 
-- **Enable Sequoia Compatibility Mode** (Bottle → Config → Metal): helps with macOS 15.x quirks.
+- **Enable Sequoia Compatibility Mode** (Bottle → Config → Metal → “Sequoia Compatibility Mode”): helps with macOS 15.x quirks.
 - **Disable DXR**: ray tracing can stress graphics paths on some systems.
 - **Force D3D11**: can avoid D3D12/D3DMetal paths that trigger instability in some titles.
 - **Kill Bottles** (menu item): terminates Wine processes for all bottles; use when those processes are stuck or the UI is unresponsive.

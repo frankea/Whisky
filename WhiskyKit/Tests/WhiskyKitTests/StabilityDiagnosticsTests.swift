@@ -84,7 +84,7 @@ final class StabilityDiagnosticsTests: XCTestCase {
         let logURL = tempURL.appendingPathComponent("many-lines.log")
 
         // 250 lines: tail should return <= 200 lines.
-        let content = (0..<250).map { "line-\($0)" }.joined(separator: "\n")
+        let content = (0 ..< 250).map { "line-\($0)" }.joined(separator: "\n")
         try content.write(to: logURL, atomically: true, encoding: .utf8)
 
         let tail = StabilityDiagnostics.tailOfLogFile(logURL)
@@ -94,4 +94,3 @@ final class StabilityDiagnosticsTests: XCTestCase {
         XCTAssertFalse(tail.contains("line-0"))
     }
 }
-

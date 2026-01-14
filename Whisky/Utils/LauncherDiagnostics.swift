@@ -16,8 +16,6 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-// swiftlint:disable file_length
-
 import Foundation
 import WhiskyKit
 

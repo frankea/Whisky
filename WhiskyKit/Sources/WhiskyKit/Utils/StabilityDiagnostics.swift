@@ -256,8 +256,12 @@ public enum StabilityDiagnostics {
             try handle.seek(toOffset: start)
 
             let data = try handle.readToEnd() ?? Data()
-            guard var text = String(data: data, encoding: .utf8), !text.isEmpty else {
-                return "(Log tail unavailable: not UTF-8 or empty)"
+            guard var text = String(data: data, encoding: .utf8) else {
+                return "(Log tail unavailable: not UTF-8)"
+            }
+
+            guard !text.isEmpty else {
+                return "(Log tail unavailable: empty)"
             }
 
             // If we started from the middle, drop the first partial line.

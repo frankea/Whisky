@@ -73,7 +73,7 @@ final class StabilityDiagnosticsTests: XCTestCase {
         try Data(bytes).write(to: logURL)
 
         let tail = StabilityDiagnostics.tailOfLogFile(logURL)
-        XCTAssertTrue(tail.contains("not UTF-8") || tail.contains("Failed to read"))
+        XCTAssertTrue(tail.contains("not UTF-8"))
     }
 
     func testTailKeepsLastLinesBounded() throws {
@@ -92,5 +92,26 @@ final class StabilityDiagnosticsTests: XCTestCase {
         XCTAssertLessThanOrEqual(lineCount, 200)
         XCTAssertTrue(tail.contains("line-249"))
         XCTAssertFalse(tail.contains("line-0"))
+    }
+
+    func testReportIncludesArchitectureLine() async throws {
+        let bottleURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: bottleURL, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: bottleURL) }
+
+        let bottle = Bottle(bottleUrl: bottleURL, inFlight: false, isAvailable: true)
+        let config = StabilityDiagnostics.Configuration(
+            bundle: Bundle(for: StabilityDiagnosticsTests.self),
+            logsFolder: bottleURL.appendingPathComponent("does-not-exist"),
+            now: Date.init
+        )
+
+        let report = await StabilityDiagnostics.generateDiagnosticReport(for: bottle, config: config)
+
+        #if arch(arm64)
+        XCTAssertTrue(report.contains("Architecture: Apple Silicon (arm64)"))
+        #else
+        XCTAssertTrue(report.contains("Architecture: Intel (x86_64)"))
+        #endif
     }
 }

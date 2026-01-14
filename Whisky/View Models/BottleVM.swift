@@ -157,7 +157,10 @@ final class BottleVM: ObservableObject {
         let nsError = error as NSError
         let whiskyVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
         let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
-        let whiskyVersionString = whiskyVersion.isEmpty ? "unknown" : "\(whiskyVersion)\(buildNumber.isEmpty ? "" : " (\(buildNumber))")"
+        let whiskyVersionString = formattedWhiskyVersion(
+            appVersion: whiskyVersion,
+            buildNumber: buildNumber
+        )
 
         var lines: [String] = []
         lines.reserveCapacity(32)
@@ -165,37 +168,88 @@ final class BottleVM: ObservableObject {
         lines.append("Whisky Bottle Creation Diagnostics (Issue #61)")
         lines.append("Timestamp: \(Date().formatted())")
         lines.append("")
+        appendBottleCreationInputLines(
+            into: &lines,
+            bottleName: bottleName,
+            winVersion: winVersion,
+            bottleURL: bottleURL,
+            newBottleDir: newBottleDir,
+            redactHome: redactHome
+        )
+        appendBottleCreationSystemLines(
+            into: &lines,
+            whiskyVersionString: whiskyVersionString
+        )
+        appendBottleCreationFilesystemLines(
+            into: &lines,
+            bottleURL: bottleURL,
+            newBottleDir: newBottleDir,
+            redactHome: redactHome
+        )
+        appendBottleCreationErrorLines(into: &lines, nsError: nsError)
+
+        // Keep diagnostics bounded for copy/paste.
+        return lines.joined(separator: "\n").prefix(4_000).description
+    }
+
+    private func formattedWhiskyVersion(appVersion: String, buildNumber: String) -> String {
+        guard !appVersion.isEmpty else { return "unknown" }
+        return buildNumber.isEmpty ? appVersion : "\(appVersion) (\(buildNumber))"
+    }
+
+    private func appendBottleCreationInputLines(
+        into lines: inout [String],
+        bottleName: String,
+        winVersion: WinVersion,
+        bottleURL: URL,
+        newBottleDir: URL,
+        redactHome: (String) -> String
+    ) {
         lines.append("[INPUT]")
         lines.append("Bottle Name: \(bottleName)")
         lines.append("Windows Version: \(winVersion)")
         lines.append("Target Folder: \(redactHome(bottleURL.path(percentEncoded: false)))")
         lines.append("New Bottle Dir: \(redactHome(newBottleDir.path(percentEncoded: false)))")
         lines.append("")
+    }
+
+    private func appendBottleCreationSystemLines(
+        into lines: inout [String],
+        whiskyVersionString: String
+    ) {
         lines.append("[SYSTEM]")
         lines.append("macOS Version: \(MacOSVersion.current.description)")
         lines.append("Whisky Version: \(whiskyVersionString)")
-        lines.append("WhiskyWine Installed: \(WhiskyWineInstaller.isWhiskyWineInstalled() ? "yes" : "no")")
-        if let ww = WhiskyWineInstaller.whiskyWineVersion() {
-            lines.append("WhiskyWine Version: \(ww)")
+        let whiskyWineInstalled = WhiskyWineInstaller.isWhiskyWineInstalled() ? "yes" : "no"
+        lines.append("WhiskyWine Installed: \(whiskyWineInstalled)")
+        if let whiskyWineVersion = WhiskyWineInstaller.whiskyWineVersion() {
+            lines.append("WhiskyWine Version: \(whiskyWineVersion)")
         }
         lines.append("")
+    }
+
+    private func appendBottleCreationFilesystemLines(
+        into lines: inout [String],
+        bottleURL: URL,
+        newBottleDir: URL,
+        redactHome: (String) -> String
+    ) {
         lines.append("[FILESYSTEM]")
-        let fm = FileManager.default
-        lines
-            .append(
-                "Target folder exists: \(fm.fileExists(atPath: bottleURL.path(percentEncoded: false)) ? "yes" : "no")"
-            )
-        lines
-            .append(
-                "New bottle dir exists: \(fm.fileExists(atPath: newBottleDir.path(percentEncoded: false)) ? "yes" : "no")"
-            )
+        let fileManager = FileManager.default
+        let targetFolderExists = fileManager.fileExists(atPath: bottleURL.path(percentEncoded: false)) ? "yes" : "no"
+        let newBottleDirExists = fileManager.fileExists(atPath: newBottleDir.path(percentEncoded: false)) ? "yes" : "no"
+        lines.append("Target folder exists: \(targetFolderExists)")
+        lines.append("New bottle dir exists: \(newBottleDirExists)")
         lines.append("BottleData file: \(redactHome(BottleData.bottleEntriesDir.path(percentEncoded: false)))")
         lines.append("")
+    }
+
+    private func appendBottleCreationErrorLines(
+        into lines: inout [String],
+        nsError: NSError
+    ) {
         lines.append("[ERROR]")
         lines.append("Error: \(nsError.localizedDescription)")
         lines.append("NSError: domain=\(nsError.domain) code=\(nsError.code)")
-
-        // Keep diagnostics bounded for copy/paste.
-        return lines.joined(separator: "\n").prefix(4_000).description
     }
 }

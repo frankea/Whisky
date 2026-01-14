@@ -16,6 +16,7 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import AppKit
 import SemanticVersion
 import SwiftUI
 import UniformTypeIdentifiers
@@ -42,6 +43,25 @@ struct ContentView: View {
             sidebar
         } detail: {
             detail
+        }
+        .alert(
+            "Bottle Creation Failed",
+            isPresented: Binding(
+                get: { bottleVM.bottleCreationAlert != nil },
+                set: { if !$0 { bottleVM.bottleCreationAlert = nil } }
+            ),
+            presenting: bottleVM.bottleCreationAlert
+        ) { alert in
+            Button("Copy Diagnostics") {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(alert.diagnostics, forType: .string)
+            }
+            Button("Open Logs Folder") {
+                WhiskyApp.openLogsFolder()
+            }
+            Button("OK", role: .cancel) {}
+        } message: { alert in
+            Text(alert.message)
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

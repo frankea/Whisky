@@ -54,6 +54,14 @@ final class BottleVM: ObservableObject {
 
     var bottlesList = BottleData()
     @Published var bottles: [Bottle] = []
+    @Published var bottleCreationAlert: BottleCreationAlert?
+
+    struct BottleCreationAlert: Identifiable {
+        let id = UUID()
+        let title: String
+        let message: String
+        let diagnostics: String
+    }
 
     func loadBottles() {
         bottles = bottlesList.loadBottles()
@@ -105,7 +113,22 @@ final class BottleVM: ObservableObject {
                 }
                 self.loadBottles()
             } catch {
-                bottleVMLogger.error("Failed to create new bottle: \(error.localizedDescription)")
+                let title = "Bottle Creation Failed"
+                let message = error.localizedDescription
+                let diagnostics = self.makeBottleCreationDiagnostics(
+                    bottleName: bottleName,
+                    winVersion: winVersion,
+                    bottleURL: bottleURL,
+                    newBottleDir: newBottleDir,
+                    error: error
+                )
+                bottleVMLogger.error("Failed to create new bottle: \(message)")
+                bottleVMLogger.error("\(diagnostics, privacy: .public)")
+                self.bottleCreationAlert = BottleCreationAlert(
+                    title: title,
+                    message: message,
+                    diagnostics: diagnostics
+                )
                 // Clean up on failure
                 if let bottle = bottleId {
                     if let index = self.bottles.firstIndex(of: bottle) {
@@ -117,5 +140,62 @@ final class BottleVM: ObservableObject {
             }
         }
         return newBottleDir
+    }
+
+    private func makeBottleCreationDiagnostics(
+        bottleName: String,
+        winVersion: WinVersion,
+        bottleURL: URL,
+        newBottleDir: URL,
+        error: Error
+    ) -> String {
+        func redactHome(_ path: String) -> String {
+            let home = FileManager.default.homeDirectoryForCurrentUser.path(percentEncoded: false)
+            return path.replacingOccurrences(of: home, with: "~")
+        }
+
+        let nsError = error as NSError
+        let whiskyVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
+        let whiskyVersionString = whiskyVersion.isEmpty ? "unknown" : "\(whiskyVersion)\(buildNumber.isEmpty ? "" : " (\(buildNumber))")"
+
+        var lines: [String] = []
+        lines.reserveCapacity(32)
+
+        lines.append("Whisky Bottle Creation Diagnostics (Issue #61)")
+        lines.append("Timestamp: \(Date().formatted())")
+        lines.append("")
+        lines.append("[INPUT]")
+        lines.append("Bottle Name: \(bottleName)")
+        lines.append("Windows Version: \(winVersion)")
+        lines.append("Target Folder: \(redactHome(bottleURL.path(percentEncoded: false)))")
+        lines.append("New Bottle Dir: \(redactHome(newBottleDir.path(percentEncoded: false)))")
+        lines.append("")
+        lines.append("[SYSTEM]")
+        lines.append("macOS Version: \(MacOSVersion.current.description)")
+        lines.append("Whisky Version: \(whiskyVersionString)")
+        lines.append("WhiskyWine Installed: \(WhiskyWineInstaller.isWhiskyWineInstalled() ? "yes" : "no")")
+        if let ww = WhiskyWineInstaller.whiskyWineVersion() {
+            lines.append("WhiskyWine Version: \(ww)")
+        }
+        lines.append("")
+        lines.append("[FILESYSTEM]")
+        let fm = FileManager.default
+        lines
+            .append(
+                "Target folder exists: \(fm.fileExists(atPath: bottleURL.path(percentEncoded: false)) ? "yes" : "no")"
+            )
+        lines
+            .append(
+                "New bottle dir exists: \(fm.fileExists(atPath: newBottleDir.path(percentEncoded: false)) ? "yes" : "no")"
+            )
+        lines.append("BottleData file: \(redactHome(BottleData.bottleEntriesDir.path(percentEncoded: false)))")
+        lines.append("")
+        lines.append("[ERROR]")
+        lines.append("Error: \(nsError.localizedDescription)")
+        lines.append("NSError: domain=\(nsError.domain) code=\(nsError.code)")
+
+        // Keep diagnostics bounded for copy/paste.
+        return lines.joined(separator: "\n").prefix(4_000).description
     }
 }

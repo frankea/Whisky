@@ -118,32 +118,46 @@ struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         var lines: [String] = []
         lines.reserveCapacity(128)
 
+        appendHeaderLines(into: &lines, stage: stage, error: error)
+        appendNetworkLines(into: &lines)
+        appendProgressLines(into: &lines)
+        appendDiskLines(into: &lines)
+        appendEventLines(into: &lines)
+
+        return lines.joined(separator: "\n").prefix(8_000).description
+    }
+
+    private func appendHeaderLines(into lines: inout [String], stage: String, error: String?) {
         lines.append("WhiskyWine Setup Diagnostics (Issue #63)")
         lines.append("Session: \(sessionID.uuidString)")
         lines.append("Stage: \(stage)")
         lines.append("Generated: \(Date().formatted())")
-        if let error {
-            lines.append("Error: \(error)")
-        }
+        appendIfPresent("Error", value: error, into: &lines)
         lines.append("")
+    }
 
+    private func appendNetworkLines(into lines: inout [String]) {
         lines.append("[NETWORK]")
-        if let versionPlistURL { lines.append("Version plist: \(versionPlistURL)") }
-        if let versionHTTPStatus { lines.append("Version plist HTTP: \(versionHTTPStatus)") }
-        if let downloadURL { lines.append("Download URL: \(downloadURL)") }
-        if let downloadHTTPStatus { lines.append("Download HTTP: \(downloadHTTPStatus)") }
+        appendIfPresent("Version plist", value: versionPlistURL, into: &lines)
+        appendIfPresent("Version plist HTTP", value: versionHTTPStatus, into: &lines)
+        appendIfPresent("Download URL", value: downloadURL, into: &lines)
+        appendIfPresent("Download HTTP", value: downloadHTTPStatus, into: &lines)
         lines.append("")
+    }
 
+    private func appendProgressLines(into lines: inout [String]) {
         lines.append("[PROGRESS]")
         lines.append("Bytes received: \(bytesReceived)")
         lines.append("Bytes expected: \(bytesExpected)")
-        if let lastProgressAt { lines.append("Last progress: \(lastProgressAt.formatted())") }
-        if let downloadStartedAt { lines.append("Download started: \(downloadStartedAt.formatted())") }
-        if let downloadFinishedAt { lines.append("Download finished: \(downloadFinishedAt.formatted())") }
-        if let installStartedAt { lines.append("Install started: \(installStartedAt.formatted())") }
-        if let installFinishedAt { lines.append("Install finished: \(installFinishedAt.formatted())") }
+        appendIfPresent("Last progress", value: lastProgressAt?.formatted(), into: &lines)
+        appendIfPresent("Download started", value: downloadStartedAt?.formatted(), into: &lines)
+        appendIfPresent("Download finished", value: downloadFinishedAt?.formatted(), into: &lines)
+        appendIfPresent("Install started", value: installStartedAt?.formatted(), into: &lines)
+        appendIfPresent("Install finished", value: installFinishedAt?.formatted(), into: &lines)
         lines.append("")
+    }
 
+    private func appendDiskLines(into lines: inout [String]) {
         lines.append("[DISK]")
         if let tmp = Self.availableDiskString(for: FileManager.default.temporaryDirectory) {
             lines.append("Temp available: \(tmp)")
@@ -152,11 +166,16 @@ struct WhiskyWineSetupDiagnostics: Codable, Sendable {
             lines.append("App Support available: \(appSupport)")
         }
         lines.append("")
+    }
 
+    private func appendEventLines(into lines: inout [String]) {
         lines.append("[EVENTS]")
         lines.append(contentsOf: events)
+    }
 
-        return lines.joined(separator: "\n").prefix(8_000).description
+    private func appendIfPresent(_ label: String, value: (some Any)?, into lines: inout [String]) {
+        guard let value else { return }
+        lines.append("\(label): \(value)")
     }
 
     private static func availableDiskString(for url: URL) -> String? {

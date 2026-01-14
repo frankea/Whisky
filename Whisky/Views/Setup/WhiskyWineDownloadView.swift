@@ -91,7 +91,9 @@ struct WhiskyWineDownloadView: View {
             }
         }
     }
+}
 
+extension WhiskyWineDownloadView {
     private func errorView(error: String) -> some View {
         VStack(spacing: 16) {
             Image(systemName: "xmark.circle")
@@ -149,8 +151,8 @@ struct WhiskyWineDownloadView: View {
                         formatBytes(bytes: totalBytes)
                     ))
                         + Text(String(" "))
-                        + (shouldShowEstimate() ?
-                            Text(String(
+                        + (shouldShowEstimate()
+                            ? Text(String(
                                 format: String(localized: "setup.whiskywine.eta"),
                                 formatRemainingTime(remainingBytes: totalBytes - completedBytes)
                             ))
@@ -181,37 +183,33 @@ struct WhiskyWineDownloadView: View {
         }
     }
 
-    func formatBytes(bytes: Int64) -> String {
+    private func formatBytes(bytes: Int64) -> String {
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
         formatter.zeroPadsFractionDigits = true
         return formatter.string(fromByteCount: bytes)
     }
 
-    func shouldShowEstimate() -> Bool {
+    private func shouldShowEstimate() -> Bool {
         let elapsedTime = Date().timeIntervalSince(startTime ?? Date())
         return Int(elapsedTime.rounded()) > 5 && completedBytes != 0
     }
 
-    func formatRemainingTime(remainingBytes: Int64) -> String {
+    private func formatRemainingTime(remainingBytes: Int64) -> String {
         let remainingTimeInSeconds = Double(remainingBytes) / downloadSpeed
 
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.hour, .minute, .second]
         formatter.unitsStyle = .full
-        if shouldShowEstimate() {
-            return formatter.string(from: TimeInterval(remainingTimeInSeconds)) ?? ""
-        } else {
-            return ""
-        }
+        return shouldShowEstimate() ? (formatter.string(from: remainingTimeInSeconds) ?? "") : ""
     }
 
-    func proceed() {
+    private func proceed() {
         path.append(.whiskyWineInstall)
     }
 
     @MainActor
-    func fetchVersionAndDownload() async {
+    private func fetchVersionAndDownload() async {
         guard let versionURL = URL(string: DistributionConfig.versionPlistURL) else {
             downloadError = String(localized: "setup.whiskywine.error.invalidVersionURL")
             return

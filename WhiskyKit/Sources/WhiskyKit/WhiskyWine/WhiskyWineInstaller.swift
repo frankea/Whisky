@@ -98,7 +98,8 @@ public class WhiskyWineInstaller {
     /// directory. If WhiskyWine is already installed, it is replaced.
     ///
     /// - Parameter from: The URL to the downloaded tarball file.
-    ///   The tarball is deleted after successful extraction.
+    /// - Note: The tarball is NOT deleted after extraction. Call ``cleanupTarball(at:)``
+    ///   after verifying installation success with ``isWhiskyWineInstalled()``.
     ///
     /// - Important: Ensure the tarball is from a trusted source.
     public static func install(from: URL) {
@@ -112,9 +113,24 @@ public class WhiskyWineInstaller {
             }
 
             try Tar.untar(tarBall: from, toURL: applicationFolder)
-            try FileManager.default.removeItem(at: from)
         } catch {
             logger.error("Failed to install WhiskyWine: \(error.localizedDescription)")
+        }
+    }
+
+    /// Removes the installation tarball after successful installation.
+    ///
+    /// Call this method only after ``isWhiskyWineInstalled()`` returns `true`
+    /// to ensure the tarball is preserved for retry attempts if installation fails.
+    ///
+    /// - Parameter url: The URL to the tarball file to remove.
+    public static func cleanupTarball(at url: URL) {
+        do {
+            if FileManager.default.fileExists(atPath: url.path) {
+                try FileManager.default.removeItem(at: url)
+            }
+        } catch {
+            logger.warning("Failed to cleanup tarball: \(error.localizedDescription)")
         }
     }
 

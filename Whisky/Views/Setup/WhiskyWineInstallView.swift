@@ -115,6 +115,7 @@ struct WhiskyWineInstallView: View {
                 )
             }
             .buttonStyle(.borderedProminent)
+            .disabled(installing)
 
             Button("setup.quit") {
                 showSetup = false

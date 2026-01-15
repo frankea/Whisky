@@ -152,10 +152,8 @@ extension WhiskyWineDownloadView {
                     ))
                         + Text(String(" "))
                         + (shouldShowEstimate()
-                            ? Text(String(
-                                format: String(localized: "setup.whiskywine.eta"),
-                                formatRemainingTime(remainingBytes: totalBytes - completedBytes)
-                            ))
+                            ? Text(String(format: String(localized: "setup.whiskywine.eta"),
+                                          formatRemainingTime(remainingBytes: totalBytes - completedBytes)))
                             : Text(String()))
                     Spacer()
                 }

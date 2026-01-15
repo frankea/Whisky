@@ -27,6 +27,8 @@ struct WhiskyWineInstallView: View {
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
     @Binding var diagnostics: WhiskyWineSetupDiagnostics
+    // Delay to show the success checkmark before dismissing setup.
+    private static let installSuccessDelay: Duration = .seconds(2)
 
     var body: some View {
         VStack {
@@ -128,10 +130,10 @@ struct WhiskyWineInstallView: View {
         Task.detached {
             await MainActor.run {
                 if let previousStart = diagnostics.installStartedAt {
-                    diagnostics.record("Previous install attempt started: \(previousStart.formatted())")
+                    diagnostics.record("Previous install attempt started: \(previousStart.formatted(.iso8601))")
                 }
                 if let previousFinish = diagnostics.installFinishedAt {
-                    diagnostics.record("Previous install attempt finished: \(previousFinish.formatted())")
+                    diagnostics.record("Previous install attempt finished: \(previousFinish.formatted(.iso8601))")
                 }
                 diagnostics.installFinishedAt = nil
                 diagnostics.installStartedAt = Date()
@@ -153,7 +155,7 @@ struct WhiskyWineInstallView: View {
             // Only cleanup tarball after verified successful installation
             // This preserves it for retry attempts if installation fails
             WhiskyWineInstaller.cleanupTarball(at: tarLocation)
-            try? await Task.sleep(for: .seconds(2))
+            try? await Task.sleep(for: Self.installSuccessDelay)
             await MainActor.run {
                 proceed()
             }

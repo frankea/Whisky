@@ -18,6 +18,8 @@
 
 import Foundation
 
+// Intentionally not marked public to avoid Swift 6 redundant access modifiers.
+// Nested types remain public to preserve the API surface.
 extension PEFile {
     /// Section Table (Section Headers)
     ///

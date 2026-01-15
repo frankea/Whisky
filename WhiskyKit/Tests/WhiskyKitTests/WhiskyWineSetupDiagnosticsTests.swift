@@ -35,27 +35,32 @@ final class WhiskyWineSetupDiagnosticsTests: XCTestCase {
 
     func testEventTruncationKeepsMostRecent() {
         var diagnostics = WhiskyWineSetupDiagnostics()
-        let totalCount = WhiskyWineSetupDiagnostics.maxEventCount + 5
+        let overflowEventCount = 5
+        let totalCount = WhiskyWineSetupDiagnostics.maxEventCount + overflowEventCount
+        let expectedFirstKeptEventIndex = overflowEventCount
+        let expectedLastKeptEventIndex = totalCount - 1
 
         for index in 0..<totalCount {
             diagnostics.record("event-\(index)")
         }
 
         XCTAssertEqual(diagnostics.events.count, WhiskyWineSetupDiagnostics.maxEventCount)
-        XCTAssertTrue(diagnostics.events.first?.contains("event-5") ?? false)
-        XCTAssertTrue(diagnostics.events.last?.contains("event-\(totalCount - 1)") ?? false)
+        XCTAssertTrue(diagnostics.events.first?.contains("event-\(expectedFirstKeptEventIndex)") ?? false)
+        XCTAssertTrue(diagnostics.events.last?.contains("event-\(expectedLastKeptEventIndex)") ?? false)
     }
 
     func testReportTruncationRespectsLimit() {
         var diagnostics = WhiskyWineSetupDiagnostics()
         let longMessage = String(repeating: "A", count: 200)
+        let totalCount = WhiskyWineSetupDiagnostics.maxEventCount * 2
 
-        for index in 0..<(WhiskyWineSetupDiagnostics.maxEventCount * 2) {
+        for index in 0..<totalCount {
             diagnostics.record("event-\(index) \(longMessage)")
         }
 
         let report = diagnostics.reportString(stage: "download")
         XCTAssertLessThanOrEqual(report.utf8.count, WhiskyWineSetupDiagnostics.maxReportBytes)
+        XCTAssertTrue(report.contains("event-\(totalCount - 1)"))
     }
 
     func testResetClearsSessionAndEvents() {
@@ -121,6 +126,7 @@ final class WhiskyWineSetupDiagnosticsTests: XCTestCase {
 
         XCTAssertFalse(report.contains("token=secret"))
         XCTAssertFalse(report.contains("sig=abc123"))
+        XCTAssertFalse(report.contains("#fragment"))
         XCTAssertTrue(report.contains("https://example.com/version.plist"))
         XCTAssertTrue(report.contains("https://example.com/whiskywine.tar.gz"))
     }

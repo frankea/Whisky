@@ -84,7 +84,7 @@ struct WhiskyWineDownloadView: View {
         }
         .frame(width: 400, height: 200)
         .onAppear {
-            Task {
+            Task { @MainActor in
                 diagnostics.reset()
                 diagnostics.record("Entered download stage")
                 await fetchVersionAndDownload()
@@ -195,6 +195,10 @@ extension WhiskyWineDownloadView {
     }
 
     private func formatRemainingTime(remainingBytes: Int64) -> String {
+        // Avoid dividing by zero or non-positive speeds which lead to invalid estimates.
+        guard downloadSpeed > 0 else {
+            return ""
+        }
         let remainingTimeInSeconds = Double(remainingBytes) / downloadSpeed
 
         let formatter = DateComponentsFormatter()

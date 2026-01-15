@@ -26,6 +26,7 @@ struct WhiskyWineInstallView: View {
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
+    // Mutations happen through the binding wrapper.
     @Binding var diagnostics: WhiskyWineSetupDiagnostics
     // Delay to show the success checkmark before dismissing setup.
     private static let installSuccessDelay: Duration = .seconds(2)
@@ -109,6 +110,7 @@ struct WhiskyWineInstallView: View {
     private func retryButtons() -> some View {
         HStack(spacing: 12) {
             Button("setup.retry") {
+                guard !installing else { return }
                 installError = nil
                 installing = true
                 startInstallation(
@@ -127,39 +129,41 @@ struct WhiskyWineInstallView: View {
     }
 
     private func startInstallation(startLogMessage: String, finishLogMessage: String) {
-        Task.detached {
+        Task {
             let attemptStartedAt = Date()
-            await MainActor.run {
-                diagnostics.installFinishedAt = nil
-                diagnostics.installStartedAt = attemptStartedAt
-                diagnostics.record(startLogMessage)
-            }
-            await WhiskyWineInstaller.install(from: tarLocation)
-            let isInstalled = WhiskyWineInstaller.isWhiskyWineInstalled()
+            let attemptNumber = diagnostics.installAttempts.count + 1
+            diagnostics.installFinishedAt = nil
+            diagnostics.installStartedAt = attemptStartedAt
+            diagnostics.record("Install attempt \(attemptNumber) started")
+            diagnostics.record(startLogMessage)
+
+            let tarballLocation = tarLocation
+            let isInstalled = await Task.detached {
+                WhiskyWineInstaller.install(from: tarballLocation)
+                return WhiskyWineInstaller.isWhiskyWineInstalled()
+            }.value
             let attemptFinishedAt = Date()
-            await MainActor.run {
-                diagnostics.installFinishedAt = attemptFinishedAt
-                diagnostics.recordInstallAttempt(
-                    startedAt: attemptStartedAt,
-                    finishedAt: attemptFinishedAt,
-                    succeeded: isInstalled
-                )
-                diagnostics.record(finishLogMessage)
-                installing = false
-                if isInstalled {
-                    installError = nil
-                } else {
-                    installError = String(localized: "setup.whiskywine.error.installFailed")
-                }
+            diagnostics.installFinishedAt = attemptFinishedAt
+            diagnostics.recordInstallAttempt(
+                startedAt: attemptStartedAt,
+                finishedAt: attemptFinishedAt,
+                succeeded: isInstalled
+            )
+            let attemptResult = isInstalled ? "success" : "failed"
+            diagnostics.record("Install attempt \(attemptNumber) finished (\(attemptResult))")
+            diagnostics.record(finishLogMessage)
+            installing = false
+            if isInstalled {
+                installError = nil
+            } else {
+                installError = String(localized: "setup.whiskywine.error.installFailed")
             }
             guard isInstalled else { return }
             // Only cleanup tarball after verified successful installation
             // This preserves it for retry attempts if installation fails
-            WhiskyWineInstaller.cleanupTarball(at: tarLocation)
+            WhiskyWineInstaller.cleanupTarball(at: tarballLocation)
             try? await Task.sleep(for: Self.installSuccessDelay)
-            await MainActor.run {
-                proceed()
-            }
+            proceed()
         }
     }
 }

@@ -43,4 +43,27 @@ final class WhiskyWineInstallerTests: XCTestCase {
 
         XCTAssertFalse(FileManager.default.fileExists(atPath: missingURL.path))
     }
+
+    func testCleanupTarballHandlesRemovalError() throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer {
+            try? FileManager.default.setAttributes(
+                [.posixPermissions: 0o755],
+                ofItemAtPath: tempDir.path
+            )
+            try? FileManager.default.removeItem(at: tempDir)
+        }
+
+        let tarURL = tempDir.appendingPathComponent("whiskywine").appendingPathExtension("tar.gz")
+        try Data("test".utf8).write(to: tarURL)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o555],
+            ofItemAtPath: tempDir.path
+        )
+
+        WhiskyWineInstaller.cleanupTarball(at: tarURL)
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: tarURL.path))
+    }
 }

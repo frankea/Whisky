@@ -199,21 +199,18 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
 
     private func truncateReport(_ report: String, limit: Int) -> String {
         // Limit is based on UTF-8 byte count to keep shared output bounded.
-        guard report.utf8.count > limit else { return report }
-        var byteCount = 0
-        var limitIndex = report.startIndex
+        let utf8View = report.utf8
+        guard utf8View.count > limit else { return report }
 
-        for index in report.indices {
-            let nextIndex = report.index(after: index)
-            let charBytes = report[index..<nextIndex].utf8.count
-            if byteCount + charBytes > limit {
-                break
-            }
-            byteCount += charBytes
-            limitIndex = nextIndex
+        let cappedLimit = max(limit, 0)
+        var utf8Index = utf8View.index(utf8View.startIndex, offsetBy: cappedLimit)
+        var limitIndex = String.Index(utf8Index, within: report)
+        while limitIndex == nil && utf8Index > utf8View.startIndex {
+            utf8Index = utf8View.index(before: utf8Index)
+            limitIndex = String.Index(utf8Index, within: report)
         }
 
-        let prefix = report[..<limitIndex]
+        let prefix = report[..<(limitIndex ?? report.startIndex)]
         if let lastNewline = prefix.lastIndex(of: "\n") {
             return String(prefix[..<lastNewline])
         }

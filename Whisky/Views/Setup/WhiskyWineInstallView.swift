@@ -128,21 +128,22 @@ struct WhiskyWineInstallView: View {
 
     private func startInstallation(startLogMessage: String, finishLogMessage: String) {
         Task.detached {
+            let attemptStartedAt = Date()
             await MainActor.run {
-                if let previousStart = diagnostics.installStartedAt {
-                    diagnostics.record("Previous install attempt started: \(previousStart.formatted(.iso8601))")
-                }
-                if let previousFinish = diagnostics.installFinishedAt {
-                    diagnostics.record("Previous install attempt finished: \(previousFinish.formatted(.iso8601))")
-                }
                 diagnostics.installFinishedAt = nil
-                diagnostics.installStartedAt = Date()
+                diagnostics.installStartedAt = attemptStartedAt
                 diagnostics.record(startLogMessage)
             }
             await WhiskyWineInstaller.install(from: tarLocation)
             let isInstalled = WhiskyWineInstaller.isWhiskyWineInstalled()
+            let attemptFinishedAt = Date()
             await MainActor.run {
-                diagnostics.installFinishedAt = Date()
+                diagnostics.installFinishedAt = attemptFinishedAt
+                diagnostics.recordInstallAttempt(
+                    startedAt: attemptStartedAt,
+                    finishedAt: attemptFinishedAt,
+                    succeeded: isInstalled
+                )
                 diagnostics.record(finishLogMessage)
                 installing = false
                 if isInstalled {

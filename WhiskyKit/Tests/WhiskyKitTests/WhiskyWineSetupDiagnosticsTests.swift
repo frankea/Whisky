@@ -83,6 +83,11 @@ final class WhiskyWineSetupDiagnosticsTests: XCTestCase {
         let installFinish = Date().addingTimeInterval(1)
         diagnostics.installStartedAt = installStart
         diagnostics.installFinishedAt = installFinish
+        diagnostics.recordInstallAttempt(
+            startedAt: installStart,
+            finishedAt: installFinish,
+            succeeded: false
+        )
         diagnostics.downloadStartedAt = Date()
         diagnostics.downloadFinishedAt = Date()
 
@@ -90,8 +95,21 @@ final class WhiskyWineSetupDiagnosticsTests: XCTestCase {
 
         XCTAssertEqual(diagnostics.installStartedAt, installStart)
         XCTAssertEqual(diagnostics.installFinishedAt, installFinish)
+        XCTAssertEqual(diagnostics.installAttempts.count, 1)
         XCTAssertNil(diagnostics.downloadStartedAt)
         XCTAssertNil(diagnostics.downloadFinishedAt)
+    }
+
+    func testReportIncludesInstallAttemptsSection() {
+        var diagnostics = WhiskyWineSetupDiagnostics()
+        let start = Date(timeIntervalSince1970: 0)
+        let finish = Date(timeIntervalSince1970: 5)
+        diagnostics.recordInstallAttempt(startedAt: start, finishedAt: finish, succeeded: false)
+
+        let report = diagnostics.reportString(stage: "install")
+
+        XCTAssertTrue(report.contains("[INSTALL ATTEMPTS]"))
+        XCTAssertTrue(report.contains("Attempt 1:"))
     }
 
     func testReportSanitizesURLQueries() {

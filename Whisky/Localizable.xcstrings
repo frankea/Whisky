@@ -17770,6 +17770,12 @@
             "value" : "Copiar diagnósticos"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Copy Diagnostics"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17904,6 +17910,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "A instalação do WhiskyWine falhou. Copie os diagnósticos e anexe os registos."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "WhiskyWine installation failed. Please copy diagnostics and attach logs."
           }
         },
         "ru" : {

@@ -32,6 +32,18 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
     private static let eventTimestampFormatStyle = Date.ISO8601FormatStyle()
     private static let issueURL = "https://github.com/Whisky-App/Whisky/issues/63"
 
+    public struct InstallAttempt: Codable, Sendable {
+        public let startedAt: Date
+        public let finishedAt: Date
+        public let succeeded: Bool
+
+        public init(startedAt: Date, finishedAt: Date, succeeded: Bool) {
+            self.startedAt = startedAt
+            self.finishedAt = finishedAt
+            self.succeeded = succeeded
+        }
+    }
+
     /// Public version plist URL (safe to share)
     public var versionPlistURL: String?
     /// Public download URL (safe to share)
@@ -47,6 +59,7 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
     public var downloadFinishedAt: Date?
     public var installStartedAt: Date?
     public var installFinishedAt: Date?
+    public private(set) var installAttempts: [InstallAttempt] = []
 
     public init() {}
 
@@ -57,6 +70,7 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         resetDownloadState()
         installStartedAt = nil
         installFinishedAt = nil
+        installAttempts = []
     }
 
     public mutating func resetDownloadState(reason: String? = nil) {
@@ -88,14 +102,23 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         lastProgressAt = Date()
     }
 
+    public mutating func recordInstallAttempt(startedAt: Date, finishedAt: Date, succeeded: Bool) {
+        installAttempts.append(InstallAttempt(
+            startedAt: startedAt,
+            finishedAt: finishedAt,
+            succeeded: succeeded
+        ))
+    }
+
     public func reportString(stage: String, error: String? = nil) -> String {
-        let estimatedCapacity = max(Self.maxEventCount, events.count) + 20
+        let estimatedCapacity = max(Self.maxEventCount, events.count) + installAttempts.count + 20
         var lines: [String] = []
         lines.reserveCapacity(estimatedCapacity)
 
         appendHeaderLines(into: &lines, stage: stage, error: error)
         appendNetworkLines(into: &lines)
         appendProgressLines(into: &lines)
+        appendInstallAttemptLines(into: &lines)
         appendDiskLines(into: &lines)
         appendEventLines(into: &lines)
 
@@ -130,6 +153,18 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         appendIfPresent("Download finished", value: formattedTimestamp(downloadFinishedAt), into: &lines)
         appendIfPresent("Install started", value: formattedTimestamp(installStartedAt), into: &lines)
         appendIfPresent("Install finished", value: formattedTimestamp(installFinishedAt), into: &lines)
+        lines.append("")
+    }
+
+    private func appendInstallAttemptLines(into lines: inout [String]) {
+        guard !installAttempts.isEmpty else { return }
+        lines.append("[INSTALL ATTEMPTS]")
+        for (index, attempt) in installAttempts.enumerated() {
+            let start = attempt.startedAt.formatted(Self.eventTimestampFormatStyle)
+            let finish = attempt.finishedAt.formatted(Self.eventTimestampFormatStyle)
+            let result = attempt.succeeded ? "success" : "failed"
+            lines.append("Attempt \(index + 1): started \(start) finished \(finish) result \(result)")
+        }
         lines.append("")
     }
 

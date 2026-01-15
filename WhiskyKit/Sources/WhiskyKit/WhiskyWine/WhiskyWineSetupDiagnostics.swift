@@ -205,7 +205,7 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         let cappedLimit = max(limit, 0)
         var utf8Index = utf8View.index(utf8View.startIndex, offsetBy: cappedLimit)
         var limitIndex = String.Index(utf8Index, within: report)
-        while limitIndex == nil && utf8Index > utf8View.startIndex {
+        while limitIndex == nil, utf8Index > utf8View.startIndex {
             utf8Index = utf8View.index(before: utf8Index)
             limitIndex = String.Index(utf8Index, within: report)
         }

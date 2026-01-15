@@ -67,12 +67,15 @@ struct SetupView: View {
 struct WhiskyWineSetupDiagnostics: Codable, Sendable {
     private(set) var sessionID = UUID()
     private(set) var startedAt = Date()
-    // NOTE: Do not record secrets/tokens in diagnostics. This is user-shareable.
+    // SECURITY: Do not record secrets/tokens in diagnostics. This is user-shareable.
+    // URLs below are safe to expose (public GitHub/CDN endpoints, no auth tokens).
     private(set) var events: [String] = []
 
     private static let eventTimestampFormatStyle = Date.ISO8601FormatStyle()
 
+    /// Public version plist URL (safe to share)
     var versionPlistURL: String?
+    /// Public download URL (safe to share)
     var downloadURL: String?
     var versionHTTPStatus: Int?
     var downloadHTTPStatus: Int?

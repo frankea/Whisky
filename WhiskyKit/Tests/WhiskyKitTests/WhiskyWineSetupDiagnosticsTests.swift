@@ -40,7 +40,7 @@ final class WhiskyWineSetupDiagnosticsTests: XCTestCase {
         let expectedFirstKeptEventIndex = overflowEventCount
         let expectedLastKeptEventIndex = totalCount - 1
 
-        for index in 0..<totalCount {
+        for index in 0 ..< totalCount {
             diagnostics.record("event-\(index)")
         }
 
@@ -54,7 +54,7 @@ final class WhiskyWineSetupDiagnosticsTests: XCTestCase {
         let longMessage = String(repeating: "A", count: 200)
         let totalCount = WhiskyWineSetupDiagnostics.maxEventCount * 2
 
-        for index in 0..<totalCount {
+        for index in 0 ..< totalCount {
             diagnostics.record("event-\(index) \(longMessage)")
         }
 

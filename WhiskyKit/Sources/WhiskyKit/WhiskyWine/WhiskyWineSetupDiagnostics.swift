@@ -25,9 +25,10 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
     // URLs below are safe to expose (public GitHub/CDN endpoints, no auth tokens).
     public private(set) var events: [String] = []
 
-    static let maxEventCount = 200
-    // Limit report size in UTF-8 bytes to keep sharing manageable.
-    static let maxReportBytes = 8_000
+    /// Maximum number of diagnostic events to retain.
+    public static let maxEventCount = 200
+    /// Maximum report size in UTF-8 bytes to keep sharing manageable.
+    public static let maxReportBytes = 8_000
 
     private static let eventTimestampFormatStyle = Date.ISO8601FormatStyle()
     private static let issueURL = "https://github.com/Whisky-App/Whisky/issues/63"
@@ -224,8 +225,7 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         let utf8View = report.utf8
         guard utf8View.count > limit else { return report }
 
-        let cappedLimit = max(limit, 0)
-        var prefixBytes = utf8View.prefix(cappedLimit)
+        var prefixBytes = utf8View.prefix(limit)
         var prefix = String(data: Data(prefixBytes), encoding: .utf8)
         while prefix == nil, !prefixBytes.isEmpty {
             prefixBytes = prefixBytes.dropLast()

@@ -77,6 +77,10 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         installAttempts = []
     }
 
+    /// Resets download-related state while preserving install state.
+    ///
+    /// Install timestamps and attempts are intentionally preserved so that
+    /// retrying a download does not lose install history.
     public mutating func resetDownloadState(reason: String? = nil) {
         versionPlistURL = nil
         downloadURL = nil

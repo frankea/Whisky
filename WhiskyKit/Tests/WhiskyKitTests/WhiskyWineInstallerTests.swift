@@ -44,6 +44,8 @@ final class WhiskyWineInstallerTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: missingURL.path))
     }
 
+    /// Verifies that cleanupTarball handles removal errors gracefully without crashing.
+    /// The file should remain when deletion fails due to permission restrictions.
     func testCleanupTarballHandlesRemovalError() throws {
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)

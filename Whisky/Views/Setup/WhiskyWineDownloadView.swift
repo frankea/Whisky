@@ -84,7 +84,7 @@ struct WhiskyWineDownloadView: View {
         }
         .frame(width: 400, height: 200)
         .onAppear {
-            Task { @MainActor in
+            Task {
                 diagnostics.reset()
                 diagnostics.record("Entered download stage")
                 await fetchVersionAndDownload()

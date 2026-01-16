@@ -71,7 +71,7 @@ struct WhiskyWineInstallView: View {
     }
 
     @MainActor
-    func proceed() {
+    private func proceed() {
         showSetup = false
     }
 

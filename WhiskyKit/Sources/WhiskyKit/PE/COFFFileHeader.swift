@@ -18,11 +18,13 @@
 
 import Foundation
 
-public extension PEFile {
+// Intentionally not marked public to avoid Swift 6 redundant access modifiers.
+// Nested types remain public to preserve the API surface.
+extension PEFile {
     /// COFF File Header (Object and Image)
     ///
     /// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#coff-file-header-object-and-image
-    struct COFFFileHeader: Hashable, Equatable, Sendable {
+    public struct COFFFileHeader: Hashable, Equatable, Sendable {
         public let machine: UInt16
         public let numberOfSections: UInt16
         public let timeDateStamp: Date

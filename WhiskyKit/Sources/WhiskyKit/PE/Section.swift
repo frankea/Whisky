@@ -18,11 +18,13 @@
 
 import Foundation
 
-public extension PEFile {
+// Intentionally not marked public to avoid Swift 6 redundant access modifiers.
+// Nested types remain public to preserve the API surface.
+extension PEFile {
     /// Section Table (Section Headers)
     ///
     /// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#section-table-section-headers
-    struct Section: Hashable, Equatable, Sendable {
+    public struct Section: Hashable, Equatable, Sendable {
         public let name: String
         public let virtualSize: UInt32
         public let virtualAddress: UInt32

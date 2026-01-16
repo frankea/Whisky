@@ -18,11 +18,13 @@
 
 import Foundation
 
-public extension PEFile {
+// Intentionally not marked public to avoid Swift 6 redundant access modifiers.
+// Nested types remain public to preserve the API surface.
+extension PEFile {
     /// Optional Header
     ///
     /// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#optional-header-image-only
-    struct OptionalHeader: Hashable, Equatable, Sendable {
+    public struct OptionalHeader: Hashable, Equatable, Sendable {
         // Standard Fields
 
         public let magic: Magic

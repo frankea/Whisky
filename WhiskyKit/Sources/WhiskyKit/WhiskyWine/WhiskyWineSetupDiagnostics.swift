@@ -230,13 +230,15 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         guard utf8View.count > limit else { return report }
 
         var prefixBytes = utf8View.prefix(limit)
-        // Drop trailing UTF-8 continuation bytes (10xxxxxx) to avoid cutting mid-character.
-        while let lastByte = prefixBytes.last,
-              (lastByte & 0b1100_0000) == 0b1000_0000 {
+        // Drop trailing bytes until we have valid UTF-8 (handles incomplete multi-byte sequences).
+        while !prefixBytes.isEmpty,
+              String(bytes: prefixBytes, encoding: .utf8) == nil {
             prefixBytes = prefixBytes.dropLast()
         }
 
-        let prefixString = String(decoding: prefixBytes, as: UTF8.self)
+        guard let prefixString = String(bytes: prefixBytes, encoding: .utf8) else {
+            return ""
+        }
         let prefixView = prefixString[...]
         if let lastNewline = prefixView.lastIndex(of: "\n") {
             return String(prefixView[..<lastNewline])

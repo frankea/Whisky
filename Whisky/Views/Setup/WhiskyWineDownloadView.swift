@@ -27,14 +27,14 @@ private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: 
 // Cached formatters to avoid repeated allocations during progress updates.
 // nonisolated(unsafe) is safe here: formatters are configured once at initialization
 // and only read thereafter; all access occurs on the main actor via SwiftUI views.
-nonisolated(unsafe) private let byteCountFormatter: ByteCountFormatter = {
+private nonisolated(unsafe) let byteCountFormatter: ByteCountFormatter = {
     let formatter = ByteCountFormatter()
     formatter.countStyle = .file
     formatter.zeroPadsFractionDigits = true
     return formatter
 }()
 
-nonisolated(unsafe) private let remainingTimeFormatter: DateComponentsFormatter = {
+private nonisolated(unsafe) let remainingTimeFormatter: DateComponentsFormatter = {
     let formatter = DateComponentsFormatter()
     formatter.allowedUnits = [.hour, .minute, .second]
     formatter.unitsStyle = .full

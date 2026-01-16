@@ -141,10 +141,10 @@ struct WhiskyWineInstallView: View {
             diagnostics.record("Install attempt \(attemptNumber) started")
             diagnostics.record(startLogMessage)
 
-            let tarballLocation = tarLocation
+            let capturedTarURL = tarLocation
             diagnostics.record("Invoking WhiskyWineInstaller.install(from:) in detached task")
             let isInstalled = await Task.detached {
-                WhiskyWineInstaller.install(from: tarballLocation)
+                WhiskyWineInstaller.install(from: capturedTarURL)
                 return WhiskyWineInstaller.isWhiskyWineInstalled()
             }.value
             let installStatus = isInstalled ? "installed" : "not installed"

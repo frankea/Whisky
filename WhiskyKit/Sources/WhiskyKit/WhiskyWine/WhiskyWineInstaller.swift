@@ -104,6 +104,13 @@ public class WhiskyWineInstaller {
     /// - Important: Ensure the tarball is from a trusted source.
     public static func install(from: URL) {
         do {
+            // Verify tarball exists before modifying application folder.
+            // This prevents data loss if the OS has cleaned up the temp file.
+            guard FileManager.default.fileExists(atPath: from.path) else {
+                logger.error("Tarball not found at \(from.path) - cannot install")
+                return
+            }
+
             if !FileManager.default.fileExists(atPath: applicationFolder.path) {
                 try FileManager.default.createDirectory(at: applicationFolder, withIntermediateDirectories: true)
             } else {

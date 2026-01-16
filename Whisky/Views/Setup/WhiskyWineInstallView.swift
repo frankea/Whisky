@@ -170,7 +170,7 @@ struct WhiskyWineInstallView: View {
             guard isInstalled else { return }
             // Only cleanup tarball after verified successful installation
             // This preserves it for retry attempts if installation fails
-            WhiskyWineInstaller.cleanupTarball(at: tarballLocation)
+            WhiskyWineInstaller.cleanupTarball(at: capturedTarURL)
             try? await Task.sleep(for: Self.installSuccessDelay)
             proceed()
         }

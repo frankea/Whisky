@@ -143,8 +143,9 @@ struct WhiskyWineInstallView: View {
                 WhiskyWineInstaller.install(from: tarballLocation)
                 return WhiskyWineInstaller.isWhiskyWineInstalled()
             }.value
+            let installStatus = isInstalled ? "installed" : "not installed"
             diagnostics.record(
-                "Detached WhiskyWineInstaller.install(from:) task completed: \(isInstalled ? "installed" : "not installed")"
+                "Detached WhiskyWineInstaller.install(from:) task completed: \(installStatus)"
             )
             let attemptFinishedAt = Date()
             diagnostics.installFinishedAt = attemptFinishedAt

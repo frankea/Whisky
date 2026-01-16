@@ -120,10 +120,8 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         appendProgressLines(into: &lines)
         appendInstallAttemptLines(into: &lines)
         appendDiskLines(into: &lines)
-        appendEventLines(into: &lines)
 
-        let report = lines.joined(separator: "\n")
-        return truncateReport(report, limit: Self.maxReportBytes)
+        return buildReport(prefixLines: lines, events: events, limit: Self.maxReportBytes)
     }
 
     private func appendHeaderLines(into lines: inout [String], stage: String, error: String?) {
@@ -179,9 +177,33 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         lines.append("")
     }
 
-    private func appendEventLines(into lines: inout [String]) {
+    private func buildReport(prefixLines: [String], events: [String], limit: Int) -> String {
+        var lines = prefixLines
         lines.append("[EVENTS]")
-        lines.append(contentsOf: events)
+
+        let prefixString = lines.joined(separator: "\n")
+        let prefixBytes = prefixString.utf8.count
+        guard prefixBytes < limit else {
+            return truncateReport(prefixString, limit: limit)
+        }
+        guard !events.isEmpty else { return prefixString }
+
+        let availableBytes = limit - prefixBytes
+        var includedEvents: [String] = []
+        includedEvents.reserveCapacity(events.count)
+        var usedBytes = 0
+
+        for event in events.reversed() {
+            let eventBytes = event.utf8.count + 1
+            if usedBytes + eventBytes > availableBytes {
+                break
+            }
+            includedEvents.append(event)
+            usedBytes += eventBytes
+        }
+
+        guard !includedEvents.isEmpty else { return prefixString }
+        return prefixString + "\n" + includedEvents.reversed().joined(separator: "\n")
     }
 
     private func formattedTimestamp(_ date: Date?) -> String? {
@@ -203,21 +225,22 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         guard utf8View.count > limit else { return report }
 
         let cappedLimit = max(limit, 0)
-        var utf8Index = utf8View.index(utf8View.startIndex, offsetBy: cappedLimit)
-        var limitIndex = String.Index(utf8Index, within: report)
-        while limitIndex == nil, utf8Index > utf8View.startIndex {
-            utf8Index = utf8View.index(before: utf8Index)
-            limitIndex = String.Index(utf8Index, within: report)
+        var prefixBytes = utf8View.prefix(cappedLimit)
+        var prefix = String(data: Data(prefixBytes), encoding: .utf8)
+        while prefix == nil, !prefixBytes.isEmpty {
+            prefixBytes = prefixBytes.dropLast()
+            prefix = String(data: Data(prefixBytes), encoding: .utf8)
         }
 
-        let prefix = report[..<(limitIndex ?? report.startIndex)]
-        if let lastNewline = prefix.lastIndex(of: "\n") {
-            return String(prefix[..<lastNewline])
+        let prefixString = prefix ?? ""
+        let prefixView = prefixString[...]
+        if let lastNewline = prefixView.lastIndex(of: "\n") {
+            return String(prefixView[..<lastNewline])
         }
-        if let lastWhitespace = prefix.lastIndex(where: { $0.isWhitespace }) {
-            return String(prefix[..<lastWhitespace])
+        if let lastWhitespace = prefixView.lastIndex(where: { $0.isWhitespace }) {
+            return String(prefixView[..<lastWhitespace])
         }
-        return String(prefix)
+        return String(prefixView)
     }
 
     private func appendIfPresent(_ label: String, value: (some CustomStringConvertible)?, into lines: inout [String]) {

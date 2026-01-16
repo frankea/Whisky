@@ -199,8 +199,10 @@ extension WhiskyWineDownloadView {
     }
 
     private func formatRemainingTime(remainingBytes: Int64) -> String {
-        // Avoid dividing by zero or non-positive speeds which lead to invalid estimates.
-        guard downloadSpeed > 0 else {
+        // Avoid using non-positive remaining bytes or speeds which lead to invalid estimates.
+        // Defensive check: shouldShowEstimate() already filters out zero-byte cases,
+        // but we still guard against unexpected zero/negative values.
+        guard remainingBytes > 0, downloadSpeed > 0 else {
             return ""
         }
         let remainingTimeInSeconds = Double(remainingBytes) / downloadSpeed

@@ -24,22 +24,6 @@ import WhiskyKit
 
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "WhiskyWineDownloadView")
 
-// Cached formatters to avoid repeated allocations during progress updates.
-// MainActor isolation ensures thread-safe access from SwiftUI views.
-@MainActor private let byteCountFormatter: ByteCountFormatter = {
-    let formatter = ByteCountFormatter()
-    formatter.countStyle = .file
-    formatter.zeroPadsFractionDigits = true
-    return formatter
-}()
-
-@MainActor private let remainingTimeFormatter: DateComponentsFormatter = {
-    let formatter = DateComponentsFormatter()
-    formatter.allowedUnits = [.hour, .minute, .second]
-    formatter.unitsStyle = .full
-    return formatter
-}()
-
 private func formatHTTPError(statusCode: Int) -> String {
     let statusMessage = switch statusCode {
     case 404:
@@ -110,6 +94,21 @@ struct WhiskyWineDownloadView: View {
 }
 
 extension WhiskyWineDownloadView {
+    // Cached formatters to avoid repeated allocations during progress updates.
+    private static let byteCountFormatter: ByteCountFormatter = {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        formatter.zeroPadsFractionDigits = true
+        return formatter
+    }()
+
+    private static let remainingTimeFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.hour, .minute, .second]
+        formatter.unitsStyle = .full
+        return formatter
+    }()
+
     private func errorView(error: String) -> some View {
         VStack(spacing: 16) {
             Image(systemName: "xmark.circle")
@@ -203,7 +202,7 @@ extension WhiskyWineDownloadView {
     }
 
     private func formatBytes(bytes: Int64) -> String {
-        byteCountFormatter.string(fromByteCount: bytes)
+        Self.byteCountFormatter.string(fromByteCount: bytes)
     }
 
     private func shouldShowEstimate() -> Bool {
@@ -217,7 +216,7 @@ extension WhiskyWineDownloadView {
             return ""
         }
         let remainingTimeInSeconds = Double(remainingBytes) / downloadSpeed
-        return remainingTimeFormatter.string(from: remainingTimeInSeconds) ?? ""
+        return Self.remainingTimeFormatter.string(from: remainingTimeInSeconds) ?? ""
     }
 
     private func proceed() {

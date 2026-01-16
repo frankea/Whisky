@@ -23,6 +23,7 @@ import WhiskyKit
 struct WhiskyWineInstallView: View {
     @State var installing: Bool = true
     @State private var installError: String?
+    @State private var hasStartedInstallation: Bool = false
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
@@ -59,6 +60,9 @@ struct WhiskyWineInstallView: View {
         }
         .frame(width: 400, height: 200)
         .onAppear {
+            // Guard against multiple onAppear calls from NavigationStack
+            guard !hasStartedInstallation else { return }
+            hasStartedInstallation = true
             startInstallation(
                 startLogMessage: "Entered install stage",
                 finishLogMessage: "Install finished (installer returned)"

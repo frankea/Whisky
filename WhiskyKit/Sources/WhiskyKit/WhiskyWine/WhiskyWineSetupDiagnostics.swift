@@ -112,6 +112,7 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
     }
 
     public func reportString(stage: String, error: String? = nil) -> String {
+        // 20 accounts for header, network, progress, disk section lines and separators
         let estimatedCapacity = max(Self.maxEventCount, events.count) + installAttempts.count + 20
         var lines: [String] = []
         lines.reserveCapacity(estimatedCapacity)

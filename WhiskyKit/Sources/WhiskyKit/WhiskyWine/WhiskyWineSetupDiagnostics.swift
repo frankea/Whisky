@@ -33,7 +33,7 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
     /// Overhead lines for report sections (header, network, progress, disk, separators).
     private static let reportSectionOverhead = 20
 
-    private static let eventTimestampFormatStyle = Date.ISO8601FormatStyle()
+    private static let eventTimestampFormatter = Date.ISO8601FormatStyle()
     private static let issueURL = "https://github.com/Whisky-App/Whisky/issues/63"
 
     public struct InstallAttempt: Codable, Sendable {
@@ -93,7 +93,7 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
     }
 
     public mutating func record(_ message: String) {
-        let timestamp = Date().formatted(Self.eventTimestampFormatStyle)
+        let timestamp = Date().formatted(Self.eventTimestampFormatter)
         events.append("[\(timestamp)] \(message)")
         if events.count > Self.maxEventCount {
             events.removeFirst(events.count - Self.maxEventCount)
@@ -133,7 +133,7 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         lines.append("WhiskyWine Setup Diagnostics (\(Self.issueURL))")
         lines.append("Session: \(sessionID.uuidString)")
         lines.append("Stage: \(stage)")
-        lines.append("Generated: \(Date().formatted(Self.eventTimestampFormatStyle))")
+        lines.append("Generated: \(Date().formatted(Self.eventTimestampFormatter))")
         appendIfPresent("Error", value: error, into: &lines)
         lines.append("")
     }
@@ -163,8 +163,8 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         guard !installAttempts.isEmpty else { return }
         lines.append("[INSTALL ATTEMPTS]")
         for (index, attempt) in installAttempts.enumerated() {
-            let start = attempt.startedAt.formatted(Self.eventTimestampFormatStyle)
-            let finish = attempt.finishedAt.formatted(Self.eventTimestampFormatStyle)
+            let start = attempt.startedAt.formatted(Self.eventTimestampFormatter)
+            let finish = attempt.finishedAt.formatted(Self.eventTimestampFormatter)
             let result = attempt.succeeded ? "success" : "failed"
             lines.append("Attempt \(index + 1): started \(start) finished \(finish) result \(result)")
         }
@@ -213,7 +213,7 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
 
     private func formattedTimestamp(_ date: Date?) -> String? {
         guard let date else { return nil }
-        return date.formatted(Self.eventTimestampFormatStyle)
+        return date.formatted(Self.eventTimestampFormatter)
     }
 
     private func sanitizedURLString(_ urlString: String?) -> String? {

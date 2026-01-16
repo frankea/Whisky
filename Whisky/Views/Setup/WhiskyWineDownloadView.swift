@@ -24,6 +24,20 @@ import WhiskyKit
 
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "WhiskyWineDownloadView")
 
+private let byteCountFormatter: ByteCountFormatter = {
+    let formatter = ByteCountFormatter()
+    formatter.countStyle = .file
+    formatter.zeroPadsFractionDigits = true
+    return formatter
+}()
+
+private let remainingTimeFormatter: DateComponentsFormatter = {
+    let formatter = DateComponentsFormatter()
+    formatter.allowedUnits = [.hour, .minute, .second]
+    formatter.unitsStyle = .full
+    return formatter
+}()
+
 private func formatHTTPError(statusCode: Int) -> String {
     let statusMessage = switch statusCode {
     case 404:
@@ -187,10 +201,7 @@ extension WhiskyWineDownloadView {
     }
 
     private func formatBytes(bytes: Int64) -> String {
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        formatter.zeroPadsFractionDigits = true
-        return formatter.string(fromByteCount: bytes)
+        byteCountFormatter.string(fromByteCount: bytes)
     }
 
     private func shouldShowEstimate() -> Bool {
@@ -199,18 +210,12 @@ extension WhiskyWineDownloadView {
     }
 
     private func formatRemainingTime(remainingBytes: Int64) -> String {
-        // Avoid using non-positive remaining bytes or speeds which lead to invalid estimates.
-        // Defensive check: shouldShowEstimate() already filters out zero-byte cases,
-        // but we still guard against unexpected zero/negative values.
+        // Guard against invalid values that would produce meaningless time estimates.
         guard remainingBytes > 0, downloadSpeed > 0 else {
             return ""
         }
         let remainingTimeInSeconds = Double(remainingBytes) / downloadSpeed
-
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.hour, .minute, .second]
-        formatter.unitsStyle = .full
-        return formatter.string(from: remainingTimeInSeconds) ?? ""
+        return remainingTimeFormatter.string(from: remainingTimeInSeconds) ?? ""
     }
 
     private func proceed() {

@@ -23,7 +23,7 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
     public private(set) var startedAt = Date()
     // SECURITY: Do not record secrets/tokens in diagnostics. This is user-shareable.
     // URLs below are safe to expose (public GitHub/CDN endpoints, no auth tokens).
-    private(set) var events: [String] = []
+    public private(set) var events: [String] = []
 
     static let maxEventCount = 200
     // Limit report size in UTF-8 bytes to keep sharing manageable.

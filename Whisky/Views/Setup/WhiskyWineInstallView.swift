@@ -27,7 +27,7 @@ struct WhiskyWineInstallView: View {
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
-    // Mutations happen through the binding wrapper.
+    /// Shared diagnostics recorder for the setup flow, capturing events across download and install stages.
     @Binding var diagnostics: WhiskyWineSetupDiagnostics
     // Delay to show the success checkmark before dismissing setup.
     private static let installSuccessDelay: Duration = .seconds(2)

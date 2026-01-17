@@ -31,6 +31,7 @@ struct BottleView: View {
     @State private var path = NavigationPath()
     @State private var programLoading: Bool = false
     @State private var showWinetricksSheet: Bool = false
+    @State private var toast: ToastData?
 
     private let gridLayout = [GridItem(.adaptive(minimum: 100, maximum: .infinity))]
 
@@ -40,7 +41,11 @@ struct BottleView: View {
                 LazyVGrid(columns: gridLayout, alignment: .center) {
                     ForEach(bottle.pinnedPrograms, id: \.id) { pinnedProgram in
                         PinView(
-                            bottle: bottle, program: pinnedProgram.program, pin: pinnedProgram.pin, path: $path
+                            bottle: bottle,
+                            program: pinnedProgram.program,
+                            pin: pinnedProgram.pin,
+                            path: $path,
+                            toast: $toast
                         )
                     }
                     PinAddView(bottle: bottle)
@@ -99,8 +104,29 @@ struct BottleView: View {
                                             } else {
                                                 try await Wine.runProgram(at: url, bottle: bottle)
                                             }
+                                            await MainActor.run {
+                                                withAnimation {
+                                                    toast = ToastData(
+                                                        message: String(
+                                                            localized: "status.launched \(url.lastPathComponent)"
+                                                        ),
+                                                        style: .success
+                                                    )
+                                                }
+                                            }
                                         } catch {
-                                            print("Failed to run external program: \(error)")
+                                            let errDesc = error.localizedDescription
+                                            await MainActor.run {
+                                                withAnimation {
+                                                    toast = ToastData(
+                                                        message: String(
+                                                            localized: "status.launchFailed \(errDesc)"
+                                                        ),
+                                                        style: .error,
+                                                        autoDismiss: false
+                                                    )
+                                                }
+                                            }
                                         }
                                         programLoading = false
                                     }
@@ -126,6 +152,7 @@ struct BottleView: View {
             }
             .disabled(!bottle.isAvailable)
             .navigationTitle(bottle.settings.name)
+            .toast($toast)
             .sheet(isPresented: $showWinetricksSheet) {
                 WinetricksView(bottle: bottle)
             }

@@ -19223,6 +19223,36 @@
     "Steam and Chromium-based launchers require en_US locale to avoid steamwebhelper crashes" : {
 
     },
+    "status.launched %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launched: %@"
+          }
+        }
+      }
+    },
+    "status.launchedTerminal %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launched in Terminal: %@"
+          }
+        }
+      }
+    },
+    "status.launchFailed %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch failed: %@"
+          }
+        }
+      }
+    },
     "tab.config" : {
       "localizations" : {
         "ar" : {

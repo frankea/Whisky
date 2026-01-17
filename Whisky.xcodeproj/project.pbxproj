@@ -70,6 +70,7 @@
 		E24B756A38C48A1EE4374F25 /* SettingItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAE15F0C1EF1F06C7DB73DF5 /* SettingItemView.swift */; };
 		EB58FB552A499896002DC184 /* SemanticVersion in Frameworks */ = {isa = PBXBuildFile; productRef = EB58FB542A499896002DC184 /* SemanticVersion */; };
 		EEA5A2462A31DD65008274AE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEA5A2452A31DD65008274AE /* AppDelegate.swift */; };
+		F748991F03BA464CFCDA99F3 /* StatusToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E2D80EAABBB985BAED42548 /* StatusToast.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -122,6 +123,7 @@
 		258BF9104045ED48882E009D /* WineConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineConfigSection.swift; sourceTree = "<group>"; };
 		366E8BD2A51FD444160DFC10 /* LauncherDetection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherDetection.swift; sourceTree = "<group>"; };
 		3724CE6DD2C1B22D80442DB6 /* PerformanceConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceConfigSection.swift; sourceTree = "<group>"; };
+		4E2D80EAABBB985BAED42548 /* StatusToast.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Whisky/Views/Common/StatusToast.swift; sourceTree = SOURCE_ROOT; };
 		6330DD952B1B0EA4007A625A /* RenameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenameView.swift; sourceTree = "<group>"; };
 		6365C4C02B1AA69D00AAE1FD /* Animation+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Animation+Extensions.swift"; sourceTree = "<group>"; };
 		6365C4C22B1AA8CD00AAE1FD /* BottleListEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottleListEntry.swift; sourceTree = "<group>"; };
@@ -354,6 +356,7 @@
 				6E40495729CCA19C006E3F1B /* ContentView.swift */,
 				6E064B1329DD331F00D9A2D2 /* SparkleView.swift */,
 				6E7C07BF2AAF570100F6E66B /* FileOpenView.swift */,
+				FADF69F903E9EA676A27FC69 /* Common */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -418,6 +421,15 @@
 				6EFDF6652AAE303300EF622F /* Icons.xcassets */,
 			);
 			path = WhiskyThumbnail;
+			sourceTree = "<group>";
+		};
+		FADF69F903E9EA676A27FC69 /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				4E2D80EAABBB985BAED42548 /* StatusToast.swift */,
+			);
+			name = Common;
+			path = Common;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -651,6 +663,7 @@
 				954F64484BFDF7786A5B184E /* LauncherDetection.swift in Sources */,
 				689B4F6DF3B8006E89E1395F /* LauncherDiagnostics.swift in Sources */,
 				160B41C4006351293AAEEF27 /* LauncherConfigSection.swift in Sources */,
+				F748991F03BA464CFCDA99F3 /* StatusToast.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

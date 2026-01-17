@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Comprehensive Launcher Compatibility System including detection, diagnostics, and configuration
+- Stability diagnostics export for crash/freeze reports (Refs #40)
+- WhiskyWine download/install diagnostics with copy-to-clipboard workflow (Issue #63)
 - SwiftFormat integration for automated code formatting
 - DocC documentation for WhiskyKit public API
 - Code coverage reporting and badges
@@ -27,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Corrected Dependabot Swift configuration
 - Capped Wine process logs and pruned old logs to prevent excessive disk usage (Issue #46)
+- Surface bottle creation failures with diagnostic information (Issue #61)
 - Fixed winetricks dependency installs failing when %AppData% is empty (Issue #64)
 - Fixed hardcoded "crossover" username in user profile path detection
 - Added Wine prefix validation before running winetricks with repair option

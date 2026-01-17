@@ -18,7 +18,9 @@
 
 import Foundation
 
-public extension PEFile {
+// Intentionally not marked public to avoid Swift 6 redundant access modifiers.
+// Nested types remain public to preserve the API surface.
+extension PEFile {
     public enum Magic: UInt16, Hashable, Equatable, CustomStringConvertible, Sendable {
         case unknown = 0x0
         case pe32 = 0x10B

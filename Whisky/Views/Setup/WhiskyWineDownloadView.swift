@@ -16,6 +16,7 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import AppKit
 import os
 import SemanticVersion
 import SwiftUI
@@ -58,6 +59,7 @@ struct WhiskyWineDownloadView: View {
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
+    @Binding var diagnostics: WhiskyWineSetupDiagnostics
 
     var body: some View {
         VStack {
@@ -83,10 +85,29 @@ struct WhiskyWineDownloadView: View {
         .frame(width: 400, height: 200)
         .onAppear {
             Task {
+                diagnostics.reset()
+                diagnostics.record("Entered download stage")
                 await fetchVersionAndDownload()
             }
         }
     }
+}
+
+extension WhiskyWineDownloadView {
+    // Cached formatters to avoid repeated allocations during progress updates.
+    private static let byteCountFormatter: ByteCountFormatter = {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        formatter.zeroPadsFractionDigits = true
+        return formatter
+    }()
+
+    private static let remainingTimeFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.hour, .minute, .second]
+        formatter.unitsStyle = .full
+        return formatter
+    }()
 
     private func errorView(error: String) -> some View {
         VStack(spacing: 16) {
@@ -99,6 +120,22 @@ struct WhiskyWineDownloadView: View {
                 .font(.subheadline)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
+
+            HStack(spacing: 12) {
+                Button("setup.whiskywine.copyDiagnostics") {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(
+                        diagnostics.reportString(stage: "download", error: error),
+                        forType: .string
+                    )
+                }
+                .buttonStyle(.bordered)
+
+                Button("open.logs") {
+                    WhiskyApp.openLogsFolder()
+                }
+                .buttonStyle(.bordered)
+            }
 
             HStack(spacing: 12) {
                 Button("setup.retry") {
@@ -129,10 +166,12 @@ struct WhiskyWineDownloadView: View {
                         formatBytes(bytes: totalBytes)
                     ))
                         + Text(String(" "))
-                        + (shouldShowEstimate() ?
-                            Text(String(
+                        + (shouldShowEstimate()
+                            ? Text(String(
                                 format: String(localized: "setup.whiskywine.eta"),
-                                formatRemainingTime(remainingBytes: totalBytes - completedBytes)
+                                formatRemainingTime(
+                                    remainingBytes: totalBytes - completedBytes
+                                )
                             ))
                             : Text(String()))
                     Spacer()
@@ -156,53 +195,51 @@ struct WhiskyWineDownloadView: View {
         observation = nil
         downloadTask = nil
         currentDownloadTaskID = nil
+        diagnostics.resetDownloadState(reason: "Retry requested")
         Task {
             await fetchVersionAndDownload()
         }
     }
 
-    func formatBytes(bytes: Int64) -> String {
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        formatter.zeroPadsFractionDigits = true
-        return formatter.string(fromByteCount: bytes)
+    private func formatBytes(bytes: Int64) -> String {
+        Self.byteCountFormatter.string(fromByteCount: bytes)
     }
 
-    func shouldShowEstimate() -> Bool {
+    private func shouldShowEstimate() -> Bool {
         let elapsedTime = Date().timeIntervalSince(startTime ?? Date())
         return Int(elapsedTime.rounded()) > 5 && completedBytes != 0
     }
 
-    func formatRemainingTime(remainingBytes: Int64) -> String {
-        let remainingTimeInSeconds = Double(remainingBytes) / downloadSpeed
-
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.hour, .minute, .second]
-        formatter.unitsStyle = .full
-        if shouldShowEstimate() {
-            return formatter.string(from: TimeInterval(remainingTimeInSeconds)) ?? ""
-        } else {
+    private func formatRemainingTime(remainingBytes: Int64) -> String {
+        // Guard against invalid values that would produce meaningless time estimates.
+        guard remainingBytes > 0, downloadSpeed > 0 else {
             return ""
         }
+        let remainingTimeInSeconds = Double(remainingBytes) / downloadSpeed
+        return Self.remainingTimeFormatter.string(from: remainingTimeInSeconds) ?? ""
     }
 
-    func proceed() {
+    private func proceed() {
         path.append(.whiskyWineInstall)
     }
 
     @MainActor
-    func fetchVersionAndDownload() async {
+    private func fetchVersionAndDownload() async {
         guard let versionURL = URL(string: DistributionConfig.versionPlistURL) else {
             downloadError = String(localized: "setup.whiskywine.error.invalidVersionURL")
             return
         }
 
+        diagnostics.versionPlistURL = versionURL.absoluteString
+        diagnostics.record("Fetching version plist")
         do {
             let (data, response) = try await URLSession(configuration: .ephemeral).data(from: versionURL)
 
             // Check HTTP status code before attempting to decode
             if let httpResponse = response as? HTTPURLResponse,
                !(200 ... 299).contains(httpResponse.statusCode) {
+                diagnostics.versionHTTPStatus = httpResponse.statusCode
+                diagnostics.record("Version plist HTTP \(httpResponse.statusCode)")
                 downloadError = formatHTTPError(statusCode: httpResponse.statusCode)
                 return
             }
@@ -212,15 +249,18 @@ struct WhiskyWineDownloadView: View {
             let version = versionInfo.version
             let versionString = "\(version.major).\(version.minor).\(version.patch)"
             let downloadURLString = DistributionConfig.librariesURL(version: versionString)
+            diagnostics.record("Resolved version \(versionString)")
 
             guard let downloadURL = URL(string: downloadURLString) else {
                 downloadError = String(localized: "setup.whiskywine.error.invalidDownloadURL")
                 return
             }
 
+            diagnostics.downloadURL = downloadURL.absoluteString
             startDownload(from: downloadURL)
         } catch {
             let errorMessage = error.localizedDescription
+            diagnostics.record("Version fetch failed: \(errorMessage)")
             downloadError = String(
                 format: String(localized: "setup.whiskywine.error.fetchVersionFailed"),
                 errorMessage
@@ -233,6 +273,8 @@ struct WhiskyWineDownloadView: View {
         let taskID = UUID()
         currentDownloadTaskID = taskID
 
+        diagnostics.downloadStartedAt = Date()
+        diagnostics.record("Starting download")
         downloadTask = URLSession(configuration: .ephemeral).downloadTask(with: url) { fileURL, response, error in
             // URLSession deletes the temporary file immediately after completion handler returns.
             // We must move it to a safe location synchronously before the async Task executes.
@@ -294,19 +336,28 @@ struct WhiskyWineDownloadView: View {
                 format: String(localized: "setup.whiskywine.error.downloadFailed"),
                 error.localizedDescription
             )
+            diagnostics.downloadFinishedAt = Date()
+            diagnostics.record("Download failed: \(error.localizedDescription)")
             return
         }
 
         if let httpResponse = response as? HTTPURLResponse,
            !(200 ... 299).contains(httpResponse.statusCode) {
+            diagnostics.downloadHTTPStatus = httpResponse.statusCode
+            diagnostics.downloadFinishedAt = Date()
+            diagnostics.record("Download HTTP \(httpResponse.statusCode)")
             downloadError = formatHTTPError(statusCode: httpResponse.statusCode)
             return
         }
 
         if let url = fileURL {
             tarLocation = url
+            diagnostics.downloadFinishedAt = Date()
+            diagnostics.record("Download completed: moved to temp")
             proceed()
         } else {
+            diagnostics.downloadFinishedAt = Date()
+            diagnostics.record("Download completed but no file URL received")
             downloadError = String(localized: "setup.whiskywine.error.noFileReceived")
         }
     }
@@ -326,5 +377,6 @@ struct WhiskyWineDownloadView: View {
         if totalBytes > 0 {
             fractionProgress = Double(completedBytes) / Double(totalBytes)
         }
+        diagnostics.recordProgress(bytesReceived: completedBytes, bytesExpected: totalBytes)
     }
 }

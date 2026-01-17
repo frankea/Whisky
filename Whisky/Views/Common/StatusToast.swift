@@ -42,9 +42,9 @@ enum ToastStyle: Equatable {
 
     var accessibilityLabel: String {
         switch self {
-        case .success: "Success"
-        case .error: "Error"
-        case .info: "Information"
+        case .success: String(localized: "accessibility.toast.success")
+        case .error: String(localized: "accessibility.toast.error")
+        case .info: String(localized: "accessibility.toast.info")
         }
     }
 }
@@ -67,7 +67,7 @@ struct StatusToast: View {
         .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(style.accessibilityLabel): \(message)")
-        .accessibilityHint("Tap to dismiss")
+        .accessibilityHint(String(localized: "accessibility.toast.dismiss"))
     }
 }
 

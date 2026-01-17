@@ -137,7 +137,9 @@ struct BottleView: View {
                                         programLoading = false
                                     }
                                 }
-                                updateStartMenu()
+                                await MainActor.run {
+                                    updateStartMenu()
+                                }
                             }
                         }
                     }

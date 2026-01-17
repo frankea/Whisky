@@ -147,6 +147,29 @@ final class WinePrefixUsernameDetectionTests: XCTestCase {
         XCTAssertNil(username)
         XCTAssertEqual(username ?? "crossover", "crossover")
     }
+
+    func testDetectWineUsernameSelectsDeterministically() throws {
+        let usersDir = tempDir.appendingPathComponent("users")
+        try FileManager.default.createDirectory(at: usersDir, withIntermediateDirectories: true)
+        // Create multiple user directories - should select alphabetically first
+        try FileManager.default.createDirectory(
+            at: usersDir.appendingPathComponent("zeta"),
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: usersDir.appendingPathComponent("alpha"),
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: usersDir.appendingPathComponent("beta"),
+            withIntermediateDirectories: true
+        )
+
+        let username = WinePrefixValidation.detectWineUsername(in: usersDir)
+
+        // Should select "alpha" as it's alphabetically first
+        XCTAssertEqual(username, "alpha")
+    }
 }
 
 // MARK: - ValidationResult Tests

@@ -80,14 +80,18 @@ struct ConfigView: View {
                         showStabilityDiagnostics = true
                     }
                 }
-                .help("Generates a bounded, privacy-safe report for issue triage (Refs #40).")
+                .help("Generates a bounded, privacy-safe report for issue triage.")
 
                 Button {
                     Task {
                         isRepairingPrefix = true
+                        defer {
+                            bottle.clearWineUsernameCache()
+                            isRepairingPrefix = false
+                        }
                         do {
                             try await Wine.repairPrefix(bottle: bottle)
-                            bottle.clearWineUsernameCache()
+                            // Validate immediately after repair to confirm directories were created
                             let result = WinePrefixValidation.validatePrefix(for: bottle)
                             if result.isValid {
                                 prefixRepairResult = .success
@@ -99,7 +103,6 @@ struct ConfigView: View {
                         } catch {
                             prefixRepairResult = .failure(error.localizedDescription)
                         }
-                        isRepairingPrefix = false
                     }
                 } label: {
                     HStack {

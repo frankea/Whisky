@@ -160,10 +160,12 @@ class Winetricks {
 
     @MainActor
     private static func repairPrefixAndRetry(bottle: Bottle, command: String) async {
+        defer {
+            bottle.clearWineUsernameCache()
+        }
         do {
             logger.info("Attempting to repair Wine prefix for bottle '\(bottle.settings.name)'")
             try await Wine.repairPrefix(bottle: bottle)
-            bottle.clearWineUsernameCache()
             logger.info("Prefix repair completed, retrying winetricks command")
             // Retry the original command - validation will be done by runCommandInternal
             // and will show an error if still invalid (without offering repair again)

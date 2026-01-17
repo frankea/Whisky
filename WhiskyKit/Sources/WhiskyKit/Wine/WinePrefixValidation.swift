@@ -183,12 +183,17 @@ public enum WinePrefixValidation {
             return fileManager.fileExists(atPath: entry.path, isDirectory: &isDirectory) && isDirectory.boolValue
         }
 
+        // Sort deterministically by directory name so selection is not filesystem-order dependent
+        let sortedUserDirs = userDirs.sorted {
+            $0.lastPathComponent.localizedCaseInsensitiveCompare($1.lastPathComponent) == .orderedAscending
+        }
+
         // Prefer non-"crossover" username if available (for compatibility with different Wine builds)
-        if let preferred = userDirs.first(where: { $0.lastPathComponent != "crossover" }) {
+        if let preferred = sortedUserDirs.first(where: { $0.lastPathComponent != "crossover" }) {
             return preferred.lastPathComponent
         }
 
-        // Fall back to crossover or first available
-        return userDirs.first?.lastPathComponent
+        // Fall back to crossover or first available (deterministically chosen)
+        return sortedUserDirs.first?.lastPathComponent
     }
 }

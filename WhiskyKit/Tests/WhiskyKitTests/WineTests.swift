@@ -283,12 +283,12 @@ final class WineTests: XCTestCase {
 
     // MARK: - Prefix Repair Tests
 
-    /// Verifies that the repairPrefix method signature exists with expected modifiers.
+    /// Verifies that the repairPrefix method has the expected API contract.
     ///
     /// Note: Full integration testing of repairPrefix requires Wine to be installed
     /// and a valid bottle to be created, which is beyond unit test scope. This test
     /// verifies the API contract is maintained.
-    func testRepairPrefixMethodExists() {
+    func testRepairPrefixAPIContract() {
         // Verify the method is accessible as a static @MainActor async throws function
         // that returns String. This compile-time check ensures the API contract.
         let methodReference: @MainActor (Bottle) async throws -> String = Wine.repairPrefix

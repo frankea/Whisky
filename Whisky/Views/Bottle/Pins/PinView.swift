@@ -111,42 +111,10 @@ struct PinView: View {
             }
         }
 
-        if NSEvent.modifierFlags.contains(.shift) {
-            program.runInTerminal()
+        Task {
+            let result = await program.launchWithUserMode()
             withAnimation {
-                toast = ToastData(
-                    message: String(localized: "status.launchedTerminal \(program.name)"),
-                    style: .info
-                )
-            }
-        } else {
-            Task {
-                let arguments = program.settings.arguments.split { $0.isWhitespace }.map(String.init)
-                let environment = program.generateEnvironment()
-
-                do {
-                    try await Wine.runProgram(
-                        at: program.url, args: arguments, bottle: program.bottle, environment: environment
-                    )
-                    await MainActor.run {
-                        withAnimation {
-                            toast = ToastData(
-                                message: String(localized: "status.launched \(program.name)"),
-                                style: .success
-                            )
-                        }
-                    }
-                } catch {
-                    await MainActor.run {
-                        withAnimation {
-                            toast = ToastData(
-                                message: String(localized: "status.launchFailed \(error.localizedDescription)"),
-                                style: .error,
-                                autoDismiss: false
-                            )
-                        }
-                    }
-                }
+                toast = result.toastData
             }
         }
     }

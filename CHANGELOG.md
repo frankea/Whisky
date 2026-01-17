@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dependabot configuration for dependency updates
 
 ### Changed
+- Refactored shared program launch logic into reusable `LaunchResult` and `launchWithUserMode()` (Issue #68)
 - Refactored `BottleSettings` and `Wine` modules into smaller, focused components
 - Replaced `print()` statements with `os.log` Logger for better debugging
 - Consolidated CI workflows for improved efficiency

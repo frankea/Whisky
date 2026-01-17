@@ -118,52 +118,12 @@ struct ProgramView: View {
 
     private func launchProgram() {
         programLoading = true
-
-        if NSEvent.modifierFlags.contains(.shift) {
-            program.runInTerminal()
-            // Terminal launch doesn't provide feedback, show info toast
+        Task {
+            let result = await program.launchWithUserMode()
             withAnimation {
-                toast = ToastData(
-                    message: String(localized: "status.launchedTerminal \(program.name)"),
-                    style: .info
-                )
+                toast = result.toastData
             }
             programLoading = false
-        } else {
-            Task {
-                await launchInWine()
-            }
-        }
-    }
-
-    private func launchInWine() async {
-        let arguments = program.settings.arguments.split { $0.isWhitespace }.map(String.init)
-        let environment = program.generateEnvironment()
-
-        do {
-            try await Wine.runProgram(
-                at: program.url, args: arguments, bottle: program.bottle, environment: environment
-            )
-            await MainActor.run {
-                withAnimation {
-                    toast = ToastData(
-                        message: String(localized: "status.launched \(program.name)"),
-                        style: .success
-                    )
-                }
-                programLoading = false
-            }
-        } catch {
-            await MainActor.run {
-                withAnimation {
-                    toast = ToastData(
-                        message: String(localized: "status.launchFailed \(error.localizedDescription)"),
-                        style: .error,
-                        autoDismiss: false
-                    )
-                }
-                programLoading = false
-            }
         }
     }
 }

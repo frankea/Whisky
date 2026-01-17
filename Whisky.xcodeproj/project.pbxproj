@@ -71,6 +71,7 @@
 		EB58FB552A499896002DC184 /* SemanticVersion in Frameworks */ = {isa = PBXBuildFile; productRef = EB58FB542A499896002DC184 /* SemanticVersion */; };
 		EEA5A2462A31DD65008274AE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEA5A2452A31DD65008274AE /* AppDelegate.swift */; };
 		F748991F03BA464CFCDA99F3 /* StatusToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E2D80EAABBB985BAED42548 /* StatusToast.swift */; };
+		FBD19F7BAD838BE3ABB2CCC2 /* LaunchResult+Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2516958D60EC8937A2AF71 /* LaunchResult+Toast.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -172,6 +173,7 @@
 		6EFDF6652AAE303300EF622F /* Icons.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Icons.xcassets; sourceTree = "<group>"; };
 		8C73E1332AF472FC00B6FB45 /* ProgramMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramMenuView.swift; sourceTree = "<group>"; };
 		8CB681E42AED7C6F0018D319 /* WhiskyKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = WhiskyKit; sourceTree = "<group>"; };
+		AA2516958D60EC8937A2AF71 /* LaunchResult+Toast.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "LaunchResult+Toast.swift"; sourceTree = "<group>"; };
 		AA88CFEB38031323229CD377 /* LauncherDiagnostics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherDiagnostics.swift; sourceTree = "<group>"; };
 		AB0BCABC2B61036E00E21C31 /* RunningProcessesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningProcessesView.swift; sourceTree = "<group>"; };
 		CA5770D2EE01AEF235634646 /* DXVKConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DXVKConfigSection.swift; sourceTree = "<group>"; };
@@ -222,6 +224,7 @@
 			children = (
 				6E40498229CCA91B006E3F1B /* Bottle+Extensions.swift */,
 				6365C4C02B1AA69D00AAE1FD /* Animation+Extensions.swift */,
+				AA2516958D60EC8937A2AF71 /* LaunchResult+Toast.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -664,6 +667,7 @@
 				689B4F6DF3B8006E89E1395F /* LauncherDiagnostics.swift in Sources */,
 				160B41C4006351293AAEEF27 /* LauncherConfigSection.swift in Sources */,
 				F748991F03BA464CFCDA99F3 /* StatusToast.swift in Sources */,
+				FBD19F7BAD838BE3ABB2CCC2 /* LaunchResult+Toast.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

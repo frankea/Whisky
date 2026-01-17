@@ -22,8 +22,9 @@ import WhiskyKit
 
 struct ProgramView: View {
     @ObservedObject var program: Program
-    @State var programLoading: Bool = false
-    @State var cachedIconImage: Image?
+    @State private var programLoading: Bool = false
+    @State private var cachedIconImage: Image?
+    @State private var toast: ToastData?
     @AppStorage("configSectionExapnded") private var configSectionExpanded: Bool = true
     @AppStorage("envArgsSectionExpanded") private var envArgsSectionExpanded: Bool = true
 
@@ -76,8 +77,7 @@ struct ProgramView: View {
                     }
                 }
                 Button("button.run") {
-                    programLoading = true
-                    program.run()
+                    launchProgram()
                 }
                 .disabled(programLoading)
                 if programLoading {
@@ -89,6 +89,7 @@ struct ProgramView: View {
             }
             .padding()
         }
+        .toast($toast)
         .toolbar {
             if let image = cachedIconImage {
                 ToolbarItem(id: "ProgramViewIcon", placement: .navigation) {
@@ -112,6 +113,57 @@ struct ProgramView: View {
         .animation(.whiskyDefault, value: envArgsSectionExpanded)
         .task {
             if let fetchedImage = program.peFile?.bestIcon() { self.cachedIconImage = Image(nsImage: fetchedImage) }
+        }
+    }
+
+    private func launchProgram() {
+        programLoading = true
+
+        if NSEvent.modifierFlags.contains(.shift) {
+            program.runInTerminal()
+            // Terminal launch doesn't provide feedback, show info toast
+            withAnimation {
+                toast = ToastData(
+                    message: String(localized: "status.launchedTerminal \(program.name)"),
+                    style: .info
+                )
+            }
+            programLoading = false
+        } else {
+            Task {
+                await launchInWine()
+            }
+        }
+    }
+
+    private func launchInWine() async {
+        let arguments = program.settings.arguments.split { $0.isWhitespace }.map(String.init)
+        let environment = program.generateEnvironment()
+
+        do {
+            try await Wine.runProgram(
+                at: program.url, args: arguments, bottle: program.bottle, environment: environment
+            )
+            await MainActor.run {
+                withAnimation {
+                    toast = ToastData(
+                        message: String(localized: "status.launched \(program.name)"),
+                        style: .success
+                    )
+                }
+                programLoading = false
+            }
+        } catch {
+            await MainActor.run {
+                withAnimation {
+                    toast = ToastData(
+                        message: String(localized: "status.launchFailed \(error.localizedDescription)"),
+                        style: .error,
+                        autoDismiss: false
+                    )
+                }
+                programLoading = false
+            }
         }
     }
 }

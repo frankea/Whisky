@@ -21,7 +21,40 @@ import Foundation
 import os.log
 import WhiskyKit
 
+/// MainActor-isolated cache for Wine usernames to avoid repeated filesystem scans.
+@MainActor
+private var wineUsernameCache: [URL: String] = [:]
+
 extension Bottle {
+    /// The detected Wine username for this bottle.
+    ///
+    /// Wine creates user profile directories in `drive_c/users/`. This property
+    /// scans that directory to find the actual username used by Wine, which may
+    /// differ from the default "crossover" depending on the Wine build or
+    /// how the bottle was created.
+    ///
+    /// The result is cached to avoid repeated filesystem operations.
+    ///
+    /// - Returns: The detected username, or "crossover" as a fallback.
+    @MainActor
+    var wineUsername: String {
+        if let cached = wineUsernameCache[url] {
+            return cached
+        }
+        let usersDir = url.appending(path: "drive_c").appending(path: "users")
+        let username = WinePrefixValidation.detectWineUsername(in: usersDir) ?? "crossover"
+        wineUsernameCache[url] = username
+        return username
+    }
+
+    /// Clears the cached Wine username for this bottle.
+    ///
+    /// Call this after operations that may change the username (e.g., prefix repair).
+    @MainActor
+    func clearWineUsernameCache() {
+        wineUsernameCache.removeValue(forKey: url)
+    }
+
     func openCDrive() {
         NSWorkspace.shared.open(url.appending(path: "drive_c"))
     }
@@ -66,7 +99,7 @@ extension Bottle {
         let userStartMenu = url
             .appending(path: "drive_c")
             .appending(path: "users")
-            .appending(path: "crossover")
+            .appending(path: wineUsername)
             .appending(path: "AppData")
             .appending(path: "Roaming")
             .appending(path: "Microsoft")

@@ -50,11 +50,27 @@ class Winetricks {
 
     @MainActor
     static func runCommand(command: String, bottle: Bottle) async {
+        await runCommandInternal(command: command, bottle: bottle, isRetryAfterRepair: false)
+    }
+
+    @MainActor
+    private static func runCommandInternal(command: String, bottle: Bottle, isRetryAfterRepair: Bool) async {
         // Pre-flight validation: check that the Wine prefix has required user directories
         let validationResult = WinePrefixValidation.validatePrefix(for: bottle)
 
         if !validationResult.isValid {
             logger.warning("Prefix validation failed before running winetricks '\(command)'")
+            // Don't offer repair again if this is already a retry after repair
+            if isRetryAfterRepair {
+                logger.error("Validation still failing after repair attempt")
+                let alert = NSAlert()
+                alert.messageText = String(localized: "winetricks.error.repairFailed")
+                alert.informativeText = String(localized: "winetricks.error.repairFailedInfo")
+                alert.alertStyle = .critical
+                alert.addButton(withTitle: String(localized: "button.ok"))
+                alert.runModal()
+                return
+            }
             await showPrefixErrorAlert(
                 validationResult: validationResult,
                 bottle: bottle,
@@ -147,22 +163,10 @@ class Winetricks {
         do {
             logger.info("Attempting to repair Wine prefix for bottle '\(bottle.settings.name)'")
             try await Wine.repairPrefix(bottle: bottle)
-
-            // Validate again after repair
-            let result = WinePrefixValidation.validatePrefix(for: bottle)
-            if result.isValid {
-                logger.info("Prefix repair successful, retrying winetricks command")
-                // Retry the original command
-                await runCommand(command: command, bottle: bottle)
-            } else {
-                logger.error("Prefix repair did not resolve the issue")
-                let alert = NSAlert()
-                alert.messageText = String(localized: "winetricks.error.repairFailed")
-                alert.informativeText = String(localized: "winetricks.error.repairFailedInfo")
-                alert.alertStyle = .critical
-                alert.addButton(withTitle: String(localized: "button.ok"))
-                alert.runModal()
-            }
+            logger.info("Prefix repair completed, retrying winetricks command")
+            // Retry the original command - validation will be done by runCommandInternal
+            // and will show an error if still invalid (without offering repair again)
+            await runCommandInternal(command: command, bottle: bottle, isRetryAfterRepair: true)
         } catch {
             logger.error("Failed to repair prefix: \(error.localizedDescription)")
             let alert = NSAlert()

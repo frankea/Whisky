@@ -17,6 +17,7 @@
 //
 
 import SwiftUI
+import WhiskyKit
 
 enum SetupStage {
     case rosetta
@@ -27,6 +28,7 @@ enum SetupStage {
 struct SetupView: View {
     @State private var path: [SetupStage] = []
     @State var tarLocation: URL = .init(fileURLWithPath: "")
+    @State private var whiskyWineDiagnostics = WhiskyWineSetupDiagnostics()
     @Binding var showSetup: Bool
     var firstTime: Bool = true
 
@@ -40,9 +42,19 @@ struct SetupView: View {
                         case .rosetta:
                             RosettaView(path: $path, showSetup: $showSetup)
                         case .whiskyWineDownload:
-                            WhiskyWineDownloadView(tarLocation: $tarLocation, path: $path, showSetup: $showSetup)
+                            WhiskyWineDownloadView(
+                                tarLocation: $tarLocation,
+                                path: $path,
+                                showSetup: $showSetup,
+                                diagnostics: $whiskyWineDiagnostics
+                            )
                         case .whiskyWineInstall:
-                            WhiskyWineInstallView(tarLocation: $tarLocation, path: $path, showSetup: $showSetup)
+                            WhiskyWineInstallView(
+                                tarLocation: $tarLocation,
+                                path: $path,
+                                showSetup: $showSetup,
+                                diagnostics: $whiskyWineDiagnostics
+                            )
                         }
                     }
             }

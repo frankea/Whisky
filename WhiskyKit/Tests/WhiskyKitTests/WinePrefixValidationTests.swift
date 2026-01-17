@@ -134,4 +134,51 @@ final class WinePrefixValidationTests: XCTestCase {
         XCTAssertNil(valid.diagnostics)
         XCTAssertNotNil(missing.diagnostics)
     }
+
+    // MARK: - Username Detection Caching Behavior Tests
+
+    /// Verifies that detectWineUsername returns consistent results for the same directory.
+    ///
+    /// Note: The Whisky app's `Bottle.wineUsername` property wraps this function with
+    /// a `@MainActor`-isolated cache to avoid repeated filesystem scans. This test
+    /// verifies the underlying detection returns consistent results.
+    func testDetectWineUsernameReturnsConsistentResults() throws {
+        let usersDir = tempDir.appendingPathComponent("users")
+        try FileManager.default.createDirectory(at: usersDir, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: usersDir.appendingPathComponent("testuser"),
+            withIntermediateDirectories: true
+        )
+
+        // Multiple calls should return the same result
+        let result1 = WinePrefixValidation.detectWineUsername(in: usersDir)
+        let result2 = WinePrefixValidation.detectWineUsername(in: usersDir)
+        let result3 = WinePrefixValidation.detectWineUsername(in: usersDir)
+
+        XCTAssertEqual(result1, "testuser")
+        XCTAssertEqual(result1, result2)
+        XCTAssertEqual(result2, result3)
+    }
+
+    /// Verifies that nil result from detectWineUsername allows fallback to default.
+    ///
+    /// The Whisky app's `Bottle.wineUsername` property falls back to "crossover" when
+    /// this function returns nil. This test verifies the nil behavior.
+    func testDetectWineUsernameNilAllowsFallback() throws {
+        let usersDir = tempDir.appendingPathComponent("users")
+        try FileManager.default.createDirectory(at: usersDir, withIntermediateDirectories: true)
+        // Only Public directory, no valid user
+        try FileManager.default.createDirectory(
+            at: usersDir.appendingPathComponent("Public"),
+            withIntermediateDirectories: true
+        )
+
+        let username = WinePrefixValidation.detectWineUsername(in: usersDir)
+
+        // Returns nil, allowing caller to use fallback (e.g., "crossover")
+        XCTAssertNil(username)
+        // Demonstrate fallback pattern used by Bottle.wineUsername
+        let fallbackUsername = username ?? "crossover"
+        XCTAssertEqual(fallbackUsername, "crossover")
+    }
 }

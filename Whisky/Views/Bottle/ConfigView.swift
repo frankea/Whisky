@@ -87,6 +87,7 @@ struct ConfigView: View {
                         isRepairingPrefix = true
                         do {
                             try await Wine.repairPrefix(bottle: bottle)
+                            bottle.clearWineUsernameCache()
                             let result = WinePrefixValidation.validatePrefix(for: bottle)
                             if result.isValid {
                                 prefixRepairResult = .success

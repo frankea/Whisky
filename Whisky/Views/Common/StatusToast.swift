@@ -19,7 +19,7 @@
 import SwiftUI
 
 /// Style variants for status toast notifications
-enum ToastStyle {
+enum ToastStyle: Equatable {
     case success
     case error
     case info
@@ -37,6 +37,14 @@ enum ToastStyle {
         case .success: .green
         case .error: .red
         case .info: .blue
+        }
+    }
+
+    var accessibilityLabel: String {
+        switch self {
+        case .success: "Success"
+        case .error: "Error"
+        case .info: "Information"
         }
     }
 }
@@ -57,6 +65,9 @@ struct StatusToast: View {
         .padding(.vertical, 10)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
         .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(style.accessibilityLabel): \(message)")
+        .accessibilityHint("Tap to dismiss")
     }
 }
 
@@ -64,6 +75,7 @@ struct StatusToast: View {
 struct ToastModifier: ViewModifier {
     @Binding var toast: ToastData?
     let autoDismissDelay: TimeInterval
+    @State private var dismissTask: Task<Void, Never>?
 
     func body(content: Content) -> some View {
         content
@@ -73,22 +85,38 @@ struct ToastModifier: ViewModifier {
                         .padding(.bottom, 80)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                         .onAppear {
-                            if toast.autoDismiss {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + autoDismissDelay) {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                        self.toast = nil
-                                    }
-                                }
-                            }
+                            scheduleDismissIfNeeded(for: toast)
+                        }
+                        .onChange(of: toast) { _, newToast in
+                            scheduleDismissIfNeeded(for: newToast)
                         }
                         .onTapGesture {
+                            dismissTask?.cancel()
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 self.toast = nil
                             }
                         }
                 }
             }
-            .animation(.easeInOut(duration: 0.3), value: toast != nil)
+            .animation(.easeInOut(duration: 0.3), value: toast)
+    }
+
+    private func scheduleDismissIfNeeded(for toast: ToastData) {
+        dismissTask?.cancel()
+        guard toast.autoDismiss else { return }
+
+        let currentMessage = toast.message
+        dismissTask = Task {
+            try? await Task.sleep(for: .seconds(autoDismissDelay))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                if self.toast?.message == currentMessage {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        self.toast = nil
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -97,10 +125,6 @@ struct ToastData: Equatable {
     let message: String
     let style: ToastStyle
     var autoDismiss: Bool = true
-
-    static func == (lhs: ToastData, rhs: ToastData) -> Bool {
-        lhs.message == rhs.message
-    }
 }
 
 extension View {

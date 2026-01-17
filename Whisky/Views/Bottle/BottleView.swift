@@ -128,10 +128,14 @@ struct BottleView: View {
                                                 }
                                             }
                                         }
-                                        programLoading = false
+                                        await MainActor.run {
+                                            programLoading = false
+                                        }
                                     }
                                 } else {
-                                    programLoading = false
+                                    await MainActor.run {
+                                        programLoading = false
+                                    }
                                 }
                                 updateStartMenu()
                             }

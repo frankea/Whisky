@@ -53,6 +53,7 @@ enum ToastStyle: Equatable {
 struct StatusToast: View {
     let message: String
     let style: ToastStyle
+    var showDismissButton: Bool = false
 
     var body: some View {
         HStack(spacing: 8) {
@@ -60,6 +61,10 @@ struct StatusToast: View {
                 .foregroundStyle(style.iconColor)
             Text(message)
                 .lineLimit(2)
+            if showDismissButton {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
@@ -81,21 +86,25 @@ struct ToastModifier: ViewModifier {
         content
             .overlay(alignment: .bottom) {
                 if let toast {
-                    StatusToast(message: toast.message, style: toast.style)
-                        .padding(.bottom, 80)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .onAppear {
-                            scheduleDismissIfNeeded(for: toast)
+                    StatusToast(
+                        message: toast.message,
+                        style: toast.style,
+                        showDismissButton: !toast.autoDismiss
+                    )
+                    .padding(.bottom, 80)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .onAppear {
+                        scheduleDismissIfNeeded(for: toast)
+                    }
+                    .onChange(of: toast) { _, newToast in
+                        scheduleDismissIfNeeded(for: newToast)
+                    }
+                    .onTapGesture {
+                        dismissTask?.cancel()
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            self.toast = nil
                         }
-                        .onChange(of: toast) { _, newToast in
-                            scheduleDismissIfNeeded(for: newToast)
-                        }
-                        .onTapGesture {
-                            dismissTask?.cancel()
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                self.toast = nil
-                            }
-                        }
+                    }
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: toast)

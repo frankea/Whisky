@@ -7,6 +7,46 @@
     "%llds" : {
 
     },
+    "accessibility.toast.dismiss" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to dismiss"
+          }
+        }
+      }
+    },
+    "accessibility.toast.error" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error"
+          }
+        }
+      }
+    },
+    "accessibility.toast.info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Information"
+          }
+        }
+      }
+    },
+    "accessibility.toast.success" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Success"
+          }
+        }
+      }
+    },
     "alert.info" : {
       "localizations" : {
         "ar" : {
@@ -19222,6 +19262,36 @@
     },
     "Steam and Chromium-based launchers require en_US locale to avoid steamwebhelper crashes" : {
 
+    },
+    "status.launched %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launched: %@"
+          }
+        }
+      }
+    },
+    "status.launchedTerminal %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launched in Terminal: %@"
+          }
+        }
+      }
+    },
+    "status.launchFailed %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch failed: %@"
+          }
+        }
+      }
     },
     "tab.config" : {
       "localizations" : {

@@ -28,6 +28,7 @@ struct ProgramsView: View {
     @State private var sortedPrograms: [Program] = []
     @State private var resortPrograms = false
     @State private var searchText = ""
+    @State private var toast: ToastData?
 
     @AppStorage("areProgramsExpanded") private var areProgramsExpanded = true
     @AppStorage("isBlocklistExpanded") private var isBlocklistExpanded = false
@@ -51,7 +52,7 @@ struct ProgramsView: View {
             Section("program.title", isExpanded: $areProgramsExpanded) {
                 List(searchResults, id: \.self, selection: $selectedPrograms) { program in
                     ProgramItemView(
-                        bottle: bottle, program: program, path: $path
+                        bottle: bottle, program: program, path: $path, toast: $toast
                     )
                     .contextMenu {
                         let selectedPrograms = selectedSearchedPrograms
@@ -110,6 +111,7 @@ struct ProgramsView: View {
         .animation(.whiskyDefault, value: isBlocklistExpanded)
         .navigationTitle("tab.programs")
         .searchable(text: $searchText)
+        .toast($toast)
         .onAppear {
             loadData()
         }
@@ -143,8 +145,10 @@ struct ProgramItemView: View {
     @ObservedObject var bottle: Bottle
     @ObservedObject var program: Program
     @Binding var path: NavigationPath
+    @Binding var toast: ToastData?
     @State private var showButtons = false
     @State private var pinHovered = false
+    @State private var isLaunching = false
 
     var body: some View {
         HStack {
@@ -183,17 +187,64 @@ struct ProgramItemView: View {
                 .foregroundStyle(.secondary)
                 .help("program.config")
                 Button("button.run", systemImage: "play") {
-                    program.run()
+                    launchProgram()
                 }
                 .labelStyle(.iconOnly)
                 .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(isLaunching ? Color.accentColor : .secondary)
+                .disabled(isLaunching)
                 .help("button.run")
             }
         }
         .padding(4)
         .onHover { hover in
             showButtons = hover
+        }
+    }
+
+    private func launchProgram() {
+        isLaunching = true
+
+        if NSEvent.modifierFlags.contains(.shift) {
+            program.runInTerminal()
+            withAnimation {
+                toast = ToastData(
+                    message: String(localized: "status.launchedTerminal \(program.name)"),
+                    style: .info
+                )
+            }
+            isLaunching = false
+        } else {
+            Task {
+                let arguments = program.settings.arguments.split { $0.isWhitespace }.map(String.init)
+                let environment = program.generateEnvironment()
+
+                do {
+                    try await Wine.runProgram(
+                        at: program.url, args: arguments, bottle: program.bottle, environment: environment
+                    )
+                    await MainActor.run {
+                        withAnimation {
+                            toast = ToastData(
+                                message: String(localized: "status.launched \(program.name)"),
+                                style: .success
+                            )
+                        }
+                        isLaunching = false
+                    }
+                } catch {
+                    await MainActor.run {
+                        withAnimation {
+                            toast = ToastData(
+                                message: String(localized: "status.launchFailed \(error.localizedDescription)"),
+                                style: .error,
+                                autoDismiss: false
+                            )
+                        }
+                        isLaunching = false
+                    }
+                }
+            }
         }
     }
 }

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Toast notifications showing launch success/failure feedback (Refs #49)
 - Comprehensive Launcher Compatibility System including detection, diagnostics, and configuration
 - Stability diagnostics export for crash/freeze reports (Refs #40)
 - WhiskyWine download/install diagnostics with copy-to-clipboard workflow (Issue #63)

@@ -427,6 +427,16 @@
         }
       }
     },
+    "button.cancel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
     "button.createBottle" : {
       "localizations" : {
         "ar" : {
@@ -6520,6 +6530,66 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟註冊表編輯器"
+          }
+        }
+      }
+    },
+    "config.repairPrefix" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repair Wine Prefix"
+          }
+        }
+      }
+    },
+    "config.repairPrefix.failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repair Failed"
+          }
+        }
+      }
+    },
+    "config.repairPrefix.help" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reinitializes the Wine prefix to fix missing user directories"
+          }
+        }
+      }
+    },
+    "config.repairPrefix.success" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repair Successful"
+          }
+        }
+      }
+    },
+    "config.repairPrefix.successMessage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Wine prefix has been repaired successfully."
+          }
+        }
+      }
+    },
+    "config.repairPrefix.validationFailed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prefix validation failed after repair"
           }
         }
       }
@@ -20924,6 +20994,86 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "設定"
+          }
+        }
+      }
+    },
+    "winetricks.error.copyDiagnostics" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Diagnostics"
+          }
+        }
+      }
+    },
+    "winetricks.error.corruptedPrefix" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Wine prefix is corrupted or missing essential directories."
+          }
+        }
+      }
+    },
+    "winetricks.error.missingAppData" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The AppData directory is missing or incomplete. This will cause dependency installations to fail."
+          }
+        }
+      }
+    },
+    "winetricks.error.missingUserProfile" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The user profile directory is missing. Wine may not be properly initialized."
+          }
+        }
+      }
+    },
+    "winetricks.error.prefixTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wine Prefix Issue"
+          }
+        }
+      }
+    },
+    "winetricks.error.repairFailed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repair Failed"
+          }
+        }
+      }
+    },
+    "winetricks.error.repairFailedInfo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to repair the Wine prefix. Please try recreating the bottle."
+          }
+        }
+      }
+    },
+    "winetricks.error.repairPrefix" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repair Prefix"
           }
         }
       }

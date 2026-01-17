@@ -50,6 +50,19 @@ class Winetricks {
 
     @MainActor
     static func runCommand(command: String, bottle: Bottle) async {
+        // Pre-flight validation: check that the Wine prefix has required user directories
+        let validationResult = WinePrefixValidation.validatePrefix(for: bottle)
+
+        if !validationResult.isValid {
+            logger.warning("Prefix validation failed before running winetricks '\(command)'")
+            await showPrefixErrorAlert(
+                validationResult: validationResult,
+                bottle: bottle,
+                command: command
+            )
+            return
+        }
+
         guard let resourcesURL = Bundle.main.url(forResource: "cabextract", withExtension: nil)?
             .deletingLastPathComponent()
         else { return }
@@ -82,6 +95,82 @@ class Winetricks {
                     }
                 }
             }
+        }
+    }
+
+    @MainActor
+    private static func showPrefixErrorAlert(
+        validationResult: WinePrefixValidation.ValidationResult,
+        bottle: Bottle,
+        command: String
+    ) async {
+        guard let diagnostics = validationResult.diagnostics else { return }
+
+        let errorMessage: String
+        switch validationResult {
+        case .valid:
+            return
+        case .missingUserProfile:
+            errorMessage = String(localized: "winetricks.error.missingUserProfile")
+        case .missingAppData:
+            errorMessage = String(localized: "winetricks.error.missingAppData")
+        case .corruptedPrefix:
+            errorMessage = String(localized: "winetricks.error.corruptedPrefix")
+        }
+
+        let alert = NSAlert()
+        alert.messageText = String(localized: "winetricks.error.prefixTitle")
+        alert.informativeText = errorMessage
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: String(localized: "winetricks.error.repairPrefix"))
+        alert.addButton(withTitle: String(localized: "winetricks.error.copyDiagnostics"))
+        alert.addButton(withTitle: String(localized: "button.cancel"))
+
+        let response = alert.runModal()
+
+        switch response {
+        case .alertFirstButtonReturn:
+            // Repair prefix
+            await repairPrefixAndRetry(bottle: bottle, command: command)
+        case .alertSecondButtonReturn:
+            // Copy diagnostics
+            let report = diagnostics.reportString(error: errorMessage)
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(report, forType: .string)
+        default:
+            break
+        }
+    }
+
+    @MainActor
+    private static func repairPrefixAndRetry(bottle: Bottle, command: String) async {
+        do {
+            logger.info("Attempting to repair Wine prefix for bottle '\(bottle.settings.name)'")
+            try await Wine.repairPrefix(bottle: bottle)
+
+            // Validate again after repair
+            let result = WinePrefixValidation.validatePrefix(for: bottle)
+            if result.isValid {
+                logger.info("Prefix repair successful, retrying winetricks command")
+                // Retry the original command
+                await runCommand(command: command, bottle: bottle)
+            } else {
+                logger.error("Prefix repair did not resolve the issue")
+                let alert = NSAlert()
+                alert.messageText = String(localized: "winetricks.error.repairFailed")
+                alert.informativeText = String(localized: "winetricks.error.repairFailedInfo")
+                alert.alertStyle = .critical
+                alert.addButton(withTitle: String(localized: "button.ok"))
+                alert.runModal()
+            }
+        } catch {
+            logger.error("Failed to repair prefix: \(error.localizedDescription)")
+            let alert = NSAlert()
+            alert.messageText = String(localized: "winetricks.error.repairFailed")
+            alert.informativeText = error.localizedDescription
+            alert.alertStyle = .critical
+            alert.addButton(withTitle: String(localized: "button.ok"))
+            alert.runModal()
         }
     }
 

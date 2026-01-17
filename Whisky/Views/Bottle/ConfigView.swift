@@ -34,6 +34,21 @@ struct ConfigView: View {
     @State private var dpiSheetPresented: Bool = false
     @State private var showStabilityDiagnostics: Bool = false
     @State private var stabilityDiagnosticReport: String = ""
+    @State private var isRepairingPrefix: Bool = false
+    @State private var prefixRepairResult: PrefixRepairResult?
+
+    private enum PrefixRepairResult: Identifiable {
+        case success
+        case failure(String)
+
+        var id: String {
+            switch self {
+            case .success: "success"
+            case let .failure(msg): "failure:\(msg)"
+            }
+        }
+    }
+
     @AppStorage("wineSectionExpanded") private var wineSectionExpanded: Bool = true
     @AppStorage("dxvkSectionExpanded") private var dxvkSectionExpanded: Bool = true
     @AppStorage("metalSectionExpanded") private var metalSectionExpanded: Bool = true
@@ -66,6 +81,37 @@ struct ConfigView: View {
                     }
                 }
                 .help("Generates a bounded, privacy-safe report for issue triage (Refs #40).")
+
+                Button {
+                    Task {
+                        isRepairingPrefix = true
+                        do {
+                            try await Wine.repairPrefix(bottle: bottle)
+                            let result = WinePrefixValidation.validatePrefix(for: bottle)
+                            if result.isValid {
+                                prefixRepairResult = .success
+                            } else {
+                                prefixRepairResult = .failure(
+                                    String(localized: "config.repairPrefix.validationFailed")
+                                )
+                            }
+                        } catch {
+                            prefixRepairResult = .failure(error.localizedDescription)
+                        }
+                        isRepairingPrefix = false
+                    }
+                } label: {
+                    HStack {
+                        Text("config.repairPrefix")
+                        if isRepairingPrefix {
+                            ProgressView()
+                                .controlSize(.small)
+                                .padding(.leading, 4)
+                        }
+                    }
+                }
+                .disabled(isRepairingPrefix)
+                .help("config.repairPrefix.help")
             }
         }
         .formStyle(.grouped)
@@ -80,6 +126,22 @@ struct ConfigView: View {
                 report: stabilityDiagnosticReport,
                 defaultFilenamePrefix: "whisky-stability-diagnostics"
             )
+        }
+        .alert(item: $prefixRepairResult) { result in
+            switch result {
+            case .success:
+                Alert(
+                    title: Text("config.repairPrefix.success"),
+                    message: Text("config.repairPrefix.successMessage"),
+                    dismissButton: .default(Text("button.ok"))
+                )
+            case let .failure(message):
+                Alert(
+                    title: Text("config.repairPrefix.failed"),
+                    message: Text(message),
+                    dismissButton: .default(Text("button.ok"))
+                )
+            }
         }
         .bottomBar {
             HStack {

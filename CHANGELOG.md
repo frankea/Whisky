@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Corrected Dependabot Swift configuration
 - Capped Wine process logs and pruned old logs to prevent excessive disk usage (Issue #46)
+- Fixed winetricks dependency installs failing when %AppData% is empty (Issue #64)
+- Fixed hardcoded "crossover" username in user profile path detection
+- Added Wine prefix validation before running winetricks with repair option
 
 ### Security
 - Process environment logging now records keys only (not values) to avoid persisting secrets in logs

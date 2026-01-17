@@ -525,6 +525,27 @@ public class Wine {
             withContentsIn: Wine.dxvkFolder.appending(path: "x32")
         )
     }
+
+    /// Reinitializes a Wine prefix to repair missing user directories.
+    ///
+    /// This method runs `wineboot --init` to reinitialize the Wine prefix,
+    /// which creates any missing user profile directories that may have been
+    /// deleted or never properly created during initial bottle setup.
+    ///
+    /// Use this method when winetricks or other dependency installations fail
+    /// due to missing `%AppData%` or user profile directories.
+    ///
+    /// - Parameter bottle: The ``Bottle`` whose prefix should be repaired.
+    /// - Throws: An error if wineboot fails to initialize the prefix.
+    ///
+    /// - Note: This operation may take several seconds as Wine reinitializes
+    ///   the prefix and creates missing directories.
+    @discardableResult
+    @MainActor
+    public static func repairPrefix(bottle: Bottle) async throws -> String {
+        logger.info("Repairing Wine prefix for bottle '\(bottle.settings.name)'")
+        return try await runWine(["wineboot", "--init"], bottle: bottle)
+    }
 }
 
 /// Errors that can occur during Wine interface operations.

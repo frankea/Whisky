@@ -30,12 +30,13 @@ public extension Program {
     }
 
     /// Launches the program respecting user's modifier key preference and returns the result.
-    /// - Shift held: Opens terminal instead of running in Wine
+    /// - Parameter useTerminal: Whether to launch in Terminal mode. Pass `true` if Shift was held.
+    ///   **Important:** Capture this value synchronously before entering an async context to avoid race conditions.
     /// - Returns: LaunchResult indicating success, terminal launch, or failure
     @MainActor
-    func launchWithUserMode() async -> LaunchResult {
-        // Check for shift key (terminal mode)
-        if NSEvent.modifierFlags.contains(.shift) {
+    func launchWithUserMode(useTerminal: Bool = NSEvent.modifierFlags.contains(.shift)) async -> LaunchResult {
+        // Check for terminal mode (typically shift-click)
+        if useTerminal {
             self.runInTerminal()
             return .launchedInTerminal(programName: self.name)
         }

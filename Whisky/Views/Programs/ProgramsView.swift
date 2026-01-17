@@ -204,8 +204,10 @@ struct ProgramItemView: View {
 
     private func launchProgram() {
         isLaunching = true
+        // Capture modifier flags synchronously before entering async context
+        let useTerminal = NSEvent.modifierFlags.contains(.shift)
         Task {
-            let result = await program.launchWithUserMode()
+            let result = await program.launchWithUserMode(useTerminal: useTerminal)
             withAnimation {
                 toast = result.toastData
             }

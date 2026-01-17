@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AVX toggle and Sequoia compatibility mode are now always visible (no longer gated by OS version)
 
 ### Fixed
+- Fixed localization fallback showing raw keys to non-English users (Refs #49)
 - Corrected Dependabot Swift configuration
 - Capped Wine process logs and pruned old logs to prevent excessive disk usage (Issue #46)
 - Surface bottle creation failures with diagnostic information (Issue #61)

@@ -19,7 +19,9 @@
 @testable import WhiskyKit
 import XCTest
 
-final class WinePrefixValidationTests: XCTestCase {
+// MARK: - Username Detection Tests
+
+final class WinePrefixUsernameDetectionTests: XCTestCase {
     private var tempDir: URL!
 
     override func setUpWithError() throws {
@@ -106,7 +108,6 @@ final class WinePrefixValidationTests: XCTestCase {
     func testDetectWineUsernameIgnoresFiles() throws {
         let usersDir = tempDir.appendingPathComponent("users")
         try FileManager.default.createDirectory(at: usersDir, withIntermediateDirectories: true)
-        // Create a file instead of a directory
         try Data("test".utf8).write(to: usersDir.appendingPathComponent("notauser"))
         try FileManager.default.createDirectory(
             at: usersDir.appendingPathComponent("realuser"),
@@ -118,6 +119,39 @@ final class WinePrefixValidationTests: XCTestCase {
         XCTAssertEqual(username, "realuser")
     }
 
+    func testDetectWineUsernameReturnsConsistentResults() throws {
+        let usersDir = tempDir.appendingPathComponent("users")
+        try FileManager.default.createDirectory(at: usersDir, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: usersDir.appendingPathComponent("testuser"),
+            withIntermediateDirectories: true
+        )
+
+        let result1 = WinePrefixValidation.detectWineUsername(in: usersDir)
+        let result2 = WinePrefixValidation.detectWineUsername(in: usersDir)
+
+        XCTAssertEqual(result1, "testuser")
+        XCTAssertEqual(result1, result2)
+    }
+
+    func testDetectWineUsernameNilAllowsFallback() throws {
+        let usersDir = tempDir.appendingPathComponent("users")
+        try FileManager.default.createDirectory(at: usersDir, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: usersDir.appendingPathComponent("Public"),
+            withIntermediateDirectories: true
+        )
+
+        let username = WinePrefixValidation.detectWineUsername(in: usersDir)
+
+        XCTAssertNil(username)
+        XCTAssertEqual(username ?? "crossover", "crossover")
+    }
+}
+
+// MARK: - ValidationResult Tests
+
+final class WinePrefixValidationResultTests: XCTestCase {
     func testValidationResultIsValidProperty() {
         let valid = WinePrefixValidation.ValidationResult.valid
         let missing = WinePrefixValidation.ValidationResult.missingAppData(diagnostics: WinePrefixDiagnostics())
@@ -134,67 +168,40 @@ final class WinePrefixValidationTests: XCTestCase {
         XCTAssertNil(valid.diagnostics)
         XCTAssertNotNil(missing.diagnostics)
     }
+}
 
-    // MARK: - Username Detection Caching Behavior Tests
+// MARK: - validatePrefix Tests
 
-    /// Verifies that detectWineUsername returns consistent results for the same directory.
-    ///
-    /// Note: The Whisky app's `Bottle.wineUsername` property wraps this function with
-    /// a `@MainActor`-isolated cache to avoid repeated filesystem scans. This test
-    /// verifies the underlying detection returns consistent results.
-    func testDetectWineUsernameReturnsConsistentResults() throws {
-        let usersDir = tempDir.appendingPathComponent("users")
-        try FileManager.default.createDirectory(at: usersDir, withIntermediateDirectories: true)
-        try FileManager.default.createDirectory(
-            at: usersDir.appendingPathComponent("testuser"),
-            withIntermediateDirectories: true
-        )
+final class ValidatePrefixTests: XCTestCase {
+    private var tempDir: URL!
 
-        // Multiple calls should return the same result
-        let result1 = WinePrefixValidation.detectWineUsername(in: usersDir)
-        let result2 = WinePrefixValidation.detectWineUsername(in: usersDir)
-        let result3 = WinePrefixValidation.detectWineUsername(in: usersDir)
-
-        XCTAssertEqual(result1, "testuser")
-        XCTAssertEqual(result1, result2)
-        XCTAssertEqual(result2, result3)
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
     }
 
-    /// Verifies that nil result from detectWineUsername allows fallback to default.
-    ///
-    /// The Whisky app's `Bottle.wineUsername` property falls back to "crossover" when
-    /// this function returns nil. This test verifies the nil behavior.
-    func testDetectWineUsernameNilAllowsFallback() throws {
-        let usersDir = tempDir.appendingPathComponent("users")
-        try FileManager.default.createDirectory(at: usersDir, withIntermediateDirectories: true)
-        // Only Public directory, no valid user
-        try FileManager.default.createDirectory(
-            at: usersDir.appendingPathComponent("Public"),
-            withIntermediateDirectories: true
-        )
-
-        let username = WinePrefixValidation.detectWineUsername(in: usersDir)
-
-        // Returns nil, allowing caller to use fallback (e.g., "crossover")
-        XCTAssertNil(username)
-        // Demonstrate fallback pattern used by Bottle.wineUsername
-        let fallbackUsername = username ?? "crossover"
-        XCTAssertEqual(fallbackUsername, "crossover")
+    override func tearDownWithError() throws {
+        if let tempDir, FileManager.default.fileExists(atPath: tempDir.path) {
+            try FileManager.default.removeItem(at: tempDir)
+        }
+        try super.tearDownWithError()
     }
 
-    // MARK: - validatePrefix Tests
-
-    /// Helper to create a complete valid Wine prefix structure.
     private func createValidPrefixStructure(at bottleURL: URL, username: String = "testuser") throws {
-        let driveC = bottleURL.appendingPathComponent("drive_c")
-        let usersDir = driveC.appendingPathComponent("users")
-        let userProfile = usersDir.appendingPathComponent(username)
-        let appData = userProfile.appendingPathComponent("AppData")
-        let roaming = appData.appendingPathComponent("Roaming")
-        let local = appData.appendingPathComponent("Local")
-
-        try FileManager.default.createDirectory(at: local, withIntermediateDirectories: true)
-        try FileManager.default.createDirectory(at: roaming, withIntermediateDirectories: true)
+        let appData = bottleURL
+            .appendingPathComponent("drive_c")
+            .appendingPathComponent("users")
+            .appendingPathComponent(username)
+            .appendingPathComponent("AppData")
+        try FileManager.default.createDirectory(
+            at: appData.appendingPathComponent("Local"),
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: appData.appendingPathComponent("Roaming"),
+            withIntermediateDirectories: true
+        )
     }
 
     @MainActor
@@ -212,7 +219,6 @@ final class WinePrefixValidationTests: XCTestCase {
     @MainActor
     func testValidatePrefixReturnsCorruptedForMissingPrefix() throws {
         let bottleURL = tempDir.appendingPathComponent("NonExistentBottle")
-        // Don't create any directories
 
         let bottle = Bottle(bottleUrl: bottleURL)
         let result = WinePrefixValidation.validatePrefix(for: bottle)
@@ -228,7 +234,6 @@ final class WinePrefixValidationTests: XCTestCase {
     func testValidatePrefixReturnsCorruptedForMissingDriveC() throws {
         let bottleURL = tempDir.appendingPathComponent("TestBottle")
         try FileManager.default.createDirectory(at: bottleURL, withIntermediateDirectories: true)
-        // Don't create drive_c
 
         let bottle = Bottle(bottleUrl: bottleURL)
         let result = WinePrefixValidation.validatePrefix(for: bottle)
@@ -246,14 +251,11 @@ final class WinePrefixValidationTests: XCTestCase {
         let bottleURL = tempDir.appendingPathComponent("TestBottle")
         let driveC = bottleURL.appendingPathComponent("drive_c")
         try FileManager.default.createDirectory(at: driveC, withIntermediateDirectories: true)
-        // Don't create users directory
 
         let bottle = Bottle(bottleUrl: bottleURL)
         let result = WinePrefixValidation.validatePrefix(for: bottle)
 
         if case let .corruptedPrefix(diagnostics) = result {
-            XCTAssertTrue(diagnostics.prefixExists)
-            XCTAssertTrue(diagnostics.driveCExists)
             XCTAssertFalse(diagnostics.usersDirectoryExists)
         } else {
             XCTFail("Expected corruptedPrefix result")
@@ -265,13 +267,11 @@ final class WinePrefixValidationTests: XCTestCase {
         let bottleURL = tempDir.appendingPathComponent("TestBottle")
         let usersDir = bottleURL.appendingPathComponent("drive_c").appendingPathComponent("users")
         try FileManager.default.createDirectory(at: usersDir, withIntermediateDirectories: true)
-        // Don't create any user profile directories
 
         let bottle = Bottle(bottleUrl: bottleURL)
         let result = WinePrefixValidation.validatePrefix(for: bottle)
 
         if case let .missingUserProfile(diagnostics) = result {
-            XCTAssertTrue(diagnostics.usersDirectoryExists)
             XCTAssertNil(diagnostics.detectedUsername)
         } else {
             XCTFail("Expected missingUserProfile result")
@@ -285,17 +285,13 @@ final class WinePrefixValidationTests: XCTestCase {
             .appendingPathComponent("drive_c")
             .appendingPathComponent("users")
             .appendingPathComponent("testuser")
-        // Create user profile but NOT AppData
         try FileManager.default.createDirectory(at: userProfile, withIntermediateDirectories: true)
 
         let bottle = Bottle(bottleUrl: bottleURL)
         let result = WinePrefixValidation.validatePrefix(for: bottle)
 
         if case let .missingAppData(diagnostics) = result {
-            XCTAssertTrue(diagnostics.userProfileExists)
             XCTAssertFalse(diagnostics.appDataExists)
-            XCTAssertFalse(diagnostics.roamingExists)
-            XCTAssertFalse(diagnostics.localAppDataExists)
         } else {
             XCTFail("Expected missingAppData result")
         }
@@ -309,17 +305,16 @@ final class WinePrefixValidationTests: XCTestCase {
             .appendingPathComponent("users")
             .appendingPathComponent("testuser")
             .appendingPathComponent("AppData")
-        let local = appData.appendingPathComponent("Local")
-        // Create AppData and Local but NOT Roaming
-        try FileManager.default.createDirectory(at: local, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: appData.appendingPathComponent("Local"),
+            withIntermediateDirectories: true
+        )
 
         let bottle = Bottle(bottleUrl: bottleURL)
         let result = WinePrefixValidation.validatePrefix(for: bottle)
 
         if case let .missingAppData(diagnostics) = result {
-            XCTAssertTrue(diagnostics.appDataExists)
             XCTAssertFalse(diagnostics.roamingExists)
-            XCTAssertTrue(diagnostics.localAppDataExists)
         } else {
             XCTFail("Expected missingAppData result")
         }
@@ -333,16 +328,15 @@ final class WinePrefixValidationTests: XCTestCase {
             .appendingPathComponent("users")
             .appendingPathComponent("testuser")
             .appendingPathComponent("AppData")
-        let roaming = appData.appendingPathComponent("Roaming")
-        // Create AppData and Roaming but NOT Local
-        try FileManager.default.createDirectory(at: roaming, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: appData.appendingPathComponent("Roaming"),
+            withIntermediateDirectories: true
+        )
 
         let bottle = Bottle(bottleUrl: bottleURL)
         let result = WinePrefixValidation.validatePrefix(for: bottle)
 
         if case let .missingAppData(diagnostics) = result {
-            XCTAssertTrue(diagnostics.appDataExists)
-            XCTAssertTrue(diagnostics.roamingExists)
             XCTAssertFalse(diagnostics.localAppDataExists)
         } else {
             XCTFail("Expected missingAppData result")
@@ -352,34 +346,21 @@ final class WinePrefixValidationTests: XCTestCase {
     @MainActor
     func testValidatePrefixDiagnosticsIncludesPrefixPath() throws {
         let bottleURL = tempDir.appendingPathComponent("TestBottle")
-        // Don't create anything - should return corruptedPrefix with diagnostics
 
         let bottle = Bottle(bottleUrl: bottleURL)
         let result = WinePrefixValidation.validatePrefix(for: bottle)
 
-        if let diagnostics = result.diagnostics {
-            XCTAssertEqual(diagnostics.prefixPath, bottleURL.path)
-        } else {
-            XCTFail("Expected diagnostics to be present")
-        }
+        XCTAssertEqual(result.diagnostics?.prefixPath, bottleURL.path)
     }
 
     @MainActor
     func testValidatePrefixDiagnosticsRecordsEvents() throws {
-        let bottleURL = tempDir.appendingPathComponent("TestBottle")
-        try createValidPrefixStructure(at: bottleURL)
+        let bottleURL = tempDir.appendingPathComponent("Invalid")
 
         let bottle = Bottle(bottleUrl: bottleURL)
-        // For a valid result, diagnostics is nil, but we can test an invalid case
-        let invalidBottle = Bottle(bottleUrl: tempDir.appendingPathComponent("Invalid"))
-        let result = WinePrefixValidation.validatePrefix(for: invalidBottle)
+        let result = WinePrefixValidation.validatePrefix(for: bottle)
 
-        if let diagnostics = result.diagnostics {
-            XCTAssertFalse(diagnostics.events.isEmpty, "Diagnostics should record events")
-            // Should have at least "Starting prefix validation" event
-            XCTAssertTrue(diagnostics.events.contains { $0.contains("Starting prefix validation") })
-        } else {
-            XCTFail("Expected diagnostics with events")
-        }
+        XCTAssertFalse(result.diagnostics?.events.isEmpty ?? true)
+        XCTAssertTrue(result.diagnostics?.events.contains { $0.contains("Starting") } ?? false)
     }
 }

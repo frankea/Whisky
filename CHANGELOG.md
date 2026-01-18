@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AVX toggle and Sequoia compatibility mode are now always visible (no longer gated by OS version)
 
 ### Fixed
+- Fixed Terminal launch (shift-click) producing malformed commands due to double-escaping (Issue #71)
 - Fixed localization fallback showing raw keys to non-English users (Refs #49)
 - Corrected Dependabot Swift configuration
 - Capped Wine process logs and pruned old logs to prevent excessive disk usage (Issue #46)

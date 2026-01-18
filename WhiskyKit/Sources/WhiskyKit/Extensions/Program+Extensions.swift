@@ -63,32 +63,52 @@ public extension Program {
     }
 
     func runInTerminal() {
-        // Escape for AppleScript string embedding:
-        // 1. Escape backslashes (\ → \\) - must be first to avoid double-escaping
-        // 2. Escape double quotes (" → \") - prevents breaking out of the AppleScript string
-        // Without step 2, a shell-escaped quote \" becomes \\" in AppleScript,
-        // where \\ is a literal backslash and " closes the string, enabling injection.
-        let appleScriptEscaped = generateTerminalCommand()
+        // Write command to a temp script file to avoid AppleScript string length limits
+        // and complex escaping issues with very long Wine commands
+        let command = generateTerminalCommand()
+        let scriptContent = "#!/bin/bash\n\(command)\n"
+
+        let tempDir = FileManager.default.temporaryDirectory
+        let scriptURL = tempDir.appendingPathComponent("whisky-run-\(UUID().uuidString).sh")
+
+        do {
+            try scriptContent.write(to: scriptURL, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes(
+                [.posixPermissions: 0o755],
+                ofItemAtPath: scriptURL.path
+            )
+        } catch {
+            Logger.wineKit.error("Failed to write terminal script: \(error)")
+            return
+        }
+
+        // Use AppleScript to open Terminal and source the script
+        // Sourcing keeps the terminal open after the command finishes
+        let escapedPath = scriptURL.path
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
 
-        let script = """
+        let appleScript = """
         tell application "Terminal"
             activate
-            do script "\(appleScriptEscaped)"
+            do script "source \\"\(escapedPath)\\""
         end tell
         """
 
         Task {
             var error: NSDictionary?
-            guard let appleScript = NSAppleScript(source: script) else { return }
-            appleScript.executeAndReturnError(&error)
+            guard let script = NSAppleScript(source: appleScript) else { return }
+            script.executeAndReturnError(&error)
 
             if let error {
                 Logger.wineKit.error("Failed to run terminal script \(error)")
                 guard let description = error["NSAppleScriptErrorMessage"] as? String else { return }
                 self.showRunError(message: String(describing: description))
             }
+
+            // Clean up temp script after a delay to ensure Terminal has read it
+            try? await Task.sleep(for: .seconds(5))
+            try? FileManager.default.removeItem(at: scriptURL)
         }
     }
 

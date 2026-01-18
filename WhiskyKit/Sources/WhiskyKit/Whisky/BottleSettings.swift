@@ -746,7 +746,7 @@ public struct BottleSettings: Codable, Equatable {
     /// Applies controller/input compatibility environment variables.
     ///
     /// Sets SDL environment variables to improve gamepad detection and functionality.
-    /// See: https://wiki.libsdl.org/SDL3/EnvironmentVariables
+    /// See: https://wiki.libsdl.org/SDL2/CategoryHints (applies to both SDL2 and SDL3)
     ///
     /// - Parameter wineEnv: The environment dictionary to populate.
     private func applyInputCompatibility(wineEnv: inout [String: String]) {

@@ -54,7 +54,7 @@ public struct BottleInputConfig: Codable, Equatable {
     ///
     /// Setting `SDL_JOYSTICK_HIDAPI=0` forces SDL to use alternative backends
     /// which may improve detection for some controllers.
-    /// See: https://wiki.libsdl.org/SDL3/EnvironmentVariables
+    /// See: https://wiki.libsdl.org/SDL2/CategoryHints (applies to both SDL2 and SDL3)
     var disableHIDAPI: Bool = false
 
     /// Whether to allow joystick events when the app is in background.

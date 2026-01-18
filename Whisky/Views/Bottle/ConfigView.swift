@@ -54,6 +54,7 @@ struct ConfigView: View {
     @AppStorage("metalSectionExpanded") private var metalSectionExpanded: Bool = true
     @AppStorage("performanceSectionExpanded") private var performanceSectionExpanded: Bool = true
     @AppStorage("launcherSectionExpanded") private var launcherSectionExpanded: Bool = false
+    @AppStorage("inputSectionExpanded") private var inputSectionExpanded: Bool = false
 
     var body: some View {
         Form {
@@ -70,6 +71,7 @@ struct ConfigView: View {
                 dpiSheetPresented: $dpiSheetPresented
             )
             LauncherConfigSection(bottle: bottle, isExpanded: $launcherSectionExpanded)
+            InputConfigSection(bottle: bottle, isExpanded: $inputSectionExpanded)
             DXVKConfigSection(bottle: bottle, isExpanded: $dxvkSectionExpanded)
             MetalConfigSection(bottle: bottle, isExpanded: $metalSectionExpanded)
             PerformanceConfigSection(bottle: bottle, isExpanded: $performanceSectionExpanded)
@@ -121,6 +123,7 @@ struct ConfigView: View {
         .formStyle(.grouped)
         .animation(.whiskyDefault, value: wineSectionExpanded)
         .animation(.whiskyDefault, value: launcherSectionExpanded)
+        .animation(.whiskyDefault, value: inputSectionExpanded)
         .animation(.whiskyDefault, value: dxvkSectionExpanded)
         .animation(.whiskyDefault, value: metalSectionExpanded)
         .animation(.whiskyDefault, value: performanceSectionExpanded)

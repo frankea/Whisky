@@ -177,6 +177,40 @@ final class LaunchResultTests: XCTestCase {
         }
     }
 
+    // MARK: - NotificationStyle Tests
+
+    func testNotificationStyleForSuccessfulLaunch() {
+        let result = LaunchResult.launchedSuccessfully(programName: "App.exe")
+        XCTAssertEqual(result.notificationStyle, .success)
+    }
+
+    func testNotificationStyleForTerminalLaunch() {
+        let result = LaunchResult.launchedInTerminal(programName: "App.exe")
+        XCTAssertEqual(result.notificationStyle, .info)
+    }
+
+    func testNotificationStyleForFailedLaunch() {
+        let result = LaunchResult.launchFailed(programName: "App.exe", errorDescription: "Error")
+        XCTAssertEqual(result.notificationStyle, .error)
+    }
+
+    // MARK: - shouldAutoDismiss Tests
+
+    func testShouldAutoDismissForSuccessfulLaunch() {
+        let result = LaunchResult.launchedSuccessfully(programName: "App.exe")
+        XCTAssertTrue(result.shouldAutoDismiss)
+    }
+
+    func testShouldAutoDismissForTerminalLaunch() {
+        let result = LaunchResult.launchedInTerminal(programName: "App.exe")
+        XCTAssertTrue(result.shouldAutoDismiss)
+    }
+
+    func testShouldNotAutoDismissForFailedLaunch() {
+        let result = LaunchResult.launchFailed(programName: "App.exe", errorDescription: "Error")
+        XCTAssertFalse(result.shouldAutoDismiss)
+    }
+
     // MARK: - Edge Case Tests
 
     func testLaunchResultWithVeryLongProgramName() {

@@ -44,4 +44,36 @@ public enum LaunchResult: Sendable {
         }
         return nil
     }
+
+    // MARK: - Notification Properties
+
+    /// The style category for UI notifications
+    public enum NotificationStyle: Sendable {
+        case success
+        case info
+        case error
+    }
+
+    /// The appropriate notification style for this result
+    public var notificationStyle: NotificationStyle {
+        switch self {
+        case .launchedSuccessfully:
+            .success
+        case .launchedInTerminal:
+            .info
+        case .launchFailed:
+            .error
+        }
+    }
+
+    /// Whether notifications for this result should auto-dismiss
+    /// Returns false for errors (user should acknowledge), true otherwise
+    public var shouldAutoDismiss: Bool {
+        switch self {
+        case .launchedSuccessfully, .launchedInTerminal:
+            true
+        case .launchFailed:
+            false
+        }
+    }
 }

@@ -89,7 +89,8 @@ struct BottleListEntry: View {
                                             withAnimation {
                                                 toast = ToastData(
                                                     message: String(
-                                                        localized: "status.exportSuccess \(bottle.settings.name)"
+                                                        format: String(localized: "status.exportSuccess %@"),
+                                                        bottle.settings.name
                                                     ),
                                                     style: .success
                                                 )
@@ -100,7 +101,8 @@ struct BottleListEntry: View {
                                             withAnimation {
                                                 toast = ToastData(
                                                     message: String(
-                                                        localized: "status.exportFailed \(error.localizedDescription)"
+                                                        format: String(localized: "status.exportFailed %@"),
+                                                        error.localizedDescription
                                                     ),
                                                     style: .error
                                                 )

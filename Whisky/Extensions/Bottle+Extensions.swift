@@ -220,10 +220,16 @@ extension Bottle {
     /// The bottle's `inFlight` property is set during the operation to show progress.
     ///
     /// - Parameter destination: The URL where the archive should be saved.
-    /// - Throws: `TarError` if the archive operation fails.
+    /// - Throws: `TarError` if the archive operation fails, or an error if the bottle is not found.
     @MainActor
     func exportAsArchive(destination: URL) async throws {
-        guard let bottle = BottleVM.shared.bottles.first(where: { $0.url == url }) else { return }
+        guard let bottle = BottleVM.shared.bottles.first(where: { $0.url == url }) else {
+            throw NSError(
+                domain: "com.franke.Whisky",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Bottle not found"]
+            )
+        }
         bottle.inFlight = true
         defer { bottle.inFlight = false }
 

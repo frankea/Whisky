@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Controller & Input Compatibility settings for game controller detection issues (Issue #42)
 - Toast notifications showing launch success/failure feedback (Refs #49)
 - Comprehensive Launcher Compatibility System including detection, diagnostics, and configuration
 - Stability diagnostics export for crash/freeze reports (Refs #40)

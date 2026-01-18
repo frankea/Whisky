@@ -156,6 +156,8 @@ public struct BottleSettings: Codable, Equatable {
     private var performanceConfig: BottlePerformanceConfig
     /// Game launcher compatibility settings.
     private var launcherConfig: BottleLauncherConfig
+    /// Controller and input device settings.
+    private var inputConfig: BottleInputConfig
 
     /// Creates a new BottleSettings instance with default values.
     public init() {
@@ -165,6 +167,7 @@ public struct BottleSettings: Codable, Equatable {
         self.dxvkConfig = BottleDXVKConfig()
         self.performanceConfig = BottlePerformanceConfig()
         self.launcherConfig = BottleLauncherConfig()
+        self.inputConfig = BottleInputConfig()
     }
 
     public init(from decoder: Decoder) throws {
@@ -186,6 +189,10 @@ public struct BottleSettings: Codable, Equatable {
             BottleLauncherConfig.self,
             forKey: .launcherConfig
         ) ?? BottleLauncherConfig()
+        self.inputConfig = try container.decodeIfPresent(
+            BottleInputConfig.self,
+            forKey: .inputConfig
+        ) ?? BottleInputConfig()
     }
 
     /// The display name of this bottle.
@@ -419,6 +426,42 @@ public struct BottleSettings: Codable, Equatable {
         set { launcherConfig.autoEnableDXVK = newValue }
     }
 
+    // MARK: - Controller and input settings
+
+    /// Whether controller compatibility mode is enabled.
+    ///
+    /// When enabled, applies workarounds for common controller detection
+    /// and mapping issues on macOS (frankea/Whisky#42).
+    public var controllerCompatibilityMode: Bool {
+        get { inputConfig.controllerCompatibilityMode }
+        set { inputConfig.controllerCompatibilityMode = newValue }
+    }
+
+    /// Whether to disable HIDAPI for joystick input.
+    ///
+    /// Forces SDL to use alternative backends which may improve
+    /// detection for some controllers.
+    public var disableHIDAPI: Bool {
+        get { inputConfig.disableHIDAPI }
+        set { inputConfig.disableHIDAPI = newValue }
+    }
+
+    /// Whether to allow joystick events when app is in background.
+    ///
+    /// Enables controller input even when Wine window doesn't have focus.
+    public var allowBackgroundEvents: Bool {
+        get { inputConfig.allowBackgroundEvents }
+        set { inputConfig.allowBackgroundEvents = newValue }
+    }
+
+    /// Whether to disable SDL to XInput mapping conversion.
+    ///
+    /// May help PlayStation and Switch controllers show correct button mappings.
+    public var disableControllerMapping: Bool {
+        get { inputConfig.disableControllerMapping }
+        set { inputConfig.disableControllerMapping = newValue }
+    }
+
     /// Loads bottle settings from a metadata plist file.
     ///
     /// This method handles version migration and validation. If the settings
@@ -483,6 +526,11 @@ public struct BottleSettings: Codable, Equatable {
         // Apply launcher compatibility fixes first (frankea/Whisky#41)
         if launcherCompatibilityMode {
             applyLauncherCompatibility(wineEnv: &wineEnv)
+        }
+
+        // Apply controller/input compatibility fixes (frankea/Whisky#42)
+        if controllerCompatibilityMode {
+            applyInputCompatibility(wineEnv: &wineEnv)
         }
 
         if dxvk {
@@ -693,6 +741,33 @@ public struct BottleSettings: Codable, Equatable {
         // SSL/TLS compatibility for launchers
         wineEnv.updateValue("1", forKey: "WINE_ENABLE_SSL")
         wineEnv.updateValue("TLS1.2", forKey: "WINE_SSL_VERSION_MIN")
+    }
+
+    /// Applies controller/input compatibility environment variables.
+    ///
+    /// Sets SDL environment variables to improve gamepad detection and functionality.
+    /// See: https://wiki.libsdl.org/SDL2/CategoryHints (applies to both SDL2 and SDL3)
+    ///
+    /// - Parameter wineEnv: The environment dictionary to populate.
+    private func applyInputCompatibility(wineEnv: inout [String: String]) {
+        // Disable HIDAPI - forces SDL to use alternative input backend
+        // May improve detection for controllers that don't work with HIDAPI
+        if disableHIDAPI {
+            wineEnv.updateValue("0", forKey: "SDL_JOYSTICK_HIDAPI")
+        }
+
+        // Allow joystick events when app is in background
+        // Useful for controller input when Wine window loses focus
+        if allowBackgroundEvents {
+            wineEnv.updateValue("1", forKey: "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS")
+        }
+
+        // Disable SDL to XInput mapping conversion
+        // PlayStation/Switch controllers may show correct button mappings without this
+        if disableControllerMapping {
+            // Tell SDL not to remap controllers to XInput layout
+            wineEnv.updateValue("1", forKey: "SDL_GAMECONTROLLER_USE_BUTTON_LABELS")
+        }
     }
 }
 

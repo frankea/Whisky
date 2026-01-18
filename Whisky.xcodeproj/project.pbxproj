@@ -58,6 +58,7 @@
 		6EFDF6562AAE2DA800EF622F /* WhiskyThumbnail.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6EFDF64A2AAE2DA800EF622F /* WhiskyThumbnail.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6EFDF6662AAE303300EF622F /* Icons.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6EFDF6652AAE303300EF622F /* Icons.xcassets */; };
 		744CFC7F2B2281370D39A466 /* WineConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258BF9104045ED48882E009D /* WineConfigSection.swift */; };
+		77A2EE1594CEE1B55E88AFAB /* InputConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000C327847E981AEF33EFB61 /* InputConfigSection.swift */; };
 		8C2AEFC82AED79B700CB568F /* WhiskyKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8C2AEFC72AED79B700CB568F /* WhiskyKit */; };
 		8C2AEFCA2AED79CD00CB568F /* WhiskyKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8C2AEFC92AED79CD00CB568F /* WhiskyKit */; };
 		8C73E1342AF472FC00B6FB45 /* ProgramMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C73E1332AF472FC00B6FB45 /* ProgramMenuView.swift */; };
@@ -120,6 +121,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		000C327847E981AEF33EFB61 /* InputConfigSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = InputConfigSection.swift; sourceTree = "<group>"; };
 		1A2B3C4E2E0107F000AABBCC /* TextTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTable.swift; sourceTree = "<group>"; };
 		258BF9104045ED48882E009D /* WineConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineConfigSection.swift; sourceTree = "<group>"; };
 		366E8BD2A51FD444160DFC10 /* LauncherDetection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherDetection.swift; sourceTree = "<group>"; };
@@ -285,6 +287,7 @@
 				AB0BCABC2B61036E00E21C31 /* RunningProcessesView.swift */,
 				6E17B6422AF3FD6E00831173 /* Pins */,
 				D27C1F7764AE4F0AED2FD03D /* LauncherConfigSection.swift */,
+				000C327847E981AEF33EFB61 /* InputConfigSection.swift */,
 			);
 			path = Bottle;
 			sourceTree = "<group>";
@@ -668,6 +671,7 @@
 				160B41C4006351293AAEEF27 /* LauncherConfigSection.swift in Sources */,
 				F748991F03BA464CFCDA99F3 /* StatusToast.swift in Sources */,
 				FBD19F7BAD838BE3ABB2CCC2 /* LaunchResult+Toast.swift in Sources */,
+				77A2EE1594CEE1B55E88AFAB /* InputConfigSection.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

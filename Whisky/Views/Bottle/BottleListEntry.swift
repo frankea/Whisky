@@ -24,6 +24,7 @@ struct BottleListEntry: View {
     let bottle: Bottle
     @Binding var selected: URL?
     @Binding var refresh: Bool
+    @Binding var toast: ToastData?
 
     @State private var showBottleRename: Bool = false
     @State private var name: String = ""
@@ -82,13 +83,38 @@ struct BottleListEntry: View {
                         if result == .OK {
                             if let url = panel.url {
                                 Task {
-                                    bottle.exportAsArchive(destination: url)
+                                    do {
+                                        try await bottle.exportAsArchive(destination: url)
+                                        await MainActor.run {
+                                            withAnimation {
+                                                toast = ToastData(
+                                                    message: String(
+                                                        format: String(localized: "status.exportSuccess %@"),
+                                                        bottle.settings.name
+                                                    ),
+                                                    style: .success
+                                                )
+                                            }
+                                        }
+                                    } catch {
+                                        await MainActor.run {
+                                            withAnimation {
+                                                toast = ToastData(
+                                                    message: String(
+                                                        format: String(localized: "status.exportFailed %@"),
+                                                        error.localizedDescription
+                                                    ),
+                                                    style: .error
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
-                .disabled(!bottle.isAvailable)
+                .disabled(!bottle.isAvailable || bottle.inFlight)
                 .labelStyle(.titleAndIcon)
                 Divider()
                 Button("button.showInFinder", systemImage: "folder") {
@@ -137,6 +163,7 @@ struct BottleListEntry: View {
     BottleListEntry(
         bottle: Bottle(bottleUrl: URL(filePath: "")),
         selected: .constant(nil),
-        refresh: .constant(false)
+        refresh: .constant(false),
+        toast: .constant(nil)
     )
 }

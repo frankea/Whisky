@@ -2307,6 +2307,16 @@
         }
       }
     },
+    "button.removeFromList.help": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this unavailable bottle from the list"
+          }
+        }
+      }
+    },
     "button.rename": {
       "localizations": {
         "ar": {
@@ -19513,6 +19523,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Launch failed: %@"
+          }
+        }
+      }
+    },
+    "status.exportSuccess %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exported: %@"
+          }
+        }
+      }
+    },
+    "status.exportFailed %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export failed: %@"
           }
         }
       }

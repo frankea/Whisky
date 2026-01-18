@@ -214,12 +214,30 @@ extension Bottle {
         }
     }
 
-    func exportAsArchive(destination: URL) {
-        do {
-            try Tar.tar(folder: url, toURL: destination)
-        } catch {
-            print("Failed to export bottle")
+    /// Exports the bottle as a gzip-compressed tar archive.
+    ///
+    /// This operation runs on a background thread to avoid blocking the UI.
+    /// The bottle's `inFlight` property is set during the operation to show progress.
+    ///
+    /// - Parameter destination: The URL where the archive should be saved.
+    /// - Throws: `TarError` if the archive operation fails, or an error if the bottle is not found.
+    @MainActor
+    func exportAsArchive(destination: URL) async throws {
+        guard let bottle = BottleVM.shared.bottles.first(where: { $0.url == url }) else {
+            throw NSError(
+                domain: "com.franke.Whisky",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Bottle not found"]
+            )
         }
+        bottle.inFlight = true
+        defer { bottle.inFlight = false }
+
+        // Capture URL before entering detached task to satisfy actor isolation
+        let sourceURL = url
+        try await Task.detached(priority: .userInitiated) {
+            try Tar.tar(folder: sourceURL, toURL: destination)
+        }.value
     }
 
     @MainActor

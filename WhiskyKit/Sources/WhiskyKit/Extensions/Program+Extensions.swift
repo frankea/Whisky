@@ -29,6 +29,33 @@ public extension Program {
         }
     }
 
+    /// Launches the program respecting user's modifier key preference and returns the result.
+    /// - Parameter useTerminal: Whether to launch in Terminal mode (e.g., Shift was held).
+    ///   **Important:** Capture `NSEvent.modifierFlags.contains(.shift)` synchronously at the call site,
+    ///   before entering any async context, to avoid race conditions with key state.
+    /// - Returns: LaunchResult indicating success, terminal launch, or failure
+    @MainActor
+    func launchWithUserMode(useTerminal: Bool) async -> LaunchResult {
+        // Check for terminal mode (typically shift-click)
+        if useTerminal {
+            self.runInTerminal()
+            return .launchedInTerminal(programName: self.name)
+        }
+
+        // Normal Wine launch with program-specific settings
+        let arguments = settings.arguments.split { $0.isWhitespace }.map(String.init)
+        let environment = generateEnvironment()
+
+        do {
+            try await Wine.runProgram(
+                at: self.url, args: arguments, bottle: self.bottle, environment: environment
+            )
+            return .launchedSuccessfully(programName: self.name)
+        } catch {
+            return .launchFailed(programName: self.name, errorDescription: error.localizedDescription)
+        }
+    }
+
     func generateTerminalCommand() -> String {
         Wine.generateRunCommand(
             at: self.url, bottle: bottle, args: settings.arguments, environment: generateEnvironment()

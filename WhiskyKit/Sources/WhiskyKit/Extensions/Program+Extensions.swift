@@ -30,11 +30,12 @@ public extension Program {
     }
 
     /// Launches the program respecting user's modifier key preference and returns the result.
-    /// - Parameter useTerminal: Whether to launch in Terminal mode. Pass `true` if Shift was held.
-    ///   **Important:** Capture this value synchronously before entering an async context to avoid race conditions.
+    /// - Parameter useTerminal: Whether to launch in Terminal mode (e.g., Shift was held).
+    ///   **Important:** Capture `NSEvent.modifierFlags.contains(.shift)` synchronously at the call site,
+    ///   before entering any async context, to avoid race conditions with key state.
     /// - Returns: LaunchResult indicating success, terminal launch, or failure
     @MainActor
-    func launchWithUserMode(useTerminal: Bool = NSEvent.modifierFlags.contains(.shift)) async -> LaunchResult {
+    func launchWithUserMode(useTerminal: Bool) async -> LaunchResult {
         // Check for terminal mode (typically shift-click)
         if useTerminal {
             self.runInTerminal()

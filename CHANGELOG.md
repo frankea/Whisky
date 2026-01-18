@@ -49,6 +49,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `README.md` and `CONTRIBUTING.md` to reflect current project state
 - Consolidated documentation into the `docs/` directory
 
+## [3.0.0] - 2026-01-18 (Wine Libraries)
+
+### Changed
+- Upgraded Wine from 7.7 to 11.0 (Gcenx stable build) for improved application compatibility
+- Updated DXVK to macOS-compatible v1.10.3
+
+### Fixed
+- Steam "steamwebhelper is not responding" error caused by stubbed WSALookupServiceBegin (Issue #72)
+- Improved networking stack for better launcher compatibility
+
 ## [2.5.0] - 2026-01-10
 
 ### Added
@@ -81,5 +91,6 @@ When adding entries to this changelog, use the following categories:
 - **Security** - Vulnerability fixes
 - **Documentation** - Documentation-only changes
 
-[Unreleased]: https://github.com/frankea/Whisky/compare/v2.5.0...HEAD
+[Unreleased]: https://github.com/frankea/Whisky/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/frankea/Whisky/releases/tag/v3.0.0
 [2.5.0]: https://github.com/frankea/Whisky/releases/tag/v2.5.0

@@ -31,6 +31,14 @@ This repository is a community fork of the original Whisky project, maintained b
 
 ---
 
+## Key Features
+
+- **Wine 11.0** - Latest stable Wine with improved compatibility and networking
+- **Launcher Compatibility** - Built-in support for Steam, Epic, EA App, Rockstar, Battle.net, and more
+- **Controller Support** - SDL environment variable controls for gamepad detection and mapping issues
+- **Stability Diagnostics** - One-click diagnostic reports for troubleshooting crashes and freezes
+- **Native SwiftUI** - Beautiful, familiar macOS interface
+
 ## System Requirements
 
 - **CPU**: Apple Silicon (M-series chips)
@@ -61,9 +69,10 @@ WhiskyKit, the core framework powering Whisky, has comprehensive API documentati
 ### Troubleshooting
 
 - **[Launcher Troubleshooting](docs/LauncherTroubleshooting.md)** - Fix issues with Steam, Epic, Battle.net, etc.
-- **[Stability Troubleshooting](docs/StabilityTroubleshooting.md)** - Diagnose crashes, freezes, reboots, and kernel panics (frankea/Whisky#40)
-- **[Steam Compatibility Guide](docs/SteamCompatibility.md)** - Detailed guide for Steam on Whisky.
-- **[Game Support Wiki](https://github.com/frankea/Whisky/wiki/Game-Support)** - Community-maintained game compatibility list.
+- **[Steam Compatibility Guide](docs/SteamCompatibility.md)** - Detailed guide for Steam on Whisky
+- **[Stability Troubleshooting](docs/StabilityTroubleshooting.md)** - Diagnose crashes, freezes, reboots, and kernel panics
+- **Controller Issues** - Enable "Controller Compatibility Mode" in Bottle Config → Controller & Input
+- **[Game Support Wiki](https://github.com/frankea/Whisky/wiki/Game-Support)** - Community-maintained game compatibility list
 
 ---
 

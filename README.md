@@ -2,7 +2,10 @@
 
   # Whisky 🥃
   *Wine but a bit stronger*
-  
+
+  > **Community Fork** - This is an independent fork maintained by [@frankea](https://github.com/frankea).
+  > Not affiliated with the original Whisky project or getwhisky.app.
+
   ![](https://img.shields.io/github/actions/workflow/status/frankea/Whisky/CI.yml?style=for-the-badge&label=CI)
   [![](https://img.shields.io/codecov/c/github/frankea/Whisky?style=for-the-badge&logo=codecov&label=Coverage)](https://codecov.io/gh/frankea/Whisky)
   [![](https://img.shields.io/github/issues/frankea/Whisky?style=for-the-badge)](https://github.com/frankea/Whisky/issues)
@@ -13,19 +16,17 @@
 
 Whisky provides a clean and easy-to-use graphical wrapper for Wine built in native SwiftUI. You can make and manage bottles, install and run Windows apps and games, and unlock the full potential of your Mac with no technical knowledge required.
 
-This repository is a community fork of the original Whisky project, maintained by [@frankea](https://github.com/frankea), aiming to continue development and support for the community.
-
-<img width="650" alt="Config" src="https://github.com/Whisky-App/Whisky/assets/42140194/d0a405e8-76ee-48f0-92b5-165d184a576b">
+<img width="650" alt="Config" src="./images/config-screenshot.png">
 
 *Familiar UI that integrates seamlessly with macOS*
 
 <div align="right">
-  <img width="650" alt="New Bottle" src="https://github.com/Whisky-App/Whisky/assets/42140194/ed1a0d69-d8fb-442b-9330-6816ba8981ba">
+  <img width="650" alt="New Bottle" src="./images/new-bottle-screenshot.png">
 
   *One-click bottle creation and management*
 </div>
 
-<img width="650" alt="debug" src="https://user-images.githubusercontent.com/42140194/229176642-57b80801-d29b-4123-b1c2-f3b31408ffc6.png">
+<img width="650" alt="debug" src="./images/debug-screenshot.png">
 
 *Debug and profile with ease*
 
@@ -46,17 +47,9 @@ This repository is a community fork of the original Whisky project, maintained b
 
 ## Installation
 
-### Homebrew
-
-Whisky is available on Homebrew:
-
-```bash
-brew install --cask whisky
-```
-
-### Manual Installation
-
 Download the latest release from the [Releases page](https://github.com/frankea/Whisky/releases).
+
+> **Note:** This fork is not available via Homebrew. The `brew install --cask whisky` command installs the original Whisky project, not this fork.
 
 ## Documentation
 

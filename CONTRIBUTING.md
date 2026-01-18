@@ -57,7 +57,9 @@ chmod +x .git/hooks/pre-commit
 
 ## General Guidelines
 
-All added strings must be properly localised and added to the EN strings file. Do not add keys for other languages or translate within your PR. All translations should be handled on [Crowdin](https://crowdin.com/project/whisky).
+All added strings must be properly localised and added to the EN strings file. Do not add keys for other languages or translate within your PR.
+
+> **Note:** Translations are managed via Crowdin for the upstream project. This fork inherits existing translations but does not currently manage Crowdin directly. New strings will be in English only until a translation workflow is established.
 
 ## Changelog
 

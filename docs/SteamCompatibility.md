@@ -1,7 +1,9 @@
 # Steam Compatibility Guide
 
-**Feature:** Launcher Compatibility System (frankea/Whisky#41)  
+**Feature:** Launcher Compatibility System (frankea/Whisky#41)
 **Last Updated:** January 12, 2026
+
+> **Note:** This documentation references issue numbers from both this fork (frankea/Whisky) and the original upstream project (whisky-app/whisky). Upstream references are kept for historical context. Please report new issues to [frankea/Whisky](https://github.com/frankea/Whisky/issues).
 
 ---
 
@@ -258,7 +260,7 @@ DXVK provides better GPU acceleration for Steam's UI rendering, reducing stutter
 
 **If Still Invisible:**
 - Delete Steam, reinstall fresh
-- Check ~/Library/Logs/com.isaacmarovitz.Whisky/ for errors
+- Check ~/Library/Logs/com.franke.Whisky/ for errors
 
 **Related Issues:**
 - whisky-app/whisky#1183 (No UI)

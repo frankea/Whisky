@@ -112,7 +112,9 @@ struct ProgramView: View {
         .animation(.whiskyDefault, value: configSectionExpanded)
         .animation(.whiskyDefault, value: envArgsSectionExpanded)
         .task {
-            if let fetchedImage = program.peFile?.bestIcon() { self.cachedIconImage = Image(nsImage: fetchedImage) }
+            if let icon = await IconCache.shared.iconAsync(for: program.url, peFile: program.peFile) {
+                self.cachedIconImage = Image(nsImage: icon)
+            }
         }
     }
 

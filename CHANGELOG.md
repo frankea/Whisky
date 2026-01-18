@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Controller & Input Compatibility settings for game controller detection issues (Issue #42)
 - Toast notifications showing launch success/failure feedback (Refs #49)
+- Archive progress indicator with toast notifications for bottle export (Refs #49, upstream #827)
+- Icon caching for faster program list loading (Refs #49, upstream #941)
+- Improved UX for unavailable bottles with warning icon and quick remove button (Refs #49, upstream #1039)
 - Comprehensive Launcher Compatibility System including detection, diagnostics, and configuration
 - Stability diagnostics export for crash/freeze reports (Refs #40)
 - WhiskyWine download/install diagnostics with copy-to-clipboard workflow (Issue #63)

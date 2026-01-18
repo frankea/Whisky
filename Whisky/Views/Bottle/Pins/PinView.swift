@@ -85,12 +85,9 @@ struct PinView: View {
         }
         .task {
             name = pin.name
-            guard let peFile = program.peFile else { return }
-            let task = Task.detached {
-                guard let image = peFile.bestIcon() else { return nil as Image? }
-                return Image(nsImage: image)
+            if let icon = await IconCache.shared.iconAsync(for: program.url, peFile: program.peFile) {
+                self.image = Image(nsImage: icon)
             }
-            self.image = await task.value
         }
         .onChange(of: name) {
             if let index = bottle.settings.pins.firstIndex(where: {

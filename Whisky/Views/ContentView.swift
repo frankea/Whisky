@@ -37,6 +37,7 @@ struct ContentView: View {
     @State private var refreshAnimation: Angle = .degrees(0)
 
     @State private var bottleFilter = ""
+    @State private var toast: ToastData?
 
     var body: some View {
         NavigationSplitView {
@@ -44,6 +45,7 @@ struct ContentView: View {
         } detail: {
             detail
         }
+        .toast($toast)
         .alert(
             "bottle.creation.failed.title",
             isPresented: Binding(
@@ -166,9 +168,31 @@ struct ContentView: View {
                                     ProgressView().controlSize(.small)
                                 }
                                 .opacity(0.5)
+                            } else if !bottle.isAvailable {
+                                HStack {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundStyle(.orange)
+                                        .font(.caption)
+                                    Text(bottle.settings.name)
+                                    Spacer()
+                                    Button {
+                                        bottle.remove(delete: false)
+                                    } label: {
+                                        Image(systemName: "xmark.circle")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .help("button.removeFromList.help")
+                                }
+                                .opacity(0.6)
+                                .selectionDisabled(true)
                             } else {
-                                BottleListEntry(bottle: bottle, selected: $selected, refresh: $triggerRefresh)
-                                    .selectionDisabled(!bottle.isAvailable)
+                                BottleListEntry(
+                                    bottle: bottle,
+                                    selected: $selected,
+                                    refresh: $triggerRefresh,
+                                    toast: $toast
+                                )
                             }
                         }
                         .id(bottle.url)

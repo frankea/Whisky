@@ -60,29 +60,45 @@ extension Bottle {
     }
 
     func openTerminal() {
-        let whiskyCmdURL = Bundle.main.url(forResource: "WhiskyCmd", withExtension: nil)
-        if let whiskyCmdURL {
-            // Use .esc to escape shell metacharacters and prevent command injection
-            let cmd = "eval \\\"$(\\\"\(whiskyCmdURL.esc)\\\" shellenv \\\"\(settings.name.esc)\\\")\\\""
+        guard let whiskyCmdURL = Bundle.main.url(forResource: "WhiskyCmd", withExtension: nil) else { return }
 
-            let script = """
-            tell application "Terminal"
-            activate
-            do script "\(cmd)"
-            end tell
-            """
+        // Build a shell command that sources the WhiskyCmd environment
+        // Use .esc to escape shell metacharacters and prevent command injection
+        let command = "eval \"$(\"\(whiskyCmdURL.esc)\" shellenv \"\(settings.name.esc)\")\""
+        let scriptContent = "#!/bin/bash\n\(command)\n"
 
-            Task.detached(priority: .userInitiated) {
-                var error: NSDictionary?
-                guard let appleScript = NSAppleScript(source: script) else { return }
-                appleScript.executeAndReturnError(&error)
+        // Write to temp script file to handle all terminal apps consistently
+        let tempDir = FileManager.default.temporaryDirectory
+        let scriptURL = tempDir.appendingPathComponent("whisky-env-\(UUID().uuidString).sh")
 
-                if let error {
-                    Logger.wineKit.error("Failed to run terminal script \(error)")
-                    guard let description = error["NSAppleScriptErrorMessage"] as? String else { return }
-                    await self.showRunError(message: String(describing: description))
-                }
+        do {
+            try scriptContent.write(to: scriptURL, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes(
+                [.posixPermissions: 0o755],
+                ofItemAtPath: scriptURL.path
+            )
+        } catch {
+            Logger.wineKit.error("Failed to write terminal script: \(error)")
+            return
+        }
+
+        let terminal = TerminalApp.preferred
+        let appleScriptSource = terminal.generateAppleScript(for: scriptURL.path)
+
+        Task.detached(priority: .userInitiated) {
+            var error: NSDictionary?
+            guard let appleScript = NSAppleScript(source: appleScriptSource) else { return }
+            appleScript.executeAndReturnError(&error)
+
+            if let error {
+                Logger.wineKit.error("Failed to run terminal script \(error)")
+                guard let description = error["NSAppleScriptErrorMessage"] as? String else { return }
+                await self.showRunError(message: String(describing: description))
             }
+
+            // Clean up temp script after a delay to ensure the terminal has read it
+            try? await Task.sleep(for: .seconds(5))
+            try? FileManager.default.removeItem(at: scriptURL)
         }
     }
 
@@ -238,6 +254,67 @@ extension Bottle {
         try await Task.detached(priority: .userInitiated) {
             try Tar.tar(folder: sourceURL, toURL: destination)
         }.value
+    }
+
+    /// Duplicates the bottle to a new directory with the given name.
+    ///
+    /// This operation runs on a background thread to avoid blocking the UI.
+    /// The bottle's `inFlight` property is set during the operation to show progress.
+    ///
+    /// - Parameter newName: The name for the duplicated bottle.
+    /// - Returns: The URL of the newly created bottle directory.
+    /// - Throws: An error if the bottle is not found or the copy operation fails.
+    @MainActor
+    func duplicate(newName: String) async throws -> URL {
+        guard let bottle = BottleVM.shared.bottles.first(where: { $0.url == url }) else {
+            throw NSError(
+                domain: "com.franke.Whisky",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Bottle not found"]
+            )
+        }
+        bottle.inFlight = true
+        defer { bottle.inFlight = false }
+
+        // Create new bottle directory in the same parent folder
+        let parentDir = url.deletingLastPathComponent()
+        let newBottleDir = parentDir.appendingPathComponent(UUID().uuidString)
+
+        // Capture URLs before entering detached task to satisfy actor isolation
+        let sourceURL = url
+        try await Task.detached(priority: .userInitiated) {
+            try FileManager.default.copyItem(at: sourceURL, to: newBottleDir)
+        }.value
+
+        // Update the new bottle's settings
+        let newBottle = Bottle(bottleUrl: newBottleDir)
+        newBottle.settings.name = newName
+
+        // Update pin URLs to point to the new bottle
+        for index in 0 ..< newBottle.settings.pins.count {
+            if let pinURL = newBottle.settings.pins[index].url {
+                newBottle.settings.pins[index].url = pinURL.updateParentBottle(
+                    old: sourceURL,
+                    new: newBottleDir
+                )
+            }
+        }
+
+        // Update blocklist URLs to point to the new bottle
+        for index in 0 ..< newBottle.settings.blocklist.count {
+            newBottle.settings.blocklist[index] = newBottle.settings.blocklist[index]
+                .updateParentBottle(old: sourceURL, new: newBottleDir)
+        }
+
+        // Explicitly save settings to ensure all modifications are persisted
+        // (modifying nested struct properties may not always trigger didSet)
+        newBottle.saveBottleSettings()
+
+        // Register the new bottle
+        BottleVM.shared.bottlesList.paths.append(newBottleDir)
+        BottleVM.shared.loadBottles()
+
+        return newBottleDir
     }
 
     @MainActor

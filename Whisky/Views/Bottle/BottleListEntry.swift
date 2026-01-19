@@ -27,6 +27,7 @@ struct BottleListEntry: View {
     @Binding var toast: ToastData?
 
     @State private var showBottleRename: Bool = false
+    @State private var showBottleDuplicate: Bool = false
     @State private var name: String = ""
 
     var body: some View {
@@ -39,6 +40,39 @@ struct BottleListEntry: View {
                 RenameView("rename.bottle.title", name: name) { newName in
                     name = newName
                     bottle.rename(newName: newName)
+                }
+            }
+            .sheet(isPresented: $showBottleDuplicate) {
+                RenameView("duplicate.bottle.title", name: "\(name) Copy") { newName in
+                    Task {
+                        do {
+                            let newURL = try await bottle.duplicate(newName: newName)
+                            await MainActor.run {
+                                selected = newURL
+                                withAnimation {
+                                    toast = ToastData(
+                                        message: String(
+                                            format: String(localized: "status.duplicateSuccess %@"),
+                                            newName
+                                        ),
+                                        style: .success
+                                    )
+                                }
+                            }
+                        } catch {
+                            await MainActor.run {
+                                withAnimation {
+                                    toast = ToastData(
+                                        message: String(
+                                            format: String(localized: "status.duplicateFailed %@"),
+                                            error.localizedDescription
+                                        ),
+                                        style: .error
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
             .contextMenu {
@@ -71,6 +105,11 @@ struct BottleListEntry: View {
                     }
                 }
                 .disabled(!bottle.isAvailable)
+                .labelStyle(.titleAndIcon)
+                Button("button.duplicateBottle", systemImage: "doc.on.doc") {
+                    showBottleDuplicate.toggle()
+                }
+                .disabled(!bottle.isAvailable || bottle.inFlight)
                 .labelStyle(.titleAndIcon)
                 Button("button.exportBottle", systemImage: "arrowshape.turn.up.right") {
                     let panel = NSSavePanel()

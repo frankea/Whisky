@@ -927,6 +927,16 @@
         }
       }
     },
+    "button.duplicateBottle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicate Bottle..."
+          }
+        }
+      }
+    },
     "button.moveBottle": {
       "localizations": {
         "ar": {
@@ -5740,6 +5750,26 @@
         }
       }
     },
+    "config.disableAppNap": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disable App Nap"
+          }
+        }
+      }
+    },
+    "config.disableAppNap.info": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prevent macOS from throttling Wine processes for better performance"
+          }
+        }
+      }
+    },
     "config.inspect": {
       "localizations": {
         "ar": {
@@ -9074,6 +9104,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Windows 版本："
+          }
+        }
+      }
+    },
+    "duplicate.bottle.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicate Bottle"
           }
         }
       }
@@ -15159,6 +15199,16 @@
         }
       }
     },
+    "settings.terminal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminal Application:"
+          }
+        }
+      }
+    },
     "settings.toggle.kill.on.terminate": {
       "localizations": {
         "ar": {
@@ -19543,6 +19593,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Export failed: %@"
+          }
+        }
+      }
+    },
+    "status.duplicateSuccess %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicated: %@"
+          }
+        }
+      }
+    },
+    "status.duplicateFailed %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplication failed: %@"
           }
         }
       }

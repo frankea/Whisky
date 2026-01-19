@@ -309,3 +309,77 @@ final class SectionTests: XCTestCase {
         }
     }
 }
+
+// MARK: - Magic Tests
+
+final class MagicTests: XCTestCase {
+    func testMagicRawValues() {
+        XCTAssertEqual(PEFile.Magic.unknown.rawValue, 0x0)
+        XCTAssertEqual(PEFile.Magic.pe32.rawValue, 0x10B)
+        XCTAssertEqual(PEFile.Magic.pe32Plus.rawValue, 0x20B)
+    }
+
+    func testMagicDescriptions() {
+        XCTAssertEqual(PEFile.Magic.unknown.description, "unknown")
+        XCTAssertEqual(PEFile.Magic.pe32.description, "PE32")
+        XCTAssertEqual(PEFile.Magic.pe32Plus.description, "PE32+")
+    }
+
+    func testMagicInitFromRawValue() {
+        XCTAssertEqual(PEFile.Magic(rawValue: 0x0), .unknown)
+        XCTAssertEqual(PEFile.Magic(rawValue: 0x10B), .pe32)
+        XCTAssertEqual(PEFile.Magic(rawValue: 0x20B), .pe32Plus)
+    }
+
+    func testMagicInvalidRawValue() {
+        XCTAssertNil(PEFile.Magic(rawValue: 0xFFFF))
+        XCTAssertNil(PEFile.Magic(rawValue: 0x100))
+    }
+
+    func testMagicEquatable() {
+        let magic1 = PEFile.Magic.pe32
+        let magic2 = PEFile.Magic.pe32
+
+        XCTAssertEqual(magic1, magic2)
+        XCTAssertNotEqual(PEFile.Magic.pe32, PEFile.Magic.pe32Plus)
+    }
+
+    func testMagicHashable() {
+        var set = Set<PEFile.Magic>()
+        set.insert(.pe32)
+        set.insert(.pe32Plus)
+        set.insert(.pe32) // Duplicate
+
+        XCTAssertEqual(set.count, 2)
+    }
+}
+
+// MARK: - Architecture Tests
+
+final class ArchitectureTests: XCTestCase {
+    func testArchitectureX32ToString() {
+        XCTAssertEqual(Architecture.x32.toString(), "32-bit")
+    }
+
+    func testArchitectureX64ToString() {
+        XCTAssertEqual(Architecture.x64.toString(), "64-bit")
+    }
+
+    func testArchitectureUnknownToString() {
+        XCTAssertNil(Architecture.unknown.toString())
+    }
+
+    func testArchitectureEquatable() {
+        XCTAssertEqual(Architecture.x32, Architecture.x32)
+        XCTAssertNotEqual(Architecture.x32, Architecture.x64)
+    }
+
+    func testArchitectureHashable() {
+        var set = Set<Architecture>()
+        set.insert(.x32)
+        set.insert(.x64)
+        set.insert(.unknown)
+
+        XCTAssertEqual(set.count, 3)
+    }
+}

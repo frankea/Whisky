@@ -355,6 +355,15 @@ public struct BottleSettings: Codable, Equatable {
         set { performanceConfig.vcRedistInstalled = newValue }
     }
 
+    /// Whether App Nap should be disabled for Wine processes.
+    ///
+    /// When enabled, prevents macOS from throttling Wine processes
+    /// when the application is in the background, improving game performance.
+    public var disableAppNap: Bool {
+        get { performanceConfig.disableAppNap }
+        set { performanceConfig.disableAppNap = newValue }
+    }
+
     // MARK: - Launcher compatibility settings
 
     /// Whether launcher compatibility mode is enabled.

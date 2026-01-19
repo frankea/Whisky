@@ -82,18 +82,9 @@ public extension Program {
             return
         }
 
-        // Use AppleScript to open Terminal and source the script
-        // Sourcing keeps the terminal open after the command finishes
-        let escapedPath = scriptURL.path
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-
-        let appleScript = """
-        tell application "Terminal"
-            activate
-            do script "source \\"\(escapedPath)\\""
-        end tell
-        """
+        // Use the user's preferred terminal application
+        let terminal = TerminalApp.preferred
+        let appleScript = terminal.generateAppleScript(for: scriptURL.path)
 
         Task {
             var error: NSDictionary?
@@ -106,7 +97,7 @@ public extension Program {
                 self.showRunError(message: String(describing: description))
             }
 
-            // Clean up temp script after a delay to ensure Terminal has read it
+            // Clean up temp script after a delay to ensure the terminal has read it
             try? await Task.sleep(for: .seconds(5))
             try? FileManager.default.removeItem(at: scriptURL)
         }

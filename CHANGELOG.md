@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Terminal application selection: choose between Terminal, iTerm2, or Warp (Refs #47, upstream #911)
+- Duplicate bottle feature for cloning bottles without export/import (Refs #47, upstream #822)
+- App Nap management: disable macOS process throttling for better game performance (Refs #47, upstream #1297)
 - Controller & Input Compatibility settings for game controller detection issues (Issue #42)
 - Toast notifications showing launch success/failure feedback (Refs #49)
 - Archive progress indicator with toast notifications for bottle export (Refs #49, upstream #827)

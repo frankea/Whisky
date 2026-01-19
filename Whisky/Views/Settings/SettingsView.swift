@@ -24,11 +24,17 @@ struct SettingsView: View {
     @AppStorage("killOnTerminate") var killOnTerminate = true
     @AppStorage("checkWhiskyWineUpdates") var checkWhiskyWineUpdates = true
     @AppStorage("defaultBottleLocation") var defaultBottleLocation = BottleData.defaultBottleDir
+    @AppStorage("preferredTerminal") var preferredTerminal = "terminal"
 
     var body: some View {
         Form {
             Section("settings.general") {
                 Toggle("settings.toggle.kill.on.terminate", isOn: $killOnTerminate)
+                Picker("settings.terminal", selection: $preferredTerminal) {
+                    ForEach(TerminalApp.installedTerminals) { terminal in
+                        Text(terminal.displayName).tag(terminal.rawValue)
+                    }
+                }
                 ActionView(
                     text: "settings.path",
                     subtitle: defaultBottleLocation.prettyPath(),

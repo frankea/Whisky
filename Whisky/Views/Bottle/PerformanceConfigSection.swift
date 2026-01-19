@@ -56,6 +56,14 @@ struct PerformanceConfigSection: View {
                         .foregroundColor(.secondary)
                 }
             }
+            Toggle(isOn: $bottle.settings.disableAppNap) {
+                VStack(alignment: .leading) {
+                    Text("config.disableAppNap")
+                    Text("config.disableAppNap.info")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
             // Install VC++ Runtime button for Unity games
             if !bottle.settings.vcRedistInstalled {
                 Button {

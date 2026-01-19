@@ -258,6 +258,20 @@ public class Wine {
             try enableDXVK(bottle: bottle)
         }
 
+        // Disable App Nap if requested to prevent macOS from throttling Wine processes
+        var activityToken: NSObjectProtocol?
+        if bottle.settings.disableAppNap {
+            activityToken = ProcessInfo.processInfo.beginActivity(
+                options: [.userInitiated, .idleSystemSleepDisabled],
+                reason: "Wine process running for \(bottle.settings.name)"
+            )
+        }
+        defer {
+            if let token = activityToken {
+                ProcessInfo.processInfo.endActivity(token)
+            }
+        }
+
         for await _ in try runWineProcess(
             name: url.lastPathComponent,
             args: ["start", "/unix", url.path(percentEncoded: false)] + args,

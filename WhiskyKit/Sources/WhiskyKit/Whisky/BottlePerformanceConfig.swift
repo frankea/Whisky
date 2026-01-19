@@ -46,6 +46,7 @@ public struct BottlePerformanceConfig: Codable, Equatable {
     var forceD3D11: Bool = false // Force D3D11 instead of D3D12 for compatibility
     var disableShaderOptimizations: Bool = false // For debugging FPS issues
     var vcRedistInstalled: Bool = false // Track if VC++ runtime is installed
+    public var disableAppNap: Bool = false // Prevent macOS from throttling Wine processes
 
     public init() {}
 
@@ -59,5 +60,6 @@ public struct BottlePerformanceConfig: Codable, Equatable {
         self.disableShaderOptimizations = try container
             .decodeIfPresent(Bool.self, forKey: .disableShaderOptimizations) ?? false
         self.vcRedistInstalled = try container.decodeIfPresent(Bool.self, forKey: .vcRedistInstalled) ?? false
+        self.disableAppNap = try container.decodeIfPresent(Bool.self, forKey: .disableAppNap) ?? false
     }
 }

@@ -262,12 +262,13 @@ struct ConfigView: View {
         dpiConfigLoadingState = .loading
         Task(priority: .userInitiated) {
             do {
+                // Wine.dpiResolution returns nil if registry key doesn't exist (expected for unedited DPI)
+                // It throws only on actual Wine/registry errors
                 dpiConfig = try await Wine.dpiResolution(bottle: bottle) ?? 0
                 dpiConfigLoadingState = .success
             } catch {
-                logger.debug("DPI resolution not set in registry: \(error.localizedDescription)")
-                // If DPI has not yet been edited, there will be no registry entry
-                dpiConfigLoadingState = .success
+                logger.error("Failed to load DPI resolution: \(error.localizedDescription)")
+                dpiConfigLoadingState = .failed
             }
         }
     }

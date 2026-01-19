@@ -33,7 +33,7 @@ public enum TerminalApp: String, CaseIterable, Identifiable {
         case .terminal:
             "Terminal"
         case .iterm:
-            "iTerm"
+            "iTerm2"
         case .warp:
             "Warp"
         }

@@ -46,7 +46,7 @@ public struct BottlePerformanceConfig: Codable, Equatable {
     var forceD3D11: Bool = false // Force D3D11 instead of D3D12 for compatibility
     var disableShaderOptimizations: Bool = false // For debugging FPS issues
     var vcRedistInstalled: Bool = false // Track if VC++ runtime is installed
-    public var disableAppNap: Bool = false // Prevent macOS from throttling Wine processes
+    var disableAppNap: Bool = false // Prevent macOS from throttling Wine processes
 
     public init() {}
 

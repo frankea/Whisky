@@ -259,13 +259,12 @@ public class Wine {
         }
 
         // Disable App Nap if requested to prevent macOS from throttling Wine processes
-        var activityToken: NSObjectProtocol?
-        if bottle.settings.disableAppNap {
-            activityToken = ProcessInfo.processInfo.beginActivity(
+        let activityToken: NSObjectProtocol? = bottle.settings.disableAppNap
+            ? ProcessInfo.processInfo.beginActivity(
                 options: [.userInitiated, .idleSystemSleepDisabled],
                 reason: "Wine process running for \(bottle.settings.name)"
             )
-        }
+            : nil
         defer {
             if let token = activityToken {
                 ProcessInfo.processInfo.endActivity(token)

@@ -73,7 +73,7 @@ public extension Program {
     func generateTerminalCommand(args: [String]) -> String {
         // Escape each argument individually to preserve argument boundaries
         // e.g., ["--name", "Player Name"] -> "--name Player\ Name" (two separate args)
-        let escapedArgs = args.map { $0.esc }.joined(separator: " ")
+        let escapedArgs = args.map(\.esc).joined(separator: " ")
         return Wine.generateRunCommand(
             at: self.url, bottle: bottle, args: escapedArgs, environment: generateEnvironment(), preEscaped: true
         )

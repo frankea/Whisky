@@ -197,9 +197,8 @@ extension Whisky {
 
             if command {
                 // Print the command for manual execution or scripting
-                // Join CLI args into a single string for the command generator
-                let argsString = args.isEmpty ? nil : args.joined(separator: " ")
-                print(program.generateTerminalCommand(args: argsString))
+                // Use array overload to properly escape each argument individually
+                print(program.generateTerminalCommand(args: args))
             } else {
                 // Run directly via Wine, applying program-specific environment and locale
                 let environment = program.generateEnvironment()

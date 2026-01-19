@@ -66,6 +66,19 @@ public extension Program {
         )
     }
 
+    /// Generates the terminal command to run this program via Wine with array-based arguments.
+    /// - Parameter args: Array of arguments where each element is a separate argument.
+    ///   Each argument is individually escaped to preserve argument boundaries.
+    /// - Returns: The full Wine command string ready for terminal execution.
+    func generateTerminalCommand(args: [String]) -> String {
+        // Escape each argument individually to preserve argument boundaries
+        // e.g., ["--name", "Player Name"] -> "--name Player\ Name" (two separate args)
+        let escapedArgs = args.map { $0.esc }.joined(separator: " ")
+        return Wine.generateRunCommand(
+            at: self.url, bottle: bottle, args: escapedArgs, environment: generateEnvironment(), preEscaped: true
+        )
+    }
+
     func runInTerminal() {
         // Write command to a temp script file to avoid AppleScript string length limits
         // and complex escaping issues with very long Wine commands

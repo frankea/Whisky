@@ -293,13 +293,15 @@ public class Wine {
     ///   - bottle: The ``Bottle`` configuration to use.
     ///   - args: Additional arguments as a single string.
     ///   - environment: Custom environment variables.
+    ///   - preEscaped: If true, args are already shell-escaped and won't be escaped again.
+    ///     Use this when passing an array of arguments that were individually escaped.
     /// - Returns: A shell-safe command string ready for execution.
     @MainActor
     public static func generateRunCommand(
-        at url: URL, bottle: Bottle, args: String, environment: [String: String]
+        at url: URL, bottle: Bottle, args: String, environment: [String: String], preEscaped: Bool = false
     ) -> String {
         // Escape args and environment values to prevent shell injection from user-editable settings
-        let escapedArgs = args.esc
+        let escapedArgs = preEscaped ? args : args.esc
         var wineCmd = "\(wineBinary.esc) start /unix \(url.esc) \(escapedArgs)"
         let wineEnv = constructWineEnvironment(for: bottle, environment: environment)
         for envVar in wineEnv {

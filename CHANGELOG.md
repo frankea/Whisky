@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Archive progress indicator with toast notifications for bottle export (Refs #49, upstream #827)
 - Icon caching for faster program list loading (Refs #49, upstream #941)
 - Improved UX for unavailable bottles with warning icon and quick remove button (Refs #49, upstream #1039)
+- Retry button for failed config values (Build Version, Retina Mode, DPI) (Refs #49, upstream #967)
 - Comprehensive Launcher Compatibility System including detection, diagnostics, and configuration
 - Stability diagnostics export for crash/freeze reports (Refs #40)
 - WhiskyWine download/install diagnostics with copy-to-clipboard workflow (Issue #63)
@@ -38,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed Terminal launch (shift-click) producing malformed commands due to double-escaping (Issue #71)
 - Fixed localization fallback showing raw keys to non-English users (Refs #49)
+- Fixed WhiskyCmd `run` command not launching programs (now uses Wine directly) (Refs #49, upstream #1088, #1140)
 - Corrected Dependabot Swift configuration
 - Capped Wine process logs and pruned old logs to prevent excessive disk usage (Issue #46)
 - Surface bottle creation failures with diagnostic information (Issue #61)

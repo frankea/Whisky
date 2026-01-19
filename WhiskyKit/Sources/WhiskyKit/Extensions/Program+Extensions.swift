@@ -56,9 +56,26 @@ public extension Program {
         }
     }
 
-    func generateTerminalCommand() -> String {
+    /// Generates the terminal command to run this program via Wine.
+    /// - Parameter args: Optional arguments string to use instead of saved settings.
+    ///   If nil, uses `settings.arguments` from the program's saved configuration.
+    /// - Returns: The full Wine command string ready for terminal execution.
+    func generateTerminalCommand(args: String? = nil) -> String {
         Wine.generateRunCommand(
-            at: self.url, bottle: bottle, args: settings.arguments, environment: generateEnvironment()
+            at: self.url, bottle: bottle, args: args ?? settings.arguments, environment: generateEnvironment()
+        )
+    }
+
+    /// Generates the terminal command to run this program via Wine with array-based arguments.
+    /// - Parameter args: Array of arguments where each element is a separate argument.
+    ///   Each argument is individually escaped to preserve argument boundaries.
+    /// - Returns: The full Wine command string ready for terminal execution.
+    func generateTerminalCommand(args: [String]) -> String {
+        // Escape each argument individually to preserve argument boundaries
+        // e.g., ["--name", "Player Name"] -> "--name Player\ Name" (two separate args)
+        let escapedArgs = args.map(\.esc).joined(separator: " ")
+        return Wine.generateRunCommand(
+            at: self.url, bottle: bottle, args: escapedArgs, environment: generateEnvironment(), preEscaped: true
         )
     }
 

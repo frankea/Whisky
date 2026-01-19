@@ -128,6 +128,17 @@ final class ColorQuadTests: XCTestCase {
 
 // MARK: - BitmapInfoHeader Tests
 
+/// Parameters for creating test bitmap info header data
+struct BitmapHeaderParams {
+    var size: UInt32 = 40
+    var width: Int32 = 32
+    var height: Int32 = 32
+    var planes: UInt16 = 1
+    var bitCount: UInt16 = 32
+    var compression: UInt32 = 0
+    var sizeImage: UInt32 = 0
+}
+
 final class BitmapInfoHeaderTests: XCTestCase {
     var tempDir: URL!
 
@@ -143,15 +154,11 @@ final class BitmapInfoHeaderTests: XCTestCase {
     }
 
     func testBitmapInfoHeaderParsing() throws {
-        let headerData = createBitmapInfoHeaderData(
-            size: 40,
+        let headerData = createBitmapInfoHeaderData(BitmapHeaderParams(
             width: 32,
             height: 64,
-            planes: 1,
-            bitCount: 32,
-            compression: 0,
             sizeImage: 8_192
-        )
+        ))
 
         let fileURL = tempDir.appending(path: "header.bin")
         try headerData.write(to: fileURL)
@@ -172,15 +179,11 @@ final class BitmapInfoHeaderTests: XCTestCase {
     }
 
     func testBitmapInfoHeaderNegativeHeight() throws {
-        let headerData = createBitmapInfoHeaderData(
-            size: 40,
-            width: 32,
+        let headerData = createBitmapInfoHeaderData(BitmapHeaderParams(
             height: -64,
-            planes: 1,
             bitCount: 24,
-            compression: 0,
             sizeImage: 6_144
-        )
+        ))
 
         let fileURL = tempDir.appending(path: "negheight.bin")
         try headerData.write(to: fileURL)
@@ -205,15 +208,11 @@ final class BitmapInfoHeaderTests: XCTestCase {
         ]
 
         for testCase in testCases {
-            let headerData = createBitmapInfoHeaderData(
-                size: 40,
+            let headerData = createBitmapInfoHeaderData(BitmapHeaderParams(
                 width: 16,
                 height: 16,
-                planes: 1,
-                bitCount: testCase.bitCount,
-                compression: 0,
-                sizeImage: 0
-            )
+                bitCount: testCase.bitCount
+            ))
 
             let fileURL = tempDir.appending(path: "bc\(testCase.bitCount).bin")
             try headerData.write(to: fileURL)
@@ -232,15 +231,9 @@ final class BitmapInfoHeaderTests: XCTestCase {
     }
 
     func testBitmapInfoHeaderHashable() throws {
-        let headerData = createBitmapInfoHeaderData(
-            size: 40,
-            width: 32,
-            height: 32,
-            planes: 1,
-            bitCount: 32,
-            compression: 0,
+        let headerData = createBitmapInfoHeaderData(BitmapHeaderParams(
             sizeImage: 4_096
-        )
+        ))
 
         let fileURL = tempDir.appending(path: "hash.bin")
         try headerData.write(to: fileURL)
@@ -255,24 +248,16 @@ final class BitmapInfoHeaderTests: XCTestCase {
         XCTAssertEqual(header1.hashValue, header2.hashValue)
     }
 
-    private func createBitmapInfoHeaderData(
-        size: UInt32,
-        width: Int32,
-        height: Int32,
-        planes: UInt16,
-        bitCount: UInt16,
-        compression: UInt32,
-        sizeImage: UInt32
-    ) -> Data {
+    private func createBitmapInfoHeaderData(_ params: BitmapHeaderParams) -> Data {
         var data = Data()
 
-        data.append(contentsOf: withUnsafeBytes(of: size.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: width.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: height.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: planes.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: bitCount.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: compression.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: sizeImage.littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: params.size.littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: params.width.littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: params.height.littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: params.planes.littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: params.bitCount.littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: params.compression.littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: params.sizeImage.littleEndian) { Array($0) })
         data.append(contentsOf: withUnsafeBytes(of: Int32(0).littleEndian) { Array($0) })
         data.append(contentsOf: withUnsafeBytes(of: Int32(0).littleEndian) { Array($0) })
         data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) })

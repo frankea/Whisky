@@ -77,7 +77,7 @@ final class TarIntegrationTests: XCTestCase {
 
     func testTarAndUntarRoundTrip() throws {
         let testFile = sourceDir.appending(path: "test.txt")
-        try "Hello, World!".data(using: .utf8)!.write(to: testFile)
+        try Data("Hello, World!".utf8).write(to: testFile)
 
         let tarURL = tempDir.appending(path: "test.tar.gz")
 
@@ -95,9 +95,9 @@ final class TarIntegrationTests: XCTestCase {
     }
 
     func testTarWithMultipleFiles() throws {
-        try "File 1 content".data(using: .utf8)!.write(to: sourceDir.appending(path: "file1.txt"))
-        try "File 2 content".data(using: .utf8)!.write(to: sourceDir.appending(path: "file2.txt"))
-        try "File 3 content".data(using: .utf8)!.write(to: sourceDir.appending(path: "file3.txt"))
+        try Data("File 1 content".utf8).write(to: sourceDir.appending(path: "file1.txt"))
+        try Data("File 2 content".utf8).write(to: sourceDir.appending(path: "file2.txt"))
+        try Data("File 3 content".utf8).write(to: sourceDir.appending(path: "file3.txt"))
 
         let tarURL = tempDir.appending(path: "multi.tar.gz")
 
@@ -109,7 +109,7 @@ final class TarIntegrationTests: XCTestCase {
     func testTarWithNestedDirectories() throws {
         let subDir = sourceDir.appending(path: "subdir")
         try FileManager.default.createDirectory(at: subDir, withIntermediateDirectories: true)
-        try "Nested file".data(using: .utf8)!.write(to: subDir.appending(path: "nested.txt"))
+        try Data("Nested file".utf8).write(to: subDir.appending(path: "nested.txt"))
 
         let tarURL = tempDir.appending(path: "nested.tar.gz")
 
@@ -120,7 +120,7 @@ final class TarIntegrationTests: XCTestCase {
 
     func testUntarWithInvalidArchive() throws {
         let invalidTar = tempDir.appending(path: "invalid.tar.gz")
-        try "not a tar file".data(using: .utf8)!.write(to: invalidTar)
+        try Data("not a tar file".utf8).write(to: invalidTar)
 
         XCTAssertThrowsError(try Tar.untar(tarBall: invalidTar, toURL: extractDir)) { error in
             if let tarError = error as? TarError {
@@ -151,7 +151,7 @@ final class TarIntegrationTests: XCTestCase {
 
     func testTarWithSpecialCharactersInFilename() throws {
         let specialFile = sourceDir.appending(path: "file with spaces.txt")
-        try "content".data(using: .utf8)!.write(to: specialFile)
+        try Data("content".utf8).write(to: specialFile)
 
         let tarURL = tempDir.appending(path: "special.tar.gz")
 
@@ -184,7 +184,7 @@ final class TarPathTraversalTests: XCTestCase {
     func testValidArchiveExtraction() throws {
         let sourceDir = tempDir.appending(path: "source")
         try FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
-        try "safe content".data(using: .utf8)!.write(to: sourceDir.appending(path: "safe.txt"))
+        try Data("safe content".utf8).write(to: sourceDir.appending(path: "safe.txt"))
 
         let tarURL = tempDir.appending(path: "safe.tar.gz")
         try Tar.tar(folder: sourceDir, toURL: tarURL)
@@ -219,7 +219,7 @@ final class TarCommandTests: XCTestCase {
         try FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
 
         let largeContent = String(repeating: "A", count: 10_000)
-        try largeContent.data(using: .utf8)!.write(to: sourceDir.appending(path: "large.txt"))
+        try Data(largeContent.utf8).write(to: sourceDir.appending(path: "large.txt"))
 
         let tarURL = tempDir.appending(path: "compressed.tar.gz")
         try Tar.tar(folder: sourceDir, toURL: tarURL)
@@ -232,7 +232,7 @@ final class TarCommandTests: XCTestCase {
         let sourceDir = tempDir.appending(path: "source")
         let subDir = sourceDir.appending(path: "level1/level2/level3")
         try FileManager.default.createDirectory(at: subDir, withIntermediateDirectories: true)
-        try "deep file".data(using: .utf8)!.write(to: subDir.appending(path: "deep.txt"))
+        try Data("deep file".utf8).write(to: subDir.appending(path: "deep.txt"))
 
         let tarURL = tempDir.appending(path: "deep.tar.gz")
         try Tar.tar(folder: sourceDir, toURL: tarURL)
@@ -253,8 +253,8 @@ final class TarCommandTests: XCTestCase {
         try FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
 
         var binaryData = Data()
-        for i: UInt8 in 0 ... 255 {
-            binaryData.append(i)
+        for byteValue: UInt8 in 0 ... 255 {
+            binaryData.append(byteValue)
         }
         try binaryData.write(to: sourceDir.appending(path: "binary.bin"))
 

@@ -184,7 +184,10 @@ final class WinVersionCodableTests: XCTestCase {
             let encoder = JSONEncoder()
             let data = try encoder.encode(version)
 
-            let string = String(data: data, encoding: .utf8)!
+            guard let string = String(data: data, encoding: .utf8) else {
+                XCTFail("Failed to convert data to string for \(version)")
+                continue
+            }
 
             XCTAssertEqual(string, "\"\(version.rawValue)\"")
         }
@@ -193,7 +196,7 @@ final class WinVersionCodableTests: XCTestCase {
     func testWinVersionJSONDecoding() throws {
         for version in WinVersion.allCases {
             let jsonString = "\"\(version.rawValue)\""
-            let data = jsonString.data(using: .utf8)!
+            let data = Data(jsonString.utf8)
 
             let decoder = JSONDecoder()
             let decoded = try decoder.decode(WinVersion.self, from: data)

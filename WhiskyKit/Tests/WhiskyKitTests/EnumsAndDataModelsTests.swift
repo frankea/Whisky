@@ -273,8 +273,8 @@ final class ProgramSettingsTests: XCTestCase {
 
     func testSettingsWithLargeEnvironment() throws {
         var settings = ProgramSettings()
-        for i in 0 ..< 50 {
-            settings.environment["KEY_\(i)"] = "VALUE_\(i)"
+        for index in 0 ..< 50 {
+            settings.environment["KEY_\(index)"] = "VALUE_\(index)"
         }
 
         let encoder = PropertyListEncoder()

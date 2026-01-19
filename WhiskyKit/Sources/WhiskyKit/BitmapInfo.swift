@@ -103,7 +103,7 @@ public struct BitmapInfoHeader: Hashable {
                     let red = sample & 0x001F
                     let green = (sample & 0x03E0) >> 5
                     let blue = (sample & 0x7C00) >> 10
-                    pixels.append(ColorQuad(
+                    pixelRow.append(ColorQuad(
                         red: UInt8(red),
                         green: UInt8(green),
                         blue: UInt8(blue),

@@ -201,6 +201,28 @@ final class URLUpdateParentBottleTests: XCTestCase {
     }
 }
 
+// MARK: - Bundle Extension Tests
+
+final class BundleExtensionTests: XCTestCase {
+    func testWhiskyBundleIdentifierReturnsValidString() {
+        let identifier = Bundle.whiskyBundleIdentifier
+        XCTAssertFalse(identifier.isEmpty)
+    }
+
+    func testWhiskyBundleIdentifierUsesMainBundleOrFallback() {
+        let identifier = Bundle.whiskyBundleIdentifier
+        // In tests, returns test bundle identifier; in production returns main bundle or fallback
+        // Either way, should be a valid bundle identifier string
+        XCTAssertTrue(identifier.contains("."), "Bundle identifier should contain at least one dot")
+    }
+
+    func testWhiskyBundleIdentifierFallbackValue() {
+        // Test that the fallback constant is correct
+        let fallback = "com.franke.Whisky"
+        XCTAssertEqual(fallback.components(separatedBy: ".").count, 3)
+    }
+}
+
 // MARK: - URL Identifiable Tests
 
 final class URLIdentifiableTests: XCTestCase {

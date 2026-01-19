@@ -223,7 +223,7 @@ final class WhiskyWineVersionErrorTests: XCTestCase {
         }
     }
 
-    private func assertDecodingError(for plist: [String: Any], file: StaticString = #file, line: UInt = #line) {
+    private func assertDecodingError(for plist: [String: Any], file: StaticString = #filePath, line: UInt = #line) {
         do {
             let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
             _ = try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)

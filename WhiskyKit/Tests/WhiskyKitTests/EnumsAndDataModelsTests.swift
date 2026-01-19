@@ -309,3 +309,72 @@ final class PEErrorTests: XCTestCase {
         XCTAssertNotEqual(error1.message, error3.message)
     }
 }
+
+// MARK: - ProcessOutput Tests
+
+final class ProcessOutputTests: XCTestCase {
+    func testProcessOutputStarted() {
+        let output = ProcessOutput.started
+        XCTAssertEqual(output, .started)
+    }
+
+    func testProcessOutputMessage() {
+        let output = ProcessOutput.message("Hello, World!")
+        if case let .message(text) = output {
+            XCTAssertEqual(text, "Hello, World!")
+        } else {
+            XCTFail("Expected .message case")
+        }
+    }
+
+    func testProcessOutputError() {
+        let output = ProcessOutput.error("An error occurred")
+        if case let .error(text) = output {
+            XCTAssertEqual(text, "An error occurred")
+        } else {
+            XCTFail("Expected .error case")
+        }
+    }
+
+    func testProcessOutputTerminated() {
+        let output = ProcessOutput.terminated(0)
+        if case let .terminated(exitCode) = output {
+            XCTAssertEqual(exitCode, 0)
+        } else {
+            XCTFail("Expected .terminated case")
+        }
+    }
+
+    func testProcessOutputTerminatedWithNonZeroCode() {
+        let output = ProcessOutput.terminated(1)
+        if case let .terminated(exitCode) = output {
+            XCTAssertEqual(exitCode, 1)
+        } else {
+            XCTFail("Expected .terminated case")
+        }
+    }
+
+    func testProcessOutputHashable() {
+        var set = Set<ProcessOutput>()
+        set.insert(.started)
+        set.insert(.message("test"))
+        set.insert(.error("error"))
+        set.insert(.terminated(0))
+
+        XCTAssertEqual(set.count, 4)
+    }
+
+    func testProcessOutputEquality() {
+        XCTAssertEqual(ProcessOutput.started, ProcessOutput.started)
+        XCTAssertEqual(ProcessOutput.message("test"), ProcessOutput.message("test"))
+        XCTAssertEqual(ProcessOutput.error("err"), ProcessOutput.error("err"))
+        XCTAssertEqual(ProcessOutput.terminated(0), ProcessOutput.terminated(0))
+
+        XCTAssertNotEqual(ProcessOutput.started, ProcessOutput.terminated(0))
+        XCTAssertNotEqual(ProcessOutput.message("a"), ProcessOutput.message("b"))
+    }
+
+    func testProcessOutputDifferentCasesNotEqual() {
+        XCTAssertNotEqual(ProcessOutput.message("test"), ProcessOutput.error("test"))
+    }
+}

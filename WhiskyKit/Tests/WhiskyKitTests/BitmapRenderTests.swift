@@ -20,7 +20,7 @@ import Foundation
 @testable import WhiskyKit
 import XCTest
 
-// MARK: - BitmapInfoHeader Tests
+// MARK: - Test Helpers
 
 /// Parameters for creating test bitmap info header data
 struct BitmapHeaderParams {
@@ -32,6 +32,49 @@ struct BitmapHeaderParams {
     var compression: UInt32 = 0
     var sizeImage: UInt32 = 0
 }
+
+func createBitmapInfoHeaderWithColorTable(
+    width: Int32,
+    height: Int32,
+    bitCount: UInt16,
+    clrUsed: UInt32
+) -> Data {
+    var data = Data()
+
+    data.append(contentsOf: withUnsafeBytes(of: UInt32(40).littleEndian) { Array($0) }) // size
+    data.append(contentsOf: withUnsafeBytes(of: width.littleEndian) { Array($0) })
+    data.append(contentsOf: withUnsafeBytes(of: height.littleEndian) { Array($0) })
+    data.append(contentsOf: withUnsafeBytes(of: UInt16(1).littleEndian) { Array($0) }) // planes
+    data.append(contentsOf: withUnsafeBytes(of: bitCount.littleEndian) { Array($0) })
+    data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) }) // compression
+    data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) }) // sizeImage
+    data.append(contentsOf: withUnsafeBytes(of: Int32(0).littleEndian) { Array($0) }) // xPelsPerMeter
+    data.append(contentsOf: withUnsafeBytes(of: Int32(0).littleEndian) { Array($0) }) // yPelsPerMeter
+    data.append(contentsOf: withUnsafeBytes(of: clrUsed.littleEndian) { Array($0) })
+    data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) }) // clrImportant
+
+    return data
+}
+
+func createBitmapInfoHeaderData(_ params: BitmapHeaderParams) -> Data {
+    var data = Data()
+
+    data.append(contentsOf: withUnsafeBytes(of: params.size.littleEndian) { Array($0) })
+    data.append(contentsOf: withUnsafeBytes(of: params.width.littleEndian) { Array($0) })
+    data.append(contentsOf: withUnsafeBytes(of: params.height.littleEndian) { Array($0) })
+    data.append(contentsOf: withUnsafeBytes(of: params.planes.littleEndian) { Array($0) })
+    data.append(contentsOf: withUnsafeBytes(of: params.bitCount.littleEndian) { Array($0) })
+    data.append(contentsOf: withUnsafeBytes(of: params.compression.littleEndian) { Array($0) })
+    data.append(contentsOf: withUnsafeBytes(of: params.sizeImage.littleEndian) { Array($0) })
+    data.append(contentsOf: withUnsafeBytes(of: Int32(0).littleEndian) { Array($0) })
+    data.append(contentsOf: withUnsafeBytes(of: Int32(0).littleEndian) { Array($0) })
+    data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) })
+    data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) })
+
+    return data
+}
+
+// MARK: - BitmapInfoHeader Parsing Tests
 
 final class BitmapInfoHeaderTests: XCTestCase {
     var tempDir: URL!
@@ -141,18 +184,28 @@ final class BitmapInfoHeaderTests: XCTestCase {
         XCTAssertEqual(header1, header2)
         XCTAssertEqual(header1.hashValue, header2.hashValue)
     }
+}
+
+// MARK: - Bitmap Rendering Tests
+
+final class BitmapRenderingTests: XCTestCase {
+    var tempDir: URL!
+
+    override func setUp() {
+        super.setUp()
+        tempDir = FileManager.default.temporaryDirectory.appending(path: "render_test_\(UUID().uuidString)")
+        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+    }
+
+    override func tearDown() {
+        try? FileManager.default.removeItem(at: tempDir)
+        super.tearDown()
+    }
 
     func testRenderBitmapSampled32() throws {
-        // Create a 2x4 bitmap (height is doubled in icon format) with sampled32 format
-        var data = createBitmapInfoHeaderWithColorTable(
-            width: 2,
-            height: 4,
-            bitCount: 32,
-            clrUsed: 0
-        )
+        var data = createBitmapInfoHeaderWithColorTable(width: 2, height: 4, bitCount: 32, clrUsed: 0)
 
-        // Add pixel data: 2x2 pixels (red, green, blue, white)
-        // BGR + Alpha format
+        // Add pixel data: 2x2 pixels (red, green, blue, white) BGR + Alpha format
         data.append(contentsOf: [0x00, 0x00, 0xFF, 0xFF]) // Red pixel (BGR)
         data.append(contentsOf: [0x00, 0xFF, 0x00, 0xFF]) // Green pixel
         data.append(contentsOf: [0xFF, 0x00, 0x00, 0xFF]) // Blue pixel
@@ -172,16 +225,9 @@ final class BitmapInfoHeaderTests: XCTestCase {
     }
 
     func testRenderBitmapSampled24() throws {
-        // Create a 2x4 bitmap with sampled24 format
-        var data = createBitmapInfoHeaderWithColorTable(
-            width: 2,
-            height: 4,
-            bitCount: 24,
-            clrUsed: 0
-        )
+        var data = createBitmapInfoHeaderWithColorTable(width: 2, height: 4, bitCount: 24, clrUsed: 0)
 
-        // Add pixel data: 2x2 pixels (red, green, blue, white)
-        // BGR format (no alpha)
+        // Add pixel data: 2x2 pixels BGR format (no alpha)
         data.append(contentsOf: [0x00, 0x00, 0xFF]) // Red pixel
         data.append(contentsOf: [0x00, 0xFF, 0x00]) // Green pixel
         data.append(contentsOf: [0xFF, 0x00, 0x00]) // Blue pixel
@@ -201,13 +247,7 @@ final class BitmapInfoHeaderTests: XCTestCase {
     }
 
     func testRenderBitmapIndexed8() throws {
-        // Create a 2x4 bitmap with indexed8 format and color table
-        var data = createBitmapInfoHeaderWithColorTable(
-            width: 2,
-            height: 4,
-            bitCount: 8,
-            clrUsed: 4
-        )
+        var data = createBitmapInfoHeaderWithColorTable(width: 2, height: 4, bitCount: 8, clrUsed: 4)
 
         // Add color table (4 colors: red, green, blue, white)
         data.append(contentsOf: [0x00, 0x00, 0xFF, 0x00]) // Index 0: Red (BGR + reserved)
@@ -234,13 +274,7 @@ final class BitmapInfoHeaderTests: XCTestCase {
     }
 
     func testRenderBitmapEmptyReturnsNil() throws {
-        // Create a 0x0 bitmap
-        let data = createBitmapInfoHeaderWithColorTable(
-            width: 0,
-            height: 0,
-            bitCount: 32,
-            clrUsed: 0
-        )
+        let data = createBitmapInfoHeaderWithColorTable(width: 0, height: 0, bitCount: 32, clrUsed: 0)
 
         let fileURL = tempDir.appending(path: "empty.bin")
         try data.write(to: fileURL)
@@ -254,16 +288,9 @@ final class BitmapInfoHeaderTests: XCTestCase {
     }
 
     func testRenderBitmapSampled16() throws {
-        // Create a 2x4 bitmap with sampled16 format
-        var data = createBitmapInfoHeaderWithColorTable(
-            width: 2,
-            height: 4,
-            bitCount: 16,
-            clrUsed: 0
-        )
+        var data = createBitmapInfoHeaderWithColorTable(width: 2, height: 4, bitCount: 16, clrUsed: 0)
 
         // Add pixel data: 2 bytes per pixel in 5-5-5 format
-        // Bits: 0BBBBBGG GGGRRRRR
         data.append(contentsOf: [0x1F, 0x00]) // Red (R=31, G=0, B=0)
         data.append(contentsOf: [0xE0, 0x03]) // Green (R=0, G=31, B=0)
         data.append(contentsOf: [0x00, 0x7C]) // Blue (R=0, G=0, B=31)
@@ -283,13 +310,7 @@ final class BitmapInfoHeaderTests: XCTestCase {
     }
 
     func testRenderBitmapIndexed8OutOfBoundsIndex() throws {
-        // Create a bitmap where pixel index exceeds color table size
-        var data = createBitmapInfoHeaderWithColorTable(
-            width: 1,
-            height: 2,
-            bitCount: 8,
-            clrUsed: 2
-        )
+        var data = createBitmapInfoHeaderWithColorTable(width: 1, height: 2, bitCount: 8, clrUsed: 2)
 
         // Add small color table (only 2 colors)
         data.append(contentsOf: [0xFF, 0x00, 0x00, 0x00]) // Index 0: Blue
@@ -311,44 +332,27 @@ final class BitmapInfoHeaderTests: XCTestCase {
         XCTAssertNotNil(image)
     }
 
-    private func createBitmapInfoHeaderWithColorTable(
-        width: Int32,
-        height: Int32,
-        bitCount: UInt16,
-        clrUsed: UInt32
-    ) -> Data {
-        var data = Data()
+    func testRenderBitmapNegativeHeight() throws {
+        var data = createBitmapInfoHeaderWithColorTable(width: 2, height: -4, bitCount: 32, clrUsed: 0)
 
-        data.append(contentsOf: withUnsafeBytes(of: UInt32(40).littleEndian) { Array($0) }) // size
-        data.append(contentsOf: withUnsafeBytes(of: width.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: height.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: UInt16(1).littleEndian) { Array($0) }) // planes
-        data.append(contentsOf: withUnsafeBytes(of: bitCount.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) }) // compression
-        data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) }) // sizeImage
-        data.append(contentsOf: withUnsafeBytes(of: Int32(0).littleEndian) { Array($0) }) // xPelsPerMeter
-        data.append(contentsOf: withUnsafeBytes(of: Int32(0).littleEndian) { Array($0) }) // yPelsPerMeter
-        data.append(contentsOf: withUnsafeBytes(of: clrUsed.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) }) // clrImportant
+        // Add pixel data: 2x2 pixels
+        data.append(contentsOf: [0x00, 0x00, 0xFF, 0xFF]) // Red pixel
+        data.append(contentsOf: [0x00, 0xFF, 0x00, 0xFF]) // Green pixel
+        data.append(contentsOf: [0xFF, 0x00, 0x00, 0xFF]) // Blue pixel
+        data.append(contentsOf: [0xFF, 0xFF, 0xFF, 0xFF]) // White pixel
 
-        return data
-    }
+        let fileURL = tempDir.appending(path: "topdown.bin")
+        try data.write(to: fileURL)
 
-    private func createBitmapInfoHeaderData(_ params: BitmapHeaderParams) -> Data {
-        var data = Data()
+        let handle = try FileHandle(forReadingFrom: fileURL)
+        defer { try? handle.close() }
 
-        data.append(contentsOf: withUnsafeBytes(of: params.size.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: params.width.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: params.height.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: params.planes.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: params.bitCount.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: params.compression.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: params.sizeImage.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: Int32(0).littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: Int32(0).littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) })
+        let header = BitmapInfoHeader(handle: handle, offset: 0)
+        XCTAssertEqual(header.height, -4)
+        XCTAssertEqual(header.originDirection, .upperLeft)
 
-        return data
+        // Should not crash with negative height
+        let image = header.renderBitmap(handle: handle, offset: 40)
+        XCTAssertNotNil(image)
     }
 }

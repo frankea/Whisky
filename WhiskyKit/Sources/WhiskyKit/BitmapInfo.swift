@@ -73,7 +73,8 @@ public struct BitmapInfoHeader: Hashable {
 
         // Handle bitfields later if necessary
 
-        for _ in 0 ..< Int(height / 2) {
+        let actualHeight = abs(height)
+        for _ in 0 ..< Int(actualHeight / 2) {
             var pixelRow: [ColorQuad] = []
 
             for _ in 0 ..< width {
@@ -188,7 +189,7 @@ public struct BitmapInfoHeader: Hashable {
             ) as CFData) {
                 if let cgImg = CGImage(
                     width: Int(width),
-                    height: Int(height / 2),
+                    height: Int(abs(height) / 2),
                     bitsPerComponent: 8,
                     bitsPerPixel: 32,
                     bytesPerRow: Int(width) * quadStride,

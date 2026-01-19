@@ -306,6 +306,10 @@ extension Bottle {
                 .updateParentBottle(old: sourceURL, new: newBottleDir)
         }
 
+        // Explicitly save settings to ensure all modifications are persisted
+        // (modifying nested struct properties may not always trigger didSet)
+        newBottle.saveBottleSettings()
+
         // Register the new bottle
         BottleVM.shared.bottlesList.paths.append(newBottleDir)
         BottleVM.shared.loadBottles()

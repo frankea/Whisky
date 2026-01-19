@@ -31,7 +31,10 @@ struct SettingsView: View {
             Section("settings.general") {
                 Toggle("settings.toggle.kill.on.terminate", isOn: $killOnTerminate)
                 Picker("settings.terminal", selection: $preferredTerminal) {
-                    ForEach(TerminalApp.installedTerminals) { terminal in
+                    // installedTerminals should always include Terminal.app on macOS,
+                    // but fall back to showing just Terminal if somehow empty
+                    let terminals = TerminalApp.installedTerminals
+                    ForEach(terminals.isEmpty ? [.terminal] : terminals) { terminal in
                         Text(terminal.displayName).tag(terminal.rawValue)
                     }
                 }

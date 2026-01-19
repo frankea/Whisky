@@ -134,44 +134,39 @@ jobs:
         id: coverage
         run: |
           cd WhiskyKit
-          
-          # Debug: Show what's in the build directory
-          echo "=== Contents of .build/debug ==="
-          ls -la .build/debug/ || echo "No .build/debug directory"
-          
-          echo "=== Looking for test executables ==="
-          find .build/debug -type f -perm +111 -name "*Tests*" 2>/dev/null || echo "No test executables found"
-          
+
+          # Debug: Show build directory structure
+          echo "=== Build directory structure ==="
+          find .build -type d -name "debug" 2>/dev/null | head -5
+
+          echo "=== Looking for xctest bundles ==="
+          find .build -name "*.xctest" -type d 2>/dev/null
+
           echo "=== Looking for profdata files ==="
-          find .build -name "*.profdata" 2>/dev/null || echo "No profdata files found"
-          
-          # For Swift Package Manager, the test binary is directly in .build/debug
-          # Try multiple possible locations
+          find .build -name "*.profdata" 2>/dev/null
+
+          # Find the test binary - search entire .build directory for architecture-specific paths
           TEST_BINARY=""
-          
-          # Check for SPM test binary (format: PackageNamePackageTests.xctest/Contents/MacOS/PackageNamePackageTests)
-          XCTEST_BUNDLE=$(find .build/debug -name "*.xctest" -type d 2>/dev/null | head -1)
+
+          # Check for SPM test binary in xctest bundle (searches all architectures)
+          XCTEST_BUNDLE=$(find .build -path "*debug*" -name "WhiskyKitPackageTests.xctest" -type d 2>/dev/null | head -1)
           if [ -n "$XCTEST_BUNDLE" ]; then
             BUNDLE_NAME=$(basename "$XCTEST_BUNDLE" .xctest)
             TEST_BINARY="$XCTEST_BUNDLE/Contents/MacOS/$BUNDLE_NAME"
-            echo "=== Found xctest bundle, trying: $TEST_BINARY ==="
+            echo "=== Found xctest bundle: $XCTEST_BUNDLE ==="
+            echo "=== Test binary path: $TEST_BINARY ==="
           fi
-          
-          # If not found, try direct executable (older SPM format)
+
+          # Verify the binary exists
           if [ ! -f "$TEST_BINARY" ]; then
-            TEST_BINARY=$(find .build/debug -type f -perm +111 -name "WhiskyKitPackageTests" 2>/dev/null | head -1)
-            echo "=== Trying direct executable: $TEST_BINARY ==="
+            echo "=== Binary not in bundle, searching for standalone executable ==="
+            TEST_BINARY=$(find .build -path "*debug*" -type f -name "WhiskyKitPackageTests" -perm +111 2>/dev/null | head -1)
+            echo "=== Found: $TEST_BINARY ==="
           fi
-          
-          # If still not found, try any test executable
-          if [ ! -f "$TEST_BINARY" ]; then
-            TEST_BINARY=$(find .build/debug -type f -perm +111 -name "*PackageTests*" ! -name "*.o" 2>/dev/null | head -1)
-            echo "=== Trying any PackageTests executable: $TEST_BINARY ==="
-          fi
-          
+
           if [ -f "$TEST_BINARY" ]; then
-            echo "=== Found test binary: $TEST_BINARY ==="
-            
+            echo "=== Using test binary: $TEST_BINARY ==="
+
             PROFDATA=$(find .build -name "default.profdata" 2>/dev/null | head -1)
             if [ -n "$PROFDATA" ]; then
               echo "=== Using profdata: $PROFDATA ==="
@@ -179,7 +174,7 @@ jobs:
                 "$TEST_BINARY" \
                 -instr-profile="$PROFDATA" \
                 -format=lcov > coverage.lcov
-              
+
               # Verify the coverage file was created and has content
               if [ -s coverage.lcov ]; then
                 echo "✅ Coverage report generated successfully"
@@ -195,8 +190,8 @@ jobs:
             fi
           else
             echo "❌ Warning: Could not find test binary"
-            echo "=== Listing all executables in .build/debug ==="
-            find .build/debug -type f -perm +111 2>/dev/null | head -20
+            echo "=== Listing all executables in .build ==="
+            find .build -path "*debug*" -type f -perm +111 2>/dev/null | grep -i test | head -20
           fi
       
       - name: Upload coverage reports to Codecov

@@ -49,9 +49,7 @@ ignore:
   - "**/Preview Content/**"
 
 # Path fixes for CI environment
-# Maps paths from CI build environment to repository paths
-fixes:
-  - "::WhiskyKit/"
+# Not needed - coverage report already contains correct relative paths
 
 # Component definitions for better reporting
 component_management:

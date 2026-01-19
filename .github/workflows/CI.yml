@@ -170,17 +170,31 @@ jobs:
             PROFDATA=$(find .build -name "default.profdata" 2>/dev/null | head -1)
             if [ -n "$PROFDATA" ]; then
               echo "=== Using profdata: $PROFDATA ==="
+
+              # Get the absolute path to WhiskyKit for path mapping
+              WHISKYKIT_PATH="$(pwd)"
+              echo "=== WhiskyKit path: $WHISKYKIT_PATH ==="
+
+              # Generate coverage, filtering out build artifacts and dependencies
               xcrun llvm-cov export \
                 "$TEST_BINARY" \
                 -instr-profile="$PROFDATA" \
-                -format=lcov > coverage.lcov
+                -format=lcov \
+                --ignore-filename-regex='\.build/' > coverage.raw.lcov
+
+              # Convert absolute paths to relative paths for Codecov
+              # Maps /Users/runner/work/Whisky/Whisky/WhiskyKit/Sources/... -> WhiskyKit/Sources/...
+              sed "s|${WHISKYKIT_PATH}/|WhiskyKit/|g" coverage.raw.lcov > coverage.lcov
+              rm coverage.raw.lcov
 
               # Verify the coverage file was created and has content
               if [ -s coverage.lcov ]; then
                 echo "✅ Coverage report generated successfully"
                 echo "=== Coverage file size: $(wc -c < coverage.lcov) bytes ==="
-                echo "=== First 20 lines of coverage.lcov ==="
-                head -20 coverage.lcov
+                echo "=== First 30 lines of coverage.lcov ==="
+                head -30 coverage.lcov
+                echo "=== Unique source file paths ==="
+                grep "^SF:" coverage.lcov | head -10
                 echo "has_coverage=true" >> $GITHUB_OUTPUT
               else
                 echo "❌ Coverage file is empty"

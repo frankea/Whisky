@@ -70,8 +70,8 @@ public actor IconCache {
     ///   - url: The URL of the PE executable file.
     ///   - peFile: An optional pre-parsed PE file. If not provided, the file will be parsed.
     /// - Returns: The extracted icon, or `nil` if extraction fails.
-    public nonisolated func iconAsync(for url: URL, peFile: PEFile? = nil) async -> NSImage? {
-        await icon(for: url, peFile: peFile)
+    public func iconAsync(for url: URL, peFile: PEFile? = nil) -> NSImage? {
+        icon(for: url, peFile: peFile)
     }
 
     /// Removes a specific icon from the cache.

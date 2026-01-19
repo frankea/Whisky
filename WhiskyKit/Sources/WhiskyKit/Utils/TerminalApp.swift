@@ -20,6 +20,16 @@ import AppKit
 import Foundation
 
 /// Supported terminal applications for running Wine commands.
+///
+/// This enum provides AppleScript generation for launching shell scripts in different
+/// terminal applications. Use ``generateAppleScript(for:)`` to execute a script file.
+///
+/// ## Terminal Support Notes
+///
+/// - **Terminal.app**: Full AppleScript support via `do script`
+/// - **iTerm2**: Full AppleScript support via `write text`
+/// - **Warp**: Limited AppleScript support; uses `open -a Warp` to launch script files.
+///   Warp executes `.sh` files when opened if they have executable permissions.
 public enum TerminalApp: String, CaseIterable, Identifiable {
     case terminal
     case iterm
@@ -104,8 +114,9 @@ public enum TerminalApp: String, CaseIterable, Identifiable {
             """
 
         case .warp:
-            // Warp doesn't support traditional AppleScript commands well,
-            // so we open the script directly with the app
+            // Warp doesn't support AppleScript's `do script` or `write text` commands.
+            // Instead, we use `open -a Warp` with the script file, which Warp will execute
+            // if the file has executable permissions (.sh extension and chmod +x).
             return """
             tell application "Warp"
                 activate
@@ -117,11 +128,17 @@ public enum TerminalApp: String, CaseIterable, Identifiable {
 
     /// Generates an AppleScript to run a command directly in a terminal window.
     ///
+    /// - Note: This method is deprecated. Prefer writing commands to a temporary script file
+    ///   and using ``generateAppleScript(for:)`` instead, which provides consistent behavior
+    ///   across all terminal applications and proper temp file cleanup.
+    ///
     /// For Warp, this method creates a temporary script file since Warp doesn't support
-    /// AppleScript's `do script` command well.
+    /// AppleScript's `do script` command. However, the temp file is never cleaned up when
+    /// using this method directly.
     ///
     /// - Parameter command: The shell command to execute.
     /// - Returns: The AppleScript source code, or `nil` if script file creation failed (Warp only).
+    @available(*, deprecated, message: "Use generateAppleScript(for:) with a temp script file instead")
     public func generateDirectCommandScript(command: String) -> String? {
         switch self {
         case .terminal:

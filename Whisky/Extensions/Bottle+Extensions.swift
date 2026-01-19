@@ -62,18 +62,32 @@ extension Bottle {
     func openTerminal() {
         guard let whiskyCmdURL = Bundle.main.url(forResource: "WhiskyCmd", withExtension: nil) else { return }
 
+        // Build a shell command that sources the WhiskyCmd environment
         // Use .esc to escape shell metacharacters and prevent command injection
-        let cmd = "eval \\\"$(\\\"\(whiskyCmdURL.esc)\\\" shellenv \\\"\(settings.name.esc)\\\")\\\""
+        let command = "eval \"$(\"\(whiskyCmdURL.esc)\" shellenv \"\(settings.name.esc)\")\""
+        let scriptContent = "#!/bin/bash\n\(command)\n"
 
-        let terminal = TerminalApp.preferred
-        guard let script = terminal.generateDirectCommandScript(command: cmd) else {
-            Logger.wineKit.error("Failed to generate terminal script for \(terminal.displayName)")
+        // Write to temp script file to handle all terminal apps consistently
+        let tempDir = FileManager.default.temporaryDirectory
+        let scriptURL = tempDir.appendingPathComponent("whisky-env-\(UUID().uuidString).sh")
+
+        do {
+            try scriptContent.write(to: scriptURL, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes(
+                [.posixPermissions: 0o755],
+                ofItemAtPath: scriptURL.path
+            )
+        } catch {
+            Logger.wineKit.error("Failed to write terminal script: \(error)")
             return
         }
 
+        let terminal = TerminalApp.preferred
+        let appleScriptSource = terminal.generateAppleScript(for: scriptURL.path)
+
         Task.detached(priority: .userInitiated) {
             var error: NSDictionary?
-            guard let appleScript = NSAppleScript(source: script) else { return }
+            guard let appleScript = NSAppleScript(source: appleScriptSource) else { return }
             appleScript.executeAndReturnError(&error)
 
             if let error {
@@ -81,6 +95,10 @@ extension Bottle {
                 guard let description = error["NSAppleScriptErrorMessage"] as? String else { return }
                 await self.showRunError(message: String(describing: description))
             }
+
+            // Clean up temp script after a delay to ensure the terminal has read it
+            try? await Task.sleep(for: .seconds(5))
+            try? FileManager.default.removeItem(at: scriptURL)
         }
     }
 

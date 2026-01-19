@@ -166,11 +166,22 @@ extension Whisky {
     }
 
     struct Run: AsyncParsableCommand {
-        static let configuration = CommandConfiguration(abstract: "Run a program with Whisky.")
+        static let configuration = CommandConfiguration(
+            abstract: "Run a program with Whisky.",
+            discussion: "Runs a Windows program directly using Wine. Use --command to print the command instead."
+        )
 
-        @Argument var bottleName: String
-        @Argument var path: String
-        @Argument var args: [String] = []
+        @Argument(help: "Name of the bottle to use")
+        var bottleName: String
+
+        @Argument(help: "Path to the Windows executable")
+        var path: String
+
+        @Argument(help: "Additional arguments to pass to the program")
+        var args: [String] = []
+
+        @Flag(name: .shortAndLong, help: "Print the Wine command instead of running it")
+        var command: Bool = false
 
         @MainActor
         mutating func run() async throws {
@@ -182,8 +193,15 @@ extension Whisky {
             }
 
             let url = URL(fileURLWithPath: path)
-            let program = Program(url: url, bottle: bottle)
-            program.runInTerminal()
+
+            if command {
+                // Print the command for manual execution or scripting
+                let program = Program(url: url, bottle: bottle)
+                print(program.generateTerminalCommand())
+            } else {
+                // Run directly via Wine
+                try await Wine.runProgram(at: url, args: args, bottle: bottle)
+            }
         }
     }
 

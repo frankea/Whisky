@@ -32,6 +32,9 @@ struct WineConfigSection: View {
     @Binding var retinaModeLoadingState: LoadingState
     @Binding var dpiConfigLoadingState: LoadingState
     @Binding var dpiSheetPresented: Bool
+    var onRetryBuildVersion: (() -> Void)?
+    var onRetryRetinaMode: (() -> Void)?
+    var onRetryDpi: (() -> Void)?
 
     var body: some View {
         Section("config.title.wine", isExpanded: $isExpanded) {
@@ -42,7 +45,11 @@ struct WineConfigSection: View {
                     }
                 }
             }
-            SettingItemView(title: "config.buildVersion", loadingState: buildVersionLoadingState) {
+            SettingItemView(
+                title: "config.buildVersion",
+                loadingState: buildVersionLoadingState,
+                onRetry: onRetryBuildVersion
+            ) {
                 TextField("config.buildVersion", value: $buildVersion, formatter: NumberFormatter())
                     .multilineTextAlignment(.trailing)
                     .textFieldStyle(PlainTextFieldStyle())
@@ -59,7 +66,11 @@ struct WineConfigSection: View {
                         }
                     }
             }
-            SettingItemView(title: "config.retinaMode", loadingState: retinaModeLoadingState) {
+            SettingItemView(
+                title: "config.retinaMode",
+                loadingState: retinaModeLoadingState,
+                onRetry: onRetryRetinaMode
+            ) {
                 Toggle("config.retinaMode", isOn: $retinaMode)
                     .onChange(of: retinaMode) { _, newValue in
                         Task(priority: .userInitiated) {
@@ -79,7 +90,11 @@ struct WineConfigSection: View {
                 Text("config.enhancedSync.esync").tag(EnhancedSync.esync)
                 Text("config.enhancedSync.msync").tag(EnhancedSync.msync)
             }
-            SettingItemView(title: "config.dpi", loadingState: dpiConfigLoadingState) {
+            SettingItemView(
+                title: "config.dpi",
+                loadingState: dpiConfigLoadingState,
+                onRetry: onRetryDpi
+            ) {
                 Button("config.inspect") {
                     dpiSheetPresented = true
                 }

@@ -68,7 +68,10 @@ struct ConfigView: View {
                 buildVersionLoadingState: $buildVersionLoadingState,
                 retinaModeLoadingState: $retinaModeLoadingState,
                 dpiConfigLoadingState: $dpiConfigLoadingState,
-                dpiSheetPresented: $dpiSheetPresented
+                dpiSheetPresented: $dpiSheetPresented,
+                onRetryBuildVersion: loadBuildName,
+                onRetryRetinaMode: loadRetinaMode,
+                onRetryDpi: loadDpi
             )
             LauncherConfigSection(bottle: bottle, isExpanded: $launcherSectionExpanded)
             InputConfigSection(bottle: bottle, isExpanded: $inputSectionExpanded)
@@ -188,26 +191,8 @@ struct ConfigView: View {
             winVersionLoadingState = .success
 
             loadBuildName()
-
-            Task(priority: .userInitiated) {
-                do {
-                    retinaMode = try await Wine.retinaMode(bottle: bottle)
-                    retinaModeLoadingState = .success
-                } catch {
-                    logger.error("Failed to get retina mode: \(error.localizedDescription)")
-                    retinaModeLoadingState = .failed
-                }
-            }
-            Task(priority: .userInitiated) {
-                do {
-                    dpiConfig = try await Wine.dpiResolution(bottle: bottle) ?? 0
-                    dpiConfigLoadingState = .success
-                } catch {
-                    logger.debug("DPI resolution not set in registry: \(error.localizedDescription)")
-                    // If DPI has not yet been edited, there will be no registry entry
-                    dpiConfigLoadingState = .success
-                }
-            }
+            loadRetinaMode()
+            loadDpi()
         }
         .onChange(of: bottle.settings.windowsVersion) { _, newValue in
             if winVersionLoadingState == .success {
@@ -243,6 +228,7 @@ struct ConfigView: View {
     }
 
     func loadBuildName() {
+        buildVersionLoadingState = .loading
         Task(priority: .userInitiated) {
             do {
                 if let buildVersionString = try await Wine.buildVersion(bottle: bottle) {
@@ -255,6 +241,33 @@ struct ConfigView: View {
             } catch {
                 logger.error("Failed to load build version: \(error.localizedDescription)")
                 buildVersionLoadingState = .failed
+            }
+        }
+    }
+
+    func loadRetinaMode() {
+        retinaModeLoadingState = .loading
+        Task(priority: .userInitiated) {
+            do {
+                retinaMode = try await Wine.retinaMode(bottle: bottle)
+                retinaModeLoadingState = .success
+            } catch {
+                logger.error("Failed to get retina mode: \(error.localizedDescription)")
+                retinaModeLoadingState = .failed
+            }
+        }
+    }
+
+    func loadDpi() {
+        dpiConfigLoadingState = .loading
+        Task(priority: .userInitiated) {
+            do {
+                dpiConfig = try await Wine.dpiResolution(bottle: bottle) ?? 0
+                dpiConfigLoadingState = .success
+            } catch {
+                logger.debug("DPI resolution not set in registry: \(error.localizedDescription)")
+                // If DPI has not yet been edited, there will be no registry entry
+                dpiConfigLoadingState = .success
             }
         }
     }

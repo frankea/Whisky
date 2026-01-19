@@ -6716,6 +6716,16 @@
         }
       }
     },
+    "config.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        }
+      }
+    },
     "config.retinaMode": {
       "localizations": {
         "ar": {

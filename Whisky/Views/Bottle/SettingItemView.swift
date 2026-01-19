@@ -18,7 +18,7 @@
 
 import SwiftUI
 
-enum LoadingState {
+enum LoadingState: Equatable {
     case loading
     case modifying
     case success
@@ -28,6 +28,7 @@ enum LoadingState {
 struct SettingItemView<Content: View>: View {
     let title: String.LocalizationValue
     let loadingState: LoadingState
+    var onRetry: (() -> Void)?
     @ViewBuilder var content: () -> Content
 
     @Namespace private var viewId
@@ -51,9 +52,19 @@ struct SettingItemView<Content: View>: View {
                         .labelsHidden()
                         .disabled(loadingState != .success)
                 case .failed:
-                    Text("config.notAvailable")
-                        .font(.caption).foregroundStyle(.red)
-                        .multilineTextAlignment(.trailing)
+                    HStack(spacing: 4) {
+                        Text("config.notAvailable")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        if let onRetry {
+                            Button(action: onRetry) {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.caption)
+                            }
+                            .buttonStyle(.borderless)
+                            .help("config.retry")
+                        }
+                    }
                 }
             }.animation(.default, value: loadingState)
         }

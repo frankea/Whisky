@@ -193,14 +193,17 @@ extension Whisky {
             }
 
             let url = URL(fileURLWithPath: path)
+            let program = Program(url: url, bottle: bottle)
 
             if command {
                 // Print the command for manual execution or scripting
-                let program = Program(url: url, bottle: bottle)
-                print(program.generateTerminalCommand())
+                // Join CLI args into a single string for the command generator
+                let argsString = args.isEmpty ? nil : args.joined(separator: " ")
+                print(program.generateTerminalCommand(args: argsString))
             } else {
-                // Run directly via Wine
-                try await Wine.runProgram(at: url, args: args, bottle: bottle)
+                // Run directly via Wine, applying program-specific environment and locale
+                let environment = program.generateEnvironment()
+                try await Wine.runProgram(at: url, args: args, bottle: bottle, environment: environment)
             }
         }
     }

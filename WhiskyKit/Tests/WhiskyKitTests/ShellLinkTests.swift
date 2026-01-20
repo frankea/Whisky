@@ -181,8 +181,10 @@ final class LinkInfoTests: XCTestCase {
 
         // If header size >= 0x24, add Unicode offsets
         if headerSize >= 0x24 {
-            data.append(contentsOf: withUnsafeBytes(of: (localBasePathOffsetUnicode ?? 0).littleEndian) { Array($0) })
-            data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) }) // commonPathSuffixUnicode
+            let unicodeOffset = (localBasePathOffsetUnicode ?? 0).littleEndian
+            data.append(contentsOf: withUnsafeBytes(of: unicodeOffset) { Array($0) })
+            // commonPathSuffixUnicode
+            data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) })
         }
 
         // Pad to header size
@@ -191,7 +193,7 @@ final class LinkInfoTests: XCTestCase {
         }
 
         // Add path data if provided
-        if let pathData = pathData {
+        if let pathData {
             data.append(pathData)
         }
 

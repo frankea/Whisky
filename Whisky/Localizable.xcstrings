@@ -6057,6 +6057,66 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
+            "value": "Metal HUD"
+          }
+        }
+      }
+    },
+    "clipboard.warning.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Large Clipboard Content Detected"
+          }
+        }
+      }
+    },
+    "clipboard.warning.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your clipboard contains %@ of data, which may cause freezes when launching multiplayer games. Clear the clipboard to prevent potential issues?"
+          }
+        }
+      }
+    },
+    "clipboard.warning.clear": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear Clipboard"
+          }
+        }
+      }
+    },
+    "clipboard.warning.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Launch Anyway"
+          }
+        }
+      }
+    },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Metal HUD"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Metal HUD"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
             "value": "Metal 抬頭顯示"
           }
         }

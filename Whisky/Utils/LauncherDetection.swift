@@ -54,6 +54,87 @@ private let detectionLogger = Logger(
 ///     LauncherDetection.applyLauncherFixes(for: bottle, launcher: launcher)
 /// }
 /// ```
+/// Types of game launchers that can be auto-detected.
+public enum LauncherType: String, CaseIterable {
+    case steam
+    case rockstar
+    case eaApp
+    case epicGames
+    case ubisoft
+    case battleNet
+    case paradox
+
+    /// Display name for the launcher.
+    public var displayName: String {
+        switch self {
+        case .steam:
+            return String(localized: "launcher.steam")
+        case .rockstar:
+            return String(localized: "launcher.rockstar")
+        case .eaApp:
+            return String(localized: "launcher.eaapp")
+        case .epicGames:
+            return String(localized: "launcher.epicgames")
+        case .ubisoft:
+            return String(localized: "launcher.ubisoft")
+        case .battleNet:
+            return String(localized: "launcher.battlenet")
+        case .paradox:
+            return String(localized: "launcher.paradox")
+        }
+    }
+
+    /// Whether this launcher is known to use the clipboard for multiplayer features.
+    public var usesClipboard: Bool {
+        switch self {
+        case .steam, .epicGames, .battleNet:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Recommended locale for this launcher.
+    public var recommendedLocale: Locale {
+        switch self {
+        case .steam, .eaApp, .epicGames, .battleNet:
+            return .english
+        default:
+            return .auto
+        }
+    }
+
+    /// Whether this launcher requires DXVK for proper operation.
+    public var requiresDXVK: Bool {
+        switch self {
+        case .rockstar, .ubisoft:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Description of fixes applied by this launcher.
+    public var fixesDescription: String {
+        switch self {
+        case .steam:
+            return String(localized: "launcher.fixes.steam")
+        case .rockstar:
+            return String(localized: "launcher.fixes.rockstar")
+        case .eaApp:
+            return String(localized: "launcher.fixes.eaapp")
+        case .epicGames:
+            return String(localized: "launcher.fixes.epicgames")
+        case .ubisoft:
+            return String(localized: "launcher.fixes.ubisoft")
+        case .battleNet:
+            return String(localized: "launcher.fixes.battlenet")
+        case .paradox:
+            return String(localized: "launcher.fixes.paradox")
+        }
+    }
+}
+
 enum LauncherDetection {
     /// Detects and applies launcher fixes if compatibility mode is enabled.
     ///

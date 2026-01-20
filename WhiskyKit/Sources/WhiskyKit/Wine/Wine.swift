@@ -171,16 +171,16 @@ public class Wine {
     /// - Throws: An error if the process cannot be started.
     @MainActor
     public static func runWineProcess(
-        name: String? = nil, args: [String], bottle: Bottle, environment: [String: String] = [:]
+        name: String? = nil, args: [String], bottle: Bottle, environment: [String: String] = [:],
+        programName: String? = nil
     ) throws -> AsyncStream<ProcessOutput> {
         let fileHandle = try makeFileHandle()
         fileHandle.writeApplicationInfo()
         fileHandle.writeInfo(for: bottle)
 
-        return try runWineProcess(
-            name: name, args: args,
-            environment: constructWineEnvironment(for: bottle, environment: environment),
-            fileHandle: fileHandle
+        return try runProcess(
+            name: name, args: args, environment: environment, executableURL: wineBinary,
+            fileHandle: fileHandle, bottle: bottle, programName: programName
         )
     }
 
@@ -198,16 +198,16 @@ public class Wine {
     /// - Throws: An error if the process cannot be started.
     @MainActor
     public static func runWineserverProcess(
-        name: String? = nil, args: [String], bottle: Bottle, environment: [String: String] = [:]
+        name: String? = nil, args: [String], bottle: Bottle, environment: [String: String] = [:],
+        programName: String? = nil
     ) throws -> AsyncStream<ProcessOutput> {
         let fileHandle = try makeFileHandle()
         fileHandle.writeApplicationInfo()
         fileHandle.writeInfo(for: bottle)
 
-        return try runWineserverProcess(
-            name: name, args: args,
-            environment: constructWineServerEnvironment(for: bottle, environment: environment),
-            fileHandle: fileHandle
+        return try runProcess(
+            name: name, args: args, environment: environment, executableURL: wineserverBinary,
+            fileHandle: fileHandle, bottle: bottle, programName: programName
         )
     }
 
@@ -278,7 +278,8 @@ public class Wine {
         for await _ in try runWineProcess(
             name: url.lastPathComponent,
             args: ["start", "/unix", url.path(percentEncoded: false)] + args,
-            bottle: bottle, environment: environment
+            bottle: bottle, environment: environment,
+            programName: url.lastPathComponent
         ) {}
     }
 

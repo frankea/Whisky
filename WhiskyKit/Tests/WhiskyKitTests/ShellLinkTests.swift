@@ -131,3 +131,225 @@ final class ShellLinkHeaderTests: XCTestCase {
         XCTAssertTrue(flags.contains(.hasIconLocation))
     }
 }
+
+// MARK: - LinkInfo Tests
+
+final class LinkInfoTests: XCTestCase {
+    var tempDir: URL!
+    var bottleURL: URL!
+
+    override func setUp() {
+        super.setUp()
+        tempDir = FileManager.default.temporaryDirectory.appending(path: "linkinfo_\(UUID().uuidString)")
+        bottleURL = tempDir.appending(path: "TestBottle")
+        try? FileManager.default.createDirectory(at: bottleURL, withIntermediateDirectories: true)
+        // Create drive_c directory that LinkInfo expects
+        let driveCURL = bottleURL.appending(path: "drive_c")
+        try? FileManager.default.createDirectory(at: driveCURL, withIntermediateDirectories: true)
+    }
+
+    override func tearDown() {
+        try? FileManager.default.removeItem(at: tempDir)
+        super.tearDown()
+    }
+
+    /// Creates LinkInfo section binary data for testing
+    func createLinkInfoData(
+        linkInfoSize: UInt32,
+        headerSize: UInt32,
+        flags: UInt32,
+        localBasePathOffset: UInt32,
+        localBasePathOffsetUnicode: UInt32? = nil,
+        pathData: Data? = nil
+    ) -> Data {
+        var data = Data()
+
+        // LinkInfoSize
+        data.append(contentsOf: withUnsafeBytes(of: linkInfoSize.littleEndian) { Array($0) })
+        // LinkInfoHeaderSize
+        data.append(contentsOf: withUnsafeBytes(of: headerSize.littleEndian) { Array($0) })
+        // LinkInfoFlags
+        data.append(contentsOf: withUnsafeBytes(of: flags.littleEndian) { Array($0) })
+        // VolumeIDOffset (not used in our tests)
+        data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) })
+        // LocalBasePathOffset
+        data.append(contentsOf: withUnsafeBytes(of: localBasePathOffset.littleEndian) { Array($0) })
+        // CommonNetworkRelativeLinkOffset
+        data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) })
+        // CommonPathSuffixOffset
+        data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) })
+
+        // If header size >= 0x24, add Unicode offsets
+        if headerSize >= 0x24 {
+            data.append(contentsOf: withUnsafeBytes(of: (localBasePathOffsetUnicode ?? 0).littleEndian) { Array($0) })
+            data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) }) // commonPathSuffixUnicode
+        }
+
+        // Pad to header size
+        while data.count < Int(headerSize) {
+            data.append(0)
+        }
+
+        // Add path data if provided
+        if let pathData = pathData {
+            data.append(pathData)
+        }
+
+        return data
+    }
+
+    @MainActor
+    func testLinkInfoWithNoVolumeIDFlag() throws {
+        // Create LinkInfo data with no volumeIDAndLocalBasePath flag
+        let linkInfoData = createLinkInfoData(
+            linkInfoSize: 28,
+            headerSize: 28,
+            flags: 0, // No flags
+            localBasePathOffset: 0
+        )
+
+        let fileURL = tempDir.appending(path: "novolume.bin")
+        try linkInfoData.write(to: fileURL)
+
+        let handle = try FileHandle(forReadingFrom: fileURL)
+        defer { try? handle.close() }
+
+        let bottle = Bottle(bottleUrl: bottleURL)
+        var offset: UInt64 = 0
+
+        let linkInfo = LinkInfo(handle: handle, bottle: bottle, offset: &offset)
+
+        XCTAssertFalse(linkInfo.linkInfoFlags.contains(.volumeIDAndLocalBasePath))
+        XCTAssertNil(linkInfo.program)
+        XCTAssertEqual(offset, 28) // Should advance by linkInfoSize
+    }
+
+    @MainActor
+    func testLinkInfoWithVolumeIDFlagSmallHeader() throws {
+        // Create a path string in Windows CP1254 encoding
+        let windowsPath = "C:\\Program Files\\test.exe"
+        var pathData = windowsPath.data(using: .windowsCP1254) ?? Data()
+        pathData.append(0) // Null terminator
+
+        // LocalBasePathOffset points to where path data starts (after header)
+        let headerSize: UInt32 = 28
+        let localBasePathOffset: UInt32 = headerSize
+        let linkInfoSize: UInt32 = headerSize + UInt32(pathData.count)
+
+        let linkInfoData = createLinkInfoData(
+            linkInfoSize: linkInfoSize,
+            headerSize: headerSize,
+            flags: 0x01, // volumeIDAndLocalBasePath
+            localBasePathOffset: localBasePathOffset,
+            pathData: pathData
+        )
+
+        let fileURL = tempDir.appending(path: "smallheader.bin")
+        try linkInfoData.write(to: fileURL)
+
+        let handle = try FileHandle(forReadingFrom: fileURL)
+        defer { try? handle.close() }
+
+        let bottle = Bottle(bottleUrl: bottleURL)
+        var offset: UInt64 = 0
+
+        let linkInfo = LinkInfo(handle: handle, bottle: bottle, offset: &offset)
+
+        XCTAssertTrue(linkInfo.linkInfoFlags.contains(.volumeIDAndLocalBasePath))
+        // Program may or may not exist depending on whether the path is valid
+        XCTAssertEqual(offset, UInt64(linkInfoSize))
+    }
+
+    @MainActor
+    func testLinkInfoWithVolumeIDFlagLargeHeader() throws {
+        // Create a path string in UTF-16 encoding for Unicode path
+        let windowsPath = "C:\\Program Files\\test.exe"
+        var pathData = windowsPath.data(using: .utf16LittleEndian) ?? Data()
+        pathData.append(contentsOf: [0, 0]) // Null terminator (2 bytes for UTF-16)
+
+        // Large header (>= 0x24) uses Unicode path offset
+        let headerSize: UInt32 = 0x24
+        let localBasePathOffsetUnicode: UInt32 = headerSize
+        let linkInfoSize: UInt32 = headerSize + UInt32(pathData.count)
+
+        let linkInfoData = createLinkInfoData(
+            linkInfoSize: linkInfoSize,
+            headerSize: headerSize,
+            flags: 0x01, // volumeIDAndLocalBasePath
+            localBasePathOffset: 0,
+            localBasePathOffsetUnicode: localBasePathOffsetUnicode,
+            pathData: pathData
+        )
+
+        let fileURL = tempDir.appending(path: "largeheader.bin")
+        try linkInfoData.write(to: fileURL)
+
+        let handle = try FileHandle(forReadingFrom: fileURL)
+        defer { try? handle.close() }
+
+        let bottle = Bottle(bottleUrl: bottleURL)
+        var offset: UInt64 = 0
+
+        let linkInfo = LinkInfo(handle: handle, bottle: bottle, offset: &offset)
+
+        XCTAssertTrue(linkInfo.linkInfoFlags.contains(.volumeIDAndLocalBasePath))
+        XCTAssertEqual(offset, UInt64(linkInfoSize))
+    }
+
+    @MainActor
+    func testLinkInfoOffsetAdvancement() throws {
+        // Test that offset is correctly advanced by linkInfoSize
+        let linkInfoSize: UInt32 = 100
+        let linkInfoData = createLinkInfoData(
+            linkInfoSize: linkInfoSize,
+            headerSize: 28,
+            flags: 0,
+            localBasePathOffset: 0
+        )
+
+        // Pad to reach linkInfoSize
+        var paddedData = linkInfoData
+        while paddedData.count < Int(linkInfoSize) {
+            paddedData.append(0)
+        }
+
+        let fileURL = tempDir.appending(path: "offset.bin")
+        try paddedData.write(to: fileURL)
+
+        let handle = try FileHandle(forReadingFrom: fileURL)
+        defer { try? handle.close() }
+
+        let bottle = Bottle(bottleUrl: bottleURL)
+        var offset: UInt64 = 0
+
+        _ = LinkInfo(handle: handle, bottle: bottle, offset: &offset)
+
+        XCTAssertEqual(offset, UInt64(linkInfoSize))
+    }
+
+    @MainActor
+    func testLinkInfoWithCommonNetworkFlag() throws {
+        // Test with commonNetworkRelativeLinkAndPathSuffix flag (bit 1)
+        let linkInfoData = createLinkInfoData(
+            linkInfoSize: 28,
+            headerSize: 28,
+            flags: 0x02, // commonNetworkRelativeLinkAndPathSuffix only
+            localBasePathOffset: 0
+        )
+
+        let fileURL = tempDir.appending(path: "network.bin")
+        try linkInfoData.write(to: fileURL)
+
+        let handle = try FileHandle(forReadingFrom: fileURL)
+        defer { try? handle.close() }
+
+        let bottle = Bottle(bottleUrl: bottleURL)
+        var offset: UInt64 = 0
+
+        let linkInfo = LinkInfo(handle: handle, bottle: bottle, offset: &offset)
+
+        XCTAssertFalse(linkInfo.linkInfoFlags.contains(.volumeIDAndLocalBasePath))
+        XCTAssertTrue(linkInfo.linkInfoFlags.contains(.commonNetworkRelativeLinkAndPathSuffix))
+        XCTAssertNil(linkInfo.program) // No local path, so no program
+    }
+}

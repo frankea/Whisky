@@ -178,34 +178,25 @@ public final class TempFileTracker: @unchecked Sendable {
     /// This is called when a process terminates.
     ///
     /// - Parameter process: PID of the process whose temp files should be cleaned
-    public func cleanup(associatedWith process: Int32) {
-        lock.lock()
-        defer { lock.unlock() }
+    public func cleanup(associatedWith process: Int32) async {
+        let filesToCleanup = getFilesForProcess(process)
 
-        let filesToCleanup = tempFiles.filter { $0.value.associatedProcess == process }
-
-        for (file, _) in filesToCleanup {
+        for file in filesToCleanup {
             logger.info("Cleaning up temp file '\(file.lastPathComponent)' associated with process \(process)")
-            Task {
-                await cleanupWithRetry(file: file)
-            }
+            await cleanupWithRetry(file: file)
         }
     }
 
     /// Cleans up all temporary files.
     ///
     /// This method attempts to clean up all tracked temp files.
-    public func cleanupAll() {
-        lock.lock()
-        let allFiles = Array(tempFiles.keys)
-        lock.unlock()
+    public func cleanupAll() async {
+        let allFiles = getAllFileURLs()
 
         logger.info("Cleaning up \(allFiles.count) temporary file(s)")
 
-        Task {
-            for file in allFiles {
-                await cleanupWithRetry(file: file)
-            }
+        for file in allFiles {
+            await cleanupWithRetry(file: file)
         }
     }
 
@@ -299,6 +290,23 @@ public final class TempFileTracker: @unchecked Sendable {
         lock.lock()
         let oldFiles = tempFiles.filter { $0.value.creationTime < cutoffDate }
         let result = Array(oldFiles.keys)
+        lock.unlock()
+        return result
+    }
+
+    /// Gets files associated with a specific process (synchronous, for use from async contexts).
+    private func getFilesForProcess(_ process: Int32) -> [URL] {
+        lock.lock()
+        let files = tempFiles.filter { $0.value.associatedProcess == process }
+        let result = Array(files.keys)
+        lock.unlock()
+        return result
+    }
+
+    /// Gets all tracked file URLs (synchronous, for use from async contexts).
+    private func getAllFileURLs() -> [URL] {
+        lock.lock()
+        let result = Array(tempFiles.keys)
         lock.unlock()
         return result
     }

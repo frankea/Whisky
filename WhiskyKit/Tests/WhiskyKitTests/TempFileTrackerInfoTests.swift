@@ -147,8 +147,7 @@ final class TempFileTrackerThreadSafetyTests: XCTestCase {
             }
         }
 
-        try await Task.sleep(nanoseconds: 3_000_000_000)
-
+        // Task group already waits for all tasks to complete - no additional sleep needed
         let trackedFiles = TempFileTracker.shared.getAllTrackedFiles()
         XCTAssertGreaterThanOrEqual(trackedFiles.count, 0, "Tracker should handle concurrent operations safely")
     }

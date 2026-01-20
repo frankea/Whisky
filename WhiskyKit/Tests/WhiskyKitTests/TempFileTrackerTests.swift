@@ -159,11 +159,8 @@ final class TempFileTrackerTests: XCTestCase {
         TempFileTracker.shared.register(file: file2, process: pid)
         TempFileTracker.shared.register(file: file3, process: 8_888) // Different process
 
-        // Cleanup files associated with process
-        TempFileTracker.shared.cleanup(associatedWith: pid)
-
-        // Wait for async cleanup
-        try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+        // Cleanup files associated with process (now properly awaited)
+        await TempFileTracker.shared.cleanup(associatedWith: pid)
 
         // Files 1 and 2 should be cleaned, file 3 should remain
         XCTAssertFalse(FileManager.default.fileExists(atPath: file1.path), "File 1 should be cleaned")
@@ -184,10 +181,8 @@ final class TempFileTrackerTests: XCTestCase {
         TempFileTracker.shared.register(file: file2)
         TempFileTracker.shared.register(file: file3)
 
-        TempFileTracker.shared.cleanupAll()
-
-        // Wait for async cleanup
-        try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+        // Now properly awaited
+        await TempFileTracker.shared.cleanupAll()
 
         XCTAssertFalse(FileManager.default.fileExists(atPath: file1.path), "File 1 should be cleaned")
         XCTAssertFalse(FileManager.default.fileExists(atPath: file2.path), "File 2 should be cleaned")

@@ -195,11 +195,8 @@ final class ProcessRegistryTests: XCTestCase {
         let processesBefore = ProcessRegistry.shared.getProcesses(for: testBottle)
         XCTAssertEqual(processesBefore.count, 1, "Should have one registered process")
 
-        // Cleanup with graceful shutdown
+        // Cleanup with graceful shutdown (method includes internal timing and clears registry)
         await ProcessRegistry.shared.cleanup(for: testBottle, force: false)
-
-        // Wait for cleanup to complete
-        try? await Task.sleep(nanoseconds: 6_000_000_000) // 6 seconds
 
         let processesAfter = ProcessRegistry.shared.getProcesses(for: testBottle)
         XCTAssertEqual(processesAfter.count, 0, "Processes should be cleaned up")
@@ -222,11 +219,8 @@ final class ProcessRegistryTests: XCTestCase {
         ProcessRegistry.shared.register(process: process1, bottle: testBottle, programName: "app1.exe")
         ProcessRegistry.shared.register(process: process2, bottle: bottle2, programName: "app2.exe")
 
-        // Cleanup all
+        // Cleanup all (method includes internal timing and clears registry)
         await ProcessRegistry.shared.cleanupAll(bottles: [testBottle, bottle2], force: false)
-
-        // Wait for cleanup
-        try? await Task.sleep(nanoseconds: 6_000_000_000)
 
         let processes1 = ProcessRegistry.shared.getProcesses(for: testBottle)
         let processes2 = ProcessRegistry.shared.getProcesses(for: bottle2)

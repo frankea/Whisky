@@ -158,4 +158,53 @@ final class TerminalAppTests: XCTestCase {
         let preferred = TerminalApp.preferred
         XCTAssertTrue(TerminalApp.allCases.contains(preferred))
     }
+
+    // MARK: - Deprecated generateDirectCommandScript Tests
+
+    func testGenerateDirectCommandScriptForTerminal() {
+        let command = "echo 'Hello World'"
+        let script = TerminalApp.terminal.generateDirectCommandScript(command: command)
+
+        XCTAssertNotNil(script)
+        XCTAssertTrue(script?.contains("tell application \"Terminal\"") ?? false)
+        XCTAssertTrue(script?.contains("activate") ?? false)
+        XCTAssertTrue(script?.contains("do script") ?? false)
+    }
+
+    func testGenerateDirectCommandScriptForITerm() {
+        let command = "echo 'Hello World'"
+        let script = TerminalApp.iterm.generateDirectCommandScript(command: command)
+
+        XCTAssertNotNil(script)
+        XCTAssertTrue(script?.contains("tell application \"iTerm\"") ?? false)
+        XCTAssertTrue(script?.contains("activate") ?? false)
+        XCTAssertTrue(script?.contains("write text") ?? false)
+    }
+
+    func testGenerateDirectCommandScriptForWarp() {
+        let command = "echo 'Hello World'"
+        let script = TerminalApp.warp.generateDirectCommandScript(command: command)
+
+        // Warp creates a temp script file, so this should succeed
+        XCTAssertNotNil(script)
+        XCTAssertTrue(script?.contains("tell application \"Warp\"") ?? false)
+        XCTAssertTrue(script?.contains("open -a Warp") ?? false)
+    }
+
+    func testGenerateDirectCommandScriptEscapesSpecialCharacters() {
+        let command = "echo \"Hello\\World\""
+        let script = TerminalApp.terminal.generateDirectCommandScript(command: command)
+
+        XCTAssertNotNil(script)
+        // The escaping should handle backslashes and quotes
+        XCTAssertTrue(script?.contains("\\") ?? false)
+    }
+
+    func testGenerateDirectCommandScriptWithComplexCommand() {
+        let command = "cd /path/to/dir && ./run.sh --arg=\"value with spaces\""
+        let script = TerminalApp.terminal.generateDirectCommandScript(command: command)
+
+        XCTAssertNotNil(script)
+        XCTAssertTrue(script?.contains("do script") ?? false)
+    }
 }

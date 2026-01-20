@@ -73,7 +73,8 @@ public struct BitmapInfoHeader: Hashable {
 
         // Handle bitfields later if necessary
 
-        for _ in 0 ..< Int(height / 2) {
+        let actualHeight = abs(height)
+        for _ in 0 ..< Int(actualHeight / 2) {
             var pixelRow: [ColorQuad] = []
 
             for _ in 0 ..< width {
@@ -103,11 +104,11 @@ public struct BitmapInfoHeader: Hashable {
                     let red = sample & 0x001F
                     let green = (sample & 0x03E0) >> 5
                     let blue = (sample & 0x7C00) >> 10
-                    pixels.append(ColorQuad(
+                    pixelRow.append(ColorQuad(
                         red: UInt8(red),
                         green: UInt8(green),
                         blue: UInt8(blue),
-                        alpha: 1
+                        alpha: 255
                     ))
                     offset += 2
                 case .sampled24:
@@ -121,7 +122,7 @@ public struct BitmapInfoHeader: Hashable {
                         red: red,
                         green: green,
                         blue: blue,
-                        alpha: 1
+                        alpha: 255
                     ))
                 case .sampled32:
                     let blue = handle.extract(UInt8.self, offset: offset) ?? 0
@@ -188,7 +189,7 @@ public struct BitmapInfoHeader: Hashable {
             ) as CFData) {
                 if let cgImg = CGImage(
                     width: Int(width),
-                    height: Int(height / 2),
+                    height: Int(abs(height) / 2),
                     bitsPerComponent: 8,
                     bitsPerPixel: 32,
                     bytesPerRow: Int(width) * quadStride,

@@ -164,6 +164,79 @@ final class URLPrettyPathTests: XCTestCase {
     }
 }
 
+// MARK: - URL.prettyPath(bottle:) Tests
+
+final class URLPrettyPathBottleTests: XCTestCase {
+    var tempDir: URL!
+    var bottleURL: URL!
+
+    override func setUp() {
+        super.setUp()
+        tempDir = FileManager.default.temporaryDirectory.appending(path: "prettypath_\(UUID().uuidString)")
+        bottleURL = tempDir.appending(path: "TestBottle")
+
+        let driveCURL = bottleURL.appending(path: "drive_c")
+        try? FileManager.default.createDirectory(at: driveCURL, withIntermediateDirectories: true)
+    }
+
+    override func tearDown() {
+        try? FileManager.default.removeItem(at: tempDir)
+        super.tearDown()
+    }
+
+    @MainActor
+    func testPrettyPathRemovesBottlePath() {
+        let bottle = Bottle(bottleUrl: bottleURL)
+        let programURL = bottleURL.appending(path: "drive_c/Program Files/game.exe")
+
+        let pretty = programURL.prettyPath(bottle)
+
+        XCTAssertFalse(pretty.contains(bottleURL.path(percentEncoded: false)))
+    }
+
+    @MainActor
+    func testPrettyPathConvertsDriveCToWindowsStyle() {
+        let bottle = Bottle(bottleUrl: bottleURL)
+        let programURL = bottleURL.appending(path: "drive_c/Program Files/game.exe")
+
+        let pretty = programURL.prettyPath(bottle)
+
+        XCTAssertTrue(pretty.hasPrefix("C:\\"))
+        XCTAssertFalse(pretty.contains("/drive_c/"))
+    }
+
+    @MainActor
+    func testPrettyPathConvertsSlashesToBackslashes() {
+        let bottle = Bottle(bottleUrl: bottleURL)
+        let programURL = bottleURL.appending(path: "drive_c/Program Files/SubDir/game.exe")
+
+        let pretty = programURL.prettyPath(bottle)
+
+        XCTAssertFalse(pretty.contains("/"))
+        XCTAssertTrue(pretty.contains("\\"))
+    }
+
+    @MainActor
+    func testPrettyPathFullConversion() {
+        let bottle = Bottle(bottleUrl: bottleURL)
+        let programURL = bottleURL.appending(path: "drive_c/Program Files/MyGame/game.exe")
+
+        let pretty = programURL.prettyPath(bottle)
+
+        XCTAssertEqual(pretty, "C:\\Program Files\\MyGame\\game.exe")
+    }
+
+    @MainActor
+    func testPrettyPathWithSpacesInPath() {
+        let bottle = Bottle(bottleUrl: bottleURL)
+        let programURL = bottleURL.appending(path: "drive_c/Program Files (x86)/My Game Name/launcher.exe")
+
+        let pretty = programURL.prettyPath(bottle)
+
+        XCTAssertEqual(pretty, "C:\\Program Files (x86)\\My Game Name\\launcher.exe")
+    }
+}
+
 // MARK: - URL.updateParentBottle Tests
 
 final class URLUpdateParentBottleTests: XCTestCase {

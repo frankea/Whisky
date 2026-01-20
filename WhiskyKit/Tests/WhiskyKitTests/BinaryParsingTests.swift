@@ -46,6 +46,23 @@ final class BitmapCompressionTests: XCTestCase {
     func testBitmapCompressionInvalidRawValue() {
         XCTAssertNil(BitmapCompression(rawValue: 0xFFFF))
         XCTAssertNil(BitmapCompression(rawValue: 0x0007))
+        XCTAssertNil(BitmapCompression(rawValue: 0x0008))
+        XCTAssertNil(BitmapCompression(rawValue: 0x0009))
+        XCTAssertNil(BitmapCompression(rawValue: 0x000A))
+    }
+
+    func testBitmapCompressionHashable() {
+        var set = Set<BitmapCompression>()
+        set.insert(.rgb)
+        set.insert(.rle8)
+        set.insert(.jpeg)
+        set.insert(.png)
+
+        XCTAssertEqual(set.count, 4)
+        XCTAssertTrue(set.contains(.rgb))
+        XCTAssertTrue(set.contains(.rle8))
+        XCTAssertTrue(set.contains(.jpeg))
+        XCTAssertTrue(set.contains(.png))
     }
 }
 
@@ -60,6 +77,22 @@ final class BitmapOriginDirectionTests: XCTestCase {
             String(describing: bottomLeft),
             String(describing: upperLeft)
         )
+    }
+
+    func testBitmapOriginDirectionHashable() {
+        var set = Set<BitmapOriginDirection>()
+        set.insert(.bottomLeft)
+        set.insert(.upperLeft)
+
+        XCTAssertEqual(set.count, 2)
+        XCTAssertTrue(set.contains(.bottomLeft))
+        XCTAssertTrue(set.contains(.upperLeft))
+    }
+
+    func testBitmapOriginDirectionEquality() {
+        XCTAssertEqual(BitmapOriginDirection.bottomLeft, BitmapOriginDirection.bottomLeft)
+        XCTAssertEqual(BitmapOriginDirection.upperLeft, BitmapOriginDirection.upperLeft)
+        XCTAssertNotEqual(BitmapOriginDirection.bottomLeft, BitmapOriginDirection.upperLeft)
     }
 }
 
@@ -87,7 +120,36 @@ final class ColorFormatTests: XCTestCase {
 
     func testColorFormatInvalidRawValue() {
         XCTAssertNil(ColorFormat(rawValue: 3))
+        XCTAssertNil(ColorFormat(rawValue: 5))
+        XCTAssertNil(ColorFormat(rawValue: 6))
+        XCTAssertNil(ColorFormat(rawValue: 7))
+        XCTAssertNil(ColorFormat(rawValue: 9))
+        XCTAssertNil(ColorFormat(rawValue: 15))
         XCTAssertNil(ColorFormat(rawValue: 64))
+    }
+
+    func testColorFormatHashable() {
+        var set = Set<ColorFormat>()
+        set.insert(.unknown)
+        set.insert(.indexed8)
+        set.insert(.sampled24)
+        set.insert(.sampled32)
+
+        XCTAssertEqual(set.count, 4)
+        XCTAssertTrue(set.contains(.unknown))
+        XCTAssertTrue(set.contains(.indexed8))
+        XCTAssertTrue(set.contains(.sampled24))
+        XCTAssertTrue(set.contains(.sampled32))
+    }
+
+    func testColorFormatCorrespondsToBitCount() {
+        // Verify that ColorFormat raw values match standard bitmap bit counts
+        XCTAssertEqual(ColorFormat.indexed1.rawValue, 1)
+        XCTAssertEqual(ColorFormat.indexed4.rawValue, 4)
+        XCTAssertEqual(ColorFormat.indexed8.rawValue, 8)
+        XCTAssertEqual(ColorFormat.sampled16.rawValue, 16)
+        XCTAssertEqual(ColorFormat.sampled24.rawValue, 24)
+        XCTAssertEqual(ColorFormat.sampled32.rawValue, 32)
     }
 }
 
@@ -123,6 +185,29 @@ final class ColorQuadTests: XCTestCase {
         let transparent = ColorQuad(red: 0, green: 0, blue: 0, alpha: 0)
 
         XCTAssertEqual(transparent.alpha, 0)
+    }
+
+    func testColorQuadMutability() {
+        var quad = ColorQuad(red: 0, green: 0, blue: 0, alpha: 0)
+
+        quad.red = 100
+        quad.green = 150
+        quad.blue = 200
+        quad.alpha = 128
+
+        XCTAssertEqual(quad.red, 100)
+        XCTAssertEqual(quad.green, 150)
+        XCTAssertEqual(quad.blue, 200)
+        XCTAssertEqual(quad.alpha, 128)
+    }
+
+    func testColorQuadMaxValues() {
+        let quad = ColorQuad(red: UInt8.max, green: UInt8.max, blue: UInt8.max, alpha: UInt8.max)
+
+        XCTAssertEqual(quad.red, 255)
+        XCTAssertEqual(quad.green, 255)
+        XCTAssertEqual(quad.blue, 255)
+        XCTAssertEqual(quad.alpha, 255)
     }
 }
 

@@ -108,7 +108,7 @@ public struct BitmapInfoHeader: Hashable {
                         red: UInt8(red),
                         green: UInt8(green),
                         blue: UInt8(blue),
-                        alpha: 1
+                        alpha: 255
                     ))
                     offset += 2
                 case .sampled24:
@@ -122,7 +122,7 @@ public struct BitmapInfoHeader: Hashable {
                         red: red,
                         green: green,
                         blue: blue,
-                        alpha: 1
+                        alpha: 255
                     ))
                 case .sampled32:
                     let blue = handle.extract(UInt8.self, offset: offset) ?? 0

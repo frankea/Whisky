@@ -1,0 +1,275 @@
+//
+//  TempFileTrackerTests.swift
+//  WhiskyKitTests
+//
+//  This file is part of Whisky.
+//
+//  Whisky is free software: you can redistribute it and/or modify it under the terms
+//  of the GNU General Public License as published by the Free Software Foundation,
+//  either version 3 of the License, or (at your option) any later version.
+//
+//  Whisky is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+//  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+//  See the GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License along with Whisky.
+//  If not, see https://www.gnu.org/licenses/.
+//
+
+@testable import WhiskyKit
+import XCTest
+
+final class TempFileTrackerTests: XCTestCase {
+    var testDirectory: URL!
+
+    override func setUp() async throws {
+        try await super.setUp()
+
+        // Create a temporary directory for tests
+        let tempDir = FileManager.default.temporaryDirectory
+        testDirectory = tempDir.appendingPathComponent("temp-tracker-test-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: testDirectory, withIntermediateDirectories: true)
+
+        // Clear tracker before each test
+        TempFileTracker.shared.reset()
+    }
+
+    override func tearDown() async throws {
+        // Clean up test directory
+        try? FileManager.default.removeItem(at: testDirectory)
+        try await super.tearDown()
+    }
+
+    // MARK: - Registration Tests
+
+    func testRegisterTempFile() throws {
+        let tempFile = testDirectory.appendingPathComponent("test.sh")
+        try "test content".write(to: tempFile, atomically: true, encoding: .utf8)
+
+        TempFileTracker.shared.register(file: tempFile)
+
+        let trackedFiles = TempFileTracker.shared.getAllTrackedFiles()
+        XCTAssertTrue(trackedFiles[tempFile] != nil, "File should be tracked")
+        XCTAssertEqual(trackedFiles.count, 1, "Should have one tracked file")
+    }
+
+    func testRegisterMultipleTempFiles() throws {
+        let file1 = testDirectory.appendingPathComponent("test1.sh")
+        let file2 = testDirectory.appendingPathComponent("test2.sh")
+        let file3 = testDirectory.appendingPathComponent("test3.sh")
+
+        try "content1".write(to: file1, atomically: true, encoding: .utf8)
+        try "content2".write(to: file2, atomically: true, encoding: .utf8)
+        try "content3".write(to: file3, atomically: true, encoding: .utf8)
+
+        TempFileTracker.shared.register(file: file1)
+        TempFileTracker.shared.register(file: file2)
+        TempFileTracker.shared.register(file: file3)
+
+        let trackedFiles = TempFileTracker.shared.getAllTrackedFiles()
+        XCTAssertEqual(trackedFiles.count, 3, "Should have three tracked files")
+    }
+
+    func testRegisterTempFileWithProcess() throws {
+        let tempFile = testDirectory.appendingPathComponent("test.sh")
+        try "test content".write(to: tempFile, atomically: true, encoding: .utf8)
+
+        let pid: Int32 = 12_345
+        TempFileTracker.shared.register(file: tempFile, process: pid)
+
+        let trackedFiles = TempFileTracker.shared.getAllTrackedFiles()
+        XCTAssertTrue(trackedFiles[tempFile] != nil, "File should be tracked")
+        XCTAssertEqual(trackedFiles[tempFile]?.associatedProcess, pid, "PID should be associated")
+    }
+
+    func testMarkForCleanup() throws {
+        let tempFile = testDirectory.appendingPathComponent("test.sh")
+        try "test content".write(to: tempFile, atomically: true, encoding: .utf8)
+
+        TempFileTracker.shared.register(file: tempFile)
+
+        let infoBefore = TempFileTracker.shared.getAllTrackedFiles()[tempFile]
+        XCTAssertEqual(infoBefore?.cleanupAttempts, 0, "Initial cleanup attempts should be 0")
+
+        TempFileTracker.shared.markForCleanup(file: tempFile)
+
+        let infoAfter = TempFileTracker.shared.getAllTrackedFiles()[tempFile]
+        XCTAssertEqual(infoAfter?.cleanupAttempts, 1, "Cleanup attempts should be incremented")
+    }
+
+    // MARK: - Cleanup Tests
+
+    func testCleanupWithRetry() async throws {
+        let tempFile = testDirectory.appendingPathComponent("test.sh")
+        try "test content".write(to: tempFile, atomically: true, encoding: .utf8)
+
+        TempFileTracker.shared.register(file: tempFile)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: tempFile.path), "File should exist before cleanup")
+
+        await TempFileTracker.shared.cleanupWithRetry(file: tempFile, maxRetries: 3)
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: tempFile.path), "File should be deleted")
+
+        let trackedFiles = TempFileTracker.shared.getAllTrackedFiles()
+        XCTAssertNil(trackedFiles[tempFile], "File should be removed from tracker")
+    }
+
+    func testCleanupWithRetryOnLockedFile() async throws {
+        let tempFile = testDirectory.appendingPathComponent("locked.sh")
+        try "test content".write(to: tempFile, atomically: true, encoding: .utf8)
+
+        TempFileTracker.shared.register(file: tempFile)
+
+        // Open the file for writing (may or may not prevent deletion depending on platform)
+        let handle = try FileHandle(forWritingTo: tempFile)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: tempFile.path), "File should exist")
+
+        // Attempt cleanup
+        await TempFileTracker.shared.cleanupWithRetry(file: tempFile, maxRetries: 2)
+
+        // Note: File locking behavior varies by platform/CI environment
+        // On some systems FileHandle doesn't prevent deletion
+        let fileStillExists = FileManager.default.fileExists(atPath: tempFile.path)
+
+        // Release the handle
+        try handle.close()
+
+        if fileStillExists {
+            // If the file wasn't deleted (lock worked), verify it can be deleted after release
+            await TempFileTracker.shared.cleanupWithRetry(file: tempFile, maxRetries: 2)
+            XCTAssertFalse(
+                FileManager.default.fileExists(atPath: tempFile.path),
+                "File should be deleted after lock released"
+            )
+        }
+        // If file was already deleted, that's also valid behavior - test passes
+    }
+
+    func testCleanupAssociatedWithProcess() async throws {
+        let pid: Int32 = 9_999
+        let file1 = testDirectory.appendingPathComponent("file1.sh")
+        let file2 = testDirectory.appendingPathComponent("file2.sh")
+        let file3 = testDirectory.appendingPathComponent("file3.sh")
+
+        try "content1".write(to: file1, atomically: true, encoding: .utf8)
+        try "content2".write(to: file2, atomically: true, encoding: .utf8)
+        try "content3".write(to: file3, atomically: true, encoding: .utf8)
+
+        TempFileTracker.shared.register(file: file1, process: pid)
+        TempFileTracker.shared.register(file: file2, process: pid)
+        TempFileTracker.shared.register(file: file3, process: 8_888) // Different process
+
+        // Cleanup files associated with process (now properly awaited)
+        await TempFileTracker.shared.cleanup(associatedWith: pid)
+
+        // Files 1 and 2 should be cleaned, file 3 should remain
+        XCTAssertFalse(FileManager.default.fileExists(atPath: file1.path), "File 1 should be cleaned")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: file2.path), "File 2 should be cleaned")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: file3.path), "File 3 should remain")
+    }
+
+    func testCleanupAll() async throws {
+        let file1 = testDirectory.appendingPathComponent("file1.sh")
+        let file2 = testDirectory.appendingPathComponent("file2.sh")
+        let file3 = testDirectory.appendingPathComponent("file3.sh")
+
+        try "content1".write(to: file1, atomically: true, encoding: .utf8)
+        try "content2".write(to: file2, atomically: true, encoding: .utf8)
+        try "content3".write(to: file3, atomically: true, encoding: .utf8)
+
+        TempFileTracker.shared.register(file: file1)
+        TempFileTracker.shared.register(file: file2)
+        TempFileTracker.shared.register(file: file3)
+
+        // Now properly awaited
+        await TempFileTracker.shared.cleanupAll()
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: file1.path), "File 1 should be cleaned")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: file2.path), "File 2 should be cleaned")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: file3.path), "File 3 should be cleaned")
+
+        let trackedFiles = TempFileTracker.shared.getAllTrackedFiles()
+        XCTAssertEqual(trackedFiles.count, 0, "All files should be removed from tracker")
+    }
+
+    func testCleanupOldFiles() async throws {
+        let oldFile = testDirectory.appendingPathComponent("old.sh")
+        let newFile = testDirectory.appendingPathComponent("new.sh")
+
+        try "old content".write(to: oldFile, atomically: true, encoding: .utf8)
+        try "new content".write(to: newFile, atomically: true, encoding: .utf8)
+
+        // Register old file with a creation time 2 days ago (cleanupOldFiles uses tracker creation time)
+        let twoDaysAgo = Date().addingTimeInterval(-2 * 24 * 60 * 60)
+        TempFileTracker.shared.register(file: oldFile, creationTime: twoDaysAgo)
+        TempFileTracker.shared.register(file: newFile)
+
+        // Cleanup files older than 1 hour
+        await TempFileTracker.shared.cleanupOldFiles(olderThan: 60 * 60)
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: oldFile.path), "Old file should be cleaned")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: newFile.path), "New file should remain")
+
+        let trackedFiles = TempFileTracker.shared.getAllTrackedFiles()
+        XCTAssertNil(trackedFiles[oldFile], "Old file should be removed from tracker")
+        XCTAssertNotNil(trackedFiles[newFile], "New file should remain in tracker")
+    }
+
+    func testCleanupOldFilesWithNoOldFiles() async throws {
+        let newFile = testDirectory.appendingPathComponent("new.sh")
+        try "new content".write(to: newFile, atomically: true, encoding: .utf8)
+
+        TempFileTracker.shared.register(file: newFile)
+
+        // Cleanup files older than 1 day (none should be cleaned)
+        await TempFileTracker.shared.cleanupOldFiles(olderThan: 24 * 60 * 60)
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: newFile.path), "New file should remain")
+
+        let trackedFiles = TempFileTracker.shared.getAllTrackedFiles()
+        XCTAssertEqual(trackedFiles.count, 1, "File should remain in tracker")
+    }
+
+    func testCleanupOldFilesWithEmptyTracker() async throws {
+        // No files registered
+        await TempFileTracker.shared.cleanupOldFiles(olderThan: 60 * 60)
+
+        // Should not crash or throw
+        let trackedFiles = TempFileTracker.shared.getAllTrackedFiles()
+        XCTAssertEqual(trackedFiles.count, 0, "Tracker should remain empty")
+    }
+
+    // MARK: - Querying Tests
+
+    func testGetAllTrackedFiles() throws {
+        let file1 = testDirectory.appendingPathComponent("file1.sh")
+        let file2 = testDirectory.appendingPathComponent("file2.sh")
+
+        try "content1".write(to: file1, atomically: true, encoding: .utf8)
+        try "content2".write(to: file2, atomically: true, encoding: .utf8)
+
+        TempFileTracker.shared.register(file: file1)
+        TempFileTracker.shared.register(file: file2)
+
+        let trackedFiles = TempFileTracker.shared.getAllTrackedFiles()
+        XCTAssertEqual(trackedFiles.count, 2, "Should return all tracked files")
+        XCTAssertTrue(trackedFiles[file1] != nil, "Should contain file1")
+        XCTAssertTrue(trackedFiles[file2] != nil, "Should contain file2")
+    }
+
+    func testGetTrackedFileCount() throws {
+        XCTAssertEqual(TempFileTracker.shared.getTrackedFileCount(), 0, "Should be 0 initially")
+
+        let file1 = testDirectory.appendingPathComponent("file1.sh")
+        let file2 = testDirectory.appendingPathComponent("file2.sh")
+
+        try "content1".write(to: file1, atomically: true, encoding: .utf8)
+        try "content2".write(to: file2, atomically: true, encoding: .utf8)
+
+        TempFileTracker.shared.register(file: file1)
+        XCTAssertEqual(TempFileTracker.shared.getTrackedFileCount(), 1, "Should be 1 after first registration")
+
+        TempFileTracker.shared.register(file: file2)
+        XCTAssertEqual(TempFileTracker.shared.getTrackedFileCount(), 2, "Should be 2 after second registration")
+    }
+}

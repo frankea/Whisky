@@ -47,6 +47,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        // Use the existing killBottles mechanism for synchronous cleanup
         if UserDefaults.standard.bool(forKey: "killOnTerminate") {
             WhiskyApp.killBottles()
         }

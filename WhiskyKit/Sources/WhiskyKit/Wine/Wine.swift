@@ -177,9 +177,10 @@ public class Wine {
         fileHandle.writeApplicationInfo()
         fileHandle.writeInfo(for: bottle)
 
-        return try runWineProcess(
-            name: name, args: args,
-            environment: constructWineEnvironment(for: bottle, environment: environment),
+        let wineEnvironment = constructWineEnvironment(for: bottle, environment: environment)
+
+        return try runProcess(
+            name: name, args: args, environment: wineEnvironment, executableURL: wineBinary,
             fileHandle: fileHandle
         )
     }
@@ -204,9 +205,10 @@ public class Wine {
         fileHandle.writeApplicationInfo()
         fileHandle.writeInfo(for: bottle)
 
-        return try runWineserverProcess(
-            name: name, args: args,
-            environment: constructWineServerEnvironment(for: bottle, environment: environment),
+        let wineEnvironment = constructWineEnvironment(for: bottle, environment: environment)
+
+        return try runProcess(
+            name: name, args: args, environment: wineEnvironment, executableURL: wineserverBinary,
             fileHandle: fileHandle
         )
     }

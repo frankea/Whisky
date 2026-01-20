@@ -248,5 +248,4 @@ final class ClipboardManagerTests: XCTestCase {
 
         XCTAssertEqual(content.sizeInBytes, 0, "Size should be 0 for other content")
     }
-
 }

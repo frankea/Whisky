@@ -37,7 +37,7 @@ import os.log
 /// // Clean up old files periodically
 /// await TempFileTracker.shared.cleanupOldFiles(olderThan: 24 * 60 * 60) // 24 hours
 /// ```
-public final class TempFileTracker {
+public final class TempFileTracker: @unchecked Sendable {
     static let shared = TempFileTracker()
 
     private let lock = NSLock()
@@ -54,7 +54,7 @@ public final class TempFileTracker {
         /// PID of associated process (if any)
         public let associatedProcess: Int32?
         /// Number of cleanup attempts made
-        public let cleanupAttempts: Int
+        public var cleanupAttempts: Int
         /// Maximum retry attempts
         public let maxRetries: Int
 
@@ -66,8 +66,8 @@ public final class TempFileTracker {
 
         public static func == (lhs: TempFileInfo, rhs: TempFileInfo) -> Bool {
             lhs.url == rhs.url &&
-            lhs.creationTime == rhs.creationTime &&
-            lhs.associatedProcess == rhs.associatedProcess
+                lhs.creationTime == rhs.creationTime &&
+                lhs.associatedProcess == rhs.associatedProcess
         }
     }
 
@@ -113,11 +113,10 @@ public final class TempFileTracker {
             return
         }
 
-        var mutableInfo = info
-        mutableInfo.cleanupAttempts += 1
-        tempFiles[file] = mutableInfo
+        info.cleanupAttempts += 1
+        tempFiles[file] = info
 
-        logger.debug("Marked '\(file.lastPathComponent)' for cleanup (attempt \(mutableInfo.cleanupAttempts))")
+        logger.debug("Marked '\(file.lastPathComponent)' for cleanup (attempt \(info.cleanupAttempts))")
     }
 
     // MARK: - Cleanup
@@ -131,7 +130,7 @@ public final class TempFileTracker {
     ///   - file: URL of the file to delete
     ///   - maxRetries: Maximum number of cleanup attempts (default: 3)
     public func cleanupWithRetry(file: URL, maxRetries: Int = 3) async {
-        for attempt in 0..<maxRetries {
+        for attempt in 0 ..< maxRetries {
             // Check if file is locked
             if isFileLocked(file) {
                 logger.warning("File '\(file.lastPathComponent)' is locked, attempt \(attempt + 1)/\(maxRetries)")
@@ -141,10 +140,11 @@ public final class TempFileTracker {
                     let delay = TimeInterval(pow(2.0, Double(attempt)))
                     try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                 } else {
-                    logger.error("Failed to cleanup '\(file.lastPathComponent)' after \(maxRetries) attempts (file locked)")
-                    lock.lock()
-                    tempFiles.removeValue(forKey: file)
-                    lock.unlock()
+                    logger
+                        .error(
+                            "Failed to cleanup '\(file.lastPathComponent)' after \(maxRetries) attempts (file locked)"
+                        )
+                    removeFromRegistry(file)
                     return
                 }
             }
@@ -152,25 +152,21 @@ public final class TempFileTracker {
             // Attempt deletion
             do {
                 try FileManager.default.removeItem(at: file)
-
-                lock.lock()
-                tempFiles.removeValue(forKey: file)
-                lock.unlock()
-
+                removeFromRegistry(file)
                 logger.info("Successfully cleaned up '\(file.lastPathComponent)' (attempt \(attempt + 1))")
                 return
             } catch {
-                logger.warning("Cleanup attempt \(attempt + 1) failed for '\(file.lastPathComponent)': \(error.localizedDescription)")
+                let fileName = file.lastPathComponent
+                let errorDesc = error.localizedDescription
+                logger.warning("Cleanup attempt \(attempt + 1) failed for '\(fileName)': \(errorDesc)")
 
                 if attempt < maxRetries - 1 {
                     // Exponential backoff
                     let delay = TimeInterval(pow(2.0, Double(attempt)))
                     try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                 } else {
-                    logger.error("Failed to cleanup '\(file.lastPathComponent)' after \(maxRetries) attempts: \(error.localizedDescription)")
-                    lock.lock()
-                    tempFiles.removeValue(forKey: file)
-                    lock.unlock()
+                    logger.error("Failed to cleanup '\(fileName)' after \(maxRetries) attempts: \(errorDesc)")
+                    removeFromRegistry(file)
                     return
                 }
             }
@@ -219,11 +215,8 @@ public final class TempFileTracker {
     ///
     /// - Parameter olderThan: Age in seconds (files older than this will be deleted)
     public func cleanupOldFiles(olderThan seconds: TimeInterval) async {
-        lock.lock()
         let cutoffDate = Date().addingTimeInterval(-seconds)
-        let oldFiles = tempFiles.filter { $0.value.creationTime < cutoffDate }
-        let oldFileURLs = Array(oldFiles.keys)
-        lock.unlock()
+        let oldFileURLs = getOldFiles(olderThan: cutoffDate)
 
         guard !oldFileURLs.isEmpty else {
             logger.debug("No old temp files to clean up")
@@ -235,14 +228,13 @@ public final class TempFileTracker {
         for file in oldFileURLs {
             do {
                 try FileManager.default.removeItem(at: file)
-
-                lock.lock()
-                tempFiles.removeValue(forKey: file)
-                lock.unlock()
-
+                removeFromRegistry(file)
                 logger.debug("Cleaned up old temp file '\(file.lastPathComponent)'")
             } catch {
-                logger.warning("Failed to cleanup old temp file '\(file.lastPathComponent)': \(error.localizedDescription)")
+                logger
+                    .warning(
+                        "Failed to cleanup old temp file '\(file.lastPathComponent)': \(error.localizedDescription)"
+                    )
             }
         }
     }
@@ -291,5 +283,32 @@ public final class TempFileTracker {
         lock.lock()
         defer { lock.unlock() }
         return tempFiles.count
+    }
+
+    // MARK: - Private Helpers (Synchronous)
+
+    /// Removes a file from the registry (synchronous, for use from async contexts).
+    private func removeFromRegistry(_ file: URL) {
+        lock.lock()
+        tempFiles.removeValue(forKey: file)
+        lock.unlock()
+    }
+
+    /// Gets old files older than the specified date (synchronous, for use from async contexts).
+    private func getOldFiles(olderThan cutoffDate: Date) -> [URL] {
+        lock.lock()
+        let oldFiles = tempFiles.filter { $0.value.creationTime < cutoffDate }
+        let result = Array(oldFiles.keys)
+        lock.unlock()
+        return result
+    }
+
+    // MARK: - Testing Support
+
+    /// Resets the tracker to empty state. For testing purposes only.
+    public func reset() {
+        lock.lock()
+        tempFiles.removeAll()
+        lock.unlock()
     }
 }

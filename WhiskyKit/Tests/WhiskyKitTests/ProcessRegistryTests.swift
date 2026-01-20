@@ -19,6 +19,7 @@
 @testable import WhiskyKit
 import XCTest
 
+@MainActor
 final class ProcessRegistryTests: XCTestCase {
     var testBottle: Bottle!
     var testBottleURL: URL!
@@ -38,14 +39,10 @@ final class ProcessRegistryTests: XCTestCase {
         try settings.encode(to: metadataURL)
 
         // Create bottle instance
-        testBottle = await MainActor.run {
-            Bottle(bottleUrl: testBottleURL, isAvailable: true)
-        }
+        testBottle = Bottle(bottleUrl: testBottleURL, isAvailable: true)
 
         // Clear registry before each test
-        ProcessRegistry.shared.lock.lock()
-        ProcessRegistry.shared.activeProcesses.removeAll()
-        ProcessRegistry.shared.lock.unlock()
+        ProcessRegistry.shared.reset()
     }
 
     override func tearDown() async throws {
@@ -90,9 +87,7 @@ final class ProcessRegistryTests: XCTestCase {
         let settings2 = BottleSettings()
         try settings2.encode(to: metadataURL2)
 
-        let bottle2 = await MainActor.run {
-            Bottle(bottleUrl: bottle2URL, isAvailable: true)
-        }
+        let bottle2 = Bottle(bottleUrl: bottle2URL, isAvailable: true)
 
         let process1 = Process()
         let process2 = Process()
@@ -117,7 +112,7 @@ final class ProcessRegistryTests: XCTestCase {
         let processesBefore = ProcessRegistry.shared.getProcesses(for: testBottle)
         XCTAssertEqual(processesBefore.first?.pid, 0, "PID should be 0 before update")
 
-        let newPID: Int32 = 12345
+        let newPID: Int32 = 12_345
         ProcessRegistry.shared.updatePID(pid: newPID, for: process)
 
         let processesAfter = ProcessRegistry.shared.getProcesses(for: testBottle)
@@ -162,9 +157,7 @@ final class ProcessRegistryTests: XCTestCase {
         let settings2 = BottleSettings()
         try settings2.encode(to: metadataURL2)
 
-        let bottle2 = await MainActor.run {
-            Bottle(bottleUrl: bottle2URL, isAvailable: true)
-        }
+        let bottle2 = Bottle(bottleUrl: bottle2URL, isAvailable: true)
 
         let process1 = Process()
         let process2 = Process()
@@ -197,7 +190,7 @@ final class ProcessRegistryTests: XCTestCase {
         ProcessRegistry.shared.register(process: process, bottle: testBottle, programName: "test.exe")
 
         // Simulate PID update
-        ProcessRegistry.shared.updatePID(pid: 9999, for: process)
+        ProcessRegistry.shared.updatePID(pid: 9_999, for: process)
 
         let processesBefore = ProcessRegistry.shared.getProcesses(for: testBottle)
         XCTAssertEqual(processesBefore.count, 1, "Should have one registered process")
@@ -221,9 +214,7 @@ final class ProcessRegistryTests: XCTestCase {
         let settings2 = BottleSettings()
         try settings2.encode(to: metadataURL2)
 
-        let bottle2 = await MainActor.run {
-            Bottle(bottleUrl: bottle2URL, isAvailable: true)
-        }
+        let bottle2 = Bottle(bottleUrl: bottle2URL, isAvailable: true)
 
         let process1 = Process()
         let process2 = Process()
@@ -232,7 +223,7 @@ final class ProcessRegistryTests: XCTestCase {
         ProcessRegistry.shared.register(process: process2, bottle: bottle2, programName: "app2.exe")
 
         // Cleanup all
-        await ProcessRegistry.shared.cleanupAll(force: false)
+        await ProcessRegistry.shared.cleanupAll(bottles: [testBottle, bottle2], force: false)
 
         // Wait for cleanup
         try? await Task.sleep(nanoseconds: 6_000_000_000)
@@ -334,14 +325,14 @@ final class ProcessRegistryTests: XCTestCase {
         var pids: [Int32] = []
 
         // Register processes
-        for index in 0..<processCount {
+        for index in 0 ..< processCount {
             let process = Process()
             ProcessRegistry.shared.register(
                 process: process,
                 bottle: testBottle,
                 programName: "app\(index).exe"
             )
-            pids.append(Int32(index + 1000))
+            pids.append(Int32(index + 1_000))
         }
 
         // Unregister concurrently

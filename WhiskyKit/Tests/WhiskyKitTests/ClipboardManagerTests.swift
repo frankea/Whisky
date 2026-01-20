@@ -16,8 +16,8 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-@testable import WhiskyKit
 import AppKit
+@testable import WhiskyKit
 import XCTest
 
 final class ClipboardManagerTests: XCTestCase {
@@ -59,7 +59,7 @@ final class ClipboardManagerTests: XCTestCase {
         let content = clipboardManager.getContent()
 
         switch content {
-        case .text(let text):
+        case let .text(text):
             XCTAssertEqual(text, testText, "Text content should match")
         default:
             XCTFail("Content should be text, got \(content)")
@@ -146,7 +146,7 @@ final class ClipboardManagerTests: XCTestCase {
     func testLargeContentThreshold() {
         XCTAssertEqual(
             ClipboardManager.largeContentThreshold,
-            10 * 1024,
+            10 * 1_024,
             "Large content threshold should be 10 KB"
         )
     }
@@ -232,7 +232,7 @@ final class ClipboardManagerTests: XCTestCase {
         // Query content
         let content = clipboardManager.getContent()
         switch content {
-        case .text(let text):
+        case let .text(text):
             XCTAssertEqual(text, testText, "Text should match")
         default:
             XCTFail("Content should be text")
@@ -304,7 +304,7 @@ final class ClipboardManagerTests: XCTestCase {
         let content = clipboardManager.getContent()
 
         switch content {
-        case .text(let text):
+        case let .text(text):
             XCTAssertEqual(text, "   ", "Whitespace should be preserved")
         default:
             XCTFail("Whitespace should be treated as text, got \(content)")
@@ -320,7 +320,7 @@ final class ClipboardManagerTests: XCTestCase {
         let content = clipboardManager.getContent()
 
         switch content {
-        case .text(let text):
+        case let .text(text):
             XCTAssertEqual(text, unicodeText, "Unicode text should be preserved")
         default:
             XCTFail("Unicode should be preserved, got \(content)")
@@ -342,7 +342,7 @@ final class ClipboardManagerTests: XCTestCase {
 
         // Should detect text first
         switch content {
-        case .text(let text):
+        case let .text(text):
             XCTAssertEqual(text, testText, "Text should be detected")
         default:
             XCTFail("Text should be detected when multiple types present")
@@ -358,7 +358,7 @@ final class ClipboardManagerTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Sendable test")
 
         Task {
-            let _ = content
+            _ = content
             expectation.fulfill()
         }
 

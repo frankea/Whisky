@@ -171,8 +171,7 @@ public class Wine {
     /// - Throws: An error if the process cannot be started.
     @MainActor
     public static func runWineProcess(
-        name: String? = nil, args: [String], bottle: Bottle, environment: [String: String] = [:],
-        programName: String? = nil
+        name: String? = nil, args: [String], bottle: Bottle, environment: [String: String] = [:]
     ) throws -> AsyncStream<ProcessOutput> {
         let fileHandle = try makeFileHandle()
         fileHandle.writeApplicationInfo()
@@ -180,7 +179,7 @@ public class Wine {
 
         return try runProcess(
             name: name, args: args, environment: environment, executableURL: wineBinary,
-            fileHandle: fileHandle, bottle: bottle, programName: programName
+            fileHandle: fileHandle
         )
     }
 
@@ -198,8 +197,7 @@ public class Wine {
     /// - Throws: An error if the process cannot be started.
     @MainActor
     public static func runWineserverProcess(
-        name: String? = nil, args: [String], bottle: Bottle, environment: [String: String] = [:],
-        programName: String? = nil
+        name: String? = nil, args: [String], bottle: Bottle, environment: [String: String] = [:]
     ) throws -> AsyncStream<ProcessOutput> {
         let fileHandle = try makeFileHandle()
         fileHandle.writeApplicationInfo()
@@ -207,7 +205,7 @@ public class Wine {
 
         return try runProcess(
             name: name, args: args, environment: environment, executableURL: wineserverBinary,
-            fileHandle: fileHandle, bottle: bottle, programName: programName
+            fileHandle: fileHandle
         )
     }
 
@@ -278,8 +276,7 @@ public class Wine {
         for await _ in try runWineProcess(
             name: url.lastPathComponent,
             args: ["start", "/unix", url.path(percentEncoded: false)] + args,
-            bottle: bottle, environment: environment,
-            programName: url.lastPathComponent
+            bottle: bottle, environment: environment
         ) {}
     }
 

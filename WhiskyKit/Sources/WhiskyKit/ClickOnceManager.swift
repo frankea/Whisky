@@ -38,7 +38,7 @@ import os.log
 /// // Get environment variables for ClickOnce app
 /// let env = ClickOnceManager.shared.getEnvironment(for: manifest)
 /// ```
-public final class ClickOnceManager {
+public final class ClickOnceManager: @unchecked Sendable {
     static let shared = ClickOnceManager()
 
     private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ClickOnceManager")
@@ -97,7 +97,8 @@ public final class ClickOnceManager {
             }
         }
 
-        logger.info("Detected \(appRefFiles.count) ClickOnce application(s) in bottle '\(bottle.settings.name)'")
+        logger
+            .info("Detected \(appRefFiles.count) ClickOnce application(s) in bottle '\(bottle.url.lastPathComponent)'")
         return appRefFiles
     }
 
@@ -222,7 +223,8 @@ public final class ClickOnceManager {
     ///   - bottle: The bottle to install into
     /// - Throws: Error if installation fails
     public func install(manifest: ClickOnceManifest, in bottle: Bottle) async throws {
-        logger.info("Installing ClickOnce app '\(manifest.name)' v\(manifest.version) in bottle '\(bottle.settings.name)'")
+        let bottleName = bottle.url.lastPathComponent
+        logger.info("Installing ClickOnce app '\(manifest.name)' v\(manifest.version) in bottle '\(bottleName)'")
 
         // Create a shortcut/launcher for the ClickOnce app
         // This would typically involve creating a .lnk file or shell script
@@ -262,8 +264,8 @@ public final class ClickOnceManager {
 
         // Validate version format (should be semantic version)
         let versionPattern = "^\\d+\\.\\d+\\.\\d+\\.\\d+$"
-        if !manifest.version.range(of: versionPattern, options: .regularExpression) != nil {
-            logger.debug("ClickOnce manifest version format: \(manifest.version)")
+        if manifest.version.range(of: versionPattern, options: .regularExpression) == nil {
+            logger.debug("ClickOnce manifest has non-standard version format: \(manifest.version)")
         }
 
         logger.debug("ClickOnce manifest '\(manifest.name)' is valid")
@@ -281,23 +283,23 @@ public enum ClickOnceError: LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .fileNotFound(let url):
-            return "ClickOnce file not found: \(url.path)"
-        case .invalidManifest(let message):
-            return "Invalid ClickOnce manifest: \(message)"
-        case .installationFailed(let message):
-            return "ClickOnce installation failed: \(message)"
+        case let .fileNotFound(url):
+            "ClickOnce file not found: \(url.path)"
+        case let .invalidManifest(message):
+            "Invalid ClickOnce manifest: \(message)"
+        case let .installationFailed(message):
+            "ClickOnce installation failed: \(message)"
         }
     }
 
     public var recoverySuggestion: String? {
         switch self {
         case .fileNotFound:
-            return "Ensure the ClickOnce application is properly installed in the bottle."
+            "Ensure the ClickOnce application is properly installed in the bottle."
         case .invalidManifest:
-            return "Verify the .appref-ms file is not corrupted."
+            "Verify the .appref-ms file is not corrupted."
         case .installationFailed:
-            return "Check Wine logs for more details and try reinstalling the application."
+            "Check Wine logs for more details and try reinstalling the application."
         }
     }
 }

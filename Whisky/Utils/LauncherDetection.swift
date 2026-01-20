@@ -68,19 +68,19 @@ public enum LauncherType: String, CaseIterable {
     public var displayName: String {
         switch self {
         case .steam:
-            return String(localized: "launcher.steam")
+            String(localized: "launcher.steam")
         case .rockstar:
-            return String(localized: "launcher.rockstar")
+            String(localized: "launcher.rockstar")
         case .eaApp:
-            return String(localized: "launcher.eaapp")
+            String(localized: "launcher.eaapp")
         case .epicGames:
-            return String(localized: "launcher.epicgames")
+            String(localized: "launcher.epicgames")
         case .ubisoft:
-            return String(localized: "launcher.ubisoft")
+            String(localized: "launcher.ubisoft")
         case .battleNet:
-            return String(localized: "launcher.battlenet")
+            String(localized: "launcher.battlenet")
         case .paradox:
-            return String(localized: "launcher.paradox")
+            String(localized: "launcher.paradox")
         }
     }
 
@@ -88,9 +88,9 @@ public enum LauncherType: String, CaseIterable {
     public var usesClipboard: Bool {
         switch self {
         case .steam, .epicGames, .battleNet:
-            return true
+            true
         default:
-            return false
+            false
         }
     }
 
@@ -98,9 +98,9 @@ public enum LauncherType: String, CaseIterable {
     public var recommendedLocale: Locale {
         switch self {
         case .steam, .eaApp, .epicGames, .battleNet:
-            return .english
+            .english
         default:
-            return .auto
+            .auto
         }
     }
 
@@ -108,9 +108,9 @@ public enum LauncherType: String, CaseIterable {
     public var requiresDXVK: Bool {
         switch self {
         case .rockstar, .ubisoft:
-            return true
+            true
         default:
-            return false
+            false
         }
     }
 
@@ -118,19 +118,19 @@ public enum LauncherType: String, CaseIterable {
     public var fixesDescription: String {
         switch self {
         case .steam:
-            return String(localized: "launcher.fixes.steam")
+            String(localized: "launcher.fixes.steam")
         case .rockstar:
-            return String(localized: "launcher.fixes.rockstar")
+            String(localized: "launcher.fixes.rockstar")
         case .eaApp:
-            return String(localized: "launcher.fixes.eaapp")
+            String(localized: "launcher.fixes.eaapp")
         case .epicGames:
-            return String(localized: "launcher.fixes.epicgames")
+            String(localized: "launcher.fixes.epicgames")
         case .ubisoft:
-            return String(localized: "launcher.fixes.ubisoft")
+            String(localized: "launcher.fixes.ubisoft")
         case .battleNet:
-            return String(localized: "launcher.fixes.battlenet")
+            String(localized: "launcher.fixes.battlenet")
         case .paradox:
-            return String(localized: "launcher.fixes.paradox")
+            String(localized: "launcher.fixes.paradox")
         }
     }
 }

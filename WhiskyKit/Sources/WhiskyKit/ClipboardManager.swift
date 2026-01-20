@@ -38,17 +38,17 @@ import os.log
 /// // Sanitize for multiplayer launcher
 /// ClipboardManager.shared.sanitizeForMultiplayer(launcher: .steam)
 /// ```
-public final class ClipboardManager {
+public final class ClipboardManager: @unchecked Sendable {
     static let shared = ClipboardManager()
 
     private let pasteboard = NSPasteboard.general
     private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ClipboardManager")
 
     /// Size threshold for considering clipboard content "large" (10 KB)
-    public static let largeContentThreshold: Int = 10 * 1024 // 10 KB
+    public static let largeContentThreshold: Int = 10 * 1_024 // 10 KB
 
     /// Types of clipboard content.
-    public enum ClipboardContent: Sendable {
+    public enum ClipboardContent: @unchecked Sendable {
         case empty
         case text(String)
         case image(NSImage)
@@ -88,7 +88,7 @@ public final class ClipboardManager {
         }
 
         // Check for image content
-        if let image = pasteboard.readObjects(forClasses: [NSImage.self], options: [:]).first as? NSImage {
+        if let image = pasteboard.readObjects(forClasses: [NSImage.self], options: [:])?.first as? NSImage {
             return .image(image)
         }
 
@@ -104,7 +104,7 @@ public final class ClipboardManager {
     ///
     /// - Returns: Size in bytes (0 if empty or unknown)
     public func getSize() -> Int {
-        return getContent().sizeInBytes
+        getContent().sizeInBytes
     }
 
     /// Checks if the current clipboard content is considered "large".
@@ -113,7 +113,7 @@ public final class ClipboardManager {
     ///
     /// - Returns: true if content is larger than threshold, false otherwise
     public func isLarge() -> Bool {
-        return getSize() > Self.largeContentThreshold
+        getSize() > Self.largeContentThreshold
     }
 
     // MARK: - Modification
@@ -131,8 +131,9 @@ public final class ClipboardManager {
     /// This method checks if the clipboard contains large content and warns the user.
     /// For known multiplayer launchers, it automatically clears the clipboard.
     ///
-    /// - Parameter launcher: The type of launcher being launched (optional)
-    public func sanitizeForMultiplayer(launcher: LauncherType?) {
+    /// - Parameter autoClearForMultiplayer: If true, automatically clears clipboard for multiplayer launchers
+    @MainActor
+    public func sanitizeForMultiplayer(autoClearForMultiplayer: Bool = false) {
         let content = getContent()
         let size = getSize()
 
@@ -140,11 +141,10 @@ public final class ClipboardManager {
         if size > Self.largeContentThreshold {
             logger.warning("Large clipboard content detected (\(size) bytes)")
 
-            // Check if launcher is known to use clipboard
-            if let launcher = launcher, launcher.usesClipboard {
-                // Auto-clear for known multiplayer launchers
+            // Auto-clear for known multiplayer launchers
+            if autoClearForMultiplayer {
                 clear()
-                logger.info("Auto-cleared clipboard for \(launcher.rawValue) launcher")
+                logger.info("Auto-cleared clipboard for multiplayer launcher")
                 return
             }
 
@@ -167,11 +167,11 @@ public final class ClipboardManager {
         alert.messageText = String(localized: "clipboard.large.title")
         alert.alertStyle = .warning
 
-        let sizeKB = Double(size) / 1024.0
+        let sizeKB = Double(size) / 1_024.0
         let message: String
 
         switch content {
-        case .text(let string):
+        case let .text(string):
             let preview = String(string.prefix(50))
             message = String(localized: "clipboard.large.message.text")
                 .replacingOccurrences(of: "{size}", with: String(format: "%.1f", sizeKB))

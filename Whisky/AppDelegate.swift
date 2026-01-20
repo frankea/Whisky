@@ -47,13 +47,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        // Clean up Wine processes and temp files when app terminates
-        Task {
-            // Clean up Wine processes for all bottles
-            await ProcessRegistry.shared.cleanupAll(force: false)
-            
-            // Clean up old temp files
-            await TempFileTracker.shared.cleanupOldFiles(olderThan: 86400) // 24 hours
+        // Use the existing killBottles mechanism for synchronous cleanup
+        if UserDefaults.standard.bool(forKey: "killOnTerminate") {
+            WhiskyApp.killBottles()
         }
     }
 

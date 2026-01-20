@@ -35,7 +35,7 @@ import os.log
 /// // Clean up processes when app terminates
 /// await ProcessRegistry.shared.cleanupAll(force: false)
 /// ```
-public final class ProcessRegistry {
+public final class ProcessRegistry: @unchecked Sendable {
     static let shared = ProcessRegistry()
 
     private let lock = NSLock()
@@ -63,9 +63,9 @@ public final class ProcessRegistry {
 
         public static func == (lhs: ProcessInfo, rhs: ProcessInfo) -> Bool {
             lhs.pid == rhs.pid &&
-            lhs.launchTime == rhs.launchTime &&
-            lhs.bottleURL == rhs.bottleURL &&
-            lhs.programName == rhs.programName
+                lhs.launchTime == rhs.launchTime &&
+                lhs.bottleURL == rhs.bottleURL &&
+                lhs.programName == rhs.programName
         }
     }
 
@@ -97,7 +97,7 @@ public final class ProcessRegistry {
         processes.insert(info)
         activeProcesses[bottle.url] = processes
 
-        logger.info("Registered process '\(programName)' for bottle '\(bottle.settings.name)'")
+        logger.info("Registered process '\(programName)' for bottle '\(bottle.url.lastPathComponent)'")
     }
 
     /// Updates the PID for a registered process.
@@ -178,13 +178,14 @@ public final class ProcessRegistry {
     /// This method attempts graceful shutdown first (SIGTERM), waits for a timeout,
     /// then optionally force kills (SIGKILL) if processes are still running.
     ///
-    /// - Parameter force: If true, force kills processes after timeout. If false, only attempts graceful shutdown.
-    public func cleanupAll(force: Bool) async {
+    /// - Parameters:
+    ///   - bottles: Array of bottles to check for processes to clean up
+    ///   - force: If true, force kills processes after timeout. If false, only attempts graceful shutdown.
+    public func cleanupAll(bottles: [Bottle], force: Bool) async {
         let allProcesses = getAllProcesses()
 
-        for (bottleURL, processes) in allProcesses {
-            let bottle = BottleVM.shared.bottles.first(where: { $0.url == bottleURL })
-            guard let bottle = bottle else {
+        for (bottleURL, _) in allProcesses {
+            guard let bottle = bottles.first(where: { $0.url == bottleURL }) else {
                 logger.warning("Bottle not found for cleanup: \(bottleURL.path)")
                 continue
             }
@@ -205,15 +206,15 @@ public final class ProcessRegistry {
         let processes = getProcesses(for: bottle)
 
         guard !processes.isEmpty else {
-            logger.debug("No processes to clean up for bottle '\(bottle.settings.name)'")
+            logger.debug("No processes to clean up for bottle '\(bottle.url.lastPathComponent)'")
             return
         }
 
-        logger.info("Cleaning up \(processes.count) process(es) for bottle '\(bottle.settings.name)'")
+        logger.info("Cleaning up \(processes.count) process(es) for bottle '\(bottle.url.lastPathComponent)'")
 
         // Send SIGTERM for graceful shutdown
         for process in processes where process.pid > 0 {
-            kill(process.pid, signal: SIGTERM)
+            killProcess(process.pid, signal: SIGTERM)
             logger.debug("Sent SIGTERM to process '\(process.programName)' (PID: \(process.pid))")
         }
 
@@ -223,12 +224,15 @@ public final class ProcessRegistry {
         // Check if processes are still running
         let remainingProcesses = getProcesses(for: bottle).filter { $0.pid > 0 }
 
-        if !remainingProcesses.isEmpty && force {
-            logger.warning("Force killing \(remainingProcesses.count) process(es) for bottle '\(bottle.settings.name)'")
+        if !remainingProcesses.isEmpty, force {
+            logger
+                .warning(
+                    "Force killing \(remainingProcesses.count) process(es) for bottle '\(bottle.url.lastPathComponent)'"
+                )
 
             // Send SIGKILL for force termination
             for process in remainingProcesses {
-                kill(process.pid, signal: SIGKILL)
+                killProcess(process.pid, signal: SIGKILL)
                 logger.debug("Sent SIGKILL to process '\(process.programName)' (PID: \(process.pid))")
             }
 
@@ -237,11 +241,18 @@ public final class ProcessRegistry {
         }
 
         // Clear registry for this bottle
-        lock.lock()
-        activeProcesses[bottle.url] = nil
-        lock.unlock()
+        clearRegistry(for: bottle.url)
 
-        logger.info("Completed cleanup for bottle '\(bottle.settings.name)'")
+        logger.info("Completed cleanup for bottle '\(bottle.url.lastPathComponent)'")
+    }
+
+    /// Clears the registry for a specific bottle URL.
+    ///
+    /// - Parameter bottleURL: The bottle URL to clear
+    private func clearRegistry(for bottleURL: URL) {
+        lock.lock()
+        activeProcesses[bottleURL] = nil
+        lock.unlock()
     }
 
     /// Kills a process by sending the specified signal.
@@ -249,11 +260,20 @@ public final class ProcessRegistry {
     /// - Parameters:
     ///   - pid: Process ID to kill
     ///   - signal: Signal to send (SIGTERM or SIGKILL)
-    private func kill(_ pid: Int32, signal: Int32) {
+    private func killProcess(_ pid: Int32, signal: Int32) {
         let result = kill(pid, signal)
-        if result != 0 && errno != ESRCH {
+        if result != 0, errno != ESRCH {
             // ESRCH means process doesn't exist, which is expected
             logger.error("Failed to send signal \(signal) to PID \(pid): \(String(cString: strerror(errno)))")
         }
+    }
+
+    // MARK: - Testing Support
+
+    /// Resets the registry to empty state. For testing purposes only.
+    public func reset() {
+        lock.lock()
+        activeProcesses.removeAll()
+        lock.unlock()
     }
 }

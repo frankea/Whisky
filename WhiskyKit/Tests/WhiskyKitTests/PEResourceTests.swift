@@ -374,14 +374,3 @@ final class ResourceDirectoryTableTests: XCTestCase {
         XCTAssertTrue(tableWithUnknown.entries.isEmpty)
     }
 }
-
-// MARK: - Rosetta2 Tests
-
-final class Rosetta2Tests: XCTestCase {
-    func testRosettaInstalledPropertyExists() {
-        // Just verify the property can be accessed without crashing
-        let isInstalled = Rosetta2.isRosettaInstalled
-        // On Apple Silicon Macs, this should return a boolean
-        XCTAssertNotNil(isInstalled as Bool?)
-    }
-}

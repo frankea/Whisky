@@ -311,4 +311,25 @@ public final class TempFileTracker: @unchecked Sendable {
         tempFiles.removeAll()
         lock.unlock()
     }
+
+    /// Registers a temporary file with a custom creation time. For testing purposes only.
+    ///
+    /// - Parameters:
+    ///   - file: URL of the temporary file to track
+    ///   - process: Optional PID of the associated process
+    ///   - creationTime: Custom creation time for testing old file cleanup
+    public func register(file: URL, process: Int32? = nil, creationTime: Date) {
+        lock.lock()
+        defer { lock.unlock() }
+
+        let info = TempFileInfo(
+            url: file,
+            creationTime: creationTime,
+            associatedProcess: process,
+            cleanupAttempts: 0,
+            maxRetries: 3
+        )
+
+        tempFiles[file] = info
+    }
 }

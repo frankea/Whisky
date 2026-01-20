@@ -70,6 +70,36 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
 
     public var id: String { rawValue }
 
+    /// Display name for the launcher.
+    public var displayName: String {
+        switch self {
+        case .steam:
+            "Steam"
+        case .rockstar:
+            "Rockstar Games Launcher"
+        case .eaApp:
+            "EA App"
+        case .epicGames:
+            "Epic Games Store"
+        case .ubisoft:
+            "Ubisoft Connect"
+        case .battleNet:
+            "Battle.net"
+        case .paradox:
+            "Paradox Launcher"
+        }
+    }
+
+    /// Whether this launcher is known to use the clipboard for multiplayer features.
+    public var usesClipboard: Bool {
+        switch self {
+        case .steam, .epicGames, .battleNet:
+            true
+        default:
+            false
+        }
+    }
+
     /// Returns optimized environment variables for this launcher.
     ///
     /// These overrides address specific compatibility issues:

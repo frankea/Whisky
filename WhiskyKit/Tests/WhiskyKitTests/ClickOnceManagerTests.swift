@@ -17,15 +17,15 @@
 //
 
 import Foundation
-@testable import WhiskyKit
 import Testing
+@testable import WhiskyKit
 
 @Suite("ClickOnceManager Tests")
 struct ClickOnceManagerTests {
     // MARK: - Detection Tests
 
     @Test("Detects ClickOnce directory when it doesn't exist")
-    @MainActor func testDetectAppRefFileNoDirectory() throws {
+    @MainActor func detectAppRefFileNoDirectory() throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
@@ -37,7 +37,7 @@ struct ClickOnceManagerTests {
     }
 
     @Test("Detects ClickOnce appref-ms files")
-    @MainActor func testDetectAppRefFileFindsFiles() throws {
+    @MainActor func detectAppRefFileFindsFiles() throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         let clickOnceDir = tempDir
             .appending(path: "drive_c")
@@ -66,7 +66,7 @@ struct ClickOnceManagerTests {
     }
 
     @Test("Ignores non-appref-ms files")
-    @MainActor func testDetectAppRefFileIgnoresOtherFiles() throws {
+    @MainActor func detectAppRefFileIgnoresOtherFiles() throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         let clickOnceDir = tempDir
             .appending(path: "drive_c")
@@ -99,7 +99,7 @@ struct ClickOnceManagerTests {
     // MARK: - Parsing Tests
 
     @Test("Parses valid ClickOnce manifest")
-    func testParseManifestValid() throws {
+    func parseManifestValid() throws {
         let tempFile = FileManager.default.temporaryDirectory.appending(path: "TestApp.appref-ms")
         defer { try? FileManager.default.removeItem(at: tempFile) }
 
@@ -118,7 +118,7 @@ struct ClickOnceManagerTests {
     }
 
     @Test("Parses manifest with minimal URL")
-    func testParseManifestMinimalURL() throws {
+    func parseManifestMinimalURL() throws {
         let tempFile = FileManager.default.temporaryDirectory.appending(path: "MyApp.appref-ms")
         defer { try? FileManager.default.removeItem(at: tempFile) }
 
@@ -135,7 +135,7 @@ struct ClickOnceManagerTests {
     }
 
     @Test("Throws error when file not found")
-    func testParseManifestFileNotFound() throws {
+    func parseManifestFileNotFound() throws {
         let nonExistentFile = FileManager.default.temporaryDirectory.appending(path: "nonexistent.appref-ms")
 
         #expect(throws: ClickOnceError.self) {
@@ -144,7 +144,7 @@ struct ClickOnceManagerTests {
     }
 
     @Test("Throws error for invalid manifest without URL")
-    func testParseManifestInvalidNoURL() throws {
+    func parseManifestInvalidNoURL() throws {
         let tempFile = FileManager.default.temporaryDirectory.appending(path: "Invalid.appref-ms")
         defer { try? FileManager.default.removeItem(at: tempFile) }
 
@@ -160,7 +160,7 @@ struct ClickOnceManagerTests {
     }
 
     @Test("Parses manifest with version query parameter")
-    func testParseManifestWithVersionParameter() throws {
+    func parseManifestWithVersionParameter() throws {
         let tempFile = FileManager.default.temporaryDirectory.appending(path: "VersionedApp.appref-ms")
         defer { try? FileManager.default.removeItem(at: tempFile) }
 
@@ -178,7 +178,7 @@ struct ClickOnceManagerTests {
     // MARK: - Environment Tests
 
     @Test("Generates environment variables for manifest")
-    func testGetEnvironment() {
+    func getEnvironment() {
         let manifest = ClickOnceManager.ClickOnceManifest(
             name: "TestApp",
             url: URL(string: "http://example.com/app.application") ?? URL(fileURLWithPath: "/"),
@@ -198,7 +198,7 @@ struct ClickOnceManagerTests {
     }
 
     @Test("Generates environment with optional fields missing")
-    func testGetEnvironmentMinimal() {
+    func getEnvironmentMinimal() {
         let manifest = ClickOnceManager.ClickOnceManifest(
             name: "MinimalApp",
             url: URL(string: "http://example.com/app.application") ?? URL(fileURLWithPath: "/"),
@@ -220,7 +220,7 @@ struct ClickOnceManagerTests {
     // MARK: - Validation Tests
 
     @Test("Validates correct manifest")
-    func testValidateManifestValid() {
+    func validateManifestValid() {
         let manifest = ClickOnceManager.ClickOnceManifest(
             name: "ValidApp",
             url: URL(string: "http://example.com/app.application") ?? URL(fileURLWithPath: "/"),
@@ -235,7 +235,7 @@ struct ClickOnceManagerTests {
     }
 
     @Test("Rejects manifest with empty name")
-    func testValidateManifestEmptyName() {
+    func validateManifestEmptyName() {
         let manifest = ClickOnceManager.ClickOnceManifest(
             name: "",
             url: URL(string: "http://example.com/app.application") ?? URL(fileURLWithPath: "/"),
@@ -250,7 +250,7 @@ struct ClickOnceManagerTests {
     }
 
     @Test("Rejects manifest with empty version")
-    func testValidateManifestEmptyVersion() {
+    func validateManifestEmptyVersion() {
         let manifest = ClickOnceManager.ClickOnceManifest(
             name: "TestApp",
             url: URL(string: "http://example.com/app.application") ?? URL(fileURLWithPath: "/"),
@@ -265,7 +265,7 @@ struct ClickOnceManagerTests {
     }
 
     @Test("Rejects manifest with empty publisher")
-    func testValidateManifestEmptyPublisher() {
+    func validateManifestEmptyPublisher() {
         let manifest = ClickOnceManager.ClickOnceManifest(
             name: "TestApp",
             url: URL(string: "http://example.com/app.application") ?? URL(fileURLWithPath: "/"),
@@ -280,7 +280,7 @@ struct ClickOnceManagerTests {
     }
 
     @Test("Accepts manifest with non-standard version format")
-    func testValidateManifestNonStandardVersion() {
+    func validateManifestNonStandardVersion() {
         let manifest = ClickOnceManager.ClickOnceManifest(
             name: "TestApp",
             url: URL(string: "http://example.com/app.application") ?? URL(fileURLWithPath: "/"),
@@ -298,7 +298,7 @@ struct ClickOnceManagerTests {
     // MARK: - Installation Tests
 
     @Test("Installation completes without error")
-    @MainActor func testInstall() async throws {
+    @MainActor func install() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
@@ -320,7 +320,7 @@ struct ClickOnceManagerTests {
     // MARK: - Error Tests
 
     @Test("ClickOnceError provides error descriptions")
-    func testErrorDescriptions() {
+    func errorDescriptions() {
         let fileNotFoundError = ClickOnceError.fileNotFound(URL(fileURLWithPath: "/test/path.appref-ms"))
         let invalidManifestError = ClickOnceError.invalidManifest("Missing URL")
         let installationFailedError = ClickOnceError.installationFailed("Wine error")
@@ -331,7 +331,7 @@ struct ClickOnceManagerTests {
     }
 
     @Test("ClickOnceError provides recovery suggestions")
-    func testErrorRecoverySuggestions() {
+    func errorRecoverySuggestions() {
         let fileNotFoundError = ClickOnceError.fileNotFound(URL(fileURLWithPath: "/test/path.appref-ms"))
         let invalidManifestError = ClickOnceError.invalidManifest("Missing URL")
         let installationFailedError = ClickOnceError.installationFailed("Wine error")

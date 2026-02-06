@@ -18,6 +18,7 @@
 
 import AppKit
 import Foundation
+import os.log
 @preconcurrency import QuickLookThumbnailing
 import WhiskyKit
 
@@ -87,7 +88,7 @@ class ProgramShortcut {
             }
             NSWorkspace.shared.activateFileViewerSelecting([app])
         } catch {
-            print(error)
+            Logger.wineKit.error("Failed to create program shortcut: \(error.localizedDescription)")
         }
     }
 }

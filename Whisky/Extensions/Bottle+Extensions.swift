@@ -161,7 +161,7 @@ extension Bottle {
                     }
                 }
             } catch {
-                print(error)
+                Logger.wineKit.warning("Failed to process Start Menu shortcut: \(error.localizedDescription)")
             }
         }
 
@@ -226,7 +226,7 @@ extension Bottle {
             }
             BottleVM.shared.loadBottles()
         } catch {
-            print("Failed to move bottle")
+            Logger.wineKit.error("Failed to move bottle: \(error.localizedDescription)")
         }
     }
 
@@ -333,7 +333,7 @@ extension Bottle {
             }
             BottleVM.shared.loadBottles()
         } catch {
-            print("Failed to remove bottle")
+            Logger.wineKit.error("Failed to remove bottle: \(error.localizedDescription)")
         }
     }
 

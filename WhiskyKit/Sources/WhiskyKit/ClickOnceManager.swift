@@ -138,9 +138,9 @@ public final class ClickOnceManager: @unchecked Sendable {
         var manifestURL: String?
         var name = fileURL.deletingPathExtension().lastPathComponent
         var version = "1.0.0.0"
-        var publisher = "Unknown"
-        var supportUrl: URL?
-        var description: String?
+        let publisher = "Unknown"
+        let supportUrl: URL? = nil
+        let description: String? = nil
 
         for line in lines {
             let trimmedLine = line.trimmingCharacters(in: .whitespaces)

@@ -18,6 +18,7 @@
 
 import AppKit
 import Foundation
+import os.log
 
 /// An error that occurred while parsing a PE file.
 public struct PEError: Error {

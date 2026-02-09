@@ -3646,6 +3646,16 @@
         }
       }
     },
+    "cleanup.zombies.toast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleaned up %lld leftover Wine processes"
+          }
+        }
+      }
+    },
     "config.avx": {
       "localizations": {
         "ar": {
@@ -4050,6 +4060,126 @@
           "stringUnit": {
             "state": "translated",
             "value": "組建版本"
+          }
+        }
+      }
+    },
+    "config.cleanup": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleanup"
+          }
+        }
+      }
+    },
+    "config.cleanup.clipboardPolicy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard Policy"
+          }
+        }
+      }
+    },
+    "config.cleanup.clipboardPolicy.auto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto (Recommended)"
+          }
+        }
+      }
+    },
+    "config.cleanup.clipboardPolicy.clear": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Always Clear on Launch"
+          }
+        }
+      }
+    },
+    "config.cleanup.clipboardPolicy.help": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controls whether clipboard content is checked before launching Wine programs"
+          }
+        }
+      }
+    },
+    "config.cleanup.clipboardPolicy.never": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Never"
+          }
+        }
+      }
+    },
+    "config.cleanup.clipboardPolicy.warn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Always Warn"
+          }
+        }
+      }
+    },
+    "config.cleanup.killOnQuit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kill Processes on Quit"
+          }
+        }
+      }
+    },
+    "config.cleanup.killOnQuit.always": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Always Kill"
+          }
+        }
+      }
+    },
+    "config.cleanup.killOnQuit.help": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controls whether Wine processes are terminated when Whisky quits"
+          }
+        }
+      }
+    },
+    "config.cleanup.killOnQuit.inherit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Global Setting"
+          }
+        }
+      }
+    },
+    "config.cleanup.killOnQuit.never": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Never Kill"
           }
         }
       }

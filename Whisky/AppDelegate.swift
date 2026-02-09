@@ -44,12 +44,38 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.hasShownMoveToApplicationsAlert = true
             }
         }
+
+        // Background cleanup of orphaned temp files from previous sessions
+        Task.detached {
+            await TempFileTracker.shared.cleanupOldFiles(olderThan: 24 * 60 * 60)
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        // Use the existing killBottles mechanism for synchronous cleanup
-        if UserDefaults.standard.bool(forKey: "killOnTerminate") {
-            WhiskyApp.killBottles()
+        let globalKill = UserDefaults.standard.bool(forKey: "killOnTerminate")
+
+        // Per-bottle kill-on-quit with policy overrides
+        for bottle in BottleVM.shared.bottles {
+            let bottlePolicy = bottle.settings.killOnQuit
+            let shouldKill: Bool
+            switch bottlePolicy {
+            case .inherit:
+                shouldKill = globalKill
+            case .alwaysKill:
+                shouldKill = true
+            case .neverKill:
+                shouldKill = false
+            }
+
+            if shouldKill {
+                Wine.killBottle(bottle: bottle)
+            }
+        }
+
+        // Synchronous best-effort temp file cleanup (cannot await in applicationWillTerminate)
+        let trackedFiles = TempFileTracker.shared.getAllTrackedFiles()
+        for (fileURL, _) in trackedFiles {
+            try? FileManager.default.removeItem(at: fileURL)
         }
     }
 
@@ -91,4 +117,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+}
+
+extension Notification.Name {
+    /// Posted when orphaned Wine processes are cleaned up at launch.
+    /// Contains userInfo key "count" (Int) with the number of processes killed.
+    static let zombieProcessesCleaned = Notification.Name("zombieProcessesCleaned")
 }

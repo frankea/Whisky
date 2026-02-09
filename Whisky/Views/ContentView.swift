@@ -46,6 +46,19 @@ struct ContentView: View {
             detail
         }
         .toast($toast)
+        .onReceive(NotificationCenter.default.publisher(for: .zombieProcessesCleaned)) { notification in
+            if let count = notification.userInfo?["count"] as? Int, count > 0 {
+                withAnimation {
+                    toast = ToastData(
+                        message: String(
+                            format: String(localized: "cleanup.zombies.toast"),
+                            count
+                        ),
+                        style: .info
+                    )
+                }
+            }
+        }
         .alert(
             "bottle.creation.failed.title",
             isPresented: Binding(

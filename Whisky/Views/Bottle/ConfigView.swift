@@ -55,6 +55,7 @@ struct ConfigView: View {
     @AppStorage("performanceSectionExpanded") private var performanceSectionExpanded: Bool = true
     @AppStorage("launcherSectionExpanded") private var launcherSectionExpanded: Bool = false
     @AppStorage("inputSectionExpanded") private var inputSectionExpanded: Bool = false
+    @AppStorage("cleanupSectionExpanded") private var cleanupSectionExpanded: Bool = false
 
     var body: some View {
         Form {
@@ -122,6 +123,7 @@ struct ConfigView: View {
                 .disabled(isRepairingPrefix)
                 .help("config.repairPrefix.help")
             }
+            CleanupConfigSection(bottle: bottle, isExpanded: $cleanupSectionExpanded)
         }
         .formStyle(.grouped)
         .animation(.whiskyDefault, value: wineSectionExpanded)
@@ -130,6 +132,7 @@ struct ConfigView: View {
         .animation(.whiskyDefault, value: dxvkSectionExpanded)
         .animation(.whiskyDefault, value: metalSectionExpanded)
         .animation(.whiskyDefault, value: performanceSectionExpanded)
+        .animation(.whiskyDefault, value: cleanupSectionExpanded)
         .sheet(isPresented: $showStabilityDiagnostics) {
             DiagnosticsReportView(
                 title: "Stability Diagnostics Report",

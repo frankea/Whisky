@@ -55,6 +55,7 @@ struct ConfigView: View {
     @AppStorage("performanceSectionExpanded") private var performanceSectionExpanded: Bool = true
     @AppStorage("launcherSectionExpanded") private var launcherSectionExpanded: Bool = false
     @AppStorage("inputSectionExpanded") private var inputSectionExpanded: Bool = false
+    @AppStorage("dllOverrideSectionExpanded") private var dllOverrideSectionExpanded: Bool = false
     @AppStorage("cleanupSectionExpanded") private var cleanupSectionExpanded: Bool = false
 
     var body: some View {
@@ -79,6 +80,7 @@ struct ConfigView: View {
             DXVKConfigSection(bottle: bottle, isExpanded: $dxvkSectionExpanded)
             MetalConfigSection(bottle: bottle, isExpanded: $metalSectionExpanded)
             PerformanceConfigSection(bottle: bottle, isExpanded: $performanceSectionExpanded)
+            DLLOverrideConfigSection(bottle: bottle, isExpanded: $dllOverrideSectionExpanded)
             Section("Stability") {
                 Button("Generate Stability Diagnostics") {
                     Task {
@@ -132,6 +134,7 @@ struct ConfigView: View {
         .animation(.whiskyDefault, value: dxvkSectionExpanded)
         .animation(.whiskyDefault, value: metalSectionExpanded)
         .animation(.whiskyDefault, value: performanceSectionExpanded)
+        .animation(.whiskyDefault, value: dllOverrideSectionExpanded)
         .animation(.whiskyDefault, value: cleanupSectionExpanded)
         .sheet(isPresented: $showStabilityDiagnostics) {
             DiagnosticsReportView(

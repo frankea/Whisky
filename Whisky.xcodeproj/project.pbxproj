@@ -11,6 +11,8 @@
 		1A2B3C4D2E0107F000AABBCC /* TextTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4E2E0107F000AABBCC /* TextTable.swift */; };
 		2E9E4AD3124BDF8D5238BE32 /* DPIConfigSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3735C5328F7A6ABD2D1248 /* DPIConfigSheetView.swift */; };
 		396CD6101FAF0380C459ACEE /* DXVKConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5770D2EE01AEF235634646 /* DXVKConfigSection.swift */; };
+		A1B2C3D4E5F60718A9B0C1D2 /* DLLOverrideEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718A9B0C1D3 /* DLLOverrideEditor.swift */; };
+		A1B2C3D4E5F60718A9B0C1D4 /* DLLOverrideConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718A9B0C1D5 /* DLLOverrideConfigSection.swift */; };
 		52513FA35312809A9760BCB2 /* MetalConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2699006F97F862815633C9F /* MetalConfigSection.swift */; };
 		6330DD962B1B0EA4007A625A /* RenameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6330DD952B1B0EA4007A625A /* RenameView.swift */; };
 		6365C4C12B1AA69D00AAE1FD /* Animation+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6365C4C02B1AA69D00AAE1FD /* Animation+Extensions.swift */; };
@@ -182,6 +184,8 @@
 		AA2516958D60EC8937A2AF71 /* LaunchResult+Toast.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "LaunchResult+Toast.swift"; sourceTree = "<group>"; };
 		AA88CFEB38031323229CD377 /* LauncherDiagnostics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherDiagnostics.swift; sourceTree = "<group>"; };
 		AB0BCABC2B61036E00E21C31 /* RunningProcessesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningProcessesView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718A9B0C1D3 /* DLLOverrideEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLLOverrideEditor.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718A9B0C1D5 /* DLLOverrideConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLLOverrideConfigSection.swift; sourceTree = "<group>"; };
 		CA5770D2EE01AEF235634646 /* DXVKConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DXVKConfigSection.swift; sourceTree = "<group>"; };
 		D27C1F7764AE4F0AED2FD03D /* LauncherConfigSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherConfigSection.swift; sourceTree = "<group>"; };
 		DB696FC72AFAE5DA0037EB2F /* PinCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinCreationView.swift; sourceTree = "<group>"; };
@@ -284,6 +288,8 @@
 				DD3735C5328F7A6ABD2D1248 /* DPIConfigSheetView.swift */,
 				EAE15F0C1EF1F06C7DB73DF5 /* SettingItemView.swift */,
 				258BF9104045ED48882E009D /* WineConfigSection.swift */,
+				A1B2C3D4E5F60718A9B0C1D3 /* DLLOverrideEditor.swift */,
+				A1B2C3D4E5F60718A9B0C1D5 /* DLLOverrideConfigSection.swift */,
 				CA5770D2EE01AEF235634646 /* DXVKConfigSection.swift */,
 				E2699006F97F862815633C9F /* MetalConfigSection.swift */,
 				3724CE6DD2C1B22D80442DB6 /* PerformanceConfigSection.swift */,
@@ -645,6 +651,8 @@
 				2E9E4AD3124BDF8D5238BE32 /* DPIConfigSheetView.swift in Sources */,
 				E24B756A38C48A1EE4374F25 /* SettingItemView.swift in Sources */,
 				744CFC7F2B2281370D39A466 /* WineConfigSection.swift in Sources */,
+				A1B2C3D4E5F60718A9B0C1D2 /* DLLOverrideEditor.swift in Sources */,
+				A1B2C3D4E5F60718A9B0C1D4 /* DLLOverrideConfigSection.swift in Sources */,
 				396CD6101FAF0380C459ACEE /* DXVKConfigSection.swift in Sources */,
 				52513FA35312809A9760BCB2 /* MetalConfigSection.swift in Sources */,
 				C08ECD035DDFEDB70ACA1D1B /* PerformanceConfigSection.swift in Sources */,

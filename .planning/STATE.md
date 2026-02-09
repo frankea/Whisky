@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 3 complete -- ready for Phase 4
+**Current focus:** Phase 4 in progress -- Graphics Configuration
 
 ## Current Position
 
-Phase: 3 of 10 (Process Lifecycle Management) -- COMPLETE
-Plan: 3 of 3 in current phase (03-03 complete)
-Status: Phase Complete
-Last activity: 2026-02-09 -- Completed 03-03-PLAN.md (Process lifecycle integration)
+Phase: 4 of 10 (Graphics Configuration)
+Plan: 1 of 3 in current phase (04-01 complete)
+Status: In Progress
+Last activity: 2026-02-09 -- Completed 04-01-PLAN.md (GraphicsBackend data model)
 
 Progress: [▓▓▓▓▓▓▓▓░░] 33%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: 10.7min
-- Total execution time: 1.80 hours
+- Total plans completed: 11
+- Average duration: 10.2min
+- Total execution time: 1.87 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [▓▓▓▓▓▓▓▓░░] 33%
 | 01-miscellaneous-fixes | 3 | 17min | 5.7min |
 | 02-configuration-foundation | 4 | 73min | 18.3min |
 | 03-process-lifecycle-management | 3 | 18min | 6.0min |
+| 04-graphics-configuration | 1 | 4min | 4.0min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (45min), 02-04 (7min), 03-01 (3min), 03-02 (8min), 03-03 (7min)
-- Trend: stabilizing at ~7min for focused integration tasks
+- Last 5 plans: 02-04 (7min), 03-01 (3min), 03-02 (8min), 03-03 (7min), 04-01 (4min)
+- Trend: stabilizing at ~6min for focused integration tasks
 
 *Updated after each plan completion*
 
@@ -84,6 +85,9 @@ Recent decisions affecting current work:
 - [03-03]: NSAlert with checkbox for remember-choice UX (matching existing showRemoveAlert pattern)
 - [03-03]: sweepOrphanProcesses extracted to @MainActor method (Swift 6 region-based isolation workaround)
 - [03-03]: showProcessCloseAlert in ContentView extension for SwiftLint type_body_length
+- [Phase 04]: [04-01]: GraphicsBackend at module scope (ClipboardPolicy pattern), resolver as caseless enum (GPUDetection pattern)
+- [Phase 04]: [04-01]: dxvk proxy derives from graphicsConfig.backend; DXVK_ASYNC only emitted for .dxvk backend
+- [Phase 04]: [04-01]: Decode-time migration for old bottles: container.contains(.graphicsConfig) + dxvk=true -> backend=.dxvk
 
 ### Pending Todos
 
@@ -96,5 +100,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-09
-Stopped at: Completed 03-03-PLAN.md (Process lifecycle integration) -- Phase 3 complete
+Stopped at: Completed 04-01-PLAN.md (GraphicsBackend data model)
 Resume file: None

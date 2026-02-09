@@ -85,12 +85,12 @@ Plans:
   3. DXVK-specific settings (async shader compilation, HUD overlay) are configurable per bottle in Advanced mode
   4. Per-program graphics backend override is available and takes precedence over the bottle-level setting
   5. DXVK configuration file is managed through the UI with user-editable settings exposed
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
-- [ ] 04-03: TBD
+- [ ] 04-01-PLAN.md -- GraphicsBackend data model, BottleGraphicsConfig, GraphicsBackendResolver, BottleSettings integration, ProgramOverrides extension, WineEnvironment update
+- [ ] 04-02-PLAN.md -- BackendPickerView selection cards, GraphicsConfigSection with Simple/Advanced toggle, DXVKSettingsView, dxvk.conf management, ConfigView integration
+- [ ] 04-03-PLAN.md -- Per-program graphics override in ProgramOverrideSettingsView, per-program override notes in GraphicsConfigSection, program list badge
 
 ### Phase 5: Stability & Diagnostics
 **Goal**: Wine error output is automatically classified so users receive actionable crash guidance instead of raw logs

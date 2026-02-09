@@ -35,6 +35,8 @@ import Foundation
 public struct ProgramOverrides: Codable, Equatable, Sendable {
     // MARK: - Graphics / DXVK
 
+    /// The graphics backend for this program. `nil` inherits from bottle.
+    public var graphicsBackend: GraphicsBackend?
     /// Whether DXVK is enabled. `nil` inherits from bottle.
     public var dxvk: Bool?
     /// Whether DXVK async shader compilation is enabled. `nil` inherits from bottle.
@@ -89,7 +91,8 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
     /// Note: `taggedVerbs` is excluded from this check since it is organizational metadata,
     /// not a settings override.
     public var isEmpty: Bool {
-        dxvk == nil
+        graphicsBackend == nil
+            && dxvk == nil
             && dxvkAsync == nil
             && dxvkHud == nil
             && enhancedSync == nil
@@ -108,6 +111,10 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.graphicsBackend = try container.decodeIfPresent(
+            GraphicsBackend.self,
+            forKey: .graphicsBackend
+        )
         self.dxvk = try container.decodeIfPresent(Bool.self, forKey: .dxvk)
         self.dxvkAsync = try container.decodeIfPresent(Bool.self, forKey: .dxvkAsync)
         self.dxvkHud = try container.decodeIfPresent(DXVKHUD.self, forKey: .dxvkHud)

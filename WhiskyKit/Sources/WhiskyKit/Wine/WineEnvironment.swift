@@ -122,6 +122,42 @@ extension Wine {
         builder: inout EnvironmentBuilder,
         dllResolver: inout DLLOverrideResolver
     ) {
+        // Graphics backend override: replaces bottle-level backend entirely
+        if let backend = overrides.graphicsBackend {
+            let resolved = if backend == .recommended {
+                GraphicsBackendResolver.resolve()
+            } else {
+                backend
+            }
+            switch resolved {
+            case .d3dMetal, .recommended:
+                // Undo any bottle-level DXVK by overriding DLLs to builtin
+                for entry in DLLOverrideResolver.dxvkPreset {
+                    dllResolver.programCustom.append(
+                        DLLOverrideEntry(dllName: entry.dllName, mode: .builtin)
+                    )
+                }
+                // Remove DXVK and wined3d env vars at program layer
+                builder.remove("DXVK_HUD", layer: .programUser)
+                builder.remove("DXVK_ASYNC", layer: .programUser)
+                builder.remove("WINED3DMETAL", layer: .programUser)
+
+            case .dxvk:
+                // Enable DXVK DLLs at program level
+                dllResolver.programCustom.append(contentsOf: DLLOverrideResolver.dxvkPreset)
+                builder.remove("WINED3DMETAL", layer: .programUser)
+
+            case .wined3d:
+                // Force wined3d: disable D3DMetal + undo DXVK DLLs
+                builder.set("WINED3DMETAL", "0", layer: .programUser)
+                for entry in DLLOverrideResolver.dxvkPreset {
+                    dllResolver.programCustom.append(
+                        DLLOverrideEntry(dllName: entry.dllName, mode: .builtin)
+                    )
+                }
+            }
+        }
+
         // DXVK override: affects DLL composition via resolver
         if let dxvk = overrides.dxvk {
             if dxvk {
@@ -230,7 +266,7 @@ extension Wine {
         // Non-sensitive keys allowed in the launch summary
         let allowedKeys = [
             "DXVK_ASYNC", "DXVK_HUD", "WINEESYNC", "WINEMSYNC",
-            "D3DM_FORCE_D3D11", "MTL_HUD_ENABLED"
+            "D3DM_FORCE_D3D11", "MTL_HUD_ENABLED", "WINED3DMETAL"
         ]
         let safeEntries = allowedKeys.compactMap { key -> String? in
             guard let value = environment[key] else { return nil }

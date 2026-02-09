@@ -88,36 +88,6 @@ public class Wine {
     /// URL to the `wineserver` binary for Wine server management.
     private static let wineserverBinary: URL = WhiskyWineInstaller.binFolder.appending(path: "wineserver")
 
-    /// Checks if an environment variable key is a valid POSIX shell identifier.
-    ///
-    /// Valid names must start with an ASCII letter or underscore, followed by
-    /// any combination of ASCII letters, digits, or underscores.
-    /// This prevents shell injection through malicious environment variable keys.
-    ///
-    /// - Note: Uses explicit ASCII checks rather than Swift's Unicode-aware
-    ///   `isLetter`/`isNumber` methods, since POSIX shells only accept ASCII
-    ///   identifiers (`[A-Za-z_][A-Za-z0-9_]*`).
-    ///
-    /// - Parameter key: The environment variable name to validate.
-    /// - Returns: `true` if the key is safe to use in shell commands.
-    static func isValidEnvKey(_ key: String) -> Bool {
-        guard let first = key.first else { return false }
-        guard isAsciiLetter(first) || first == "_" else { return false }
-        return key.allSatisfy { isAsciiLetter($0) || isAsciiDigit($0) || $0 == "_" }
-    }
-
-    /// Checks if a character is an ASCII letter (A-Z, a-z).
-    static func isAsciiLetter(_ char: Character) -> Bool {
-        guard let ascii = char.asciiValue else { return false }
-        return (ascii >= 65 && ascii <= 90) || (ascii >= 97 && ascii <= 122) // A-Z or a-z
-    }
-
-    /// Checks if a character is an ASCII digit (0-9).
-    static func isAsciiDigit(_ char: Character) -> Bool {
-        guard let ascii = char.asciiValue else { return false }
-        return ascii >= 48 && ascii <= 57 // 0-9
-    }
-
     /// Run a process on a executable file given by the `executableURL`
     private static func runProcess(
         name: String? = nil, args: [String], environment: [String: String], executableURL: URL, directory: URL? = nil,
@@ -242,10 +212,12 @@ public class Wine {
     ///   - args: Optional command-line arguments to pass to the program.
     ///   - bottle: The ``Bottle`` in which to run the program.
     ///   - environment: Additional environment variables for this execution.
+    ///   - programOverrides: Optional per-program setting overrides. `nil` fields inherit from bottle.
     /// - Throws: An error if the program cannot be started or Wine encounters an error.
     @MainActor
     public static func runProgram(
-        at url: URL, args: [String] = [], bottle: Bottle, environment: [String: String] = [:]
+        at url: URL, args: [String] = [], bottle: Bottle, environment: [String: String] = [:],
+        programOverrides: ProgramOverrides? = nil
     ) async throws {
         // Note: Launcher detection is handled at the app level (FileOpenView/BottleView)
         // before calling this method. The detection logic uses LauncherDetection utility
@@ -277,10 +249,20 @@ public class Wine {
             }
         }
 
-        for await _ in try runWineProcess(
+        // Build the Wine environment with program overrides flowing through the programUser layer
+        let fileHandle = try makeFileHandle()
+        fileHandle.writeApplicationInfo()
+        fileHandle.writeInfo(for: bottle)
+
+        let wineEnvironment = constructWineEnvironment(
+            for: bottle, environment: environment, programOverrides: programOverrides
+        )
+
+        for await _ in try runProcess(
             name: url.lastPathComponent,
             args: ["start", "/unix", url.path(percentEncoded: false)] + args,
-            bottle: bottle, environment: environment
+            environment: wineEnvironment, executableURL: wineBinary,
+            fileHandle: fileHandle
         ) {}
     }
 
@@ -567,6 +549,40 @@ public class Wine {
     public static func repairPrefix(bottle: Bottle) async throws -> String {
         logger.info("Repairing Wine prefix for bottle '\(bottle.settings.name)'")
         return try await runWine(["wineboot", "--init"], bottle: bottle)
+    }
+}
+
+// MARK: - Environment Key Validation
+
+extension Wine {
+    /// Checks if an environment variable key is a valid POSIX shell identifier.
+    ///
+    /// Valid names must start with an ASCII letter or underscore, followed by
+    /// any combination of ASCII letters, digits, or underscores.
+    /// This prevents shell injection through malicious environment variable keys.
+    ///
+    /// - Note: Uses explicit ASCII checks rather than Swift's Unicode-aware
+    ///   `isLetter`/`isNumber` methods, since POSIX shells only accept ASCII
+    ///   identifiers (`[A-Za-z_][A-Za-z0-9_]*`).
+    ///
+    /// - Parameter key: The environment variable name to validate.
+    /// - Returns: `true` if the key is safe to use in shell commands.
+    static func isValidEnvKey(_ key: String) -> Bool {
+        guard let first = key.first else { return false }
+        guard isAsciiLetter(first) || first == "_" else { return false }
+        return key.allSatisfy { isAsciiLetter($0) || isAsciiDigit($0) || $0 == "_" }
+    }
+
+    /// Checks if a character is an ASCII letter (A-Z, a-z).
+    static func isAsciiLetter(_ char: Character) -> Bool {
+        guard let ascii = char.asciiValue else { return false }
+        return (ascii >= 65 && ascii <= 90) || (ascii >= 97 && ascii <= 122) // A-Z or a-z
+    }
+
+    /// Checks if a character is an ASCII digit (0-9).
+    static func isAsciiDigit(_ char: Character) -> Bool {
+        guard let ascii = char.asciiValue else { return false }
+        return ascii >= 48 && ascii <= 57 // 0-9
     }
 }
 

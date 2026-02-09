@@ -256,4 +256,117 @@ final class EnvironmentVariablesTests: XCTestCase {
         XCTAssertEqual(env["DXVK_SHADER_COMPILE_THREADS"], "1")
         XCTAssertEqual(env["__GL_SHADER_DISK_CACHE"], "0")
     }
+
+    // MARK: - EnvironmentBuilder Layer Populator Tests
+
+    func testPopulateBottleManagedLayerReturnsDXVKOverrides() {
+        var settings = BottleSettings()
+        settings.dxvk = true
+
+        var builder = EnvironmentBuilder()
+        let managedOverrides = settings.populateBottleManagedLayer(builder: &builder)
+
+        // DXVK managed overrides should be returned, not set via builder
+        XCTAssertEqual(managedOverrides.count, 4) // dxgi, d3d9, d3d10core, d3d11
+        XCTAssertTrue(managedOverrides.allSatisfy { $0.source == .dxvk })
+
+        // WINEDLLOVERRIDES should NOT be in the resolved environment (handled by DLLOverrideResolver)
+        let (resolved, _) = builder.resolve()
+        XCTAssertNil(resolved["WINEDLLOVERRIDES"])
+    }
+
+    func testPopulateBottleManagedLayerNoDXVKOverridesWhenDisabled() {
+        var settings = BottleSettings()
+        settings.dxvk = false
+
+        var builder = EnvironmentBuilder()
+        let managedOverrides = settings.populateBottleManagedLayer(builder: &builder)
+
+        XCTAssertTrue(managedOverrides.isEmpty)
+    }
+
+    func testPopulateLauncherManagedLayerReturnsEmptyWhenDisabled() {
+        var settings = BottleSettings()
+        settings.launcherCompatibilityMode = false
+
+        var builder = EnvironmentBuilder()
+        let launcherOverrides = settings.populateLauncherManagedLayer(builder: &builder)
+
+        XCTAssertTrue(launcherOverrides.isEmpty)
+        let (resolved, _) = builder.resolve()
+        // No launcher-specific keys should be set
+        XCTAssertNil(resolved["WINE_FORCE_HTTP11"])
+    }
+
+    // MARK: - Program Override Tests
+
+    func testProgramOverrideDXVKFalseOverridesBottleDXVK() {
+        var settings = BottleSettings()
+        settings.dxvk = true // Bottle has DXVK enabled
+
+        // Build with program overrides disabling DXVK
+        var builder = EnvironmentBuilder()
+        var dllResolver = DLLOverrideResolver(managed: [], bottleCustom: [], programCustom: [])
+
+        let managed = settings.populateBottleManagedLayer(builder: &builder)
+        dllResolver.managed.append(contentsOf: managed)
+
+        // Apply program override: dxvk = false
+        var overrides = ProgramOverrides()
+        overrides.dxvk = false
+
+        // Simulate what constructWineEnvironment does for program overrides
+        for entry in DLLOverrideResolver.dxvkPreset {
+            dllResolver.programCustom.append(
+                DLLOverrideEntry(dllName: entry.dllName, mode: .builtin)
+            )
+        }
+
+        let (overrideString, _) = dllResolver.resolve()
+        // Program forces builtin mode, overriding managed native-then-builtin
+        XCTAssertTrue(overrideString.contains("dxgi=b"))
+        XCTAssertTrue(overrideString.contains("d3d11=b"))
+    }
+
+    func testProgramOverrideEnhancedSyncOverridesBottle() {
+        // Bottle has msync, program overrides to esync
+        var builder = EnvironmentBuilder()
+        builder.set("WINEMSYNC", "1", layer: .bottleManaged)
+        builder.set("WINEESYNC", "1", layer: .bottleManaged)
+
+        // Program overrides to esync only
+        builder.set("WINEESYNC", "1", layer: .programUser)
+        builder.remove("WINEMSYNC", layer: .programUser)
+
+        let (resolved, _) = builder.resolve()
+        XCTAssertEqual(resolved["WINEESYNC"], "1")
+        XCTAssertNil(resolved["WINEMSYNC"]) // Removed by programUser layer
+    }
+
+    func testDLLOverridesComposeCorrectly() {
+        // Bottle DXVK on + program custom DLL override -> both present in WINEDLLOVERRIDES
+        var dllResolver = DLLOverrideResolver(
+            managed: DLLOverrideResolver.dxvkPreset.map { (entry: $0, source: DLLOverrideSource.dxvk) },
+            bottleCustom: [],
+            programCustom: [DLLOverrideEntry(dllName: "xaudio2_7", mode: .native)]
+        )
+
+        let (overrideString, _) = dllResolver.resolve()
+        // Both DXVK DLLs and the custom override should be present
+        XCTAssertTrue(overrideString.contains("dxgi=n,b"))
+        XCTAssertTrue(overrideString.contains("d3d11=n,b"))
+        XCTAssertTrue(overrideString.contains("xaudio2_7=n"))
+    }
+
+    func testProgramOverrideDXVKAsyncSetsInProgramUserLayer() {
+        var builder = EnvironmentBuilder()
+        // Bottle managed sets DXVK_ASYNC=1
+        builder.set("DXVK_ASYNC", "1", layer: .bottleManaged)
+        // Program override disables it
+        builder.set("DXVK_ASYNC", "0", layer: .programUser)
+
+        let (resolved, _) = builder.resolve()
+        // programUser wins over bottleManaged
+        XCTAssertEqual(resolved["DXVK_ASYNC"], "0")
+    }
 }

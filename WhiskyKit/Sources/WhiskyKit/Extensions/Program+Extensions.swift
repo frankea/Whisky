@@ -75,7 +75,8 @@ public extension Program {
 
         do {
             try await Wine.runProgram(
-                at: self.url, args: arguments, bottle: self.bottle, environment: environment
+                at: self.url, args: arguments, bottle: self.bottle, environment: environment,
+                programOverrides: settings.overrides
             )
             return .launchedSuccessfully(programName: self.name)
         } catch {
@@ -176,7 +177,7 @@ public extension Program {
         let alert = NSAlert()
         alert.messageText = String(localized: "clipboard.large.title")
 
-        let sizeKB = String(format: "%.1f", Double(sizeBytes) / 1024.0)
+        let sizeKB = String(format: "%.1f", Double(sizeBytes) / 1_024.0)
         let message: String
         switch contentType {
         case "text":
@@ -214,7 +215,8 @@ extension Program {
         Task {
             do {
                 try await Wine.runProgram(
-                    at: self.url, args: arguments, bottle: self.bottle, environment: environment
+                    at: self.url, args: arguments, bottle: self.bottle, environment: environment,
+                    programOverrides: settings.overrides
                 )
             } catch {
                 self.showRunError(message: error.localizedDescription)

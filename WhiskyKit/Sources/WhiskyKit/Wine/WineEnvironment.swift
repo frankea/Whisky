@@ -1,3 +1,4 @@
+// swiftlint:disable function_body_length
 //
 //  WineEnvironment.swift
 //  WhiskyKit
@@ -21,6 +22,7 @@ import os.log
 
 private let envLogger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "WineEnvironment")
 
+// swiftlint:disable cyclomatic_complexity
 extension Wine {
     /// Construct an environment merging the bottle values with the given values
     /// using EnvironmentBuilder with 8-layer resolution.
@@ -32,9 +34,17 @@ extension Wine {
     ///
     /// Invalid environment variable keys (those not matching `[A-Za-z_][A-Za-z0-9_]*`)
     /// are filtered out with a debug log message, as macOS silently ignores them.
+    ///
+    /// - Parameters:
+    ///   - bottle: The bottle whose settings configure the environment.
+    ///   - environment: Caller-provided environment variables (typically from `Program.generateEnvironment()`).
+    ///   - programOverrides: Optional per-program setting overrides. `nil` fields inherit from bottle.
+    /// - Returns: The fully resolved environment dictionary for passing to a Wine process.
     @MainActor
     public static func constructWineEnvironment(
-        for bottle: Bottle, environment: [String: String] = [:]
+        for bottle: Bottle,
+        environment: [String: String] = [:],
+        programOverrides: ProgramOverrides? = nil
     ) -> [String: String] {
         var builder = EnvironmentBuilder()
         var dllResolver = DLLOverrideResolver(managed: [], bottleCustom: [], programCustom: [])
@@ -75,14 +85,19 @@ extension Wine {
             }
         }
 
+        // Apply per-program overrides to the programUser layer
+        if let overrides = programOverrides {
+            applyProgramOverrides(overrides, builder: &builder, dllResolver: &dllResolver)
+        }
+
         // Layers 7-8: featureRuntime and callsiteOverride are left empty
         // (populated by future phases or direct callers)
 
         // Collect bottle custom DLL overrides for the resolver
         dllResolver.bottleCustom = bottle.settings.dllOverrides
 
-        // Resolve the builder and store provenance (used by Phase 5 diagnostics)
-        let (resolved, _) = builder.resolve()
+        // Resolve the builder and capture provenance for launch logging
+        let (resolved, provenance) = builder.resolve()
         var result = resolved
 
         // Compose WINEDLLOVERRIDES from DLLOverrideResolver (outside the builder)
@@ -91,6 +106,143 @@ extension Wine {
             result["WINEDLLOVERRIDES"] = overrideString
         }
 
+        // Launch logging: safe summary of bottle, active layers, and whitelisted keys
+        logLaunchSummary(bottleName: bottle.settings.name, provenance: provenance, environment: result)
+
         return result
     }
+
+    /// Applies per-program overrides to the programUser layer of the builder.
+    ///
+    /// Each non-nil field in the overrides sets the corresponding environment variable(s)
+    /// in the ``EnvironmentLayer/programUser`` layer, which has higher priority than
+    /// bottleManaged and launcherManaged layers.
+    private static func applyProgramOverrides(
+        _ overrides: ProgramOverrides,
+        builder: inout EnvironmentBuilder,
+        dllResolver: inout DLLOverrideResolver
+    ) {
+        // DXVK override: affects DLL composition via resolver
+        if let dxvk = overrides.dxvk {
+            if dxvk {
+                // Program forces DXVK on -- add DXVK preset to program custom DLLs
+                dllResolver.programCustom.append(contentsOf: DLLOverrideResolver.dxvkPreset)
+            } else {
+                // Program forces DXVK off -- override each DXVK DLL to builtin
+                for entry in DLLOverrideResolver.dxvkPreset {
+                    dllResolver.programCustom.append(
+                        DLLOverrideEntry(dllName: entry.dllName, mode: .builtin)
+                    )
+                }
+            }
+        }
+
+        // DXVK HUD override
+        if let dxvkHud = overrides.dxvkHud {
+            switch dxvkHud {
+            case .full:
+                builder.set("DXVK_HUD", "full", layer: .programUser)
+            case .partial:
+                builder.set("DXVK_HUD", "devinfo,fps,frametimes", layer: .programUser)
+            case .fps:
+                builder.set("DXVK_HUD", "fps", layer: .programUser)
+            case .off:
+                builder.remove("DXVK_HUD", layer: .programUser)
+            }
+        }
+
+        // DXVK async override
+        if let dxvkAsync = overrides.dxvkAsync {
+            builder.set("DXVK_ASYNC", dxvkAsync ? "1" : "0", layer: .programUser)
+        }
+
+        // Enhanced sync override
+        if let enhancedSync = overrides.enhancedSync {
+            switch enhancedSync {
+            case .none:
+                if MacOSVersion.current < .sequoia15_4 {
+                    builder.remove("WINEESYNC", layer: .programUser)
+                    builder.remove("WINEMSYNC", layer: .programUser)
+                } else {
+                    // On 15.4+ ESYNC is required for stability
+                    builder.set("WINEESYNC", "1", layer: .programUser)
+                    builder.remove("WINEMSYNC", layer: .programUser)
+                }
+            case .esync:
+                builder.set("WINEESYNC", "1", layer: .programUser)
+                builder.remove("WINEMSYNC", layer: .programUser)
+            case .msync:
+                builder.set("WINEMSYNC", "1", layer: .programUser)
+                builder.set("WINEESYNC", "1", layer: .programUser)
+            }
+        }
+
+        // Force D3D11 override
+        if let forceD3D11 = overrides.forceD3D11 {
+            if forceD3D11 {
+                builder.set("D3DM_FORCE_D3D11", "1", layer: .programUser)
+                builder.set("D3DM_FEATURE_LEVEL_12_0", "0", layer: .programUser)
+            } else {
+                builder.remove("D3DM_FORCE_D3D11", layer: .programUser)
+                builder.remove("D3DM_FEATURE_LEVEL_12_0", layer: .programUser)
+            }
+        }
+
+        // Shader cache override
+        if let shaderCache = overrides.shaderCacheEnabled {
+            if !shaderCache {
+                builder.set("DXVK_SHADER_COMPILE_THREADS", "1", layer: .programUser)
+                builder.set("__GL_SHADER_DISK_CACHE", "0", layer: .programUser)
+            } else {
+                builder.remove("DXVK_SHADER_COMPILE_THREADS", layer: .programUser)
+                builder.remove("__GL_SHADER_DISK_CACHE", layer: .programUser)
+            }
+        }
+
+        // Program-specific DLL overrides (structured entries)
+        if let dllOverrides = overrides.dllOverrides {
+            dllResolver.programCustom.append(contentsOf: dllOverrides)
+        }
+    }
+
+    /// Logs a safe launch summary at info level.
+    ///
+    /// Only logs the bottle name, active layers, and whitelisted non-sensitive keys.
+    /// Does NOT log full environment dict, WINEPREFIX paths, or user-set custom env vars.
+    private static func logLaunchSummary(
+        bottleName: String,
+        provenance: EnvironmentProvenance,
+        environment: [String: String]
+    ) {
+        let layerNames = provenance.activeLayers.sorted().map { layer -> String in
+            switch layer {
+            case .base: "base"
+            case .platform: "platform"
+            case .bottleManaged: "bottleManaged"
+            case .launcherManaged: "launcherManaged"
+            case .bottleUser: "bottleUser"
+            case .programUser: "programUser"
+            case .featureRuntime: "featureRuntime"
+            case .callsiteOverride: "callsiteOverride"
+            }
+        }
+
+        // Non-sensitive keys allowed in the launch summary
+        let allowedKeys = [
+            "DXVK_ASYNC", "DXVK_HUD", "WINEESYNC", "WINEMSYNC",
+            "D3DM_FORCE_D3D11", "MTL_HUD_ENABLED"
+        ]
+        let safeEntries = allowedKeys.compactMap { key -> String? in
+            guard let value = environment[key] else { return nil }
+            return "\(key)=\(value)"
+        }
+
+        let safeValues = safeEntries.isEmpty ? "defaults" : safeEntries.joined(separator: ", ")
+        envLogger.info(
+            "Launch: bottle=\(bottleName), layers=[\(layerNames.joined(separator: ","))], \(safeValues)"
+        )
+    }
 }
+
+// swiftlint:enable cyclomatic_complexity
+// swiftlint:enable function_body_length

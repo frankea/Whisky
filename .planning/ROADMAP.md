@@ -34,11 +34,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Multiplayer games with rapid clipboard access (e.g., Risk of Rain 2) no longer trigger UI freezes
   3. Temporary files are automatically cleaned up when a bottle is closed or Whisky quits
   4. Zombie Wine processes do not accumulate after programs exit
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md -- WhiskyKit backend: fix ClickOnce username, refactor ClipboardManager result pattern, add per-bottle cleanup settings
+- [ ] 01-02-PLAN.md -- ClickOnce UI: surface apps in Programs list with badge, context menu, auto-detection
+- [ ] 01-03-PLAN.md -- Clipboard + lifecycle wiring: pre-launch clipboard check, temp file tracking, AppDelegate cleanup hooks, ConfigView settings
 
 ### Phase 2: Configuration Foundation
 **Goal**: Environment variable cascade is explicit, conflict-free, and extensible so all downstream configuration features (graphics, audio, game profiles) build on a stable base

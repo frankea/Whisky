@@ -12,7 +12,7 @@ This roadmap delivers systematic resolution of 435+ upstream issues across 10 ph
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Miscellaneous Fixes** - Close out PR #79 with ClickOnce, clipboard, temp files, and process cleanup
+- [x] **Phase 1: Miscellaneous Fixes** - Close out PR #79 with ClickOnce, clipboard, temp files, and process cleanup
 - [ ] **Phase 2: Configuration Foundation** - Unify environment variable cascade into explicit EnvironmentBuilder
 - [ ] **Phase 3: Process Lifecycle Management** - Wineserver-level tracking with orphan detection and auto-cleanup
 - [ ] **Phase 4: Graphics Configuration** - D3DMetal/DXVK/wined3d backend control with tiered UI
@@ -37,9 +37,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md -- WhiskyKit backend: fix ClickOnce username, refactor ClipboardManager result pattern, add per-bottle cleanup settings
-- [ ] 01-02-PLAN.md -- ClickOnce UI: surface apps in Programs list with badge, context menu, auto-detection
-- [ ] 01-03-PLAN.md -- Clipboard + lifecycle wiring: pre-launch clipboard check, temp file tracking, AppDelegate cleanup hooks, ConfigView settings
+- [x] 01-01-PLAN.md -- WhiskyKit backend: fix ClickOnce username, refactor ClipboardManager result pattern, add per-bottle cleanup settings
+- [x] 01-02-PLAN.md -- ClickOnce UI: surface apps in Programs list with badge, context menu, auto-detection
+- [x] 01-03-PLAN.md -- Clipboard + lifecycle wiring: pre-launch clipboard check, temp file tracking, AppDelegate cleanup hooks, ConfigView settings
 
 ### Phase 2: Configuration Foundation
 **Goal**: Environment variable cascade is explicit, conflict-free, and extensible so all downstream configuration features (graphics, audio, game profiles) build on a stable base
@@ -197,7 +197,7 @@ Note: Phases 3 and 4 are parallel-capable (no mutual dependencies). Phases 5 and
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Miscellaneous Fixes | 0/TBD | Not started | - |
+| 1. Miscellaneous Fixes | 3/3 | ✓ Complete | 2026-02-09 |
 | 2. Configuration Foundation | 0/TBD | Not started | - |
 | 3. Process Lifecycle Management | 0/TBD | Not started | - |
 | 4. Graphics Configuration | 0/TBD | Not started | - |

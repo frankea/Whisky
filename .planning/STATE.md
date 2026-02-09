@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 3 of 10 (Process Lifecycle Management)
-Plan: 1 of 3 in current phase (03-01 complete)
+Plan: 2 of 3 in current phase (03-02 complete)
 Status: Executing
-Last activity: 2026-02-09 -- Completed 03-01-PLAN.md (Process types and Wine helpers)
+Last activity: 2026-02-09 -- Completed 03-02-PLAN.md (Processes page ViewModel and UI)
 
-Progress: [▓▓▓▓▓▓░░░░] 27%
+Progress: [▓▓▓▓▓▓▓░░░] 30%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 11.3min
-- Total execution time: 1.55 hours
+- Total plans completed: 9
+- Average duration: 11.0min
+- Total execution time: 1.68 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [▓▓▓▓▓▓░░░░] 27%
 |-------|-------|-------|----------|
 | 01-miscellaneous-fixes | 3 | 17min | 5.7min |
 | 02-configuration-foundation | 4 | 73min | 18.3min |
-| 03-process-lifecycle-management | 1 | 3min | 3.0min |
+| 03-process-lifecycle-management | 2 | 11min | 5.5min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (5min), 02-03 (16min), 02-02 (45min), 02-04 (7min), 03-01 (3min)
+- Last 5 plans: 02-03 (16min), 02-02 (45min), 02-04 (7min), 03-01 (3min), 03-02 (8min)
 - Trend: variable (complex refactoring vs pure type/helper tasks)
 
 *Updated after each plan completion*
@@ -75,6 +75,11 @@ Recent decisions affecting current work:
 - [03-01]: ProcessKind.classify uses static Set<String> lookup for O(1) classification
 - [03-01]: parseTasklistOutput is a pure non-MainActor function for testability
 - [03-01]: clearRegistry made public for ViewModel shutdown cleanup
+- [03-02]: ProcessRegistry.shared made public for app target access
+- [03-02]: RunningProcessesView split into struct + 2 extensions for SwiftLint type_body_length
+- [03-02]: contextMenu(forSelectionType: Int32.self) for Table row context menus
+- [03-02]: Text(date, style: .relative) for automatic launch time display
+- [03-02]: Shutdown refresh uses temporary state bypass to reuse refreshProcessList
 
 ### Pending Todos
 
@@ -87,5 +92,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-09
-Stopped at: Completed 03-01-PLAN.md (Process types and Wine helpers)
+Stopped at: Completed 03-02-PLAN.md (Processes page ViewModel and UI)
 Resume file: None

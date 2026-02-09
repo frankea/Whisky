@@ -50,12 +50,13 @@ Plans:
   2. Programs can have per-program DLL override entries (WINEDLLOVERRIDES) that take effect at launch
   3. Programs track which winetricks verbs have been applied, visible in program settings
   4. No conflicting merge strategies exist between MacOSCompatibility, BottleSettings, and LauncherPresets -- a single code path resolves all layers
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md -- Core data models: EnvironmentBuilder, DLL override resolver, ProgramOverrides (TDD)
+- [ ] 02-02-PLAN.md -- Refactor environment construction to EnvironmentBuilder with 8-layer resolution
+- [ ] 02-03-PLAN.md -- Winetricks verb tracking: cache, discovery, and WinetricksView installed filter
+- [ ] 02-04-PLAN.md -- DLL override editor UI and per-program override settings
 
 ### Phase 3: Process Lifecycle Management
 **Goal**: Users have accurate visibility into Wine process state per bottle and can manage the full process lifecycle from the UI

@@ -68,12 +68,12 @@ Plans:
   3. Closing a bottle or quitting Whisky terminates associated Wine processes automatically via wineserver integration
   4. RunningProcessesView shows live, wineserver-aware process status with real-time updates
   5. User can force-kill individual Wine processes or all processes in a bottle from the UI
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
-- [ ] 03-03: TBD
+- [ ] 03-01-PLAN.md -- Core process types (WineProcess, ProcessKind), Wine helpers (wineserver probe, tasklist parsing, taskkill), ProcessRegistry enhancements
+- [ ] 03-02-PLAN.md -- ProcessesViewModel with hybrid polling and full Processes page UI (Table, toolbar, filters, context menus, shutdown orchestration)
+- [ ] 03-03-PLAN.md -- Running indicators in sidebar, startup orphan detection, pre-deletion process checks, enhanced quit behavior
 
 ### Phase 4: Graphics Configuration
 **Goal**: Users can control graphics backend selection and DXVK settings per bottle and per program through a clear, tiered UI that avoids settings overload

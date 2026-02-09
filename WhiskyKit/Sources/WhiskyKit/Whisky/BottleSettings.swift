@@ -577,85 +577,85 @@ public struct BottleSettings: Codable, Equatable {
         try data.write(to: metadataUrl)
     }
 
+    // MARK: - EnvironmentBuilder Layer Populators
+
     // swiftlint:disable cyclomatic_complexity function_body_length
-    /// Populates a Wine environment dictionary based on these settings.
-    ///
-    /// This method examines all configuration options and adds the appropriate
-    /// environment variables to enable DXVK, Metal features, sync modes,
-    /// performance optimizations, and other settings.
-    ///
-    /// - Parameter wineEnv: The environment dictionary to populate.
-    ///   Existing values may be modified or removed based on settings.
-    public func environmentVariables(wineEnv: inout [String: String]) {
-        // Apply launcher compatibility fixes first (frankea/Whisky#41)
-        if launcherCompatibilityMode {
-            applyLauncherCompatibility(wineEnv: &wineEnv)
-        }
 
-        // Apply controller/input compatibility fixes (frankea/Whisky#42)
-        if controllerCompatibilityMode {
-            applyInputCompatibility(wineEnv: &wineEnv)
-        }
+    /// Populates the ``EnvironmentLayer/bottleManaged`` layer with settings-derived env vars.
+    ///
+    /// This method replaces the direct dict mutation in the deprecated ``environmentVariables(wineEnv:)``.
+    /// DLL override entries are returned separately for composition by ``DLLOverrideResolver``.
+    ///
+    /// - Parameter builder: The environment builder to populate.
+    /// - Returns: Managed DLL override entries with their sources for the DLLOverrideResolver.
+    public func populateBottleManagedLayer(
+        builder: inout EnvironmentBuilder
+    ) -> [(entry: DLLOverrideEntry, source: DLLOverrideSource)] {
+        var managedDLLOverrides: [(entry: DLLOverrideEntry, source: DLLOverrideSource)] = []
 
+        // DXVK settings -- DLL overrides collected for DLLOverrideResolver, NOT set via builder
         if dxvk {
-            wineEnv.updateValue("dxgi,d3d9,d3d10core,d3d11=n,b", forKey: "WINEDLLOVERRIDES")
+            for entry in DLLOverrideResolver.dxvkPreset {
+                managedDLLOverrides.append((entry: entry, source: .dxvk))
+            }
             switch dxvkHud {
             case .full:
-                wineEnv.updateValue("full", forKey: "DXVK_HUD")
+                builder.set("DXVK_HUD", "full", layer: .bottleManaged)
             case .partial:
-                wineEnv.updateValue("devinfo,fps,frametimes", forKey: "DXVK_HUD")
+                builder.set("DXVK_HUD", "devinfo,fps,frametimes", layer: .bottleManaged)
             case .fps:
-                wineEnv.updateValue("fps", forKey: "DXVK_HUD")
+                builder.set("DXVK_HUD", "fps", layer: .bottleManaged)
             case .off:
                 break
             }
         }
 
         if dxvkAsync {
-            wineEnv.updateValue("1", forKey: "DXVK_ASYNC")
+            builder.set("DXVK_ASYNC", "1", layer: .bottleManaged)
         }
 
+        // Enhanced sync mode
         switch enhancedSync {
         case .none:
             // On macOS 15.4+, WINEESYNC is required for stability
             if MacOSVersion.current < .sequoia15_4 {
-                wineEnv.removeValue(forKey: "WINEESYNC")
-                wineEnv.removeValue(forKey: "WINEMSYNC")
+                builder.remove("WINEESYNC", layer: .bottleManaged)
+                builder.remove("WINEMSYNC", layer: .bottleManaged)
             } else {
                 // Ensure a stable default on newer macOS versions:
                 // enable ESYNC and clear any conflicting MSYNC setting.
-                wineEnv.updateValue("1", forKey: "WINEESYNC")
-                wineEnv.removeValue(forKey: "WINEMSYNC")
+                builder.set("WINEESYNC", "1", layer: .bottleManaged)
+                builder.remove("WINEMSYNC", layer: .bottleManaged)
             }
         case .esync:
-            wineEnv.updateValue("1", forKey: "WINEESYNC")
+            builder.set("WINEESYNC", "1", layer: .bottleManaged)
         case .msync:
-            wineEnv.updateValue("1", forKey: "WINEMSYNC")
+            builder.set("WINEMSYNC", "1", layer: .bottleManaged)
             // D3DM detects ESYNC and changes behaviour accordingly
             // so we have to lie to it so that it doesn't break
             // under MSYNC. Values hardcoded in lid3dshared.dylib
-            wineEnv.updateValue("1", forKey: "WINEESYNC")
+            builder.set("WINEESYNC", "1", layer: .bottleManaged)
         }
 
         if metalHud {
-            wineEnv.updateValue("1", forKey: "MTL_HUD_ENABLED")
+            builder.set("MTL_HUD_ENABLED", "1", layer: .bottleManaged)
         }
 
         if metalTrace {
-            wineEnv.updateValue("1", forKey: "METAL_CAPTURE_ENABLED")
+            builder.set("METAL_CAPTURE_ENABLED", "1", layer: .bottleManaged)
         }
 
         if avxEnabled {
-            wineEnv.updateValue("1", forKey: "ROSETTA_ADVERTISE_AVX")
+            builder.set("ROSETTA_ADVERTISE_AVX", "1", layer: .bottleManaged)
         }
 
         if dxrEnabled {
-            wineEnv.updateValue("1", forKey: "D3DM_SUPPORT_DXR")
+            builder.set("D3DM_SUPPORT_DXR", "1", layer: .bottleManaged)
         }
 
         // Metal validation - useful for debugging but can impact performance
         if metalValidation {
-            wineEnv.updateValue("1", forKey: "MTL_DEBUG_LAYER")
+            builder.set("MTL_DEBUG_LAYER", "1", layer: .bottleManaged)
         }
 
         // macOS Sequoia compatibility mode (whisky-app/whisky#1310, #1372)
@@ -664,88 +664,37 @@ public struct BottleSettings: Codable, Equatable {
         if sequoiaCompatMode {
             // Disable problematic Metal shader validation on Sequoia
             // This helps fix graphics corruption issues (whisky-app/whisky#1310)
-            wineEnv.updateValue("0", forKey: "MTL_DEBUG_LAYER")
+            builder.set("MTL_DEBUG_LAYER", "0", layer: .bottleManaged)
 
             // Stability improvements for D3DMetal on macOS 15.x
-            wineEnv.updateValue("0", forKey: "D3DM_VALIDATION")
+            builder.set("D3DM_VALIDATION", "0", layer: .bottleManaged)
 
             // Help with Steam and launcher compatibility (whisky-app/whisky#1307, #1372)
             // Disable Wine's fsync which has issues on Sequoia
-            wineEnv.updateValue("0", forKey: "WINEFSYNC")
+            builder.set("WINEFSYNC", "0", layer: .bottleManaged)
         }
 
         // Performance preset handling (whisky-app/whisky#1361 - FPS regression fix)
-        applyPerformancePreset(wineEnv: &wineEnv)
+        populatePerformancePreset(builder: &builder)
 
         // Shader cache control
         if !shaderCacheEnabled {
-            wineEnv.updateValue("1", forKey: "DXVK_SHADER_COMPILE_THREADS")
-            wineEnv.updateValue("0", forKey: "__GL_SHADER_DISK_CACHE")
+            builder.set("DXVK_SHADER_COMPILE_THREADS", "1", layer: .bottleManaged)
+            builder.set("__GL_SHADER_DISK_CACHE", "0", layer: .bottleManaged)
         }
 
         // Force D3D11 mode - helps with compatibility (whisky-app/whisky#1361)
         if forceD3D11 {
-            wineEnv.updateValue("1", forKey: "D3DM_FORCE_D3D11")
-            wineEnv.updateValue("0", forKey: "D3DM_FEATURE_LEVEL_12_0")
+            builder.set("D3DM_FORCE_D3D11", "1", layer: .bottleManaged)
+            builder.set("D3DM_FEATURE_LEVEL_12_0", "0", layer: .bottleManaged)
         }
+
+        return managedDLLOverrides
     }
 
     // swiftlint:enable cyclomatic_complexity function_body_length
 
-    private func applyPerformancePreset(wineEnv: inout [String: String]) {
-        switch performancePreset {
-        case .balanced:
-            // Default settings, no changes needed
-            break
-
-        case .performance:
-            // Performance mode - prioritize FPS over visual quality (whisky-app/whisky#1361 fix)
-            // Reduce D3DMetal shader quality for better performance
-            wineEnv.updateValue("1", forKey: "D3DM_FAST_SHADER_COMPILE")
-            // Disable extra validation that can slow down rendering
-            wineEnv.updateValue("0", forKey: "D3DM_VALIDATION")
-            wineEnv.updateValue("0", forKey: "MTL_DEBUG_LAYER")
-            // Enable DXVK async if not already set
-            if wineEnv["DXVK_ASYNC"] == nil {
-                wineEnv.updateValue("1", forKey: "DXVK_ASYNC")
-            }
-            // Use more aggressive shader compilation
-            wineEnv.updateValue("0", forKey: "DXVK_SHADER_OPT_LEVEL")
-            // Reduce Metal resource tracking overhead
-            wineEnv.updateValue("0", forKey: "MTL_ENABLE_METAL_EVENTS")
-
-        case .quality:
-            // Quality mode - prioritize visuals over performance
-            // Enable shader optimizations
-            wineEnv.updateValue("2", forKey: "DXVK_SHADER_OPT_LEVEL")
-            // Disable fast shader compile for better quality
-            wineEnv.updateValue("0", forKey: "D3DM_FAST_SHADER_COMPILE")
-
-        case .unity:
-            // Unity games optimization (whisky-app/whisky#1313, #1312 - il2cpp fix)
-            // Unity games often need specific memory and threading settings
-
-            // Fix for il2cpp loading issues
-            wineEnv.updateValue("1", forKey: "MONO_THREADS_SUSPEND")
-            // Increase file descriptor limit for Unity games
-            wineEnv.updateValue("65536", forKey: "WINE_LARGE_ADDRESS_AWARE")
-
-            // Unity games often work better with D3D11
-            if wineEnv["D3DM_FORCE_D3D11"] == nil {
-                wineEnv.updateValue("1", forKey: "D3DM_FORCE_D3D11")
-            }
-
-            // Disable features that can cause issues with Unity's IL2CPP runtime
-            wineEnv.updateValue("0", forKey: "WINE_HEAP_REUSE")
-            // Help with thread management for Unity's job system
-            wineEnv.updateValue("1", forKey: "WINE_DISABLE_NTDLL_THREAD_REGS")
-
-            // Unity games may need more virtual memory
-            wineEnv.updateValue("1", forKey: "WINEPRELOADRESERVE")
-        }
-    }
-
-    /// Applies launcher-specific compatibility fixes based on detected or manual launcher type.
+    /// Populates the ``EnvironmentLayer/launcherManaged`` layer with launcher compatibility fixes.
     ///
     /// This method implements the dual-mode launcher compatibility system from frankea/Whisky#41:
     /// - Merges launcher-specific environment overrides
@@ -753,29 +702,41 @@ public struct BottleSettings: Codable, Equatable {
     /// - Configures GPU spoofing for launcher checks
     /// - Sets network timeouts for download reliability
     ///
-    /// - Parameter wineEnv: The environment dictionary to populate with launcher fixes
-    private func applyLauncherCompatibility(wineEnv: inout [String: String]) {
+    /// - Parameter builder: The environment builder to populate.
+    /// - Returns: Launcher-required DLL override entries with their sources.
+    public func populateLauncherManagedLayer(
+        builder: inout EnvironmentBuilder
+    ) -> [(entry: DLLOverrideEntry, source: DLLOverrideSource)] {
+        var launcherDLLOverrides: [(entry: DLLOverrideEntry, source: DLLOverrideSource)] = []
+
+        guard launcherCompatibilityMode else { return launcherDLLOverrides }
+
+        // Track whether the launcher preset provides a locale
+        var launcherProvidesLocale = false
+
         // Apply launcher-specific environment overrides if launcher detected
         if let launcher = detectedLauncher {
             let launcherEnv = launcher.environmentOverrides()
-            // Merge launcher overrides (launcher settings take precedence)
-            wineEnv.merge(launcherEnv) { _, new in new }
+            builder.setAll(launcherEnv, layer: .launcherManaged)
+            launcherProvidesLocale = launcherEnv["LC_ALL"] != nil
 
-            // Auto-enable DXVK if launcher requires it
+            // Auto-enable DXVK DLL overrides if launcher requires it
             if autoEnableDXVK, launcher.requiresDXVK {
-                wineEnv.updateValue("dxgi,d3d9,d3d10core,d3d11=n,b", forKey: "WINEDLLOVERRIDES")
+                for entry in DLLOverrideResolver.dxvkPreset {
+                    launcherDLLOverrides.append((entry: entry, source: .launcher(launcher.displayName)))
+                }
             }
         }
 
         // Apply locale override if specified (not using launcher default)
         // Defensive: Also check rawValue is not empty to prevent setting LC_ALL/LANG to ""
         // Only apply if launcher preset didn't already set LC_ALL (preserves launcher optimization)
-        if launcherLocale != .auto, !launcherLocale.rawValue.isEmpty, wineEnv["LC_ALL"] == nil {
-            wineEnv.updateValue(launcherLocale.rawValue, forKey: "LC_ALL")
-            wineEnv.updateValue(launcherLocale.rawValue, forKey: "LANG")
+        if launcherLocale != .auto, !launcherLocale.rawValue.isEmpty, !launcherProvidesLocale {
+            builder.set("LC_ALL", launcherLocale.rawValue, layer: .launcherManaged)
+            builder.set("LANG", launcherLocale.rawValue, layer: .launcherManaged)
             // Force C locale for date/time parsing to avoid ICU issues
-            wineEnv.updateValue("C", forKey: "LC_TIME")
-            wineEnv.updateValue("C", forKey: "LC_NUMERIC")
+            builder.set("LC_TIME", "C", layer: .launcherManaged)
+            builder.set("LC_NUMERIC", "C", layer: .launcherManaged)
         }
         // Note: If launcher preset already set LC_ALL (e.g., Steam sets "en_US.UTF-8"),
         // we don't overwrite it. This preserves launcher-optimized locale strings.
@@ -783,9 +744,14 @@ public struct BottleSettings: Codable, Equatable {
         // Apply GPU spoofing if enabled
         if gpuSpoofing {
             let gpuEnv = GPUDetection.spoofWithVendor(gpuVendor)
-            wineEnv.merge(gpuEnv) { current, new in
-                // Don't override user-set values with GPU spoofing
-                current.isEmpty ? new : current
+            let launcherEnv = detectedLauncher?.environmentOverrides() ?? [:]
+            // Don't override values already set by launcher preset (original behavior:
+            // merge with "current.isEmpty ? new : current")
+            for (key, value) in gpuEnv {
+                let existing = launcherEnv[key]
+                if existing == nil || (existing?.isEmpty ?? true) {
+                    builder.set(key, value, layer: .launcherManaged)
+                }
             }
         }
 
@@ -794,43 +760,141 @@ public struct BottleSettings: Codable, Equatable {
         // Launcher-specific timeouts are set via bottle.settings.networkTimeout by
         // LauncherDetection.applyLauncherFixes(), giving users control via UI slider
         if networkTimeout != 60_000 { // If not default (60s)
-            wineEnv.updateValue(String(networkTimeout), forKey: "WINHTTP_CONNECT_TIMEOUT")
-            wineEnv.updateValue(String(networkTimeout * 2), forKey: "WINHTTP_RECEIVE_TIMEOUT")
+            builder.set("WINHTTP_CONNECT_TIMEOUT", String(networkTimeout), layer: .launcherManaged)
+            builder.set("WINHTTP_RECEIVE_TIMEOUT", String(networkTimeout * 2), layer: .launcherManaged)
         }
 
         // Connection pooling fixes for download stalls (whisky-app/whisky#1148, #1072, #1176)
-        wineEnv.updateValue("10", forKey: "WINE_MAX_CONNECTIONS_PER_SERVER")
-        wineEnv.updateValue("1", forKey: "WINE_FORCE_HTTP11") // HTTP/2 issues in Wine
+        builder.set("WINE_MAX_CONNECTIONS_PER_SERVER", "10", layer: .launcherManaged)
+        builder.set("WINE_FORCE_HTTP11", "1", layer: .launcherManaged) // HTTP/2 issues in Wine
 
         // SSL/TLS compatibility for launchers
-        wineEnv.updateValue("1", forKey: "WINE_ENABLE_SSL")
-        wineEnv.updateValue("TLS1.2", forKey: "WINE_SSL_VERSION_MIN")
+        builder.set("WINE_ENABLE_SSL", "1", layer: .launcherManaged)
+        builder.set("WINE_SSL_VERSION_MIN", "TLS1.2", layer: .launcherManaged)
+
+        return launcherDLLOverrides
     }
 
-    /// Applies controller/input compatibility environment variables.
+    /// Populates the ``EnvironmentLayer/bottleManaged`` layer with controller/input compatibility fixes.
     ///
     /// Sets SDL environment variables to improve gamepad detection and functionality.
     /// See: https://wiki.libsdl.org/SDL2/CategoryHints (applies to both SDL2 and SDL3)
     ///
-    /// - Parameter wineEnv: The environment dictionary to populate.
-    private func applyInputCompatibility(wineEnv: inout [String: String]) {
+    /// - Parameter builder: The environment builder to populate.
+    public func populateInputCompatibilityLayer(builder: inout EnvironmentBuilder) {
+        guard controllerCompatibilityMode else { return }
+
         // Disable HIDAPI - forces SDL to use alternative input backend
         // May improve detection for controllers that don't work with HIDAPI
         if disableHIDAPI {
-            wineEnv.updateValue("0", forKey: "SDL_JOYSTICK_HIDAPI")
+            builder.set("SDL_JOYSTICK_HIDAPI", "0", layer: .bottleManaged)
         }
 
         // Allow joystick events when app is in background
         // Useful for controller input when Wine window loses focus
         if allowBackgroundEvents {
-            wineEnv.updateValue("1", forKey: "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS")
+            builder.set("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1", layer: .bottleManaged)
         }
 
         // Disable SDL to XInput mapping conversion
         // PlayStation/Switch controllers may show correct button mappings without this
         if disableControllerMapping {
             // Tell SDL not to remap controllers to XInput layout
-            wineEnv.updateValue("1", forKey: "SDL_GAMECONTROLLER_USE_BUTTON_LABELS")
+            builder.set("SDL_GAMECONTROLLER_USE_BUTTON_LABELS", "1", layer: .bottleManaged)
+        }
+    }
+
+    /// Populates performance preset environment variables into the bottleManaged layer.
+    private func populatePerformancePreset(builder: inout EnvironmentBuilder) {
+        switch performancePreset {
+        case .balanced:
+            // Default settings, no changes needed
+            break
+
+        case .performance:
+            // Performance mode - prioritize FPS over visual quality (whisky-app/whisky#1361 fix)
+            // Reduce D3DMetal shader quality for better performance
+            builder.set("D3DM_FAST_SHADER_COMPILE", "1", layer: .bottleManaged)
+            // Disable extra validation that can slow down rendering
+            builder.set("D3DM_VALIDATION", "0", layer: .bottleManaged)
+            builder.set("MTL_DEBUG_LAYER", "0", layer: .bottleManaged)
+            // Enable DXVK async if not already enabled via the DXVK setting
+            if !dxvkAsync {
+                builder.set("DXVK_ASYNC", "1", layer: .bottleManaged)
+            }
+            // Use more aggressive shader compilation
+            builder.set("DXVK_SHADER_OPT_LEVEL", "0", layer: .bottleManaged)
+            // Reduce Metal resource tracking overhead
+            builder.set("MTL_ENABLE_METAL_EVENTS", "0", layer: .bottleManaged)
+
+        case .quality:
+            // Quality mode - prioritize visuals over performance
+            // Enable shader optimizations
+            builder.set("DXVK_SHADER_OPT_LEVEL", "2", layer: .bottleManaged)
+            // Disable fast shader compile for better quality
+            builder.set("D3DM_FAST_SHADER_COMPILE", "0", layer: .bottleManaged)
+
+        case .unity:
+            // Unity games optimization (whisky-app/whisky#1313, #1312 - il2cpp fix)
+            // Unity games often need specific memory and threading settings
+
+            // Fix for il2cpp loading issues
+            builder.set("MONO_THREADS_SUSPEND", "1", layer: .bottleManaged)
+            // Increase file descriptor limit for Unity games
+            builder.set("WINE_LARGE_ADDRESS_AWARE", "65536", layer: .bottleManaged)
+
+            // Unity games often work better with D3D11
+            if !forceD3D11 {
+                builder.set("D3DM_FORCE_D3D11", "1", layer: .bottleManaged)
+            }
+
+            // Disable features that can cause issues with Unity's IL2CPP runtime
+            builder.set("WINE_HEAP_REUSE", "0", layer: .bottleManaged)
+            // Help with thread management for Unity's job system
+            builder.set("WINE_DISABLE_NTDLL_THREAD_REGS", "1", layer: .bottleManaged)
+
+            // Unity games may need more virtual memory
+            builder.set("WINEPRELOADRESERVE", "1", layer: .bottleManaged)
+        }
+    }
+
+    // MARK: - Deprecated Environment Variable API
+
+    /// Populates a Wine environment dictionary based on these settings.
+    ///
+    /// - Parameter wineEnv: The environment dictionary to populate.
+    ///   Existing values may be modified or removed based on settings.
+    @available(*, deprecated, message: "Use EnvironmentBuilder layer populators instead")
+    public func environmentVariables(wineEnv: inout [String: String]) {
+        var builder = EnvironmentBuilder()
+
+        // Call layer populators
+        let managedOverrides = populateBottleManagedLayer(builder: &builder)
+        let launcherOverrides = populateLauncherManagedLayer(builder: &builder)
+        populateInputCompatibilityLayer(builder: &builder)
+
+        // Resolve and merge
+        let (resolved, _) = builder.resolve()
+
+        // Handle explicit key removals that the builder encoded as nil entries.
+        // Since resolve() omits removed keys, we must also remove them from the caller's dict.
+        if enhancedSync == .none, MacOSVersion.current < .sequoia15_4 {
+            wineEnv.removeValue(forKey: "WINEESYNC")
+            wineEnv.removeValue(forKey: "WINEMSYNC")
+        }
+
+        // Merge resolved values into caller's dict (new values overwrite existing)
+        wineEnv.merge(resolved) { _, new in new }
+
+        // Compose WINEDLLOVERRIDES via DLLOverrideResolver
+        let resolver = DLLOverrideResolver(
+            managed: managedOverrides + launcherOverrides,
+            bottleCustom: dllOverrides,
+            programCustom: []
+        )
+        let (overrideString, _) = resolver.resolve()
+        if !overrideString.isEmpty {
+            wineEnv["WINEDLLOVERRIDES"] = overrideString
         }
     }
 }

@@ -20,9 +20,36 @@ import AppKit
 import Foundation
 import os.log
 
+/// Per-bottle clipboard handling policy.
+///
+/// Controls how the clipboard is checked and managed before launching Wine programs.
+/// Each bottle can specify its own policy, or use the default `auto` behavior.
+public enum ClipboardPolicy: String, Codable, CaseIterable, Sendable {
+    /// Auto-clear for known multiplayer launchers, warn for others (default)
+    case auto = "auto"
+    /// Always show a warning when clipboard content is large
+    case alwaysWarn = "warn"
+    /// Always clear the clipboard before launching
+    case alwaysClear = "clear"
+    /// Never warn or clear the clipboard
+    case never = "never"
+}
+
+/// Result of a clipboard check before launching a Wine program.
+///
+/// The app layer uses this to decide whether to show a toast, alert, or proceed silently.
+public enum ClipboardCheckResult: Sendable {
+    /// Content is small or empty, no action needed
+    case safe
+    /// Content was auto-cleared (for known multiplayer launchers or always-clear policy)
+    case autoCleared(contentType: String, sizeBytes: Int)
+    /// Content is large and needs user decision (show alert/sheet in app layer)
+    case needsUserDecision(contentType: String, sizeBytes: Int, textPreview: String?)
+}
+
 /// Manager for clipboard operations to prevent Wine-related freezes.
 ///
-/// This singleton provides methods to detect, clear, and sanitize clipboard
+/// This singleton provides methods to detect, clear, and check clipboard
 /// content before Wine operations, particularly for multiplayer games that may
 /// attempt to read clipboard synchronously.
 ///
@@ -35,11 +62,11 @@ import os.log
 /// // Clear clipboard
 /// ClipboardManager.shared.clear()
 ///
-/// // Sanitize for multiplayer launcher
-/// ClipboardManager.shared.sanitizeForMultiplayer(launcher: .steam)
+/// // Check before launching a program
+/// let result = ClipboardManager.shared.checkBeforeLaunch(launcher: .steam, policy: .auto)
 /// ```
 public final class ClipboardManager: @unchecked Sendable {
-    static let shared = ClipboardManager()
+    public static let shared = ClipboardManager()
 
     private let pasteboard = NSPasteboard.general
     private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ClipboardManager")
@@ -126,74 +153,82 @@ public final class ClipboardManager: @unchecked Sendable {
         logger.info("Clipboard cleared")
     }
 
-    /// Sanitizes the clipboard for multiplayer games.
+    // MARK: - Pre-launch Check
+
+    /// Checks the clipboard before launching a Wine program and returns a structured result.
     ///
-    /// This method checks if the clipboard contains large content and warns the user.
-    /// For known multiplayer launchers, it automatically clears the clipboard.
+    /// The caller (app layer) is responsible for presenting any UI based on the result.
+    /// This method may auto-clear the clipboard depending on the policy and launcher type.
     ///
-    /// - Parameter autoClearForMultiplayer: If true, automatically clears clipboard for multiplayer launchers
-    @MainActor
-    public func sanitizeForMultiplayer(autoClearForMultiplayer: Bool = false) {
+    /// - Parameters:
+    ///   - launcher: The detected launcher type (optional)
+    ///   - policy: The per-bottle clipboard policy
+    ///   - threshold: Size threshold in bytes (defaults to ``largeContentThreshold``)
+    /// - Returns: A ``ClipboardCheckResult`` indicating what action was taken or is needed
+    public func checkBeforeLaunch(
+        launcher: LauncherType? = nil,
+        policy: ClipboardPolicy,
+        threshold: Int = ClipboardManager.largeContentThreshold
+    ) -> ClipboardCheckResult {
+        // Never policy: skip all checks
+        if policy == .never {
+            return .safe
+        }
+
         let content = getContent()
-        let size = getSize()
+        let size = content.sizeInBytes
 
-        // Check if content is large
-        if size > Self.largeContentThreshold {
-            logger.warning("Large clipboard content detected (\(size) bytes)")
+        // Content below threshold is always safe
+        guard size > threshold else {
+            return .safe
+        }
 
-            // Auto-clear for known multiplayer launchers
-            if autoClearForMultiplayer {
-                clear()
-                logger.info("Auto-cleared clipboard for multiplayer launcher")
-                return
-            }
+        logger.warning("Large clipboard content detected (\(size) bytes)")
 
-            // Show alert to user for manual decision
-            showLargeClipboardAlert(size: size, content: content)
+        let contentType = Self.contentTypeName(for: content)
+        let textPreview = Self.textPreview(for: content)
+
+        // Always-clear policy: clear and report
+        if policy == .alwaysClear {
+            clear()
+            logger.info("Auto-cleared clipboard (always-clear policy)")
+            return .autoCleared(contentType: contentType, sizeBytes: size)
+        }
+
+        // Auto policy with known multiplayer launcher: auto-clear
+        if policy == .auto, launcher?.usesClipboard == true {
+            clear()
+            logger.info("Auto-cleared clipboard for multiplayer launcher '\(launcher?.displayName ?? "unknown")'")
+            return .autoCleared(contentType: contentType, sizeBytes: size)
+        }
+
+        // Always-warn policy or auto policy without launcher match: needs user decision
+        return .needsUserDecision(contentType: contentType, sizeBytes: size, textPreview: textPreview)
+    }
+
+    // MARK: - Private Helpers
+
+    /// Returns a human-readable content type name for the clipboard content.
+    private static func contentTypeName(for content: ClipboardContent) -> String {
+        switch content {
+        case .empty:
+            "empty"
+        case .text:
+            "text"
+        case .image:
+            "image"
+        case .other:
+            "other"
         }
     }
 
-    /// Shows an alert about large clipboard content.
-    ///
-    /// This is called when clipboard content exceeds the threshold and the launcher
-    /// is not a known multiplayer type.
-    ///
-    /// - Parameters:
-    ///   - size: Size of clipboard content in bytes
-    ///   - content: The clipboard content type
-    @MainActor
-    private func showLargeClipboardAlert(size: Int, content: ClipboardContent) {
-        let alert = NSAlert()
-        alert.messageText = String(localized: "clipboard.large.title")
-        alert.alertStyle = .warning
-
-        let sizeKB = Double(size) / 1_024.0
-        let message: String
-
+    /// Returns a text preview (first 50 characters) for text content, nil otherwise.
+    private static func textPreview(for content: ClipboardContent) -> String? {
         switch content {
         case let .text(string):
-            let preview = String(string.prefix(50))
-            message = String(localized: "clipboard.large.message.text")
-                .replacingOccurrences(of: "{size}", with: String(format: "%.1f", sizeKB))
-                .replacingOccurrences(of: "{preview}", with: preview)
-        case .image:
-            message = String(localized: "clipboard.large.message.image")
-                .replacingOccurrences(of: "{size}", with: String(format: "%.1f", sizeKB))
-        case .other:
-            message = String(localized: "clipboard.large.message.other")
-                .replacingOccurrences(of: "{size}", with: String(format: "%.1f", sizeKB))
-        case .empty:
-            message = String(localized: "clipboard.large.message.empty")
-        }
-
-        alert.informativeText = message
-        alert.addButton(withTitle: String(localized: "clipboard.clear"))
-        alert.addButton(withTitle: String(localized: "clipboard.keep"))
-
-        let response = alert.runModal()
-
-        if response == .alertFirstButtonReturn {
-            clear()
+            String(string.prefix(50))
+        default:
+            nil
         }
     }
 }

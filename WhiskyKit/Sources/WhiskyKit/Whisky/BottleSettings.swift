@@ -158,6 +158,8 @@ public struct BottleSettings: Codable, Equatable {
     private var launcherConfig: BottleLauncherConfig
     /// Controller and input device settings.
     private var inputConfig: BottleInputConfig
+    /// Cleanup and clipboard behavior settings.
+    private var cleanupConfig: BottleCleanupConfig
 
     /// Creates a new BottleSettings instance with default values.
     public init() {
@@ -168,6 +170,7 @@ public struct BottleSettings: Codable, Equatable {
         self.performanceConfig = BottlePerformanceConfig()
         self.launcherConfig = BottleLauncherConfig()
         self.inputConfig = BottleInputConfig()
+        self.cleanupConfig = BottleCleanupConfig()
     }
 
     public init(from decoder: Decoder) throws {
@@ -193,6 +196,10 @@ public struct BottleSettings: Codable, Equatable {
             BottleInputConfig.self,
             forKey: .inputConfig
         ) ?? BottleInputConfig()
+        self.cleanupConfig = try container.decodeIfPresent(
+            BottleCleanupConfig.self,
+            forKey: .cleanupConfig
+        ) ?? BottleCleanupConfig()
     }
 
     /// The display name of this bottle.
@@ -469,6 +476,35 @@ public struct BottleSettings: Codable, Equatable {
     public var disableControllerMapping: Bool {
         get { inputConfig.disableControllerMapping }
         set { inputConfig.disableControllerMapping = newValue }
+    }
+
+    // MARK: - Cleanup and clipboard settings
+
+    /// The clipboard handling policy for this bottle.
+    ///
+    /// Controls how clipboard content is checked before launching Wine programs.
+    /// See ``ClipboardPolicy`` for available options.
+    public var clipboardPolicy: ClipboardPolicy {
+        get { cleanupConfig.clipboardPolicy }
+        set { cleanupConfig.clipboardPolicy = newValue }
+    }
+
+    /// The size threshold in bytes for considering clipboard content "large".
+    ///
+    /// Content above this threshold triggers the configured clipboard policy.
+    /// Defaults to ``ClipboardManager/largeContentThreshold`` (10 KB).
+    public var clipboardThreshold: Int {
+        get { cleanupConfig.clipboardThreshold }
+        set { cleanupConfig.clipboardThreshold = newValue }
+    }
+
+    /// The kill-on-quit policy for Wine processes in this bottle.
+    ///
+    /// Overrides the global `killOnTerminate` setting on a per-bottle basis.
+    /// See ``KillOnQuitPolicy`` for available options.
+    public var killOnQuit: KillOnQuitPolicy {
+        get { cleanupConfig.killOnQuit }
+        set { cleanupConfig.killOnQuit = newValue }
     }
 
     /// Loads bottle settings from a metadata plist file.

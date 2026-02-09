@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Miscellaneous Fixes** - Close out PR #79 with ClickOnce, clipboard, temp files, and process cleanup
 - [x] **Phase 2: Configuration Foundation** - Unify environment variable cascade into explicit EnvironmentBuilder
 - [x] **Phase 3: Process Lifecycle Management** - Wineserver-level tracking with orphan detection and auto-cleanup
-- [ ] **Phase 4: Graphics Configuration** - D3DMetal/DXVK/wined3d backend control with tiered UI
+- [x] **Phase 4: Graphics Configuration** - D3DMetal/DXVK/wined3d backend control with tiered UI
 - [ ] **Phase 5: Stability & Diagnostics** - WINEDEBUG parsing and crash pattern classification
 - [ ] **Phase 6: Audio Troubleshooting** - Diagnostics-first audio remediation with limited settings
 - [ ] **Phase 7: Game Compatibility Database** - Bundled known-good configurations with one-click apply
@@ -88,9 +88,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md -- GraphicsBackend data model, BottleGraphicsConfig, GraphicsBackendResolver, BottleSettings integration, ProgramOverrides extension, WineEnvironment update
-- [ ] 04-02-PLAN.md -- BackendPickerView selection cards, GraphicsConfigSection with Simple/Advanced toggle, DXVKSettingsView, dxvk.conf management, ConfigView integration
-- [ ] 04-03-PLAN.md -- Per-program graphics override in ProgramOverrideSettingsView, per-program override notes in GraphicsConfigSection, program list badge
+- [x] 04-01-PLAN.md -- GraphicsBackend data model, BottleGraphicsConfig, GraphicsBackendResolver, BottleSettings integration, ProgramOverrides extension, WineEnvironment update
+- [x] 04-02-PLAN.md -- BackendPickerView selection cards, GraphicsConfigSection with Simple/Advanced toggle, DXVKSettingsView, dxvk.conf management, ConfigView integration
+- [x] 04-03-PLAN.md -- Per-program graphics override in ProgramOverrideSettingsView, per-program override notes in GraphicsConfigSection, program list badge
 
 ### Phase 5: Stability & Diagnostics
 **Goal**: Wine error output is automatically classified so users receive actionable crash guidance instead of raw logs
@@ -201,7 +201,7 @@ Note: Phases 3 and 4 are parallel-capable (no mutual dependencies). Phases 5 and
 | 1. Miscellaneous Fixes | 3/3 | ✓ Complete | 2026-02-09 |
 | 2. Configuration Foundation | 4/4 | ✓ Complete | 2026-02-09 |
 | 3. Process Lifecycle Management | 3/3 | ✓ Complete | 2026-02-09 |
-| 4. Graphics Configuration | 0/TBD | Not started | - |
+| 4. Graphics Configuration | 3/3 | ✓ Complete | 2026-02-09 |
 | 5. Stability & Diagnostics | 0/TBD | Not started | - |
 | 6. Audio Troubleshooting | 0/TBD | Not started | - |
 | 7. Game Compatibility Database | 0/TBD | Not started | - |

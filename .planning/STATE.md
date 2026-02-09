@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 4 in progress -- Graphics Configuration
+**Current focus:** Phase 4 complete -- Graphics Configuration
 
 ## Current Position
 
 Phase: 4 of 10 (Graphics Configuration)
-Plan: 2 of 3 in current phase (04-02 complete)
-Status: In Progress
-Last activity: 2026-02-09 -- Completed 04-02-PLAN.md (Graphics Configuration UI)
+Plan: 3 of 3 in current phase (04-03 complete)
+Status: Phase Complete
+Last activity: 2026-02-09 -- Completed 04-03-PLAN.md (Per-Program Graphics Overrides)
 
-Progress: [▓▓▓▓▓▓▓▓▓░] 67%
+Progress: [▓▓▓▓▓▓▓▓▓▓] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: 9.8min
-- Total execution time: 1.95 hours
+- Total plans completed: 13
+- Average duration: 9.5min
+- Total execution time: 2.00 hours
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [▓▓▓▓▓▓▓▓▓░] 67%
 | 01-miscellaneous-fixes | 3 | 17min | 5.7min |
 | 02-configuration-foundation | 4 | 73min | 18.3min |
 | 03-process-lifecycle-management | 3 | 18min | 6.0min |
-| 04-graphics-configuration | 2 | 9min | 4.5min |
+| 04-graphics-configuration | 3 | 12min | 4.0min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (3min), 03-02 (8min), 03-03 (7min), 04-01 (4min), 04-02 (5min)
+- Last 5 plans: 03-02 (8min), 03-03 (7min), 04-01 (4min), 04-02 (5min), 04-03 (3min)
 - Trend: stabilizing at ~5min for focused integration tasks
 
 *Updated after each plan completion*
@@ -91,6 +91,9 @@ Recent decisions affecting current work:
 - [Phase 04]: [04-02]: Selection cards use custom Button + BackendCard (not standard Picker) for richer layout
 - [Phase 04]: [04-02]: Metal settings inlined into GraphicsConfigSection Advanced mode (not separate view)
 - [Phase 04]: [04-02]: hasAdvancedSettingsConfigured uses inverted default (!dxvkAsync) due to BottleDXVKConfig internal access
+- [Phase 04]: [04-03]: graphicsBackend replaces dxvk as sentinel for graphics override group
+- [Phase 04]: [04-03]: Standalone DXVK toggle removed from per-program override controls (backend picker implies DXVK active)
+- [Phase 04]: [04-03]: computedManagedOverrides checks graphicsBackend == .dxvk instead of bottle.settings.dxvk
 
 ### Pending Todos
 
@@ -103,5 +106,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-09
-Stopped at: Completed 04-02-PLAN.md (Graphics Configuration UI)
+Stopped at: Completed 04-03-PLAN.md (Per-Program Graphics Overrides) -- Phase 4 complete
 Resume file: None

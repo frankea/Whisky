@@ -56,14 +56,12 @@ struct DLLOverrideConfigSection: View {
            bottle.settings.autoEnableDXVK,
            let launcher = bottle.settings.detectedLauncher,
            launcher.requiresDXVK {
-            for entry in DLLOverrideResolver.dxvkPreset {
-                // Avoid duplicates if DXVK is also enabled
-                if !managed.contains(where: { $0.entry.dllName == entry.dllName }) {
-                    managed.append((
-                        entry: entry,
-                        source: String(localized: "config.dllOverrides.source.launcher")
-                    ))
-                }
+            for entry in DLLOverrideResolver.dxvkPreset
+                where !managed.contains(where: { $0.entry.dllName == entry.dllName }) {
+                managed.append((
+                    entry: entry,
+                    source: String(localized: "config.dllOverrides.source.launcher")
+                ))
             }
         }
 

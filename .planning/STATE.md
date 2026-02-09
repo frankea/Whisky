@@ -5,33 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 1 - Miscellaneous Fixes
+**Current focus:** Phase 2 - Configuration Foundation
 
 ## Current Position
 
-Phase: 1 of 10 (Miscellaneous Fixes)
-Plan: 3 of 3 in current phase (PHASE COMPLETE)
-Status: Phase 1 Complete
-Last activity: 2026-02-09 -- Completed 01-03-PLAN.md (Integration layer: clipboard, cleanup, lifecycle)
+Phase: 2 of 10 (Configuration Foundation)
+Plan: 1 of 4 in current phase
+Status: Executing
+Last activity: 2026-02-09 -- Completed 02-01-PLAN.md (EnvironmentBuilder, DLLOverride, ProgramOverrides)
 
-Progress: [▓▓░░░░░░░░] 10%
+Progress: [▓▓▓░░░░░░░] 14%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 5.7min
-- Total execution time: 0.28 hours
+- Total plans completed: 4
+- Average duration: 5.5min
+- Total execution time: 0.37 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-miscellaneous-fixes | 3 | 17min | 5.7min |
+| 02-configuration-foundation | 1 | 5min | 5min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4min), 01-02 (5min), 01-03 (8min)
-- Trend: -
+- Last 5 plans: 01-01 (4min), 01-02 (5min), 01-03 (8min), 02-01 (5min)
+- Trend: stable
 
 *Updated after each plan completion*
 
@@ -55,6 +56,10 @@ Recent decisions affecting current work:
 - [01-03]: Clipboard check called from app layer (ProgramItemView) rather than inside WhiskyKit's launchWithUserMode
 - [01-03]: Startup zombie process sweep deferred to Phase 3 (ProcessRegistry is session-based)
 - [01-03]: CleanupConfigSection extracted to own file for SwiftLint type_body_length compliance
+- [02-01]: EnvironmentBuilder uses [String: String?] per layer to support explicit key removal via nil
+- [02-01]: DLLOverrideResolver.managed uses tuple array (entry, source) instead of separate dictionaries
+- [02-01]: displayName on DLLOverrideMode uses plain strings (localization deferred to UI phase)
+- [02-01]: Added Sendable to EnhancedSync and DXVKHUD enums for ProgramOverrides compatibility
 
 ### Pending Todos
 
@@ -67,5 +72,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-09
-Stopped at: Completed 01-03-PLAN.md (Phase 1 complete)
+Stopped at: Completed 02-01-PLAN.md (EnvironmentBuilder, DLLOverride, ProgramOverrides)
 Resume file: None

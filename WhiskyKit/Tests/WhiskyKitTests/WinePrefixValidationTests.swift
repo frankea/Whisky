@@ -240,7 +240,7 @@ final class ValidatePrefixTests: XCTestCase {
     }
 
     @MainActor
-    func testValidatePrefixReturnsCorruptedForMissingPrefix() throws {
+    func testValidatePrefixReturnsCorruptedForMissingPrefix() {
         let bottleURL = tempDir.appendingPathComponent("NonExistentBottle")
 
         let bottle = Bottle(bottleUrl: bottleURL)
@@ -367,7 +367,7 @@ final class ValidatePrefixTests: XCTestCase {
     }
 
     @MainActor
-    func testValidatePrefixDiagnosticsIncludesPrefixPath() throws {
+    func testValidatePrefixDiagnosticsIncludesPrefixPath() {
         let bottleURL = tempDir.appendingPathComponent("TestBottle")
 
         let bottle = Bottle(bottleUrl: bottleURL)
@@ -377,7 +377,7 @@ final class ValidatePrefixTests: XCTestCase {
     }
 
     @MainActor
-    func testValidatePrefixDiagnosticsRecordsEvents() throws {
+    func testValidatePrefixDiagnosticsRecordsEvents() {
         let bottleURL = tempDir.appendingPathComponent("Invalid")
 
         let bottle = Bottle(bottleUrl: bottleURL)

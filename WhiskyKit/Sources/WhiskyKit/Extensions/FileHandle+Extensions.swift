@@ -36,7 +36,10 @@ private final class WineLogCapRegistry: @unchecked Sendable {
 
     private final class DeinitObserver {
         let onDeinit: () -> Void
-        init(onDeinit: @escaping () -> Void) { self.onDeinit = onDeinit }
+        init(onDeinit: @escaping () -> Void) {
+            self.onDeinit = onDeinit
+        }
+
         deinit { onDeinit() }
     }
 

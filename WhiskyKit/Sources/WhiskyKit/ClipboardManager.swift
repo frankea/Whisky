@@ -26,13 +26,13 @@ import os.log
 /// Each bottle can specify its own policy, or use the default `auto` behavior.
 public enum ClipboardPolicy: String, Codable, CaseIterable, Sendable {
     /// Auto-clear for known multiplayer launchers, warn for others (default)
-    case auto = "auto"
+    case auto
     /// Always show a warning when clipboard content is large
     case alwaysWarn = "warn"
     /// Always clear the clipboard before launching
     case alwaysClear = "clear"
     /// Never warn or clear the clipboard
-    case never = "never"
+    case never
 }
 
 /// Result of a clipboard check before launching a Wine program.

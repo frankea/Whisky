@@ -78,7 +78,7 @@ final class ProcessRegistryTests: XCTestCase {
         XCTAssertEqual(processes.count, 3, "Should have three registered processes")
     }
 
-    func testRegisterProcessForDifferentBottles() async throws {
+    func testRegisterProcessForDifferentBottles() throws {
         let bottle2URL = FileManager.default.temporaryDirectory
             .appendingPathComponent("test-bottle-2-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: bottle2URL, withIntermediateDirectories: true)
@@ -148,7 +148,7 @@ final class ProcessRegistryTests: XCTestCase {
         XCTAssertTrue(processes.contains(where: { $0.programName == "app2.exe" }), "Should contain app2.exe")
     }
 
-    func testGetAllProcesses() async throws {
+    func testGetAllProcesses() throws {
         let bottle2URL = FileManager.default.temporaryDirectory
             .appendingPathComponent("test-bottle-3-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: bottle2URL, withIntermediateDirectories: true)

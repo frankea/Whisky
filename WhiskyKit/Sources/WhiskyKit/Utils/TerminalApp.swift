@@ -35,7 +35,9 @@ public enum TerminalApp: String, CaseIterable, Identifiable {
     case iterm
     case warp
 
-    public var id: String { rawValue }
+    public var id: String {
+        rawValue
+    }
 
     /// The display name for the terminal application.
     public var displayName: String {

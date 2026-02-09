@@ -87,7 +87,7 @@ public extension URL {
         return prettyPath
     }
 
-    // NOT to be used for logic only as UI decoration
+    /// NOT to be used for logic only as UI decoration
     func prettyPath(_ bottle: Bottle) -> String {
         var prettyPath = path(percentEncoded: false)
         prettyPath = prettyPath
@@ -97,7 +97,7 @@ public extension URL {
         return prettyPath
     }
 
-    // There is probably a better way to do this
+    /// There is probably a better way to do this
     func updateParentBottle(old: URL, new: URL) -> URL {
         let originalPath = path(percentEncoded: false)
 
@@ -120,5 +120,7 @@ public extension URL {
 }
 
 extension URL: @retroactive Identifiable {
-    public var id: URL { self }
+    public var id: URL {
+        self
+    }
 }

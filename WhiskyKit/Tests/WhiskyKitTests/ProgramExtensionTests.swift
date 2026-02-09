@@ -47,7 +47,7 @@ final class ProgramGenerateTerminalCommandTests: XCTestCase {
     }
 
     @MainActor
-    func testGenerateTerminalCommandContainsProgramPath() throws {
+    func testGenerateTerminalCommandContainsProgramPath() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -58,7 +58,7 @@ final class ProgramGenerateTerminalCommandTests: XCTestCase {
     }
 
     @MainActor
-    func testGenerateTerminalCommandContainsWineBinary() throws {
+    func testGenerateTerminalCommandContainsWineBinary() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -69,7 +69,7 @@ final class ProgramGenerateTerminalCommandTests: XCTestCase {
     }
 
     @MainActor
-    func testGenerateTerminalCommandWithCustomArgs() throws {
+    func testGenerateTerminalCommandWithCustomArgs() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -81,7 +81,7 @@ final class ProgramGenerateTerminalCommandTests: XCTestCase {
     }
 
     @MainActor
-    func testGenerateTerminalCommandWithNilArgsUsesSettings() throws {
+    func testGenerateTerminalCommandWithNilArgsUsesSettings() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
         program.settings.arguments = "-testarg"
@@ -93,7 +93,7 @@ final class ProgramGenerateTerminalCommandTests: XCTestCase {
     }
 
     @MainActor
-    func testGenerateTerminalCommandWithEmptyArgs() throws {
+    func testGenerateTerminalCommandWithEmptyArgs() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -105,7 +105,7 @@ final class ProgramGenerateTerminalCommandTests: XCTestCase {
     }
 
     @MainActor
-    func testGenerateTerminalCommandContainsWinePrefix() throws {
+    func testGenerateTerminalCommandContainsWinePrefix() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -119,7 +119,7 @@ final class ProgramGenerateTerminalCommandTests: XCTestCase {
     // MARK: - Array-based generateTerminalCommand Tests
 
     @MainActor
-    func testGenerateTerminalCommandWithArrayArgs() throws {
+    func testGenerateTerminalCommandWithArrayArgs() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -131,7 +131,7 @@ final class ProgramGenerateTerminalCommandTests: XCTestCase {
     }
 
     @MainActor
-    func testGenerateTerminalCommandWithArrayArgsContainingSpaces() throws {
+    func testGenerateTerminalCommandWithArrayArgsContainingSpaces() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -147,7 +147,7 @@ final class ProgramGenerateTerminalCommandTests: XCTestCase {
     }
 
     @MainActor
-    func testGenerateTerminalCommandWithEmptyArrayArgs() throws {
+    func testGenerateTerminalCommandWithEmptyArrayArgs() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -159,7 +159,7 @@ final class ProgramGenerateTerminalCommandTests: XCTestCase {
     }
 
     @MainActor
-    func testGenerateTerminalCommandWithSpecialCharacterArgs() throws {
+    func testGenerateTerminalCommandWithSpecialCharacterArgs() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -196,7 +196,7 @@ final class ProgramGenerateEnvironmentTests: XCTestCase {
     }
 
     @MainActor
-    func testGenerateEnvironmentWithAutoLocale() throws {
+    func testGenerateEnvironmentWithAutoLocale() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
         program.settings.locale = .auto
@@ -208,7 +208,7 @@ final class ProgramGenerateEnvironmentTests: XCTestCase {
     }
 
     @MainActor
-    func testGenerateEnvironmentWithSpecificLocale() throws {
+    func testGenerateEnvironmentWithSpecificLocale() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
         program.settings.locale = .german
@@ -220,7 +220,7 @@ final class ProgramGenerateEnvironmentTests: XCTestCase {
     }
 
     @MainActor
-    func testGenerateEnvironmentWithCustomVariables() throws {
+    func testGenerateEnvironmentWithCustomVariables() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
         program.settings.environment = ["CUSTOM_VAR": "custom_value"]
@@ -231,7 +231,7 @@ final class ProgramGenerateEnvironmentTests: XCTestCase {
     }
 
     @MainActor
-    func testGenerateEnvironmentWithMultipleCustomVariables() throws {
+    func testGenerateEnvironmentWithMultipleCustomVariables() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
         program.settings.environment = [
@@ -248,7 +248,7 @@ final class ProgramGenerateEnvironmentTests: XCTestCase {
     }
 
     @MainActor
-    func testGenerateEnvironmentCombinesLocaleAndCustomVars() throws {
+    func testGenerateEnvironmentCombinesLocaleAndCustomVars() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
         program.settings.locale = .japanese

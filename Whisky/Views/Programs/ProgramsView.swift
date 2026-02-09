@@ -234,7 +234,7 @@ struct ProgramItemView: View {
         // Check clipboard before launch (blocking alert for needsUserDecision is handled internally)
         let clipResult = program.performClipboardCheck()
         if case let .autoCleared(contentType, sizeBytes) = clipResult {
-            let sizeKB = String(format: "%.1f", Double(sizeBytes) / 1024.0)
+            let sizeKB = String(format: "%.1f", Double(sizeBytes) / 1_024.0)
             withAnimation {
                 toast = ToastData(
                     message: String(localized: "clipboard.cleared.toast")

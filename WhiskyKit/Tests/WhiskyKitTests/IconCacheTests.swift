@@ -73,7 +73,7 @@ struct IconCacheTests {
     }
 
     @Test("Cache is shared singleton")
-    func cacheIsSharedSingleton() async {
+    func cacheIsSharedSingleton() {
         let cache1 = IconCache.shared
         let cache2 = IconCache.shared
 

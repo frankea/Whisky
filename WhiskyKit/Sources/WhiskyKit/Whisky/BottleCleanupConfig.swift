@@ -25,7 +25,7 @@ import Foundation
 /// running long-lived server processes.
 public enum KillOnQuitPolicy: String, Codable, CaseIterable, Sendable {
     /// Use the global killOnTerminate setting (default)
-    case inherit = "inherit"
+    case inherit
     /// Always kill Wine processes when the bottle/app quits
     case alwaysKill = "always"
     /// Never kill Wine processes on quit

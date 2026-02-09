@@ -60,13 +60,6 @@ public final class ProcessRegistry: @unchecked Sendable {
             hasher.combine(bottleURL)
             hasher.combine(programName)
         }
-
-        public static func == (lhs: ProcessInfo, rhs: ProcessInfo) -> Bool {
-            lhs.pid == rhs.pid &&
-                lhs.launchTime == rhs.launchTime &&
-                lhs.bottleURL == rhs.bottleURL &&
-                lhs.programName == rhs.programName
-        }
     }
 
     private init() {}

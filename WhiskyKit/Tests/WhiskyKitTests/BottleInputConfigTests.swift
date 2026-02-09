@@ -20,7 +20,7 @@
 import XCTest
 
 final class BottleInputConfigTests: XCTestCase {
-    func testDefaultInputConfig() throws {
+    func testDefaultInputConfig() {
         let config = BottleInputConfig()
 
         XCTAssertFalse(config.controllerCompatibilityMode)
@@ -64,7 +64,7 @@ final class BottleInputConfigTests: XCTestCase {
         XCTAssertFalse(decoded.disableControllerMapping)
     }
 
-    func testBottleSettingsIncludesInputConfig() throws {
+    func testBottleSettingsIncludesInputConfig() {
         let settings = BottleSettings()
 
         // Test default values are accessible
@@ -74,7 +74,7 @@ final class BottleInputConfigTests: XCTestCase {
         XCTAssertFalse(settings.disableControllerMapping)
     }
 
-    func testBottleSettingsInputConfigModification() throws {
+    func testBottleSettingsInputConfigModification() {
         var settings = BottleSettings()
 
         // Modify input settings
@@ -90,7 +90,7 @@ final class BottleInputConfigTests: XCTestCase {
         XCTAssertTrue(settings.disableControllerMapping)
     }
 
-    func testEnvironmentVariablesWithControllerCompatibility() throws {
+    func testEnvironmentVariablesWithControllerCompatibility() {
         var settings = BottleSettings()
         settings.controllerCompatibilityMode = true
         settings.disableHIDAPI = true
@@ -106,7 +106,7 @@ final class BottleInputConfigTests: XCTestCase {
         XCTAssertEqual(env["SDL_GAMECONTROLLER_USE_BUTTON_LABELS"], "1")
     }
 
-    func testEnvironmentVariablesWithPartialControllerSettings() throws {
+    func testEnvironmentVariablesWithPartialControllerSettings() {
         var settings = BottleSettings()
         settings.controllerCompatibilityMode = true
         settings.disableHIDAPI = true
@@ -122,7 +122,7 @@ final class BottleInputConfigTests: XCTestCase {
         XCTAssertNil(env["SDL_GAMECONTROLLER_USE_BUTTON_LABELS"])
     }
 
-    func testEnvironmentVariablesWithoutControllerCompatibility() throws {
+    func testEnvironmentVariablesWithoutControllerCompatibility() {
         var settings = BottleSettings()
         settings.controllerCompatibilityMode = false
         // Even if individual settings are on, they shouldn't apply
@@ -139,7 +139,7 @@ final class BottleInputConfigTests: XCTestCase {
         XCTAssertNil(env["SDL_GAMECONTROLLER_USE_BUTTON_LABELS"])
     }
 
-    func testInputConfigEquatable() throws {
+    func testInputConfigEquatable() {
         let config1 = BottleInputConfig()
         var config2 = BottleInputConfig()
 

@@ -68,7 +68,9 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     /// Paradox Launcher
     case paradox = "Paradox Launcher"
 
-    public var id: String { rawValue }
+    public var id: String {
+        rawValue
+    }
 
     /// Display name for the launcher.
     public var displayName: String {

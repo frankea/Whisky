@@ -57,14 +57,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Per-bottle kill-on-quit with policy overrides
         for bottle in BottleVM.shared.bottles {
             let bottlePolicy = bottle.settings.killOnQuit
-            let shouldKill: Bool
-            switch bottlePolicy {
+            let shouldKill: Bool = switch bottlePolicy {
             case .inherit:
-                shouldKill = globalKill
+                globalKill
             case .alwaysKill:
-                shouldKill = true
+                true
             case .neverKill:
-                shouldKill = false
+                false
             }
 
             if shouldKill {

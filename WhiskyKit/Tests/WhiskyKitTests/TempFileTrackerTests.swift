@@ -230,7 +230,7 @@ final class TempFileTrackerTests: XCTestCase {
         XCTAssertEqual(trackedFiles.count, 1, "File should remain in tracker")
     }
 
-    func testCleanupOldFilesWithEmptyTracker() async throws {
+    func testCleanupOldFilesWithEmptyTracker() async {
         // No files registered
         await TempFileTracker.shared.cleanupOldFiles(olderThan: 60 * 60)
 

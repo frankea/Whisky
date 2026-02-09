@@ -94,7 +94,7 @@ struct WhiskyWineDownloadView: View {
 }
 
 extension WhiskyWineDownloadView {
-    // Cached formatters to avoid repeated allocations during progress updates.
+    /// Cached formatters to avoid repeated allocations during progress updates.
     private static let byteCountFormatter: ByteCountFormatter = {
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file

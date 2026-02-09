@@ -195,7 +195,7 @@ final class BottleSettingsTests: XCTestCase {
 
     // MARK: - BottleInfo Tests
 
-    func testBottleInfoDefaultValues() throws {
+    func testBottleInfoDefaultValues() {
         let info = BottleInfo()
 
         XCTAssertEqual(info.name, "Bottle")

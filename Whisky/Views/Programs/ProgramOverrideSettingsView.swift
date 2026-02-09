@@ -55,11 +55,27 @@ struct ProgramOverrideSettingsView: View {
                 isOn: graphicsOverrideBinding
             )
             if hasGraphicsOverride {
-                graphicsControls
+                // Backend picker
+                Picker("config.graphics.backend", selection: graphicsBackendBinding) {
+                    ForEach(GraphicsBackend.allCases, id: \.self) { backend in
+                        Text(backend.displayName).tag(backend)
+                    }
+                }
+
+                // DXVK sub-controls only when backend is DXVK
+                let overriddenBackend = program.settings.overrides?.graphicsBackend ?? .recommended
+                if overriddenBackend == .dxvk {
+                    graphicsControls
+                }
+
+                // "Takes effect next launch" note
+                Text("config.graphics.nextLaunch")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             } else {
                 inheritedSummary(
-                    "DXVK \(bottle.settings.dxvk ? "On" : "Off"), "
-                        + "Async \(bottle.settings.dxvkAsync ? "On" : "Off"), "
+                    "\(bottle.settings.graphicsBackend.displayName), "
+                        + "DXVK Async \(bottle.settings.dxvkAsync ? "On" : "Off"), "
                         + "HUD \(hudDescription(bottle.settings.dxvkHud))"
                 )
             }
@@ -68,16 +84,13 @@ struct ProgramOverrideSettingsView: View {
 
     @ViewBuilder
     private var graphicsControls: some View {
-        Toggle("config.dxvk", isOn: dxvkBinding)
         Toggle("config.dxvk.async", isOn: dxvkAsyncBinding)
-            .disabled(!(program.settings.overrides?.dxvk ?? false))
         Picker("config.dxvkHud", selection: dxvkHudBinding) {
             Text("config.dxvkHud.full").tag(DXVKHUD.full)
             Text("config.dxvkHud.partial").tag(DXVKHUD.partial)
             Text("config.dxvkHud.fps").tag(DXVKHUD.fps)
             Text("config.dxvkHud.off").tag(DXVKHUD.off)
         }
-        .disabled(!(program.settings.overrides?.dxvk ?? false))
     }
 
     // MARK: - Sync Group
@@ -256,7 +269,7 @@ struct ProgramOverrideSettingsView: View {
     // MARK: - Computed Properties
 
     private var hasGraphicsOverride: Bool {
-        program.settings.overrides?.dxvk != nil
+        program.settings.overrides?.graphicsBackend != nil
     }
 
     private var hasSyncOverride: Bool {
@@ -282,7 +295,7 @@ struct ProgramOverrideSettingsView: View {
 
     private var computedManagedOverrides: [(entry: DLLOverrideEntry, source: String)] {
         var managed: [(entry: DLLOverrideEntry, source: String)] = []
-        if bottle.settings.dxvk {
+        if bottle.settings.graphicsBackend == .dxvk {
             for entry in DLLOverrideResolver.dxvkPreset {
                 managed.append((
                     entry: entry,
@@ -314,10 +327,12 @@ struct ProgramOverrideSettingsView: View {
             set: { isOn in
                 ensureOverrides()
                 if isOn {
+                    program.settings.overrides?.graphicsBackend = bottle.settings.graphicsBackend
                     program.settings.overrides?.dxvk = bottle.settings.dxvk
                     program.settings.overrides?.dxvkAsync = bottle.settings.dxvkAsync
                     program.settings.overrides?.dxvkHud = bottle.settings.dxvkHud
                 } else {
+                    program.settings.overrides?.graphicsBackend = nil
                     program.settings.overrides?.dxvk = nil
                     program.settings.overrides?.dxvkAsync = nil
                     program.settings.overrides?.dxvkHud = nil
@@ -394,6 +409,13 @@ struct ProgramOverrideSettingsView: View {
     }
 
     // MARK: - Individual Setting Bindings
+
+    private var graphicsBackendBinding: Binding<GraphicsBackend> {
+        Binding(
+            get: { program.settings.overrides?.graphicsBackend ?? bottle.settings.graphicsBackend },
+            set: { program.settings.overrides?.graphicsBackend = $0 }
+        )
+    }
 
     private var dxvkBinding: Binding<Bool> {
         Binding(

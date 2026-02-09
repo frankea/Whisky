@@ -526,6 +526,16 @@ public struct BottleSettings: Codable, Equatable {
         set { cleanupConfig.killOnQuit = newValue }
     }
 
+    /// The policy for handling running processes when navigating away from this bottle.
+    ///
+    /// Controls whether a confirmation dialog is shown when the user switches
+    /// to a different bottle while Wine processes are still running.
+    /// See ``CloseWithProcessesPolicy`` for available options.
+    public var closeWithProcessesPolicy: CloseWithProcessesPolicy {
+        get { cleanupConfig.closeWithProcessesPolicy }
+        set { cleanupConfig.closeWithProcessesPolicy = newValue }
+    }
+
     /// Loads bottle settings from a metadata plist file.
     ///
     /// This method handles version migration and validation. If the settings

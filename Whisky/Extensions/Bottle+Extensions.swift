@@ -331,7 +331,30 @@ extension Bottle {
     }
 
     @MainActor
-    func remove(delete: Bool) {
+    func remove(delete: Bool) async {
+        // Check for running processes before deletion
+        let isRunning = await Wine.isWineserverRunning(for: self)
+        let trackedCount = ProcessRegistry.shared.getProcessCount(for: self)
+
+        if isRunning || trackedCount > 0 {
+            let alert = NSAlert()
+            alert.messageText = String(localized: "bottle.remove.hasProcesses.title")
+            alert.informativeText = String(localized: "bottle.remove.hasProcesses.message")
+            alert.alertStyle = .warning
+            let stopAndRemove = alert.addButton(
+                withTitle: String(localized: "bottle.remove.hasProcesses.stopAndRemove")
+            )
+            stopAndRemove.hasDestructiveAction = true
+            alert.addButton(withTitle: String(localized: "bottle.remove.hasProcesses.cancel"))
+
+            let response = alert.runModal()
+            guard response == .alertFirstButtonReturn else { return }
+
+            Wine.killBottle(bottle: self)
+            try? await Task.sleep(for: .seconds(2))
+            ProcessRegistry.shared.clearRegistry(for: url)
+        }
+
         do {
             if let bottle = BottleVM.shared.bottles.first(where: { $0.url == url }) {
                 bottle.inFlight = true

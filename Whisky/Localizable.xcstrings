@@ -659,6 +659,56 @@
         }
       }
     },
+    "bottle.close.confirm.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This bottle has running processes. What would you like to do?"
+          }
+        }
+      }
+    },
+    "bottle.close.confirm.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processes Still Running"
+          }
+        }
+      }
+    },
+    "bottle.close.keepRunning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep Running"
+          }
+        }
+      }
+    },
+    "bottle.close.remember": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remember for this bottle"
+          }
+        }
+      }
+    },
+    "bottle.close.stopBottle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Bottle"
+          }
+        }
+      }
+    },
     "bottle.creation.failed.copyDiagnostics": {
       "localizations": {
         "en": {
@@ -675,6 +725,56 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bottle Creation Failed"
+          }
+        }
+      }
+    },
+    "bottle.orphan.tooltip": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some processes were started outside Whisky"
+          }
+        }
+      }
+    },
+    "bottle.remove.hasProcesses.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "bottle.remove.hasProcesses.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There are Wine processes running in this bottle. They will be stopped before the bottle is removed."
+          }
+        }
+      }
+    },
+    "bottle.remove.hasProcesses.stopAndRemove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop and Remove"
+          }
+        }
+      }
+    },
+    "bottle.remove.hasProcesses.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bottle Has Running Processes"
           }
         }
       }

@@ -119,8 +119,26 @@ struct ContentView: View {
                 bottles: bottleVM.bottles
             )
         }
-        .onChange(of: selected) {
-            selectedBottleURL = selected
+        .onChange(of: selected) { oldValue, newValue in
+            selectedBottleURL = newValue
+
+            // Check if previous bottle had running processes
+            guard let oldURL = oldValue,
+                  let oldBottle = bottleVM.bottles.first(where: { $0.url == oldURL })
+            else { return }
+
+            let count = ProcessRegistry.shared.getProcessCount(for: oldBottle)
+            guard count > 0 else { return }
+
+            switch oldBottle.settings.closeWithProcessesPolicy {
+            case .alwaysKeepRunning:
+                break
+            case .alwaysStop:
+                Wine.killBottle(bottle: oldBottle)
+                ProcessRegistry.shared.clearRegistry(for: oldBottle.url)
+            case .ask:
+                showProcessCloseAlert(for: oldBottle)
+            }
         }
         .handlesExternalEvents(preferring: [], allowing: ["*"])
         .onOpenURL { url in
@@ -189,7 +207,7 @@ struct ContentView: View {
                                     Text(bottle.settings.name)
                                     Spacer()
                                     Button {
-                                        bottle.remove(delete: false)
+                                        Task { await bottle.remove(delete: false) }
                                     } label: {
                                         Image(systemName: "xmark.circle")
                                             .foregroundStyle(.secondary)
@@ -263,6 +281,43 @@ struct ContentView: View {
             bottleVM.bottles
                 .filter { $0.settings.name.localizedCaseInsensitiveContains(bottleFilter) }
                 .sorted()
+        }
+    }
+}
+
+// MARK: - Process Close Confirmation
+
+extension ContentView {
+    @MainActor
+    func showProcessCloseAlert(for bottle: Bottle) {
+        let checkbox = NSButton(
+            checkboxWithTitle: String(localized: "bottle.close.remember"),
+            target: nil,
+            action: nil
+        )
+        let alert = NSAlert()
+        alert.messageText = String(localized: "bottle.close.confirm.title")
+        alert.informativeText = String(localized: "bottle.close.confirm.message")
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: String(localized: "bottle.close.keepRunning"))
+        let stopButton = alert.addButton(withTitle: String(localized: "bottle.close.stopBottle"))
+        stopButton.hasDestructiveAction = true
+        alert.accessoryView = checkbox
+
+        let response = alert.runModal()
+
+        if response == .alertFirstButtonReturn {
+            // Keep Running (default)
+            if checkbox.state == .on {
+                bottle.settings.closeWithProcessesPolicy = .alwaysKeepRunning
+            }
+        } else if response == .alertSecondButtonReturn {
+            // Stop Bottle
+            if checkbox.state == .on {
+                bottle.settings.closeWithProcessesPolicy = .alwaysStop
+            }
+            Wine.killBottle(bottle: bottle)
+            ProcessRegistry.shared.clearRegistry(for: bottle.url)
         }
     }
 }

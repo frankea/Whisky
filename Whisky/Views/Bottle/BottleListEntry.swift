@@ -29,123 +29,156 @@ struct BottleListEntry: View {
     @State private var showBottleRename: Bool = false
     @State private var showBottleDuplicate: Bool = false
     @State private var name: String = ""
+    @State private var runningCount: Int = 0
+    @State private var hasOrphanProcesses: Bool = false
+    @State private var probeTask: Task<Void, Never>?
 
     var body: some View {
-        Text(name)
-            .opacity(bottle.isAvailable ? 1.0 : 0.5)
-            .onChange(of: refresh, initial: true) {
-                name = bottle.settings.name
+        HStack {
+            Text(name)
+            Spacer()
+            if runningCount > 0 {
+                Text("\(runningCount)")
+                    .font(.caption2)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(.blue.opacity(0.15))
+                    .clipShape(Capsule())
+                    .foregroundStyle(.blue)
+            } else if hasOrphanProcesses {
+                Image(systemName: "exclamationmark.circle.fill")
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
+                    .help(String(localized: "bottle.orphan.tooltip"))
             }
-            .sheet(isPresented: $showBottleRename) {
-                RenameView("rename.bottle.title", name: name) { newName in
-                    name = newName
-                    bottle.rename(newName: newName)
+        }
+        .opacity(bottle.isAvailable ? 1.0 : 0.5)
+        .onAppear {
+            Task { await probeRunningState() }
+            probeTask = Task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(60))
+                    guard !Task.isCancelled else { break }
+                    await probeRunningState()
                 }
             }
-            .sheet(isPresented: $showBottleDuplicate) {
-                RenameView("duplicate.bottle.title", name: "\(name) Copy") { newName in
-                    Task {
-                        do {
-                            let newURL = try await bottle.duplicate(newName: newName)
-                            await MainActor.run {
-                                selected = newURL
-                                withAnimation {
-                                    toast = ToastData(
-                                        message: String(
-                                            format: String(localized: "status.duplicateSuccess %@"),
-                                            newName
-                                        ),
-                                        style: .success
-                                    )
-                                }
+        }
+        .onDisappear {
+            probeTask?.cancel()
+        }
+        .onChange(of: refresh, initial: true) {
+            name = bottle.settings.name
+            Task { await probeRunningState() }
+        }
+        .sheet(isPresented: $showBottleRename) {
+            RenameView("rename.bottle.title", name: name) { newName in
+                name = newName
+                bottle.rename(newName: newName)
+            }
+        }
+        .sheet(isPresented: $showBottleDuplicate) {
+            RenameView("duplicate.bottle.title", name: "\(name) Copy") { newName in
+                Task {
+                    do {
+                        let newURL = try await bottle.duplicate(newName: newName)
+                        await MainActor.run {
+                            selected = newURL
+                            withAnimation {
+                                toast = ToastData(
+                                    message: String(
+                                        format: String(localized: "status.duplicateSuccess %@"),
+                                        newName
+                                    ),
+                                    style: .success
+                                )
                             }
-                        } catch {
-                            await MainActor.run {
-                                withAnimation {
-                                    toast = ToastData(
-                                        message: String(
-                                            format: String(localized: "status.duplicateFailed %@"),
-                                            error.localizedDescription
-                                        ),
-                                        style: .error
-                                    )
-                                }
+                        }
+                    } catch {
+                        await MainActor.run {
+                            withAnimation {
+                                toast = ToastData(
+                                    message: String(
+                                        format: String(localized: "status.duplicateFailed %@"),
+                                        error.localizedDescription
+                                    ),
+                                    style: .error
+                                )
                             }
                         }
                     }
                 }
             }
-            .contextMenu {
-                Button("button.rename", systemImage: "pencil.line") {
-                    showBottleRename.toggle()
-                }
-                .disabled(!bottle.isAvailable)
-                .labelStyle(.titleAndIcon)
-                Button("button.removeAlert", systemImage: "trash") {
-                    showRemoveAlert(bottle: bottle)
-                }
-                .labelStyle(.titleAndIcon)
-                Divider()
-                Button("button.moveBottle", systemImage: "shippingbox.and.arrow.backward") {
-                    let panel = NSOpenPanel()
-                    panel.canChooseFiles = false
-                    panel.canChooseDirectories = true
-                    panel.allowsMultipleSelection = false
-                    panel.canCreateDirectories = true
-                    panel.begin { result in
-                        if result == .OK {
-                            if let url = panel.urls.first {
-                                let newBottePath = url
-                                    .appending(path: bottle.url.lastPathComponent)
+        }
+        .contextMenu {
+            Button("button.rename", systemImage: "pencil.line") {
+                showBottleRename.toggle()
+            }
+            .disabled(!bottle.isAvailable)
+            .labelStyle(.titleAndIcon)
+            Button("button.removeAlert", systemImage: "trash") {
+                showRemoveAlert(bottle: bottle)
+            }
+            .labelStyle(.titleAndIcon)
+            Divider()
+            Button("button.moveBottle", systemImage: "shippingbox.and.arrow.backward") {
+                let panel = NSOpenPanel()
+                panel.canChooseFiles = false
+                panel.canChooseDirectories = true
+                panel.allowsMultipleSelection = false
+                panel.canCreateDirectories = true
+                panel.begin { result in
+                    if result == .OK {
+                        if let url = panel.urls.first {
+                            let newBottePath = url
+                                .appending(path: bottle.url.lastPathComponent)
 
-                                bottle.move(destination: newBottePath)
-                                selected = newBottePath
-                            }
+                            bottle.move(destination: newBottePath)
+                            selected = newBottePath
                         }
                     }
                 }
-                .disabled(!bottle.isAvailable)
-                .labelStyle(.titleAndIcon)
-                Button("button.duplicateBottle", systemImage: "doc.on.doc") {
-                    showBottleDuplicate.toggle()
-                }
-                .disabled(!bottle.isAvailable || bottle.inFlight)
-                .labelStyle(.titleAndIcon)
-                Button("button.exportBottle", systemImage: "arrowshape.turn.up.right") {
-                    let panel = NSSavePanel()
-                    panel.canCreateDirectories = true
-                    panel.allowedContentTypes = [UTType.gzip]
-                    panel.allowsOtherFileTypes = false
-                    panel.isExtensionHidden = false
-                    panel.nameFieldStringValue = bottle.settings.name + ".tar"
-                    panel.begin { result in
-                        if result == .OK {
-                            if let url = panel.url {
-                                Task {
-                                    do {
-                                        try await bottle.exportAsArchive(destination: url)
-                                        await MainActor.run {
-                                            withAnimation {
-                                                toast = ToastData(
-                                                    message: String(
-                                                        format: String(localized: "status.exportSuccess %@"),
-                                                        bottle.settings.name
-                                                    ),
-                                                    style: .success
-                                                )
-                                            }
+            }
+            .disabled(!bottle.isAvailable)
+            .labelStyle(.titleAndIcon)
+            Button("button.duplicateBottle", systemImage: "doc.on.doc") {
+                showBottleDuplicate.toggle()
+            }
+            .disabled(!bottle.isAvailable || bottle.inFlight)
+            .labelStyle(.titleAndIcon)
+            Button("button.exportBottle", systemImage: "arrowshape.turn.up.right") {
+                let panel = NSSavePanel()
+                panel.canCreateDirectories = true
+                panel.allowedContentTypes = [UTType.gzip]
+                panel.allowsOtherFileTypes = false
+                panel.isExtensionHidden = false
+                panel.nameFieldStringValue = bottle.settings.name + ".tar"
+                panel.begin { result in
+                    if result == .OK {
+                        if let url = panel.url {
+                            Task {
+                                do {
+                                    try await bottle.exportAsArchive(destination: url)
+                                    await MainActor.run {
+                                        withAnimation {
+                                            toast = ToastData(
+                                                message: String(
+                                                    format: String(localized: "status.exportSuccess %@"),
+                                                    bottle.settings.name
+                                                ),
+                                                style: .success
+                                            )
                                         }
-                                    } catch {
-                                        await MainActor.run {
-                                            withAnimation {
-                                                toast = ToastData(
-                                                    message: String(
-                                                        format: String(localized: "status.exportFailed %@"),
-                                                        error.localizedDescription
-                                                    ),
-                                                    style: .error
-                                                )
-                                            }
+                                    }
+                                } catch {
+                                    await MainActor.run {
+                                        withAnimation {
+                                            toast = ToastData(
+                                                message: String(
+                                                    format: String(localized: "status.exportFailed %@"),
+                                                    error.localizedDescription
+                                                ),
+                                                style: .error
+                                            )
                                         }
                                     }
                                 }
@@ -153,15 +186,29 @@ struct BottleListEntry: View {
                         }
                     }
                 }
-                .disabled(!bottle.isAvailable || bottle.inFlight)
-                .labelStyle(.titleAndIcon)
-                Divider()
-                Button("button.showInFinder", systemImage: "folder") {
-                    NSWorkspace.shared.activateFileViewerSelecting([bottle.url])
-                }
-                .disabled(!bottle.isAvailable)
-                .labelStyle(.titleAndIcon)
             }
+            .disabled(!bottle.isAvailable || bottle.inFlight)
+            .labelStyle(.titleAndIcon)
+            Divider()
+            Button("button.showInFinder", systemImage: "folder") {
+                NSWorkspace.shared.activateFileViewerSelecting([bottle.url])
+            }
+            .disabled(!bottle.isAvailable)
+            .labelStyle(.titleAndIcon)
+        }
+    }
+
+    @MainActor
+    private func probeRunningState() async {
+        let trackedCount = ProcessRegistry.shared.getProcessCount(for: bottle)
+        runningCount = trackedCount
+
+        if trackedCount == 0 {
+            let active = await Wine.isWineserverRunning(for: bottle)
+            hasOrphanProcesses = active
+        } else {
+            hasOrphanProcesses = false
+        }
     }
 
     func showRemoveAlert(bottle: Bottle) {
@@ -192,7 +239,7 @@ struct BottleListEntry: View {
                     selected = nil
                 }
 
-                bottle.remove(delete: checkbox.state == .on)
+                await bottle.remove(delete: checkbox.state == .on)
             }
         }
     }

@@ -18,6 +18,22 @@
 
 import Foundation
 
+/// Per-bottle policy for handling running processes when navigating away from a bottle.
+///
+/// When the user switches to a different bottle in the sidebar while Wine processes are
+/// still running, this policy determines what happens:
+/// - `.ask` (default): show a confirmation dialog each time
+/// - `.alwaysKeepRunning`: silently keep processes running
+/// - `.alwaysStop`: automatically stop all bottle processes
+public enum CloseWithProcessesPolicy: String, Codable, CaseIterable, Sendable {
+    /// Show confirmation dialog each time (default)
+    case ask
+    /// Always keep processes running without prompting
+    case alwaysKeepRunning = "keepRunning"
+    /// Always stop processes without prompting
+    case alwaysStop = "stop"
+}
+
 /// Per-bottle policy for killing Wine processes on quit.
 ///
 /// This allows individual bottles to override the global `killOnTerminate` behavior,
@@ -64,6 +80,9 @@ public struct BottleCleanupConfig: Codable, Equatable {
     /// The kill-on-quit policy for Wine processes in this bottle.
     var killOnQuit: KillOnQuitPolicy = .inherit
 
+    /// The policy for handling running processes when navigating away from this bottle.
+    var closeWithProcessesPolicy: CloseWithProcessesPolicy = .ask
+
     /// Creates a new BottleCleanupConfig with default values.
     public init() {}
 
@@ -81,5 +100,9 @@ public struct BottleCleanupConfig: Codable, Equatable {
             KillOnQuitPolicy.self,
             forKey: .killOnQuit
         ) ?? .inherit
+        self.closeWithProcessesPolicy = try container.decodeIfPresent(
+            CloseWithProcessesPolicy.self,
+            forKey: .closeWithProcessesPolicy
+        ) ?? .ask
     }
 }

@@ -160,6 +160,8 @@ public struct BottleSettings: Codable, Equatable {
     private var inputConfig: BottleInputConfig
     /// Cleanup and clipboard behavior settings.
     private var cleanupConfig: BottleCleanupConfig
+    /// Graphics backend selection.
+    private var graphicsConfig: BottleGraphicsConfig
     /// User-defined DLL overrides at the bottle level.
     private var customDLLOverrides: [DLLOverrideEntry] = []
 
@@ -173,6 +175,7 @@ public struct BottleSettings: Codable, Equatable {
         self.launcherConfig = BottleLauncherConfig()
         self.inputConfig = BottleInputConfig()
         self.cleanupConfig = BottleCleanupConfig()
+        self.graphicsConfig = BottleGraphicsConfig()
         self.customDLLOverrides = []
     }
 
@@ -203,6 +206,15 @@ public struct BottleSettings: Codable, Equatable {
             BottleCleanupConfig.self,
             forKey: .cleanupConfig
         ) ?? BottleCleanupConfig()
+        let hasGraphicsConfig = container.contains(.graphicsConfig)
+        self.graphicsConfig = try container.decodeIfPresent(
+            BottleGraphicsConfig.self,
+            forKey: .graphicsConfig
+        ) ?? BottleGraphicsConfig()
+        // Migration: preserve DXVK choice from old bottles that lack graphicsConfig
+        if !hasGraphicsConfig, self.dxvkConfig.dxvk {
+            self.graphicsConfig.backend = .dxvk
+        }
         self.customDLLOverrides = try container.decodeIfPresent(
             [DLLOverrideEntry].self,
             forKey: .customDLLOverrides
@@ -306,13 +318,22 @@ public struct BottleSettings: Codable, Equatable {
         set { metalConfig.sequoiaCompatMode = newValue }
     }
 
-    /// Whether DXVK is enabled for Direct3D-to-Vulkan translation.
+    /// The graphics backend for this bottle.
     ///
-    /// DXVK often provides better performance than Wine's built-in
-    /// DirectX implementation, especially for DirectX 9/10/11 games.
+    /// Controls which translation layer is used for Direct3D rendering.
+    /// `.recommended` resolves to a concrete backend at launch time based on GPU/OS heuristics.
+    public var graphicsBackend: GraphicsBackend {
+        get { graphicsConfig.backend }
+        set { graphicsConfig.backend = newValue }
+    }
+
+    /// Whether DXVK is the active graphics backend.
+    ///
+    /// This property now derives from ``graphicsBackend``. Setting it to `true`
+    /// switches the backend to `.dxvk`; setting to `false` switches to `.recommended`.
     public var dxvk: Bool {
-        get { dxvkConfig.dxvk }
-        set { dxvkConfig.dxvk = newValue }
+        get { graphicsConfig.backend == .dxvk }
+        set { graphicsConfig.backend = newValue ? .dxvk : .recommended }
     }
 
     /// Whether DXVK async shader compilation is enabled.
@@ -603,8 +624,21 @@ public struct BottleSettings: Codable, Equatable {
     ) -> [(entry: DLLOverrideEntry, source: DLLOverrideSource)] {
         var managedDLLOverrides: [(entry: DLLOverrideEntry, source: DLLOverrideSource)] = []
 
-        // DXVK settings -- DLL overrides collected for DLLOverrideResolver, NOT set via builder
-        if dxvk {
+        // Resolve the graphics backend (`.recommended` -> concrete backend)
+        let resolvedBackend = if graphicsBackend == .recommended {
+            GraphicsBackendResolver.resolve()
+        } else {
+            graphicsBackend
+        }
+
+        // Backend-conditional env vars and DLL overrides
+        switch resolvedBackend {
+        case .d3dMetal, .recommended:
+            // D3DMetal is Wine's default on macOS -- no special env vars needed
+            break
+
+        case .dxvk:
+            // DXVK: DLL overrides + env vars
             for entry in DLLOverrideResolver.dxvkPreset {
                 managedDLLOverrides.append((entry: entry, source: .dxvk))
             }
@@ -618,10 +652,13 @@ public struct BottleSettings: Codable, Equatable {
             case .off:
                 break
             }
-        }
+            if dxvkAsync {
+                builder.set("DXVK_ASYNC", "1", layer: .bottleManaged)
+            }
 
-        if dxvkAsync {
-            builder.set("DXVK_ASYNC", "1", layer: .bottleManaged)
+        case .wined3d:
+            // Disable D3DMetal, forcing Wine's OpenGL-based wined3d path
+            builder.set("WINED3DMETAL", "0", layer: .bottleManaged)
         }
 
         // Enhanced sync mode

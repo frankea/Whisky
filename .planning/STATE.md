@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 4 of 10 (Graphics Configuration)
-Plan: 1 of 3 in current phase (04-01 complete)
+Plan: 2 of 3 in current phase (04-02 complete)
 Status: In Progress
-Last activity: 2026-02-09 -- Completed 04-01-PLAN.md (GraphicsBackend data model)
+Last activity: 2026-02-09 -- Completed 04-02-PLAN.md (Graphics Configuration UI)
 
-Progress: [▓▓▓▓▓▓▓▓░░] 33%
+Progress: [▓▓▓▓▓▓▓▓▓░] 67%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
-- Average duration: 10.2min
-- Total execution time: 1.87 hours
+- Total plans completed: 12
+- Average duration: 9.8min
+- Total execution time: 1.95 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [▓▓▓▓▓▓▓▓░░] 33%
 | 01-miscellaneous-fixes | 3 | 17min | 5.7min |
 | 02-configuration-foundation | 4 | 73min | 18.3min |
 | 03-process-lifecycle-management | 3 | 18min | 6.0min |
-| 04-graphics-configuration | 1 | 4min | 4.0min |
+| 04-graphics-configuration | 2 | 9min | 4.5min |
 
 **Recent Trend:**
-- Last 5 plans: 02-04 (7min), 03-01 (3min), 03-02 (8min), 03-03 (7min), 04-01 (4min)
-- Trend: stabilizing at ~6min for focused integration tasks
+- Last 5 plans: 03-01 (3min), 03-02 (8min), 03-03 (7min), 04-01 (4min), 04-02 (5min)
+- Trend: stabilizing at ~5min for focused integration tasks
 
 *Updated after each plan completion*
 
@@ -88,6 +88,9 @@ Recent decisions affecting current work:
 - [Phase 04]: [04-01]: GraphicsBackend at module scope (ClipboardPolicy pattern), resolver as caseless enum (GPUDetection pattern)
 - [Phase 04]: [04-01]: dxvk proxy derives from graphicsConfig.backend; DXVK_ASYNC only emitted for .dxvk backend
 - [Phase 04]: [04-01]: Decode-time migration for old bottles: container.contains(.graphicsConfig) + dxvk=true -> backend=.dxvk
+- [Phase 04]: [04-02]: Selection cards use custom Button + BackendCard (not standard Picker) for richer layout
+- [Phase 04]: [04-02]: Metal settings inlined into GraphicsConfigSection Advanced mode (not separate view)
+- [Phase 04]: [04-02]: hasAdvancedSettingsConfigured uses inverted default (!dxvkAsync) due to BottleDXVKConfig internal access
 
 ### Pending Todos
 
@@ -100,5 +103,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-09
-Stopped at: Completed 04-01-PLAN.md (GraphicsBackend data model)
+Stopped at: Completed 04-02-PLAN.md (Graphics Configuration UI)
 Resume file: None

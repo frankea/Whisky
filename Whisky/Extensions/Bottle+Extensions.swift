@@ -181,10 +181,20 @@ extension Bottle {
 
             while let url = enumerator?.nextObject() as? URL {
                 guard !url.hasDirectoryPath, url.pathExtension == "exe" else { continue }
+                // Skip ClickOnce cache executables (noisy internal artifacts)
+                guard !url.path.contains("/Apps/2.0/") else { continue }
                 guard !settings.blocklist.contains(url) else { continue }
                 foundURLS.insert(url)
                 programs.append(Program(url: url, bottle: self))
             }
+        }
+
+        // Detect ClickOnce applications
+        let clickOnceApps = ClickOnceManager.shared.detectAppRefFile(in: self, wineUsername: wineUsername)
+        for appRefURL in clickOnceApps {
+            let displayName = ClickOnceManager.shared.displayName(for: appRefURL)
+            let program = Program(appRefURL: appRefURL, bottle: self, displayName: displayName)
+            programs.append(program)
         }
 
         // Add missing programs from pins

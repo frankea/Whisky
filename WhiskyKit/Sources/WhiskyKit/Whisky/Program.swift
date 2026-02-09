@@ -63,12 +63,14 @@ import SwiftUI
 ///
 /// ### Creating Programs
 /// - ``init(url:bottle:)``
+/// - ``init(appRefURL:bottle:displayName:)``
 ///
 /// ### Program Information
 /// - ``name``
 /// - ``url``
 /// - ``bottle``
 /// - ``peFile``
+/// - ``isClickOnce``
 ///
 /// ### Configuration
 /// - ``settings``
@@ -84,10 +86,18 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
     public let url: URL
     /// The URL where this program's settings are stored.
     public let settingsURL: URL
+    /// Whether this program is a ClickOnce application (.appref-ms).
+    public let isClickOnce: Bool
 
-    /// The display name of the program, derived from the executable filename.
+    /// Optional display name override for ClickOnce apps.
+    private let _displayName: String?
+
+    /// The display name of the program.
+    ///
+    /// For ClickOnce apps this returns the friendly name extracted from the manifest.
+    /// For regular programs it returns the executable filename.
     public var name: String {
-        url.lastPathComponent
+        _displayName ?? url.lastPathComponent
     }
 
     /// The program-specific configuration settings.
@@ -145,6 +155,8 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
         let name = url.lastPathComponent
         self.bottle = bottle
         self.url = url
+        self.isClickOnce = false
+        self._displayName = nil
         self.pinned = bottle.settings.pins.contains(where: { $0.url == url })
 
         // Warning: This will break if two programs share the same name such as "Launch.exe"
@@ -168,6 +180,40 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
             self.peFile = try PEFile(url: url)
         } catch {
             self.peFile = nil
+        }
+    }
+
+    /// Creates a new program instance for a ClickOnce application reference file.
+    ///
+    /// ClickOnce apps use `.appref-ms` files as their launch artifact. They do not
+    /// have PE file metadata and instead display a friendly name extracted from the
+    /// deployment manifest.
+    ///
+    /// - Parameters:
+    ///   - appRefURL: The URL to the `.appref-ms` file.
+    ///   - bottle: The ``Bottle`` that contains this program.
+    ///   - displayName: A friendly display name for the ClickOnce application.
+    public init(appRefURL: URL, bottle: Bottle, displayName: String) {
+        self.bottle = bottle
+        self.url = appRefURL
+        self.isClickOnce = true
+        self._displayName = displayName
+        self.pinned = bottle.settings.pins.contains(where: { $0.url == appRefURL })
+        self.peFile = nil
+
+        let settingsFolder = bottle.url.appending(path: "Program Settings")
+        let settingsUrl = settingsFolder.appending(path: displayName).appendingPathExtension("plist")
+        self.settingsURL = settingsUrl
+
+        do {
+            if !FileManager.default.fileExists(atPath: settingsFolder.path(percentEncoded: false)) {
+                try FileManager.default.createDirectory(at: settingsFolder, withIntermediateDirectories: true)
+            }
+
+            self.settings = try ProgramSettings.decode(from: settingsUrl)
+        } catch {
+            Logger.wineKit.error("Failed to load settings for `\(displayName)`: \(error)")
+            self.settings = ProgramSettings()
         }
     }
 

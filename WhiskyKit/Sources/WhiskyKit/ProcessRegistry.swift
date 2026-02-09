@@ -164,6 +164,40 @@ public final class ProcessRegistry: @unchecked Sendable {
         return activeProcesses
     }
 
+    /// Returns the number of active processes for a specific bottle.
+    ///
+    /// This is more efficient than ``getProcesses(for:)`` when only the count
+    /// is needed (e.g. for badge indicators).
+    ///
+    /// - Parameter bottle: The bottle to query.
+    /// - Returns: The number of tracked processes for the bottle.
+    public func getProcessCount(for bottle: Bottle) -> Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return activeProcesses[bottle.url]?.count ?? 0
+    }
+
+    /// Returns the number of active processes for a bottle identified by URL.
+    ///
+    /// Use this overload from non-`@MainActor` contexts where a ``Bottle``
+    /// reference is unavailable.
+    ///
+    /// - Parameter bottleURL: The URL of the bottle to query.
+    /// - Returns: The number of tracked processes for the bottle.
+    public func getProcessCount(for bottleURL: URL) -> Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return activeProcesses[bottleURL]?.count ?? 0
+    }
+
+    /// Returns whether any active processes exist for a bottle identified by URL.
+    ///
+    /// - Parameter bottleURL: The URL of the bottle to check.
+    /// - Returns: `true` if the bottle has at least one tracked process.
+    public func hasActiveProcesses(for bottleURL: URL) -> Bool {
+        getProcessCount(for: bottleURL) > 0
+    }
+
     // MARK: - Cleanup
 
     /// Cleans up all processes across all bottles.
@@ -242,7 +276,7 @@ public final class ProcessRegistry: @unchecked Sendable {
     /// Clears the registry for a specific bottle URL.
     ///
     /// - Parameter bottleURL: The bottle URL to clear
-    private func clearRegistry(for bottleURL: URL) {
+    public func clearRegistry(for bottleURL: URL) {
         lock.lock()
         activeProcesses[bottleURL] = nil
         lock.unlock()

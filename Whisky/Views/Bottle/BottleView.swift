@@ -58,9 +58,21 @@ struct BottleView: View {
                     NavigationLink(value: BottleStage.config) {
                         Label("tab.config", systemImage: "gearshape")
                     }
-//                    NavigationLink(value: BottleStage.processes) {
-//                        Label("tab.processes", systemImage: "hockey.puck.circle")
-//                    }
+                    NavigationLink(value: BottleStage.processes) {
+                        HStack {
+                            Label("tab.processes", systemImage: "hockey.puck.circle")
+                            let count = ProcessRegistry.shared.getProcessCount(for: bottle)
+                            if count > 0 {
+                                Text("\(count)")
+                                    .font(.caption2)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(.blue.opacity(0.15))
+                                    .clipShape(Capsule())
+                                    .foregroundStyle(.blue)
+                            }
+                        }
+                    }
                 }
                 .formStyle(.grouped)
                 .scrollDisabled(true)

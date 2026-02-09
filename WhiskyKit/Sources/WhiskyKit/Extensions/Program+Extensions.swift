@@ -29,6 +29,33 @@ public extension Program {
         }
     }
 
+    /// Checks the clipboard before launching a Wine program, applying the bottle's policy.
+    ///
+    /// For `.needsUserDecision` results, presents a blocking alert asking the user
+    /// to clear or keep the clipboard. For `.autoCleared` results, the clipboard has
+    /// already been cleared by ``ClipboardManager``.
+    ///
+    /// - Returns: The clipboard check result after any user interaction.
+    @MainActor
+    func performClipboardCheck() -> ClipboardCheckResult {
+        let policy = bottle.settings.clipboardPolicy
+        let threshold = bottle.settings.clipboardThreshold
+        let launcher = bottle.settings.detectedLauncher
+
+        let result = ClipboardManager.shared.checkBeforeLaunch(
+            launcher: launcher, policy: policy, threshold: threshold
+        )
+
+        switch result {
+        case .safe, .autoCleared:
+            return result
+        case let .needsUserDecision(contentType, sizeBytes, textPreview):
+            return showClipboardAlert(
+                contentType: contentType, sizeBytes: sizeBytes, textPreview: textPreview
+            )
+        }
+    }
+
     /// Launches the program respecting user's modifier key preference and returns the result.
     /// - Parameter useTerminal: Whether to launch in Terminal mode (e.g., Shift was held).
     ///   **Important:** Capture `NSEvent.modifierFlags.contains(.shift)` synchronously at the call site,
@@ -99,6 +126,9 @@ public extension Program {
             return
         }
 
+        // Register temp script for tracking and cleanup
+        TempFileTracker.shared.register(file: scriptURL)
+
         // Use the user's preferred terminal application
         let terminal = TerminalApp.preferred
         let appleScript = terminal.generateAppleScript(for: scriptURL.path)
@@ -116,7 +146,7 @@ public extension Program {
 
             // Clean up temp script after a delay to ensure the terminal has read it
             try? await Task.sleep(for: .seconds(5))
-            try? FileManager.default.removeItem(at: scriptURL)
+            await TempFileTracker.shared.cleanupWithRetry(file: scriptURL)
         }
     }
 
@@ -129,6 +159,50 @@ public extension Program {
         alert.alertStyle = .critical
         alert.addButton(withTitle: String(localized: "button.ok"))
         alert.runModal()
+    }
+
+    /// Shows a blocking alert when the clipboard contains large content that needs user decision.
+    ///
+    /// - Parameters:
+    ///   - contentType: The type of clipboard content ("text", "image", or "other")
+    ///   - sizeBytes: Size of the content in bytes
+    ///   - textPreview: Optional preview of text content (first 50 characters)
+    /// - Returns: `.autoCleared` if user chose to clear, `.safe` if user chose to keep
+    @MainActor private func showClipboardAlert(
+        contentType: String,
+        sizeBytes: Int,
+        textPreview: String?
+    ) -> ClipboardCheckResult {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "clipboard.large.title")
+
+        let sizeKB = String(format: "%.1f", Double(sizeBytes) / 1024.0)
+        let message: String
+        switch contentType {
+        case "text":
+            let preview = textPreview ?? ""
+            message = String(localized: "clipboard.large.message.text")
+                .replacingOccurrences(of: "{size}", with: sizeKB)
+                .replacingOccurrences(of: "{preview}", with: preview)
+        case "image":
+            message = String(localized: "clipboard.large.message.image")
+                .replacingOccurrences(of: "{size}", with: sizeKB)
+        default:
+            message = String(localized: "clipboard.large.message.other")
+                .replacingOccurrences(of: "{size}", with: sizeKB)
+        }
+
+        alert.informativeText = message
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: String(localized: "clipboard.clear"))
+        alert.addButton(withTitle: String(localized: "clipboard.keep"))
+
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            ClipboardManager.shared.clear()
+            return .autoCleared(contentType: contentType, sizeBytes: sizeBytes)
+        }
+        return .safe
     }
 }
 

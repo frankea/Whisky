@@ -82,6 +82,9 @@ extension Bottle {
             return
         }
 
+        // Register temp script for tracking and cleanup
+        TempFileTracker.shared.register(file: scriptURL)
+
         let terminal = TerminalApp.preferred
         let appleScriptSource = terminal.generateAppleScript(for: scriptURL.path)
 
@@ -98,7 +101,7 @@ extension Bottle {
 
             // Clean up temp script after a delay to ensure the terminal has read it
             try? await Task.sleep(for: .seconds(5))
-            try? FileManager.default.removeItem(at: scriptURL)
+            await TempFileTracker.shared.cleanupWithRetry(file: scriptURL)
         }
     }
 

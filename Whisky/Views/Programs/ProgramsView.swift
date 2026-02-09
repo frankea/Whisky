@@ -111,6 +111,20 @@ struct ProgramsView: View {
         .animation(.whiskyDefault, value: isBlocklistExpanded)
         .navigationTitle("tab.programs")
         .searchable(text: $searchText)
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button {
+                    bottle.updateInstalledPrograms()
+                    loadData()
+                } label: {
+                    Label(
+                        String(localized: "program.clickonce.rescan"),
+                        systemImage: "arrow.clockwise"
+                    )
+                }
+                .help("program.clickonce.rescan")
+            }
+        }
         .toast($toast)
         .onAppear {
             loadData()
@@ -177,6 +191,16 @@ struct ProgramItemView: View {
                             RoundedRectangle(cornerRadius: 4)
                                 .stroke(.secondary)
                         )
+                } else if program.isClickOnce {
+                    Text("ClickOnce")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                        .padding(.horizontal, 5)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(.secondary)
+                        )
+                        .accessibilityLabel(String(localized: "program.clickonce.badge"))
                 }
 
                 Button("program.config", systemImage: "gearshape") {
@@ -206,6 +230,21 @@ struct ProgramItemView: View {
         isLaunching = true
         // Capture modifier flags synchronously before entering async context
         let useTerminal = NSEvent.modifierFlags.contains(.shift)
+
+        // Check clipboard before launch (blocking alert for needsUserDecision is handled internally)
+        let clipResult = program.performClipboardCheck()
+        if case let .autoCleared(contentType, sizeBytes) = clipResult {
+            let sizeKB = String(format: "%.1f", Double(sizeBytes) / 1024.0)
+            withAnimation {
+                toast = ToastData(
+                    message: String(localized: "clipboard.cleared.toast")
+                        .replacingOccurrences(of: "{contentType}", with: contentType)
+                        .replacingOccurrences(of: "{sizeKB}", with: sizeKB),
+                    style: .info
+                )
+            }
+        }
+
         Task {
             let result = await program.launchWithUserMode(useTerminal: useTerminal)
             withAnimation {

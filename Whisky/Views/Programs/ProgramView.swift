@@ -27,6 +27,7 @@ struct ProgramView: View {
     @State private var toast: ToastData?
     @AppStorage("configSectionExapnded") private var configSectionExpanded: Bool = true
     @AppStorage("envArgsSectionExpanded") private var envArgsSectionExpanded: Bool = true
+    @AppStorage("overridesSectionExpanded") private var overridesSectionExpanded: Bool = false
 
     var body: some View {
         Form {
@@ -48,6 +49,11 @@ struct ProgramView: View {
                 }
             }
             EnvironmentArgView(program: program, isExpanded: $envArgsSectionExpanded)
+            ProgramOverrideSettingsView(
+                bottle: program.bottle,
+                program: program,
+                isExpanded: $overridesSectionExpanded
+            )
         }
         .bottomBar {
             HStack {
@@ -111,6 +117,7 @@ struct ProgramView: View {
         .formStyle(.grouped)
         .animation(.whiskyDefault, value: configSectionExpanded)
         .animation(.whiskyDefault, value: envArgsSectionExpanded)
+        .animation(.whiskyDefault, value: overridesSectionExpanded)
         .task {
             if let icon = await IconCache.shared.iconAsync(for: program.url, peFile: program.peFile) {
                 self.cachedIconImage = Image(nsImage: icon)

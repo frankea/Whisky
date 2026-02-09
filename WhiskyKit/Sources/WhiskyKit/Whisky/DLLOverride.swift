@@ -199,7 +199,7 @@ public struct DLLOverrideResolver: Sendable {
                 switch source {
                 case .dxvk:
                     sourceDesc = "DXVK"
-                case .launcher(let name):
+                case let .launcher(name):
                     sourceDesc = name
                 case .userBottle, .userProgram:
                     continue

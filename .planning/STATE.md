@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 3 - Process Lifecycle Management
+**Current focus:** Phase 3 complete -- ready for Phase 4
 
 ## Current Position
 
-Phase: 3 of 10 (Process Lifecycle Management)
-Plan: 2 of 3 in current phase (03-02 complete)
-Status: Executing
-Last activity: 2026-02-09 -- Completed 03-02-PLAN.md (Processes page ViewModel and UI)
+Phase: 3 of 10 (Process Lifecycle Management) -- COMPLETE
+Plan: 3 of 3 in current phase (03-03 complete)
+Status: Phase Complete
+Last activity: 2026-02-09 -- Completed 03-03-PLAN.md (Process lifecycle integration)
 
-Progress: [▓▓▓▓▓▓▓░░░] 30%
+Progress: [▓▓▓▓▓▓▓▓░░] 33%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 11.0min
-- Total execution time: 1.68 hours
+- Total plans completed: 10
+- Average duration: 10.7min
+- Total execution time: 1.80 hours
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [▓▓▓▓▓▓▓░░░] 30%
 |-------|-------|-------|----------|
 | 01-miscellaneous-fixes | 3 | 17min | 5.7min |
 | 02-configuration-foundation | 4 | 73min | 18.3min |
-| 03-process-lifecycle-management | 2 | 11min | 5.5min |
+| 03-process-lifecycle-management | 3 | 18min | 6.0min |
 
 **Recent Trend:**
-- Last 5 plans: 02-03 (16min), 02-02 (45min), 02-04 (7min), 03-01 (3min), 03-02 (8min)
-- Trend: variable (complex refactoring vs pure type/helper tasks)
+- Last 5 plans: 02-02 (45min), 02-04 (7min), 03-01 (3min), 03-02 (8min), 03-03 (7min)
+- Trend: stabilizing at ~7min for focused integration tasks
 
 *Updated after each plan completion*
 
@@ -80,6 +80,10 @@ Recent decisions affecting current work:
 - [03-02]: contextMenu(forSelectionType: Int32.self) for Table row context menus
 - [03-02]: Text(date, style: .relative) for automatic launch time display
 - [03-02]: Shutdown refresh uses temporary state bypass to reuse refreshProcessList
+- [03-03]: Close confirmation dialog in ContentView (not BottleView) due to SwiftUI onDisappear lifecycle
+- [03-03]: NSAlert with checkbox for remember-choice UX (matching existing showRemoveAlert pattern)
+- [03-03]: sweepOrphanProcesses extracted to @MainActor method (Swift 6 region-based isolation workaround)
+- [03-03]: showProcessCloseAlert in ContentView extension for SwiftLint type_body_length
 
 ### Pending Todos
 
@@ -92,5 +96,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-09
-Stopped at: Completed 03-02-PLAN.md (Processes page ViewModel and UI)
+Stopped at: Completed 03-03-PLAN.md (Process lifecycle integration) -- Phase 3 complete
 Resume file: None

@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Miscellaneous Fixes** - Close out PR #79 with ClickOnce, clipboard, temp files, and process cleanup
 - [x] **Phase 2: Configuration Foundation** - Unify environment variable cascade into explicit EnvironmentBuilder
-- [ ] **Phase 3: Process Lifecycle Management** - Wineserver-level tracking with orphan detection and auto-cleanup
+- [x] **Phase 3: Process Lifecycle Management** - Wineserver-level tracking with orphan detection and auto-cleanup
 - [ ] **Phase 4: Graphics Configuration** - D3DMetal/DXVK/wined3d backend control with tiered UI
 - [ ] **Phase 5: Stability & Diagnostics** - WINEDEBUG parsing and crash pattern classification
 - [ ] **Phase 6: Audio Troubleshooting** - Diagnostics-first audio remediation with limited settings
@@ -71,9 +71,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md -- Core process types (WineProcess, ProcessKind), Wine helpers (wineserver probe, tasklist parsing, taskkill), ProcessRegistry enhancements
-- [ ] 03-02-PLAN.md -- ProcessesViewModel with hybrid polling and full Processes page UI (Table, toolbar, filters, context menus, shutdown orchestration)
-- [ ] 03-03-PLAN.md -- Running indicators in sidebar, startup orphan detection, pre-deletion process checks, enhanced quit behavior
+- [x] 03-01-PLAN.md -- Core process types (WineProcess, ProcessKind), Wine helpers (wineserver probe, tasklist parsing, taskkill), ProcessRegistry enhancements
+- [x] 03-02-PLAN.md -- ProcessesViewModel with hybrid polling and full Processes page UI (Table, toolbar, filters, context menus, shutdown orchestration)
+- [x] 03-03-PLAN.md -- Running indicators in sidebar, startup orphan detection, pre-deletion process checks, enhanced quit behavior
 
 ### Phase 4: Graphics Configuration
 **Goal**: Users can control graphics backend selection and DXVK settings per bottle and per program through a clear, tiered UI that avoids settings overload
@@ -200,7 +200,7 @@ Note: Phases 3 and 4 are parallel-capable (no mutual dependencies). Phases 5 and
 |-------|----------------|--------|-----------|
 | 1. Miscellaneous Fixes | 3/3 | ✓ Complete | 2026-02-09 |
 | 2. Configuration Foundation | 4/4 | ✓ Complete | 2026-02-09 |
-| 3. Process Lifecycle Management | 0/TBD | Not started | - |
+| 3. Process Lifecycle Management | 3/3 | ✓ Complete | 2026-02-09 |
 | 4. Graphics Configuration | 0/TBD | Not started | - |
 | 5. Stability & Diagnostics | 0/TBD | Not started | - |
 | 6. Audio Troubleshooting | 0/TBD | Not started | - |

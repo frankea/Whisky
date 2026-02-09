@@ -135,66 +135,66 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CFGF-01 | — | Pending |
-| CFGF-02 | — | Pending |
-| CFGF-03 | — | Pending |
-| CFGF-04 | — | Pending |
-| GFXC-01 | — | Pending |
-| GFXC-02 | — | Pending |
-| GFXC-03 | — | Pending |
-| GFXC-04 | — | Pending |
-| GFXC-05 | — | Pending |
-| AUDT-01 | — | Pending |
-| AUDT-02 | — | Pending |
-| AUDT-03 | — | Pending |
-| AUDT-04 | — | Pending |
-| PROC-01 | — | Pending |
-| PROC-02 | — | Pending |
-| PROC-03 | — | Pending |
-| PROC-04 | — | Pending |
-| PROC-05 | — | Pending |
-| STAB-01 | — | Pending |
-| STAB-02 | — | Pending |
-| STAB-03 | — | Pending |
-| STAB-04 | — | Pending |
-| GAME-01 | — | Pending |
-| GAME-02 | — | Pending |
-| GAME-03 | — | Pending |
-| GAME-04 | — | Pending |
-| TRBL-01 | — | Pending |
-| TRBL-02 | — | Pending |
-| TRBL-03 | — | Pending |
-| TRBL-04 | — | Pending |
-| TRBL-05 | — | Pending |
-| LNCH-01 | — | Pending |
-| LNCH-02 | — | Pending |
-| LNCH-03 | — | Pending |
-| LNCH-04 | — | Pending |
-| CTRL-01 | — | Pending |
-| CTRL-02 | — | Pending |
-| CTRL-03 | — | Pending |
-| CTRL-04 | — | Pending |
-| INST-01 | — | Pending |
-| INST-02 | — | Pending |
-| INST-03 | — | Pending |
-| UIUX-01 | — | Pending |
-| UIUX-02 | — | Pending |
-| UIUX-03 | — | Pending |
-| UIUX-04 | — | Pending |
-| FEAT-01 | — | Pending |
-| FEAT-02 | — | Pending |
-| FEAT-03 | — | Pending |
-| FEAT-04 | — | Pending |
-| MISC-01 | — | Pending |
-| MISC-02 | — | Pending |
-| MISC-03 | — | Pending |
-| MISC-04 | — | Pending |
+| CFGF-01 | Phase 2 | Pending |
+| CFGF-02 | Phase 2 | Pending |
+| CFGF-03 | Phase 2 | Pending |
+| CFGF-04 | Phase 2 | Pending |
+| GFXC-01 | Phase 4 | Pending |
+| GFXC-02 | Phase 4 | Pending |
+| GFXC-03 | Phase 4 | Pending |
+| GFXC-04 | Phase 4 | Pending |
+| GFXC-05 | Phase 4 | Pending |
+| AUDT-01 | Phase 6 | Pending |
+| AUDT-02 | Phase 6 | Pending |
+| AUDT-03 | Phase 6 | Pending |
+| AUDT-04 | Phase 6 | Pending |
+| PROC-01 | Phase 3 | Pending |
+| PROC-02 | Phase 3 | Pending |
+| PROC-03 | Phase 3 | Pending |
+| PROC-04 | Phase 3 | Pending |
+| PROC-05 | Phase 3 | Pending |
+| STAB-01 | Phase 5 | Pending |
+| STAB-02 | Phase 5 | Pending |
+| STAB-03 | Phase 5 | Pending |
+| STAB-04 | Phase 5 | Pending |
+| GAME-01 | Phase 7 | Pending |
+| GAME-02 | Phase 7 | Pending |
+| GAME-03 | Phase 7 | Pending |
+| GAME-04 | Phase 7 | Pending |
+| TRBL-01 | Phase 10 | Pending |
+| TRBL-02 | Phase 10 | Pending |
+| TRBL-03 | Phase 10 | Pending |
+| TRBL-04 | Phase 10 | Pending |
+| TRBL-05 | Phase 10 | Pending |
+| LNCH-01 | Phase 8 | Pending |
+| LNCH-02 | Phase 8 | Pending |
+| LNCH-03 | Phase 8 | Pending |
+| LNCH-04 | Phase 8 | Pending |
+| CTRL-01 | Phase 8 | Pending |
+| CTRL-02 | Phase 8 | Pending |
+| CTRL-03 | Phase 8 | Pending |
+| CTRL-04 | Phase 8 | Pending |
+| INST-01 | Phase 8 | Pending |
+| INST-02 | Phase 8 | Pending |
+| INST-03 | Phase 8 | Pending |
+| UIUX-01 | Phase 9 | Pending |
+| UIUX-02 | Phase 9 | Pending |
+| UIUX-03 | Phase 9 | Pending |
+| UIUX-04 | Phase 9 | Pending |
+| FEAT-01 | Phase 9 | Pending |
+| FEAT-02 | Phase 9 | Pending |
+| FEAT-03 | Phase 9 | Pending |
+| FEAT-04 | Phase 9 | Pending |
+| MISC-01 | Phase 1 | Pending |
+| MISC-02 | Phase 1 | Pending |
+| MISC-03 | Phase 1 | Pending |
+| MISC-04 | Phase 1 | Pending |
 
 **Coverage:**
-- v1 requirements: 52 total
-- Mapped to phases: 0
-- Unmapped: 52 ⚠️
+- v1 requirements: 54 total
+- Mapped to phases: 54
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-08*
-*Last updated: 2026-02-08 after initial definition*
+*Last updated: 2026-02-08 after roadmap creation*

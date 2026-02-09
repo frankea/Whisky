@@ -203,6 +203,13 @@ struct ProgramItemView: View {
                         .accessibilityLabel(String(localized: "program.clickonce.badge"))
                 }
 
+                if program.settings.overrides?.graphicsBackend != nil {
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.caption2)
+                        .foregroundStyle(.blue)
+                        .help("program.graphics.overridden")
+                }
+
                 Button("program.config", systemImage: "gearshape") {
                     path.append(program)
                 }

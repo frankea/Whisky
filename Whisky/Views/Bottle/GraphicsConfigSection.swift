@@ -79,6 +79,11 @@ struct GraphicsConfigSection: View {
                 advancedSettingsBadge
             }
 
+            // Per-program override note in Simple mode
+            if !advancedMode, !programsWithGraphicsOverrides.isEmpty {
+                programOverridesBadge
+            }
+
             // Advanced mode content
             if advancedMode {
                 // DXVK settings subsection
@@ -110,6 +115,11 @@ struct GraphicsConfigSection: View {
                     Toggle(isOn: $bottle.settings.metalValidation) {
                         Text("config.metalValidation")
                     }
+                }
+
+                // Per-program override info
+                if !programsWithGraphicsOverrides.isEmpty {
+                    programOverridesInfo
                 }
             }
         }
@@ -175,6 +185,53 @@ struct GraphicsConfigSection: View {
                 advancedMode = true
             }
             .font(.caption)
+        }
+    }
+
+    // MARK: - Per-Program Override Info
+
+    private var programsWithGraphicsOverrides: [Program] {
+        bottle.programs.filter { $0.settings.overrides?.graphicsBackend != nil }
+    }
+
+    private var programOverridesBadge: some View {
+        HStack {
+            Image(systemName: "slider.horizontal.3")
+                .foregroundStyle(.secondary)
+            Text("config.graphics.programOverridesActive")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Button("config.graphics.showAdvanced") {
+                advancedMode = true
+            }
+            .font(.caption)
+        }
+    }
+
+    private var programOverridesInfo: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("config.graphics.programOverrides")
+                .font(.headline)
+            ForEach(programsWithGraphicsOverrides) { program in
+                HStack {
+                    Image(systemName: "slider.horizontal.3")
+                        .foregroundStyle(.blue)
+                        .font(.caption)
+                    Text(program.name)
+                        .font(.callout)
+                    Spacer()
+                    Text(
+                        program.settings.overrides?.graphicsBackend?.displayName
+                            ?? String(localized: "config.graphics.inherited")
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+            }
+            Text("config.graphics.programOverrides.hint")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 }

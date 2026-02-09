@@ -138,6 +138,26 @@ public struct ProgramSettings: Codable {
     /// Arguments are appended after the executable path when the
     /// program is launched through Wine.
     public var arguments: String = ""
+    /// Per-program overrides for bottle settings.
+    ///
+    /// When `nil`, the program inherits all settings from its bottle.
+    /// Individual fields within ``ProgramOverrides`` can override specific
+    /// bottle settings while leaving others inherited.
+    public var overrides: ProgramOverrides?
+
+    /// Creates a new ProgramSettings with default values.
+    public init() {}
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.locale = try container.decodeIfPresent(Locales.self, forKey: .locale) ?? .auto
+        self.environment = try container.decodeIfPresent(
+            [String: String].self,
+            forKey: .environment
+        ) ?? [:]
+        self.arguments = try container.decodeIfPresent(String.self, forKey: .arguments) ?? ""
+        self.overrides = try container.decodeIfPresent(ProgramOverrides.self, forKey: .overrides)
+    }
 
     /// Loads program settings from a plist file.
     ///

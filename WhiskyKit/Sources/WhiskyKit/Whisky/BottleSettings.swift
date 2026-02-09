@@ -160,6 +160,8 @@ public struct BottleSettings: Codable, Equatable {
     private var inputConfig: BottleInputConfig
     /// Cleanup and clipboard behavior settings.
     private var cleanupConfig: BottleCleanupConfig
+    /// User-defined DLL overrides at the bottle level.
+    private var customDLLOverrides: [DLLOverrideEntry] = []
 
     /// Creates a new BottleSettings instance with default values.
     public init() {
@@ -171,6 +173,7 @@ public struct BottleSettings: Codable, Equatable {
         self.launcherConfig = BottleLauncherConfig()
         self.inputConfig = BottleInputConfig()
         self.cleanupConfig = BottleCleanupConfig()
+        self.customDLLOverrides = []
     }
 
     public init(from decoder: Decoder) throws {
@@ -200,6 +203,10 @@ public struct BottleSettings: Codable, Equatable {
             BottleCleanupConfig.self,
             forKey: .cleanupConfig
         ) ?? BottleCleanupConfig()
+        self.customDLLOverrides = try container.decodeIfPresent(
+            [DLLOverrideEntry].self,
+            forKey: .customDLLOverrides
+        ) ?? []
     }
 
     /// The display name of this bottle.
@@ -476,6 +483,18 @@ public struct BottleSettings: Codable, Equatable {
     public var disableControllerMapping: Bool {
         get { inputConfig.disableControllerMapping }
         set { inputConfig.disableControllerMapping = newValue }
+    }
+
+    // MARK: - Custom DLL overrides
+
+    /// User-defined DLL overrides for this bottle.
+    ///
+    /// These overrides are composed with managed overrides (from DXVK toggle
+    /// and launcher presets) by ``DLLOverrideResolver``. Bottle custom overrides
+    /// take precedence over managed overrides per-DLL.
+    public var dllOverrides: [DLLOverrideEntry] {
+        get { customDLLOverrides }
+        set { customDLLOverrides = newValue }
     }
 
     // MARK: - Cleanup and clipboard settings

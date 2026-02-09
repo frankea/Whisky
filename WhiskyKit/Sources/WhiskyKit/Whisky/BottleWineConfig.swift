@@ -45,7 +45,7 @@ public enum WinVersion: String, CaseIterable, Codable, Sendable {
     }
 }
 
-public enum EnhancedSync: Codable, Equatable {
+public enum EnhancedSync: Codable, Equatable, Sendable {
     case none, esync, msync
 }
 

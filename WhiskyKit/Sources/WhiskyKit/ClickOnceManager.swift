@@ -39,7 +39,7 @@ import os.log
 /// let env = ClickOnceManager.shared.getEnvironment(for: manifest)
 /// ```
 public final class ClickOnceManager: @unchecked Sendable {
-    static let shared = ClickOnceManager()
+    public static let shared = ClickOnceManager()
 
     private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ClickOnceManager")
 
@@ -68,13 +68,15 @@ public final class ClickOnceManager: @unchecked Sendable {
     /// This method scans the standard ClickOnce installation directory within
     /// the Wine bottle for `.appref-ms` files.
     ///
-    /// - Parameter bottle: The bottle to scan for ClickOnce apps
+    /// - Parameters:
+    ///   - bottle: The bottle to scan for ClickOnce apps
+    ///   - wineUsername: The Wine username for path construction (defaults to "crossover")
     /// - Returns: Array of URLs to detected `.appref-ms` files
-    public func detectAppRefFile(in bottle: Bottle) -> [URL] {
+    public func detectAppRefFile(in bottle: Bottle, wineUsername: String = "crossover") -> [URL] {
         let clickOnceDir = bottle.url
             .appending(path: "drive_c")
             .appending(path: "users")
-            .appending(path: "crossover")
+            .appending(path: wineUsername)
             .appending(path: "AppData")
             .appending(path: "Roaming")
             .appending(path: "Microsoft")
@@ -106,8 +108,8 @@ public final class ClickOnceManager: @unchecked Sendable {
 
     /// Parses a ClickOnce manifest from an `.appref-ms` file.
     ///
-    /// The `.appref-ms` file contains XML with application metadata including
-    /// name, version, publisher, and deployment URL.
+    /// The `.appref-ms` file is a small text file (similar to a Windows Internet Shortcut)
+    /// that typically contains a `URL=` line pointing at a ClickOnce deployment URL.
     ///
     /// - Parameter url: URL to the `.appref-ms` file
     /// - Returns: Parsed ClickOnceManifest
@@ -124,65 +126,122 @@ public final class ClickOnceManager: @unchecked Sendable {
     /// Parses ClickOnce manifest content from a string.
     ///
     /// - Parameters:
-    ///   - content: XML content of the manifest
+    ///   - content: Content of the `.appref-ms` file
     ///   - fileURL: URL of the source file (for error reporting)
     /// - Returns: Parsed ClickOnceManifest
     /// - Throws: Error if content cannot be parsed
     private func parseManifestContent(_ content: String, fileURL: URL) throws -> ClickOnceManifest {
-        // .appref-ms files are actually text files with URL-encoded content
-        // The format is: [InternetShortcut]\nURL=<encoded-url>
-        // The encoded URL contains the actual manifest information
+        // .appref-ms files are typically INI-like:
+        // [InternetShortcut]
+        // URL=<url or percent-encoded url>
 
-        let lines = content.split(separator: "\n", omittingEmptySubsequences: false)
+        let fallbackName = fileURL.deletingPathExtension().lastPathComponent
+        let rawURLString = try extractURLString(from: content)
+        let urlString = normalizeURLString(rawURLString)
 
-        var manifestURL: String?
-        var name = fileURL.deletingPathExtension().lastPathComponent
-        var version = "1.0.0.0"
+        guard let url = URL(string: urlString) else {
+            throw ClickOnceError.invalidManifest("Invalid URL in appref-ms file: \(urlString)")
+        }
+
+        let name = url.lastPathComponent.isEmpty ? fallbackName : url.lastPathComponent
+        let version = extractVersion(from: url) ?? "1.0.0.0"
         let publisher = "Unknown"
         let supportUrl: URL? = nil
         let description: String? = nil
-
-        for line in lines {
-            let trimmedLine = line.trimmingCharacters(in: .whitespaces)
-
-            if trimmedLine.hasPrefix("URL=") {
-                let urlString = String(trimmedLine.dropFirst(4))
-                manifestURL = urlString
-
-                // Try to extract information from the URL
-                if let url = URL(string: urlString) {
-                    // Extract name from URL path if available
-                    let pathComponents = url.pathComponents
-                    if let lastComponent = pathComponents.last {
-                        name = lastComponent
-                    }
-
-                    // Extract version from query parameters if available
-                    if let queryItems = URLComponents(string: urlString)?.queryItems {
-                        for item in queryItems {
-                            if item.name == "version" || item.name == "v", let value = item.value {
-                                version = value
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        guard let urlString = manifestURL else {
-            throw ClickOnceError.invalidManifest("No URL found in appref-ms file")
-        }
 
         logger.debug("Parsed ClickOnce manifest: \(name) v\(version)")
 
         return ClickOnceManifest(
             name: name,
-            url: URL(string: urlString) ?? fileURL,
+            url: url,
             version: version,
             publisher: publisher,
             supportUrl: supportUrl,
             description: description
         )
+    }
+
+    private func extractURLString(from content: String) throws -> String {
+        for line in content.split(separator: "\n", omittingEmptySubsequences: false) {
+            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard trimmed.count >= 4 else { continue }
+
+            let prefix = trimmed.prefix(4).lowercased()
+            guard prefix == "url=" else { continue }
+
+            let value = trimmed.dropFirst(4).trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !value.isEmpty else { continue }
+            return String(value)
+        }
+
+        throw ClickOnceError.invalidManifest("No URL found in appref-ms file")
+    }
+
+    private func normalizeURLString(_ rawURLString: String) -> String {
+        // Many `.appref-ms` files contain a plain URL, but some include a percent-encoded URL
+        // (and a few are doubly-encoded). Decode conservatively and only apply the second
+        // decode when it results in a valid URL.
+        let decodedOnce = rawURLString.removingPercentEncoding ?? rawURLString
+        if URL(string: decodedOnce) != nil {
+            return decodedOnce
+        }
+
+        let decodedTwice = decodedOnce.removingPercentEncoding ?? decodedOnce
+        if URL(string: decodedTwice) != nil {
+            return decodedTwice
+        }
+
+        return decodedOnce
+    }
+
+    private func extractVersion(from url: URL) -> String? {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+        return components.queryItems?.first(where: { item in
+            item.name == "version" || item.name == "v"
+        })?.value
+    }
+
+    // MARK: - Display Helpers
+
+    /// Returns a user-friendly display name for a ClickOnce application reference file.
+    ///
+    /// This method tries to parse the `.appref-ms` file and extract a friendly name
+    /// from the manifest URL. It strips the `.appref-ms` extension and any trailing
+    /// `.application` suffix from the URL's last path component.
+    ///
+    /// - Parameter appRefURL: URL to the `.appref-ms` file
+    /// - Returns: A friendly display name string
+    public func displayName(for appRefURL: URL) -> String {
+        let fallbackName = appRefURL.deletingPathExtension().lastPathComponent
+
+        do {
+            let manifest = try parseManifest(from: appRefURL)
+            var name = manifest.url.lastPathComponent
+            // Strip trailing .application extension if present
+            if name.hasSuffix(".application") {
+                name = String(name.dropLast(".application".count))
+            }
+            return name.isEmpty ? fallbackName : name
+        } catch {
+            return fallbackName
+        }
+    }
+
+    /// Returns the deployment URL from a ClickOnce application reference file.
+    ///
+    /// This method reads and parses the `.appref-ms` file to extract the
+    /// deployment URL from the manifest.
+    ///
+    /// - Parameter appRefURL: URL to the `.appref-ms` file
+    /// - Returns: The deployment URL, or nil if parsing fails
+    public func deploymentURL(for appRefURL: URL) -> URL? {
+        do {
+            let manifest = try parseManifest(from: appRefURL)
+            return manifest.url
+        } catch {
+            logger.debug("Failed to extract deployment URL from \(appRefURL.lastPathComponent): \(error)")
+            return nil
+        }
     }
 
     // MARK: - Environment
@@ -215,25 +274,56 @@ public final class ClickOnceManager: @unchecked Sendable {
 
     /// Installs a ClickOnce application in a bottle.
     ///
-    /// This method creates a virtual program entry for the ClickOnce app
-    /// and prepares it for execution.
+    /// This method materializes an `.appref-ms` reference file inside the bottle's
+    /// ClickOnce directory. This enables later detection via ``detectAppRefFile(in:wineUsername:)``.
     ///
     /// - Parameters:
     ///   - manifest: The ClickOnce manifest to install
     ///   - bottle: The bottle to install into
+    ///   - wineUsername: The Wine username for path construction (defaults to "crossover")
     /// - Throws: Error if installation fails
-    public func install(manifest: ClickOnceManifest, in bottle: Bottle) async throws {
+    public func install(
+        manifest: ClickOnceManifest,
+        in bottle: Bottle,
+        wineUsername: String = "crossover"
+    ) async throws {
+        guard validateManifest(manifest) else {
+            throw ClickOnceError.installationFailed("Manifest failed validation")
+        }
+
         let bottleName = bottle.url.lastPathComponent
         logger.info("Installing ClickOnce app '\(manifest.name)' v\(manifest.version) in bottle '\(bottleName)'")
 
-        // Create a shortcut/launcher for the ClickOnce app
-        // This would typically involve creating a .lnk file or shell script
+        let clickOnceDir = bottle.url
+            .appending(path: "drive_c")
+            .appending(path: "users")
+            .appending(path: wineUsername)
+            .appending(path: "AppData")
+            .appending(path: "Roaming")
+            .appending(path: "Microsoft")
+            .appending(path: "ClickOnce")
 
-        // For now, we'll just log the installation
-        // In a full implementation, this would:
-        // 1. Create a launcher script in the bottle
-        // 2. Add the app to the bottle's program list
-        // 3. Set up the ClickOnce environment
+        do {
+            try FileManager.default.createDirectory(at: clickOnceDir, withIntermediateDirectories: true)
+
+            // Ensure a stable filename on disk.
+            let fileNameBase = manifest.name
+                .replacingOccurrences(of: "/", with: "_")
+                .replacingOccurrences(of: ":", with: "_")
+            let appRefURL = clickOnceDir
+                .appending(path: fileNameBase.isEmpty ? "ClickOnceApp" : fileNameBase)
+                .appendingPathExtension("appref-ms")
+
+            let content = """
+            [InternetShortcut]
+            URL=\(manifest.url.absoluteString)
+            """
+
+            try content.write(to: appRefURL, atomically: true, encoding: .utf8)
+            logger.debug("Wrote ClickOnce appref-ms: \(appRefURL.path)")
+        } catch {
+            throw ClickOnceError.installationFailed(error.localizedDescription)
+        }
 
         logger.info("ClickOnce app '\(manifest.name)' installed successfully")
     }

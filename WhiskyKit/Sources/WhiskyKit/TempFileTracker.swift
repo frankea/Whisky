@@ -38,7 +38,7 @@ import os.log
 /// await TempFileTracker.shared.cleanupOldFiles(olderThan: 24 * 60 * 60) // 24 hours
 /// ```
 public final class TempFileTracker: @unchecked Sendable {
-    static let shared = TempFileTracker()
+    public static let shared = TempFileTracker()
 
     private let lock = NSLock()
     private var tempFiles: [URL: TempFileInfo] = [:]

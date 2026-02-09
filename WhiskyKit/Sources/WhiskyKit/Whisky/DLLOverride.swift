@@ -154,6 +154,8 @@ public struct DLLOverrideResolver: Sendable {
         ]
     }
 
+    // swiftlint:disable cyclomatic_complexity
+
     /// Resolves all override sources into a `WINEDLLOVERRIDES` string and warnings.
     ///
     /// Per-DLL resolution: the most specific source wins per DLL name.
@@ -224,4 +226,6 @@ public struct DLLOverrideResolver: Sendable {
 
         return (overrides: overrideString, warnings: warnings)
     }
+
+    // swiftlint:enable cyclomatic_complexity
 }

@@ -36,7 +36,7 @@ import os.log
 /// await ProcessRegistry.shared.cleanupAll(force: false)
 /// ```
 public final class ProcessRegistry: @unchecked Sendable {
-    static let shared = ProcessRegistry()
+    public static let shared = ProcessRegistry()
 
     private let lock = NSLock()
     private var activeProcesses: [URL: Set<ProcessInfo>] = [:]

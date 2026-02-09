@@ -13,7 +13,7 @@ This roadmap delivers systematic resolution of 435+ upstream issues across 10 ph
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Miscellaneous Fixes** - Close out PR #79 with ClickOnce, clipboard, temp files, and process cleanup
-- [ ] **Phase 2: Configuration Foundation** - Unify environment variable cascade into explicit EnvironmentBuilder
+- [x] **Phase 2: Configuration Foundation** - Unify environment variable cascade into explicit EnvironmentBuilder
 - [ ] **Phase 3: Process Lifecycle Management** - Wineserver-level tracking with orphan detection and auto-cleanup
 - [ ] **Phase 4: Graphics Configuration** - D3DMetal/DXVK/wined3d backend control with tiered UI
 - [ ] **Phase 5: Stability & Diagnostics** - WINEDEBUG parsing and crash pattern classification
@@ -53,10 +53,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 02-01-PLAN.md -- Core data models: EnvironmentBuilder, DLL override resolver, ProgramOverrides (TDD)
-- [ ] 02-02-PLAN.md -- Refactor environment construction to EnvironmentBuilder with 8-layer resolution
-- [ ] 02-03-PLAN.md -- Winetricks verb tracking: cache, discovery, and WinetricksView installed filter
-- [ ] 02-04-PLAN.md -- DLL override editor UI and per-program override settings
+- [x] 02-01-PLAN.md -- Core data models: EnvironmentBuilder, DLL override resolver, ProgramOverrides (TDD)
+- [x] 02-02-PLAN.md -- Refactor environment construction to EnvironmentBuilder with 8-layer resolution
+- [x] 02-03-PLAN.md -- Winetricks verb tracking: cache, discovery, and WinetricksView installed filter
+- [x] 02-04-PLAN.md -- DLL override editor UI and per-program override settings
 
 ### Phase 3: Process Lifecycle Management
 **Goal**: Users have accurate visibility into Wine process state per bottle and can manage the full process lifecycle from the UI
@@ -199,7 +199,7 @@ Note: Phases 3 and 4 are parallel-capable (no mutual dependencies). Phases 5 and
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Miscellaneous Fixes | 3/3 | ✓ Complete | 2026-02-09 |
-| 2. Configuration Foundation | 0/TBD | Not started | - |
+| 2. Configuration Foundation | 4/4 | ✓ Complete | 2026-02-09 |
 | 3. Process Lifecycle Management | 0/TBD | Not started | - |
 | 4. Graphics Configuration | 0/TBD | Not started | - |
 | 5. Stability & Diagnostics | 0/TBD | Not started | - |

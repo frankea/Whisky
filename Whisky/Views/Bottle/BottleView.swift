@@ -170,6 +170,13 @@ struct BottleView: View {
             }
             .disabled(!bottle.isAvailable)
             .navigationTitle(bottle.settings.name)
+            .navigationSubtitle(
+                bottle.settings.graphicsBackend == .recommended
+                    ? String(
+                        localized: "bottle.subtitle.autoBackend \(GraphicsBackendResolver.resolve().displayName)"
+                    )
+                    : ""
+            )
             .toast($toast)
             .sheet(isPresented: $showWinetricksSheet) {
                 WinetricksView(bottle: bottle)

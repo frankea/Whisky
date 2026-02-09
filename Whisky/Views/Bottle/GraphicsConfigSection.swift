@@ -79,9 +79,38 @@ struct GraphicsConfigSection: View {
                 advancedSettingsBadge
             }
 
-            // Advanced mode content (implemented in Task 2)
+            // Advanced mode content
             if advancedMode {
-                // Placeholder -- Task 2 adds DXVKSettingsView, Metal settings, dxvk.conf
+                // DXVK settings subsection
+                DXVKSettingsView(
+                    bottle: bottle,
+                    resolvedBackend: resolvedBackend,
+                    bottleURL: bottle.url
+                )
+
+                // Metal settings subsection (migrated from MetalConfigSection)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("config.metal.title")
+                        .font(.headline)
+                    Toggle(isOn: $bottle.settings.metalHud) {
+                        Text("config.metalHud")
+                    }
+                    Toggle(isOn: $bottle.settings.metalTrace) {
+                        Text("config.metalTrace")
+                        Text("config.metalTrace.info")
+                    }
+                    if let device = MTLCreateSystemDefaultDevice() {
+                        if device.supportsFamily(.apple9) {
+                            Toggle(isOn: $bottle.settings.dxrEnabled) {
+                                Text("config.dxr")
+                                Text("config.dxr.info")
+                            }
+                        }
+                    }
+                    Toggle(isOn: $bottle.settings.metalValidation) {
+                        Text("config.metalValidation")
+                    }
+                }
             }
         }
         .animation(.default, value: advancedMode)

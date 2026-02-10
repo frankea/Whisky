@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 7 (Game Compatibility Database) -- Plan 02 complete (loader + matcher)
+**Current focus:** Phase 7 (Game Compatibility Database) -- Plan 03 complete (applicator + staleness)
 
 ## Current Position
 
 Phase: 7 of 10 (Game Compatibility Database)
-Plan: 3 of 7 in current phase
+Plan: 4 of 7 in current phase
 Status: Executing
-Last activity: 2026-02-10 -- Plan 07-02 complete (loader + matcher)
+Last activity: 2026-02-10 -- Plan 07-03 complete (config applicator + staleness checker)
 
-Progress: [▓▓▓▓▓▓▓░░░] 65%
+Progress: [▓▓▓▓▓▓▓░░░] 68%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 26
-- Average duration: 8.6min
-- Total execution time: 3.83 hours
+- Total plans completed: 27
+- Average duration: 8.4min
+- Total execution time: 3.93 hours
 
 **By Phase:**
 
@@ -33,11 +33,11 @@ Progress: [▓▓▓▓▓▓▓░░░] 65%
 | 04-graphics-configuration | 3 | 12min | 4.0min |
 | 05-stability-diagnostics | 5 | 45min | 9.0min |
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
-| 07-game-compatibility-database | 3/7 | 21min | 7.0min |
+| 07-game-compatibility-database | 4/7 | 27min | 6.8min |
 
 **Recent Trend:**
-- Last 5 plans: 06-04 (7min), 06-05 (10min), 07-01 (6min), 07-07 (11min), 07-02 (4min)
-- Trend: Phase 7 matching algorithm in 4min; existing loader infrastructure reused
+- Last 5 plans: 06-05 (10min), 07-01 (6min), 07-07 (11min), 07-02 (4min), 07-03 (6min)
+- Trend: Phase 7 applicator + staleness in 6min; leveraged existing BottleSettings patterns
 
 *Updated after each plan completion*
 
@@ -149,6 +149,10 @@ Recent decisions affecting current work:
 - [07-02]: bestMatch returns nil for ambiguous results (gap < 0.1) unless top is hardIdentifier tier
 - [07-02]: Fuzzy score capped at 0.69 to stay below strong heuristic tier boundary
 - [07-02]: Variant auto-selection prefers isDefault; soft architecture preference without strict constraint exclusion
+- [07-03]: DLL override deduplication by name during apply: variant value wins over existing
+- [07-03]: Full BottleSettings snapshot (not delta) for simple and reliable undo
+- [07-03]: Staleness thresholds: 90 days, >1 minor macOS delta, different Wine major
+- [07-03]: ConfigChange preview uses string descriptions for all value types (no generics needed)
 
 ### Pending Todos
 
@@ -161,5 +165,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Completed 07-02-PLAN.md (loader + matcher)
+Stopped at: Completed 07-03-PLAN.md (config applicator + staleness checker)
 Resume file: None

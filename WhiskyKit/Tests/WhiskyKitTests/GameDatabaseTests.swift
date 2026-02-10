@@ -424,6 +424,30 @@ final class GameDatabaseTests: XCTestCase {
         XCTAssertNil(loaded)
     }
 
+    // MARK: - Test: GameDBLoader loads bundled JSON
+
+    func testGameDBLoaderLoadsBundledJSON() {
+        let entries = GameDBLoader.loadDefaults()
+        XCTAssertGreaterThanOrEqual(entries.count, 15, "Expected at least 15 entries in GameDB.json")
+
+        // Check all 5 rating tiers are covered
+        let ratings = Set(entries.map(\.rating))
+        XCTAssertTrue(ratings.contains(.works))
+        XCTAssertTrue(ratings.contains(.playable))
+        XCTAssertTrue(ratings.contains(.unverified))
+        XCTAssertTrue(ratings.contains(.broken))
+        XCTAssertTrue(ratings.contains(.notSupported))
+
+        // Every entry has at least one variant
+        for entry in entries {
+            XCTAssertFalse(entry.variants.isEmpty, "Entry \(entry.id) has no variants")
+        }
+
+        // All IDs are unique
+        let ids = entries.map(\.id)
+        XCTAssertEqual(ids.count, Set(ids).count, "Duplicate entry IDs found")
+    }
+
     // MARK: - Test 14: GameConfigSnapshot Delete
 
     func testGameConfigSnapshotDelete() throws {

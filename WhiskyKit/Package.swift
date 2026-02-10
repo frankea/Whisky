@@ -38,7 +38,10 @@ let package = Package(
         .target(
             name: "WhiskyKit",
             dependencies: ["SemanticVersion"],
-            resources: [.process("Diagnostics/Resources/")]
+            resources: [
+                .process("Diagnostics/Resources/"),
+                .process("GameDatabase/Resources/")
+            ]
         ),
         .testTarget(
             name: "WhiskyKitTests",

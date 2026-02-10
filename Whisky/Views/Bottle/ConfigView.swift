@@ -81,6 +81,7 @@ struct ConfigView: View {
             LauncherConfigSection(bottle: bottle, isExpanded: $launcherSectionExpanded)
             InputConfigSection(bottle: bottle, isExpanded: $inputSectionExpanded)
             GraphicsConfigSection(bottle: bottle)
+            AudioConfigSection(bottle: bottle)
             PerformanceConfigSection(bottle: bottle, isExpanded: $performanceSectionExpanded)
             DLLOverrideConfigSection(bottle: bottle, isExpanded: $dllOverrideSectionExpanded)
             Section("Diagnostics") {

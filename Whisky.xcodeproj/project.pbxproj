@@ -87,6 +87,11 @@
 		EEA5A2462A31DD65008274AE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEA5A2452A31DD65008274AE /* AppDelegate.swift */; };
 		F748991F03BA464CFCDA99F3 /* StatusToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E2D80EAABBB985BAED42548 /* StatusToast.swift */; };
 		FBD19F7BAD838BE3ABB2CCC2 /* LaunchResult+Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2516958D60EC8937A2AF71 /* LaunchResult+Toast.swift */; };
+		C1A2B3C4E5F60601A9B0C1D0 /* AudioStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C1D1 /* AudioStatusView.swift */; };
+		C1A2B3C4E5F60601A9B0C1D2 /* AudioTestButtonsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C1D3 /* AudioTestButtonsView.swift */; };
+		C1A2B3C4E5F60601A9B0C1D4 /* AudioSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C1D5 /* AudioSettingsView.swift */; };
+		C1A2B3C4E5F60601A9B0C1D6 /* AudioFindingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C1D7 /* AudioFindingsView.swift */; };
+		C1A2B3C4E5F60601A9B0C1D8 /* AudioConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C1D9 /* AudioConfigSection.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -213,6 +218,11 @@
 		E2699006F97F862815633C9F /* MetalConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalConfigSection.swift; sourceTree = "<group>"; };
 		EAE15F0C1EF1F06C7DB73DF5 /* SettingItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingItemView.swift; sourceTree = "<group>"; };
 		EEA5A2452A31DD65008274AE /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C1D1 /* AudioStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioStatusView.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C1D3 /* AudioTestButtonsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioTestButtonsView.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C1D5 /* AudioSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSettingsView.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C1D7 /* AudioFindingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioFindingsView.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C1D9 /* AudioConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioConfigSection.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -302,6 +312,7 @@
 		6E355E5629D78202002D83BE /* Bottle */ = {
 			isa = PBXGroup;
 			children = (
+				C1A2B3C4E5F60601A9B0C1D9 /* AudioConfigSection.swift */,
 				6E40498029CCA8B0006E3F1B /* BottleView.swift */,
 				6365C4C22B1AA8CD00AAE1FD /* BottleListEntry.swift */,
 				6E50D98429CDF25B008C39F6 /* BottleCreationView.swift */,
@@ -385,6 +396,17 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
+		C1A2B3C4E5F60601A9B0C1DA /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				C1A2B3C4E5F60601A9B0C1D7 /* AudioFindingsView.swift */,
+				C1A2B3C4E5F60601A9B0C1D5 /* AudioSettingsView.swift */,
+				C1A2B3C4E5F60601A9B0C1D1 /* AudioStatusView.swift */,
+				C1A2B3C4E5F60601A9B0C1D3 /* AudioTestButtonsView.swift */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
 		D1A2B3C4E5F60504A9B0C1D6 /* Diagnostics */ = {
 			isa = PBXGroup;
 			children = (
@@ -400,6 +422,7 @@
 		6E5197CD29D71FCD00CF655E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				C1A2B3C4E5F60601A9B0C1DA /* Audio */,
 				63FFDE822ADEFADF00178665 /* Common */,
 				D1A2B3C4E5F60504A9B0C1D6 /* Diagnostics */,
 				6E49E01F2AECB7D000009CAC /* Settings */,
@@ -736,6 +759,11 @@
 				D1A2B3C4E5F60504A9B0C1D5 /* LogViewerView.swift in Sources */,
 				D1A2B3C4E5F60504A9B0C1E1 /* DiagnosticExportSheet.swift in Sources */,
 				D1A2B3C4E5F60504A9B0C1E3 /* DiagnosisHistoryView.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C1D0 /* AudioStatusView.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C1D2 /* AudioTestButtonsView.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C1D4 /* AudioSettingsView.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C1D6 /* AudioFindingsView.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C1D8 /* AudioConfigSection.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 4 complete -- Graphics Configuration
+**Current focus:** Phase 5 in progress -- Stability & Diagnostics
 
 ## Current Position
 
-Phase: 4 of 10 (Graphics Configuration)
-Plan: 3 of 3 in current phase (04-03 complete)
-Status: Phase Complete
-Last activity: 2026-02-09 -- Completed 04-03-PLAN.md (Per-Program Graphics Overrides)
+Phase: 5 of 10 (Stability & Diagnostics)
+Plan: 1 of 5 in current phase (05-01 complete)
+Status: In Progress
+Last activity: 2026-02-10 -- Completed 05-01-PLAN.md (Crash Classification Pipeline)
 
-Progress: [▓▓▓▓▓▓▓▓▓▓] 100%
+Progress: [▓▓▓▓░░░░░░] 40%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
-- Average duration: 9.5min
-- Total execution time: 2.00 hours
+- Total plans completed: 14
+- Average duration: 9.4min
+- Total execution time: 2.12 hours
 
 **By Phase:**
 
@@ -31,10 +31,11 @@ Progress: [▓▓▓▓▓▓▓▓▓▓] 100%
 | 02-configuration-foundation | 4 | 73min | 18.3min |
 | 03-process-lifecycle-management | 3 | 18min | 6.0min |
 | 04-graphics-configuration | 3 | 12min | 4.0min |
+| 05-stability-diagnostics | 1 | 7min | 7.0min |
 
 **Recent Trend:**
-- Last 5 plans: 03-02 (8min), 03-03 (7min), 04-01 (4min), 04-02 (5min), 04-03 (3min)
-- Trend: stabilizing at ~5min for focused integration tasks
+- Last 5 plans: 03-03 (7min), 04-01 (4min), 04-02 (5min), 04-03 (3min), 05-01 (7min)
+- Trend: TDD plan with new module slightly longer; still under 10min
 
 *Updated after each plan completion*
 
@@ -94,6 +95,10 @@ Recent decisions affecting current work:
 - [Phase 04]: [04-03]: graphicsBackend replaces dxvk as sentinel for graphics override group
 - [Phase 04]: [04-03]: Standalone DXVK toggle removed from per-program override controls (backend picker implies DXVK active)
 - [Phase 04]: [04-03]: computedManagedOverrides checks graphicsBackend == .dxvk instead of bottle.settings.dxvk
+- [05-01]: nonisolated(unsafe) for Regex storage in CrashPattern (Swift 6 Sendable compliance)
+- [05-01]: SPM .process() flattens resource directories; PatternLoader loads without subdirectory path
+- [05-01]: Added otherUnknown pattern (wine-nonzero-exit) to ensure all 7 categories have coverage
+- [05-01]: WineDebugPreset uses presetDescription property name to avoid shadowing CustomStringConvertible
 
 ### Pending Todos
 
@@ -105,6 +110,6 @@ None active.
 
 ## Session Continuity
 
-Last session: 2026-02-09
-Stopped at: Completed 04-03-PLAN.md (Per-Program Graphics Overrides) -- Phase 4 complete
+Last session: 2026-02-10
+Stopped at: Completed 05-01-PLAN.md (Crash Classification Pipeline)
 Resume file: None

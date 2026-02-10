@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 7 (Game Compatibility Database) -- Plan 03 complete (applicator + staleness)
+**Current focus:** Phase 7 (Game Compatibility Database) -- Plan 04 complete (list view + navigation)
 
 ## Current Position
 
 Phase: 7 of 10 (Game Compatibility Database)
-Plan: 4 of 7 in current phase
+Plan: 5 of 7 in current phase
 Status: Executing
-Last activity: 2026-02-10 -- Plan 07-03 complete (config applicator + staleness checker)
+Last activity: 2026-02-10 -- Plan 07-04 complete (game configuration list view + BottleView navigation)
 
-Progress: [▓▓▓▓▓▓▓░░░] 68%
+Progress: [▓▓▓▓▓▓▓░░░] 72%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 27
+- Total plans completed: 28
 - Average duration: 8.4min
-- Total execution time: 3.93 hours
+- Total execution time: 4.11 hours
 
 **By Phase:**
 
@@ -33,11 +33,11 @@ Progress: [▓▓▓▓▓▓▓░░░] 68%
 | 04-graphics-configuration | 3 | 12min | 4.0min |
 | 05-stability-diagnostics | 5 | 45min | 9.0min |
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
-| 07-game-compatibility-database | 4/7 | 27min | 6.8min |
+| 07-game-compatibility-database | 5/7 | 38min | 7.6min |
 
 **Recent Trend:**
-- Last 5 plans: 06-05 (10min), 07-01 (6min), 07-07 (11min), 07-02 (4min), 07-03 (6min)
-- Trend: Phase 7 applicator + staleness in 6min; leveraged existing BottleSettings patterns
+- Last 5 plans: 07-01 (6min), 07-07 (11min), 07-02 (4min), 07-03 (6min), 07-04 (11min)
+- Trend: Phase 7 list view + navigation in 11min; fixed pre-existing SwiftLint violations + stale project refs
 
 *Updated after each plan completion*
 
@@ -153,6 +153,10 @@ Recent decisions affecting current work:
 - [07-03]: Full BottleSettings snapshot (not delta) for simple and reliable undo
 - [07-03]: Staleness thresholds: 90 days, >1 minor macOS delta, different Wine major
 - [07-03]: ConfigChange preview uses string descriptions for all value types (no generics needed)
+- [07-04]: List without selection binding (GameDBEntry not Hashable); NavigationLink with value-based destination
+- [07-04]: Filter bar uses safeAreaInset(edge: .top) with ScrollView for horizontal filter pickers
+- [07-04]: Backend filter derived from defaultVariant.settings.graphicsBackend display name
+- [07-04]: ContentUnavailableView for empty state with search-aware messaging
 
 ### Pending Todos
 
@@ -165,5 +169,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Completed 07-03-PLAN.md (config applicator + staleness checker)
+Stopped at: Completed 07-04-PLAN.md (game configuration list view + BottleView navigation)
 Resume file: None

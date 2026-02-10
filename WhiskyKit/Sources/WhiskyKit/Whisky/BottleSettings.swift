@@ -162,6 +162,8 @@ public struct BottleSettings: Codable, Equatable {
     private var cleanupConfig: BottleCleanupConfig
     /// Graphics backend selection.
     private var graphicsConfig: BottleGraphicsConfig
+    /// Audio driver, latency, and device settings.
+    private var audioConfig: BottleAudioConfig
     /// User-defined DLL overrides at the bottle level.
     private var customDLLOverrides: [DLLOverrideEntry] = []
 
@@ -176,6 +178,7 @@ public struct BottleSettings: Codable, Equatable {
         self.inputConfig = BottleInputConfig()
         self.cleanupConfig = BottleCleanupConfig()
         self.graphicsConfig = BottleGraphicsConfig()
+        self.audioConfig = BottleAudioConfig()
         self.customDLLOverrides = []
     }
 
@@ -215,6 +218,10 @@ public struct BottleSettings: Codable, Equatable {
         if !hasGraphicsConfig, self.dxvkConfig.dxvk {
             self.graphicsConfig.backend = .dxvk
         }
+        self.audioConfig = try container.decodeIfPresent(
+            BottleAudioConfig.self,
+            forKey: .audioConfig
+        ) ?? BottleAudioConfig()
         self.customDLLOverrides = try container.decodeIfPresent(
             [DLLOverrideEntry].self,
             forKey: .customDLLOverrides
@@ -351,6 +358,46 @@ public struct BottleSettings: Codable, Equatable {
     public var dxvkHud: DXVKHUD {
         get { dxvkConfig.dxvkHud }
         set { dxvkConfig.dxvkHud = newValue }
+    }
+
+    // MARK: - Audio settings
+
+    /// The audio driver mode for this bottle.
+    ///
+    /// Controls which audio driver Wine uses. `.auto` lets Wine choose
+    /// the best driver (CoreAudio on macOS). Audio driver configuration
+    /// is applied via the Wine registry, not environment variables.
+    public var audioDriver: AudioDriverMode {
+        get { audioConfig.audioDriver }
+        set { audioConfig.audioDriver = newValue }
+    }
+
+    /// The audio latency preset for this bottle.
+    ///
+    /// Controls the DirectSound `HelBuflen` buffer size. Larger buffers
+    /// improve stability with Bluetooth and USB audio at the cost of
+    /// increased latency. Applied via the Wine registry.
+    public var audioLatencyPreset: AudioLatencyPreset {
+        get { audioConfig.latencyPreset }
+        set { audioConfig.latencyPreset = newValue }
+    }
+
+    /// The output device routing mode for this bottle.
+    ///
+    /// Controls whether Wine follows the macOS default output device
+    /// or is pinned to a specific device by name.
+    public var outputDeviceMode: OutputDeviceMode {
+        get { audioConfig.outputDeviceMode }
+        set { audioConfig.outputDeviceMode = newValue }
+    }
+
+    /// The name of the pinned audio output device, if any.
+    ///
+    /// Only meaningful when ``outputDeviceMode`` is `.pinned`.
+    /// Set to `nil` to clear the pin and follow the system default.
+    public var pinnedDeviceName: String? {
+        get { audioConfig.pinnedDeviceName }
+        set { audioConfig.pinnedDeviceName = newValue }
     }
 
     // MARK: - Performance settings

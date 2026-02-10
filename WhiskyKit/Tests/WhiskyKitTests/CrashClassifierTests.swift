@@ -310,6 +310,221 @@ final class CrashClassifierTests: XCTestCase {
 
     // MARK: - Every Pattern Positive Match
 
+    // MARK: - CrashClassifier Pipeline Tests
+
+    func testClassifyEmptyLog() {
+        let classifier = CrashClassifier()
+        let diagnosis = classifier.classify(log: "", exitCode: 0)
+        XCTAssertTrue(diagnosis.isEmpty)
+        XCTAssertNil(diagnosis.primaryCategory)
+        XCTAssertNil(diagnosis.primaryConfidence)
+        XCTAssertEqual(diagnosis.exitCode, 0)
+        XCTAssertTrue(diagnosis.applicableRemediationIds.isEmpty)
+    }
+
+    func testClassifyDLLLoadFailure() {
+        let classifier = CrashClassifier()
+        let log = """
+        0024:fixme:ntdll:NtQuerySystemInformation info_class SYSTEM_PERFORMANCE_INFORMATION
+        0024:err:module:import_dll Library MSVCR100.dll (which is needed by L"game.exe") not found
+        0024:fixme:ver:GetCurrentPackageId stub
+        """
+        let diagnosis = classifier.classify(log: log, exitCode: 1)
+        XCTAssertFalse(diagnosis.isEmpty)
+        XCTAssertEqual(diagnosis.primaryCategory, .dependenciesLoading)
+        XCTAssertEqual(diagnosis.primaryConfidence, .high)
+        XCTAssertEqual(diagnosis.exitCode, 1)
+
+        // Should have captures with DLL name
+        let dllMatch = diagnosis.matches.first { $0.pattern.id == "dll-load-failure" }
+        XCTAssertNotNil(dllMatch)
+        XCTAssertEqual(dllMatch?.captures.first, "MSVCR100.dll")
+    }
+
+    func testClassifyAccessViolation() {
+        let classifier = CrashClassifier()
+        let log = """
+        0080:err:seh:NtRaiseException Unhandled exception code c0000005 flags 0 addr 0x7b012345
+        """
+        let diagnosis = classifier.classify(log: log)
+        XCTAssertFalse(diagnosis.isEmpty)
+        XCTAssertEqual(diagnosis.primaryCategory, .coreCrashFatal)
+        XCTAssertEqual(diagnosis.primaryConfidence, .high)
+    }
+
+    func testClassifyPageFault() {
+        let classifier = CrashClassifier()
+        let log = "wine: Unhandled page fault on read access to 0x00000000 at address 0x7b012345"
+        let diagnosis = classifier.classify(log: log)
+        XCTAssertFalse(diagnosis.isEmpty)
+        XCTAssertEqual(diagnosis.primaryCategory, .coreCrashFatal)
+        XCTAssertEqual(diagnosis.primaryConfidence, .high)
+    }
+
+    func testClassifyGPUDeviceLost() {
+        let classifier = CrashClassifier()
+        let log = "err:d3d11:device_lost D3D11 device lost (DXGI_ERROR_DEVICE_REMOVED)"
+        let diagnosis = classifier.classify(log: log)
+        XCTAssertFalse(diagnosis.isEmpty)
+        XCTAssertEqual(diagnosis.primaryCategory, .graphics)
+        XCTAssertEqual(diagnosis.primaryConfidence, .medium)
+    }
+
+    func testClassifyAntiCheat() {
+        let classifier = CrashClassifier()
+        let log = "EasyAntiCheat.exe: Fatal error - EasyAntiCheat is not installed"
+        let diagnosis = classifier.classify(log: log)
+        XCTAssertFalse(diagnosis.isEmpty)
+        XCTAssertEqual(diagnosis.primaryCategory, .antiCheatUnsupported)
+        XCTAssertEqual(diagnosis.primaryConfidence, .high)
+    }
+
+    func testClassifyDotNetCLR() {
+        let classifier = CrashClassifier()
+        let log =
+            "0024:err:module:import_dll Library mscoree.dll (which is needed by L\"app.exe\") not found"
+        let diagnosis = classifier.classify(log: log)
+        XCTAssertFalse(diagnosis.isEmpty)
+        XCTAssertEqual(diagnosis.primaryCategory, .dependenciesLoading)
+        XCTAssertEqual(diagnosis.primaryConfidence, .high)
+
+        // Both dll-load-failure and dotnet-clr-missing may match
+        let matchIDs = Set(diagnosis.matches.map(\.pattern.id))
+        XCTAssertTrue(matchIDs.contains("dll-load-failure") || matchIDs.contains("dotnet-clr-missing"))
+    }
+
+    func testClassifyPrefixCorruption() {
+        let classifier = CrashClassifier()
+        let log = "wine: could not load user32.dll, status c0000135"
+        let diagnosis = classifier.classify(log: log)
+        XCTAssertFalse(diagnosis.isEmpty)
+        XCTAssertEqual(diagnosis.primaryCategory, .prefixFilesystem)
+        XCTAssertEqual(diagnosis.primaryConfidence, .medium)
+    }
+
+    func testClassifyNetworkTLS() {
+        let classifier = CrashClassifier()
+        let log = "0024:err:winhttp:request_send_request secure connection failed"
+        let diagnosis = classifier.classify(log: log)
+        XCTAssertFalse(diagnosis.isEmpty)
+        XCTAssertEqual(diagnosis.primaryCategory, .networkingLaunchers)
+        XCTAssertEqual(diagnosis.primaryConfidence, .medium)
+    }
+
+    func testClassifyMultipleMatchesSortedByConfidence() {
+        let classifier = CrashClassifier()
+        // Log with multiple error types: anti-cheat (0.99 confidence) should be primary
+        let log = """
+        wine: could not load user32.dll, status c0000135
+        EasyAntiCheat.exe: Fatal error - EasyAntiCheat is not installed
+        err:d3d11:device_lost D3D11 device lost (DXGI_ERROR_DEVICE_REMOVED)
+        """
+        let diagnosis = classifier.classify(log: log, exitCode: 1)
+        XCTAssertFalse(diagnosis.isEmpty)
+
+        // Anti-cheat has highest confidence (0.99), should be primary
+        XCTAssertEqual(diagnosis.primaryCategory, .antiCheatUnsupported)
+        XCTAssertEqual(diagnosis.primaryConfidence, .high)
+
+        // Should have matches from multiple categories
+        XCTAssertGreaterThan(diagnosis.categoryCounts.count, 1)
+
+        // Matches should be sorted by confidence DESC
+        for index in 0 ..< diagnosis.matches.count - 1 {
+            let current = diagnosis.matches[index].pattern.confidence
+            let next = diagnosis.matches[index + 1].pattern.confidence
+            XCTAssertGreaterThanOrEqual(current, next, "Matches should be sorted by confidence descending")
+        }
+    }
+
+    func testClassifyPrefilterOptimization() {
+        // Create a classifier with a pattern that has a prefilter
+        let pattern = CrashPattern(
+            id: "test-prefilter",
+            category: .dependenciesLoading,
+            severity: .error,
+            confidence: 0.9,
+            substringPrefilter: "import_dll",
+            regex: "err:module:import_dll Library (\\S+\\.dll).*not found",
+            tags: [],
+            captureGroups: nil,
+            remediationActionIds: nil
+        )
+
+        let classifier = CrashClassifier(patterns: [pattern], remediations: [:])
+
+        // Log with no lines containing "import_dll" -- prefilter should skip all regex
+        let log = """
+        fixme:d3d:something unrelated
+        fixme:ntdll:another thing
+        warn:opengl:context init
+        """
+        let diagnosis = classifier.classify(log: log)
+        XCTAssertTrue(diagnosis.isEmpty, "Prefilter should prevent any matches on unrelated lines")
+    }
+
+    func testClassifyRemediationIdsCollected() {
+        let classifier = CrashClassifier()
+        let log =
+            "0024:err:module:import_dll Library MSVCR100.dll (which is needed by L\"game.exe\") not found"
+        let diagnosis = classifier.classify(log: log)
+        XCTAssertFalse(diagnosis.applicableRemediationIds.isEmpty, "Should have remediation IDs")
+
+        // DLL load failure remediation IDs should include install-vcredist
+        XCTAssertTrue(
+            diagnosis.applicableRemediationIds.contains("install-vcredist"),
+            "Should suggest installing vcredist"
+        )
+    }
+
+    func testClassifyHeadlineGenerated() {
+        let classifier = CrashClassifier()
+        let log = "EasyAntiCheat.exe: Fatal error - EasyAntiCheat is not installed"
+        let diagnosis = classifier.classify(log: log)
+        XCTAssertNotNil(diagnosis.headline, "Should generate a headline")
+        XCTAssertFalse(diagnosis.headline?.isEmpty ?? true, "Headline should not be empty")
+    }
+
+    // MARK: - WineDebugPreset Tests
+
+    func testWineDebugPresetValues() {
+        XCTAssertEqual(WineDebugPreset.normal.winedebugValue, "fixme-all")
+        XCTAssertTrue(WineDebugPreset.crash.winedebugValue.contains("+seh"))
+        XCTAssertTrue(WineDebugPreset.dllLoad.winedebugValue.contains("+loaddll"))
+        XCTAssertEqual(WineDebugPreset.verbose.winedebugValue, "+all")
+    }
+
+    func testWineDebugPresetDisplayNames() {
+        for preset in WineDebugPreset.allCases {
+            XCTAssertFalse(preset.displayName.isEmpty, "Display name for \(preset) should not be empty")
+            XCTAssertFalse(
+                preset.presetDescription.isEmpty,
+                "Description for \(preset) should not be empty"
+            )
+        }
+    }
+
+    func testWineDebugPresetCodable() throws {
+        let encoder = JSONEncoder()
+        let decoder = JSONDecoder()
+
+        for preset in WineDebugPreset.allCases {
+            let data = try encoder.encode(preset)
+            let decoded = try decoder.decode(WineDebugPreset.self, from: data)
+            XCTAssertEqual(decoded, preset)
+        }
+    }
+
+    func testWineDebugPresetAllCases() {
+        XCTAssertEqual(WineDebugPreset.allCases.count, 4)
+        XCTAssertTrue(WineDebugPreset.allCases.contains(.normal))
+        XCTAssertTrue(WineDebugPreset.allCases.contains(.crash))
+        XCTAssertTrue(WineDebugPreset.allCases.contains(.dllLoad))
+        XCTAssertTrue(WineDebugPreset.allCases.contains(.verbose))
+    }
+
+    // MARK: - Every Pattern Positive Match
+
     func testEveryPatternHasPositiveMatch() {
         var (patterns, _) = PatternLoader.loadDefaults()
 

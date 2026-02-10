@@ -101,11 +101,14 @@ Plans:
   2. Known crash patterns are matched to specific remediation suggestions displayed to the user
   3. GPU-specific crash patterns (IOMFB faults, Metal compilation errors) produce targeted troubleshooting guidance
   4. Diagnostic report exports include a classified error summary section alongside the raw log
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md -- Core classifier pipeline: CrashPattern types, CrashClassifier, patterns.json, remediations.json, WineDebugPreset, unit tests (TDD)
+- [ ] 05-02-PLAN.md -- Persistence and export: DiagnosisHistory, RemediationTimeline, Redactor, DiagnosticExporter (ZIP + Markdown)
+- [ ] 05-03-PLAN.md -- Process integration: WINEDEBUG preset injection via EnvironmentBuilder, auto-trigger classification on process exit
+- [ ] 05-04-PLAN.md -- Core diagnostics UI: DiagnosticsView split layout, RemediationCardView, LogViewerView (NSTextView)
+- [ ] 05-05-PLAN.md -- Export UI, diagnosis history, entry points (Program settings, Bottle settings, Help menu), localization
 
 ### Phase 6: Audio Troubleshooting
 **Goal**: Users can diagnose and address common macOS Wine audio problems through in-app diagnostics and a focused set of effective settings (max 3-4)
@@ -202,7 +205,7 @@ Note: Phases 3 and 4 are parallel-capable (no mutual dependencies). Phases 5 and
 | 2. Configuration Foundation | 4/4 | ✓ Complete | 2026-02-09 |
 | 3. Process Lifecycle Management | 3/3 | ✓ Complete | 2026-02-09 |
 | 4. Graphics Configuration | 3/3 | ✓ Complete | 2026-02-09 |
-| 5. Stability & Diagnostics | 0/TBD | Not started | - |
+| 5. Stability & Diagnostics | 0/5 | Planned | - |
 | 6. Audio Troubleshooting | 0/TBD | Not started | - |
 | 7. Game Compatibility Database | 0/TBD | Not started | - |
 | 8. Remaining Platform Issues | 0/TBD | Not started | - |

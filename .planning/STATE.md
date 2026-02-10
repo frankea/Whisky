@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 6 in progress -- Audio Troubleshooting (Plan 3 of 5 complete)
+**Current focus:** Phase 6 in progress -- Audio Troubleshooting (Plan 4 of 5 complete)
 
 ## Current Position
 
 Phase: 6 of 10 (Audio Troubleshooting)
-Plan: 3 of 5 in current phase
+Plan: 4 of 5 in current phase
 Status: Executing
-Last activity: 2026-02-10 -- Completed 06-03 (audio probes + troubleshooting engine)
+Last activity: 2026-02-10 -- Completed 06-04 (audio section UI)
 
 Progress: [▓▓▓▓▓▓░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 20
-- Average duration: 9.3min
-- Total execution time: 2.92 hours
+- Total plans completed: 21
+- Average duration: 9.1min
+- Total execution time: 3.04 hours
 
 **By Phase:**
 
@@ -32,11 +32,11 @@ Progress: [▓▓▓▓▓▓░░░░] 60%
 | 03-process-lifecycle-management | 3 | 18min | 6.0min |
 | 04-graphics-configuration | 3 | 12min | 4.0min |
 | 05-stability-diagnostics | 5 | 45min | 9.0min |
-| 06-audio-troubleshooting | 3/5 | 15min | 5.0min |
+| 06-audio-troubleshooting | 4/5 | 22min | 5.5min |
 
 **Recent Trend:**
-- Last 5 plans: 05-04 (9min), 05-05 (14min), 06-01 (5min), 06-02 (5min), 06-03 (5min)
-- Trend: Audio plans executing quickly (~5min); probe/engine pattern reuse from Phase 5 diagnostics paying off
+- Last 5 plans: 05-05 (14min), 06-01 (5min), 06-02 (5min), 06-03 (5min), 06-04 (7min)
+- Trend: Audio plans executing quickly (~5.5min avg); UI section follows established GraphicsConfigSection pattern
 
 *Updated after each plan completion*
 
@@ -129,6 +129,9 @@ Recent decisions affecting current work:
 - [06-03]: WineAudioTestProbe uses Wine.runWineProcess streaming API for separate stdout/stderr capture
 - [06-03]: AudioTroubleshootingEngine fix order is hardcoded per symptom as static dictionary (JSON migration ready)
 - [06-03]: MinGW not available; WhiskyAudioTest.exe not compiled (probe returns .skipped gracefully)
+- [06-04]: @State instead of @StateObject for AudioDeviceMonitor (not ObservableObject; query-only device API)
+- [06-04]: AudioDeviceMonitor listener callback accepted with Sendable warning (dispatch guaranteed main-queue)
+- [06-04]: Findings view reuses ConfidenceTier color scheme from Phase 5 (green/yellow/gray badges)
 
 ### Pending Todos
 
@@ -141,5 +144,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Completed 06-03-PLAN.md
+Stopped at: Completed 06-04-PLAN.md
 Resume file: None

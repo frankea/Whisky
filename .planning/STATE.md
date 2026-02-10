@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 7 (Game Compatibility Database) -- Plan 07 complete (database populated)
+**Current focus:** Phase 7 (Game Compatibility Database) -- Plan 02 complete (loader + matcher)
 
 ## Current Position
 
 Phase: 7 of 10 (Game Compatibility Database)
-Plan: 7 of 7 in current phase
+Plan: 3 of 7 in current phase
 Status: Executing
-Last activity: 2026-02-10 -- Plan 07-07 complete (30-entry game database)
+Last activity: 2026-02-10 -- Plan 07-02 complete (loader + matcher)
 
 Progress: [▓▓▓▓▓▓▓░░░] 65%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 25
-- Average duration: 8.8min
-- Total execution time: 3.76 hours
+- Total plans completed: 26
+- Average duration: 8.6min
+- Total execution time: 3.83 hours
 
 **By Phase:**
 
@@ -33,11 +33,11 @@ Progress: [▓▓▓▓▓▓▓░░░] 65%
 | 04-graphics-configuration | 3 | 12min | 4.0min |
 | 05-stability-diagnostics | 5 | 45min | 9.0min |
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
-| 07-game-compatibility-database | 2/7 | 17min | 8.5min |
+| 07-game-compatibility-database | 3/7 | 21min | 7.0min |
 
 **Recent Trend:**
-- Last 5 plans: 06-03 (5min), 06-04 (7min), 06-05 (10min), 07-01 (6min), 07-07 (11min)
-- Trend: Phase 7 database population in 11min; JSON data + infrastructure setup
+- Last 5 plans: 06-04 (7min), 06-05 (10min), 07-01 (6min), 07-07 (11min), 07-02 (4min)
+- Trend: Phase 7 matching algorithm in 4min; existing loader infrastructure reused
 
 *Updated after each plan completion*
 
@@ -145,6 +145,10 @@ Recent decisions affecting current work:
 - [07-07]: 30 entries chosen for comprehensive coverage across rating tiers, stores, and backends
 - [07-07]: WineD3D backend coverage via Witcher 2 entry for older DX9 game compatibility
 - [07-07]: Anti-cheat categorization: kernel-level (Vanguard, EAC-kernel) as notSupported, session-level (BattlEye) as broken
+- [07-02]: GameMatcher as caseless enum following GPUDetection pattern for static utility namespace
+- [07-02]: bestMatch returns nil for ambiguous results (gap < 0.1) unless top is hardIdentifier tier
+- [07-02]: Fuzzy score capped at 0.69 to stay below strong heuristic tier boundary
+- [07-02]: Variant auto-selection prefers isDefault; soft architecture preference without strict constraint exclusion
 
 ### Pending Todos
 
@@ -157,5 +161,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Completed 07-07-PLAN.md (30-entry game database)
+Stopped at: Completed 07-02-PLAN.md (loader + matcher)
 Resume file: None

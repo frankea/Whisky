@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Configuration Foundation** - Unify environment variable cascade into explicit EnvironmentBuilder
 - [x] **Phase 3: Process Lifecycle Management** - Wineserver-level tracking with orphan detection and auto-cleanup
 - [x] **Phase 4: Graphics Configuration** - D3DMetal/DXVK/wined3d backend control with tiered UI
-- [ ] **Phase 5: Stability & Diagnostics** - WINEDEBUG parsing and crash pattern classification
+- [x] **Phase 5: Stability & Diagnostics** - WINEDEBUG parsing and crash pattern classification
 - [ ] **Phase 6: Audio Troubleshooting** - Diagnostics-first audio remediation with limited settings
 - [ ] **Phase 7: Game Compatibility Database** - Bundled known-good configurations with one-click apply
 - [ ] **Phase 8: Remaining Platform Issues** - Launcher, controller, and installation fixes
@@ -104,11 +104,11 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 05-01-PLAN.md -- Core classifier pipeline: CrashPattern types, CrashClassifier, patterns.json, remediations.json, WineDebugPreset, unit tests (TDD)
-- [ ] 05-02-PLAN.md -- Persistence and export: DiagnosisHistory, RemediationTimeline, Redactor, DiagnosticExporter (ZIP + Markdown)
-- [ ] 05-03-PLAN.md -- Process integration: WINEDEBUG preset injection via EnvironmentBuilder, auto-trigger classification on process exit
-- [ ] 05-04-PLAN.md -- Core diagnostics UI: DiagnosticsView split layout, RemediationCardView, LogViewerView (NSTextView)
-- [ ] 05-05-PLAN.md -- Export UI, diagnosis history, entry points (Program settings, Bottle settings, Help menu), localization
+- [x] 05-01-PLAN.md -- Core classifier pipeline: CrashPattern types, CrashClassifier, patterns.json, remediations.json, WineDebugPreset, unit tests (TDD)
+- [x] 05-02-PLAN.md -- Persistence and export: DiagnosisHistory, RemediationTimeline, Redactor, DiagnosticExporter (ZIP + Markdown)
+- [x] 05-03-PLAN.md -- Process integration: WINEDEBUG preset injection via EnvironmentBuilder, auto-trigger classification on process exit
+- [x] 05-04-PLAN.md -- Core diagnostics UI: DiagnosticsView split layout, RemediationCardView, LogViewerView (NSTextView)
+- [x] 05-05-PLAN.md -- Export UI, diagnosis history, entry points (Program settings, Bottle settings, Help menu), localization
 
 ### Phase 6: Audio Troubleshooting
 **Goal**: Users can diagnose and address common macOS Wine audio problems through in-app diagnostics and a focused set of effective settings (max 3-4)
@@ -205,7 +205,7 @@ Note: Phases 3 and 4 are parallel-capable (no mutual dependencies). Phases 5 and
 | 2. Configuration Foundation | 4/4 | ✓ Complete | 2026-02-09 |
 | 3. Process Lifecycle Management | 3/3 | ✓ Complete | 2026-02-09 |
 | 4. Graphics Configuration | 3/3 | ✓ Complete | 2026-02-09 |
-| 5. Stability & Diagnostics | 0/5 | Planned | - |
+| 5. Stability & Diagnostics | 5/5 | ✓ Complete | 2026-02-10 |
 | 6. Audio Troubleshooting | 0/TBD | Not started | - |
 | 7. Game Compatibility Database | 0/TBD | Not started | - |
 | 8. Remaining Platform Issues | 0/TBD | Not started | - |

@@ -92,7 +92,7 @@ struct GameVariantPickerView: View {
     }
 
     private func defaultBadge(isSelected: Bool) -> some View {
-        Text("Default")
+        Text("gameConfig.variant.default")
             .font(.caption2)
             .fontWeight(.medium)
             .padding(.horizontal, 6)

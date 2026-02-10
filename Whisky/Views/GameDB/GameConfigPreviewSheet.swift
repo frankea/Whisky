@@ -65,7 +65,7 @@ struct GameConfigPreviewSheet: View {
 extension GameConfigPreviewSheet {
     private var sheetHeader: some View {
         VStack(spacing: 4) {
-            Text("Preview Configuration Changes")
+            Text("gameConfig.preview.title")
                 .font(.headline)
             Text(entry.title)
                 .font(.subheadline)
@@ -87,7 +87,7 @@ extension GameConfigPreviewSheet {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundStyle(.yellow)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Stale Configuration")
+                    Text("gameConfig.preview.staleConfig")
                         .font(.subheadline)
                         .fontWeight(.semibold)
                     Text(message)
@@ -107,7 +107,7 @@ extension GameConfigPreviewSheet {
 extension GameConfigPreviewSheet {
     private var applyTargetSection: some View {
         HStack {
-            Text("Apply to:")
+            Text("gameConfig.preview.applyTo")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             Text(bottle.settings.name)
@@ -123,7 +123,7 @@ extension GameConfigPreviewSheet {
     @ViewBuilder
     private var changesSection: some View {
         if changes.isEmpty {
-            Text("No changes detected")
+            Text("gameConfig.preview.noChanges")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         } else {
@@ -192,7 +192,7 @@ extension GameConfigPreviewSheet {
     private var winetricksSection: some View {
         if let verbs = variant.winetricksVerbs, !verbs.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Required Components")
+                Text("gameConfig.preview.winetricksRequired")
                     .font(.subheadline)
                     .fontWeight(.semibold)
 
@@ -200,16 +200,16 @@ extension GameConfigPreviewSheet {
                     verbRow(verb)
                 }
 
-                Toggle("Install Required Components", isOn: $includeWinetricks)
+                Toggle("gameConfig.preview.installComponents", isOn: $includeWinetricks)
                     .font(.caption)
 
                 if !includeWinetricks {
-                    Text("Config will be marked as incomplete (missing dependencies)")
+                    Text("gameConfig.preview.incomplete")
                         .font(.caption2)
                         .foregroundStyle(.orange)
                 }
 
-                Text("Winetricks installations modify the Wine prefix and cannot be undone")
+                Text("gameConfig.preview.winetricksNote")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
@@ -235,9 +235,13 @@ extension GameConfigPreviewSheet {
             Text(verb)
                 .font(.caption)
             Spacer()
-            Text(installedVerbs.contains(verb) ? "Installed" : "Missing")
-                .font(.caption2)
-                .foregroundStyle(installedVerbs.contains(verb) ? .green : .orange)
+            Text(
+                installedVerbs.contains(verb)
+                    ? String(localized: "gameConfig.preview.winetricksInstalled")
+                    : String(localized: "gameConfig.preview.winetricksMissing")
+            )
+            .font(.caption2)
+            .foregroundStyle(installedVerbs.contains(verb) ? .green : .orange)
         }
     }
 }
@@ -252,7 +256,7 @@ extension GameConfigPreviewSheet {
             HStack(spacing: 6) {
                 Image(systemName: "arrow.clockwise")
                     .foregroundStyle(.blue)
-                Text("These changes will take effect on next launch")
+                Text("gameConfig.preview.restartNote")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -286,18 +290,18 @@ extension GameConfigPreviewSheet {
 extension GameConfigPreviewSheet {
     private var sheetFooter: some View {
         HStack {
-            Toggle("Don't show preview again", isOn: $skipPreview)
+            Toggle("gameConfig.preview.dontShowAgain", isOn: $skipPreview)
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
             Spacer()
 
-            Button("Cancel", role: .cancel) {
+            Button("gameConfig.preview.cancel", role: .cancel) {
                 dismiss()
             }
             .keyboardShortcut(.cancelAction)
 
-            Button("Apply Configuration") {
+            Button("gameConfig.preview.applyButton") {
                 Task {
                     await applyConfiguration()
                 }
@@ -351,14 +355,14 @@ extension GameConfigPreviewSheet {
             dismiss()
 
             toast = ToastData(
-                message: "Applied \(entry.title) configuration",
+                message: String(localized: "gameConfig.apply.success \(entry.title)"),
                 style: .success
             )
 
             // Schedule undo availability check -- snapshot is saved to bottle
             _ = snapshot // Snapshot saved to bottle directory for future revert
         } catch {
-            applyError = "Failed to apply: \(error.localizedDescription)"
+            applyError = String(localized: "gameConfig.apply.failed \(error.localizedDescription)")
             isApplying = false
         }
     }

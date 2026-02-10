@@ -22814,7 +22814,607 @@
     "audio.history.title": {},
     "audio.history.none": {},
     "audio.history.clear": {},
-    "Troubleshoot Audio\u2026": {}
+    "Troubleshoot Audio…": {},
+    "tab.gameConfigs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game Configurations"
+          }
+        }
+      }
+    },
+    "gamedb.search.prompt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search games..."
+          }
+        }
+      }
+    },
+    "gamedb.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game Configurations"
+          }
+        }
+      }
+    },
+    "gamedb.filter.allRatings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Ratings"
+          }
+        }
+      }
+    },
+    "gamedb.filter.rating": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rating"
+          }
+        }
+      }
+    },
+    "gamedb.filter.allStores": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Stores"
+          }
+        }
+      }
+    },
+    "gamedb.filter.store": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store"
+          }
+        }
+      }
+    },
+    "gamedb.filter.allBackends": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Backends"
+          }
+        }
+      }
+    },
+    "gamedb.filter.backend": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backend"
+          }
+        }
+      }
+    },
+    "gamedb.empty.noData": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No game configurations available"
+          }
+        }
+      }
+    },
+    "gamedb.empty.noResults %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No configuration found for '%@'"
+          }
+        }
+      }
+    },
+    "gamedb.tag.appleSilicon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Silicon"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.atAGlance": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At a Glance"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.recommendedConfig": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommended Configuration"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.variants": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Variants"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.whatItChanges": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What It Changes"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.notes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes & Known Issues"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.provenance": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About This Config"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.applyTo %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to %@…"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.communityConfig": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Community config, not maintainer-verified"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.showAdvanced": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show advanced details"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.noVariant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No configuration variant available"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.graphics": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Graphics"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.performance": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Performance"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.dllOverrides": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DLL Overrides"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.winetricks": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Winetricks"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.required": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.provenance.source": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.provenance.author": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.provenance.lastUpdated": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last Updated"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.provenance.reference": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration Preview"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.staleConfig": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stale Configuration"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.applyTo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to:"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.noChanges": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No changes detected"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.winetricksRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required Components"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.winetricksInstalled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Already installed"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.winetricksMissing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not installed"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.winetricksNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Winetricks installations modify the Wine prefix and cannot be undone"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.installComponents": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install Required Components"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.incomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incomplete (missing dependencies)"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.restartNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These changes will take effect on next launch"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.dontShowAgain": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't show preview again"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.applyButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply Configuration"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "gameConfig.apply.success %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied %@ configuration"
+          }
+        }
+      }
+    },
+    "gameConfig.apply.failed %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to apply configuration: %@"
+          }
+        }
+      }
+    },
+    "gameConfig.revert.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied Game Configuration"
+          }
+        }
+      }
+    },
+    "gameConfig.revert.applied %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration '%1$@' applied %2$@"
+          }
+        }
+      }
+    },
+    "gameConfig.revert.button": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revert Configuration Changes"
+          }
+        }
+      }
+    },
+    "gameConfig.revert.confirm.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revert Configuration?"
+          }
+        }
+      }
+    },
+    "gameConfig.revert.confirm.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings will be restored to their state before the game configuration was applied. Installed winetricks components will remain."
+          }
+        }
+      }
+    },
+    "gameConfig.revert.confirm.revert": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revert"
+          }
+        }
+      }
+    },
+    "gameConfig.revert.verbsRemain %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings reverted; installed components remain: %@"
+          }
+        }
+      }
+    },
+    "gameConfig.banner.available %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration available for %@"
+          }
+        }
+      }
+    },
+    "gameConfig.banner.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply…"
+          }
+        }
+      }
+    },
+    "gameConfig.banner.why": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Why this match?"
+          }
+        }
+      }
+    },
+    "gameConfig.banner.notThis": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not this"
+          }
+        }
+      }
+    },
+    "gameConfig.banner.recommended": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommended configs for this program"
+          }
+        }
+      }
+    },
+    "gameConfig.variant.default": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default"
+          }
+        }
+      }
+    }
   },
   "version": "1.0"
 }

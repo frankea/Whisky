@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  ConfigView.swift
 //  Whisky
@@ -41,6 +42,8 @@ struct ConfigView: View {
     @State private var latestDiagnosisProgram: Program?
     @State private var isRepairingPrefix: Bool = false
     @State private var prefixRepairResult: PrefixRepairResult?
+    @State private var gameConfigSnapshot: GameConfigSnapshot?
+    @State private var showRevertConfirmation: Bool = false
 
     private enum PrefixRepairResult: Identifiable {
         case success
@@ -84,6 +87,7 @@ struct ConfigView: View {
             AudioConfigSection(bottle: bottle)
             PerformanceConfigSection(bottle: bottle, isExpanded: $performanceSectionExpanded)
             DLLOverrideConfigSection(bottle: bottle, isExpanded: $dllOverrideSectionExpanded)
+            gameConfigRevertSection
             Section("Diagnostics") {
                 Text("Analyze Wine crash output for troubleshooting guidance")
                     .font(.caption)
@@ -237,6 +241,8 @@ struct ConfigView: View {
             loadBuildName()
             loadRetinaMode()
             loadDpi()
+
+            gameConfigSnapshot = GameConfigSnapshot.load(from: bottle.url)
         }
         .onChange(of: bottle.settings.windowsVersion) { _, newValue in
             if winVersionLoadingState == .success {
@@ -322,6 +328,71 @@ extension ConfigView {
     }
 }
 
+// MARK: - Game Config Revert
+
+extension ConfigView {
+    @ViewBuilder
+    var gameConfigRevertSection: some View {
+        if let snapshot = gameConfigSnapshot {
+            Section(String(localized: "gameConfig.revert.title")) {
+                HStack {
+                    Image(systemName: "gamecontroller.fill")
+                        .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        let timeAgo = snapshot.timestamp.formatted(
+                            .relative(presentation: .named)
+                        )
+                        Text("gameConfig.revert.applied \(snapshot.appliedEntryId) \(timeAgo)")
+                            .font(.callout)
+                        if let verbs = snapshot.installedVerbs, !verbs.isEmpty {
+                            Text(
+                                "gameConfig.revert.verbsRemain \(verbs.joined(separator: ", "))"
+                            )
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
+                Button(role: .destructive) {
+                    showRevertConfirmation = true
+                } label: {
+                    Text("gameConfig.revert.button")
+                }
+                .alert(
+                    String(localized: "gameConfig.revert.confirm.title"),
+                    isPresented: $showRevertConfirmation
+                ) {
+                    Button(
+                        String(localized: "gameConfig.revert.confirm.revert"),
+                        role: .destructive
+                    ) {
+                        revertGameConfig(snapshot)
+                    }
+                    Button("button.cancel", role: .cancel) {}
+                } message: {
+                    Text("gameConfig.revert.confirm.message")
+                }
+            }
+        }
+    }
+
+    func revertGameConfig(_ snapshot: GameConfigSnapshot) {
+        do {
+            let remainingVerbs = try GameConfigApplicator.revert(bottle: bottle, snapshot: snapshot)
+            try GameConfigSnapshot.delete(from: bottle.url)
+            gameConfigSnapshot = nil
+            if !remainingVerbs.isEmpty {
+                logger.info(
+                    "Config reverted; installed components remain: \(remainingVerbs.joined(separator: ", "))"
+                )
+            }
+        } catch {
+            logger.error("Failed to revert game config: \(error.localizedDescription)")
+        }
+    }
+}
+
 // MARK: - Diagnostics Helpers
 
 extension ConfigView {
@@ -356,3 +427,5 @@ extension ConfigView {
         }
     }
 }
+
+// swiftlint:enable file_length

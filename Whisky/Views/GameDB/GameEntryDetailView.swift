@@ -85,7 +85,7 @@ extension GameEntryDetailView {
                 HStack(spacing: 8) {
                     Image(systemName: "person.2")
                         .foregroundStyle(.orange)
-                    Text("Community config, not maintainer-verified")
+                    Text("gameConfig.detail.communityConfig")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -99,7 +99,7 @@ extension GameEntryDetailView {
 
 extension GameEntryDetailView {
     private var atAGlanceSection: some View {
-        Section("At a Glance") {
+        Section("gameConfig.detail.atAGlance") {
             ratingRow
             if let constraints = entry.constraints {
                 constraintTags(constraints)
@@ -200,11 +200,11 @@ extension GameEntryDetailView {
 
 extension GameEntryDetailView {
     private var recommendedConfigSection: some View {
-        Section("Recommended Configuration") {
+        Section("gameConfig.detail.recommendedConfig") {
             if let variant = selectedVariant {
                 recommendedContent(variant)
             } else {
-                Text("No configuration variant available")
+                Text("gameConfig.detail.noVariant")
                     .foregroundStyle(.secondary)
             }
         }
@@ -238,7 +238,7 @@ extension GameEntryDetailView {
             Button {
                 showPreviewSheet = true
             } label: {
-                Text("Apply to \(bottle.settings.name)\u{2026}")
+                Text("gameConfig.detail.applyTo \(bottle.settings.name)")
             }
             .controlSize(.large)
             .buttonStyle(.borderedProminent)
@@ -253,7 +253,7 @@ extension GameEntryDetailView {
     @ViewBuilder
     private var variantsSection: some View {
         if entry.variants.count > 1 {
-            Section("Variants") {
+            Section("gameConfig.detail.variants") {
                 GameVariantPickerView(
                     variants: entry.variants,
                     selected: $selectedVariant
@@ -269,7 +269,7 @@ extension GameEntryDetailView {
     @ViewBuilder
     private var whatItChangesSection: some View {
         if let variant = selectedVariant {
-            Section("What It Changes") {
+            Section("gameConfig.detail.whatItChanges") {
                 settingsByArea(variant)
             }
         }
@@ -288,7 +288,7 @@ extension GameEntryDetailView {
     private func settingsAreaGraphics(_ settings: GameConfigVariantSettings) -> some View {
         let items = graphicsSettingsList(settings)
         if !items.isEmpty {
-            settingsGroup("Graphics", items: items)
+            settingsGroup(String(localized: "gameConfig.detail.graphics"), items: items)
         }
     }
 
@@ -296,7 +296,7 @@ extension GameEntryDetailView {
     private func settingsAreaPerformance(_ settings: GameConfigVariantSettings) -> some View {
         let items = performanceSettingsList(settings)
         if !items.isEmpty {
-            settingsGroup("Performance", items: items)
+            settingsGroup(String(localized: "gameConfig.detail.performance"), items: items)
         }
     }
 
@@ -304,7 +304,7 @@ extension GameEntryDetailView {
     private func settingsAreaDLLOverrides(_ variant: GameConfigVariant) -> some View {
         if let overrides = variant.dllOverrides, !overrides.isEmpty {
             VStack(alignment: .leading, spacing: 4) {
-                Text("DLL Overrides")
+                Text("gameConfig.detail.dllOverrides")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                 ForEach(overrides, id: \.dllName) { override in
@@ -318,11 +318,11 @@ extension GameEntryDetailView {
     private func settingsAreaWinetricks(_ variant: GameConfigVariant) -> some View {
         if let verbs = variant.winetricksVerbs, !verbs.isEmpty {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Winetricks")
+                Text("gameConfig.detail.winetricks")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                 ForEach(verbs, id: \.self) { verb in
-                    settingRow(name: verb, value: "Required")
+                    settingRow(name: verb, value: String(localized: "gameConfig.detail.required"))
                 }
             }
         }
@@ -331,7 +331,7 @@ extension GameEntryDetailView {
     @ViewBuilder
     private func settingsAreaEnvironment(_ variant: GameConfigVariant) -> some View {
         if let envVars = variant.environmentVariables, !envVars.isEmpty {
-            DisclosureGroup("Show advanced details") {
+            DisclosureGroup("gameConfig.detail.showAdvanced") {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(envVars.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
                         settingRow(name: key, value: value)
@@ -420,7 +420,7 @@ extension GameEntryDetailView {
         let hasIssues = !(entry.knownIssues ?? []).isEmpty
 
         if hasNotes || hasIssues {
-            Section("Notes / Known Issues") {
+            Section("gameConfig.detail.notes") {
                 notesList
                 issuesList
             }
@@ -491,7 +491,7 @@ extension GameEntryDetailView {
     @ViewBuilder
     private var provenanceSection: some View {
         if let provenance = entry.provenance {
-            Section("About This Config") {
+            Section("gameConfig.detail.provenance") {
                 provenanceContent(provenance)
             }
         }
@@ -499,22 +499,28 @@ extension GameEntryDetailView {
 
     private func provenanceContent(_ provenance: Provenance) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            provenanceRow("Source", value: provenance.source)
+            provenanceRow(
+                String(localized: "gameConfig.detail.provenance.source"),
+                value: provenance.source
+            )
 
             if let author = provenance.author {
-                provenanceRow("Author", value: author)
+                provenanceRow(
+                    String(localized: "gameConfig.detail.provenance.author"),
+                    value: author
+                )
             }
 
             if let lastUpdated = provenance.lastUpdated {
                 provenanceRow(
-                    "Last Updated",
+                    String(localized: "gameConfig.detail.provenance.lastUpdated"),
                     value: lastUpdated.formatted(date: .abbreviated, time: .omitted)
                 )
             }
 
             if let url = provenance.referenceURL {
                 HStack {
-                    Text("Reference")
+                    Text("gameConfig.detail.provenance.reference")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Spacer()

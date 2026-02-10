@@ -44,7 +44,8 @@ extension Wine {
     public static func constructWineEnvironment(
         for bottle: Bottle,
         environment: [String: String] = [:],
-        programOverrides: ProgramOverrides? = nil
+        programOverrides: ProgramOverrides? = nil,
+        programSettings: ProgramSettings? = nil
     ) -> [String: String] {
         var builder = EnvironmentBuilder()
         var dllResolver = DLLOverrideResolver(managed: [], bottleCustom: [], programCustom: [])
@@ -90,8 +91,12 @@ extension Wine {
             applyProgramOverrides(overrides, builder: &builder, dllResolver: &dllResolver)
         }
 
-        // Layers 7-8: featureRuntime and callsiteOverride are left empty
-        // (populated by future phases or direct callers)
+        // Layer 7: featureRuntime -- diagnostic WINEDEBUG preset override
+        if let preset = programSettings?.activeWineDebugPreset, preset != .normal {
+            builder.set("WINEDEBUG", preset.winedebugValue, layer: .featureRuntime)
+        }
+
+        // Layer 8: callsiteOverride is left empty (populated by direct callers)
 
         // Collect bottle custom DLL overrides for the resolver
         dllResolver.bottleCustom = bottle.settings.dllOverrides

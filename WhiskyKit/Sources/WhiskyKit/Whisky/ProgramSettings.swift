@@ -145,6 +145,26 @@ public struct ProgramSettings: Codable {
     /// bottle settings while leaving others inherited.
     public var overrides: ProgramOverrides?
 
+    // MARK: - Diagnostics
+
+    /// The active WINEDEBUG preset for this program.
+    ///
+    /// When `nil`, the default `fixme-all` is used. Set to a non-normal preset
+    /// before a diagnostic re-run, then clear it afterward. This is transient:
+    /// set by the diagnostics UI before a re-run and cleared after completion.
+    public var activeWineDebugPreset: WineDebugPreset?
+
+    /// URL to the most recent Wine log file for this program.
+    ///
+    /// Updated after each Wine process run completes, providing the diagnostics
+    /// system with a path to the latest log for classification.
+    public var lastLogFileURL: URL?
+
+    /// Timestamp of the most recent diagnosis run for this program.
+    ///
+    /// Used by the diagnostics UI to display when the last analysis occurred.
+    public var lastDiagnosisDate: Date?
+
     /// Creates a new ProgramSettings with default values.
     public init() {}
 
@@ -157,6 +177,12 @@ public struct ProgramSettings: Codable {
         ) ?? [:]
         self.arguments = try container.decodeIfPresent(String.self, forKey: .arguments) ?? ""
         self.overrides = try container.decodeIfPresent(ProgramOverrides.self, forKey: .overrides)
+        self.activeWineDebugPreset = try container.decodeIfPresent(
+            WineDebugPreset.self,
+            forKey: .activeWineDebugPreset
+        )
+        self.lastLogFileURL = try container.decodeIfPresent(URL.self, forKey: .lastLogFileURL)
+        self.lastDiagnosisDate = try container.decodeIfPresent(Date.self, forKey: .lastDiagnosisDate)
     }
 
     /// Loads program settings from a plist file.

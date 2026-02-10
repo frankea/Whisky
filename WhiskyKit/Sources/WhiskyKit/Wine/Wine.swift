@@ -217,7 +217,7 @@ public class Wine {
     @MainActor
     public static func runProgram(
         at url: URL, args: [String] = [], bottle: Bottle, environment: [String: String] = [:],
-        programOverrides: ProgramOverrides? = nil
+        programOverrides: ProgramOverrides? = nil, programSettings: ProgramSettings? = nil
     ) async throws {
         // Note: Launcher detection is handled at the app level (FileOpenView/BottleView)
         // before calling this method. The detection logic uses LauncherDetection utility
@@ -255,7 +255,8 @@ public class Wine {
         fileHandle.writeInfo(for: bottle)
 
         let wineEnvironment = constructWineEnvironment(
-            for: bottle, environment: environment, programOverrides: programOverrides
+            for: bottle, environment: environment, programOverrides: programOverrides,
+            programSettings: programSettings
         )
 
         for await _ in try runProcess(

@@ -119,6 +119,9 @@ Recent decisions affecting current work:
 - [05-05]: Crash banner auto-dismisses after 8s with overlay alignment + transition animation
 - [05-05]: DiagnosticsPickerSheet for Help menu entry point (menu has no program context, needs selection)
 - [05-05]: Plain English localization strings for diagnostics UI (matching 05-04 pattern, auto-discovered by Xcode)
+- [06-01]: AudioTransportType uses String raw value for Codable, separate init(coreAudioTransportType:) for UInt32 mapping
+- [06-01]: AudioDeviceHistory is a final class (@unchecked Sendable) to allow non-mutating append/clear API
+- [06-01]: AudioDeviceMonitor stores listener block + address for proper removal in deinit
 - [06-02]: Audio config follows BottleGraphicsConfig pattern exactly: module-scope enums, defensive decoding, private stored property with proxy properties
 - [06-02]: Audio settings are registry-backed (not env vars): populateAudioLayer is a placeholder for future audio env var support
 - [06-02]: RegistryType promoted to public and addRegistryKey/queryRegistryKey promoted from private to public for module-wide access
@@ -134,5 +137,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Completed 06-02-PLAN.md
+Stopped at: Completed 06-01-PLAN.md (re-executed with proper commits and summary)
 Resume file: None

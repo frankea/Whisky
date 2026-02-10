@@ -176,4 +176,9 @@ extension Notification.Name {
     /// Posted when orphaned Wine processes are cleaned up at launch.
     /// Contains userInfo key "count" (Int) with the number of processes killed.
     static let zombieProcessesCleaned = Notification.Name("zombieProcessesCleaned")
+
+    /// Posted from program settings to navigate to the Audio troubleshooting panel.
+    static let openAudioTroubleshooting = Notification.Name(
+        "com.isaacmarovitz.Whisky.openAudioTroubleshooting"
+    )
 }

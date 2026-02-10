@@ -28,6 +28,9 @@ struct WhiskyApp: App {
     @State var showSetup: Bool = false
     @State private var showDiagnosticsSheet: Bool = false
     @State private var crashDiagnosisBanner: CrashDiagnosisBannerState?
+    @State private var audioDeviceToast: ToastData?
+    @State private var audioMonitor = AudioDeviceMonitor()
+    @State private var audioAlertTracker = AudioAlertTracker()
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Environment(\.openURL) var openURL
     private let updaterController: SPUStandardUpdaterController
@@ -51,6 +54,8 @@ struct WhiskyApp: App {
                     Task.detached {
                         await WhiskyApp.deleteOldLogs()
                     }
+
+                    startAudioDeviceListening()
                 }
                 .onReceive(
                     NotificationCenter.default.publisher(for: .crashDiagnosisAvailable)
@@ -66,6 +71,7 @@ struct WhiskyApp: App {
                         crashDiagnosisBannerView(banner)
                     }
                 }
+                .toast($audioDeviceToast)
         }
         // Don't ask me how this works, it just does
         .handlesExternalEvents(matching: ["{same path of URL?}"])
@@ -246,6 +252,38 @@ struct WhiskyApp: App {
         .transition(.move(edge: .top).combined(with: .opacity))
     }
 
+    // MARK: - Audio Device Alerts
+
+    private func startAudioDeviceListening() {
+        audioMonitor.startListening { event in
+            Task { @MainActor in
+                guard audioAlertTracker.shouldAlert(deviceName: event.deviceName) else { return }
+
+                switch event.eventType {
+                case .defaultOutputChanged, .disconnected:
+                    let message = String(
+                        localized: "audio.alert.disconnected"
+                    ) + ": \(event.deviceName)"
+                    audioDeviceToast = ToastData(message: message, style: .info)
+                case .reconnected:
+                    let message = String(
+                        localized: "audio.alert.reconnected"
+                    ) + ": \(event.deviceName)"
+                    audioDeviceToast = ToastData(message: message, style: .success)
+                case .sampleRateChanged:
+                    // Check for low sample rate (HFP/Bluetooth issue)
+                    if let device = audioMonitor.defaultOutputDevice(),
+                       device.sampleRate < 22_050, device.sampleRate > 0
+                    {
+                        let message = String(localized: "audio.alert.lowSampleRate")
+                            + ": \(event.deviceName)"
+                        audioDeviceToast = ToastData(message: message, style: .info)
+                    }
+                }
+            }
+        }
+    }
+
     static func wipeShaderCaches() {
         let getconf = Process()
         getconf.executableURL = URL(fileURLWithPath: "/usr/bin/getconf")
@@ -289,6 +327,27 @@ struct CrashDiagnosisBannerState {
     let diagnosis: CrashDiagnosis
     let programName: String
     let logFileURL: URL
+}
+
+// MARK: - Audio Alert Rate Limiter
+
+/// Tracks the last alert time per device name to rate-limit audio device alerts.
+/// One alert per device per 3 minutes to avoid notification fatigue.
+struct AudioAlertTracker {
+    private var lastAlertTimes: [String: Date] = [:]
+    private let cooldownInterval: TimeInterval = 180 // 3 minutes
+
+    /// Returns true if an alert should be shown for this device.
+    mutating func shouldAlert(deviceName: String) -> Bool {
+        let now = Date()
+        if let lastTime = lastAlertTimes[deviceName],
+           now.timeIntervalSince(lastTime) < cooldownInterval
+        {
+            return false
+        }
+        lastAlertTimes[deviceName] = now
+        return true
+    }
 }
 
 // MARK: - Diagnostics Picker Sheet

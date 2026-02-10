@@ -48,6 +48,7 @@ struct ProgramOverrideSettingsView: View {
             resetButton
         }
         diagnosticsSection
+        audioTroubleshootingSection
             .sheet(isPresented: $showDiagnosticsSheet) {
                 if let diagnosis = activeDiagnosis {
                     DiagnosticsView(
@@ -116,6 +117,20 @@ struct ProgramOverrideSettingsView: View {
             activeLogText = (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
             activeDiagnosis = diagnosis
             showDiagnosticsSheet = true
+        }
+    }
+
+    // MARK: - Audio Troubleshooting Section
+
+    private var audioTroubleshootingSection: some View {
+        Section("Audio") {
+            Button("Troubleshoot Audio\u{2026}") {
+                NotificationCenter.default.post(
+                    name: .openAudioTroubleshooting,
+                    object: nil
+                )
+            }
+            .help("Open audio diagnostics and troubleshooting for this bottle")
         }
     }
 

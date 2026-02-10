@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Graphics Configuration** - D3DMetal/DXVK/wined3d backend control with tiered UI
 - [x] **Phase 5: Stability & Diagnostics** - WINEDEBUG parsing and crash pattern classification
 - [x] **Phase 6: Audio Troubleshooting** - Diagnostics-first audio remediation with limited settings
-- [ ] **Phase 7: Game Compatibility Database** - Bundled known-good configurations with one-click apply
+- [x] **Phase 7: Game Compatibility Database** - Bundled known-good configurations with one-click apply
 - [ ] **Phase 8: Remaining Platform Issues** - Launcher, controller, and installation fixes
 - [ ] **Phase 9: UI/UX & Feature Requests** - Polish and top community-requested features
 - [ ] **Phase 10: Guided Troubleshooting** - Data-driven symptom/solution engine integrating all phases
@@ -214,7 +214,7 @@ Note: Phases 3 and 4 are parallel-capable (no mutual dependencies). Phases 5 and
 | 4. Graphics Configuration | 3/3 | ✓ Complete | 2026-02-09 |
 | 5. Stability & Diagnostics | 5/5 | ✓ Complete | 2026-02-10 |
 | 6. Audio Troubleshooting | 5/5 | ✓ Complete | 2026-02-10 |
-| 7. Game Compatibility Database | 0/TBD | Not started | - |
+| 7. Game Compatibility Database | 7/7 | ✓ Complete | 2026-02-10 |
 | 8. Remaining Platform Issues | 0/TBD | Not started | - |
 | 9. UI/UX & Feature Requests | 0/TBD | Not started | - |
 | 10. Guided Troubleshooting | 0/TBD | Not started | - |

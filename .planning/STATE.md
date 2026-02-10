@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 
 ## Current Position
 
-Phase: 5 of 10 (Stability & Diagnostics)
-Plan: 4 of 5 in current phase (05-04 complete)
-Status: In Progress
-Last activity: 2026-02-10 -- Completed 05-04-PLAN.md (Diagnostics UI)
+Phase: 5 of 10 (Stability & Diagnostics) -- COMPLETE
+Plan: 5 of 5 in current phase (05-05 complete)
+Status: Phase Complete
+Last activity: 2026-02-10 -- Completed 05-05-PLAN.md (Diagnostics UI Surface)
 
-Progress: [▓▓▓▓▓░░░░░] 46%
+Progress: [▓▓▓▓▓░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
-- Average duration: 9.2min
-- Total execution time: 2.52 hours
+- Total plans completed: 18
+- Average duration: 9.5min
+- Total execution time: 2.75 hours
 
 **By Phase:**
 
@@ -31,11 +31,11 @@ Progress: [▓▓▓▓▓░░░░░] 46%
 | 02-configuration-foundation | 4 | 73min | 18.3min |
 | 03-process-lifecycle-management | 3 | 18min | 6.0min |
 | 04-graphics-configuration | 3 | 12min | 4.0min |
-| 05-stability-diagnostics | 4 | 31min | 7.8min |
+| 05-stability-diagnostics | 5 | 45min | 9.0min |
 
 **Recent Trend:**
-- Last 5 plans: 04-03 (3min), 05-01 (7min), 05-02 (6min), 05-03 (9min), 05-04 (9min)
-- Trend: UI plans consistent ~9min; NSViewRepresentable complexity handled within budget
+- Last 5 plans: 05-01 (7min), 05-02 (6min), 05-03 (9min), 05-04 (9min), 05-05 (14min)
+- Trend: Final integration plan took 14min (multi-file wiring + localization); UI plans averaging ~9min
 
 *Updated after each plan completion*
 
@@ -113,6 +113,11 @@ Recent decisions affecting current work:
 - [05-04]: NSTextStorage batch editing (beginEditing/endEditing) for attributed string updates
 - [05-04]: Filter-driven full line rebuild on filter/search change for NSTextView correctness
 - [05-04]: Low-confidence remediations hidden behind "Other things to try" collapsed DisclosureGroup
+- [05-05]: DiagnosisHistoryView uses optional closure callbacks for flexible embedding in different navigation contexts
+- [05-05]: ConfigView diagnostics helpers extracted to extension for SwiftLint type_body_length compliance
+- [05-05]: Crash banner auto-dismisses after 8s with overlay alignment + transition animation
+- [05-05]: DiagnosticsPickerSheet for Help menu entry point (menu has no program context, needs selection)
+- [05-05]: Plain English localization strings for diagnostics UI (matching 05-04 pattern, auto-discovered by Xcode)
 
 ### Pending Todos
 

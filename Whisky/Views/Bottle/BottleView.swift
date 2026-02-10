@@ -24,6 +24,7 @@ enum BottleStage {
     case config
     case programs
     case processes
+    case gameConfigs
 }
 
 struct BottleView: View {
@@ -72,6 +73,9 @@ struct BottleView: View {
                                     .foregroundStyle(.blue)
                             }
                         }
+                    }
+                    NavigationLink(value: BottleStage.gameConfigs) {
+                        Label("tab.gameConfigs", systemImage: "gamecontroller")
                     }
                 }
                 .formStyle(.grouped)
@@ -196,6 +200,8 @@ struct BottleView: View {
                     )
                 case .processes:
                     RunningProcessesView(bottle: bottle)
+                case .gameConfigs:
+                    GameConfigurationView(bottle: bottle)
                 }
             }
             .navigationDestination(for: Program.self) { program in

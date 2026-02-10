@@ -92,8 +92,7 @@ struct GameConfigurationView: View {
             } else {
                 ForEach(filteredEntries, id: \.id) { entry in
                     NavigationLink {
-                        // Placeholder detail view until Plan 05 creates the real one
-                        Text("Detail: \(entry.title)")
+                        GameEntryDetailView(entry: entry, bottle: bottle)
                     } label: {
                         GameEntryRowView(entry: entry)
                     }

@@ -542,7 +542,9 @@ extension GameEntryDetailView {
 private struct SettingDisplay: Identifiable {
     let name: String
     let value: String
-    var id: String { name }
+    var id: String {
+        name
+    }
 }
 
 private struct FlowLayout: Layout {

@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 7 (Game Compatibility Database) -- Plan 01 complete
+**Current focus:** Phase 7 (Game Compatibility Database) -- Plan 07 complete (database populated)
 
 ## Current Position
 
 Phase: 7 of 10 (Game Compatibility Database)
-Plan: 1 of 7 in current phase
+Plan: 7 of 7 in current phase
 Status: Executing
-Last activity: 2026-02-10 -- Plan 07-01 complete (data models)
+Last activity: 2026-02-10 -- Plan 07-07 complete (30-entry game database)
 
-Progress: [▓▓▓▓▓▓░░░░] 63%
+Progress: [▓▓▓▓▓▓▓░░░] 65%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 24
-- Average duration: 8.7min
-- Total execution time: 3.58 hours
+- Total plans completed: 25
+- Average duration: 8.8min
+- Total execution time: 3.76 hours
 
 **By Phase:**
 
@@ -33,11 +33,11 @@ Progress: [▓▓▓▓▓▓░░░░] 63%
 | 04-graphics-configuration | 3 | 12min | 4.0min |
 | 05-stability-diagnostics | 5 | 45min | 9.0min |
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
-| 07-game-compatibility-database | 1/7 | 6min | 6.0min |
+| 07-game-compatibility-database | 2/7 | 17min | 8.5min |
 
 **Recent Trend:**
-- Last 5 plans: 06-02 (5min), 06-03 (5min), 06-04 (7min), 06-05 (10min), 07-01 (6min)
-- Trend: Phase 7 data models plan in 6min; consistent with data-model-only plans
+- Last 5 plans: 06-03 (5min), 06-04 (7min), 06-05 (10min), 07-01 (6min), 07-07 (11min)
+- Trend: Phase 7 database population in 11min; JSON data + infrastructure setup
 
 *Updated after each plan completion*
 
@@ -141,6 +141,10 @@ Recent decisions affecting current work:
 - [07-01]: GameConfigVariantSettings fields map 1:1 to BottleSettings property names for zero-translation apply
 - [07-01]: Single snapshot file per bottle (GameConfigSnapshot.plist) for single-undo design
 - [07-01]: programSettingsData keyed by String (URL string) instead of URL for Codable simplicity
+- [07-07]: EnhancedSync encodes as plain strings in JSON (not keyed objects) under Swift 6 language mode
+- [07-07]: 30 entries chosen for comprehensive coverage across rating tiers, stores, and backends
+- [07-07]: WineD3D backend coverage via Witcher 2 entry for older DX9 game compatibility
+- [07-07]: Anti-cheat categorization: kernel-level (Vanguard, EAC-kernel) as notSupported, session-level (BattlEye) as broken
 
 ### Pending Todos
 
@@ -153,5 +157,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Completed 07-01-PLAN.md (data models)
+Stopped at: Completed 07-07-PLAN.md (30-entry game database)
 Resume file: None

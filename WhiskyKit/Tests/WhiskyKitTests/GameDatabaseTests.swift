@@ -355,6 +355,107 @@ final class GameDatabaseTests: XCTestCase {
         let appId = SteamAppManifest.parseAppId(from: acfContent)
         XCTAssertNil(appId)
     }
+
+    // MARK: - Test 11: GameConfigSnapshot Plist Round-Trip
+
+    func testGameConfigSnapshotPlistRoundTrip() throws {
+        let sampleSettings = Data("sample-settings-plist".utf8)
+        let programSettings = ["file:///app/game.exe": Data("program-data".utf8)]
+
+        let snapshot = GameConfigSnapshot(
+            bottleSettingsData: sampleSettings,
+            programSettingsData: programSettings,
+            installedVerbs: ["vcrun2022", "dotnet48"],
+            appliedEntryId: "elden-ring",
+            appliedVariantId: "recommended-apple-silicon",
+            timestamp: Date(timeIntervalSince1970: 1_700_000_000)
+        )
+
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(snapshot)
+
+        let decoded = try PropertyListDecoder().decode(GameConfigSnapshot.self, from: data)
+
+        XCTAssertEqual(decoded.bottleSettingsData, sampleSettings)
+        XCTAssertEqual(decoded.programSettingsData, programSettings)
+        XCTAssertEqual(decoded.installedVerbs, ["vcrun2022", "dotnet48"])
+        XCTAssertEqual(decoded.appliedEntryId, "elden-ring")
+        XCTAssertEqual(decoded.appliedVariantId, "recommended-apple-silicon")
+        XCTAssertEqual(decoded.timestamp.timeIntervalSince1970, 1_700_000_000, accuracy: 1.0)
+    }
+
+    // MARK: - Test 12: GameConfigSnapshot Save and Load
+
+    func testGameConfigSnapshotSaveAndLoad() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appending(path: "SnapshotTests-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+
+        defer {
+            try? FileManager.default.removeItem(at: tempDir)
+        }
+
+        let snapshot = GameConfigSnapshot(
+            bottleSettingsData: Data("bottle-data".utf8),
+            installedVerbs: ["vcrun2022"],
+            appliedEntryId: "test-game",
+            appliedVariantId: "default",
+            timestamp: Date(timeIntervalSince1970: 1_700_000_000)
+        )
+
+        try GameConfigSnapshot.save(snapshot, to: tempDir)
+
+        let loaded = GameConfigSnapshot.load(from: tempDir)
+        XCTAssertNotNil(loaded)
+        XCTAssertEqual(loaded?.appliedEntryId, "test-game")
+        XCTAssertEqual(loaded?.appliedVariantId, "default")
+        XCTAssertEqual(loaded?.bottleSettingsData, Data("bottle-data".utf8))
+        XCTAssertEqual(loaded?.installedVerbs, ["vcrun2022"])
+    }
+
+    // MARK: - Test 13: GameConfigSnapshot Load Returns Nil for Missing
+
+    func testGameConfigSnapshotLoadReturnsNilForMissing() {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appending(path: "SnapshotMissing-\(UUID().uuidString)")
+
+        let loaded = GameConfigSnapshot.load(from: tempDir)
+        XCTAssertNil(loaded)
+    }
+
+    // MARK: - Test 14: GameConfigSnapshot Delete
+
+    func testGameConfigSnapshotDelete() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appending(path: "SnapshotDelete-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+
+        defer {
+            try? FileManager.default.removeItem(at: tempDir)
+        }
+
+        let snapshot = GameConfigSnapshot(
+            appliedEntryId: "test-game",
+            appliedVariantId: "default",
+            timestamp: Date()
+        )
+
+        try GameConfigSnapshot.save(snapshot, to: tempDir)
+
+        // Verify file exists
+        let snapshotURL = tempDir.appending(path: "GameConfigSnapshot.plist")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: snapshotURL.path(percentEncoded: false)))
+
+        // Delete
+        try GameConfigSnapshot.delete(from: tempDir)
+
+        // Verify file removed
+        XCTAssertFalse(FileManager.default.fileExists(atPath: snapshotURL.path(percentEncoded: false)))
+
+        // Load returns nil
+        XCTAssertNil(GameConfigSnapshot.load(from: tempDir))
+    }
 }
 
 // swiftlint:enable file_length

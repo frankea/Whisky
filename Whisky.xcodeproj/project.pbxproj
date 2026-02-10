@@ -92,6 +92,9 @@
 		C1A2B3C4E5F60601A9B0C1D4 /* AudioSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C1D5 /* AudioSettingsView.swift */; };
 		C1A2B3C4E5F60601A9B0C1D6 /* AudioFindingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C1D7 /* AudioFindingsView.swift */; };
 		C1A2B3C4E5F60601A9B0C1D8 /* AudioConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C1D9 /* AudioConfigSection.swift */; };
+		C1A2B3C4E5F60601A9B0C2D0 /* AudioTroubleshootingWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C2D1 /* AudioTroubleshootingWizardView.swift */; };
+		C1A2B3C4E5F60601A9B0C2D2 /* AudioDeviceListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C2D3 /* AudioDeviceListView.swift */; };
+		C1A2B3C4E5F60601A9B0C2D4 /* AudioDeviceHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C2D5 /* AudioDeviceHistoryView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -223,6 +226,9 @@
 		C1A2B3C4E5F60601A9B0C1D5 /* AudioSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSettingsView.swift; sourceTree = "<group>"; };
 		C1A2B3C4E5F60601A9B0C1D7 /* AudioFindingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioFindingsView.swift; sourceTree = "<group>"; };
 		C1A2B3C4E5F60601A9B0C1D9 /* AudioConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioConfigSection.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C2D1 /* AudioTroubleshootingWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioTroubleshootingWizardView.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C2D3 /* AudioDeviceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceListView.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C2D5 /* AudioDeviceHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceHistoryView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -399,10 +405,13 @@
 		C1A2B3C4E5F60601A9B0C1DA /* Audio */ = {
 			isa = PBXGroup;
 			children = (
+				C1A2B3C4E5F60601A9B0C2D5 /* AudioDeviceHistoryView.swift */,
+				C1A2B3C4E5F60601A9B0C2D3 /* AudioDeviceListView.swift */,
 				C1A2B3C4E5F60601A9B0C1D7 /* AudioFindingsView.swift */,
 				C1A2B3C4E5F60601A9B0C1D5 /* AudioSettingsView.swift */,
 				C1A2B3C4E5F60601A9B0C1D1 /* AudioStatusView.swift */,
 				C1A2B3C4E5F60601A9B0C1D3 /* AudioTestButtonsView.swift */,
+				C1A2B3C4E5F60601A9B0C2D1 /* AudioTroubleshootingWizardView.swift */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -764,6 +773,9 @@
 				C1A2B3C4E5F60601A9B0C1D4 /* AudioSettingsView.swift in Sources */,
 				C1A2B3C4E5F60601A9B0C1D6 /* AudioFindingsView.swift in Sources */,
 				C1A2B3C4E5F60601A9B0C1D8 /* AudioConfigSection.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C2D0 /* AudioTroubleshootingWizardView.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C2D2 /* AudioDeviceListView.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C2D4 /* AudioDeviceHistoryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

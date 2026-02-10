@@ -33,6 +33,13 @@ struct AudioConfigSection: View {
     @State private var probeResults: [AudioProbeResult] = []
     @State private var lastTestedDate: Date?
     @State private var showTroubleshootingWizard: Bool = false
+    @State private var deviceHistory = AudioDeviceHistory()
+
+    /// Debounce timer for Bluetooth device change events.
+    @State private var debounceTask: Task<Void, Never>?
+
+    /// The troubleshooting engine, created when the wizard opens.
+    @State private var troubleshootingEngine: AudioTroubleshootingEngine?
 
     var body: some View {
         Section("Audio") {
@@ -80,22 +87,32 @@ struct AudioConfigSection: View {
                 AudioFindingsView(findings: currentFindings, onApplyFix: handleApplyFix)
             }
 
-            // 7. Troubleshooting link
+            // 7. Advanced device views
+            if advancedMode {
+                advancedDeviceViews
+            }
+
+            // 8. Troubleshooting link
             Button("Audio Troubleshooting\u{2026}") {
-                showTroubleshootingWizard = true
+                openTroubleshootingWizard()
             }
         }
         .animation(.default, value: advancedMode)
         .onAppear {
-            // AudioDeviceMonitor dispatches on DispatchQueue.main.
-            // The @Sendable closure annotation causes a compiler warning,
-            // but mutation is main-thread-safe since the callback runs on main queue.
-            monitor.startListening { _ in
-                audioStatus = .unknown
-            }
+            startDeviceListening()
         }
         .sheet(isPresented: $showTroubleshootingWizard) {
-            troubleshootingWizardPlaceholder
+            if let engine = troubleshootingEngine {
+                AudioTroubleshootingWizardView(
+                    engine: engine,
+                    onDismiss: {
+                        showTroubleshootingWizard = false
+                    },
+                    onOpenAdvanced: {
+                        advancedMode = true
+                    }
+                )
+            }
         }
     }
 }
@@ -135,6 +152,22 @@ extension AudioConfigSection {
     }
 }
 
+// MARK: - Advanced Device Views
+
+extension AudioConfigSection {
+    private var advancedDeviceViews: some View {
+        Group {
+            DisclosureGroup(String(localized: "audio.devices.title")) {
+                AudioDeviceListView(devices: monitor.allOutputDevices())
+            }
+
+            DisclosureGroup(String(localized: "audio.history.title")) {
+                AudioDeviceHistoryView(history: deviceHistory)
+            }
+        }
+    }
+}
+
 // MARK: - Fix Application
 
 extension AudioConfigSection {
@@ -159,31 +192,42 @@ extension AudioConfigSection {
     }
 }
 
-// MARK: - Troubleshooting Wizard Placeholder
+// MARK: - Troubleshooting Wizard
 
 extension AudioConfigSection {
-    /// Placeholder for the full troubleshooting wizard (Plan 06-05).
-    private var troubleshootingWizardPlaceholder: some View {
-        NavigationStack {
-            VStack(spacing: 16) {
-                Image(systemName: "waveform.badge.magnifyingglass")
-                    .font(.largeTitle)
-                    .foregroundStyle(.secondary)
-                Text("Audio Troubleshooting")
-                    .font(.title2)
-                Text("The guided troubleshooting wizard will be available in a future update.")
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-            .padding()
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") {
-                        showTroubleshootingWizard = false
-                    }
-                }
+    private func openTroubleshootingWizard() {
+        let probes: [any AudioProbe] = [
+            CoreAudioDeviceProbe(monitor: monitor),
+            WineRegistryAudioProbe(bottle: bottle),
+            WineAudioTestProbe(
+                bottle: bottle,
+                testExeURL: Bundle.main.url(forResource: "WhiskyAudioTest", withExtension: "exe")
+            )
+        ]
+        troubleshootingEngine = AudioTroubleshootingEngine(probes: probes)
+        showTroubleshootingWizard = true
+    }
+}
+
+// MARK: - Device Listening
+
+extension AudioConfigSection {
+    private func startDeviceListening() {
+        // AudioDeviceMonitor dispatches on DispatchQueue.main.
+        // The @Sendable closure annotation causes a compiler warning,
+        // but mutation is main-thread-safe since the callback runs on main queue.
+        monitor.startListening { event in
+            // Record event in session history
+            deviceHistory.append(event)
+
+            // Debounce status update for Bluetooth connections (2-3 second delay)
+            // to avoid spurious state changes during BT negotiation.
+            debounceTask?.cancel()
+            debounceTask = Task { @MainActor in
+                try? await Task.sleep(for: .seconds(2))
+                guard !Task.isCancelled else { return }
+                audioStatus = .unknown
             }
         }
-        .frame(minWidth: 400, minHeight: 300)
     }
 }

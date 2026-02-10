@@ -359,8 +359,207 @@ final class GameApplicatorTests: XCTestCase {
     }
 }
 
-// MARK: - StalenessChecker Tests (added in Task 2)
+// MARK: - StalenessChecker Tests
 
-// Staleness tests will be added in Task 2
+final class StalenessCheckerTests: XCTestCase {
+
+    // MARK: - Test 8: Fresh Entry (Not Stale)
+
+    func testStalenessCheckFresh() {
+        let testedWith = TestedWith(
+            lastTestedAt: Date().addingTimeInterval(-30 * 86400), // 30 days ago
+            macOSVersion: "15.3.0",
+            wineVersion: "10.0"
+        )
+
+        let result = StalenessChecker.check(
+            testedWith: testedWith,
+            currentMacOSVersion: "15.3.0",
+            currentWineVersion: "10.0"
+        )
+
+        XCTAssertFalse(result.isStale, "Entry tested 30 days ago on same versions should not be stale")
+        XCTAssertTrue(result.reasons.isEmpty)
+        XCTAssertNil(result.warningMessage)
+    }
+
+    // MARK: - Test 9: Date Expired
+
+    func testStalenessCheckDateExpired() {
+        let testedWith = TestedWith(
+            lastTestedAt: Date().addingTimeInterval(-100 * 86400), // 100 days ago
+            macOSVersion: "15.3.0",
+            wineVersion: "10.0"
+        )
+
+        let result = StalenessChecker.check(
+            testedWith: testedWith,
+            currentMacOSVersion: "15.3.0",
+            currentWineVersion: "10.0"
+        )
+
+        XCTAssertTrue(result.isStale, "Entry tested 100 days ago should be stale")
+        XCTAssertTrue(result.reasons.contains(.dateExpired))
+        XCTAssertNotNil(result.warningMessage)
+        XCTAssertTrue(
+            result.warningMessage?.contains("100 days ago") == true,
+            "Warning should mention days: \(result.warningMessage ?? "nil")"
+        )
+    }
+
+    // MARK: - Test 10: macOS Version Mismatch
+
+    func testStalenessCheckMacOSMismatch() {
+        let testedWith = TestedWith(
+            lastTestedAt: Date(), // Just now (not date-stale)
+            macOSVersion: "14.0.0",
+            wineVersion: "10.0"
+        )
+
+        let result = StalenessChecker.check(
+            testedWith: testedWith,
+            currentMacOSVersion: "15.3.0",
+            currentWineVersion: "10.0"
+        )
+
+        XCTAssertTrue(result.isStale, "Entry tested on macOS 14 with current 15.3 should be stale")
+        XCTAssertTrue(result.reasons.contains(.macOSVersionMismatch))
+        XCTAssertNotNil(result.warningMessage)
+        XCTAssertTrue(
+            result.warningMessage?.contains("macOS 14.0.0") == true,
+            "Warning should mention tested macOS version"
+        )
+    }
+
+    // MARK: - Test 11: Wine Version Mismatch
+
+    func testStalenessCheckWineVersionMismatch() {
+        let testedWith = TestedWith(
+            lastTestedAt: Date(), // Just now
+            macOSVersion: "15.3.0",
+            wineVersion: "9.0"
+        )
+
+        let result = StalenessChecker.check(
+            testedWith: testedWith,
+            currentMacOSVersion: "15.3.0",
+            currentWineVersion: "10.0"
+        )
+
+        XCTAssertTrue(result.isStale, "Entry tested on Wine 9 with current 10 should be stale")
+        XCTAssertTrue(result.reasons.contains(.wineVersionMismatch))
+        XCTAssertNotNil(result.warningMessage)
+        XCTAssertTrue(
+            result.warningMessage?.contains("Wine 9.0") == true,
+            "Warning should mention tested Wine version"
+        )
+    }
+
+    // MARK: - Test 12: Multiple Staleness Reasons
+
+    func testStalenessCheckMultipleReasons() {
+        let testedWith = TestedWith(
+            lastTestedAt: Date().addingTimeInterval(-120 * 86400), // 120 days ago
+            macOSVersion: "14.0.0",
+            wineVersion: "9.0"
+        )
+
+        let result = StalenessChecker.check(
+            testedWith: testedWith,
+            currentMacOSVersion: "15.3.0",
+            currentWineVersion: "10.0"
+        )
+
+        XCTAssertTrue(result.isStale)
+        XCTAssertTrue(result.reasons.contains(.dateExpired), "Should have date expired reason")
+        XCTAssertTrue(result.reasons.contains(.macOSVersionMismatch), "Should have macOS mismatch reason")
+        XCTAssertTrue(result.reasons.contains(.wineVersionMismatch), "Should have Wine mismatch reason")
+        XCTAssertEqual(result.reasons.count, 3, "Should have all three reasons")
+    }
+
+    // MARK: - Test 13: Same Minor Version Not Stale
+
+    func testStalenessCheckSameMinorVersionNotStale() {
+        let testedWith = TestedWith(
+            lastTestedAt: Date(), // Just now
+            macOSVersion: "15.2.0",
+            wineVersion: "10.0"
+        )
+
+        let result = StalenessChecker.check(
+            testedWith: testedWith,
+            currentMacOSVersion: "15.3.0",
+            currentWineVersion: "10.0"
+        )
+
+        XCTAssertFalse(
+            result.isStale,
+            "Entry tested on 15.2.0 with current 15.3.0 should NOT be stale (within 1 minor)"
+        )
+        XCTAssertFalse(result.reasons.contains(.macOSVersionMismatch))
+    }
+
+    // MARK: - Test: Same Wine Major Not Stale
+
+    func testSameWineMajorNotStale() {
+        let testedWith = TestedWith(
+            lastTestedAt: Date(),
+            macOSVersion: "15.3.0",
+            wineVersion: "10.0"
+        )
+
+        let result = StalenessChecker.check(
+            testedWith: testedWith,
+            currentMacOSVersion: "15.3.0",
+            currentWineVersion: "10.5"
+        )
+
+        XCTAssertFalse(result.isStale, "Same Wine major version should not be stale")
+    }
+
+    // MARK: - Test: macOS Minor Delta Exactly 1 Not Stale
+
+    func testMacOSMinorDeltaExactlyOneNotStale() {
+        let testedWith = TestedWith(
+            lastTestedAt: Date(),
+            macOSVersion: "15.2.0",
+            wineVersion: "10.0"
+        )
+
+        // Delta is exactly 1 (15.3 - 15.2 = 1), threshold is >1
+        let result = StalenessChecker.check(
+            testedWith: testedWith,
+            currentMacOSVersion: "15.3.0",
+            currentWineVersion: "10.0"
+        )
+
+        XCTAssertFalse(
+            result.reasons.contains(.macOSVersionMismatch),
+            "Minor delta of exactly 1 should not trigger macOS mismatch"
+        )
+    }
+
+    // MARK: - Test: macOS Minor Delta 2 Is Stale
+
+    func testMacOSMinorDeltaTwoIsStale() {
+        let testedWith = TestedWith(
+            lastTestedAt: Date(),
+            macOSVersion: "15.1.0",
+            wineVersion: "10.0"
+        )
+
+        // Delta is 2 (15.3 - 15.1 = 2), threshold is >1
+        let result = StalenessChecker.check(
+            testedWith: testedWith,
+            currentMacOSVersion: "15.3.0",
+            currentWineVersion: "10.0"
+        )
+
+        XCTAssertTrue(
+            result.reasons.contains(.macOSVersionMismatch),
+            "Minor delta of 2 should trigger macOS mismatch"
+        )
+    }
+}
 
 // swiftlint:enable file_length

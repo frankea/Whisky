@@ -10,6 +10,8 @@
 		D1A2B3C4E5F60504A9B0C1D1 /* DiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60504A9B0C1D0 /* DiagnosticsView.swift */; };
 		D1A2B3C4E5F60504A9B0C1D3 /* RemediationCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60504A9B0C1D2 /* RemediationCardView.swift */; };
 		D1A2B3C4E5F60504A9B0C1D5 /* LogViewerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60504A9B0C1D4 /* LogViewerView.swift */; };
+		D1A2B3C4E5F60504A9B0C1E1 /* DiagnosticExportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60504A9B0C1E0 /* DiagnosticExportSheet.swift */; };
+		D1A2B3C4E5F60504A9B0C1E3 /* DiagnosisHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60504A9B0C1E2 /* DiagnosisHistoryView.swift */; };
 		160B41C4006351293AAEEF27 /* LauncherConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D27C1F7764AE4F0AED2FD03D /* LauncherConfigSection.swift */; };
 		1A2B3C4D2E0107F000AABBCC /* TextTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4E2E0107F000AABBCC /* TextTable.swift */; };
 		2E9E4AD3124BDF8D5238BE32 /* DPIConfigSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3735C5328F7A6ABD2D1248 /* DPIConfigSheetView.swift */; };
@@ -136,6 +138,8 @@
 		D1A2B3C4E5F60504A9B0C1D0 /* DiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsView.swift; sourceTree = "<group>"; };
 		D1A2B3C4E5F60504A9B0C1D2 /* RemediationCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemediationCardView.swift; sourceTree = "<group>"; };
 		D1A2B3C4E5F60504A9B0C1D4 /* LogViewerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogViewerView.swift; sourceTree = "<group>"; };
+		D1A2B3C4E5F60504A9B0C1E0 /* DiagnosticExportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticExportSheet.swift; sourceTree = "<group>"; };
+		D1A2B3C4E5F60504A9B0C1E2 /* DiagnosisHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosisHistoryView.swift; sourceTree = "<group>"; };
 		000C327847E981AEF33EFB61 /* InputConfigSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = InputConfigSection.swift; sourceTree = "<group>"; };
 		407A01251379955919903C3F /* CleanupConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanupConfigSection.swift; sourceTree = "<group>"; };
 		1A2B3C4E2E0107F000AABBCC /* TextTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTable.swift; sourceTree = "<group>"; };
@@ -384,9 +388,11 @@
 		D1A2B3C4E5F60504A9B0C1D6 /* Diagnostics */ = {
 			isa = PBXGroup;
 			children = (
+				D1A2B3C4E5F60504A9B0C1E2 /* DiagnosisHistoryView.swift */,
+				D1A2B3C4E5F60504A9B0C1E0 /* DiagnosticExportSheet.swift */,
 				D1A2B3C4E5F60504A9B0C1D0 /* DiagnosticsView.swift */,
-				D1A2B3C4E5F60504A9B0C1D2 /* RemediationCardView.swift */,
 				D1A2B3C4E5F60504A9B0C1D4 /* LogViewerView.swift */,
+				D1A2B3C4E5F60504A9B0C1D2 /* RemediationCardView.swift */,
 			);
 			path = Diagnostics;
 			sourceTree = "<group>";
@@ -728,6 +734,8 @@
 				D1A2B3C4E5F60504A9B0C1D1 /* DiagnosticsView.swift in Sources */,
 				D1A2B3C4E5F60504A9B0C1D3 /* RemediationCardView.swift in Sources */,
 				D1A2B3C4E5F60504A9B0C1D5 /* LogViewerView.swift in Sources */,
+				D1A2B3C4E5F60504A9B0C1E1 /* DiagnosticExportSheet.swift in Sources */,
+				D1A2B3C4E5F60504A9B0C1E3 /* DiagnosisHistoryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

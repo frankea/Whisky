@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 6 in progress -- Audio Troubleshooting (Plan 4 of 5 complete)
+**Current focus:** Phase 6 complete -- Audio Troubleshooting (5 of 5 plans done)
 
 ## Current Position
 
 Phase: 6 of 10 (Audio Troubleshooting)
-Plan: 4 of 5 in current phase
-Status: Executing
-Last activity: 2026-02-10 -- Completed 06-04 (audio section UI)
+Plan: 5 of 5 in current phase
+Status: Phase Complete
+Last activity: 2026-02-10 -- Completed 06-05 (wizard, alerts, localization)
 
-Progress: [▓▓▓▓▓▓░░░░] 60%
+Progress: [▓▓▓▓▓▓▓░░░] 65%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
-- Average duration: 9.1min
-- Total execution time: 3.04 hours
+- Total plans completed: 22
+- Average duration: 9.0min
+- Total execution time: 3.21 hours
 
 **By Phase:**
 
@@ -32,11 +32,11 @@ Progress: [▓▓▓▓▓▓░░░░] 60%
 | 03-process-lifecycle-management | 3 | 18min | 6.0min |
 | 04-graphics-configuration | 3 | 12min | 4.0min |
 | 05-stability-diagnostics | 5 | 45min | 9.0min |
-| 06-audio-troubleshooting | 4/5 | 22min | 5.5min |
+| 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
 
 **Recent Trend:**
-- Last 5 plans: 05-05 (14min), 06-01 (5min), 06-02 (5min), 06-03 (5min), 06-04 (7min)
-- Trend: Audio plans executing quickly (~5.5min avg); UI section follows established GraphicsConfigSection pattern
+- Last 5 plans: 06-01 (5min), 06-02 (5min), 06-03 (5min), 06-04 (7min), 06-05 (10min)
+- Trend: Audio phase complete in 32min total; final plan slightly longer due to wizard + alerts + localization
 
 *Updated after each plan completion*
 
@@ -132,6 +132,10 @@ Recent decisions affecting current work:
 - [06-04]: @State instead of @StateObject for AudioDeviceMonitor (not ObservableObject; query-only device API)
 - [06-04]: AudioDeviceMonitor listener callback accepted with Sendable warning (dispatch guaranteed main-queue)
 - [06-04]: Findings view reuses ConfidenceTier color scheme from Phase 5 (green/yellow/gray badges)
+- [06-05]: AudioTroubleshootingEngine created on-demand when wizard opens; probes injected from AudioConfigSection
+- [06-05]: Bluetooth device change debounce at 2 seconds in AudioConfigSection
+- [06-05]: AudioAlertTracker uses 3-minute cooldown per device name for rate-limiting toast alerts
+- [06-05]: Deep-link uses Notification.Name.openAudioTroubleshooting (matching Phase 5 pattern)
 
 ### Pending Todos
 
@@ -144,5 +148,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Completed 06-04-PLAN.md
+Stopped at: Completed 06-05-PLAN.md (Phase 6 complete)
 Resume file: None

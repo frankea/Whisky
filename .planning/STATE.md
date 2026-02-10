@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 5 of 10 (Stability & Diagnostics)
-Plan: 2 of 5 in current phase (05-02 complete)
+Plan: 3 of 5 in current phase (05-03 complete)
 Status: In Progress
-Last activity: 2026-02-10 -- Completed 05-02-PLAN.md (Diagnostic Export Infrastructure)
+Last activity: 2026-02-10 -- Completed 05-03-PLAN.md (Process Lifecycle Integration)
 
-Progress: [▓▓▓▓▓░░░░░] 42%
+Progress: [▓▓▓▓▓░░░░░] 44%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
-- Average duration: 9.2min
-- Total execution time: 2.22 hours
+- Total plans completed: 16
+- Average duration: 9.3min
+- Total execution time: 2.37 hours
 
 **By Phase:**
 
@@ -31,11 +31,11 @@ Progress: [▓▓▓▓▓░░░░░] 42%
 | 02-configuration-foundation | 4 | 73min | 18.3min |
 | 03-process-lifecycle-management | 3 | 18min | 6.0min |
 | 04-graphics-configuration | 3 | 12min | 4.0min |
-| 05-stability-diagnostics | 2 | 13min | 6.5min |
+| 05-stability-diagnostics | 3 | 22min | 7.3min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (4min), 04-02 (5min), 04-03 (3min), 05-01 (7min), 05-02 (6min)
-- Trend: Consistent under 10min; export infrastructure plan completed efficiently
+- Last 5 plans: 04-02 (5min), 04-03 (3min), 05-01 (7min), 05-02 (6min), 05-03 (9min)
+- Trend: Integration plan slightly longer due to cross-file wiring; still under 10min
 
 *Updated after each plan completion*
 
@@ -103,6 +103,11 @@ Recent decisions affecting current work:
 - [05-02]: Redactor uses FileManager.default.homeDirectoryForCurrentUser for runtime home path detection
 - [05-02]: DiagnosticExporter captures MainActor-isolated values before Task.detached for file I/O
 - [05-02]: ExportOptions at module scope (not nested in DiagnosticExporter) for cleaner API surface
+- [05-03]: ProgramRunResult @discardableResult return from runProgram for backward compatibility
+- [05-03]: Crash signature heuristic Set<String> pre-check before running full classifier pipeline
+- [05-03]: makeFileHandleWithURL() alongside existing makeFileHandle() for log URL tracking
+- [05-03]: Notification.Name.crashDiagnosisAvailable carries diagnosis, programPath, logFileURL in userInfo
+- [05-03]: DiagnosisHistory sidecar stored as programName.diagnosis-history.plist in Program Settings directory
 
 ### Pending Todos
 
@@ -115,5 +120,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Completed 05-02-PLAN.md (Diagnostic Export Infrastructure)
+Stopped at: Completed 05-03-PLAN.md (Process Lifecycle Integration)
 Resume file: None

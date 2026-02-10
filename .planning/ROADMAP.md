@@ -119,11 +119,14 @@ Plans:
   2. An in-app audio troubleshooting guide walks users through step-by-step remediation for common issues (crackling, missing sound, stuttering)
   3. Up to 3-4 audio-related Wine settings (FAudio/dsound selection, sample rate override) are configurable per bottle
   4. Audio diagnostics panel detects Bluetooth device disconnects and sample rate mismatches with specific guidance
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md -- Audio device data models, CoreAudio monitoring, and unit tests (TDD)
+- [ ] 06-02-PLAN.md -- BottleAudioConfig, BottleSettings integration, Wine audio registry helpers
+- [ ] 06-03-PLAN.md -- Audio probes (CoreAudio, Wine registry, test exe), troubleshooting engine state machine
+- [ ] 06-04-PLAN.md -- Audio section UI (status, test buttons, Simple/Advanced settings, findings)
+- [ ] 06-05-PLAN.md -- Troubleshooting wizard UI, device change alerts, deep-links, localization
 
 ### Phase 7: Game Compatibility Database
 **Goal**: Users can look up known-good configurations for common games and apply them with one click, reducing trial-and-error configuration
@@ -206,7 +209,7 @@ Note: Phases 3 and 4 are parallel-capable (no mutual dependencies). Phases 5 and
 | 3. Process Lifecycle Management | 3/3 | ✓ Complete | 2026-02-09 |
 | 4. Graphics Configuration | 3/3 | ✓ Complete | 2026-02-09 |
 | 5. Stability & Diagnostics | 5/5 | ✓ Complete | 2026-02-10 |
-| 6. Audio Troubleshooting | 0/TBD | Not started | - |
+| 6. Audio Troubleshooting | 0/5 | Not started | - |
 | 7. Game Compatibility Database | 0/TBD | Not started | - |
 | 8. Remaining Platform Issues | 0/TBD | Not started | - |
 | 9. UI/UX & Feature Requests | 0/TBD | Not started | - |

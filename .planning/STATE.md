@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 6 in progress -- Audio Troubleshooting (Plan 2 of 5 complete)
+**Current focus:** Phase 6 in progress -- Audio Troubleshooting (Plan 3 of 5 complete)
 
 ## Current Position
 
 Phase: 6 of 10 (Audio Troubleshooting)
-Plan: 2 of 5 in current phase
+Plan: 3 of 5 in current phase
 Status: Executing
-Last activity: 2026-02-10 -- Completed 06-02 (audio config model + registry helpers)
+Last activity: 2026-02-10 -- Completed 06-03 (audio probes + troubleshooting engine)
 
 Progress: [▓▓▓▓▓▓░░░░] 60%
 
@@ -32,11 +32,11 @@ Progress: [▓▓▓▓▓▓░░░░] 60%
 | 03-process-lifecycle-management | 3 | 18min | 6.0min |
 | 04-graphics-configuration | 3 | 12min | 4.0min |
 | 05-stability-diagnostics | 5 | 45min | 9.0min |
-| 06-audio-troubleshooting | 2/5 | 10min | 5.0min |
+| 06-audio-troubleshooting | 3/5 | 15min | 5.0min |
 
 **Recent Trend:**
-- Last 5 plans: 05-03 (9min), 05-04 (9min), 05-05 (14min), 06-01 (5min), 06-02 (5min)
-- Trend: Audio config/model plans executing quickly (~5min); pattern reuse from Phase 4 paying off
+- Last 5 plans: 05-04 (9min), 05-05 (14min), 06-01 (5min), 06-02 (5min), 06-03 (5min)
+- Trend: Audio plans executing quickly (~5min); probe/engine pattern reuse from Phase 5 diagnostics paying off
 
 *Updated after each plan completion*
 
@@ -125,6 +125,10 @@ Recent decisions affecting current work:
 - [06-02]: Audio config follows BottleGraphicsConfig pattern exactly: module-scope enums, defensive decoding, private stored property with proxy properties
 - [06-02]: Audio settings are registry-backed (not env vars): populateAudioLayer is a placeholder for future audio env var support
 - [06-02]: RegistryType promoted to public and addRegistryKey/queryRegistryKey promoted from private to public for module-wide access
+- [06-03]: WineRegistryAudioProbe uses @unchecked Sendable final class with @MainActor bridge for registry access
+- [06-03]: WineAudioTestProbe uses Wine.runWineProcess streaming API for separate stdout/stderr capture
+- [06-03]: AudioTroubleshootingEngine fix order is hardcoded per symptom as static dictionary (JSON migration ready)
+- [06-03]: MinGW not available; WhiskyAudioTest.exe not compiled (probe returns .skipped gracefully)
 
 ### Pending Todos
 
@@ -137,5 +141,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Completed 06-01-PLAN.md (re-executed with proper commits and summary)
+Stopped at: Completed 06-03-PLAN.md
 Resume file: None

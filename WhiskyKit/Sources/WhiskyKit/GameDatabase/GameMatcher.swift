@@ -1,4 +1,4 @@
-// swiftlint:disable file_length type_body_length
+// swiftlint:disable file_length
 //
 //  GameMatcher.swift
 //  WhiskyKit
@@ -254,8 +254,7 @@ public enum GameMatcher {
                 for fingerprint in fingerprints {
                     if let fpSize = fingerprint.fileSize, let fpTimestamp = fingerprint.peTimestamp {
                         if metaSize == fpSize,
-                           abs(metaTimestamp.timeIntervalSince(fpTimestamp)) < 1.0
-                        {
+                           abs(metaTimestamp.timeIntervalSince(fpTimestamp)) < 1.0 {
                             return (0.95, "File size and PE timestamp match known fingerprint")
                         }
                     }
@@ -326,12 +325,9 @@ public enum GameMatcher {
         let uniqueTargets = Set(targetTokens)
 
         // Count matching tokens
-        var matchCount = 0
-        for exeToken in exeTokens {
-            if uniqueTargets.contains(where: { $0.hasPrefix(exeToken) || exeToken.hasPrefix($0) }) {
-                matchCount += 1
-            }
-        }
+        let matchCount = exeTokens.filter { exeToken in
+            uniqueTargets.contains { $0.hasPrefix(exeToken) || exeToken.hasPrefix($0) }
+        }.count
 
         guard matchCount > 0 else { return nil }
 
@@ -367,16 +363,14 @@ public enum GameMatcher {
         let currentOS = operatingSystemVersion()
 
         // Filter variants whose constraints match current machine
-        let matching = entry.variants.filter { variant in
-            guard let testedWith = variant.testedWith else { return true }
-            // Check CPU architecture if tested architecture is known
-            if let testedArch = testedWith.cpuArchitecture,
-               !testedArch.isEmpty, testedArch != currentArch
-            {
-                // Prefer variants tested on the same architecture, but don't exclude
-                // We use this as a soft preference via the sort below
+        // Sort variants: prefer those tested on current architecture
+        let matching = entry.variants.sorted { lhs, rhs in
+            let lhsMatchesArch = lhs.testedWith?.cpuArchitecture == currentArch
+            let rhsMatchesArch = rhs.testedWith?.cpuArchitecture == currentArch
+            if lhsMatchesArch != rhsMatchesArch {
+                return lhsMatchesArch
             }
-            return true
+            return false
         }
 
         // Prefer isDefault variant
@@ -430,4 +424,4 @@ public enum GameMatcher {
     }
 }
 
-// swiftlint:enable file_length type_body_length
+// swiftlint:enable file_length

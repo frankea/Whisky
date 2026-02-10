@@ -133,17 +133,19 @@ public enum StalenessChecker {
 
     // MARK: - Version Comparison Helpers
 
-    /// Parses a version string like "15.3.0" into (major, minor, patch) components.
+    /// A parsed semantic version with major, minor, and patch components.
+    private struct ParsedVersion {
+        let major: Int
+        let minor: Int
+    }
+
+    /// Parses a version string like "15.3.0" into major and minor components.
     ///
     /// Returns `nil` if the string cannot be parsed.
-    private static func parseVersion(_ version: String) -> (major: Int, minor: Int, patch: Int)? {
+    private static func parseVersion(_ version: String) -> ParsedVersion? {
         let components = version.split(separator: ".").compactMap { Int($0) }
         guard components.count >= 2 else { return nil }
-        return (
-            major: components[0],
-            minor: components[1],
-            patch: components.count >= 3 ? components[2] : 0
-        )
+        return ParsedVersion(major: components[0], minor: components[1])
     }
 
     /// Checks if the macOS version indicates staleness.

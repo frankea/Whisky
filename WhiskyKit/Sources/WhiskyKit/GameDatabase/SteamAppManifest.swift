@@ -125,8 +125,7 @@ public enum SteamAppManifest {
             let filePath = appIdFile.path(percentEncoded: false)
 
             if fileManager.fileExists(atPath: filePath),
-               let text = try? String(contentsOf: appIdFile, encoding: .utf8)
-            {
+               let text = try? String(contentsOf: appIdFile, encoding: .utf8) {
                 let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
                 if let appId = Int(trimmed) {
                     return appId

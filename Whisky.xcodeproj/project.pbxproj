@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E1A2B3C4E5F60701A9B0C1D0 /* GameEntryRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A2B3C4E5F60701A9B0C1D1 /* GameEntryRowView.swift */; };
+		E1A2B3C4E5F60701A9B0C1D2 /* GameConfigurationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A2B3C4E5F60701A9B0C1D3 /* GameConfigurationView.swift */; };
 		160B41C4006351293AAEEF27 /* LauncherConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D27C1F7764AE4F0AED2FD03D /* LauncherConfigSection.swift */; };
 		1A2B3C4D2E0107F000AABBCC /* TextTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4E2E0107F000AABBCC /* TextTable.swift */; };
 		1A8BB6C8C6FC24E0837A3C59 /* CleanupConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 407A01251379955919903C3F /* CleanupConfigSection.swift */; };
@@ -146,6 +148,8 @@
 
 /* Begin PBXFileReference section */
 		000C327847E981AEF33EFB61 /* InputConfigSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = InputConfigSection.swift; sourceTree = "<group>"; };
+		E1A2B3C4E5F60701A9B0C1D1 /* GameEntryRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEntryRowView.swift; sourceTree = "<group>"; };
+		E1A2B3C4E5F60701A9B0C1D3 /* GameConfigurationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConfigurationView.swift; sourceTree = "<group>"; };
 		1A2B3C4E2E0107F000AABBCC /* TextTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTable.swift; sourceTree = "<group>"; };
 		258BF9104045ED48882E009D /* WineConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineConfigSection.swift; sourceTree = "<group>"; };
 		366E8BD2A51FD444160DFC10 /* LauncherDetection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherDetection.swift; sourceTree = "<group>"; };
@@ -412,6 +416,7 @@
 				C1A2B3C4E5F60601A9B0C1DA /* Audio */,
 				63FFDE822ADEFADF00178665 /* Common */,
 				D1A2B3C4E5F60504A9B0C1D6 /* Diagnostics */,
+				E1A2B3C4E5F60701A9B0C1D4 /* GameDB */,
 				6E49E01F2AECB7D000009CAC /* Settings */,
 				6E6C0CF02A419A5800356232 /* Setup */,
 				6E17B6472AF3FE2E00831173 /* Programs */,
@@ -503,6 +508,15 @@
 				ADA9ADA587AF95DCFEC04F25 /* AudioAlertTracker.swift */,
 			);
 			path = Audio;
+			sourceTree = "<group>";
+		};
+		E1A2B3C4E5F60701A9B0C1D4 /* GameDB */ = {
+			isa = PBXGroup;
+			children = (
+				E1A2B3C4E5F60701A9B0C1D3 /* GameConfigurationView.swift */,
+				E1A2B3C4E5F60701A9B0C1D1 /* GameEntryRowView.swift */,
+			);
+			path = GameDB;
 			sourceTree = "<group>";
 		};
 		D1A2B3C4E5F60504A9B0C1D6 /* Diagnostics */ = {
@@ -784,6 +798,8 @@
 				C1A2B3C4E5F60601A9B0C2D4 /* AudioDeviceHistoryView.swift in Sources */,
 				D6EEECF2BAE764BAE529B9BA /* AudioAlertTracker.swift in Sources */,
 				484A57DAD0A7634094236533 /* DiagnosticsPickerSheet.swift in Sources */,
+				E1A2B3C4E5F60701A9B0C1D0 /* GameEntryRowView.swift in Sources */,
+				E1A2B3C4E5F60701A9B0C1D2 /* GameConfigurationView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

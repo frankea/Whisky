@@ -1,4 +1,3 @@
-// swiftlint:disable file_length
 //
 //  GameMatcherTests.swift
 //  WhiskyKitTests
@@ -337,5 +336,3 @@ final class GameMatcherTests: XCTestCase {
         XCTAssertEqual(lowerIds, mixedIds, "Case should not affect search results")
     }
 }
-
-// swiftlint:enable file_length

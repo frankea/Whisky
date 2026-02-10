@@ -198,6 +198,7 @@ public enum GameConfigApplicator {
 
     // MARK: - Preview Changes
 
+    // swiftlint:disable cyclomatic_complexity function_body_length
     /// Generates a preview of what settings would change if a variant were applied.
     ///
     /// Compares each non-nil field in the variant's settings against the current
@@ -362,6 +363,7 @@ public enum GameConfigApplicator {
 
         return changes
     }
+    // swiftlint:enable cyclomatic_complexity function_body_length
 
     // MARK: - Private Helpers
 

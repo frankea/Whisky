@@ -422,7 +422,6 @@ public struct GameDBEntry: Codable, Sendable, Equatable {
         self.provenance = provenance
     }
 
-    // swiftlint:disable function_body_length
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = try container.decode(String.self, forKey: .id)
@@ -445,7 +444,6 @@ public struct GameDBEntry: Codable, Sendable, Equatable {
         self.knownIssues = try container.decodeIfPresent([KnownIssue].self, forKey: .knownIssues)
         self.provenance = try container.decodeIfPresent(Provenance.self, forKey: .provenance)
     }
-    // swiftlint:enable function_body_length
 }
 
 // swiftlint:enable file_length

@@ -22,6 +22,7 @@ import XCTest
 
 // MARK: - CompatibilityRating Tests
 
+// swiftlint:disable:next type_body_length
 final class GameDatabaseTests: XCTestCase {
     // MARK: - Test 1: CompatibilityRating Codable Round-Trip
 
@@ -54,6 +55,7 @@ final class GameDatabaseTests: XCTestCase {
 
     // MARK: - Test 3: GameDBEntry Decodes from Full JSON
 
+    // swiftlint:disable:next function_body_length
     func testGameDBEntryDecodesFromJSON() throws {
         let json = """
         {

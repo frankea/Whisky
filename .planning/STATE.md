@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 5 complete -- ready for Phase 6 (Audio Troubleshooting)
+**Current focus:** Phase 6 in progress -- Audio Troubleshooting (Plan 2 of 5 complete)
 
 ## Current Position
 
-Phase: 5 of 10 (Stability & Diagnostics) -- VERIFIED
-Plan: 5 of 5 in current phase (all complete)
-Status: Phase Verified & Complete
-Last activity: 2026-02-10 -- Phase 5 verified, gaps closed (SwiftLint test split)
+Phase: 6 of 10 (Audio Troubleshooting)
+Plan: 2 of 5 in current phase
+Status: Executing
+Last activity: 2026-02-10 -- Completed 06-02 (audio config model + registry helpers)
 
-Progress: [▓▓▓▓▓░░░░░] 50%
+Progress: [▓▓▓▓▓▓░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 18
-- Average duration: 9.5min
-- Total execution time: 2.75 hours
+- Total plans completed: 20
+- Average duration: 9.3min
+- Total execution time: 2.92 hours
 
 **By Phase:**
 
@@ -32,10 +32,11 @@ Progress: [▓▓▓▓▓░░░░░] 50%
 | 03-process-lifecycle-management | 3 | 18min | 6.0min |
 | 04-graphics-configuration | 3 | 12min | 4.0min |
 | 05-stability-diagnostics | 5 | 45min | 9.0min |
+| 06-audio-troubleshooting | 2/5 | 10min | 5.0min |
 
 **Recent Trend:**
-- Last 5 plans: 05-01 (7min), 05-02 (6min), 05-03 (9min), 05-04 (9min), 05-05 (14min)
-- Trend: Final integration plan took 14min (multi-file wiring + localization); UI plans averaging ~9min
+- Last 5 plans: 05-03 (9min), 05-04 (9min), 05-05 (14min), 06-01 (5min), 06-02 (5min)
+- Trend: Audio config/model plans executing quickly (~5min); pattern reuse from Phase 4 paying off
 
 *Updated after each plan completion*
 
@@ -118,6 +119,9 @@ Recent decisions affecting current work:
 - [05-05]: Crash banner auto-dismisses after 8s with overlay alignment + transition animation
 - [05-05]: DiagnosticsPickerSheet for Help menu entry point (menu has no program context, needs selection)
 - [05-05]: Plain English localization strings for diagnostics UI (matching 05-04 pattern, auto-discovered by Xcode)
+- [06-02]: Audio config follows BottleGraphicsConfig pattern exactly: module-scope enums, defensive decoding, private stored property with proxy properties
+- [06-02]: Audio settings are registry-backed (not env vars): populateAudioLayer is a placeholder for future audio env var support
+- [06-02]: RegistryType promoted to public and addRegistryKey/queryRegistryKey promoted from private to public for module-wide access
 
 ### Pending Todos
 
@@ -130,5 +134,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Phase 5 complete and verified; ready for Phase 6
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None

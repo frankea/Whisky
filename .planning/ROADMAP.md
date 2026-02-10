@@ -137,12 +137,16 @@ Plans:
   2. User can view per-game troubleshooting notes and recommended settings from within the app
   3. One-click "Apply recommended configuration" sets environment variables, DLL overrides, and winetricks verbs for a matched game
   4. Compatibility entries display version tuples (Wine version, macOS version, last verified date) with staleness warnings for outdated data
-**Plans**: TBD
+**Plans**: 7 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
-- [ ] 07-03: TBD
+- [ ] 07-01-PLAN.md -- Core data models: GameDBEntry, CompatibilityRating, MatchResult, GameConfigSnapshot, SteamAppManifest (TDD)
+- [ ] 07-02-PLAN.md -- GameDBLoader JSON resource loading and GameMatcher tiered scoring algorithm (TDD)
+- [ ] 07-03-PLAN.md -- GameConfigApplicator apply/revert/snapshot and StalenessChecker
+- [ ] 07-04-PLAN.md -- GameConfigurationView global list with search, filters, and BottleView navigation
+- [ ] 07-05-PLAN.md -- GameEntryDetailView 6-section layout, GameConfigPreviewSheet with diff, GameVariantPickerView
+- [ ] 07-06-PLAN.md -- Contextual integration: banners, program settings suggestions, config revert, localization
+- [ ] 07-07-PLAN.md -- GameDB.json population with 25-30 verified game configuration entries
 
 ### Phase 8: Remaining Platform Issues
 **Goal**: Launcher, controller, and installation issues from upstream tracking categories are resolved through code fixes and in-app guidance

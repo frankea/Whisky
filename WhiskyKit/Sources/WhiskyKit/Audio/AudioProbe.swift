@@ -72,16 +72,29 @@ public struct CoreAudioDeviceProbe: AudioProbe {
             )
         }
 
-        var evidence: [String] = []
-        evidence.append("Device: \(device.name)")
-        evidence.append("Transport: \(device.transportType.displayName)")
-        evidence.append("Sample rate: \(Int(device.sampleRate)) Hz")
-        evidence.append("Output channels: \(device.outputChannelCount)")
-        evidence.append("Is default: \(device.isDefault)")
+        let evidence = [
+            "Device: \(device.name)",
+            "Transport: \(device.transportType.displayName)",
+            "Sample rate: \(Int(device.sampleRate)) Hz",
+            "Output channels: \(device.outputChannelCount)",
+            "Is default: \(device.isDefault)"
+        ]
 
+        let findings = analyzeDevice(device)
+        let status: ProbeStatus = findings.isEmpty ? .passed : .warning
+        let summary = findings.isEmpty
+            ? "\(device.name) (\(device.transportType.displayName), \(Int(device.sampleRate)) Hz)"
+            : "\(device.name): \(findings.count) issue\(findings.count == 1 ? "" : "s") detected"
+
+        return AudioProbeResult(
+            probeId: id, status: status, summary: summary,
+            evidence: evidence, findings: findings
+        )
+    }
+
+    private func analyzeDevice(_ device: AudioDeviceInfo) -> [AudioFinding] {
         var findings: [AudioFinding] = []
 
-        // Bluetooth audio can introduce latency
         if device.transportType == .bluetooth {
             findings.append(AudioFinding(
                 id: "bluetooth-device",
@@ -92,7 +105,6 @@ public struct CoreAudioDeviceProbe: AudioProbe {
             ))
         }
 
-        // Low sample rate detection
         if device.sampleRate < 22_050 {
             findings.append(AudioFinding(
                 id: "low-sample-rate",
@@ -111,7 +123,6 @@ public struct CoreAudioDeviceProbe: AudioProbe {
             ))
         }
 
-        // No output channels
         if device.outputChannelCount == 0 {
             findings.append(AudioFinding(
                 id: "no-output-channels",
@@ -122,18 +133,7 @@ public struct CoreAudioDeviceProbe: AudioProbe {
             ))
         }
 
-        let status: ProbeStatus = findings.isEmpty ? .ok : .warning
-        let summary = findings.isEmpty
-            ? "\(device.name) (\(device.transportType.displayName), \(Int(device.sampleRate)) Hz)"
-            : "\(device.name): \(findings.count) issue\(findings.count == 1 ? "" : "s") detected"
-
-        return AudioProbeResult(
-            probeId: id,
-            status: status,
-            summary: summary,
-            evidence: evidence,
-            findings: findings
-        )
+        return findings
     }
 }
 
@@ -162,18 +162,43 @@ public final class WineRegistryAudioProbe: AudioProbe, @unchecked Sendable {
         var evidence: [String] = []
         var findings: [AudioFinding] = []
 
-        // Read audio driver setting
+        let driverResult = await readAudioDriverSettings(evidence: &evidence, findings: &findings)
+        if case let .error(result) = driverResult {
+            return result
+        }
+
+        await readBufferSettings(evidence: &evidence, findings: &findings)
+
+        let status: ProbeStatus = findings.isEmpty ? .passed : .warning
+        let summary = findings.isEmpty
+            ? "Wine audio registry: configured correctly"
+            : "Wine audio registry: \(findings.count) issue\(findings.count == 1 ? "" : "s") detected"
+
+        return AudioProbeResult(
+            probeId: id,
+            status: status,
+            summary: summary,
+            evidence: evidence,
+            findings: findings
+        )
+    }
+
+    @MainActor
+    private func readAudioDriverSettings(
+        evidence: inout [String],
+        findings: inout [AudioFinding]
+    ) async -> DriverReadResult {
         let driverValue: String?
         do {
             driverValue = try await Wine.readAudioDriver(bottle: bottle)
         } catch {
-            return AudioProbeResult(
+            return .error(AudioProbeResult(
                 probeId: id,
                 status: .error,
                 summary: "Failed to read Wine audio registry",
                 evidence: ["Error reading audio driver key: \(error.localizedDescription)"],
                 findings: []
-            )
+            ))
         }
 
         if let driver = driverValue {
@@ -191,7 +216,11 @@ public final class WineRegistryAudioProbe: AudioProbe, @unchecked Sendable {
             evidence.append("Audio driver: not set (Wine auto-detect)")
         }
 
-        // Read DirectSound buffer size
+        return .success
+    }
+
+    @MainActor
+    private func readBufferSettings(evidence: inout [String], findings: inout [AudioFinding]) async {
         let bufferSize: Int?
         do {
             bufferSize = try await Wine.readDirectSoundBuffer(bottle: bottle)
@@ -214,217 +243,10 @@ public final class WineRegistryAudioProbe: AudioProbe, @unchecked Sendable {
         } else if bufferSize == nil {
             evidence.append("DirectSound HelBuflen: not set (Wine default)")
         }
-
-        let status: ProbeStatus = findings.isEmpty ? .ok : .warning
-        let summary = findings.isEmpty
-            ? "Wine audio registry: configured correctly"
-            : "Wine audio registry: \(findings.count) issue\(findings.count == 1 ? "" : "s") detected"
-
-        return AudioProbeResult(
-            probeId: id,
-            status: status,
-            summary: summary,
-            evidence: evidence,
-            findings: findings
-        )
-    }
-}
-
-// MARK: - WineAudioTestProbe
-
-/// Runs WhiskyAudioTest.exe via Wine to exercise the audio stack.
-///
-/// This is the most complex probe. It runs a minimal Windows executable
-/// that initializes WinMM waveOut and writes a short audio buffer,
-/// then parses the JSON result line from stdout. The probe is designed
-/// to be completely resilient -- it never crashes and always produces
-/// a structured result.
-public final class WineAudioTestProbe: AudioProbe, @unchecked Sendable {
-    public let id = "wine-audio-test"
-    public let displayName = "Wine Audio Stack Test"
-
-    /// Curated WINEDEBUG preset for audio troubleshooting channels.
-    private static let audioDebugPreset = "+mmdevapi,+dsound,+winmm"
-
-    private let bottle: Bottle
-    private let testExeURL: URL?
-    private let logger = Logger(
-        subsystem: "com.isaacmarovitz.Whisky",
-        category: "WineAudioTestProbe"
-    )
-
-    public init(bottle: Bottle, testExeURL: URL?) {
-        self.bottle = bottle
-        self.testExeURL = testExeURL
     }
 
-    public func run() async -> AudioProbeResult {
-        await runTest(beep: false)
+    private enum DriverReadResult {
+        case success
+        case error(AudioProbeResult)
     }
-
-    /// Runs the audio test with the --beep flag to play a test tone.
-    public func runWithBeep() async -> AudioProbeResult {
-        await runTest(beep: true)
-    }
-
-    @MainActor
-    private func runTest(beep: Bool) async -> AudioProbeResult {
-        guard let exeURL = testExeURL, FileManager.default.fileExists(atPath: exeURL.path) else {
-            return AudioProbeResult(
-                probeId: id,
-                status: .skipped,
-                summary: "Audio test helper not available",
-                evidence: ["WhiskyAudioTest.exe not found in app bundle"]
-            )
-        }
-
-        let exePath = exeURL.path
-        var args = [exePath]
-        if beep {
-            args.append("--beep")
-        }
-
-        let environment = ["WINEDEBUG": Self.audioDebugPreset]
-
-        var stdoutLines: [String] = []
-        var stderrLines: [String] = []
-        var exitCode: Int32 = -1
-
-        do {
-            let stream = try Wine.runWineProcess(
-                name: "WhiskyAudioTest",
-                args: args,
-                bottle: bottle,
-                environment: environment
-            )
-
-            for await output in stream {
-                switch output {
-                case .started:
-                    break
-                case let .message(line):
-                    stdoutLines.append(line)
-                case let .error(line):
-                    stderrLines.append(line)
-                case let .terminated(code):
-                    exitCode = code
-                }
-            }
-        } catch {
-            return AudioProbeResult(
-                probeId: id,
-                status: .error,
-                summary: "Failed to launch audio test",
-                evidence: [
-                    "Error: \(error.localizedDescription)",
-                    "Exe path: \(exePath)"
-                ]
-            )
-        }
-
-        // Parse JSON result line from stdout
-        let allOutput = stdoutLines.joined()
-        return parseTestResult(
-            output: allOutput,
-            stderr: stderrLines,
-            exitCode: exitCode,
-            beep: beep
-        )
-    }
-
-    private func parseTestResult(
-        output: String, stderr: [String], exitCode: Int32, beep: Bool
-    ) -> AudioProbeResult {
-        var evidence: [String] = []
-        evidence.append("Exit code: \(exitCode)")
-
-        // Include relevant Wine stderr lines for troubleshooting
-        let relevantStderr = stderr.filter { line in
-            line.contains("mmdevapi") || line.contains("dsound") ||
-                line.contains("winmm") || line.contains("err:") || line.contains("warn:")
-        }
-        if !relevantStderr.isEmpty {
-            evidence.append("Wine audio log:")
-            evidence.append(contentsOf: relevantStderr.prefix(20))
-        }
-
-        // Look for JSON result line in stdout
-        let lines = output.components(separatedBy: .newlines)
-        let jsonLine = lines.first { $0.trimmingCharacters(in: .whitespaces).hasPrefix("{\"") }
-
-        guard let json = jsonLine else {
-            evidence.append("No JSON result line found in output")
-            if !output.isEmpty {
-                evidence.append("Raw output: \(output.prefix(500))")
-            }
-            return AudioProbeResult(
-                probeId: id,
-                status: .error,
-                summary: "Audio test produced no result",
-                evidence: evidence
-            )
-        }
-
-        // Parse JSON
-        guard let data = json.data(using: .utf8),
-              let result = try? JSONDecoder().decode(AudioTestResult.self, from: data)
-        else {
-            evidence.append("Failed to parse JSON: \(json)")
-            return AudioProbeResult(
-                probeId: id,
-                status: .error,
-                summary: "Audio test result could not be parsed",
-                evidence: evidence
-            )
-        }
-
-        evidence.append("API: \(result.api)")
-
-        if result.status == "ok" {
-            if let rate = result.sampleRate {
-                evidence.append("Sample rate: \(rate) Hz")
-            }
-            if let channels = result.channels {
-                evidence.append("Channels: \(channels)")
-            }
-            evidence.append("Beep mode: \(beep)")
-
-            return AudioProbeResult(
-                probeId: id,
-                status: .ok,
-                summary: "Wine audio stack is functional (\(result.api))",
-                evidence: evidence
-            )
-        } else {
-            var findings: [AudioFinding] = []
-            let codeStr = result.code.map { String($0) } ?? "unknown"
-            findings.append(AudioFinding(
-                id: "wine-audio-test-error",
-                description: "Wine audio test failed via \(result.api)",
-                confidence: .high,
-                evidence: "Error code: \(codeStr)",
-                suggestedAction: "Check Wine audio driver configuration"
-            ))
-
-            evidence.append("Error code: \(codeStr)")
-
-            return AudioProbeResult(
-                probeId: id,
-                status: .warning,
-                summary: "Wine audio test failed: \(result.api) error \(codeStr)",
-                evidence: evidence,
-                findings: findings
-            )
-        }
-    }
-}
-
-/// Internal model for parsing WhiskyAudioTest.exe JSON output.
-private struct AudioTestResult: Codable {
-    let status: String
-    let api: String
-    let sampleRate: Int?
-    let channels: Int?
-    let beep: Bool?
-    let code: Int?
 }

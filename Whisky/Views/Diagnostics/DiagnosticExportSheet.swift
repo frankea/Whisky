@@ -159,7 +159,6 @@ extension DiagnosticExportSheet {
                     bottle: bottle,
                     program: program,
                     logFileURL: logFileURL,
-                    history: loadDiagnosisHistory(),
                     timeline: loadRemediationTimeline(),
                     options: exportOptions
                 )

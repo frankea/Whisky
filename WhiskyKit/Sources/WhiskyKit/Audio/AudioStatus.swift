@@ -24,7 +24,7 @@ import Foundation
 /// state. It is not persisted (not `Codable`).
 public enum AudioStatus: Sendable, Equatable {
     /// Audio is working correctly.
-    case ok
+    case healthy
     /// Audio is functional but has an identified issue.
     case degraded(primaryIssue: String)
     /// Audio is not functional.
@@ -35,7 +35,7 @@ public enum AudioStatus: Sendable, Equatable {
     /// Human-readable display name.
     public var displayName: String {
         switch self {
-        case .ok: "OK"
+        case .healthy: "OK"
         case .degraded: "Degraded"
         case .broken: "Broken"
         case .unknown: "Unknown"
@@ -45,7 +45,7 @@ public enum AudioStatus: Sendable, Equatable {
     /// SF Symbol name for status presentation.
     public var sfSymbol: String {
         switch self {
-        case .ok: "checkmark.circle.fill"
+        case .healthy: "checkmark.circle.fill"
         case .degraded: "exclamationmark.triangle.fill"
         case .broken: "xmark.circle.fill"
         case .unknown: "questionmark.circle"
@@ -55,7 +55,7 @@ public enum AudioStatus: Sendable, Equatable {
     /// Semantic tint color name for status presentation.
     public var tintColor: String {
         switch self {
-        case .ok: "green"
+        case .healthy: "green"
         case .degraded: "orange"
         case .broken: "red"
         case .unknown: "secondary"

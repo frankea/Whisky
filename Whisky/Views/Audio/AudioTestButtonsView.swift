@@ -66,7 +66,7 @@ struct AudioTestButtonsView: View {
             let probes: [any AudioProbe] = [
                 CoreAudioDeviceProbe(monitor: monitor),
                 WineRegistryAudioProbe(bottle: bottle),
-                WineAudioTestProbe(bottle: bottle, testExeURL: testExeURL),
+                WineAudioTestProbe(bottle: bottle, testExeURL: testExeURL)
             ]
 
             var results: [AudioProbeResult] = []
@@ -112,7 +112,7 @@ struct AudioTestButtonsView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Button("Yes") {
-                onStatusUpdate(.ok)
+                onStatusUpdate(.healthy)
                 showToneConfirmation = false
             }
             .controlSize(.small)
@@ -177,6 +177,6 @@ struct AudioTestButtonsView: View {
             return .degraded(primaryIssue: primaryIssue)
         }
 
-        return .ok
+        return .healthy
     }
 }

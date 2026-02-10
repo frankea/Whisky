@@ -99,7 +99,7 @@ public final class AudioTroubleshootingEngine: ObservableObject {
         .crackling: ["set-stable-latency", "set-coreaudio-driver", "reset-audio-state"],
         .stutter: ["set-stable-latency", "check-audio-driver", "reset-audio-state"],
         .wrongDevice: ["reset-audio-state", "check-system-settings"],
-        .menusOnly: ["set-coreaudio-driver", "check-dsound", "reset-audio-state"],
+        .menusOnly: ["set-coreaudio-driver", "check-dsound", "reset-audio-state"]
     ]
 
     /// Human-readable descriptions for each fix action.
@@ -115,7 +115,7 @@ public final class AudioTroubleshootingEngine: ObservableObject {
         "check-system-settings":
             "Check macOS Sound settings and ensure the correct output device is selected",
         "check-dsound":
-            "Verify DirectSound configuration and buffer settings",
+            "Verify DirectSound configuration and buffer settings"
     ]
 
     // MARK: - Init

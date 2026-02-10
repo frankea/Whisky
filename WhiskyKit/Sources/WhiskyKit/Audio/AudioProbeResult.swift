@@ -21,7 +21,7 @@ import Foundation
 /// The outcome status of a single audio probe execution.
 public enum ProbeStatus: String, Sendable, Equatable {
     /// Probe completed successfully with no issues detected.
-    case ok
+    case passed
     /// Probe completed but detected a potential issue.
     case warning
     /// Probe failed or detected a critical issue.
@@ -32,7 +32,7 @@ public enum ProbeStatus: String, Sendable, Equatable {
     /// Human-readable display name for this status.
     public var displayName: String {
         switch self {
-        case .ok: "OK"
+        case .passed: "OK"
         case .warning: "Warning"
         case .error: "Error"
         case .skipped: "Skipped"
@@ -42,7 +42,7 @@ public enum ProbeStatus: String, Sendable, Equatable {
     /// SF Symbol name for status presentation.
     public var sfSymbol: String {
         switch self {
-        case .ok: "checkmark.circle.fill"
+        case .passed: "checkmark.circle.fill"
         case .warning: "exclamationmark.triangle.fill"
         case .error: "xmark.circle.fill"
         case .skipped: "arrow.right.circle"

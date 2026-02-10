@@ -547,7 +547,11 @@ public class Wine {
             withContentsIn: Wine.dxvkFolder.appending(path: "x32")
         )
     }
+}
 
+// MARK: - Environment Key Validation
+
+extension Wine {
     /// Reinitializes a Wine prefix to repair missing user directories.
     ///
     /// This method runs `wineboot --init` to reinitialize the Wine prefix,
@@ -568,11 +572,7 @@ public class Wine {
         logger.info("Repairing Wine prefix for bottle '\(bottle.settings.name)'")
         return try await runWine(["wineboot", "--init"], bottle: bottle)
     }
-}
 
-// MARK: - Environment Key Validation
-
-extension Wine {
     /// Checks if an environment variable key is a valid POSIX shell identifier.
     ///
     /// Valid names must start with an ASCII letter or underscore, followed by

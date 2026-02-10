@@ -101,6 +101,9 @@ struct AudioConfigSection: View {
         .onAppear {
             startDeviceListening()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .openAudioTroubleshooting)) { _ in
+            openTroubleshootingWizard()
+        }
         .sheet(isPresented: $showTroubleshootingWizard) {
             if let engine = troubleshootingEngine {
                 AudioTroubleshootingWizardView(

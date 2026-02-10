@@ -48,7 +48,7 @@ final class DiagnosticExporterTests: XCTestCase {
             "AUTH_TOKEN": "bearer-abc",
             "SECRET_VALUE": "hidden",
             "MY_PASSWORD": "pass123",
-            "WINEPREFIX": "/some/path",
+            "WINEPREFIX": "/some/path"
         ]
         let result = Redactor.redactEnvironment(env)
 
@@ -67,7 +67,7 @@ final class DiagnosticExporterTests: XCTestCase {
         let env: [String: String] = [
             "PATH": "/usr/bin",
             "OPENAI_API_KEY": "sk-secret-123",
-            "AUTH_TOKEN": "bearer-abc",
+            "AUTH_TOKEN": "bearer-abc"
         ]
         let result = Redactor.redactEnvironment(env, includeSensitive: true)
 
@@ -80,8 +80,8 @@ final class DiagnosticExporterTests: XCTestCase {
     func testRedactorEnvironmentRedactsHomePaths() {
         let homePath = FileManager.default.homeDirectoryForCurrentUser.path(percentEncoded: false)
         let normalizedHome = homePath.hasSuffix("/") ? String(homePath.dropLast()) : homePath
-        let env: [String: String] = [
-            "WINEPREFIX": "\(normalizedHome)/Library/Bottles/default",
+        let env = [
+            "WINEPREFIX": "\(normalizedHome)/Library/Bottles/default"
         ]
         let result = Redactor.redactEnvironment(env)
         XCTAssertNotNil(result["WINEPREFIX"])
@@ -95,7 +95,7 @@ final class DiagnosticExporterTests: XCTestCase {
             "Api_Token": "value2",
             "my_secret": "value3",
             "password_hash": "value4",
-            "oauth_auth": "value5",
+            "oauth_auth": "value5"
         ]
         let result = Redactor.redactEnvironment(env)
 

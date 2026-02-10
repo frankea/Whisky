@@ -50,11 +50,9 @@ struct WhiskyApp: App {
                 .environmentObject(BottleVM.shared)
                 .onAppear {
                     NSWindow.allowsAutomaticWindowTabbing = false
-
                     Task.detached {
                         await WhiskyApp.deleteOldLogs()
                     }
-
                     startAudioDeviceListening()
                 }
                 .onReceive(
@@ -149,52 +147,6 @@ struct WhiskyApp: App {
         }
     }
 
-    @MainActor
-    static func killBottles() {
-        for bottle in BottleVM.shared.bottles {
-            // killBottle is fire-and-forget; errors are logged internally
-            Wine.killBottle(bottle: bottle)
-        }
-    }
-
-    static func openLogsFolder() {
-        NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: Wine.logsFolder.path)
-    }
-
-    static func deleteOldLogs() {
-        let pastDate = Date().addingTimeInterval(-7 * 24 * 60 * 60)
-
-        guard let urls = try? FileManager.default.contentsOfDirectory(
-            at: Wine.logsFolder,
-            includingPropertiesForKeys: [.creationDateKey]
-        )
-        else {
-            return
-        }
-
-        let logs = urls.filter { url in
-            url.pathExtension == "log"
-        }
-
-        let oldLogs = logs.filter { url in
-            do {
-                let resourceValues = try url.resourceValues(forKeys: [.creationDateKey])
-
-                return resourceValues.creationDate ?? Date() < pastDate
-            } catch {
-                return false
-            }
-        }
-
-        for log in oldLogs {
-            do {
-                try FileManager.default.removeItem(at: log)
-            } catch {
-                logger.warning("Failed to delete log: \(error.localizedDescription)")
-            }
-        }
-    }
-
     // MARK: - Crash Diagnosis Notification
 
     private func handleCrashDiagnosisNotification(_ notification: Notification) {
@@ -273,13 +225,62 @@ struct WhiskyApp: App {
                 case .sampleRateChanged:
                     // Check for low sample rate (HFP/Bluetooth issue)
                     if let device = audioMonitor.defaultOutputDevice(),
-                       device.sampleRate < 22_050, device.sampleRate > 0
-                    {
+                       device.sampleRate < 22_050, device.sampleRate > 0 {
                         let message = String(localized: "audio.alert.lowSampleRate")
                             + ": \(event.deviceName)"
                         audioDeviceToast = ToastData(message: message, style: .info)
                     }
                 }
+            }
+        }
+    }
+}
+
+// MARK: - WhiskyApp Utility Methods
+
+extension WhiskyApp {
+    @MainActor
+    static func killBottles() {
+        for bottle in BottleVM.shared.bottles {
+            // killBottle is fire-and-forget; errors are logged internally
+            Wine.killBottle(bottle: bottle)
+        }
+    }
+
+    static func openLogsFolder() {
+        NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: Wine.logsFolder.path)
+    }
+
+    static func deleteOldLogs() {
+        let pastDate = Date().addingTimeInterval(-7 * 24 * 60 * 60)
+
+        guard let urls = try? FileManager.default.contentsOfDirectory(
+            at: Wine.logsFolder,
+            includingPropertiesForKeys: [.creationDateKey]
+        )
+        else {
+            return
+        }
+
+        let logs = urls.filter { url in
+            url.pathExtension == "log"
+        }
+
+        let oldLogs = logs.filter { url in
+            do {
+                let resourceValues = try url.resourceValues(forKeys: [.creationDateKey])
+
+                return resourceValues.creationDate ?? Date() < pastDate
+            } catch {
+                return false
+            }
+        }
+
+        for log in oldLogs {
+            do {
+                try FileManager.default.removeItem(at: log)
+            } catch {
+                logger.warning("Failed to delete log: \(error.localizedDescription)")
             }
         }
     }
@@ -317,128 +318,6 @@ struct WhiskyApp: App {
             logger.info("Successfully cleared shader caches")
         } catch {
             logger.warning("Failed to remove shader cache at \(d3dmPath): \(error.localizedDescription)")
-        }
-    }
-}
-
-// MARK: - Crash Diagnosis Banner State
-
-struct CrashDiagnosisBannerState {
-    let diagnosis: CrashDiagnosis
-    let programName: String
-    let logFileURL: URL
-}
-
-// MARK: - Audio Alert Rate Limiter
-
-/// Tracks the last alert time per device name to rate-limit audio device alerts.
-/// One alert per device per 3 minutes to avoid notification fatigue.
-struct AudioAlertTracker {
-    private var lastAlertTimes: [String: Date] = [:]
-    private let cooldownInterval: TimeInterval = 180 // 3 minutes
-
-    /// Returns true if an alert should be shown for this device.
-    mutating func shouldAlert(deviceName: String) -> Bool {
-        let now = Date()
-        if let lastTime = lastAlertTimes[deviceName],
-           now.timeIntervalSince(lastTime) < cooldownInterval
-        {
-            return false
-        }
-        lastAlertTimes[deviceName] = now
-        return true
-    }
-}
-
-// MARK: - Diagnostics Picker Sheet
-
-/// Sheet that lets the user select a bottle and program, then opens DiagnosticsView.
-struct DiagnosticsPickerSheet: View {
-    @EnvironmentObject var bottleVM: BottleVM
-    @Environment(\.dismiss) var dismiss
-
-    @State private var selectedBottle: Bottle?
-    @State private var selectedProgram: Program?
-    @State private var isAnalyzing = false
-    @State private var showDiagnosticsResult = false
-    @State private var resultDiagnosis: CrashDiagnosis?
-    @State private var resultLogText: String = ""
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Run Diagnostics")
-                .font(.headline)
-
-            Picker("Bottle", selection: $selectedBottle) {
-                Text("Select a bottle").tag(nil as Bottle?)
-                ForEach(bottleVM.bottles) { bottle in
-                    Text(bottle.settings.name).tag(bottle as Bottle?)
-                }
-            }
-
-            if let bottle = selectedBottle {
-                Picker("Program", selection: $selectedProgram) {
-                    Text("Select a program").tag(nil as Program?)
-                    ForEach(bottle.programs) { program in
-                        Text(program.name).tag(program as Program?)
-                    }
-                }
-            }
-
-            HStack {
-                Button("Cancel", role: .cancel) {
-                    dismiss()
-                }
-                .keyboardShortcut(.cancelAction)
-
-                Spacer()
-
-                Button("Analyze") {
-                    runAnalysis()
-                }
-                .keyboardShortcut(.defaultAction)
-                .disabled(selectedProgram == nil || isAnalyzing)
-
-                if isAnalyzing {
-                    ProgressView()
-                        .controlSize(.small)
-                }
-            }
-        }
-        .padding(20)
-        .frame(minWidth: 400)
-        .onChange(of: selectedBottle) { _, _ in
-            selectedProgram = nil
-        }
-        .sheet(isPresented: $showDiagnosticsResult) {
-            if let diagnosis = resultDiagnosis, let program = selectedProgram {
-                DiagnosticsView(
-                    diagnosis: diagnosis,
-                    logText: resultLogText,
-                    programName: program.name,
-                    bottleName: selectedBottle?.settings.name ?? "",
-                    timestamp: Date()
-                )
-                .frame(minWidth: 600, minHeight: 400)
-            }
-        }
-    }
-
-    private func runAnalysis() {
-        guard let program = selectedProgram,
-              let logURL = program.settings.lastLogFileURL
-        else { return }
-
-        isAnalyzing = true
-        Task {
-            guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else {
-                isAnalyzing = false
-                return
-            }
-            resultDiagnosis = diagnosis
-            resultLogText = (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
-            isAnalyzing = false
-            showDiagnosticsResult = true
         }
     }
 }

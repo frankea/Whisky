@@ -177,21 +177,21 @@ final class AudioTests: XCTestCase {
     // MARK: - AudioStatus
 
     func testStatusDisplayNames() {
-        XCTAssertEqual(AudioStatus.ok.displayName, "OK")
+        XCTAssertEqual(AudioStatus.healthy.displayName, "OK")
         XCTAssertEqual(AudioStatus.degraded(primaryIssue: "test").displayName, "Degraded")
         XCTAssertEqual(AudioStatus.broken(primaryIssue: "test").displayName, "Broken")
         XCTAssertEqual(AudioStatus.unknown.displayName, "Unknown")
     }
 
     func testStatusSFSymbols() {
-        XCTAssertEqual(AudioStatus.ok.sfSymbol, "checkmark.circle.fill")
+        XCTAssertEqual(AudioStatus.healthy.sfSymbol, "checkmark.circle.fill")
         XCTAssertEqual(AudioStatus.degraded(primaryIssue: "test").sfSymbol, "exclamationmark.triangle.fill")
         XCTAssertEqual(AudioStatus.broken(primaryIssue: "test").sfSymbol, "xmark.circle.fill")
         XCTAssertEqual(AudioStatus.unknown.sfSymbol, "questionmark.circle")
     }
 
     func testStatusTintColors() {
-        XCTAssertEqual(AudioStatus.ok.tintColor, "green")
+        XCTAssertEqual(AudioStatus.healthy.tintColor, "green")
         XCTAssertEqual(AudioStatus.degraded(primaryIssue: "test").tintColor, "orange")
         XCTAssertEqual(AudioStatus.broken(primaryIssue: "test").tintColor, "red")
         XCTAssertEqual(AudioStatus.unknown.tintColor, "secondary")

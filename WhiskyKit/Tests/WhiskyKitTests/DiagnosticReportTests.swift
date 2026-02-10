@@ -24,18 +24,18 @@ final class DiagnosticReportTests: XCTestCase {
 
     func testMarkdownReportContainsHeadline() {
         let diagnosis = makeSampleDiagnosis(headline: "DLL Load Failure: MSVCR100.dll")
-        let md = generateTestMarkdown(diagnosis: diagnosis)
+        let markdown = generateTestMarkdown(diagnosis: diagnosis)
 
-        XCTAssertTrue(md.contains("## Whisky Diagnostic Report"))
-        XCTAssertTrue(md.contains("DLL Load Failure: MSVCR100.dll"))
+        XCTAssertTrue(markdown.contains("## Whisky Diagnostic Report"))
+        XCTAssertTrue(markdown.contains("DLL Load Failure: MSVCR100.dll"))
     }
 
     func testMarkdownReportContainsSections() {
         let diagnosis = makeSampleDiagnosis()
-        let md = generateTestMarkdown(diagnosis: diagnosis)
+        let markdown = generateTestMarkdown(diagnosis: diagnosis)
 
-        XCTAssertTrue(md.contains("### System Info"))
-        XCTAssertTrue(md.contains("### Diagnosis Summary"))
+        XCTAssertTrue(markdown.contains("### System Info"))
+        XCTAssertTrue(markdown.contains("### Diagnosis Summary"))
     }
 
     func testMarkdownReportRedacted() {
@@ -43,14 +43,14 @@ final class DiagnosticReportTests: XCTestCase {
         let normalizedHome = homePath.hasSuffix("/") ? String(homePath.dropLast()) : homePath
 
         let diagnosis = makeSampleDiagnosis()
-        let md = generateTestMarkdown(diagnosis: diagnosis)
+        let markdown = generateTestMarkdown(diagnosis: diagnosis)
 
         let testPath = "\(normalizedHome)/Library/test"
         let redacted = Redactor.redactHomePaths(testPath)
         XCTAssertFalse(redacted.contains(normalizedHome))
         XCTAssertTrue(redacted.contains("/Users/<redacted>"))
 
-        XCTAssertTrue(md.contains("### Diagnosis Summary"))
+        XCTAssertTrue(markdown.contains("### Diagnosis Summary"))
     }
 
     func testMarkdownReportContainsCategoryCounts() {
@@ -63,10 +63,10 @@ final class DiagnosticReportTests: XCTestCase {
             exitCode: 1,
             applicableRemediationIds: []
         )
-        let md = generateTestMarkdown(diagnosis: diagnosis)
+        let markdown = generateTestMarkdown(diagnosis: diagnosis)
 
-        XCTAssertTrue(md.contains("Dependencies / Loading: 3"))
-        XCTAssertTrue(md.contains("Graphics / GPU: 1"))
+        XCTAssertTrue(markdown.contains("Dependencies / Loading: 3"))
+        XCTAssertTrue(markdown.contains("Graphics / GPU: 1"))
     }
 
     func testMarkdownReportEmptyDiagnosis() {
@@ -79,11 +79,11 @@ final class DiagnosticReportTests: XCTestCase {
             exitCode: 0,
             applicableRemediationIds: []
         )
-        let md = generateTestMarkdown(diagnosis: diagnosis)
+        let markdown = generateTestMarkdown(diagnosis: diagnosis)
 
-        XCTAssertTrue(md.contains("## Whisky Diagnostic Report"))
-        XCTAssertTrue(md.contains("### System Info"))
-        XCTAssertTrue(md.contains("### Diagnosis Summary"))
+        XCTAssertTrue(markdown.contains("## Whisky Diagnostic Report"))
+        XCTAssertTrue(markdown.contains("### System Info"))
+        XCTAssertTrue(markdown.contains("### Diagnosis Summary"))
     }
 
     // MARK: - CrashDiagnosisCodableWrapper Tests
@@ -136,48 +136,48 @@ final class DiagnosticReportTests: XCTestCase {
     }
 
     private func generateTestMarkdown(diagnosis: CrashDiagnosis) -> String {
-        var md = "## Whisky Diagnostic Report\n\n"
-        md += "**Generated:** \(Date().formatted())\n\n"
+        var markdown = "## Whisky Diagnostic Report\n\n"
+        markdown += "**Generated:** \(Date().formatted())\n\n"
 
-        md += "### System Info\n\n"
+        markdown += "### System Info\n\n"
         let version = MacOSVersion.current
-        md += "- **macOS:** \(version.description)\n"
+        markdown += "- **macOS:** \(version.description)\n"
         #if arch(arm64)
-        md += "- **Architecture:** Apple Silicon (arm64)\n"
+        markdown += "- **Architecture:** Apple Silicon (arm64)\n"
         #else
-        md += "- **Architecture:** Intel (x86_64)\n"
+        markdown += "- **Architecture:** Intel (x86_64)\n"
         #endif
-        md += "\n"
+        markdown += "\n"
 
-        md += "### Diagnosis Summary\n\n"
+        markdown += "### Diagnosis Summary\n\n"
         if let headline = diagnosis.headline {
-            md += "**\(headline)**\n\n"
+            markdown += "**\(headline)**\n\n"
         }
         if let category = diagnosis.primaryCategory, let confidence = diagnosis.primaryConfidence {
-            md += "- **Primary Category:** \(category.displayName)\n"
-            md += "- **Confidence:** \(confidence.displayName)\n"
+            markdown += "- **Primary Category:** \(category.displayName)\n"
+            markdown += "- **Confidence:** \(confidence.displayName)\n"
         }
         if let exitCode = diagnosis.exitCode {
-            md += "- **Exit Code:** \(exitCode)\n"
+            markdown += "- **Exit Code:** \(exitCode)\n"
         }
         if !diagnosis.categoryCounts.isEmpty {
-            md += "\n**Category Counts:**\n"
+            markdown += "\n**Category Counts:**\n"
             for (category, count) in diagnosis.categoryCounts.sorted(by: { $0.value > $1.value }) {
-                md += "- \(category.displayName): \(count)\n"
+                markdown += "- \(category.displayName): \(count)\n"
             }
         }
-        md += "\n"
+        markdown += "\n"
 
         if !diagnosis.matches.isEmpty {
-            md += "### Matched Patterns\n\n"
+            markdown += "### Matched Patterns\n\n"
             for diagMatch in diagnosis.matches.prefix(5) {
                 let conf = ConfidenceTier(score: diagMatch.pattern.confidence).displayName
-                md += "- **\(diagMatch.pattern.id)** [\(diagMatch.pattern.category.displayName)]"
-                md += " (\(conf) confidence)\n"
+                markdown += "- **\(diagMatch.pattern.id)** [\(diagMatch.pattern.category.displayName)]"
+                markdown += " (\(conf) confidence)\n"
             }
-            md += "\n"
+            markdown += "\n"
         }
 
-        return md
+        return markdown
     }
 }

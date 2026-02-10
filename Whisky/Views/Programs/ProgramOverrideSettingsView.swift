@@ -36,8 +36,11 @@ struct ProgramOverrideSettingsView: View {
     @State private var showDiagnosticsSheet = false
     @State private var activeDiagnosis: CrashDiagnosis?
     @State private var activeLogText: String = ""
+    @State private var gameMatch: MatchResult?
+    @State private var showGameConfigDetail: Bool = false
 
     var body: some View {
+        gameConfigSection
         Section("program.overrides.title", isExpanded: $isExpanded) {
             graphicsGroup
             syncGroup
@@ -49,6 +52,15 @@ struct ProgramOverrideSettingsView: View {
         }
         diagnosticsSection
         audioTroubleshootingSection
+            .task {
+                await loadGameMatch()
+            }
+            .sheet(isPresented: $showGameConfigDetail) {
+                if let match = gameMatch {
+                    GameEntryDetailView(entry: match.entry, bottle: bottle)
+                        .frame(minWidth: 600, minHeight: 500)
+                }
+            }
             .sheet(isPresented: $showDiagnosticsSheet) {
                 if let diagnosis = activeDiagnosis {
                     DiagnosticsView(
@@ -131,6 +143,66 @@ struct ProgramOverrideSettingsView: View {
                 )
             }
             .help("Open audio diagnostics and troubleshooting for this bottle")
+        }
+    }
+
+    // MARK: - Game Config Suggestion
+
+    @ViewBuilder
+    private var gameConfigSection: some View {
+        if let match = gameMatch {
+            Section(String(localized: "gameConfig.banner.recommended")) {
+                GameConfigBannerView(
+                    matchResult: match,
+                    bottle: bottle,
+                    programURL: program.url
+                )
+
+                Button {
+                    showGameConfigDetail = true
+                } label: {
+                    HStack {
+                        Text(match.entry.title)
+                            .font(.subheadline)
+                        Spacer()
+                        Text(match.entry.rating.displayName)
+                            .font(.caption)
+                            .foregroundStyle(ratingColor(match.entry.rating))
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+    }
+
+    private nonisolated func loadGameMatch() async {
+        let exeName = await program.url.lastPathComponent
+        let exeURL = await program.url
+        let steamAppId = SteamAppManifest.findAppIdForProgram(at: exeURL)
+
+        let metadata = ProgramMetadata(
+            exeName: exeName,
+            exeURL: exeURL,
+            steamAppId: steamAppId
+        )
+
+        let entries = GameDBLoader.loadDefaults()
+        let match = GameMatcher.bestMatch(metadata: metadata, against: entries)
+
+        await MainActor.run {
+            gameMatch = match
+        }
+    }
+
+    private func ratingColor(_ rating: CompatibilityRating) -> Color {
+        switch rating {
+        case .works: .green
+        case .playable: .yellow
+        case .unverified: .gray
+        case .broken: .red
+        case .notSupported: .red
         }
     }
 

@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 7 (Game Compatibility Database) -- Plan 04 complete (list view + navigation)
+**Current focus:** Phase 7 (Game Compatibility Database) -- Plan 05 complete (detail view + preview sheet)
 
 ## Current Position
 
 Phase: 7 of 10 (Game Compatibility Database)
-Plan: 5 of 7 in current phase
+Plan: 6 of 7 in current phase
 Status: Executing
-Last activity: 2026-02-10 -- Plan 07-04 complete (game configuration list view + BottleView navigation)
+Last activity: 2026-02-10 -- Plan 07-05 complete (detail view + preview sheet)
 
-Progress: [▓▓▓▓▓▓▓░░░] 72%
+Progress: [▓▓▓▓▓▓▓▓░░] 76%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 28
-- Average duration: 8.4min
-- Total execution time: 4.11 hours
+- Total plans completed: 29
+- Average duration: 8.6min
+- Total execution time: 4.41 hours
 
 **By Phase:**
 
@@ -33,11 +33,11 @@ Progress: [▓▓▓▓▓▓▓░░░] 72%
 | 04-graphics-configuration | 3 | 12min | 4.0min |
 | 05-stability-diagnostics | 5 | 45min | 9.0min |
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
-| 07-game-compatibility-database | 5/7 | 38min | 7.6min |
+| 07-game-compatibility-database | 6/7 | 56min | 9.3min |
 
 **Recent Trend:**
-- Last 5 plans: 07-01 (6min), 07-07 (11min), 07-02 (4min), 07-03 (6min), 07-04 (11min)
-- Trend: Phase 7 list view + navigation in 11min; fixed pre-existing SwiftLint violations + stale project refs
+- Last 5 plans: 07-07 (11min), 07-02 (4min), 07-03 (6min), 07-04 (11min), 07-05 (18min)
+- Trend: Phase 7 detail+preview views in 18min; 3 new SwiftUI files + NavigationLink wiring
 
 *Updated after each plan completion*
 
@@ -157,6 +157,12 @@ Recent decisions affecting current work:
 - [07-04]: Filter bar uses safeAreaInset(edge: .top) with ScrollView for horizontal filter pickers
 - [07-04]: Backend filter derived from defaultVariant.settings.graphicsBackend display name
 - [07-04]: ContentUnavailableView for empty state with search-aware messaging
+- [07-05]: FlowLayout custom Layout for constraint tag wrapping instead of LazyHGrid
+- [07-05]: Community trust banner between At a Glance and Recommended Config for non-maintainer entries
+- [07-05]: Preview sheet uses VStack+ScrollView (not Form) for finer diff layout control
+- [07-05]: Winetricks verb status display-only; actual installation left to existing Winetricks UI
+- [07-05]: Undo snapshot saved to bottle on apply; full undo toast deferred to future refinement
+- [07-05]: SettingDisplay private struct for type-safe settings area display
 
 ### Pending Todos
 
@@ -169,5 +175,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Completed 07-04-PLAN.md (game configuration list view + BottleView navigation)
+Stopped at: Completed 07-05-PLAN.md (detail view + preview sheet)
 Resume file: None

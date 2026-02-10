@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 5 of 10 (Stability & Diagnostics)
-Plan: 3 of 5 in current phase (05-03 complete)
+Plan: 4 of 5 in current phase (05-04 complete)
 Status: In Progress
-Last activity: 2026-02-10 -- Completed 05-03-PLAN.md (Process Lifecycle Integration)
+Last activity: 2026-02-10 -- Completed 05-04-PLAN.md (Diagnostics UI)
 
-Progress: [▓▓▓▓▓░░░░░] 44%
+Progress: [▓▓▓▓▓░░░░░] 46%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
-- Average duration: 9.3min
-- Total execution time: 2.37 hours
+- Total plans completed: 17
+- Average duration: 9.2min
+- Total execution time: 2.52 hours
 
 **By Phase:**
 
@@ -31,11 +31,11 @@ Progress: [▓▓▓▓▓░░░░░] 44%
 | 02-configuration-foundation | 4 | 73min | 18.3min |
 | 03-process-lifecycle-management | 3 | 18min | 6.0min |
 | 04-graphics-configuration | 3 | 12min | 4.0min |
-| 05-stability-diagnostics | 3 | 22min | 7.3min |
+| 05-stability-diagnostics | 4 | 31min | 7.8min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (5min), 04-03 (3min), 05-01 (7min), 05-02 (6min), 05-03 (9min)
-- Trend: Integration plan slightly longer due to cross-file wiring; still under 10min
+- Last 5 plans: 04-03 (3min), 05-01 (7min), 05-02 (6min), 05-03 (9min), 05-04 (9min)
+- Trend: UI plans consistent ~9min; NSViewRepresentable complexity handled within budget
 
 *Updated after each plan completion*
 
@@ -108,6 +108,11 @@ Recent decisions affecting current work:
 - [05-03]: makeFileHandleWithURL() alongside existing makeFileHandle() for log URL tracking
 - [05-03]: Notification.Name.crashDiagnosisAvailable carries diagnosis, programPath, logFileURL in userInfo
 - [05-03]: DiagnosisHistory sidecar stored as programName.diagnosis-history.plist in Program Settings directory
+- [05-04]: GeometryReader with 700pt threshold for responsive split vs vertical layout
+- [05-04]: Unicode filled circle gutter markers instead of NSRulerView for simplicity
+- [05-04]: NSTextStorage batch editing (beginEditing/endEditing) for attributed string updates
+- [05-04]: Filter-driven full line rebuild on filter/search change for NSTextView correctness
+- [05-04]: Low-confidence remediations hidden behind "Other things to try" collapsed DisclosureGroup
 
 ### Pending Todos
 
@@ -120,5 +125,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Completed 05-03-PLAN.md (Process Lifecycle Integration)
+Stopped at: Completed 05-04-PLAN.md (Diagnostics UI)
 Resume file: None

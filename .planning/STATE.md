@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 5 of 10 (Stability & Diagnostics)
-Plan: 1 of 5 in current phase (05-01 complete)
+Plan: 2 of 5 in current phase (05-02 complete)
 Status: In Progress
-Last activity: 2026-02-10 -- Completed 05-01-PLAN.md (Crash Classification Pipeline)
+Last activity: 2026-02-10 -- Completed 05-02-PLAN.md (Diagnostic Export Infrastructure)
 
-Progress: [▓▓▓▓░░░░░░] 40%
+Progress: [▓▓▓▓▓░░░░░] 42%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
-- Average duration: 9.4min
-- Total execution time: 2.12 hours
+- Total plans completed: 15
+- Average duration: 9.2min
+- Total execution time: 2.22 hours
 
 **By Phase:**
 
@@ -31,11 +31,11 @@ Progress: [▓▓▓▓░░░░░░] 40%
 | 02-configuration-foundation | 4 | 73min | 18.3min |
 | 03-process-lifecycle-management | 3 | 18min | 6.0min |
 | 04-graphics-configuration | 3 | 12min | 4.0min |
-| 05-stability-diagnostics | 1 | 7min | 7.0min |
+| 05-stability-diagnostics | 2 | 13min | 6.5min |
 
 **Recent Trend:**
-- Last 5 plans: 03-03 (7min), 04-01 (4min), 04-02 (5min), 04-03 (3min), 05-01 (7min)
-- Trend: TDD plan with new module slightly longer; still under 10min
+- Last 5 plans: 04-01 (4min), 04-02 (5min), 04-03 (3min), 05-01 (7min), 05-02 (6min)
+- Trend: Consistent under 10min; export infrastructure plan completed efficiently
 
 *Updated after each plan completion*
 
@@ -99,6 +99,10 @@ Recent decisions affecting current work:
 - [05-01]: SPM .process() flattens resource directories; PatternLoader loads without subdirectory path
 - [05-01]: Added otherUnknown pattern (wine-nonzero-exit) to ensure all 7 categories have coverage
 - [05-01]: WineDebugPreset uses presetDescription property name to avoid shadowing CustomStringConvertible
+- [05-02]: CrashDiagnosisCodableWrapper encodes only serializable portions of CrashDiagnosis for JSON export
+- [05-02]: Redactor uses FileManager.default.homeDirectoryForCurrentUser for runtime home path detection
+- [05-02]: DiagnosticExporter captures MainActor-isolated values before Task.detached for file I/O
+- [05-02]: ExportOptions at module scope (not nested in DiagnosticExporter) for cleaner API surface
 
 ### Pending Todos
 
@@ -111,5 +115,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Completed 05-01-PLAN.md (Crash Classification Pipeline)
+Stopped at: Completed 05-02-PLAN.md (Diagnostic Export Infrastructure)
 Resume file: None

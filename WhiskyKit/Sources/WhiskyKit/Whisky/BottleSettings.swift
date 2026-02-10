@@ -898,6 +898,25 @@ public struct BottleSettings: Codable, Equatable {
         }
     }
 
+    /// Populates the audio layer of the environment builder.
+    ///
+    /// Audio configuration in Wine is **registry-backed**, not environment-variable-backed.
+    /// The audio driver (`HKCU\Software\Wine\Drivers\Audio`) and DirectSound buffer size
+    /// (`HKCU\Software\Wine\DirectSound\HelBuflen`) are applied via ``WineAudioRegistry``
+    /// methods, not through this layer populator.
+    ///
+    /// This method exists as the EnvironmentBuilder integration point for audio settings,
+    /// following the pattern of ``populateInputCompatibilityLayer(builder:)``. It is reserved
+    /// for future audio-related environment variables (e.g., `WINEDEBUG` channels for audio
+    /// debugging).
+    ///
+    /// - Parameter builder: The environment builder to populate.
+    public func populateAudioLayer(builder: inout EnvironmentBuilder) {
+        // Audio settings are applied via Wine registry (WineAudioRegistry), not env vars.
+        // This placeholder ensures the EnvironmentBuilder cascade has an audio integration
+        // point for future audio-related environment variables.
+    }
+
     /// Populates performance preset environment variables into the bottleManaged layer.
     private func populatePerformancePreset(builder: inout EnvironmentBuilder) {
         switch performancePreset {

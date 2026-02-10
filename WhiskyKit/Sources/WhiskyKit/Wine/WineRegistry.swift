@@ -18,7 +18,7 @@
 
 import Foundation
 
-enum RegistryType: String {
+public enum RegistryType: String {
     case binary = "REG_BINARY"
     case dword = "REG_DWORD"
     case qword = "REG_QWORD"
@@ -33,7 +33,7 @@ public extension Wine {
     }
 
     @MainActor
-    private static func addRegistryKey(
+    static func addRegistryKey(
         bottle: Bottle, key: String, name: String, data: String, type: RegistryType
     ) async throws {
         try await runWine(
@@ -43,7 +43,7 @@ public extension Wine {
     }
 
     @MainActor
-    private static func queryRegistryKey(
+    static func queryRegistryKey(
         bottle: Bottle, key: String, name: String, type: RegistryType
     ) async throws -> String? {
         let output = try await runWine(["reg", "query", key, "-v", name], bottle: bottle)

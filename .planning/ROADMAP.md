@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Process Lifecycle Management** - Wineserver-level tracking with orphan detection and auto-cleanup
 - [x] **Phase 4: Graphics Configuration** - D3DMetal/DXVK/wined3d backend control with tiered UI
 - [x] **Phase 5: Stability & Diagnostics** - WINEDEBUG parsing and crash pattern classification
-- [ ] **Phase 6: Audio Troubleshooting** - Diagnostics-first audio remediation with limited settings
+- [x] **Phase 6: Audio Troubleshooting** - Diagnostics-first audio remediation with limited settings
 - [ ] **Phase 7: Game Compatibility Database** - Bundled known-good configurations with one-click apply
 - [ ] **Phase 8: Remaining Platform Issues** - Launcher, controller, and installation fixes
 - [ ] **Phase 9: UI/UX & Feature Requests** - Polish and top community-requested features
@@ -122,11 +122,11 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 06-01-PLAN.md -- Audio device data models, CoreAudio monitoring, and unit tests (TDD)
-- [ ] 06-02-PLAN.md -- BottleAudioConfig, BottleSettings integration, Wine audio registry helpers
-- [ ] 06-03-PLAN.md -- Audio probes (CoreAudio, Wine registry, test exe), troubleshooting engine state machine
-- [ ] 06-04-PLAN.md -- Audio section UI (status, test buttons, Simple/Advanced settings, findings)
-- [ ] 06-05-PLAN.md -- Troubleshooting wizard UI, device change alerts, deep-links, localization
+- [x] 06-01-PLAN.md -- Audio device data models, CoreAudio monitoring, and unit tests (TDD)
+- [x] 06-02-PLAN.md -- BottleAudioConfig, BottleSettings integration, Wine audio registry helpers
+- [x] 06-03-PLAN.md -- Audio probes (CoreAudio, Wine registry, test exe), troubleshooting engine state machine
+- [x] 06-04-PLAN.md -- Audio section UI (status, test buttons, Simple/Advanced settings, findings)
+- [x] 06-05-PLAN.md -- Troubleshooting wizard UI, device change alerts, deep-links, localization
 
 ### Phase 7: Game Compatibility Database
 **Goal**: Users can look up known-good configurations for common games and apply them with one click, reducing trial-and-error configuration
@@ -209,7 +209,7 @@ Note: Phases 3 and 4 are parallel-capable (no mutual dependencies). Phases 5 and
 | 3. Process Lifecycle Management | 3/3 | ✓ Complete | 2026-02-09 |
 | 4. Graphics Configuration | 3/3 | ✓ Complete | 2026-02-09 |
 | 5. Stability & Diagnostics | 5/5 | ✓ Complete | 2026-02-10 |
-| 6. Audio Troubleshooting | 0/5 | Not started | - |
+| 6. Audio Troubleshooting | 5/5 | ✓ Complete | 2026-02-10 |
 | 7. Game Compatibility Database | 0/TBD | Not started | - |
 | 8. Remaining Platform Issues | 0/TBD | Not started | - |
 | 9. UI/UX & Feature Requests | 0/TBD | Not started | - |

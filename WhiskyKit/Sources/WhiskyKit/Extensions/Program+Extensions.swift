@@ -20,6 +20,29 @@ import AppKit
 import Foundation
 import os.log
 
+// MARK: - Crash Diagnosis Notification
+
+public extension Notification.Name {
+    /// Posted when a crash diagnosis is available after a Wine process exits abnormally.
+    ///
+    /// UserInfo keys:
+    /// - `"diagnosis"`: ``CrashDiagnosis``
+    /// - `"programPath"`: `String` (program URL path)
+    /// - `"logFileURL"`: `URL`
+    static let crashDiagnosisAvailable = Notification.Name("com.isaacmarovitz.Whisky.crashDiagnosisAvailable")
+}
+
+// MARK: - Crash Signature Detection
+
+private let crashSignatures: Set<String> = [
+    "Unhandled exception",
+    "page fault",
+    "device lost",
+    "DEVICE_REMOVED",
+    "DEVICE_HUNG",
+    "Fatal error"
+]
+
 public extension Program {
     func run() {
         if NSEvent.modifierFlags.contains(.shift) {
@@ -74,13 +97,104 @@ public extension Program {
         let environment = generateEnvironment()
 
         do {
-            try await Wine.runProgram(
+            let result = try await Wine.runProgram(
                 at: self.url, args: arguments, bottle: self.bottle, environment: environment,
-                programOverrides: settings.overrides
+                programOverrides: settings.overrides, programSettings: settings
             )
+
+            // Track the log file URL for diagnostics
+            settings.lastLogFileURL = result.logFileURL
+
+            // Trigger classification if non-zero exit or crash signatures detected in log
+            if result.exitCode != 0 || logContainsCrashSignatures(result.logFileURL) {
+                triggerCrashClassification(
+                    logFileURL: result.logFileURL,
+                    exitCode: result.exitCode
+                )
+            }
+
             return .launchedSuccessfully(programName: self.name)
         } catch {
             return .launchFailed(programName: self.name, errorDescription: error.localizedDescription)
+        }
+    }
+
+    /// Checks whether the log file contains crash signatures that warrant classification.
+    ///
+    /// Reads the tail of the log file (bounded to 64 KiB) and searches for known crash
+    /// signatures. This is a lightweight heuristic before running the full classifier.
+    private func logContainsCrashSignatures(_ logFileURL: URL) -> Bool {
+        let maxBytes = 64 * 1_024
+
+        guard let handle = try? FileHandle(forReadingFrom: logFileURL) else { return false }
+        defer { try? handle.close() }
+
+        guard let end = try? handle.seekToEnd() else { return false }
+        let start = end > UInt64(maxBytes) ? end - UInt64(maxBytes) : 0
+        try? handle.seek(toOffset: start)
+
+        guard let data = try? handle.readToEnd(),
+              let text = String(data: data, encoding: .utf8)
+        else { return false }
+
+        return crashSignatures.contains(where: { text.contains($0) })
+    }
+
+    /// Triggers background crash classification and posts a notification with the result.
+    ///
+    /// Classification runs on a background task (`.utility` priority) to avoid
+    /// blocking the main thread. On completion, persists a ``DiagnosisHistoryEntry``
+    /// and posts ``Notification.Name.crashDiagnosisAvailable``.
+    private func triggerCrashClassification(logFileURL: URL, exitCode: Int32) {
+        let programPath = self.url.path(percentEncoded: false)
+        let programName = self.name
+        let bottleName = self.bottle.settings.name
+        let bottleURL = self.bottle.url
+        let activePreset = self.settings.activeWineDebugPreset
+
+        Task.detached(priority: .utility) {
+            guard let diagnosis = await Wine.classifyLastRun(
+                logFileURL: logFileURL,
+                exitCode: exitCode
+            ), !diagnosis.isEmpty
+            else {
+                return
+            }
+
+            // Build and persist a DiagnosisHistoryEntry
+            let entry = DiagnosisHistoryEntry(
+                timestamp: Date(),
+                logFileRef: logFileURL.lastPathComponent,
+                primaryCategory: diagnosis.primaryCategory ?? .otherUnknown,
+                confidenceTier: diagnosis.primaryConfidence ?? .low,
+                topSignatures: Array(diagnosis.matches.prefix(3).map(\.pattern.id)),
+                remediationCardIds: diagnosis.applicableRemediationIds,
+                wineDebugPreset: activePreset,
+                bottleIdentifier: bottleName,
+                programPath: programPath
+            )
+
+            let historyURL = bottleURL
+                .appending(path: "Program Settings")
+                .appending(path: programName)
+                .appendingPathExtension("diagnosis-history.plist")
+            var history = DiagnosisHistory.load(from: historyURL)
+            history.append(entry)
+            try? history.save(to: historyURL)
+
+            // Update lastDiagnosisDate on the main actor
+            await MainActor.run {
+                // Post notification for the UI to react
+                NotificationCenter.default.post(
+                    name: .crashDiagnosisAvailable,
+                    object: nil,
+                    userInfo: [
+                        "diagnosis": diagnosis,
+                        "programPath": programPath,
+                        "logFileURL": logFileURL
+                    ]
+                )
+            }
         }
     }
 
@@ -214,10 +328,21 @@ extension Program {
 
         Task {
             do {
-                try await Wine.runProgram(
+                let result = try await Wine.runProgram(
                     at: self.url, args: arguments, bottle: self.bottle, environment: environment,
-                    programOverrides: settings.overrides
+                    programOverrides: settings.overrides, programSettings: settings
                 )
+
+                // Track the log file URL
+                settings.lastLogFileURL = result.logFileURL
+
+                // Trigger classification on non-zero exit or crash signatures
+                if result.exitCode != 0 || logContainsCrashSignatures(result.logFileURL) {
+                    triggerCrashClassification(
+                        logFileURL: result.logFileURL,
+                        exitCode: result.exitCode
+                    )
+                }
             } catch {
                 self.showRunError(message: error.localizedDescription)
             }

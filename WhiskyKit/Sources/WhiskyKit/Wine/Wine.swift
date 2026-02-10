@@ -214,11 +214,21 @@ public class Wine {
     ///   - environment: Additional environment variables for this execution.
     ///   - programOverrides: Optional per-program setting overrides. `nil` fields inherit from bottle.
     /// - Throws: An error if the program cannot be started or Wine encounters an error.
+    /// Result of a Wine program run, providing the exit code and log file URL
+    /// for post-run diagnostics.
+    public struct ProgramRunResult: Sendable {
+        /// The exit code from the `wine start` process.
+        public let exitCode: Int32
+        /// URL to the log file created for this run.
+        public let logFileURL: URL
+    }
+
+    @discardableResult
     @MainActor
     public static func runProgram(
         at url: URL, args: [String] = [], bottle: Bottle, environment: [String: String] = [:],
         programOverrides: ProgramOverrides? = nil, programSettings: ProgramSettings? = nil
-    ) async throws {
+    ) async throws -> ProgramRunResult {
         // Note: Launcher detection is handled at the app level (FileOpenView/BottleView)
         // before calling this method. The detection logic uses LauncherDetection utility
         // which is in the Whisky app target, not WhiskyKit framework.
@@ -250,7 +260,7 @@ public class Wine {
         }
 
         // Build the Wine environment with program overrides flowing through the programUser layer
-        let fileHandle = try makeFileHandle()
+        let (fileHandle, logFileURL) = try makeFileHandleWithURL()
         fileHandle.writeApplicationInfo()
         fileHandle.writeInfo(for: bottle)
 
@@ -259,12 +269,19 @@ public class Wine {
             programSettings: programSettings
         )
 
-        for await _ in try runProcess(
+        var exitCode: Int32 = 0
+        for await output in try runProcess(
             name: url.lastPathComponent,
             args: ["start", "/unix", url.path(percentEncoded: false)] + args,
             environment: wineEnvironment, executableURL: wineBinary,
             fileHandle: fileHandle
-        ) {}
+        ) {
+            if case let .terminated(code) = output {
+                exitCode = code
+            }
+        }
+
+        return ProgramRunResult(exitCode: exitCode, logFileURL: logFileURL)
     }
 
     /// Generates a shell command string for running a Windows program.
@@ -691,6 +708,18 @@ public extension Wine {
     /// - Returns: A `FileHandle` open for writing to the new log file.
     /// - Throws: An error if the log directory or file cannot be created.
     static func makeFileHandle() throws -> FileHandle {
+        let (handle, _) = try makeFileHandleWithURL()
+        return handle
+    }
+
+    /// Creates a new file handle for logging and returns both the handle and the log file URL.
+    ///
+    /// This variant is used when the caller needs to track the log file location
+    /// (e.g., for post-run crash classification).
+    ///
+    /// - Returns: A tuple of the open `FileHandle` and its log file `URL`.
+    /// - Throws: An error if the log directory or file cannot be created.
+    static func makeFileHandleWithURL() throws -> (FileHandle, URL) {
         if !FileManager.default.fileExists(atPath: logsFolder.path) {
             try FileManager.default.createDirectory(at: logsFolder, withIntermediateDirectories: true)
         }
@@ -702,6 +731,60 @@ public extension Wine {
         let dateString = Date.now.ISO8601Format()
         let fileURL = Self.logsFolder.appending(path: dateString).appendingPathExtension("log")
         try "".write(to: fileURL, atomically: true, encoding: .utf8)
-        return try FileHandle(forWritingTo: fileURL)
+        return try (FileHandle(forWritingTo: fileURL), fileURL)
+    }
+
+    /// Classifies the output from a Wine process run for crash patterns.
+    ///
+    /// Reads the tail of the log file (up to 500 lines / 256 KiB) and runs
+    /// classification on a background task to avoid blocking the UI.
+    ///
+    /// - Parameters:
+    ///   - logFileURL: URL to the Wine log file to analyze.
+    ///   - exitCode: The Wine process exit code.
+    ///   - classifier: Optional pre-configured classifier. If `nil`, creates one
+    ///     with default patterns.
+    /// - Returns: A ``CrashDiagnosis`` if the log was readable, or `nil` on failure.
+    public static func classifyLastRun(
+        logFileURL: URL,
+        exitCode: Int32,
+        classifier: CrashClassifier? = nil
+    ) async -> CrashDiagnosis? {
+        await Task.detached(priority: .utility) {
+            let maxBytesToRead = 256 * 1_024
+            let maxLines = 500
+
+            do {
+                let handle = try FileHandle(forReadingFrom: logFileURL)
+                defer { try? handle.close() }
+
+                let end = try handle.seekToEnd()
+                let start = end > UInt64(maxBytesToRead) ? end - UInt64(maxBytesToRead) : 0
+                try handle.seek(toOffset: start)
+
+                let data = try handle.readToEnd() ?? Data()
+                guard var text = String(data: data, encoding: .utf8), !text.isEmpty else {
+                    return nil
+                }
+
+                // Drop first partial line if reading from the middle
+                if start != 0, let firstNewline = text.firstIndex(of: "\n") {
+                    text = String(text[text.index(after: firstNewline)...])
+                }
+
+                // Limit to last N lines
+                let lines = text.split(separator: "\n", omittingEmptySubsequences: false)
+                let logText: String = if lines.count > maxLines {
+                    lines.suffix(maxLines).joined(separator: "\n")
+                } else {
+                    lines.joined(separator: "\n")
+                }
+
+                let resolvedClassifier = classifier ?? CrashClassifier()
+                return resolvedClassifier.classify(log: logText, exitCode: exitCode)
+            } catch {
+                return nil
+            }
+        }.value
     }
 }

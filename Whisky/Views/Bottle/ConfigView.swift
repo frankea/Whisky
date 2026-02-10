@@ -34,6 +34,11 @@ struct ConfigView: View {
     @State private var dpiSheetPresented: Bool = false
     @State private var showStabilityDiagnostics: Bool = false
     @State private var stabilityDiagnosticReport: String = ""
+    @State private var showDiagnosticExportSheet: Bool = false
+    @State private var showCrashDiagnosticsSheet: Bool = false
+    @State private var latestDiagnosis: CrashDiagnosis?
+    @State private var latestDiagnosisLogText: String = ""
+    @State private var latestDiagnosisProgram: Program?
     @State private var isRepairingPrefix: Bool = false
     @State private var prefixRepairResult: PrefixRepairResult?
 
@@ -78,6 +83,21 @@ struct ConfigView: View {
             GraphicsConfigSection(bottle: bottle)
             PerformanceConfigSection(bottle: bottle, isExpanded: $performanceSectionExpanded)
             DLLOverrideConfigSection(bottle: bottle, isExpanded: $dllOverrideSectionExpanded)
+            Section("Diagnostics") {
+                Text("Analyze Wine crash output for troubleshooting guidance")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Button("Export Diagnostic Report\u{2026}") {
+                    loadLatestDiagnosisAndExport()
+                }
+                .disabled(latestDiagnosis == nil && mostRecentlyDiagnosedProgram == nil)
+
+                Button("View Latest Diagnosis") {
+                    loadLatestDiagnosisAndView()
+                }
+                .disabled(mostRecentlyDiagnosedProgram == nil)
+            }
             Section("Stability") {
                 Button("Generate Stability Diagnostics") {
                     Task {
@@ -137,6 +157,28 @@ struct ConfigView: View {
                 report: stabilityDiagnosticReport,
                 defaultFilenamePrefix: "whisky-stability-diagnostics"
             )
+        }
+        .sheet(isPresented: $showDiagnosticExportSheet) {
+            if let diagnosis = latestDiagnosis, let program = latestDiagnosisProgram {
+                DiagnosticExportSheet(
+                    diagnosis: diagnosis,
+                    bottle: bottle,
+                    program: program,
+                    logFileURL: program.settings.lastLogFileURL
+                )
+            }
+        }
+        .sheet(isPresented: $showCrashDiagnosticsSheet) {
+            if let diagnosis = latestDiagnosis, let program = latestDiagnosisProgram {
+                DiagnosticsView(
+                    diagnosis: diagnosis,
+                    logText: latestDiagnosisLogText,
+                    programName: program.name,
+                    bottleName: bottle.settings.name,
+                    timestamp: program.settings.lastDiagnosisDate ?? Date()
+                )
+                .frame(minWidth: 600, minHeight: 400)
+            }
         }
         .alert(item: $prefixRepairResult) { result in
             switch result {
@@ -227,7 +269,11 @@ struct ConfigView: View {
             }
         }
     }
+}
 
+// MARK: - Loading Functions
+
+extension ConfigView {
     func loadBuildName() {
         buildVersionLoadingState = .loading
         Task(priority: .userInitiated) {
@@ -271,6 +317,41 @@ struct ConfigView: View {
                 logger.error("Failed to load DPI resolution: \(error.localizedDescription)")
                 dpiConfigLoadingState = .failed
             }
+        }
+    }
+}
+
+// MARK: - Diagnostics Helpers
+
+extension ConfigView {
+    var mostRecentlyDiagnosedProgram: Program? {
+        bottle.programs
+            .filter { $0.settings.lastDiagnosisDate != nil }
+            .max { ($0.settings.lastDiagnosisDate ?? .distantPast) < ($1.settings.lastDiagnosisDate ?? .distantPast) }
+    }
+
+    func loadLatestDiagnosisAndExport() {
+        guard let program = mostRecentlyDiagnosedProgram,
+              let logURL = program.settings.lastLogFileURL
+        else { return }
+        Task {
+            guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else { return }
+            latestDiagnosis = diagnosis
+            latestDiagnosisProgram = program
+            showDiagnosticExportSheet = true
+        }
+    }
+
+    func loadLatestDiagnosisAndView() {
+        guard let program = mostRecentlyDiagnosedProgram,
+              let logURL = program.settings.lastLogFileURL
+        else { return }
+        Task {
+            guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else { return }
+            latestDiagnosis = diagnosis
+            latestDiagnosisProgram = program
+            latestDiagnosisLogText = (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
+            showCrashDiagnosticsSheet = true
         }
     }
 }

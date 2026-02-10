@@ -33,6 +33,9 @@ struct ProgramOverrideSettingsView: View {
     @Binding var isExpanded: Bool
 
     @State private var showResetConfirmation = false
+    @State private var showDiagnosticsSheet = false
+    @State private var activeDiagnosis: CrashDiagnosis?
+    @State private var activeLogText: String = ""
 
     var body: some View {
         Section("program.overrides.title", isExpanded: $isExpanded) {
@@ -43,6 +46,76 @@ struct ProgramOverrideSettingsView: View {
             dllOverridesGroup
             winetricksSection
             resetButton
+        }
+        diagnosticsSection
+            .sheet(isPresented: $showDiagnosticsSheet) {
+                if let diagnosis = activeDiagnosis {
+                    DiagnosticsView(
+                        diagnosis: diagnosis,
+                        logText: activeLogText,
+                        programName: program.name,
+                        bottleName: bottle.settings.name,
+                        timestamp: Date()
+                    )
+                    .frame(minWidth: 600, minHeight: 400)
+                }
+            }
+    }
+
+    // MARK: - Diagnostics Section
+
+    private var diagnosticsSection: some View {
+        Section("Diagnostics") {
+            DiagnosisHistoryView(
+                bottle: bottle,
+                program: program,
+                onViewDetails: { entry in
+                    viewDiagnosisDetails(for: entry)
+                },
+                onReanalyze: { entry in
+                    viewDiagnosisDetails(for: entry)
+                },
+                onAnalyzeLastRun: {
+                    analyzeLastRun()
+                }
+            )
+
+            if let lastDate = program.settings.lastDiagnosisDate {
+                HStack {
+                    Text("Last analyzed:")
+                    Text(lastDate, style: .relative)
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func viewDiagnosisDetails(for entry: DiagnosisHistoryEntry) {
+        let logURL = Wine.logsFolder.appendingPathComponent(entry.logFileRef)
+        Task {
+            guard let diagnosis = await Wine.classifyLastRun(
+                logFileURL: logURL,
+                exitCode: 1
+            )
+            else { return }
+            activeLogText = (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
+            activeDiagnosis = diagnosis
+            showDiagnosticsSheet = true
+        }
+    }
+
+    private func analyzeLastRun() {
+        guard let logURL = program.settings.lastLogFileURL else { return }
+        Task {
+            guard let diagnosis = await Wine.classifyLastRun(
+                logFileURL: logURL,
+                exitCode: 1
+            )
+            else { return }
+            activeLogText = (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
+            activeDiagnosis = diagnosis
+            showDiagnosticsSheet = true
         }
     }
 

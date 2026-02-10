@@ -22715,7 +22715,42 @@
           }
         }
       }
-    }
+    },
+    "Export Diagnostic Report": {},
+    "Include sensitive details": {},
+    "Recommended only when sharing privately": {},
+    "Include remediation history": {},
+    "Include full log file": {},
+    "Copy Report to Clipboard": {},
+    "Save ZIP…": {},
+    "Copied!": {},
+    "Crash Diagnosis History": {},
+    "No crash diagnoses recorded": {},
+    "Analyze last run": {},
+    "View Details": {},
+    "Re-analyze": {},
+    "Clear diagnostics history": {},
+    "Clear diagnostics history?": {},
+    "Clear": {},
+    "This will remove all crash diagnosis records for this program.": {},
+    "Enhanced Logging": {},
+    "WINEDEBUG Preset": {},
+    "Re-run with enhanced logging": {},
+    "Generates large logs": {},
+    "Diagnostics": {},
+    "Analyze Wine crash output for troubleshooting guidance": {},
+    "Export Diagnostic Report…": {},
+    "View Latest Diagnosis": {},
+    "Run Diagnostics…": {},
+    "Run Diagnostics": {},
+    "Crash detected — %@": {},
+    "View Diagnosis": {},
+    "Last analyzed:": {},
+    "Select a bottle": {},
+    "Select a program": {},
+    "Analyze": {},
+    "Bottle": {},
+    "Program": {}
   },
   "version": "1.0"
 }

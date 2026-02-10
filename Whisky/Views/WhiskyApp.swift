@@ -26,6 +26,8 @@ private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.fran
 @main
 struct WhiskyApp: App {
     @State var showSetup: Bool = false
+    @State private var showDiagnosticsSheet: Bool = false
+    @State private var crashDiagnosisBanner: CrashDiagnosisBannerState?
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Environment(\.openURL) var openURL
     private let updaterController: SPUStandardUpdaterController
@@ -48,6 +50,20 @@ struct WhiskyApp: App {
 
                     Task.detached {
                         await WhiskyApp.deleteOldLogs()
+                    }
+                }
+                .onReceive(
+                    NotificationCenter.default.publisher(for: .crashDiagnosisAvailable)
+                ) { notification in
+                    handleCrashDiagnosisNotification(notification)
+                }
+                .sheet(isPresented: $showDiagnosticsSheet) {
+                    DiagnosticsPickerSheet()
+                        .environmentObject(BottleVM.shared)
+                }
+                .overlay(alignment: .top) {
+                    if let banner = crashDiagnosisBanner {
+                        crashDiagnosisBannerView(banner)
                     }
                 }
         }
@@ -115,6 +131,11 @@ struct WhiskyApp: App {
                         openURL(url)
                     }
                 }
+                Divider()
+                Button("Run Diagnostics\u{2026}") {
+                    showDiagnosticsSheet = true
+                }
+                .keyboardShortcut("D", modifiers: [.command, .shift])
             }
         }
         Settings {
@@ -168,6 +189,63 @@ struct WhiskyApp: App {
         }
     }
 
+    // MARK: - Crash Diagnosis Notification
+
+    private func handleCrashDiagnosisNotification(_ notification: Notification) {
+        guard let diagnosis = notification.userInfo?["diagnosis"] as? CrashDiagnosis,
+              let programPath = notification.userInfo?["programPath"] as? String,
+              let logFileURL = notification.userInfo?["logFileURL"] as? URL
+        else { return }
+
+        let programName = URL(fileURLWithPath: programPath).deletingPathExtension().lastPathComponent
+        crashDiagnosisBanner = CrashDiagnosisBannerState(
+            diagnosis: diagnosis,
+            programName: programName,
+            logFileURL: logFileURL
+        )
+
+        // Auto-dismiss after 8 seconds
+        Task {
+            try? await Task.sleep(for: .seconds(8))
+            withAnimation {
+                crashDiagnosisBanner = nil
+            }
+        }
+    }
+
+    private func crashDiagnosisBannerView(_ banner: CrashDiagnosisBannerState) -> some View {
+        HStack {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+            Text("Crash detected \u{2014} \(banner.programName)")
+                .fontWeight(.medium)
+            Spacer()
+            Button("View Diagnosis") {
+                crashDiagnosisBanner = nil
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            Button {
+                withAnimation {
+                    crashDiagnosisBanner = nil
+                }
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.caption)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(.controlBackgroundColor))
+                .shadow(radius: 4)
+        )
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .transition(.move(edge: .top).combined(with: .opacity))
+    }
+
     static func wipeShaderCaches() {
         let getconf = Process()
         getconf.executableURL = URL(fileURLWithPath: "/usr/bin/getconf")
@@ -201,6 +279,107 @@ struct WhiskyApp: App {
             logger.info("Successfully cleared shader caches")
         } catch {
             logger.warning("Failed to remove shader cache at \(d3dmPath): \(error.localizedDescription)")
+        }
+    }
+}
+
+// MARK: - Crash Diagnosis Banner State
+
+struct CrashDiagnosisBannerState {
+    let diagnosis: CrashDiagnosis
+    let programName: String
+    let logFileURL: URL
+}
+
+// MARK: - Diagnostics Picker Sheet
+
+/// Sheet that lets the user select a bottle and program, then opens DiagnosticsView.
+struct DiagnosticsPickerSheet: View {
+    @EnvironmentObject var bottleVM: BottleVM
+    @Environment(\.dismiss) var dismiss
+
+    @State private var selectedBottle: Bottle?
+    @State private var selectedProgram: Program?
+    @State private var isAnalyzing = false
+    @State private var showDiagnosticsResult = false
+    @State private var resultDiagnosis: CrashDiagnosis?
+    @State private var resultLogText: String = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Run Diagnostics")
+                .font(.headline)
+
+            Picker("Bottle", selection: $selectedBottle) {
+                Text("Select a bottle").tag(nil as Bottle?)
+                ForEach(bottleVM.bottles) { bottle in
+                    Text(bottle.settings.name).tag(bottle as Bottle?)
+                }
+            }
+
+            if let bottle = selectedBottle {
+                Picker("Program", selection: $selectedProgram) {
+                    Text("Select a program").tag(nil as Program?)
+                    ForEach(bottle.programs) { program in
+                        Text(program.name).tag(program as Program?)
+                    }
+                }
+            }
+
+            HStack {
+                Button("Cancel", role: .cancel) {
+                    dismiss()
+                }
+                .keyboardShortcut(.cancelAction)
+
+                Spacer()
+
+                Button("Analyze") {
+                    runAnalysis()
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(selectedProgram == nil || isAnalyzing)
+
+                if isAnalyzing {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+            }
+        }
+        .padding(20)
+        .frame(minWidth: 400)
+        .onChange(of: selectedBottle) { _, _ in
+            selectedProgram = nil
+        }
+        .sheet(isPresented: $showDiagnosticsResult) {
+            if let diagnosis = resultDiagnosis, let program = selectedProgram {
+                DiagnosticsView(
+                    diagnosis: diagnosis,
+                    logText: resultLogText,
+                    programName: program.name,
+                    bottleName: selectedBottle?.settings.name ?? "",
+                    timestamp: Date()
+                )
+                .frame(minWidth: 600, minHeight: 400)
+            }
+        }
+    }
+
+    private func runAnalysis() {
+        guard let program = selectedProgram,
+              let logURL = program.settings.lastLogFileURL
+        else { return }
+
+        isAnalyzing = true
+        Task {
+            guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else {
+                isAnalyzing = false
+                return
+            }
+            resultDiagnosis = diagnosis
+            resultLogText = (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
+            isAnalyzing = false
+            showDiagnosticsResult = true
         }
     }
 }

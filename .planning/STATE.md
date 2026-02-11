@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 8 of 10 (Remaining Platform Issues) -- IN PROGRESS
-Plan: 5 of 7 in current phase (plan 05 complete)
+Plan: 6 of 7 in current phase (plan 06 complete)
 Status: Executing
-Last activity: 2026-02-11 -- Completed 08-05 (Controller Panel UI)
+Last activity: 2026-02-11 -- Completed 08-06 (Dependency Tracking UI)
 
-Progress: [▓▓▓▓▓▓▓░░░] 76%
+Progress: [▓▓▓▓▓▓▓▓░░] 78%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 34
+- Total plans completed: 35
 - Average duration: 8.3min
-- Total execution time: 4.8 hours
+- Total execution time: 4.9 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [▓▓▓▓▓▓▓░░░] 76%
 | 05-stability-diagnostics | 5 | 45min | 9.0min |
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
 | 07-game-compatibility-database | 7/7 | 64min | 9.1min |
-| 08-remaining-platform-issues | 5/7 | 24min | 4.8min |
+| 08-remaining-platform-issues | 6/7 | 32min | 5.3min |
 
 **Recent Trend:**
-- Last 5 plans: 08-01 (--), 08-02 (8min), 08-03 (9min), 08-04 (--), 08-05 (7min)
-- Trend: Phase 8 progressing; controller panel UI in 7min
+- Last 5 plans: 08-02 (8min), 08-03 (9min), 08-04 (--), 08-05 (7min), 08-06 (8min)
+- Trend: Phase 8 progressing; dependency tracking UI in 8min
 
 *Updated after each plan completion*
 
@@ -181,6 +181,10 @@ Recent decisions affecting current work:
 - [08-05]: Connected Controllers subpanel collapsed by default with DisclosureGroup (per user decision)
 - [08-05]: Input overrides at programUser layer: controllerCompatibilityMode gates all SDL hint overrides
 - [08-05]: useButtonLabels and disableControllerMapping both control SDL_GAMECONTROLLER_USE_BUTTON_LABELS at program level
+- [08-06]: DependencyConfigSection manages own @State (no state hoisting to ConfigView)
+- [08-06]: Preflight and Plan stages merged into single stage with embedded verb plan section
+- [08-06]: Install directory created under Views for DependencyInstallSheet (new Xcode group)
+- [08-06]: BottleDependencyHistory populated after each install attempt for diagnostics traceability
 
 ### Pending Todos
 
@@ -193,5 +197,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 08-05-PLAN.md (Controller Panel UI)
+Stopped at: Completed 08-06-PLAN.md (Dependency Tracking UI)
 Resume file: None

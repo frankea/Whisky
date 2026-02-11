@@ -18,6 +18,49 @@
 
 import Foundation
 
+/// Categorizes the type of fix an environment variable override addresses.
+///
+/// Used by ``LauncherFixDetail`` and ``MacOSFix`` to classify why a particular
+/// environment variable is being set, enabling UI display of fix provenance.
+public enum FixCategory: String, Codable, CaseIterable, Sendable {
+    /// Locale or encoding fixes (LC_ALL, LANG, etc.)
+    case locale
+    /// Sandbox disablement or security boundary fixes
+    case sandbox
+    /// Graphics driver or rendering fixes (DXVK, D3D, Metal)
+    case graphics
+    /// Network timeout or connection pooling fixes
+    case network
+    /// Thread management, CPU topology, or synchronization fixes
+    case threading
+    /// General compatibility workarounds
+    case compatibility
+}
+
+/// Structured metadata for a single launcher-specific environment variable fix.
+///
+/// Wraps the same key-value pair as ``LauncherType/environmentOverrides()`` but
+/// adds a human-readable reason and category for provenance display.
+///
+/// ## Example
+///
+/// ```swift
+/// let details = LauncherType.steam.fixDetails()
+/// for detail in details {
+///     print("\(detail.key)=\(detail.value) (\(detail.reason))")
+/// }
+/// ```
+public struct LauncherFixDetail: Sendable {
+    /// The environment variable name.
+    public let key: String
+    /// The environment variable value.
+    public let value: String
+    /// Human-readable explanation of why this fix is applied.
+    public let reason: String
+    /// The category of issue this fix addresses.
+    public let category: FixCategory
+}
+
 /// Represents different game launcher platforms with optimized configurations.
 ///
 /// This enum provides launcher-specific environment variable presets to address
@@ -109,6 +152,9 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     /// - **Rockstar**: Requires DXVK for logo rendering (whisky-app/whisky#1335, #835)
     /// - **EA App/Epic**: Chromium-based, need sandbox and locale fixes
     /// - **Ubisoft**: Requires D3D11 mode for stability (whisky-app/whisky#1004)
+    ///
+    /// - Note: For richer metadata including human-readable reasons and categories,
+    ///   use ``fixDetails()`` instead.
     ///
     /// - Returns: Dictionary of environment variable key-value pairs
     public func environmentOverrides() -> [String: String] {
@@ -207,6 +253,163 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
 
         return env
     }
+
+    // swiftlint:disable function_body_length
+
+    /// Returns structured fix metadata for this launcher's environment overrides.
+    ///
+    /// Each entry wraps the same key-value pair as ``environmentOverrides()`` but adds
+    /// a human-readable reason and ``FixCategory`` for provenance display in the UI.
+    ///
+    /// - Returns: Array of ``LauncherFixDetail`` entries describing each fix.
+    public func fixDetails() -> [LauncherFixDetail] {
+        switch self {
+        case .steam:
+            [
+                LauncherFixDetail(
+                    key: "LC_ALL", value: "en_US.UTF-8",
+                    reason: "Fixes steamwebhelper CEF locale crashes",
+                    category: .locale
+                ),
+                LauncherFixDetail(
+                    key: "LANG", value: "en_US.UTF-8",
+                    reason: "Fixes steamwebhelper CEF locale crashes",
+                    category: .locale
+                ),
+                LauncherFixDetail(
+                    key: "LC_TIME", value: "C",
+                    reason: "Avoids ICU date/time parsing errors",
+                    category: .locale
+                ),
+                LauncherFixDetail(
+                    key: "LC_NUMERIC", value: "C",
+                    reason: "Avoids ICU numeric parsing errors",
+                    category: .locale
+                ),
+                LauncherFixDetail(
+                    key: "STEAM_DISABLE_CEF_SANDBOX", value: "1",
+                    reason: "Disables Steam-specific CEF sandbox (crashes under Wine)",
+                    category: .sandbox
+                ),
+                LauncherFixDetail(
+                    key: "STEAM_RUNTIME", value: "0",
+                    reason: "Disables Steam Runtime (incompatible with Wine)",
+                    category: .compatibility
+                ),
+                LauncherFixDetail(
+                    key: "DXVK_ASYNC", value: "1",
+                    reason: "Reduces UI stuttering in Steam client",
+                    category: .graphics
+                ),
+            ]
+
+        case .rockstar:
+            [
+                LauncherFixDetail(
+                    key: "DXVK_REQUIRED", value: "1",
+                    reason: "DXVK required for logo screen rendering",
+                    category: .graphics
+                ),
+                LauncherFixDetail(
+                    key: "D3DM_FORCE_D3D11", value: "1",
+                    reason: "Forces D3D11 mode for launcher compatibility",
+                    category: .graphics
+                ),
+                LauncherFixDetail(
+                    key: "WINE_LARGE_ADDRESS_AWARE", value: "1",
+                    reason: "Improves launcher initialization memory handling",
+                    category: .compatibility
+                ),
+                LauncherFixDetail(
+                    key: "LC_ALL", value: "en_US.UTF-8",
+                    reason: "Sets locale for launcher UI rendering",
+                    category: .locale
+                ),
+            ]
+
+        case .eaApp:
+            [
+                LauncherFixDetail(
+                    key: "LC_ALL", value: "en_US.UTF-8",
+                    reason: "Fixes Chromium-based launcher locale issues",
+                    category: .locale
+                ),
+                LauncherFixDetail(
+                    key: "LANG", value: "en_US.UTF-8",
+                    reason: "Fixes Chromium-based launcher locale issues",
+                    category: .locale
+                ),
+                LauncherFixDetail(
+                    key: "D3DM_FEATURE_LEVEL_12_1", value: "1",
+                    reason: "Fixes GPU not supported detection errors",
+                    category: .graphics
+                ),
+            ]
+
+        case .epicGames:
+            [
+                LauncherFixDetail(
+                    key: "LC_ALL", value: "en_US.UTF-8",
+                    reason: "Fixes Chromium-based launcher locale issues",
+                    category: .locale
+                ),
+                LauncherFixDetail(
+                    key: "D3DM_FORCE_D3D11", value: "1",
+                    reason: "Improves launcher UI rendering stability",
+                    category: .graphics
+                ),
+                LauncherFixDetail(
+                    key: "WINE_DISABLE_NTDLL_THREAD_REGS", value: "1",
+                    reason: "Fixes thread safety for Epic web views",
+                    category: .threading
+                ),
+            ]
+
+        case .ubisoft:
+            [
+                LauncherFixDetail(
+                    key: "D3DM_FORCE_D3D11", value: "1",
+                    reason: "Required D3D11 mode for Ubisoft Connect stability",
+                    category: .graphics
+                ),
+                LauncherFixDetail(
+                    key: "DXVK_ASYNC", value: "1",
+                    reason: "Improves rendering for Anno 1800 and other Ubisoft games",
+                    category: .graphics
+                ),
+            ]
+
+        case .battleNet:
+            [
+                LauncherFixDetail(
+                    key: "LC_ALL", value: "en_US.UTF-8",
+                    reason: "Fixes Chromium-based launcher locale issues",
+                    category: .locale
+                ),
+                LauncherFixDetail(
+                    key: "WINE_CPU_TOPOLOGY", value: "8:8",
+                    reason: "Configures threading for Battle.net authentication",
+                    category: .threading
+                ),
+            ]
+
+        case .paradox:
+            [
+                LauncherFixDetail(
+                    key: "WINE_DISABLE_FAST_PATH", value: "1",
+                    reason: "Fixes recursive resource lookup bug",
+                    category: .compatibility
+                ),
+                LauncherFixDetail(
+                    key: "D3DM_FORCE_D3D11", value: "1",
+                    reason: "Improves launcher initialization",
+                    category: .graphics
+                ),
+            ]
+        }
+    }
+
+    // swiftlint:enable function_body_length
 
     /// Indicates whether this launcher requires DXVK to function.
     ///

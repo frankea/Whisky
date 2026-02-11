@@ -162,6 +162,8 @@ public struct BottleSettings: Codable, Equatable {
     private var cleanupConfig: BottleCleanupConfig
     /// Graphics backend selection.
     private var graphicsConfig: BottleGraphicsConfig
+    /// Display resolution and virtual desktop settings.
+    private var displayConfig: BottleDisplayConfig
     /// Audio driver, latency, and device settings.
     private var audioConfig: BottleAudioConfig
     /// User-defined DLL overrides at the bottle level.
@@ -178,6 +180,7 @@ public struct BottleSettings: Codable, Equatable {
         self.inputConfig = BottleInputConfig()
         self.cleanupConfig = BottleCleanupConfig()
         self.graphicsConfig = BottleGraphicsConfig()
+        self.displayConfig = BottleDisplayConfig()
         self.audioConfig = BottleAudioConfig()
         self.customDLLOverrides = []
     }
@@ -218,6 +221,10 @@ public struct BottleSettings: Codable, Equatable {
         if !hasGraphicsConfig, self.dxvkConfig.dxvk {
             self.graphicsConfig.backend = .dxvk
         }
+        self.displayConfig = try container.decodeIfPresent(
+            BottleDisplayConfig.self,
+            forKey: .displayConfig
+        ) ?? BottleDisplayConfig()
         self.audioConfig = try container.decodeIfPresent(
             BottleAudioConfig.self,
             forKey: .audioConfig
@@ -398,6 +405,44 @@ public struct BottleSettings: Codable, Equatable {
     public var pinnedDeviceName: String? {
         get { audioConfig.pinnedDeviceName }
         set { audioConfig.pinnedDeviceName = newValue }
+    }
+
+    // MARK: - Display settings
+
+    /// Whether Wine's virtual desktop mode is enabled for this bottle.
+    ///
+    /// When enabled, Wine runs in a windowed virtual desktop instead of
+    /// directly managing individual windows. The resolution is controlled
+    /// by ``resolutionPreset`` and ``customResolutionWidth``/``customResolutionHeight``.
+    public var virtualDesktopEnabled: Bool {
+        get { displayConfig.virtualDesktopEnabled }
+        set { displayConfig.virtualDesktopEnabled = newValue }
+    }
+
+    /// The display resolution preset for the virtual desktop.
+    ///
+    /// Controls the virtual desktop resolution when ``virtualDesktopEnabled`` is `true`.
+    /// Use `.custom` to specify arbitrary dimensions via ``customResolutionWidth``
+    /// and ``customResolutionHeight``.
+    public var resolutionPreset: ResolutionPreset {
+        get { displayConfig.resolutionPreset }
+        set { displayConfig.resolutionPreset = newValue }
+    }
+
+    /// The custom virtual desktop width in pixels.
+    ///
+    /// Only used when ``resolutionPreset`` is `.custom`.
+    public var customResolutionWidth: Int {
+        get { displayConfig.customWidth }
+        set { displayConfig.customWidth = newValue }
+    }
+
+    /// The custom virtual desktop height in pixels.
+    ///
+    /// Only used when ``resolutionPreset`` is `.custom`.
+    public var customResolutionHeight: Int {
+        get { displayConfig.customHeight }
+        set { displayConfig.customHeight = newValue }
     }
 
     // MARK: - Performance settings

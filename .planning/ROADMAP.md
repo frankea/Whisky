@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Audio Troubleshooting** - Diagnostics-first audio remediation with limited settings
 - [x] **Phase 7: Game Compatibility Database** - Bundled known-good configurations with one-click apply
 - [x] **Phase 8: Remaining Platform Issues** - Launcher, controller, and installation fixes
-- [ ] **Phase 9: UI/UX & Feature Requests** - Polish and top community-requested features
+- [x] **Phase 9: UI/UX & Feature Requests** - Polish and top community-requested features
 - [ ] **Phase 10: Guided Troubleshooting** - Data-driven symptom/solution engine integrating all phases
 
 ## Phase Details
@@ -182,13 +182,13 @@ Plans:
 **Plans**: 7 plans
 
 Plans:
-- [ ] 09-01-PLAN.md -- Quick fixes: GPTK dialog streamlining, Build Version display fix, Retina Mode tri-state toggle
-- [ ] 09-02-PLAN.md -- Resolution control data model: BottleDisplayConfig, ResolutionPreset, virtual desktop registry helpers, ProgramOverrides display fields
-- [ ] 09-03-PLAN.md -- Resolution control UI: ResolutionConfigSection, virtual desktop toggle, preset picker, per-program display overrides
-- [ ] 09-04-PLAN.md -- Bottle duplication: enhanced progress feedback, naming convention, multiple entry points, toast notifications
-- [ ] 09-05-PLAN.md -- Console persistence data: RunLogEntry/RunLogHistory models, Wine.runProgram integration, per-program run history
-- [ ] 09-06-PLAN.md -- Console persistence UI: ConsoleRunHistoryView, ConsoleLogView with channel filters, ProgramView integration
-- [ ] 09-07-PLAN.md -- WhiskyCmd improvements: deterministic output, --follow/--tail-log flags, Shortcut subcommand, path handling tests
+- [x] 09-01-PLAN.md -- Quick fixes: GPTK dialog streamlining, Build Version display fix, Retina Mode tri-state toggle
+- [x] 09-02-PLAN.md -- Resolution control data model: BottleDisplayConfig, ResolutionPreset, virtual desktop registry helpers, ProgramOverrides display fields
+- [x] 09-03-PLAN.md -- Resolution control UI: ResolutionConfigSection, virtual desktop toggle, preset picker, per-program display overrides
+- [x] 09-04-PLAN.md -- Bottle duplication: enhanced progress feedback, naming convention, multiple entry points, toast notifications
+- [x] 09-05-PLAN.md -- Console persistence data: RunLogEntry/RunLogHistory models, Wine.runProgram integration, per-program run history
+- [x] 09-06-PLAN.md -- Console persistence UI: ConsoleRunHistoryView, ConsoleLogView with channel filters, ProgramView integration
+- [x] 09-07-PLAN.md -- WhiskyCmd improvements: deterministic output, --follow/--tail-log flags, Shortcut subcommand, path handling tests
 
 ### Phase 10: Guided Troubleshooting
 **Goal**: Users can navigate interactive, data-driven troubleshooting flows that diagnose and resolve common issues by integrating diagnostics, compatibility data, and configuration from all previous phases
@@ -223,5 +223,5 @@ Note: Phases 3 and 4 are parallel-capable (no mutual dependencies). Phases 5 and
 | 6. Audio Troubleshooting | 5/5 | ✓ Complete | 2026-02-10 |
 | 7. Game Compatibility Database | 7/7 | ✓ Complete | 2026-02-10 |
 | 8. Remaining Platform Issues | 7/7 | ✓ Complete | 2026-02-11 |
-| 9. UI/UX & Feature Requests | 0/7 | Not started | - |
+| 9. UI/UX & Feature Requests | 7/7 | ✓ Complete | 2026-02-11 |
 | 10. Guided Troubleshooting | 0/TBD | Not started | - |

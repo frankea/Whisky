@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 9 of 10 (UI/UX & Feature Requests)
-Plan: 5 of 7 in current phase (09-04 complete)
+Plan: 7 of 7 in current phase (09-07 complete)
 Status: Executing
-Last activity: 2026-02-11 -- Completed 09-04 (enhanced bottle duplication)
+Last activity: 2026-02-11 -- Completed 09-07 (WhiskyCmd improvements)
 
-Progress: [▓▓▓▓▓▓▓▓▓░] 87%
+Progress: [▓▓▓▓▓▓▓▓▓░] 90%
 
 ## Performance Metrics
 
@@ -35,14 +35,15 @@ Progress: [▓▓▓▓▓▓▓▓▓░] 87%
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
 | 07-game-compatibility-database | 7/7 | 64min | 9.1min |
 | 08-remaining-platform-issues | 7/7 | 47min | 6.7min |
-| 09-ui-ux-feature-requests | 5/7 | 36min | 7.2min |
+| 09-ui-ux-feature-requests | 6/7 | 42min | 7.0min |
 
 **Recent Trend:**
-- Last 5 plans: 08-07 (7min), 09-01 (8min), 09-02 (4min), 09-05 (6min), 09-04 (10min)
-- Trend: Phase 9 progressing; bottle duplication enhancement in 10min
+- Last 5 plans: 09-01 (8min), 09-02 (4min), 09-05 (6min), 09-04 (10min), 09-07 (6min)
+- Trend: Phase 9 progressing; WhiskyCmd improvements in 6min
 
 *Updated after each plan completion*
 | Phase 09 P01 | 8min | 2 tasks | 4 files |
+| Phase 09 P07 | 6min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -212,6 +213,11 @@ Recent decisions affecting current work:
 - [09-04]: FileManager.copyItem used with phase-level progress (not file-by-file) per plan discretion clause
 - [09-04]: @Sendable progress callback required for crossing actor boundary in Task.detached
 - [09-04]: nonisolated static methods for calculateDirectorySize and removeTransientArtifacts in @MainActor extension
+- [09-07]: Wine.runWineProcess streaming API used for --follow mode (avoids new runProgram variant)
+- [09-07]: ShortcutCreator as caseless enum in WhiskyKit following GPUDetection pattern
+- [09-07]: ProgramShortcut delegates bundle creation to ShortcutCreator; keeps icon extraction and Finder reveal in app target
+- [09-07]: tailLogFile uses polling with 5-second idle timeout for portability
+- [09-07]: swiftlint:disable file_length for Main.swift (Shortcut subcommand pushed past 400-line limit)
 
 ### Pending Todos
 
@@ -224,5 +230,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 09-04-PLAN.md (enhanced bottle duplication)
+Stopped at: Completed 09-07-PLAN.md (WhiskyCmd improvements)
 Resume file: None

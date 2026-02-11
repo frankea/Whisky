@@ -65,6 +65,12 @@ public struct EnvironmentProvenance: Sendable {
         /// If this entry was overridden by a higher layer, that layer.
         /// `nil` for the winning entry.
         public let overriddenBy: EnvironmentLayer?
+        /// Human-readable reason for this entry, if provided.
+        ///
+        /// Populated by callers using ``EnvironmentBuilder/set(_:_:layer:reason:)``
+        /// to explain why a particular value was set. For example,
+        /// "Fixes steamwebhelper CEF locale crashes" or "macOS >= 15.4".
+        public let reason: String?
     }
 
     /// The winning provenance entry for each environment variable key.
@@ -93,6 +99,10 @@ public struct EnvironmentBuilder: Sendable {
     /// Per-layer storage of key-value entries.
     private var layers: [EnvironmentLayer: [String: String?]] = [:]
 
+    /// Per-layer storage of reason strings, keyed by (layer, key).
+    /// Only populated when callers provide a reason via ``set(_:_:layer:reason:)``.
+    private var reasons: [EnvironmentLayer: [String: String]] = [:]
+
     /// Creates a new empty environment builder.
     public init() {}
 
@@ -104,6 +114,23 @@ public struct EnvironmentBuilder: Sendable {
     ///   - layer: The layer that owns this entry.
     public mutating func set(_ key: String, _ value: String, layer: EnvironmentLayer) {
         layers[layer, default: [:]][key] = value
+    }
+
+    /// Sets an environment variable in the specified layer with a reason.
+    ///
+    /// The reason is carried through to the resolved provenance entry, enabling
+    /// UI display of "Applied because: {reason}" for any environment variable.
+    ///
+    /// - Parameters:
+    ///   - key: The environment variable name.
+    ///   - value: The value to set.
+    ///   - layer: The layer that owns this entry.
+    ///   - reason: Human-readable explanation for why this value is set.
+    public mutating func set(_ key: String, _ value: String, layer: EnvironmentLayer, reason: String?) {
+        layers[layer, default: [:]][key] = value
+        if let reason {
+            reasons[layer, default: [:]][key] = reason
+        }
     }
 
     /// Sets multiple environment variables in the specified layer.
@@ -162,11 +189,13 @@ public struct EnvironmentBuilder: Sendable {
 
         for (key, value) in finalEnv {
             guard let layer = winningLayer[key] else { continue }
+            let reason = reasons[layer]?[key]
             provenanceEntries[key] = EnvironmentProvenance.Entry(
                 key: key,
                 value: value,
                 layer: layer,
-                overriddenBy: nil
+                overriddenBy: nil,
+                reason: reason
             )
             activeLayers.insert(layer)
         }

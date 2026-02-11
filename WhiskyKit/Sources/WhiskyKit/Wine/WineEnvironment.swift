@@ -56,11 +56,20 @@ extension Wine {
         builder.set("GST_DEBUG", "1", layer: .base)
 
         // Layer 2: Platform -- macOS compatibility fixes
-        // Collect fixes into a temp dict, then apply to the platform layer.
-        // MacOSCompatibility.swift is not modified; we adapt the call pattern.
-        var platformFixes: [String: String] = [:]
-        applyMacOSCompatibilityFixes(to: &platformFixes)
-        builder.setAll(platformFixes, layer: .platform)
+        // Apply fixes from the MacOSCompatibilityFixes registry with reason strings.
+        // applyMacOSCompatibilityFixes() is still called for the conditional WINEESYNC logic.
+        for fix in MacOSCompatibilityFixes.activeFixes() {
+            builder.set(fix.key, fix.value, layer: .platform, reason: fix.reason)
+        }
+        // Handle conditional WINEESYNC (depends on existing environment state)
+        var platformConditional: [String: String] = [:]
+        applyMacOSCompatibilityFixes(to: &platformConditional)
+        if let esync = platformConditional["WINEESYNC"] {
+            builder.set(
+                "WINEESYNC", esync, layer: .platform,
+                reason: "Fallback sync mode for macOS 15.4+ (esync/msync not otherwise set)"
+            )
+        }
 
         // Layer 3: Bottle managed -- settings-derived env vars (DXVK, sync, Metal, perf)
         let managedOverrides = bottle.settings.populateBottleManagedLayer(builder: &builder)

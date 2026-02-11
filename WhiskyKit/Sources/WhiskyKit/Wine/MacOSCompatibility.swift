@@ -94,7 +94,6 @@ public struct MacOSFix: Sendable {
 /// running Windows apps via Wine are already accepting compatibility layer security
 /// implications.
 public enum MacOSCompatibilityFixes {
-    // swiftlint:disable:next identifier_name
     /// The minimum macOS version (effectively "all versions") for universal fixes.
     private static let allVersions = MacOSVersion(major: 0, minor: 0, patch: 0)
 
@@ -189,7 +188,7 @@ public enum MacOSCompatibilityFixes {
             key: "WINE_MACH_PORT_RETRY_COUNT", value: "5",
             reason: "Adds mach port retry resilience for macOS 15.4.1 regression",
             appliesFrom: .sequoia15_4_1, category: .threading
-        ),
+        )
     ]
 
     /// Returns only fixes applicable to the current macOS version.

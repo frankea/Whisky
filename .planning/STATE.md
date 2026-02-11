@@ -19,9 +19,9 @@ Progress: [▓▓▓▓▓▓▓▓░░] 78%
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 35
+- Total plans completed: 36
 - Average duration: 8.3min
-- Total execution time: 4.9 hours
+- Total execution time: 5.0 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [▓▓▓▓▓▓▓▓░░] 78%
 | 05-stability-diagnostics | 5 | 45min | 9.0min |
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
 | 07-game-compatibility-database | 7/7 | 64min | 9.1min |
-| 08-remaining-platform-issues | 6/7 | 32min | 5.3min |
+| 08-remaining-platform-issues | 6/7 | 40min | 5.7min |
 
 **Recent Trend:**
-- Last 5 plans: 08-02 (8min), 08-03 (9min), 08-04 (--), 08-05 (7min), 08-06 (8min)
-- Trend: Phase 8 progressing; dependency tracking UI in 8min
+- Last 5 plans: 08-02 (8min), 08-03 (9min), 08-04 (8min), 08-05 (7min), 08-06 (8min)
+- Trend: Phase 8 progressing; launcher guidance UI in 8min
 
 *Updated after each plan completion*
 
@@ -181,6 +181,10 @@ Recent decisions affecting current work:
 - [08-05]: Connected Controllers subpanel collapsed by default with DisclosureGroup (per user decision)
 - [08-05]: Input overrides at programUser layer: controllerCompatibilityMode gates all SDL hint overrides
 - [08-05]: useButtonLabels and disableControllerMapping both control SDL_GAMECONTROLLER_USE_BUTTON_LABELS at program level
+- [08-04]: ActiveEnvironmentOverrides as private struct with lock icons following DLLOverrideEditor managed pattern
+- [08-04]: Diagnostics button replaced with .openDiagnosticsSection notification for deep-linking to ConfigView
+- [08-04]: LauncherConfigSection body extracted into computed properties for SwiftLint type_body_length compliance
+- [08-04]: file_length SwiftLint disable for LauncherConfigSection (contains section + overrides view + DiagnosticsReportView)
 - [08-06]: DependencyConfigSection manages own @State (no state hoisting to ConfigView)
 - [08-06]: Preflight and Plan stages merged into single stage with embedded verb plan section
 - [08-06]: Install directory created under Views for DependencyInstallSheet (new Xcode group)
@@ -197,5 +201,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 08-06-PLAN.md (Dependency Tracking UI)
+Stopped at: Completed 08-04-PLAN.md (Launcher Guidance UI)
 Resume file: None

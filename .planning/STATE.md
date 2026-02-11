@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 7 verified and complete -- ready for Phase 8 (Remaining Platform Issues)
+**Current focus:** Phase 8 in progress -- Remaining Platform Issues
 
 ## Current Position
 
-Phase: 7 of 10 (Game Compatibility Database) -- VERIFIED
-Plan: 7 of 7 in current phase (all complete)
-Status: Phase Verified & Complete
-Last activity: 2026-02-10 -- Phase 7 verified, all 8/8 must-haves confirmed
+Phase: 8 of 10 (Remaining Platform Issues) -- IN PROGRESS
+Plan: 2 of 7 in current phase (plan 02 complete)
+Status: Executing
+Last activity: 2026-02-11 -- Completed 08-02 (Controller Discovery Infrastructure)
 
-Progress: [▓▓▓▓▓▓▓░░░] 70%
+Progress: [▓▓▓▓▓▓▓░░░] 74%
 
 ## Performance Metrics
 
@@ -34,10 +34,11 @@ Progress: [▓▓▓▓▓▓▓░░░] 70%
 | 05-stability-diagnostics | 5 | 45min | 9.0min |
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
 | 07-game-compatibility-database | 7/7 | 64min | 9.1min |
+| 08-remaining-platform-issues | 2/7 | 8min | 4.0min |
 
 **Recent Trend:**
-- Last 5 plans: 07-03 (6min), 07-04 (11min), 07-05 (18min), 07-06 (8min), 07-07 (11min)
-- Trend: Phase 7 complete; contextual suggestions + localization in 8min
+- Last 5 plans: 07-05 (18min), 07-06 (8min), 07-07 (11min), 08-01 (--), 08-02 (8min)
+- Trend: Phase 8 started; controller discovery infrastructure in 8min
 
 *Updated after each plan completion*
 
@@ -168,6 +169,9 @@ Recent decisions affecting current work:
 - [07-06]: ProgramOverrideSettingsView loads game match asynchronously via .task modifier with nonisolated helper
 - [07-06]: ConfigView revert calls GameConfigApplicator.revert + GameConfigSnapshot.delete directly
 - [07-06]: 60 localization entries added with gameConfig.* and gamedb.* key prefixes
+- [08-02]: nonisolated(unsafe) for notification observer storage in @MainActor deinit (Swift 6 compliance)
+- [08-02]: useButtonLabels coexists with disableControllerMapping; either true sets SDL_GAMECONTROLLER_USE_BUTTON_LABELS=1
+- [08-02]: ControllerMonitor in Whisky app target (not WhiskyKit) since GameController framework is app-level
 
 ### Pending Todos
 
@@ -179,6 +183,6 @@ None active.
 
 ## Session Continuity
 
-Last session: 2026-02-10
-Stopped at: Phase 7 verified and complete; ready for Phase 8
+Last session: 2026-02-11
+Stopped at: Completed 08-02-PLAN.md (Controller Discovery Infrastructure)
 Resume file: None

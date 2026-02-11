@@ -165,6 +165,14 @@ public struct ProgramSettings: Codable {
     /// Used by the diagnostics UI to display when the last analysis occurred.
     public var lastDiagnosisDate: Date?
 
+    // MARK: - Dependencies
+
+    /// IDs of dependency recommendations the user has dismissed for this program.
+    ///
+    /// Prevents dismissed recommendations from reappearing until new
+    /// evidence (e.g., a fresh crash diagnosis) is found.
+    public var dismissedDependencyRecommendations: Set<String>?
+
     /// Creates a new ProgramSettings with default values.
     public init() {}
 
@@ -183,6 +191,10 @@ public struct ProgramSettings: Codable {
         )
         self.lastLogFileURL = try container.decodeIfPresent(URL.self, forKey: .lastLogFileURL)
         self.lastDiagnosisDate = try container.decodeIfPresent(Date.self, forKey: .lastDiagnosisDate)
+        self.dismissedDependencyRecommendations = try container.decodeIfPresent(
+            Set<String>.self,
+            forKey: .dismissedDependencyRecommendations
+        )
     }
 
     /// Loads program settings from a plist file.

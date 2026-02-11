@@ -104,6 +104,8 @@
 		F748991F03BA464CFCDA99F3 /* StatusToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E2D80EAABBB985BAED42548 /* StatusToast.swift */; };
 		FBD19F7BAD838BE3ABB2CCC2 /* LaunchResult+Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2516958D60EC8937A2AF71 /* LaunchResult+Toast.swift */; };
 		F1A2B3C4E5F60801A9B0C1D1 /* ControllerMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4E5F60801A9B0C1D0 /* ControllerMonitor.swift */; };
+		G1A2B3C4E5F60901A9B0C1D0 /* DependencyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = G1A2B3C4E5F60901A9B0C1D1 /* DependencyManager.swift */; };
+		G1A2B3C4E5F60901A9B0C1D2 /* Winetricks+Install.swift in Sources */ = {isa = PBXBuildFile; fileRef = G1A2B3C4E5F60901A9B0C1D3 /* Winetricks+Install.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -247,6 +249,8 @@
 		EAE15F0C1EF1F06C7DB73DF5 /* SettingItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingItemView.swift; sourceTree = "<group>"; };
 		EEA5A2452A31DD65008274AE /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F1A2B3C4E5F60801A9B0C1D0 /* ControllerMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerMonitor.swift; sourceTree = "<group>"; };
+		G1A2B3C4E5F60901A9B0C1D1 /* DependencyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyManager.swift; sourceTree = "<group>"; };
+		G1A2B3C4E5F60901A9B0C1D3 /* Winetricks+Install.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Winetricks+Install.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -455,11 +459,13 @@
 			children = (
 				6E621CEE2A5F631200C9AAB3 /* Winetricks.swift */,
 				6F2BCF2BAEDF0AA7B418E096 /* Winetricks+InstalledVerbs.swift */,
+				G1A2B3C4E5F60901A9B0C1D3 /* Winetricks+Install.swift */,
 				6E70A4A02A9A280C007799E9 /* WhiskyCmd.swift */,
 				6E7C07BD2AAE7B0100F6E66B /* ProgramShortcut.swift */,
 				6763D8F52BC6314100651D27 /* Constants.swift */,
 				366E8BD2A51FD444160DFC10 /* LauncherDetection.swift */,
 				AA88CFEB38031323229CD377 /* LauncherDiagnostics.swift */,
+				G1A2B3C4E5F60901A9B0C1D1 /* DependencyManager.swift */,
 				F1A2B3C4E5F60801A9B0C1D0 /* ControllerMonitor.swift */,
 			);
 			path = Utils;
@@ -820,6 +826,8 @@
 				E1A2B3C4E5F60701A9B0C2D4 /* GameConfigPreviewSheet.swift in Sources */,
 				E1A2B3C4E5F60701A9B0C3D0 /* GameConfigBannerView.swift in Sources */,
 				F1A2B3C4E5F60801A9B0C1D1 /* ControllerMonitor.swift in Sources */,
+				G1A2B3C4E5F60901A9B0C1D0 /* DependencyManager.swift in Sources */,
+				G1A2B3C4E5F60901A9B0C1D2 /* Winetricks+Install.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

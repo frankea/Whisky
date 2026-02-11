@@ -20,12 +20,16 @@ import os
 import SwiftUI
 import WhiskyKit
 
+enum RetinaModeState: Equatable {
+    case enabled, disabled, unknown
+}
+
 struct WineConfigSection: View {
     private static let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ConfigView")
     @ObservedObject var bottle: Bottle
     @Binding var isExpanded: Bool
-    @Binding var buildVersion: Int
-    @Binding var retinaMode: Bool
+    @Binding var buildVersion: String
+    @Binding var retinaModeState: RetinaModeState
     @Binding var dpiConfig: Int
     @Binding var winVersionLoadingState: LoadingState
     @Binding var buildVersionLoadingState: LoadingState
@@ -50,40 +54,64 @@ struct WineConfigSection: View {
                 loadingState: buildVersionLoadingState,
                 onRetry: onRetryBuildVersion
             ) {
-                TextField("config.buildVersion", value: $buildVersion, formatter: NumberFormatter())
-                    .multilineTextAlignment(.trailing)
-                    .textFieldStyle(PlainTextFieldStyle())
-                    .onSubmit {
-                        buildVersionLoadingState = .modifying
-                        Task(priority: .userInitiated) {
-                            do {
-                                try await Wine.changeBuildVersion(bottle: bottle, version: buildVersion)
-                                buildVersionLoadingState = .success
-                            } catch {
-                                Self.logger.error("Failed to change build version: \(error.localizedDescription)")
-                                buildVersionLoadingState = .failed
-                            }
+                TextField(
+                    "config.buildVersion.notSet",
+                    text: $buildVersion
+                )
+                .multilineTextAlignment(.trailing)
+                .textFieldStyle(PlainTextFieldStyle())
+                .onSubmit {
+                    guard let version = Int(buildVersion) else { return }
+                    buildVersionLoadingState = .modifying
+                    Task(priority: .userInitiated) {
+                        do {
+                            try await Wine.changeBuildVersion(bottle: bottle, version: version)
+                            buildVersionLoadingState = .success
+                        } catch {
+                            Self.logger.error(
+                                "Failed to change build version: \(error.localizedDescription)"
+                            )
+                            buildVersionLoadingState = .failed
                         }
                     }
+                }
             }
             SettingItemView(
                 title: "config.retinaMode",
                 loadingState: retinaModeLoadingState,
                 onRetry: onRetryRetinaMode
             ) {
-                Toggle("config.retinaMode", isOn: $retinaMode)
-                    .onChange(of: retinaMode) { _, newValue in
+                VStack(alignment: .trailing, spacing: 4) {
+                    Picker("config.retinaMode", selection: $retinaModeState) {
+                        Text("config.retinaMode.on").tag(RetinaModeState.enabled)
+                        Text("config.retinaMode.off").tag(RetinaModeState.disabled)
+                        Text("config.retinaMode.unknown").tag(RetinaModeState.unknown)
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: retinaModeState) { oldValue, newValue in
+                        guard newValue != .unknown, newValue != oldValue else { return }
+                        let boolValue = newValue == .enabled
                         Task(priority: .userInitiated) {
                             retinaModeLoadingState = .modifying
                             do {
-                                try await Wine.changeRetinaMode(bottle: bottle, retinaMode: newValue)
+                                try await Wine.changeRetinaMode(
+                                    bottle: bottle, retinaMode: boolValue
+                                )
                                 retinaModeLoadingState = .success
                             } catch {
-                                Self.logger.error("Failed to change retina mode: \(error.localizedDescription)")
+                                Self.logger.error(
+                                    "Failed to change retina mode: \(error.localizedDescription)"
+                                )
                                 retinaModeLoadingState = .failed
                             }
                         }
                     }
+                    if retinaModeState == .unknown {
+                        Text("config.retinaMode.unknownHint")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
             Picker("config.enhancedSync", selection: $bottle.settings.enhancedSync) {
                 Text("config.enhancedSync.none").tag(EnhancedSync.none)
@@ -101,7 +129,10 @@ struct WineConfigSection: View {
                 .sheet(isPresented: $dpiSheetPresented) {
                     DPIConfigSheetView(
                         dpiConfig: $dpiConfig,
-                        isRetinaMode: $retinaMode,
+                        isRetinaMode: Binding(
+                            get: { retinaModeState == .enabled },
+                            set: { _ in }
+                        ),
                         presented: $dpiSheetPresented
                     )
                 }

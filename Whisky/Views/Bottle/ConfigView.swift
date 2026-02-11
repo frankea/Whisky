@@ -25,8 +25,8 @@ private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: 
 
 struct ConfigView: View {
     @ObservedObject var bottle: Bottle
-    @State private var buildVersion: Int = 0
-    @State private var retinaMode: Bool = false
+    @State private var buildVersion: String = ""
+    @State private var retinaModeState: RetinaModeState = .unknown
     @State private var dpiConfig: Int = 96
     @State private var winVersionLoadingState: LoadingState = .loading
     @State private var buildVersionLoadingState: LoadingState = .loading
@@ -70,7 +70,7 @@ struct ConfigView: View {
                 bottle: bottle,
                 isExpanded: $wineSectionExpanded,
                 buildVersion: $buildVersion,
-                retinaMode: $retinaMode,
+                retinaModeState: $retinaModeState,
                 dpiConfig: $dpiConfig,
                 winVersionLoadingState: $winVersionLoadingState,
                 buildVersionLoadingState: $buildVersionLoadingState,
@@ -286,12 +286,7 @@ extension ConfigView {
         buildVersionLoadingState = .loading
         Task(priority: .userInitiated) {
             do {
-                if let buildVersionString = try await Wine.buildVersion(bottle: bottle) {
-                    buildVersion = Int(buildVersionString) ?? 0
-                } else {
-                    buildVersion = 0
-                }
-
+                buildVersion = try await Wine.buildVersion(bottle: bottle) ?? ""
                 buildVersionLoadingState = .success
             } catch {
                 logger.error("Failed to load build version: \(error.localizedDescription)")
@@ -304,7 +299,15 @@ extension ConfigView {
         retinaModeLoadingState = .loading
         Task(priority: .userInitiated) {
             do {
-                retinaMode = try await Wine.retinaMode(bottle: bottle)
+                let value = try await Wine.retinaMode(bottle: bottle)
+                switch value {
+                case .some(true):
+                    retinaModeState = .enabled
+                case .some(false):
+                    retinaModeState = .disabled
+                case .none:
+                    retinaModeState = .unknown
+                }
                 retinaModeLoadingState = .success
             } catch {
                 logger.error("Failed to get retina mode: \(error.localizedDescription)")

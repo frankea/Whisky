@@ -32,6 +32,7 @@ struct BottleView: View {
     @State private var path = NavigationPath()
     @State private var programLoading: Bool = false
     @State private var showWinetricksSheet: Bool = false
+    @State private var showDuplicate: Bool = false
     @State private var toast: ToastData?
 
     private let gridLayout = [GridItem(.adaptive(minimum: 100, maximum: .infinity))]
@@ -182,8 +183,54 @@ struct BottleView: View {
                     : ""
             )
             .toast($toast)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button("button.duplicateBottle", systemImage: "doc.on.doc") {
+                        showDuplicate = true
+                    }
+                    .disabled(bottle.inFlight)
+                }
+            }
             .sheet(isPresented: $showWinetricksSheet) {
                 WinetricksView(bottle: bottle)
+            }
+            .sheet(isPresented: $showDuplicate) {
+                RenameView(
+                    "duplicate.bottle.title",
+                    name: nextDuplicateName(
+                        baseName: bottle.settings.name,
+                        existingNames: BottleVM.shared.bottles.map { $0.settings.name }
+                    )
+                ) { newName in
+                    Task {
+                        do {
+                            _ = try await bottle.duplicate(newName: newName)
+                            await MainActor.run {
+                                withAnimation {
+                                    toast = ToastData(
+                                        message: String(
+                                            format: String(localized: "status.duplicateSuccess %@"),
+                                            newName
+                                        ),
+                                        style: .success
+                                    )
+                                }
+                            }
+                        } catch {
+                            await MainActor.run {
+                                withAnimation {
+                                    toast = ToastData(
+                                        message: String(
+                                            format: String(localized: "status.duplicateFailed %@"),
+                                            error.localizedDescription
+                                        ),
+                                        style: .error
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
             .onChange(of: bottle.settings) { oldValue, newValue in
                 guard oldValue != newValue else { return }

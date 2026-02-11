@@ -32,24 +32,30 @@ struct BottleListEntry: View {
     @State private var runningCount: Int = 0
     @State private var hasOrphanProcesses: Bool = false
     @State private var probeTask: Task<Void, Never>?
+    @State private var duplicationPhase: DuplicationPhase?
 
     var body: some View {
-        HStack {
-            Text(name)
-            Spacer()
-            if runningCount > 0 {
-                Text("\(runningCount)")
-                    .font(.caption2)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(.blue.opacity(0.15))
-                    .clipShape(Capsule())
-                    .foregroundStyle(.blue)
-            } else if hasOrphanProcesses {
-                Image(systemName: "exclamationmark.circle.fill")
-                    .font(.caption2)
-                    .foregroundStyle(.orange)
-                    .help(String(localized: "bottle.orphan.tooltip"))
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Text(name)
+                Spacer()
+                if runningCount > 0 {
+                    Text("\(runningCount)")
+                        .font(.caption2)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(.blue.opacity(0.15))
+                        .clipShape(Capsule())
+                        .foregroundStyle(.blue)
+                } else if hasOrphanProcesses {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                        .help(String(localized: "bottle.orphan.tooltip"))
+                }
+            }
+            if let phase = duplicationPhase {
+                duplicationProgressRow(phase: phase)
             }
         }
         .opacity(bottle.isAvailable ? 1.0 : 0.5)
@@ -77,11 +83,20 @@ struct BottleListEntry: View {
             }
         }
         .sheet(isPresented: $showBottleDuplicate) {
-            RenameView("duplicate.bottle.title", name: "\(name) Copy") { newName in
+            RenameView(
+                "duplicate.bottle.title",
+                name: nextDuplicateName(
+                    baseName: name,
+                    existingNames: BottleVM.shared.bottles.map { $0.settings.name }
+                )
+            ) { newName in
                 Task {
                     do {
-                        let newURL = try await bottle.duplicate(newName: newName)
+                        let newURL = try await bottle.duplicate(newName: newName) { phase in
+                            Task { @MainActor in duplicationPhase = phase }
+                        }
                         await MainActor.run {
+                            duplicationPhase = nil
                             selected = newURL
                             withAnimation {
                                 toast = ToastData(
@@ -95,6 +110,7 @@ struct BottleListEntry: View {
                         }
                     } catch {
                         await MainActor.run {
+                            duplicationPhase = nil
                             withAnimation {
                                 toast = ToastData(
                                     message: String(
@@ -113,11 +129,12 @@ struct BottleListEntry: View {
             Button("button.rename", systemImage: "pencil.line") {
                 showBottleRename.toggle()
             }
-            .disabled(!bottle.isAvailable)
+            .disabled(!bottle.isAvailable || bottle.inFlight)
             .labelStyle(.titleAndIcon)
             Button("button.removeAlert", systemImage: "trash") {
                 showRemoveAlert(bottle: bottle)
             }
+            .disabled(bottle.inFlight)
             .labelStyle(.titleAndIcon)
             Divider()
             Button("button.moveBottle", systemImage: "shippingbox.and.arrow.backward") {
@@ -138,7 +155,7 @@ struct BottleListEntry: View {
                     }
                 }
             }
-            .disabled(!bottle.isAvailable)
+            .disabled(!bottle.isAvailable || bottle.inFlight)
             .labelStyle(.titleAndIcon)
             Button("button.duplicateBottle", systemImage: "doc.on.doc") {
                 showBottleDuplicate.toggle()
@@ -208,6 +225,52 @@ struct BottleListEntry: View {
             hasOrphanProcesses = active
         } else {
             hasOrphanProcesses = false
+        }
+    }
+
+}
+
+// MARK: - Duplication Progress & Remove Alert
+
+extension BottleListEntry {
+    @ViewBuilder
+    func duplicationProgressRow(phase: DuplicationPhase) -> some View {
+        HStack(spacing: 4) {
+            switch phase {
+            case .calculatingSize:
+                ProgressView()
+                    .controlSize(.mini)
+                Text("status.duplicating.calculatingSize")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            case let .copying(bytesCopied, totalBytes):
+                if totalBytes > 0, bytesCopied > 0 {
+                    ProgressView(
+                        value: Double(bytesCopied),
+                        total: Double(totalBytes)
+                    )
+                    .controlSize(.mini)
+                    .frame(maxWidth: 60)
+                } else {
+                    ProgressView()
+                        .controlSize(.mini)
+                }
+                Text("status.duplicating.copying")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            case .updatingMetadata:
+                ProgressView()
+                    .controlSize(.mini)
+                Text("status.duplicating.updatingMetadata")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            case .finalizing:
+                ProgressView()
+                    .controlSize(.mini)
+                Text("status.duplicating.finalizing")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 

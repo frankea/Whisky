@@ -175,6 +175,9 @@ Recent decisions affecting current work:
 - [Phase 08]: [08-03]: DependencyDefinition at module scope in WhiskyKit (ClipboardPolicy pattern); DependencyManager as caseless enum (GPUDetection pattern)
 - [Phase 08]: [08-03]: Headless winetricks install via Process (not Terminal AppleScript) for Whisky volume access attribution
 - [Phase 08]: [08-03]: Evidence-based recommendations only: ClickOnce->dotnet48, dependenciesLoading crashes->vcruntime/directx, game DB verbs->matching definitions
+- [Phase 08]: FixCategory enum at module scope for shared LauncherFixDetail/MacOSFix classification
+- [Phase 08]: MacOSCompatibilityFixes as caseless enum registry; fixDetails() in separate extension file for SwiftLint compliance
+- [Phase 08]: EnvironmentBuilder reason storage as separate per-layer dict; WINEESYNC conditional preserved as special case
 
 ### Pending Todos
 

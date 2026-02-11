@@ -233,6 +233,17 @@
       "remediationActionIds": ["anticheat-info"]
     },
     {
+      "id": "steam-download-stall",
+      "category": "networkingLaunchers",
+      "severity": "warning",
+      "confidence": 0.6,
+      "substringPrefilter": "download",
+      "regex": "(?:Steam|steam|content_log).*(?:download|HTTP).*(?:stall|timeout|failed|timed out|connection reset)",
+      "tags": ["steam", "download", "stall", "network"],
+      "captureGroups": null,
+      "remediationActionIds": ["steam-download-fix"]
+    },
+    {
       "id": "wine-nonzero-exit",
       "category": "otherUnknown",
       "severity": "info",

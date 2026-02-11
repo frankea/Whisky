@@ -114,6 +114,20 @@
       "appliesNextLaunch": false
     },
     {
+      "id": "steam-download-fix",
+      "title": "Fix Steam Download Stall",
+      "description": "Steam downloads can stall due to network configuration. Try increasing the network timeout or switching download region.",
+      "category": "networkingLaunchers",
+      "actionType": "changeSetting",
+      "risk": "low",
+      "settingKeyPath": "networkTimeout",
+      "settingValue": "120000",
+      "winetricksVerb": null,
+      "whatWillChange": "Increases network timeout and enables HTTP/1.1 fallback for Steam downloads",
+      "undoPath": "Reset network timeout in Launcher settings",
+      "appliesNextLaunch": true
+    },
+    {
       "id": "anticheat-info",
       "title": "Anti-Cheat Not Supported",
       "description": "This game uses kernel-level anti-cheat that is not supported on macOS through Wine. Consider playing in offline mode if available.",

@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 9 of 10 (UI/UX & Feature Requests)
-Plan: 2 of 7 in current phase (09-02 complete)
+Plan: 5 of 7 in current phase (09-05 complete)
 Status: Executing
-Last activity: 2026-02-11 -- Completed 09-02 (resolution control data model)
+Last activity: 2026-02-11 -- Completed 09-05 (console persistence data model)
 
-Progress: [▓▓▓▓▓▓▓▓░░] 83%
+Progress: [▓▓▓▓▓▓▓▓▓░] 87%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 38
+- Total plans completed: 39
 - Average duration: 8.1min
-- Total execution time: 5.2 hours
+- Total execution time: 5.3 hours
 
 **By Phase:**
 
@@ -35,11 +35,11 @@ Progress: [▓▓▓▓▓▓▓▓░░] 83%
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
 | 07-game-compatibility-database | 7/7 | 64min | 9.1min |
 | 08-remaining-platform-issues | 7/7 | 47min | 6.7min |
-| 09-ui-ux-feature-requests | 1/7 | 4min | 4.0min |
+| 09-ui-ux-feature-requests | 2/7 | 10min | 5.0min |
 
 **Recent Trend:**
-- Last 5 plans: 08-05 (7min), 08-06 (8min), 08-07 (7min), 09-02 (4min)
-- Trend: Phase 9 started; data model plan in 4min
+- Last 5 plans: 08-06 (8min), 08-07 (7min), 09-02 (4min), 09-05 (6min)
+- Trend: Phase 9 progressing; console persistence model in 6min
 
 *Updated after each plan completion*
 
@@ -200,6 +200,11 @@ Recent decisions affecting current work:
 - [09-02]: effectiveResolution returns (1920,1080) fallback for matchDisplay; actual screen query deferred to app layer
 - [09-02]: Virtual desktop registry helpers use Wine Explorer keys (HKCU\Software\Wine\Explorer and Explorer\Desktops)
 - [09-02]: disableVirtualDesktop silently catches missing key error (expected for bottles that never had virtual desktop)
+- [09-05]: Run history stored in separate .run-history.plist per program (not in ProgramSettings) to avoid bloating main settings
+- [09-05]: Log file names stored as relative paths (not absolute URLs) so entries survive bottle moves
+- [09-05]: RunLogStore as caseless enum following GPUDetection/DiagnosisHistory pattern for static utility namespace
+- [09-05]: Auto-cleanup of log files for pruned entries during append in Wine.runProgram
+- [09-05]: ProgramRunResult extended with runLogEntryId for UI correlation (backward-compatible, @discardableResult)
 
 ### Pending Todos
 
@@ -212,5 +217,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 09-02-PLAN.md
+Stopped at: Completed 09-05-PLAN.md
 Resume file: None

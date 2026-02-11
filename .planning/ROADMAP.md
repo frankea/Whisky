@@ -179,12 +179,16 @@ Plans:
   3. User can toggle App Nap management per bottle and duplicate an existing bottle for experimentation
   4. User can change display resolution for Windows apps, and console output persists after program termination for diagnostic review
   5. Build Version and Retina Mode display actual values instead of "N/A" in bottle settings
-**Plans**: TBD
+**Plans**: 7 plans
 
 Plans:
-- [ ] 09-01: TBD
-- [ ] 09-02: TBD
-- [ ] 09-03: TBD
+- [ ] 09-01-PLAN.md -- Quick fixes: GPTK dialog streamlining, Build Version display fix, Retina Mode tri-state toggle
+- [ ] 09-02-PLAN.md -- Resolution control data model: BottleDisplayConfig, ResolutionPreset, virtual desktop registry helpers, ProgramOverrides display fields
+- [ ] 09-03-PLAN.md -- Resolution control UI: ResolutionConfigSection, virtual desktop toggle, preset picker, per-program display overrides
+- [ ] 09-04-PLAN.md -- Bottle duplication: enhanced progress feedback, naming convention, multiple entry points, toast notifications
+- [ ] 09-05-PLAN.md -- Console persistence data: RunLogEntry/RunLogHistory models, Wine.runProgram integration, per-program run history
+- [ ] 09-06-PLAN.md -- Console persistence UI: ConsoleRunHistoryView, ConsoleLogView with channel filters, ProgramView integration
+- [ ] 09-07-PLAN.md -- WhiskyCmd improvements: deterministic output, --follow/--tail-log flags, Shortcut subcommand, path handling tests
 
 ### Phase 10: Guided Troubleshooting
 **Goal**: Users can navigate interactive, data-driven troubleshooting flows that diagnose and resolve common issues by integrating diagnostics, compatibility data, and configuration from all previous phases
@@ -219,5 +223,5 @@ Note: Phases 3 and 4 are parallel-capable (no mutual dependencies). Phases 5 and
 | 6. Audio Troubleshooting | 5/5 | ✓ Complete | 2026-02-10 |
 | 7. Game Compatibility Database | 7/7 | ✓ Complete | 2026-02-10 |
 | 8. Remaining Platform Issues | 7/7 | ✓ Complete | 2026-02-11 |
-| 9. UI/UX & Feature Requests | 0/TBD | Not started | - |
+| 9. UI/UX & Feature Requests | 0/7 | Not started | - |
 | 10. Guided Troubleshooting | 0/TBD | Not started | - |

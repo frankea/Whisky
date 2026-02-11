@@ -16,10 +16,44 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+// swiftlint:disable file_length
 import AppKit
 import Foundation
 import os.log
 import WhiskyKit
+
+/// Phases reported during bottle duplication for progress feedback.
+enum DuplicationPhase: Equatable {
+    /// Calculating total size of the source bottle directory.
+    case calculatingSize
+    /// Copying files. `bytesCopied` and `totalBytes` track progress.
+    case copying(bytesCopied: Int64, totalBytes: Int64)
+    /// Rewriting metadata (pins, blocklist) for the new bottle.
+    case updatingMetadata
+    /// Registering the new bottle and reloading the bottle list.
+    case finalizing
+}
+
+/// Returns a duplicate name following the Finder convention.
+///
+/// - If no existing bottle is named "\(baseName) Copy", returns "\(baseName) Copy".
+/// - Otherwise tries "\(baseName) Copy 2", "Copy 3", etc.
+///
+/// - Parameters:
+///   - baseName: The original bottle's name.
+///   - existingNames: Names of all current bottles.
+/// - Returns: The next available duplicate name.
+func nextDuplicateName(baseName: String, existingNames: [String]) -> String {
+    let candidate = "\(baseName) Copy"
+    if !existingNames.contains(candidate) {
+        return candidate
+    }
+    var counter = 2
+    while existingNames.contains("\(baseName) Copy \(counter)") {
+        counter += 1
+    }
+    return "\(baseName) Copy \(counter)"
+}
 
 /// MainActor-isolated cache for Wine usernames to avoid repeated filesystem scans.
 @MainActor
@@ -273,12 +307,21 @@ extension Bottle {
     ///
     /// This operation runs on a background thread to avoid blocking the UI.
     /// The bottle's `inFlight` property is set during the operation to show progress.
+    /// An optional progress callback reports duplication phases for UI feedback.
     ///
-    /// - Parameter newName: The name for the duplicated bottle.
+    /// On copy failure the partially created directory is removed before re-throwing.
+    /// Transient artifacts (old logs, diagnosis history) are excluded from the clone.
+    ///
+    /// - Parameters:
+    ///   - newName: The name for the duplicated bottle.
+    ///   - progress: Optional callback reporting ``DuplicationPhase`` updates.
     /// - Returns: The URL of the newly created bottle directory.
     /// - Throws: An error if the bottle is not found or the copy operation fails.
     @MainActor
-    func duplicate(newName: String) async throws -> URL {
+    func duplicate(
+        newName: String,
+        progress: (@Sendable (DuplicationPhase) -> Void)? = nil
+    ) async throws -> URL {
         guard let bottle = BottleVM.shared.bottles.first(where: { $0.url == url }) else {
             throw NSError(
                 domain: "com.franke.Whisky",
@@ -296,8 +339,27 @@ extension Bottle {
         // Capture URLs before entering detached task to satisfy actor isolation
         let sourceURL = url
         try await Task.detached(priority: .userInitiated) {
-            try FileManager.default.copyItem(at: sourceURL, to: newBottleDir)
+            // Phase: calculate size
+            progress?(.calculatingSize)
+            let totalBytes = Self.calculateDirectorySize(at: sourceURL)
+
+            // Phase: copying
+            progress?(.copying(bytesCopied: 0, totalBytes: totalBytes))
+            do {
+                try FileManager.default.copyItem(at: sourceURL, to: newBottleDir)
+            } catch {
+                // Clean up partial clone on failure
+                try? FileManager.default.removeItem(at: newBottleDir)
+                throw error
+            }
+            progress?(.copying(bytesCopied: totalBytes, totalBytes: totalBytes))
+
+            // Remove transient artifacts from the clone
+            Self.removeTransientArtifacts(in: newBottleDir)
         }.value
+
+        // Phase: updating metadata
+        progress?(.updatingMetadata)
 
         // Update the new bottle's settings
         let newBottle = Bottle(bottleUrl: newBottleDir)
@@ -323,11 +385,66 @@ extension Bottle {
         // (modifying nested struct properties may not always trigger didSet)
         newBottle.saveBottleSettings()
 
+        // Phase: finalizing
+        progress?(.finalizing)
+
         // Register the new bottle
         BottleVM.shared.bottlesList.paths.append(newBottleDir)
         BottleVM.shared.loadBottles()
 
         return newBottleDir
+    }
+
+    /// Calculates the total allocated size of a directory tree.
+    nonisolated private static func calculateDirectorySize(at url: URL) -> Int64 {
+        let fileManager = FileManager.default
+        guard let enumerator = fileManager.enumerator(
+            at: url,
+            includingPropertiesForKeys: [.totalFileAllocatedSizeKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return 0
+        }
+        var total: Int64 = 0
+        for case let fileURL as URL in enumerator {
+            if let values = try? fileURL.resourceValues(forKeys: [.totalFileAllocatedSizeKey]),
+               let size = values.totalFileAllocatedSize {
+                total += Int64(size)
+            }
+        }
+        return total
+    }
+
+    /// Removes transient artifacts from a cloned bottle directory.
+    ///
+    /// Deletes old log files, diagnosis history sidecars, and temp files so the
+    /// duplicate starts clean.
+    nonisolated private static func removeTransientArtifacts(in bottleDir: URL) {
+        let fileManager = FileManager.default
+
+        // Remove .log files from the logs directory
+        let logsDir = bottleDir.appending(path: "logs")
+        if let logEnumerator = fileManager.enumerator(
+            at: logsDir,
+            includingPropertiesForKeys: nil,
+            options: [.skipsSubdirectoryDescendants]
+        ) {
+            for case let fileURL as URL in logEnumerator where fileURL.pathExtension == "log" {
+                try? fileManager.removeItem(at: fileURL)
+            }
+        }
+
+        // Remove diagnosis history sidecar files
+        if let enumerator = fileManager.enumerator(
+            at: bottleDir,
+            includingPropertiesForKeys: nil,
+            options: []
+        ) {
+            for case let fileURL as URL in enumerator
+                where fileURL.lastPathComponent.hasSuffix(".diagnosis-history.plist") {
+                try? fileManager.removeItem(at: fileURL)
+            }
+        }
     }
 
     @MainActor

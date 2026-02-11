@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 9 of 10 (UI/UX & Feature Requests)
-Plan: 5 of 7 in current phase (09-05 complete)
+Plan: 5 of 7 in current phase (09-04 complete)
 Status: Executing
-Last activity: 2026-02-11 -- Completed 09-05 (console persistence data model)
+Last activity: 2026-02-11 -- Completed 09-04 (enhanced bottle duplication)
 
 Progress: [▓▓▓▓▓▓▓▓▓░] 87%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 39
+- Total plans completed: 40
 - Average duration: 8.1min
-- Total execution time: 5.3 hours
+- Total execution time: 5.5 hours
 
 **By Phase:**
 
@@ -35,11 +35,11 @@ Progress: [▓▓▓▓▓▓▓▓▓░] 87%
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
 | 07-game-compatibility-database | 7/7 | 64min | 9.1min |
 | 08-remaining-platform-issues | 7/7 | 47min | 6.7min |
-| 09-ui-ux-feature-requests | 2/7 | 10min | 5.0min |
+| 09-ui-ux-feature-requests | 5/7 | 36min | 7.2min |
 
 **Recent Trend:**
-- Last 5 plans: 08-06 (8min), 08-07 (7min), 09-02 (4min), 09-05 (6min)
-- Trend: Phase 9 progressing; console persistence model in 6min
+- Last 5 plans: 08-07 (7min), 09-01 (8min), 09-02 (4min), 09-05 (6min), 09-04 (10min)
+- Trend: Phase 9 progressing; bottle duplication enhancement in 10min
 
 *Updated after each plan completion*
 | Phase 09 P01 | 8min | 2 tasks | 4 files |
@@ -208,6 +208,10 @@ Recent decisions affecting current work:
 - [09-05]: ProgramRunResult extended with runLogEntryId for UI correlation (backward-compatible, @discardableResult)
 - [Phase 09]: RetinaModeState uses enabled/disabled/unknown (SwiftLint 3-char min); DPI sheet gets read-only Bool Binding from tri-state
 - [Phase 09]: SetupView auto-navigates to download on update (!firstTime + Wine not installed) for single-step GPTK dialog
+- [09-04]: Menu bar entry point skipped: no Bottle-specific menu exists; context menu + toolbar sufficient
+- [09-04]: FileManager.copyItem used with phase-level progress (not file-by-file) per plan discretion clause
+- [09-04]: @Sendable progress callback required for crossing actor boundary in Task.detached
+- [09-04]: nonisolated static methods for calculateDirectorySize and removeTransientArtifacts in @MainActor extension
 
 ### Pending Todos
 
@@ -220,5 +224,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 09-01-PLAN.md (quick-win UI fixes)
+Stopped at: Completed 09-04-PLAN.md (enhanced bottle duplication)
 Resume file: None

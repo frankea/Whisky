@@ -28,6 +28,8 @@ struct ProgramView: View {
     @AppStorage("configSectionExapnded") private var configSectionExpanded: Bool = true
     @AppStorage("envArgsSectionExpanded") private var envArgsSectionExpanded: Bool = true
     @AppStorage("overridesSectionExpanded") private var overridesSectionExpanded: Bool = false
+    @AppStorage("consoleRunsSectionExpanded") private var consoleRunsSectionExpanded: Bool = false
+    @State private var selectedRunId: UUID?
 
     var body: some View {
         Form {
@@ -54,6 +56,17 @@ struct ProgramView: View {
                 program: program,
                 isExpanded: $overridesSectionExpanded
             )
+            Section("console.title", isExpanded: $consoleRunsSectionExpanded) {
+                ConsoleRunHistoryView(
+                    program: program,
+                    bottle: program.bottle,
+                    selectedRunId: $selectedRunId
+                )
+                if let runId = selectedRunId,
+                   let entry = findRunEntry(id: runId) {
+                    ConsoleLogView(runEntry: entry, bottle: program.bottle)
+                }
+            }
         }
         .bottomBar {
             HStack {
@@ -118,11 +131,17 @@ struct ProgramView: View {
         .animation(.whiskyDefault, value: configSectionExpanded)
         .animation(.whiskyDefault, value: envArgsSectionExpanded)
         .animation(.whiskyDefault, value: overridesSectionExpanded)
+        .animation(.whiskyDefault, value: consoleRunsSectionExpanded)
         .task {
             if let icon = await IconCache.shared.iconAsync(for: program.url, peFile: program.peFile) {
                 self.cachedIconImage = Image(nsImage: icon)
             }
         }
+    }
+
+    private func findRunEntry(id: UUID) -> RunLogEntry? {
+        let history = RunLogStore.load(for: program.name, in: program.bottle.url)
+        return history.entries.first(where: { $0.id == id })
     }
 
     private func launchProgram() {

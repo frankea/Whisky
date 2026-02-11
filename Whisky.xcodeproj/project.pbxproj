@@ -81,6 +81,7 @@
 		B1A2C3D4E5F60302A9B0C1D3 /* ProcessesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A2C3D4E5F60302A9B0C1D2 /* ProcessesViewModel.swift */; };
 		B1C2D3E4F5A60402A9B0C1E0 /* BackendPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60402A9B0C1E1 /* BackendPickerView.swift */; };
 		B1C2D3E4F5A60402A9B0C1E2 /* GraphicsConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60402A9B0C1E3 /* GraphicsConfigSection.swift */; };
+		D1A2B3C4E5F60901A9B0C1D0 /* ResolutionConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60901A9B0C1D1 /* ResolutionConfigSection.swift */; };
 		B1C2D3E4F5A60402A9B0C1E4 /* DXVKSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60402A9B0C1E5 /* DXVKSettingsView.swift */; };
 		C08ECD035DDFEDB70ACA1D1B /* PerformanceConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3724CE6DD2C1B22D80442DB6 /* PerformanceConfigSection.swift */; };
 		C1A2B3C4E5F60601A9B0C1D0 /* AudioStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C1D1 /* AudioStatusView.swift */; };
@@ -110,6 +111,8 @@
 		H1A2B3C4E5F61101A9B0C1D0 /* DependencyConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = H1A2B3C4E5F61101A9B0C1D1 /* DependencyConfigSection.swift */; };
 		H1A2B3C4E5F61101A9B0C1D2 /* DependencyInstallSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = H1A2B3C4E5F61101A9B0C1D3 /* DependencyInstallSheet.swift */; };
 		I1A2B3C4E5F61201A9B0C1D0 /* SteamDownloadMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = I1A2B3C4E5F61201A9B0C1D1 /* SteamDownloadMonitor.swift */; };
+		E1A2B3C4E5F60901A9B0C1D0 /* ConsoleRunHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A2B3C4E5F60901A9B0C1D1 /* ConsoleRunHistoryView.swift */; };
+		E1A2B3C4E5F60901A9B0C1D2 /* ConsoleLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A2B3C4E5F60901A9B0C1D3 /* ConsoleLogView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -232,6 +235,7 @@
 		B1A2C3D4E5F60302A9B0C1D2 /* ProcessesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessesViewModel.swift; sourceTree = "<group>"; };
 		B1C2D3E4F5A60402A9B0C1E1 /* BackendPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendPickerView.swift; sourceTree = "<group>"; };
 		B1C2D3E4F5A60402A9B0C1E3 /* GraphicsConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphicsConfigSection.swift; sourceTree = "<group>"; };
+		D1A2B3C4E5F60901A9B0C1D1 /* ResolutionConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResolutionConfigSection.swift; sourceTree = "<group>"; };
 		B1C2D3E4F5A60402A9B0C1E5 /* DXVKSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DXVKSettingsView.swift; sourceTree = "<group>"; };
 		C1A2B3C4E5F60601A9B0C1D1 /* AudioStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioStatusView.swift; sourceTree = "<group>"; };
 		C1A2B3C4E5F60601A9B0C1D3 /* AudioTestButtonsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioTestButtonsView.swift; sourceTree = "<group>"; };
@@ -259,6 +263,8 @@
 		H1A2B3C4E5F61101A9B0C1D1 /* DependencyConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyConfigSection.swift; sourceTree = "<group>"; };
 		H1A2B3C4E5F61101A9B0C1D3 /* DependencyInstallSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyInstallSheet.swift; sourceTree = "<group>"; };
 		I1A2B3C4E5F61201A9B0C1D1 /* SteamDownloadMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteamDownloadMonitor.swift; sourceTree = "<group>"; };
+		E1A2B3C4E5F60901A9B0C1D1 /* ConsoleRunHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleRunHistoryView.swift; sourceTree = "<group>"; };
+		E1A2B3C4E5F60901A9B0C1D3 /* ConsoleLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleLogView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -333,6 +339,8 @@
 				6E17B6482AF4118F00831173 /* EnvironmentArgView.swift */,
 				8C73E1332AF472FC00B6FB45 /* ProgramMenuView.swift */,
 				A1B2C3D4E5F60718A9B0C1D7 /* ProgramOverrideSettingsView.swift */,
+				E1A2B3C4E5F60901A9B0C1D1 /* ConsoleRunHistoryView.swift */,
+				E1A2B3C4E5F60901A9B0C1D3 /* ConsoleLogView.swift */,
 			);
 			path = Programs;
 			sourceTree = "<group>";
@@ -370,6 +378,7 @@
 				407A01251379955919903C3F /* CleanupConfigSection.swift */,
 				B1C2D3E4F5A60402A9B0C1E1 /* BackendPickerView.swift */,
 				B1C2D3E4F5A60402A9B0C1E3 /* GraphicsConfigSection.swift */,
+				D1A2B3C4E5F60901A9B0C1D1 /* ResolutionConfigSection.swift */,
 				B1C2D3E4F5A60402A9B0C1E5 /* DXVKSettingsView.swift */,
 			);
 			path = Bottle;
@@ -806,6 +815,8 @@
 				6E40495629CCA19C006E3F1B /* WhiskyApp.swift in Sources */,
 				8C73E1342AF472FC00B6FB45 /* ProgramMenuView.swift in Sources */,
 				A1B2C3D4E5F60718A9B0C1D6 /* ProgramOverrideSettingsView.swift in Sources */,
+				E1A2B3C4E5F60901A9B0C1D0 /* ConsoleRunHistoryView.swift in Sources */,
+				E1A2B3C4E5F60901A9B0C1D2 /* ConsoleLogView.swift in Sources */,
 				6E50D98329CD6066008C39F6 /* BottleVM.swift in Sources */,
 				B1A2C3D4E5F60302A9B0C1D3 /* ProcessesViewModel.swift in Sources */,
 				6E2B25C12B0E20F50084A67A /* PinAddView.swift in Sources */,
@@ -824,6 +835,7 @@
 				1A8BB6C8C6FC24E0837A3C59 /* CleanupConfigSection.swift in Sources */,
 				B1C2D3E4F5A60402A9B0C1E0 /* BackendPickerView.swift in Sources */,
 				B1C2D3E4F5A60402A9B0C1E2 /* GraphicsConfigSection.swift in Sources */,
+				D1A2B3C4E5F60901A9B0C1D0 /* ResolutionConfigSection.swift in Sources */,
 				B1C2D3E4F5A60402A9B0C1E4 /* DXVKSettingsView.swift in Sources */,
 				D1A2B3C4E5F60504A9B0C1D1 /* DiagnosticsView.swift in Sources */,
 				D1A2B3C4E5F60504A9B0C1D3 /* RemediationCardView.swift in Sources */,

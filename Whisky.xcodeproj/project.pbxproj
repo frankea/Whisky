@@ -103,6 +103,7 @@
 		EEA5A2462A31DD65008274AE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEA5A2452A31DD65008274AE /* AppDelegate.swift */; };
 		F748991F03BA464CFCDA99F3 /* StatusToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E2D80EAABBB985BAED42548 /* StatusToast.swift */; };
 		FBD19F7BAD838BE3ABB2CCC2 /* LaunchResult+Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2516958D60EC8937A2AF71 /* LaunchResult+Toast.swift */; };
+		F1A2B3C4E5F60801A9B0C1D1 /* ControllerMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4E5F60801A9B0C1D0 /* ControllerMonitor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -245,6 +246,7 @@
 		E2699006F97F862815633C9F /* MetalConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalConfigSection.swift; sourceTree = "<group>"; };
 		EAE15F0C1EF1F06C7DB73DF5 /* SettingItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingItemView.swift; sourceTree = "<group>"; };
 		EEA5A2452A31DD65008274AE /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		F1A2B3C4E5F60801A9B0C1D0 /* ControllerMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerMonitor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -458,6 +460,7 @@
 				6763D8F52BC6314100651D27 /* Constants.swift */,
 				366E8BD2A51FD444160DFC10 /* LauncherDetection.swift */,
 				AA88CFEB38031323229CD377 /* LauncherDiagnostics.swift */,
+				F1A2B3C4E5F60801A9B0C1D0 /* ControllerMonitor.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -816,6 +819,7 @@
 				E1A2B3C4E5F60701A9B0C2D2 /* GameVariantPickerView.swift in Sources */,
 				E1A2B3C4E5F60701A9B0C2D4 /* GameConfigPreviewSheet.swift in Sources */,
 				E1A2B3C4E5F60701A9B0C3D0 /* GameConfigBannerView.swift in Sources */,
+				F1A2B3C4E5F60801A9B0C1D1 /* ControllerMonitor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

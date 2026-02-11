@@ -74,6 +74,17 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
     /// Whether to use native button labels instead of XInput layout. `nil` inherits from bottle.
     public var useButtonLabels: Bool?
 
+    // MARK: - Display
+
+    /// Whether Wine's virtual desktop mode is enabled. `nil` inherits from bottle.
+    public var virtualDesktopEnabled: Bool?
+    /// The display resolution preset. `nil` inherits from bottle.
+    public var resolutionPreset: ResolutionPreset?
+    /// The custom virtual desktop width in pixels. `nil` inherits from bottle.
+    public var customResolutionWidth: Int?
+    /// The custom virtual desktop height in pixels. `nil` inherits from bottle.
+    public var customResolutionHeight: Int?
+
     // MARK: - DLL Overrides
 
     /// Program-specific DLL overrides. `nil` inherits from bottle.
@@ -106,6 +117,10 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
             && allowBackgroundEvents == nil
             && disableControllerMapping == nil
             && useButtonLabels == nil
+            && virtualDesktopEnabled == nil
+            && resolutionPreset == nil
+            && customResolutionWidth == nil
+            && customResolutionHeight == nil
             && dllOverrides == nil
     }
 
@@ -144,6 +159,22 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
         self.useButtonLabels = try container.decodeIfPresent(
             Bool.self,
             forKey: .useButtonLabels
+        )
+        self.virtualDesktopEnabled = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .virtualDesktopEnabled
+        )
+        self.resolutionPreset = try container.decodeIfPresent(
+            ResolutionPreset.self,
+            forKey: .resolutionPreset
+        )
+        self.customResolutionWidth = try container.decodeIfPresent(
+            Int.self,
+            forKey: .customResolutionWidth
+        )
+        self.customResolutionHeight = try container.decodeIfPresent(
+            Int.self,
+            forKey: .customResolutionHeight
         )
         self.dllOverrides = try container.decodeIfPresent(
             [DLLOverrideEntry].self,

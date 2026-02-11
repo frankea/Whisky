@@ -30,6 +30,8 @@ public extension Wine {
         case currentVersion = #"HKLM\Software\Microsoft\Windows NT\CurrentVersion"#
         case macDriver = #"HKCU\Software\Wine\Mac Driver"#
         case desktop = #"HKCU\Control Panel\Desktop"#
+        case explorer = #"HKCU\Software\Wine\Explorer"#
+        case explorerDesktops = #"HKCU\Software\Wine\Explorer\Desktops"#
     }
 
     @MainActor
@@ -101,7 +103,8 @@ public extension Wine {
     static func retinaMode(bottle: Bottle) async throws -> Bool? {
         guard let output = try await Wine.queryRegistryKey(
             bottle: bottle, key: RegistryKey.macDriver.rawValue, name: "RetinaMode", type: .string
-        ) else {
+        )
+        else {
             return nil
         }
         switch output {
@@ -168,5 +171,73 @@ public extension Wine {
     @MainActor
     static func changeWinVersion(bottle: Bottle, win: WinVersion) async throws -> String {
         try await Wine.runWine(["winecfg", "-v", win.rawValue], bottle: bottle)
+    }
+
+    // MARK: - Virtual Desktop
+
+    /// Enables Wine's virtual desktop mode with the given resolution.
+    ///
+    /// Writes two registry values:
+    /// - `Desktop = "Default"` in `HKCU\Software\Wine\Explorer`
+    /// - `Default = "{width}x{height}"` in `HKCU\Software\Wine\Explorer\Desktops`
+    ///
+    /// - Parameters:
+    ///   - bottle: The bottle whose registry to modify.
+    ///   - resolution: A resolution string like `"1920x1080"`.
+    @MainActor
+    static func enableVirtualDesktop(bottle: Bottle, resolution: String) async throws {
+        try await addRegistryKey(
+            bottle: bottle,
+            key: RegistryKey.explorer.rawValue,
+            name: "Desktop",
+            data: "Default",
+            type: .string
+        )
+        try await addRegistryKey(
+            bottle: bottle,
+            key: RegistryKey.explorerDesktops.rawValue,
+            name: "Default",
+            data: resolution,
+            type: .string
+        )
+    }
+
+    /// Disables Wine's virtual desktop mode by removing the Desktop value.
+    ///
+    /// - Parameter bottle: The bottle whose registry to modify.
+    @MainActor
+    static func disableVirtualDesktop(bottle: Bottle) async throws {
+        do {
+            try await runWine(
+                ["reg", "delete", RegistryKey.explorer.rawValue, "-v", "Desktop", "-f"],
+                bottle: bottle
+            )
+        } catch {
+            // Key might not exist; this is expected on bottles that never had virtual desktop
+        }
+    }
+
+    /// Queries whether Wine's virtual desktop is currently enabled and returns the resolution.
+    ///
+    /// - Parameter bottle: The bottle whose registry to query.
+    /// - Returns: The resolution string (e.g., `"1920x1080"`) if virtual desktop is enabled, or `nil`.
+    @MainActor
+    static func queryVirtualDesktop(bottle: Bottle) async throws -> String? {
+        guard let desktop = try await queryRegistryKey(
+            bottle: bottle,
+            key: RegistryKey.explorer.rawValue,
+            name: "Desktop",
+            type: .string
+        ), !desktop.isEmpty
+        else {
+            return nil
+        }
+        // Desktop value is present -- query the resolution
+        return try await queryRegistryKey(
+            bottle: bottle,
+            key: RegistryKey.explorerDesktops.rawValue,
+            name: "Default",
+            type: .string
+        )
     }
 }

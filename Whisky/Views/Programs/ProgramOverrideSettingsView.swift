@@ -316,7 +316,8 @@ struct ProgramOverrideSettingsView: View {
                 inputControls
             } else {
                 inheritedSummary(
-                    "Controller Compat \(bottle.settings.controllerCompatibilityMode ? "On" : "Off")"
+                    "Controller Compat \(bottle.settings.controllerCompatibilityMode ? "On" : "Off"), "
+                        + "Native Labels \(bottle.settings.useButtonLabels ? "On" : "Off")"
                 )
             }
         }
@@ -328,6 +329,7 @@ struct ProgramOverrideSettingsView: View {
         Toggle("config.disableHIDAPI", isOn: disableHIDAPIBinding)
         Toggle("config.allowBackgroundEvents", isOn: allowBackgroundBinding)
         Toggle("config.disableControllerMapping", isOn: disableControllerMappingBinding)
+        Toggle("config.useButtonLabels", isOn: useButtonLabelsBinding)
     }
 
     // MARK: - DLL Overrides Group
@@ -544,11 +546,13 @@ struct ProgramOverrideSettingsView: View {
                     program.settings.overrides?.disableHIDAPI = bottle.settings.disableHIDAPI
                     program.settings.overrides?.allowBackgroundEvents = bottle.settings.allowBackgroundEvents
                     program.settings.overrides?.disableControllerMapping = bottle.settings.disableControllerMapping
+                    program.settings.overrides?.useButtonLabels = bottle.settings.useButtonLabels
                 } else {
                     program.settings.overrides?.controllerCompatibilityMode = nil
                     program.settings.overrides?.disableHIDAPI = nil
                     program.settings.overrides?.allowBackgroundEvents = nil
                     program.settings.overrides?.disableControllerMapping = nil
+                    program.settings.overrides?.useButtonLabels = nil
                 }
             }
         )
@@ -651,6 +655,13 @@ struct ProgramOverrideSettingsView: View {
         Binding(
             get: { program.settings.overrides?.disableControllerMapping ?? false },
             set: { program.settings.overrides?.disableControllerMapping = $0 }
+        )
+    }
+
+    private var useButtonLabelsBinding: Binding<Bool> {
+        Binding(
+            get: { program.settings.overrides?.useButtonLabels ?? false },
+            set: { program.settings.overrides?.useButtonLabels = $0 }
         )
     }
 

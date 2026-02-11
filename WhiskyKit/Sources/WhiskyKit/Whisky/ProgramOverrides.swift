@@ -71,6 +71,8 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
     public var allowBackgroundEvents: Bool?
     /// Whether to disable SDL to XInput mapping conversion. `nil` inherits from bottle.
     public var disableControllerMapping: Bool?
+    /// Whether to use native button labels instead of XInput layout. `nil` inherits from bottle.
+    public var useButtonLabels: Bool?
 
     // MARK: - DLL Overrides
 
@@ -103,6 +105,7 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
             && disableHIDAPI == nil
             && allowBackgroundEvents == nil
             && disableControllerMapping == nil
+            && useButtonLabels == nil
             && dllOverrides == nil
     }
 
@@ -137,6 +140,10 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
         self.disableControllerMapping = try container.decodeIfPresent(
             Bool.self,
             forKey: .disableControllerMapping
+        )
+        self.useButtonLabels = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .useButtonLabels
         )
         self.dllOverrides = try container.decodeIfPresent(
             [DLLOverrideEntry].self,

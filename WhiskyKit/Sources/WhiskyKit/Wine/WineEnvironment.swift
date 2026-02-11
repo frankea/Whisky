@@ -249,6 +249,31 @@ extension Wine {
             }
         }
 
+        // Input override: controller compatibility SDL hints at program level
+        if let controllerCompat = overrides.controllerCompatibilityMode {
+            // When compat mode is overridden, control whether SDL hints are applied
+            if controllerCompat {
+                if let disableHIDAPI = overrides.disableHIDAPI, disableHIDAPI {
+                    builder.set("SDL_JOYSTICK_HIDAPI", "0", layer: .programUser)
+                }
+                if let allowBG = overrides.allowBackgroundEvents, allowBG {
+                    builder.set("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1", layer: .programUser)
+                }
+                let mapping = overrides.disableControllerMapping ?? false
+                let labels = overrides.useButtonLabels ?? false
+                if mapping || labels {
+                    builder.set("SDL_GAMECONTROLLER_USE_BUTTON_LABELS", "1", layer: .programUser)
+                } else {
+                    builder.set("SDL_GAMECONTROLLER_USE_BUTTON_LABELS", "0", layer: .programUser)
+                }
+            } else {
+                // Program overrides compat mode off: remove all SDL hints
+                builder.remove("SDL_JOYSTICK_HIDAPI", layer: .programUser)
+                builder.remove("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", layer: .programUser)
+                builder.remove("SDL_GAMECONTROLLER_USE_BUTTON_LABELS", layer: .programUser)
+            }
+        }
+
         // Program-specific DLL overrides (structured entries)
         if let dllOverrides = overrides.dllOverrides {
             dllResolver.programCustom.append(contentsOf: dllOverrides)

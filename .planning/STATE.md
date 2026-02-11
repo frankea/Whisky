@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 8 verified and complete -- ready for Phase 9 (UI/UX & Feature Requests)
+**Current focus:** Phase 9 in progress -- UI/UX & Feature Requests
 
 ## Current Position
 
-Phase: 8 of 10 (Remaining Platform Issues) -- VERIFIED
-Plan: 7 of 7 in current phase (all complete)
-Status: Phase Verified & Complete
-Last activity: 2026-02-11 -- Phase 8 verified, all 6/6 must-haves confirmed
+Phase: 9 of 10 (UI/UX & Feature Requests)
+Plan: 2 of 7 in current phase (09-02 complete)
+Status: Executing
+Last activity: 2026-02-11 -- Completed 09-02 (resolution control data model)
 
-Progress: [▓▓▓▓▓▓▓▓░░] 80%
+Progress: [▓▓▓▓▓▓▓▓░░] 83%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 37
-- Average duration: 8.2min
-- Total execution time: 5.1 hours
+- Total plans completed: 38
+- Average duration: 8.1min
+- Total execution time: 5.2 hours
 
 **By Phase:**
 
@@ -35,10 +35,11 @@ Progress: [▓▓▓▓▓▓▓▓░░] 80%
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
 | 07-game-compatibility-database | 7/7 | 64min | 9.1min |
 | 08-remaining-platform-issues | 7/7 | 47min | 6.7min |
+| 09-ui-ux-feature-requests | 1/7 | 4min | 4.0min |
 
 **Recent Trend:**
-- Last 5 plans: 08-03 (9min), 08-04 (8min), 08-05 (7min), 08-06 (8min), 08-07 (7min)
-- Trend: Phase 8 complete; cross-cutting integration in 7min
+- Last 5 plans: 08-05 (7min), 08-06 (8min), 08-07 (7min), 09-02 (4min)
+- Trend: Phase 9 started; data model plan in 4min
 
 *Updated after each plan completion*
 
@@ -194,6 +195,12 @@ Recent decisions affecting current work:
 - [08-07]: Stall notifications rate-limited once per bottle per session with suppressWarnings API
 - [08-07]: Dependency badge uses .openDependenciesSection notification for ConfigView deep-link
 
+- [09-02]: BottleDisplayConfig follows BottleGraphicsConfig/BottleAudioConfig pattern exactly: module-scope enum, defensive decoding, private stored property with proxy properties
+- [09-02]: ResolutionPreset uses String raw values for stable Codable serialization
+- [09-02]: effectiveResolution returns (1920,1080) fallback for matchDisplay; actual screen query deferred to app layer
+- [09-02]: Virtual desktop registry helpers use Wine Explorer keys (HKCU\Software\Wine\Explorer and Explorer\Desktops)
+- [09-02]: disableVirtualDesktop silently catches missing key error (expected for bottles that never had virtual desktop)
+
 ### Pending Todos
 
 None yet.
@@ -205,5 +212,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Phase 8 verified and complete; ready for Phase 9
+Stopped at: Completed 09-02-PLAN.md
 Resume file: None

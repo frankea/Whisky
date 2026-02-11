@@ -87,6 +87,7 @@ struct ConfigView: View {
             AudioConfigSection(bottle: bottle)
             PerformanceConfigSection(bottle: bottle, isExpanded: $performanceSectionExpanded)
             DLLOverrideConfigSection(bottle: bottle, isExpanded: $dllOverrideSectionExpanded)
+            DependencyConfigSection(bottle: bottle)
             gameConfigRevertSection
             Section("Diagnostics") {
                 Text("Analyze Wine crash output for troubleshooting guidance")

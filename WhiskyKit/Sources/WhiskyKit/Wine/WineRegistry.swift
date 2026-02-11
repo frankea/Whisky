@@ -98,16 +98,20 @@ public extension Wine {
     }
 
     @MainActor
-    static func retinaMode(bottle: Bottle) async throws -> Bool {
-        let values: Set<String> = ["y", "n"]
+    static func retinaMode(bottle: Bottle) async throws -> Bool? {
         guard let output = try await Wine.queryRegistryKey(
             bottle: bottle, key: RegistryKey.macDriver.rawValue, name: "RetinaMode", type: .string
-        ), values.contains(output)
-        else {
-            try await changeRetinaMode(bottle: bottle, retinaMode: false)
-            return false
+        ) else {
+            return nil
         }
-        return output == "y"
+        switch output {
+        case "y":
+            return true
+        case "n":
+            return false
+        default:
+            return nil
+        }
     }
 
     @MainActor

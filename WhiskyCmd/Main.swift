@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  Main.swift
 //  WhiskyCmd
@@ -33,6 +34,7 @@ struct Whisky: ParsableCommand {
             Delete.self,
             Remove.self,
             Run.self,
+            Shortcut.self,
             Shellenv.self
             /* Install.self,
              Uninstall.self */
@@ -323,6 +325,77 @@ extension Whisky {
                     }
                 }
             }
+        }
+    }
+
+    struct Shortcut: AsyncParsableCommand {
+        static let configuration = CommandConfiguration(
+            abstract: "Create a macOS app shortcut for a Windows program."
+        )
+
+        @Argument(help: "Name of the bottle")
+        var bottleName: String
+
+        @Argument(help: "Path to the Windows executable")
+        var exePath: String
+
+        @Option(name: .long, help: "Display name for the shortcut")
+        var name: String?
+
+        @Option(name: .long, help: "Output directory (default: ~/Applications)")
+        var output: String?
+
+        @Flag(name: .long, help: "Overwrite existing shortcut")
+        var overwrite: Bool = false
+
+        @MainActor
+        mutating func run() async throws {
+            var bottlesList = BottleData()
+            let bottles = bottlesList.loadBottles()
+
+            guard let bottle = bottles.first(where: { $0.settings.name == bottleName }) else {
+                throw ValidationError("A bottle with that name doesn't exist.")
+            }
+
+            let url = URL(fileURLWithPath: exePath)
+            let program = Program(url: url, bottle: bottle)
+
+            // Determine shortcut name: --name option or program name sans extension
+            let shortcutName = name ?? url.deletingPathExtension().lastPathComponent
+
+            // Determine output directory: --output option or ~/Applications/
+            let outputDir: URL
+            if let output {
+                outputDir = URL(fileURLWithPath: output)
+            } else {
+                outputDir = FileManager.default.homeDirectoryForCurrentUser
+                    .appending(path: "Applications")
+            }
+
+            // Ensure output directory exists
+            if !FileManager.default.fileExists(atPath: outputDir.path(percentEncoded: false)) {
+                try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
+            }
+
+            let appURL = outputDir.appending(path: "\(shortcutName).app")
+
+            // Check for existing shortcut
+            if FileManager.default.fileExists(atPath: appURL.path(percentEncoded: false)) {
+                if overwrite {
+                    try FileManager.default.removeItem(at: appURL)
+                } else {
+                    throw ValidationError(
+                        "Shortcut already exists at \(appURL.path(percentEncoded: false)). "
+                            + "Use --overwrite to replace it."
+                    )
+                }
+            }
+
+            // Generate launch script and create the bundle
+            let launchScript = program.generateTerminalCommand()
+            try ShortcutCreator.createShortcutBundle(at: appURL, launchScript: launchScript, name: shortcutName)
+
+            print("Created \(appURL.path(percentEncoded: false))")
         }
     }
 

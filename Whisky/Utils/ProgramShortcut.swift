@@ -23,25 +23,6 @@ import os.log
 import WhiskyKit
 
 class ProgramShortcut {
-    private static let infoPlist = """
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-        <key>CFBundleExecutable</key>
-        <string>launch</string>
-        <key>CFBundleSupportedPlatforms</key>
-        <array>
-            <string>MacOSX</string>
-        </array>
-        <key>LSMinimumSystemVersion</key>
-        <string>14.0</string>
-        <key>LSApplicationCategoryType</key>
-        <string>public.app-category.games</string>
-    </dict>
-    </plist>
-    """
-
     @MainActor
     private static func generateThumbnail(for url: URL) async -> NSImage? {
         let request = QLThumbnailGenerator.Request(
@@ -56,28 +37,19 @@ class ProgramShortcut {
         return thumbnail.nsImage
     }
 
+    /// Creates a shortcut `.app` bundle with icon extraction and Finder reveal.
+    ///
+    /// Uses ``ShortcutCreator`` from WhiskyKit for the core bundle creation,
+    /// then adds icon extraction (QuickLook) and Finder integration (AppKit)
+    /// which are only available in the app target.
     @MainActor
     static func createShortcut(_ program: Program, app: URL, name: String) async {
-        let contents = app.appending(path: "Contents")
-        let macos = contents.appending(path: "MacOS")
         do {
-            try FileManager.default.createDirectory(at: macos, withIntermediateDirectories: true)
+            // Core bundle creation via shared WhiskyKit logic
+            let launchScript = program.generateTerminalCommand()
+            try ShortcutCreator.createShortcutBundle(at: app, launchScript: launchScript, name: name)
 
-            let script = "#!/bin/bash\n\(program.generateTerminalCommand())"
-            let scriptUrl = macos.appending(path: "launch")
-            try script.write(to: scriptUrl, atomically: false, encoding: .utf8)
-            // Use 0o755 (owner write, world read+execute) for security - prevents other users from modifying
-            try FileManager.default.setAttributes(
-                [.posixPermissions: 0o755],
-                ofItemAtPath: scriptUrl.path(percentEncoded: false)
-            )
-
-            try infoPlist.write(
-                to: contents.appending(path: "Info").appendingPathExtension("plist"),
-                atomically: false,
-                encoding: .utf8
-            )
-
+            // App-specific: extract icon from PE file and set on the .app bundle
             let programUrl = program.url
             if let image = await generateThumbnail(for: programUrl) {
                 NSWorkspace.shared.setIcon(
@@ -86,6 +58,8 @@ class ProgramShortcut {
                     options: NSWorkspace.IconCreationOptions()
                 )
             }
+
+            // Reveal in Finder
             NSWorkspace.shared.activateFileViewerSelecting([app])
         } catch {
             Logger.wineKit.error("Failed to create program shortcut: \(error.localizedDescription)")

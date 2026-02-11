@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Stability & Diagnostics** - WINEDEBUG parsing and crash pattern classification
 - [x] **Phase 6: Audio Troubleshooting** - Diagnostics-first audio remediation with limited settings
 - [x] **Phase 7: Game Compatibility Database** - Bundled known-good configurations with one-click apply
-- [ ] **Phase 8: Remaining Platform Issues** - Launcher, controller, and installation fixes
+- [x] **Phase 8: Remaining Platform Issues** - Launcher, controller, and installation fixes
 - [ ] **Phase 9: UI/UX & Feature Requests** - Polish and top community-requested features
 - [ ] **Phase 10: Guided Troubleshooting** - Data-driven symptom/solution engine integrating all phases
 
@@ -161,13 +161,13 @@ Plans:
 **Plans**: 7 plans
 
 Plans:
-- [ ] 08-01-PLAN.md -- Launcher fix metadata: structured LauncherFixDetail, MacOSFix registry, EnvironmentBuilder provenance reasons
-- [ ] 08-02-PLAN.md -- Controller discovery: ControllerMonitor with GCController, ControllerInfo model, XInput/Native labels SDL hint
-- [ ] 08-03-PLAN.md -- Dependency tracking data: DependencyDefinition models, DependencyManager, headless winetricks installation
-- [ ] 08-04-PLAN.md -- Launcher guidance UI: launch-time fix banner, LauncherConfigSection provenance display
-- [ ] 08-05-PLAN.md -- Controller panel UI: Connected Controllers subpanel, per-program input overrides
-- [ ] 08-06-PLAN.md -- Dependency tracking UI: DependencyConfigSection status rows, guided install sheet
-- [ ] 08-07-PLAN.md -- Steam stall detection, dependency badges, diagnostics integration, volume access, localization
+- [x] 08-01-PLAN.md -- Launcher fix metadata: structured LauncherFixDetail, MacOSFix registry, EnvironmentBuilder provenance reasons
+- [x] 08-02-PLAN.md -- Controller discovery: ControllerMonitor with GCController, ControllerInfo model, XInput/Native labels SDL hint
+- [x] 08-03-PLAN.md -- Dependency tracking data: DependencyDefinition models, DependencyManager, headless winetricks installation
+- [x] 08-04-PLAN.md -- Launcher guidance UI: launch-time fix banner, LauncherConfigSection provenance display
+- [x] 08-05-PLAN.md -- Controller panel UI: Connected Controllers subpanel, per-program input overrides
+- [x] 08-06-PLAN.md -- Dependency tracking UI: DependencyConfigSection status rows, guided install sheet
+- [x] 08-07-PLAN.md -- Steam stall detection, dependency badges, diagnostics integration, volume access, localization
 
 ### Phase 9: UI/UX & Feature Requests
 **Goal**: Polish and feature enhancements that improve daily usability and address top community-requested capabilities
@@ -218,6 +218,6 @@ Note: Phases 3 and 4 are parallel-capable (no mutual dependencies). Phases 5 and
 | 5. Stability & Diagnostics | 5/5 | ✓ Complete | 2026-02-10 |
 | 6. Audio Troubleshooting | 5/5 | ✓ Complete | 2026-02-10 |
 | 7. Game Compatibility Database | 7/7 | ✓ Complete | 2026-02-10 |
-| 8. Remaining Platform Issues | 0/7 | Not started | - |
+| 8. Remaining Platform Issues | 7/7 | ✓ Complete | 2026-02-11 |
 | 9. UI/UX & Feature Requests | 0/TBD | Not started | - |
 | 10. Guided Troubleshooting | 0/TBD | Not started | - |

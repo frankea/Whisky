@@ -85,12 +85,12 @@ final class RunLogTests: XCTestCase {
         var allEntries: [RunLogEntry] = []
 
         // Add 12 entries (2 more than max of 10)
-        for i in 0..<12 {
-            let entry = RunLogEntry(programName: "game.exe", logFileName: "log_\(i).log")
+        for idx in 0..<12 {
+            let entry = RunLogEntry(programName: "game.exe", logFileName: "log_\(idx).log")
             allEntries.append(entry)
             let removed = history.append(entry)
-            if i >= RunLogHistory.maxEntriesPerProgram {
-                XCTAssertFalse(removed.isEmpty, "Should have pruned at entry \(i)")
+            if idx >= RunLogHistory.maxEntriesPerProgram {
+                XCTAssertFalse(removed.isEmpty, "Should have pruned at entry \(idx)")
             }
         }
 
@@ -162,8 +162,8 @@ final class RunLogTests: XCTestCase {
 
     func testDeleteOldEntriesKeepsSpecifiedCount() {
         var history = RunLogHistory()
-        for i in 0..<8 {
-            let entry = RunLogEntry(programName: "game.exe", logFileName: "log_\(i).log")
+        for idx in 0..<8 {
+            let entry = RunLogEntry(programName: "game.exe", logFileName: "log_\(idx).log")
             history.append(entry)
         }
 
@@ -226,10 +226,10 @@ final class RunLogTests: XCTestCase {
 
     func testRunLogHistoryCodableRoundTrip() throws {
         var history = RunLogHistory()
-        for i in 0..<3 {
-            var entry = RunLogEntry(programName: "game\(i).exe", logFileName: "log_\(i).log")
-            entry.exitCode = Int32(i)
-            entry.endTime = entry.startTime.addingTimeInterval(Double(i * 60))
+        for idx in 0..<3 {
+            var entry = RunLogEntry(programName: "game\(idx).exe", logFileName: "log_\(idx).log")
+            entry.exitCode = Int32(idx)
+            entry.endTime = entry.startTime.addingTimeInterval(Double(idx * 60))
             history.append(entry)
         }
 

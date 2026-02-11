@@ -22,6 +22,8 @@ import os.log
 
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "Wine")
 
+// swiftlint:disable type_body_length
+
 /// The core interface for interacting with Wine on macOS.
 ///
 /// The `Wine` class provides static methods for executing Wine processes, running Windows programs,
@@ -228,6 +230,7 @@ public class Wine {
         public let runLogEntryId: UUID
     }
 
+    // swiftlint:disable function_body_length
     @discardableResult
     @MainActor
     public static func runProgram(
@@ -317,6 +320,7 @@ public class Wine {
 
         return ProgramRunResult(exitCode: exitCode, logFileURL: logFileURL, runLogEntryId: runLogEntry.id)
     }
+    // swiftlint:enable function_body_length
 
     /// Generates a shell command string for running a Windows program.
     ///
@@ -822,3 +826,4 @@ public extension Wine {
         }.value
     }
 }
+// swiftlint:enable type_body_length

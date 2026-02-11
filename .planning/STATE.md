@@ -42,6 +42,7 @@ Progress: [▓▓▓▓▓▓▓▓▓░] 87%
 - Trend: Phase 9 progressing; console persistence model in 6min
 
 *Updated after each plan completion*
+| Phase 09 P01 | 8min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -205,6 +206,8 @@ Recent decisions affecting current work:
 - [09-05]: RunLogStore as caseless enum following GPUDetection/DiagnosisHistory pattern for static utility namespace
 - [09-05]: Auto-cleanup of log files for pruned entries during append in Wine.runProgram
 - [09-05]: ProgramRunResult extended with runLogEntryId for UI correlation (backward-compatible, @discardableResult)
+- [Phase 09]: RetinaModeState uses enabled/disabled/unknown (SwiftLint 3-char min); DPI sheet gets read-only Bool Binding from tri-state
+- [Phase 09]: SetupView auto-navigates to download on update (!firstTime + Wine not installed) for single-step GPTK dialog
 
 ### Pending Todos
 
@@ -217,5 +220,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 09-05-PLAN.md
+Stopped at: Completed 09-01-PLAN.md (quick-win UI fixes)
 Resume file: None

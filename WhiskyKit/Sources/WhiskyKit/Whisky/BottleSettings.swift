@@ -553,6 +553,15 @@ public struct BottleSettings: Codable, Equatable {
         set { inputConfig.disableControllerMapping = newValue }
     }
 
+    /// Whether to use native button labels instead of XInput layout.
+    ///
+    /// When true, sets `SDL_GAMECONTROLLER_USE_BUTTON_LABELS=1` so physical
+    /// button positions are used instead of XInput logical layout.
+    public var useButtonLabels: Bool {
+        get { inputConfig.useButtonLabels }
+        set { inputConfig.useButtonLabels = newValue }
+    }
+
     // MARK: - Custom DLL overrides
 
     /// User-defined DLL overrides for this bottle.
@@ -810,9 +819,11 @@ public struct BottleSettings: Codable, Equatable {
 
         // Apply launcher-specific environment overrides if launcher detected
         if let launcher = detectedLauncher {
-            let launcherEnv = launcher.environmentOverrides()
-            builder.setAll(launcherEnv, layer: .launcherManaged)
-            launcherProvidesLocale = launcherEnv["LC_ALL"] != nil
+            let fixDetails = launcher.fixDetails()
+            for detail in fixDetails {
+                builder.set(detail.key, detail.value, layer: .launcherManaged, reason: detail.reason)
+            }
+            launcherProvidesLocale = fixDetails.contains { $0.key == "LC_ALL" }
 
             // Auto-enable DXVK DLL overrides if launcher requires it
             if autoEnableDXVK, launcher.requiresDXVK {
@@ -892,9 +903,11 @@ public struct BottleSettings: Codable, Equatable {
 
         // Disable SDL to XInput mapping conversion
         // PlayStation/Switch controllers may show correct button mappings without this
-        if disableControllerMapping {
-            // Tell SDL not to remap controllers to XInput layout
+        // Both disableControllerMapping (legacy) and useButtonLabels (controller panel) control this hint.
+        if disableControllerMapping || useButtonLabels {
             builder.set("SDL_GAMECONTROLLER_USE_BUTTON_LABELS", "1", layer: .bottleManaged)
+        } else {
+            builder.set("SDL_GAMECONTROLLER_USE_BUTTON_LABELS", "0", layer: .bottleManaged)
         }
     }
 

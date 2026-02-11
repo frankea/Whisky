@@ -27,6 +27,7 @@ final class BottleInputConfigTests: XCTestCase {
         XCTAssertFalse(config.disableHIDAPI)
         XCTAssertFalse(config.allowBackgroundEvents)
         XCTAssertFalse(config.disableControllerMapping)
+        XCTAssertFalse(config.useButtonLabels)
     }
 
     func testInputConfigCodable() throws {
@@ -35,6 +36,7 @@ final class BottleInputConfigTests: XCTestCase {
         config.disableHIDAPI = true
         config.allowBackgroundEvents = true
         config.disableControllerMapping = true
+        config.useButtonLabels = true
 
         // Encode
         let encoder = PropertyListEncoder()
@@ -48,6 +50,7 @@ final class BottleInputConfigTests: XCTestCase {
         XCTAssertTrue(decoded.disableHIDAPI)
         XCTAssertTrue(decoded.allowBackgroundEvents)
         XCTAssertTrue(decoded.disableControllerMapping)
+        XCTAssertTrue(decoded.useButtonLabels)
     }
 
     func testInputConfigDecoderDefaultValues() throws {
@@ -62,6 +65,7 @@ final class BottleInputConfigTests: XCTestCase {
         XCTAssertFalse(decoded.disableHIDAPI)
         XCTAssertFalse(decoded.allowBackgroundEvents)
         XCTAssertFalse(decoded.disableControllerMapping)
+        XCTAssertFalse(decoded.useButtonLabels)
     }
 
     func testBottleSettingsIncludesInputConfig() {
@@ -72,6 +76,7 @@ final class BottleInputConfigTests: XCTestCase {
         XCTAssertFalse(settings.disableHIDAPI)
         XCTAssertFalse(settings.allowBackgroundEvents)
         XCTAssertFalse(settings.disableControllerMapping)
+        XCTAssertFalse(settings.useButtonLabels)
     }
 
     func testBottleSettingsInputConfigModification() {
@@ -82,12 +87,14 @@ final class BottleInputConfigTests: XCTestCase {
         settings.disableHIDAPI = true
         settings.allowBackgroundEvents = true
         settings.disableControllerMapping = true
+        settings.useButtonLabels = true
 
         // Verify changes
         XCTAssertTrue(settings.controllerCompatibilityMode)
         XCTAssertTrue(settings.disableHIDAPI)
         XCTAssertTrue(settings.allowBackgroundEvents)
         XCTAssertTrue(settings.disableControllerMapping)
+        XCTAssertTrue(settings.useButtonLabels)
     }
 
     func testEnvironmentVariablesWithControllerCompatibility() {
@@ -112,14 +119,15 @@ final class BottleInputConfigTests: XCTestCase {
         settings.disableHIDAPI = true
         settings.allowBackgroundEvents = false
         settings.disableControllerMapping = false
+        settings.useButtonLabels = false
 
         var env: [String: String] = [:]
         settings.environmentVariables(wineEnv: &env)
 
-        // Should only include HIDAPI disable
+        // Should include HIDAPI disable and button labels explicitly set to 0
         XCTAssertEqual(env["SDL_JOYSTICK_HIDAPI"], "0")
         XCTAssertNil(env["SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS"])
-        XCTAssertNil(env["SDL_GAMECONTROLLER_USE_BUTTON_LABELS"])
+        XCTAssertEqual(env["SDL_GAMECONTROLLER_USE_BUTTON_LABELS"], "0")
     }
 
     func testEnvironmentVariablesWithoutControllerCompatibility() {
@@ -137,6 +145,21 @@ final class BottleInputConfigTests: XCTestCase {
         XCTAssertNil(env["SDL_JOYSTICK_HIDAPI"])
         XCTAssertNil(env["SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS"])
         XCTAssertNil(env["SDL_GAMECONTROLLER_USE_BUTTON_LABELS"])
+    }
+
+    func testEnvironmentVariablesWithUseButtonLabels() {
+        var settings = BottleSettings()
+        settings.controllerCompatibilityMode = true
+        settings.disableHIDAPI = false
+        settings.allowBackgroundEvents = false
+        settings.disableControllerMapping = false
+        settings.useButtonLabels = true
+
+        var env: [String: String] = [:]
+        settings.environmentVariables(wineEnv: &env)
+
+        // useButtonLabels=true should set SDL_GAMECONTROLLER_USE_BUTTON_LABELS=1
+        XCTAssertEqual(env["SDL_GAMECONTROLLER_USE_BUTTON_LABELS"], "1")
     }
 
     func testInputConfigEquatable() {

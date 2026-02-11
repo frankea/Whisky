@@ -70,6 +70,15 @@ public struct BottleInputConfig: Codable, Equatable {
     /// preserve native button layouts.
     var disableControllerMapping: Bool = false
 
+    /// Whether to use native button labels instead of XInput layout.
+    ///
+    /// When `true`, sets `SDL_GAMECONTROLLER_USE_BUTTON_LABELS=1` so that
+    /// physical button positions (e.g. Cross/Circle on PlayStation) are used
+    /// instead of the XInput logical layout (A/B/X/Y).
+    ///
+    /// When `false` (default), the XInput layout is used.
+    var useButtonLabels: Bool = false
+
     public init() {}
 
     public init(from decoder: Decoder) throws {
@@ -86,6 +95,10 @@ public struct BottleInputConfig: Codable, Equatable {
         self.disableControllerMapping = try container.decodeIfPresent(
             Bool.self,
             forKey: .disableControllerMapping
+        ) ?? false
+        self.useButtonLabels = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .useButtonLabels
         ) ?? false
     }
 }

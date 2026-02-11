@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 9 of 10 (UI/UX & Feature Requests)
-Plan: 7 of 7 in current phase (09-07 complete)
+Plan: 7 of 7 in current phase (09-06 complete)
 Status: Executing
-Last activity: 2026-02-11 -- Completed 09-07 (WhiskyCmd improvements)
+Last activity: 2026-02-11 -- Completed 09-06 (console persistence UI)
 
-Progress: [▓▓▓▓▓▓▓▓▓░] 90%
+Progress: [▓▓▓▓▓▓▓▓▓░] 91%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 40
+- Total plans completed: 41
 - Average duration: 8.1min
-- Total execution time: 5.5 hours
+- Total execution time: 5.7 hours
 
 **By Phase:**
 
@@ -35,15 +35,16 @@ Progress: [▓▓▓▓▓▓▓▓▓░] 90%
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
 | 07-game-compatibility-database | 7/7 | 64min | 9.1min |
 | 08-remaining-platform-issues | 7/7 | 47min | 6.7min |
-| 09-ui-ux-feature-requests | 6/7 | 42min | 7.0min |
+| 09-ui-ux-feature-requests | 7/7 | 54min | 7.7min |
 
 **Recent Trend:**
-- Last 5 plans: 09-01 (8min), 09-02 (4min), 09-05 (6min), 09-04 (10min), 09-07 (6min)
-- Trend: Phase 9 progressing; WhiskyCmd improvements in 6min
+- Last 5 plans: 09-02 (4min), 09-05 (6min), 09-04 (10min), 09-07 (6min), 09-06 (12min)
+- Trend: Phase 9 complete; console persistence UI in 12min
 
 *Updated after each plan completion*
 | Phase 09 P01 | 8min | 2 tasks | 4 files |
 | Phase 09 P07 | 6min | 2 tasks | 4 files |
+| Phase 09 P06 | 12min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -218,6 +219,11 @@ Recent decisions affecting current work:
 - [09-07]: ProgramShortcut delegates bundle creation to ShortcutCreator; keeps icon extraction and Finder reveal in app target
 - [09-07]: tailLogFile uses polling with 5-second idle timeout for portability
 - [09-07]: swiftlint:disable file_length for Main.swift (Shortcut subcommand pushed past 400-line limit)
+- [09-06]: Timer-based polling (2s history, 1s log tail) over DispatchSource for simplicity
+- [09-06]: WINEDEBUG line detection via regex patterns for Wine thread IDs and debug prefixes
+- [09-06]: Heuristic stderr detection via common error indicators (Wine log format does not separate stdout/stderr)
+- [09-06]: Export includes labeled WINEDEBUG content when filtered out for complete capture
+- [09-06]: ConsoleLogView struct + extension split for SwiftLint type_body_length compliance
 
 ### Pending Todos
 
@@ -230,5 +236,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 09-07-PLAN.md (WhiskyCmd improvements)
+Stopped at: Completed 09-06-PLAN.md (console persistence UI)
 Resume file: None

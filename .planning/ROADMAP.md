@@ -140,13 +140,13 @@ Plans:
 **Plans**: 7 plans
 
 Plans:
-- [ ] 07-01-PLAN.md -- Core data models: GameDBEntry, CompatibilityRating, MatchResult, GameConfigSnapshot, SteamAppManifest (TDD)
-- [ ] 07-02-PLAN.md -- GameDBLoader JSON resource loading and GameMatcher tiered scoring algorithm (TDD)
-- [ ] 07-03-PLAN.md -- GameConfigApplicator apply/revert/snapshot and StalenessChecker
-- [ ] 07-04-PLAN.md -- GameConfigurationView global list with search, filters, and BottleView navigation
-- [ ] 07-05-PLAN.md -- GameEntryDetailView 6-section layout, GameConfigPreviewSheet with diff, GameVariantPickerView
-- [ ] 07-06-PLAN.md -- Contextual integration: banners, program settings suggestions, config revert, localization
-- [ ] 07-07-PLAN.md -- GameDB.json population with 25-30 verified game configuration entries
+- [x] 07-01-PLAN.md -- Core data models: GameDBEntry, CompatibilityRating, MatchResult, GameConfigSnapshot, SteamAppManifest (TDD)
+- [x] 07-02-PLAN.md -- GameDBLoader JSON resource loading and GameMatcher tiered scoring algorithm (TDD)
+- [x] 07-03-PLAN.md -- GameConfigApplicator apply/revert/snapshot and StalenessChecker
+- [x] 07-04-PLAN.md -- GameConfigurationView global list with search, filters, and BottleView navigation
+- [x] 07-05-PLAN.md -- GameEntryDetailView 6-section layout, GameConfigPreviewSheet with diff, GameVariantPickerView
+- [x] 07-06-PLAN.md -- Contextual integration: banners, program settings suggestions, config revert, localization
+- [x] 07-07-PLAN.md -- GameDB.json population with 25-30 verified game configuration entries
 
 ### Phase 8: Remaining Platform Issues
 **Goal**: Launcher, controller, and installation issues from upstream tracking categories are resolved through code fixes and in-app guidance
@@ -158,13 +158,16 @@ Plans:
   3. Controller detection persists across sessions without requiring Mac reboot, and per-controller mapping works for DualShock 4, DualSense, and Xbox controllers
   4. In-app dependency installation guide covers DirectX, .NET Framework, and vcruntime with per-bottle status tracking showing what is installed
   5. Permission flow improvements reduce repeated volume access prompts during bottle and program operations
-**Plans**: TBD
+**Plans**: 7 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
-- [ ] 08-03: TBD
-- [ ] 08-04: TBD
+- [ ] 08-01-PLAN.md -- Launcher fix metadata: structured LauncherFixDetail, MacOSFix registry, EnvironmentBuilder provenance reasons
+- [ ] 08-02-PLAN.md -- Controller discovery: ControllerMonitor with GCController, ControllerInfo model, XInput/Native labels SDL hint
+- [ ] 08-03-PLAN.md -- Dependency tracking data: DependencyDefinition models, DependencyManager, headless winetricks installation
+- [ ] 08-04-PLAN.md -- Launcher guidance UI: launch-time fix banner, LauncherConfigSection provenance display
+- [ ] 08-05-PLAN.md -- Controller panel UI: Connected Controllers subpanel, per-program input overrides
+- [ ] 08-06-PLAN.md -- Dependency tracking UI: DependencyConfigSection status rows, guided install sheet
+- [ ] 08-07-PLAN.md -- Steam stall detection, dependency badges, diagnostics integration, volume access, localization
 
 ### Phase 9: UI/UX & Feature Requests
 **Goal**: Polish and feature enhancements that improve daily usability and address top community-requested capabilities
@@ -215,6 +218,6 @@ Note: Phases 3 and 4 are parallel-capable (no mutual dependencies). Phases 5 and
 | 5. Stability & Diagnostics | 5/5 | ✓ Complete | 2026-02-10 |
 | 6. Audio Troubleshooting | 5/5 | ✓ Complete | 2026-02-10 |
 | 7. Game Compatibility Database | 7/7 | ✓ Complete | 2026-02-10 |
-| 8. Remaining Platform Issues | 0/TBD | Not started | - |
+| 8. Remaining Platform Issues | 0/7 | Not started | - |
 | 9. UI/UX & Feature Requests | 0/TBD | Not started | - |
 | 10. Guided Troubleshooting | 0/TBD | Not started | - |

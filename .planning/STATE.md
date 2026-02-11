@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 
 ## Current Position
 
-Phase: 8 of 10 (Remaining Platform Issues) -- IN PROGRESS
-Plan: 6 of 7 in current phase (plan 06 complete)
-Status: Executing
-Last activity: 2026-02-11 -- Completed 08-06 (Dependency Tracking UI)
+Phase: 8 of 10 (Remaining Platform Issues) -- COMPLETE
+Plan: 7 of 7 in current phase (plan 07 complete)
+Status: Phase Complete
+Last activity: 2026-02-11 -- Completed 08-07 (Cross-Cutting Integration)
 
-Progress: [▓▓▓▓▓▓▓▓░░] 78%
+Progress: [▓▓▓▓▓▓▓▓░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 36
-- Average duration: 8.3min
-- Total execution time: 5.0 hours
+- Total plans completed: 37
+- Average duration: 8.2min
+- Total execution time: 5.1 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [▓▓▓▓▓▓▓▓░░] 78%
 | 05-stability-diagnostics | 5 | 45min | 9.0min |
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
 | 07-game-compatibility-database | 7/7 | 64min | 9.1min |
-| 08-remaining-platform-issues | 6/7 | 40min | 5.7min |
+| 08-remaining-platform-issues | 7/7 | 47min | 6.7min |
 
 **Recent Trend:**
-- Last 5 plans: 08-02 (8min), 08-03 (9min), 08-04 (8min), 08-05 (7min), 08-06 (8min)
-- Trend: Phase 8 progressing; launcher guidance UI in 8min
+- Last 5 plans: 08-03 (9min), 08-04 (8min), 08-05 (7min), 08-06 (8min), 08-07 (7min)
+- Trend: Phase 8 complete; cross-cutting integration in 7min
 
 *Updated after each plan completion*
 
@@ -189,6 +189,10 @@ Recent decisions affecting current work:
 - [08-06]: Preflight and Plan stages merged into single stage with embedded verb plan section
 - [08-06]: Install directory created under Views for DependencyInstallSheet (new Xcode group)
 - [08-06]: BottleDependencyHistory populated after each install attempt for diagnostics traceability
+- [08-07]: SteamDownloadMonitor in app target (not WhiskyKit) following ControllerMonitor precedent
+- [08-07]: 45-second sampling interval within 30-60s range; stall threshold 3 minutes per user decision
+- [08-07]: Stall notifications rate-limited once per bottle per session with suppressWarnings API
+- [08-07]: Dependency badge uses .openDependenciesSection notification for ConfigView deep-link
 
 ### Pending Todos
 
@@ -201,5 +205,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 08-04-PLAN.md (Launcher Guidance UI)
+Stopped at: Completed 08-07-PLAN.md (Cross-Cutting Integration) -- Phase 8 complete
 Resume file: None

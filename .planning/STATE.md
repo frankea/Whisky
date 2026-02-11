@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 8 of 10 (Remaining Platform Issues) -- IN PROGRESS
-Plan: 3 of 7 in current phase (plan 03 complete)
+Plan: 5 of 7 in current phase (plan 05 complete)
 Status: Executing
-Last activity: 2026-02-11 -- Completed 08-03 (Dependency Tracking Data Layer)
+Last activity: 2026-02-11 -- Completed 08-05 (Controller Panel UI)
 
-Progress: [▓▓▓▓▓▓▓░░░] 75%
+Progress: [▓▓▓▓▓▓▓░░░] 76%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 32
-- Average duration: 8.4min
-- Total execution time: 4.7 hours
+- Total plans completed: 34
+- Average duration: 8.3min
+- Total execution time: 4.8 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [▓▓▓▓▓▓▓░░░] 75%
 | 05-stability-diagnostics | 5 | 45min | 9.0min |
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
 | 07-game-compatibility-database | 7/7 | 64min | 9.1min |
-| 08-remaining-platform-issues | 3/7 | 17min | 5.7min |
+| 08-remaining-platform-issues | 5/7 | 24min | 4.8min |
 
 **Recent Trend:**
-- Last 5 plans: 07-06 (8min), 07-07 (11min), 08-01 (--), 08-02 (8min), 08-03 (9min)
-- Trend: Phase 8 progressing; dependency tracking data layer in 9min
+- Last 5 plans: 08-01 (--), 08-02 (8min), 08-03 (9min), 08-04 (--), 08-05 (7min)
+- Trend: Phase 8 progressing; controller panel UI in 7min
 
 *Updated after each plan completion*
 
@@ -178,6 +178,9 @@ Recent decisions affecting current work:
 - [Phase 08]: FixCategory enum at module scope for shared LauncherFixDetail/MacOSFix classification
 - [Phase 08]: MacOSCompatibilityFixes as caseless enum registry; fixDetails() in separate extension file for SwiftLint compliance
 - [Phase 08]: EnvironmentBuilder reason storage as separate per-layer dict; WINEESYNC conditional preserved as special case
+- [08-05]: Connected Controllers subpanel collapsed by default with DisclosureGroup (per user decision)
+- [08-05]: Input overrides at programUser layer: controllerCompatibilityMode gates all SDL hint overrides
+- [08-05]: useButtonLabels and disableControllerMapping both control SDL_GAMECONTROLLER_USE_BUTTON_LABELS at program level
 
 ### Pending Todos
 
@@ -190,5 +193,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 08-03-PLAN.md (Dependency Tracking Data Layer)
+Stopped at: Completed 08-05-PLAN.md (Controller Panel UI)
 Resume file: None

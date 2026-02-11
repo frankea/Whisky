@@ -221,6 +221,11 @@ public class Wine {
         public let exitCode: Int32
         /// URL to the log file created for this run.
         public let logFileURL: URL
+        /// The UUID of the run log entry created for this run.
+        ///
+        /// Use this to correlate the run result with the run log history
+        /// entry, e.g., to open the correct log entry in the console UI.
+        public let runLogEntryId: UUID
     }
 
     @discardableResult
@@ -269,9 +274,29 @@ public class Wine {
             programSettings: programSettings
         )
 
+        // Create a run log entry to track this session
+        let programName = url.lastPathComponent
+        var runLogEntry = RunLogEntry(programName: programName, logFileName: logFileURL.lastPathComponent)
+
+        // Record the active WINEDEBUG preset if one is set
+        if wineEnvironment.keys.contains("WINEDEBUG") {
+            runLogEntry.activeWineDebugPreset = programSettings?.activeWineDebugPreset?.rawValue
+        }
+
+        // Persist the "running" state immediately
+        var runLogHistory = RunLogStore.load(for: programName, in: bottle.url)
+        let prunedEntries = runLogHistory.append(runLogEntry)
+        RunLogStore.save(runLogHistory, for: programName, in: bottle.url)
+
+        // Clean up log files for pruned entries
+        for pruned in prunedEntries {
+            let prunedLogURL = Self.logsFolder.appending(path: pruned.logFileName)
+            try? FileManager.default.removeItem(at: prunedLogURL)
+        }
+
         var exitCode: Int32 = 0
         for await output in try runProcess(
-            name: url.lastPathComponent,
+            name: programName,
             args: ["start", "/unix", url.path(percentEncoded: false)] + args,
             environment: wineEnvironment, executableURL: wineBinary,
             fileHandle: fileHandle
@@ -281,7 +306,16 @@ public class Wine {
             }
         }
 
-        return ProgramRunResult(exitCode: exitCode, logFileURL: logFileURL)
+        // Update the run log entry with exit information
+        var updatedHistory = RunLogStore.load(for: programName, in: bottle.url)
+        updatedHistory.markCompleted(
+            id: runLogEntry.id,
+            exitCode: exitCode,
+            hasWineDebug: wineEnvironment.keys.contains("WINEDEBUG")
+        )
+        RunLogStore.save(updatedHistory, for: programName, in: bottle.url)
+
+        return ProgramRunResult(exitCode: exitCode, logFileURL: logFileURL, runLogEntryId: runLogEntry.id)
     }
 
     /// Generates a shell command string for running a Windows program.

@@ -297,10 +297,24 @@ public class Wine {
             try? FileManager.default.removeItem(at: prunedLogURL)
         }
 
+        // Build launch arguments with optional per-program virtual desktop
+        let launchArgs: [String]
+        if let overrides = programOverrides,
+           let vdEnabled = overrides.virtualDesktopEnabled, vdEnabled {
+            let resolution = Self.resolveVirtualDesktopResolution(from: overrides)
+            let desktopName = programName.replacingOccurrences(of: " ", with: "_")
+            launchArgs = [
+                "explorer", "/desktop=\(desktopName),\(resolution)",
+                url.path(percentEncoded: false)
+            ] + args
+        } else {
+            launchArgs = ["start", "/unix", url.path(percentEncoded: false)] + args
+        }
+
         var exitCode: Int32 = 0
         for await output in try runProcess(
             name: programName,
-            args: ["start", "/unix", url.path(percentEncoded: false)] + args,
+            args: launchArgs,
             environment: wineEnvironment, executableURL: wineBinary,
             fileHandle: fileHandle
         ) {
@@ -320,7 +334,26 @@ public class Wine {
 
         return ProgramRunResult(exitCode: exitCode, logFileURL: logFileURL, runLogEntryId: runLogEntry.id)
     }
+
     // swiftlint:enable function_body_length
+
+    /// Resolves the virtual desktop resolution string from per-program overrides.
+    ///
+    /// - Parameter overrides: The program overrides containing display settings.
+    /// - Returns: A resolution string like `"1920x1080"`.
+    private static func resolveVirtualDesktopResolution(from overrides: ProgramOverrides) -> String {
+        let preset = overrides.resolutionPreset ?? .r1920x1080
+        if let dims = preset.dimensions {
+            return "\(dims.width)x\(dims.height)"
+        }
+        if preset == .custom {
+            let width = overrides.customResolutionWidth ?? 1_920
+            let height = overrides.customResolutionHeight ?? 1_080
+            return "\(width)x\(height)"
+        }
+        // matchDisplay fallback
+        return "1920x1080"
+    }
 
     /// Generates a shell command string for running a Windows program.
     ///
@@ -826,4 +859,5 @@ public extension Wine {
         }.value
     }
 }
+
 // swiftlint:enable type_body_length

@@ -48,6 +48,7 @@ struct ProgramOverrideSettingsView: View {
             syncGroup
             performanceGroup
             inputGroup
+            displayGroup
             dllOverridesGroup
             winetricksSection
             resetButton
@@ -376,6 +377,68 @@ struct ProgramOverrideSettingsView: View {
         Toggle("config.useButtonLabels", isOn: useButtonLabelsBinding)
     }
 
+    // MARK: - Display Group
+
+    private var displayGroup: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Toggle(
+                "program.overrides.display",
+                isOn: displayOverrideBinding
+            )
+            if hasDisplayOverride {
+                displayControls
+            } else {
+                if bottle.settings.virtualDesktopEnabled {
+                    let preset = bottle.settings.resolutionPreset
+                    let resText = preset.dimensions.map { "\($0.width)x\($0.height)" }
+                        ?? (preset == .custom
+                            ? "\(bottle.settings.customResolutionWidth)x\(bottle.settings.customResolutionHeight)"
+                            : String(localized: "config.virtualDesktop.matchDisplay.label"))
+                    inheritedSummary(
+                        String(localized: "program.overrides.display.enabled") + " " + resText
+                    )
+                } else {
+                    inheritedSummary(String(localized: "config.virtualDesktop.off"))
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var displayControls: some View {
+        Toggle("config.virtualDesktop", isOn: virtualDesktopEnabledBinding)
+        if program.settings.overrides?.virtualDesktopEnabled == true {
+            Picker("config.virtualDesktop.resolution", selection: displayPresetBinding) {
+                ForEach(ResolutionPreset.allCases, id: \.self) { preset in
+                    Text(preset.label).tag(preset)
+                }
+            }
+            if program.settings.overrides?.resolutionPreset == .custom {
+                HStack {
+                    TextField(
+                        "1920",
+                        value: displayCustomWidthBinding,
+                        format: .number
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 80)
+                    Text("\u{00D7}")
+                        .foregroundStyle(.secondary)
+                    TextField(
+                        "1080",
+                        value: displayCustomHeightBinding,
+                        format: .number
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 80)
+                }
+            }
+        }
+        Text("programOverride.display.info")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+    }
+
     // MARK: - DLL Overrides Group
 
     private var dllOverridesGroup: some View {
@@ -490,6 +553,10 @@ struct ProgramOverrideSettingsView: View {
         program.settings.overrides?.controllerCompatibilityMode != nil
     }
 
+    private var hasDisplayOverride: Bool {
+        program.settings.overrides?.virtualDesktopEnabled != nil
+    }
+
     private var hasDLLOverride: Bool {
         program.settings.overrides?.dllOverrides != nil
     }
@@ -602,6 +669,26 @@ struct ProgramOverrideSettingsView: View {
         )
     }
 
+    private var displayOverrideBinding: Binding<Bool> {
+        Binding(
+            get: { hasDisplayOverride },
+            set: { isOn in
+                ensureOverrides()
+                if isOn {
+                    program.settings.overrides?.virtualDesktopEnabled = bottle.settings.virtualDesktopEnabled
+                    program.settings.overrides?.resolutionPreset = bottle.settings.resolutionPreset
+                    program.settings.overrides?.customResolutionWidth = bottle.settings.customResolutionWidth
+                    program.settings.overrides?.customResolutionHeight = bottle.settings.customResolutionHeight
+                } else {
+                    program.settings.overrides?.virtualDesktopEnabled = nil
+                    program.settings.overrides?.resolutionPreset = nil
+                    program.settings.overrides?.customResolutionWidth = nil
+                    program.settings.overrides?.customResolutionHeight = nil
+                }
+            }
+        )
+    }
+
     private var dllOverrideBinding: Binding<Bool> {
         Binding(
             get: { hasDLLOverride },
@@ -706,6 +793,34 @@ struct ProgramOverrideSettingsView: View {
         Binding(
             get: { program.settings.overrides?.useButtonLabels ?? false },
             set: { program.settings.overrides?.useButtonLabels = $0 }
+        )
+    }
+
+    private var virtualDesktopEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { program.settings.overrides?.virtualDesktopEnabled ?? false },
+            set: { program.settings.overrides?.virtualDesktopEnabled = $0 }
+        )
+    }
+
+    private var displayPresetBinding: Binding<ResolutionPreset> {
+        Binding(
+            get: { program.settings.overrides?.resolutionPreset ?? .r1920x1080 },
+            set: { program.settings.overrides?.resolutionPreset = $0 }
+        )
+    }
+
+    private var displayCustomWidthBinding: Binding<Int> {
+        Binding(
+            get: { program.settings.overrides?.customResolutionWidth ?? 1_920 },
+            set: { program.settings.overrides?.customResolutionWidth = min(max($0, 640), 7_680) }
+        )
+    }
+
+    private var displayCustomHeightBinding: Binding<Int> {
+        Binding(
+            get: { program.settings.overrides?.customResolutionHeight ?? 1_080 },
+            set: { program.settings.overrides?.customResolutionHeight = min(max($0, 480), 4_320) }
         )
     }
 

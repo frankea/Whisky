@@ -38,8 +38,10 @@ struct ProgramOverrideSettingsView: View {
     @State private var activeLogText: String = ""
     @State private var gameMatch: MatchResult?
     @State private var showGameConfigDetail: Bool = false
+    @State private var recommendedDependencies: [DependencyDefinition] = []
 
     var body: some View {
+        dependencyBadgeSection
         gameConfigSection
         Section("program.overrides.title", isExpanded: $isExpanded) {
             graphicsGroup
@@ -54,6 +56,7 @@ struct ProgramOverrideSettingsView: View {
         audioTroubleshootingSection
             .task {
                 await loadGameMatch()
+                await loadRecommendedDependencies()
             }
             .sheet(isPresented: $showGameConfigDetail) {
                 if let match = gameMatch {
@@ -143,6 +146,47 @@ struct ProgramOverrideSettingsView: View {
                 )
             }
             .help("Open audio diagnostics and troubleshooting for this bottle")
+        }
+    }
+
+    // MARK: - Dependency Badge
+
+    @ViewBuilder
+    private var dependencyBadgeSection: some View {
+        if !recommendedDependencies.isEmpty {
+            Section {
+                ForEach(recommendedDependencies, id: \.id) { definition in
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                        Text(String(localized: "dependency.missing.banner \(definition.displayName)"))
+                            .font(.callout)
+                        Spacer()
+                        Button(String(localized: "dependency.install")) {
+                            NotificationCenter.default.post(
+                                name: .openDependenciesSection,
+                                object: nil
+                            )
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.orange)
+                        .controlSize(.small)
+                        Button(String(localized: "steam.stall.dismiss")) {
+                            DependencyManager.dismissRecommendation(definition.id, for: program)
+                            recommendedDependencies.removeAll { $0.id == definition.id }
+                        }
+                        .controlSize(.small)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+        }
+    }
+
+    private nonisolated func loadRecommendedDependencies() async {
+        let deps = await DependencyManager.recommendedDependencies(for: program, bottle: bottle)
+        await MainActor.run {
+            recommendedDependencies = deps
         }
     }
 
@@ -720,3 +764,10 @@ struct ProgramOverrideSettingsView: View {
 }
 
 // swiftlint:enable type_body_length
+
+extension Notification.Name {
+    /// Posted to navigate to the Dependencies section in ConfigView.
+    static let openDependenciesSection = Notification.Name(
+        "com.isaacmarovitz.Whisky.openDependenciesSection"
+    )
+}

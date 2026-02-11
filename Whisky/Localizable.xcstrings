@@ -32,6 +32,9 @@
       }
     },
     "Allow Background Events": {},
+    "Analyze": {},
+    "Analyze Wine crash output for troubleshooting guidance": {},
+    "Analyze last run": {},
     "Auto-Enable DXVK for Launchers": {
       "localizations": {
         "en": {
@@ -72,6 +75,10 @@
         }
       }
     },
+    "Bottle": {},
+    "Clear": {},
+    "Clear diagnostics history": {},
+    "Clear diagnostics history?": {},
     "Configuration Warnings": {
       "localizations": {
         "en": {
@@ -85,6 +92,8 @@
     "Controller & Input": {},
     "Controller Compatibility Mode": {},
     "Controller Workarounds": {},
+    "Copied!": {},
+    "Copy Report to Clipboard": {},
     "Copy to Clipboard": {
       "localizations": {
         "en": {
@@ -95,6 +104,8 @@
         }
       }
     },
+    "Crash Diagnosis History": {},
+    "Crash detected — %@": {},
     "Detected:": {
       "localizations": {
         "en": {
@@ -115,6 +126,7 @@
         }
       }
     },
+    "Diagnostics": {},
     "Disable HIDAPI": {},
     "Done": {
       "localizations": {
@@ -137,6 +149,9 @@
       }
     },
     "Enables workarounds for common game controller detection and mapping issues on macOS (frankea/Whisky#42)": {},
+    "Enhanced Logging": {},
+    "Export Diagnostic Report": {},
+    "Export Diagnostic Report…": {},
     "Export to File": {
       "localizations": {
         "en": {
@@ -199,7 +214,12 @@
     },
     "Generate Stability Diagnostics": {},
     "Generates a bounded, privacy-safe report for issue triage.": {},
+    "Generates large logs": {},
     "If controllers still don't work, try connecting via USB instead of Bluetooth, or check if the game has native controller support settings.": {},
+    "Include full log file": {},
+    "Include remediation history": {},
+    "Include sensitive details": {},
+    "Last analyzed:": {},
     "Launcher Compatibility": {
       "localizations": {
         "en": {
@@ -301,6 +321,7 @@
         }
       }
     },
+    "No crash diagnoses recorded": {},
     "None": {
       "localizations": {
         "en": {
@@ -311,6 +332,10 @@
         }
       }
     },
+    "Program": {},
+    "Re-analyze": {},
+    "Re-run with enhanced logging": {},
+    "Recommended only when sharing privately": {},
     "Reports high-end GPU to pass launcher compatibility checks. Fixes EA App black screen and \"GPU not supported\" errors.": {
       "localizations": {
         "en": {
@@ -321,6 +346,9 @@
         }
       }
     },
+    "Run Diagnostics": {},
+    "Run Diagnostics…": {},
+    "Save ZIP…": {},
     "Security Note": {
       "localizations": {
         "en": {
@@ -331,6 +359,8 @@
         }
       }
     },
+    "Select a bottle": {},
+    "Select a program": {},
     "Sets SDL_GAMECONTROLLER_USE_BUTTON_LABELS=1 to preserve native button layouts for PlayStation and Switch controllers instead of converting to XInput format.": {},
     "Sets SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1 to enable controller input when the game window doesn't have focus.": {},
     "Sets SDL_JOYSTICK_HIDAPI=0 to force SDL to use alternative input backends. May improve detection for some controllers.": {},
@@ -346,7 +376,13 @@
       }
     },
     "These settings modify SDL environment variables to improve controller detection and button mapping. Try different combinations if your controller isn't working correctly.": {},
+    "This will remove all crash diagnosis records for this program.": {},
+    "Troubleshoot Audio…": {},
     "Use Native Button Labels": {},
+    "View Details": {},
+    "View Diagnosis": {},
+    "View Latest Diagnosis": {},
+    "WINEDEBUG Preset": {},
     "accessibility.toast.dismiss": {
       "localizations": {
         "en": {
@@ -659,6 +695,54 @@
         }
       }
     },
+    "audio.alert.disconnected": {},
+    "audio.alert.lowSampleRate": {},
+    "audio.alert.reconnected": {},
+    "audio.alert.switchDevice": {},
+    "audio.devices.default": {},
+    "audio.devices.none": {},
+    "audio.devices.title": {},
+    "audio.findings.details": {},
+    "audio.findings.fix": {},
+    "audio.findings.technicalDetails": {},
+    "audio.findings.title": {},
+    "audio.history.clear": {},
+    "audio.history.none": {},
+    "audio.history.title": {},
+    "audio.status.broken": {},
+    "audio.status.degraded": {},
+    "audio.status.ok": {},
+    "audio.status.unknown": {},
+    "audio.symptom.crackling": {},
+    "audio.symptom.menusOnly": {},
+    "audio.symptom.noSound": {},
+    "audio.symptom.stutter": {},
+    "audio.symptom.wrongDevice": {},
+    "audio.test.lastTested": {},
+    "audio.test.refresh": {},
+    "audio.test.running": {},
+    "audio.test.tone": {},
+    "audio.test.toneQuestion": {},
+    "audio.test.wine": {},
+    "audio.troubleshoot.applyFix": {},
+    "audio.troubleshoot.didItWork": {},
+    "audio.troubleshoot.escalation": {},
+    "audio.troubleshoot.escalationNext": {},
+    "audio.troubleshoot.exportDiagnostics": {},
+    "audio.troubleshoot.noIssues": {},
+    "audio.troubleshoot.noStillBroken": {},
+    "audio.troubleshoot.openAdvanced": {},
+    "audio.troubleshoot.openSystemSound": {},
+    "audio.troubleshoot.pickSymptom": {},
+    "audio.troubleshoot.resolved": {},
+    "audio.troubleshoot.results": {},
+    "audio.troubleshoot.running": {},
+    "audio.troubleshoot.skipFix": {},
+    "audio.troubleshoot.suggestedFix": {},
+    "audio.troubleshoot.testAgain": {},
+    "audio.troubleshoot.title": {},
+    "audio.troubleshoot.tryFix": {},
+    "audio.troubleshoot.yesFixed": {},
     "bottle.close.confirm.message": {
       "localizations": {
         "en": {
@@ -3666,6 +3750,16 @@
         }
       }
     },
+    "cleanup.zombies.toast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleaned up %lld leftover Wine processes"
+          }
+        }
+      }
+    },
     "clipboard.clear": {
       "localizations": {
         "en": {
@@ -3746,16 +3840,20 @@
         }
       }
     },
-    "cleanup.zombies.toast": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cleaned up %lld leftover Wine processes"
-          }
-        }
-      }
-    },
+    "config.audio.advanced": {},
+    "config.audio.device.followSystem": {},
+    "config.audio.device.mode": {},
+    "config.audio.device.pinned": {},
+    "config.audio.driver": {},
+    "config.audio.driver.auto": {},
+    "config.audio.driver.disabled": {},
+    "config.audio.latency": {},
+    "config.audio.latency.default": {},
+    "config.audio.latency.low": {},
+    "config.audio.latency.stable": {},
+    "config.audio.resetState": {},
+    "config.audio.resetState.confirm": {},
+    "config.audio.simple": {},
     "config.avx": {
       "localizations": {
         "ar": {
@@ -7498,6 +7596,7 @@
         }
       }
     },
+    "config.title.audio": {},
     "config.title.dxvk": {
       "localizations": {
         "ar": {
@@ -8742,6 +8841,96 @@
         }
       }
     },
+    "controller.battery %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Battery: %@%%"
+          }
+        }
+      }
+    },
+    "controller.bluetooth.warning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetooth dropouts can break input; USB is more reliable"
+          }
+        }
+      }
+    },
+    "controller.connected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected Controllers"
+          }
+        }
+      }
+    },
+    "controller.copyInfo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Controller Info"
+          }
+        }
+      }
+    },
+    "controller.none": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No controllers detected"
+          }
+        }
+      }
+    },
+    "controller.none.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try connecting via USB or check System Settings"
+          }
+        }
+      }
+    },
+    "controller.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        }
+      }
+    },
+    "controller.useButtonLabels": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Native Button Labels"
+          }
+        }
+      }
+    },
+    "controller.useButtonLabels.help": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preserves physical button positions for PlayStation controllers"
+          }
+        }
+      }
+    },
     "create.browse": {
       "localizations": {
         "ar": {
@@ -9694,6 +9883,186 @@
         }
       }
     },
+    "dependency.checking": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking installed dependencies..."
+          }
+        }
+      }
+    },
+    "dependency.install": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install"
+          }
+        }
+      }
+    },
+    "dependency.install.estimated %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estimated time: %lld minutes"
+          }
+        }
+      }
+    },
+    "dependency.install.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation may have failed"
+          }
+        }
+      }
+    },
+    "dependency.install.preflight": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preflight checks"
+          }
+        }
+      }
+    },
+    "dependency.install.running": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installing..."
+          }
+        }
+      }
+    },
+    "dependency.install.success": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation successful"
+          }
+        }
+      }
+    },
+    "dependency.install.verify": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verification"
+          }
+        }
+      }
+    },
+    "dependency.install.warning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed components cannot be automatically removed"
+          }
+        }
+      }
+    },
+    "dependency.install.what": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What you're installing"
+          }
+        }
+      }
+    },
+    "dependency.installed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed"
+          }
+        }
+      }
+    },
+    "dependency.lastChecked %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last checked %@"
+          }
+        }
+      }
+    },
+    "dependency.missing.banner %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Missing dependency detected: %@"
+          }
+        }
+      }
+    },
+    "dependency.notInstalled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not Installed"
+          }
+        }
+      }
+    },
+    "dependency.partial": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partially Installed"
+          }
+        }
+      }
+    },
+    "dependency.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        }
+      }
+    },
+    "dependency.section": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dependencies"
+          }
+        }
+      }
+    },
+    "dependency.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown"
+          }
+        }
+      }
+    },
     "duplicate.bottle.title": {
       "localizations": {
         "en": {
@@ -9972,6 +10341,596 @@
           "stringUnit": {
             "state": "translated",
             "value": "移除"
+          }
+        }
+      }
+    },
+    "gameConfig.apply.failed %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to apply configuration: %@"
+          }
+        }
+      }
+    },
+    "gameConfig.apply.success %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied %@ configuration"
+          }
+        }
+      }
+    },
+    "gameConfig.banner.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply…"
+          }
+        }
+      }
+    },
+    "gameConfig.banner.available %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration available for %@"
+          }
+        }
+      }
+    },
+    "gameConfig.banner.notThis": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not this"
+          }
+        }
+      }
+    },
+    "gameConfig.banner.recommended": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommended configs for this program"
+          }
+        }
+      }
+    },
+    "gameConfig.banner.why": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Why this match?"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.applyTo %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to %@…"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.atAGlance": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At a Glance"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.communityConfig": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Community config, not maintainer-verified"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.dllOverrides": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DLL Overrides"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.graphics": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Graphics"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.noVariant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No configuration variant available"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.notes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes & Known Issues"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.performance": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Performance"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.provenance": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About This Config"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.provenance.author": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.provenance.lastUpdated": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last Updated"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.provenance.reference": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.provenance.source": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.recommendedConfig": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommended Configuration"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.required": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.showAdvanced": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show advanced details"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.variants": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Variants"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.whatItChanges": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What It Changes"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.winetricks": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Winetricks"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.applyButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply Configuration"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.applyTo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to:"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.dontShowAgain": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't show preview again"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.incomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incomplete (missing dependencies)"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.installComponents": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install Required Components"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.noChanges": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No changes detected"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.restartNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These changes will take effect on next launch"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.staleConfig": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stale Configuration"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration Preview"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.winetricksInstalled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Already installed"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.winetricksMissing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not installed"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.winetricksNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Winetricks installations modify the Wine prefix and cannot be undone"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.winetricksRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required Components"
+          }
+        }
+      }
+    },
+    "gameConfig.revert.applied %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration '%1$@' applied %2$@"
+          }
+        }
+      }
+    },
+    "gameConfig.revert.button": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revert Configuration Changes"
+          }
+        }
+      }
+    },
+    "gameConfig.revert.confirm.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings will be restored to their state before the game configuration was applied. Installed winetricks components will remain."
+          }
+        }
+      }
+    },
+    "gameConfig.revert.confirm.revert": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revert"
+          }
+        }
+      }
+    },
+    "gameConfig.revert.confirm.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revert Configuration?"
+          }
+        }
+      }
+    },
+    "gameConfig.revert.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied Game Configuration"
+          }
+        }
+      }
+    },
+    "gameConfig.revert.verbsRemain %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings reverted; installed components remain: %@"
+          }
+        }
+      }
+    },
+    "gameConfig.variant.default": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default"
+          }
+        }
+      }
+    },
+    "gamedb.empty.noData": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No game configurations available"
+          }
+        }
+      }
+    },
+    "gamedb.empty.noResults %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No configuration found for '%@'"
+          }
+        }
+      }
+    },
+    "gamedb.filter.allBackends": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Backends"
+          }
+        }
+      }
+    },
+    "gamedb.filter.allRatings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Ratings"
+          }
+        }
+      }
+    },
+    "gamedb.filter.allStores": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Stores"
+          }
+        }
+      }
+    },
+    "gamedb.filter.backend": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backend"
+          }
+        }
+      }
+    },
+    "gamedb.filter.rating": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rating"
+          }
+        }
+      }
+    },
+    "gamedb.filter.store": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store"
+          }
+        }
+      }
+    },
+    "gamedb.search.prompt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search games..."
+          }
+        }
+      }
+    },
+    "gamedb.tag.appleSilicon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Silicon"
+          }
+        }
+      }
+    },
+    "gamedb.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game Configurations"
           }
         }
       }
@@ -10653,6 +11612,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "終止所有容器"
+          }
+        }
+      }
+    },
+    "launcher.config.activeOverrides": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active Environment Overrides"
+          }
+        }
+      }
+    },
+    "launcher.config.provenance.launcher %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied by %@ preset"
+          }
+        }
+      }
+    },
+    "launcher.config.provenance.platform %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied because macOS >= %@"
+          }
+        }
+      }
+    },
+    "launcher.fixes.applied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Launcher fixes applied"
+          }
+        }
+      }
+    },
+    "launcher.fixes.count %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld settings configured"
+          }
+        }
+      }
+    },
+    "launcher.fixes.viewDetails": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Details"
           }
         }
       }
@@ -12787,16 +13806,6 @@
         }
       }
     },
-    "process.toast.stopped %lld": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stopped %lld process(es)"
-          }
-        }
-      }
-    },
     "process.table.executable": {
       "localizations": {
         "ar": {
@@ -13473,6 +14482,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "重新整理"
+          }
+        }
+      }
+    },
+    "process.toast.stopped %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopped %lld process(es)"
           }
         }
       }
@@ -20393,6 +21412,56 @@
         }
       }
     },
+    "steam.stall.detected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download may be stalled"
+          }
+        }
+      }
+    },
+    "steam.stall.dismiss": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss"
+          }
+        }
+      }
+    },
+    "steam.stall.dontWarn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't warn again"
+          }
+        }
+      }
+    },
+    "steam.stall.fixes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Fixes"
+          }
+        }
+      }
+    },
+    "steam.stall.hint %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No progress for %lld minutes"
+          }
+        }
+      }
+    },
     "tab.config": {
       "localizations": {
         "ar": {
@@ -20525,6 +21594,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "容器設定"
+          }
+        }
+      }
+    },
+    "tab.gameConfigs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game Configurations"
           }
         }
       }
@@ -22712,705 +23791,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "執行Winetricks指令"
-          }
-        }
-      }
-    },
-    "Export Diagnostic Report": {},
-    "Include sensitive details": {},
-    "Recommended only when sharing privately": {},
-    "Include remediation history": {},
-    "Include full log file": {},
-    "Copy Report to Clipboard": {},
-    "Save ZIP…": {},
-    "Copied!": {},
-    "Crash Diagnosis History": {},
-    "No crash diagnoses recorded": {},
-    "Analyze last run": {},
-    "View Details": {},
-    "Re-analyze": {},
-    "Clear diagnostics history": {},
-    "Clear diagnostics history?": {},
-    "Clear": {},
-    "This will remove all crash diagnosis records for this program.": {},
-    "Enhanced Logging": {},
-    "WINEDEBUG Preset": {},
-    "Re-run with enhanced logging": {},
-    "Generates large logs": {},
-    "Diagnostics": {},
-    "Analyze Wine crash output for troubleshooting guidance": {},
-    "Export Diagnostic Report…": {},
-    "View Latest Diagnosis": {},
-    "Run Diagnostics…": {},
-    "Run Diagnostics": {},
-    "Crash detected — %@": {},
-    "View Diagnosis": {},
-    "Last analyzed:": {},
-    "Select a bottle": {},
-    "Select a program": {},
-    "Analyze": {},
-    "Bottle": {},
-    "Program": {},
-    "config.title.audio": {},
-    "config.audio.simple": {},
-    "config.audio.advanced": {},
-    "audio.status.ok": {},
-    "audio.status.degraded": {},
-    "audio.status.broken": {},
-    "audio.status.unknown": {},
-    "config.audio.driver": {},
-    "config.audio.driver.auto": {},
-    "config.audio.driver.disabled": {},
-    "config.audio.latency": {},
-    "config.audio.latency.default": {},
-    "config.audio.latency.low": {},
-    "config.audio.latency.stable": {},
-    "config.audio.device.mode": {},
-    "config.audio.device.followSystem": {},
-    "config.audio.device.pinned": {},
-    "config.audio.resetState": {},
-    "config.audio.resetState.confirm": {},
-    "audio.test.wine": {},
-    "audio.test.tone": {},
-    "audio.test.refresh": {},
-    "audio.test.running": {},
-    "audio.test.toneQuestion": {},
-    "audio.test.lastTested": {},
-    "audio.troubleshoot.title": {},
-    "audio.troubleshoot.pickSymptom": {},
-    "audio.troubleshoot.running": {},
-    "audio.troubleshoot.results": {},
-    "audio.troubleshoot.noIssues": {},
-    "audio.troubleshoot.tryFix": {},
-    "audio.troubleshoot.suggestedFix": {},
-    "audio.troubleshoot.applyFix": {},
-    "audio.troubleshoot.skipFix": {},
-    "audio.troubleshoot.didItWork": {},
-    "audio.troubleshoot.yesFixed": {},
-    "audio.troubleshoot.noStillBroken": {},
-    "audio.troubleshoot.testAgain": {},
-    "audio.troubleshoot.resolved": {},
-    "audio.troubleshoot.escalation": {},
-    "audio.troubleshoot.escalationNext": {},
-    "audio.troubleshoot.openAdvanced": {},
-    "audio.troubleshoot.exportDiagnostics": {},
-    "audio.troubleshoot.openSystemSound": {},
-    "audio.findings.title": {},
-    "audio.findings.details": {},
-    "audio.findings.technicalDetails": {},
-    "audio.findings.fix": {},
-    "audio.alert.disconnected": {},
-    "audio.alert.reconnected": {},
-    "audio.alert.switchDevice": {},
-    "audio.alert.lowSampleRate": {},
-    "audio.symptom.noSound": {},
-    "audio.symptom.crackling": {},
-    "audio.symptom.stutter": {},
-    "audio.symptom.wrongDevice": {},
-    "audio.symptom.menusOnly": {},
-    "audio.devices.title": {},
-    "audio.devices.none": {},
-    "audio.devices.default": {},
-    "audio.history.title": {},
-    "audio.history.none": {},
-    "audio.history.clear": {},
-    "Troubleshoot Audio…": {},
-    "tab.gameConfigs": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Game Configurations"
-          }
-        }
-      }
-    },
-    "gamedb.search.prompt": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search games..."
-          }
-        }
-      }
-    },
-    "gamedb.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Game Configurations"
-          }
-        }
-      }
-    },
-    "gamedb.filter.allRatings": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "All Ratings"
-          }
-        }
-      }
-    },
-    "gamedb.filter.rating": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rating"
-          }
-        }
-      }
-    },
-    "gamedb.filter.allStores": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "All Stores"
-          }
-        }
-      }
-    },
-    "gamedb.filter.store": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Store"
-          }
-        }
-      }
-    },
-    "gamedb.filter.allBackends": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "All Backends"
-          }
-        }
-      }
-    },
-    "gamedb.filter.backend": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Backend"
-          }
-        }
-      }
-    },
-    "gamedb.empty.noData": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No game configurations available"
-          }
-        }
-      }
-    },
-    "gamedb.empty.noResults %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No configuration found for '%@'"
-          }
-        }
-      }
-    },
-    "gamedb.tag.appleSilicon": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apple Silicon"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.atAGlance": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "At a Glance"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.recommendedConfig": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recommended Configuration"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.variants": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Variants"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.whatItChanges": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "What It Changes"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.notes": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notes & Known Issues"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.provenance": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "About This Config"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.applyTo %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apply to %@…"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.communityConfig": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Community config, not maintainer-verified"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.showAdvanced": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show advanced details"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.noVariant": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No configuration variant available"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.graphics": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Graphics"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.performance": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Performance"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.dllOverrides": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DLL Overrides"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.winetricks": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Winetricks"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.required": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Required"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.provenance.source": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Source"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.provenance.author": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Author"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.provenance.lastUpdated": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Last Updated"
-          }
-        }
-      }
-    },
-    "gameConfig.detail.provenance.reference": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reference"
-          }
-        }
-      }
-    },
-    "gameConfig.preview.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Configuration Preview"
-          }
-        }
-      }
-    },
-    "gameConfig.preview.staleConfig": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stale Configuration"
-          }
-        }
-      }
-    },
-    "gameConfig.preview.applyTo": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apply to:"
-          }
-        }
-      }
-    },
-    "gameConfig.preview.noChanges": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No changes detected"
-          }
-        }
-      }
-    },
-    "gameConfig.preview.winetricksRequired": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Required Components"
-          }
-        }
-      }
-    },
-    "gameConfig.preview.winetricksInstalled": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Already installed"
-          }
-        }
-      }
-    },
-    "gameConfig.preview.winetricksMissing": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not installed"
-          }
-        }
-      }
-    },
-    "gameConfig.preview.winetricksNote": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Winetricks installations modify the Wine prefix and cannot be undone"
-          }
-        }
-      }
-    },
-    "gameConfig.preview.installComponents": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Install Required Components"
-          }
-        }
-      }
-    },
-    "gameConfig.preview.incomplete": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Incomplete (missing dependencies)"
-          }
-        }
-      }
-    },
-    "gameConfig.preview.restartNote": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "These changes will take effect on next launch"
-          }
-        }
-      }
-    },
-    "gameConfig.preview.dontShowAgain": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Don't show preview again"
-          }
-        }
-      }
-    },
-    "gameConfig.preview.applyButton": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apply Configuration"
-          }
-        }
-      }
-    },
-    "gameConfig.preview.cancel": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancel"
-          }
-        }
-      }
-    },
-    "gameConfig.apply.success %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Applied %@ configuration"
-          }
-        }
-      }
-    },
-    "gameConfig.apply.failed %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Failed to apply configuration: %@"
-          }
-        }
-      }
-    },
-    "gameConfig.revert.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Applied Game Configuration"
-          }
-        }
-      }
-    },
-    "gameConfig.revert.applied %@ %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Configuration '%1$@' applied %2$@"
-          }
-        }
-      }
-    },
-    "gameConfig.revert.button": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Revert Configuration Changes"
-          }
-        }
-      }
-    },
-    "gameConfig.revert.confirm.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Revert Configuration?"
-          }
-        }
-      }
-    },
-    "gameConfig.revert.confirm.message": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Settings will be restored to their state before the game configuration was applied. Installed winetricks components will remain."
-          }
-        }
-      }
-    },
-    "gameConfig.revert.confirm.revert": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Revert"
-          }
-        }
-      }
-    },
-    "gameConfig.revert.verbsRemain %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Settings reverted; installed components remain: %@"
-          }
-        }
-      }
-    },
-    "gameConfig.banner.available %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Configuration available for %@"
-          }
-        }
-      }
-    },
-    "gameConfig.banner.apply": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apply…"
-          }
-        }
-      }
-    },
-    "gameConfig.banner.why": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Why this match?"
-          }
-        }
-      }
-    },
-    "gameConfig.banner.notThis": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not this"
-          }
-        }
-      }
-    },
-    "gameConfig.banner.recommended": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recommended configs for this program"
-          }
-        }
-      }
-    },
-    "gameConfig.variant.default": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Default"
           }
         }
       }

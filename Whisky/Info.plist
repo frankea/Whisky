@@ -53,6 +53,14 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>Whisky needs access to this folder to manage Wine bottles and install Windows dependencies.</string>
+	<key>NSDesktopFolderUsageDescription</key>
+	<string>Whisky needs access to Desktop to create shortcuts for Windows programs.</string>
+	<key>NSRemovableVolumesUsageDescription</key>
+	<string>Whisky needs access to removable volumes when bottles are stored on external drives.</string>
+	<key>NSNetworkVolumesUsageDescription</key>
+	<string>Whisky needs access to network volumes when bottles are stored on network drives.</string>
 	<key>SUFeedURL</key>
 	<string>https://frankea.github.io/Whisky/appcast.xml</string>
 	<key>SUPublicEDKey</key>

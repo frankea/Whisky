@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 8 of 10 (Remaining Platform Issues) -- IN PROGRESS
-Plan: 2 of 7 in current phase (plan 02 complete)
+Plan: 3 of 7 in current phase (plan 03 complete)
 Status: Executing
-Last activity: 2026-02-11 -- Completed 08-02 (Controller Discovery Infrastructure)
+Last activity: 2026-02-11 -- Completed 08-03 (Dependency Tracking Data Layer)
 
-Progress: [▓▓▓▓▓▓▓░░░] 74%
+Progress: [▓▓▓▓▓▓▓░░░] 75%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 30
-- Average duration: 8.5min
-- Total execution time: 4.55 hours
+- Total plans completed: 32
+- Average duration: 8.4min
+- Total execution time: 4.7 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [▓▓▓▓▓▓▓░░░] 74%
 | 05-stability-diagnostics | 5 | 45min | 9.0min |
 | 06-audio-troubleshooting | 5/5 | 32min | 6.4min |
 | 07-game-compatibility-database | 7/7 | 64min | 9.1min |
-| 08-remaining-platform-issues | 2/7 | 8min | 4.0min |
+| 08-remaining-platform-issues | 3/7 | 17min | 5.7min |
 
 **Recent Trend:**
-- Last 5 plans: 07-05 (18min), 07-06 (8min), 07-07 (11min), 08-01 (--), 08-02 (8min)
-- Trend: Phase 8 started; controller discovery infrastructure in 8min
+- Last 5 plans: 07-06 (8min), 07-07 (11min), 08-01 (--), 08-02 (8min), 08-03 (9min)
+- Trend: Phase 8 progressing; dependency tracking data layer in 9min
 
 *Updated after each plan completion*
 
@@ -172,6 +172,9 @@ Recent decisions affecting current work:
 - [08-02]: nonisolated(unsafe) for notification observer storage in @MainActor deinit (Swift 6 compliance)
 - [08-02]: useButtonLabels coexists with disableControllerMapping; either true sets SDL_GAMECONTROLLER_USE_BUTTON_LABELS=1
 - [08-02]: ControllerMonitor in Whisky app target (not WhiskyKit) since GameController framework is app-level
+- [Phase 08]: [08-03]: DependencyDefinition at module scope in WhiskyKit (ClipboardPolicy pattern); DependencyManager as caseless enum (GPUDetection pattern)
+- [Phase 08]: [08-03]: Headless winetricks install via Process (not Terminal AppleScript) for Whisky volume access attribution
+- [Phase 08]: [08-03]: Evidence-based recommendations only: ClickOnce->dotnet48, dependenciesLoading crashes->vcruntime/directx, game DB verbs->matching definitions
 
 ### Pending Todos
 
@@ -184,5 +187,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 08-02-PLAN.md (Controller Discovery Infrastructure)
+Stopped at: Completed 08-03-PLAN.md (Dependency Tracking Data Layer)
 Resume file: None

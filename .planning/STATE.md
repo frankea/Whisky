@@ -45,6 +45,7 @@ Progress: [▓▓▓▓▓▓▓▓▓░] 91%
 | Phase 09 P01 | 8min | 2 tasks | 4 files |
 | Phase 09 P07 | 6min | 2 tasks | 4 files |
 | Phase 09 P06 | 12min | 2 tasks | 4 files |
+| Phase 09 P03 | 14min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -224,6 +225,10 @@ Recent decisions affecting current work:
 - [09-06]: Heuristic stderr detection via common error indicators (Wine log format does not separate stdout/stderr)
 - [09-06]: Export includes labeled WINEDEBUG content when filtered out for complete capture
 - [09-06]: ConsoleLogView struct + extension split for SwiftLint type_body_length compliance
+- [09-03]: ResolutionConfigSection uses simple/advanced segmented control following GraphicsConfigSection pattern
+- [09-03]: Registry state loaded on appear via Wine.queryVirtualDesktop and matched to closest preset
+- [09-03]: Per-program virtual desktop uses Wine explorer /desktop= command-line approach (per-process, no registry mutation)
+- [09-03]: Bottle-level virtual desktop uses registry approach (written once when user toggles)
 
 ### Pending Todos
 
@@ -236,5 +241,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 09-06-PLAN.md (console persistence UI)
+Stopped at: Completed 09-03-PLAN.md (resolution control UI)
 Resume file: None

@@ -74,7 +74,6 @@ extension DependencyInstallSheet {
 // MARK: - Stage Router
 
 extension DependencyInstallSheet {
-    @ViewBuilder
     private var stageContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -191,7 +190,6 @@ extension DependencyInstallSheet {
         }
     }
 
-    @ViewBuilder
     private var verbPlanSection: some View {
         GroupBox("Verbs to install") {
             VStack(alignment: .leading, spacing: 4) {
@@ -235,7 +233,6 @@ extension DependencyInstallSheet {
         }
     }
 
-    @ViewBuilder
     private var logView: some View {
         ScrollViewReader { proxy in
             ScrollView {
@@ -306,7 +303,6 @@ extension DependencyInstallSheet {
         }
     }
 
-    @ViewBuilder
     private func verifyStatusView(_ status: DependencyInstallStatus) -> some View {
         GroupBox {
             HStack(spacing: 8) {
@@ -337,7 +333,6 @@ extension DependencyInstallSheet {
 // MARK: - Bottom Bar
 
 extension DependencyInstallSheet {
-    @ViewBuilder
     private var bottomBar: some View {
         HStack {
             if stage != .verify {
@@ -422,13 +417,12 @@ extension DependencyInstallSheet {
                 }
             }
 
-            let result: InstallResult
-            if hadError {
-                result = .error("One or more verbs failed")
+            let result: InstallResult = if hadError {
+                .error("One or more verbs failed")
             } else if lastExitCode == 0 {
-                result = .success
+                .success
             } else {
-                result = .failure(exitCode: lastExitCode)
+                .failure(exitCode: lastExitCode)
             }
 
             await MainActor.run {

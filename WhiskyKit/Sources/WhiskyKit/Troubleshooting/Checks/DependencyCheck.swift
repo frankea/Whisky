@@ -54,8 +54,7 @@ public struct DependencyCheck: TroubleshootingCheck {
             let wow64Path = syswow64.appending(path: dll).path(percentEncoded: false)
 
             if FileManager.default.fileExists(atPath: sys32Path)
-                || FileManager.default.fileExists(atPath: wow64Path)
-            {
+                || FileManager.default.fileExists(atPath: wow64Path) {
                 foundDLLs.append(dll)
             } else {
                 missingDLLs.append(dll)

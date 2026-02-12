@@ -32,7 +32,7 @@ public struct AudioTestCheck: TroubleshootingCheck {
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         // MinGW is not available; WhiskyAudioTest.exe is not compiled.
         // The probe would return .skipped gracefully.
-        return CheckResult(
+        CheckResult(
             outcome: .unknown,
             evidence: ["reason": "Audio test executable not available"],
             summary: "Audio playback test is not available (MinGW not compiled)",

@@ -427,12 +427,12 @@ private struct ActiveEnvironmentOverrides: View {
                 Text(key)
                     .font(.system(.caption, design: .monospaced))
                     .foregroundColor(.primary)
-                +
-                Text("=")
+                    +
+                    Text("=")
                     .font(.system(.caption, design: .monospaced))
                     .foregroundColor(.secondary)
-                +
-                Text(value)
+                    +
+                    Text(value)
                     .font(.system(.caption, design: .monospaced))
                     .foregroundColor(.primary)
 

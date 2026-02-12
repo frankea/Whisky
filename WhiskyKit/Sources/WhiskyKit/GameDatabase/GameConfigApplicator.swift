@@ -73,7 +73,6 @@ public struct ConfigChange: Sendable, Equatable {
 /// Apply and revert methods are `@MainActor` because they mutate ``Bottle/settings``,
 /// which is `@MainActor`-isolated.
 public enum GameConfigApplicator {
-
     // MARK: - Apply
 
     /// Applies a game configuration variant to a bottle's settings.
@@ -363,6 +362,7 @@ public enum GameConfigApplicator {
 
         return changes
     }
+
     // swiftlint:enable cyclomatic_complexity function_body_length
 
     // MARK: - Private Helpers

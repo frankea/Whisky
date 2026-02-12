@@ -48,11 +48,10 @@ public enum PreflightCollector {
         let isRunning = await Wine.isWineserverRunning(for: bottle)
         let processCount = ProcessRegistry.shared.getProcessCount(for: bottle)
 
-        let resolvedBackend: GraphicsBackend
-        if bottle.settings.graphicsBackend == .recommended {
-            resolvedBackend = GraphicsBackendResolver.resolve()
+        let resolvedBackend: GraphicsBackend = if bottle.settings.graphicsBackend == .recommended {
+            GraphicsBackendResolver.resolve()
         } else {
-            resolvedBackend = bottle.settings.graphicsBackend
+            bottle.settings.graphicsBackend
         }
 
         // Audio device info (best-effort)
@@ -135,7 +134,8 @@ public enum PreflightCollector {
             at: logsFolder,
             includingPropertiesForKeys: [.contentModificationDateKey],
             options: [.skipsHiddenFiles]
-        ) else {
+        )
+        else {
             return nil
         }
 

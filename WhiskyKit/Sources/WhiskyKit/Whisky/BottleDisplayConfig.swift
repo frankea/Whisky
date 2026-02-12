@@ -65,15 +65,15 @@ public enum ResolutionPreset: String, Codable, CaseIterable, Equatable, Sendable
     public var dimensions: (width: Int, height: Int)? {
         switch self {
         case .r1280x720:
-            (width: 1280, height: 720)
+            (width: 1_280, height: 720)
         case .r1600x900:
-            (width: 1600, height: 900)
+            (width: 1_600, height: 900)
         case .r1920x1080:
-            (width: 1920, height: 1080)
+            (width: 1_920, height: 1_080)
         case .r2560x1440:
-            (width: 2560, height: 1440)
+            (width: 2_560, height: 1_440)
         case .r3840x2160:
-            (width: 3840, height: 2160)
+            (width: 3_840, height: 2_160)
         case .matchDisplay, .custom:
             nil
         }
@@ -93,10 +93,10 @@ public struct BottleDisplayConfig: Codable, Equatable {
     var resolutionPreset: ResolutionPreset = .r1920x1080
 
     /// The custom resolution width in pixels.
-    var customWidth: Int = 1920
+    var customWidth: Int = 1_920
 
     /// The custom resolution height in pixels.
-    var customHeight: Int = 1080
+    var customHeight: Int = 1_080
 
     /// Creates a new display config with default values.
     public init() {}
@@ -111,10 +111,10 @@ public struct BottleDisplayConfig: Codable, Equatable {
         ) ?? .r1920x1080
         self.customWidth = try container.decodeIfPresent(
             Int.self, forKey: .customWidth
-        ) ?? 1920
+        ) ?? 1_920
         self.customHeight = try container.decodeIfPresent(
             Int.self, forKey: .customHeight
-        ) ?? 1080
+        ) ?? 1_080
     }
 
     /// The resolved pixel dimensions based on the current preset and custom values.
@@ -126,11 +126,11 @@ public struct BottleDisplayConfig: Codable, Equatable {
     public var effectiveResolution: (width: Int, height: Int) {
         switch resolutionPreset {
         case .matchDisplay:
-            (width: 1920, height: 1080)
+            (width: 1_920, height: 1_080)
         case .custom:
             (width: customWidth, height: customHeight)
         default:
-            resolutionPreset.dimensions ?? (width: 1920, height: 1080)
+            resolutionPreset.dimensions ?? (width: 1_920, height: 1_080)
         }
     }
 }

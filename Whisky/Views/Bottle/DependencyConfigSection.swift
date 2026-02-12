@@ -72,7 +72,6 @@ struct DependencyConfigSection: View {
 
     // MARK: - Row View
 
-    @ViewBuilder
     private func dependencyRow(_ depStatus: DependencyStatus) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
@@ -107,19 +106,18 @@ struct DependencyConfigSection: View {
         .padding(.vertical, 2)
     }
 
-    @ViewBuilder
     private func dependencyRowDetails(_ depStatus: DependencyStatus) -> some View {
         HStack(spacing: 4) {
             if let lastChecked = depStatus.lastChecked {
                 Text("Checked ")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
-                +
-                Text(lastChecked, style: .relative)
+                    +
+                    Text(lastChecked, style: .relative)
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
-                +
-                Text(" ago")
+                    +
+                    Text(" ago")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
             }

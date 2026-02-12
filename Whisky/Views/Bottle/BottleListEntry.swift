@@ -87,7 +87,7 @@ struct BottleListEntry: View {
                 "duplicate.bottle.title",
                 name: nextDuplicateName(
                     baseName: name,
-                    existingNames: BottleVM.shared.bottles.map { $0.settings.name }
+                    existingNames: BottleVM.shared.bottles.map(\.settings.name)
                 )
             ) { newName in
                 Task {
@@ -227,13 +227,11 @@ struct BottleListEntry: View {
             hasOrphanProcesses = false
         }
     }
-
 }
 
 // MARK: - Duplication Progress & Remove Alert
 
 extension BottleListEntry {
-    @ViewBuilder
     func duplicationProgressRow(phase: DuplicationPhase) -> some View {
         HStack(spacing: 4) {
             switch phase {

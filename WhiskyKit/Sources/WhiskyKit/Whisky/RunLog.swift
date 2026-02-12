@@ -51,7 +51,9 @@ public struct RunLogEntry: Codable, Identifiable, Equatable, Sendable {
     public var hasWineDebugOutput: Bool = false
 
     /// Whether the program is still running (no end time recorded yet).
-    public var isRunning: Bool { endTime == nil }
+    public var isRunning: Bool {
+        endTime == nil
+    }
 
     /// Duration of the run in seconds, or `nil` if still running.
     public var duration: TimeInterval? {

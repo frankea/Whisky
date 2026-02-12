@@ -124,7 +124,7 @@ final class GameDatabaseTests: XCTestCase {
         }
         """
 
-        let data = json.data(using: .utf8)!  // swiftlint:disable:this force_unwrapping
+        let data = try XCTUnwrap(json.data(using: .utf8)) // swiftlint:disable:this force_unwrapping
         let decoder = JSONDecoder()
         let entry = try decoder.decode(GameDBEntry.self, from: data)
 
@@ -133,11 +133,11 @@ final class GameDatabaseTests: XCTestCase {
         XCTAssertEqual(entry.aliases, ["ELDEN RING", "eldenring"])
         XCTAssertEqual(entry.subtitle, "Bandai Namco")
         XCTAssertEqual(entry.store, "steam")
-        XCTAssertEqual(entry.steamAppId, 1245620)
+        XCTAssertEqual(entry.steamAppId, 1_245_620)
         XCTAssertEqual(entry.rating, .playable)
         XCTAssertEqual(entry.exeNames, ["eldenring.exe"])
         XCTAssertEqual(entry.exeFingerprints?.count, 1)
-        XCTAssertEqual(entry.exeFingerprints?.first?.fileSize, 78643200)
+        XCTAssertEqual(entry.exeFingerprints?.first?.fileSize, 78_643_200)
         XCTAssertEqual(entry.pathPatterns, ["elden ring/game"])
         XCTAssertNil(entry.antiCheat)
         XCTAssertEqual(entry.constraints?.cpuArchitectures, ["arm64"])
@@ -184,7 +184,7 @@ final class GameDatabaseTests: XCTestCase {
         }
         """
 
-        let data = json.data(using: .utf8)!  // swiftlint:disable:this force_unwrapping
+        let data = try XCTUnwrap(json.data(using: .utf8)) // swiftlint:disable:this force_unwrapping
         let entry = try JSONDecoder().decode(GameDBEntry.self, from: data)
 
         XCTAssertEqual(entry.id, "minimal-game")
@@ -212,7 +212,7 @@ final class GameDatabaseTests: XCTestCase {
         {}
         """
 
-        let data = json.data(using: .utf8)!  // swiftlint:disable:this force_unwrapping
+        let data = try XCTUnwrap(json.data(using: .utf8)) // swiftlint:disable:this force_unwrapping
         let settings = try JSONDecoder().decode(GameConfigVariantSettings.self, from: data)
 
         XCTAssertNil(settings.graphicsBackend)
@@ -306,7 +306,7 @@ final class GameDatabaseTests: XCTestCase {
         """
 
         let appId = SteamAppManifest.parseAppId(from: acfContent)
-        XCTAssertEqual(appId, 1245620)
+        XCTAssertEqual(appId, 1_245_620)
     }
 
     // MARK: - Test 10: SteamAppManifest Parses AppId Txt
@@ -328,7 +328,7 @@ final class GameDatabaseTests: XCTestCase {
         let exeURL = tempDir.appending(path: "game.exe")
 
         let appId = SteamAppManifest.findAppIdForProgram(at: exeURL)
-        XCTAssertEqual(appId, 1245620)
+        XCTAssertEqual(appId, 1_245_620)
     }
 
     // MARK: - Additional ACF Parsing Edge Cases

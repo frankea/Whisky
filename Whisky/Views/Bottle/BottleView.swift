@@ -199,7 +199,7 @@ struct BottleView: View {
                     "duplicate.bottle.title",
                     name: nextDuplicateName(
                         baseName: bottle.settings.name,
-                        existingNames: BottleVM.shared.bottles.map { $0.settings.name }
+                        existingNames: BottleVM.shared.bottles.map(\.settings.name)
                     )
                 ) { newName in
                     Task {

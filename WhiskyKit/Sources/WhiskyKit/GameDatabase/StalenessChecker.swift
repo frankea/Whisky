@@ -72,7 +72,6 @@ public struct StalenessResult: Sendable, Equatable {
 /// }
 /// ```
 public enum StalenessChecker {
-
     /// The number of days after which an entry is considered date-stale.
     private static let stalenessThresholdDays: Double = 90
 
@@ -94,7 +93,7 @@ public enum StalenessChecker {
         var messageParts: [String] = []
 
         // 1. Date staleness: >90 days since last tested
-        let daysSinceTested = Date().timeIntervalSince(testedWith.lastTestedAt) / 86400
+        let daysSinceTested = Date().timeIntervalSince(testedWith.lastTestedAt) / 86_400
         if daysSinceTested > stalenessThresholdDays {
             reasons.append(.dateExpired)
             let days = Int(daysSinceTested)
@@ -116,12 +115,10 @@ public enum StalenessChecker {
         }
 
         let isStale = !reasons.isEmpty
-        let warningMessage: String?
-
-        if isStale {
-            warningMessage = "This config was \(messageParts.joined(separator: ", "))."
+        let warningMessage: String? = if isStale {
+            "This config was \(messageParts.joined(separator: ", "))."
         } else {
-            warningMessage = nil
+            nil
         }
 
         return StalenessResult(
@@ -154,7 +151,8 @@ public enum StalenessChecker {
     /// when the major version differs.
     private static func isMacOSVersionStale(tested: String, current: String) -> Bool {
         guard let testedVer = parseVersion(tested),
-              let currentVer = parseVersion(current) else {
+              let currentVer = parseVersion(current)
+        else {
             return false
         }
 
@@ -173,7 +171,8 @@ public enum StalenessChecker {
     /// Stale when Wine major version differs.
     private static func isWineVersionStale(tested: String, current: String) -> Bool {
         guard let testedMajor = parseMajorVersion(tested),
-              let currentMajor = parseMajorVersion(current) else {
+              let currentMajor = parseMajorVersion(current)
+        else {
             return false
         }
         return testedMajor != currentMajor

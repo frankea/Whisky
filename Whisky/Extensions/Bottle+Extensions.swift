@@ -396,13 +396,14 @@ extension Bottle {
     }
 
     /// Calculates the total allocated size of a directory tree.
-    nonisolated private static func calculateDirectorySize(at url: URL) -> Int64 {
+    private nonisolated static func calculateDirectorySize(at url: URL) -> Int64 {
         let fileManager = FileManager.default
         guard let enumerator = fileManager.enumerator(
             at: url,
             includingPropertiesForKeys: [.totalFileAllocatedSizeKey],
             options: [.skipsHiddenFiles]
-        ) else {
+        )
+        else {
             return 0
         }
         var total: Int64 = 0
@@ -419,7 +420,7 @@ extension Bottle {
     ///
     /// Deletes old log files, diagnosis history sidecars, and temp files so the
     /// duplicate starts clean.
-    nonisolated private static func removeTransientArtifacts(in bottleDir: URL) {
+    private nonisolated static func removeTransientArtifacts(in bottleDir: URL) {
         let fileManager = FileManager.default
 
         // Remove .log files from the logs directory

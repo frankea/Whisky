@@ -114,8 +114,8 @@ public struct TroubleshootingSessionStore: TroubleshootingSessionStoring {
         let entry = TroubleshootingHistoryEntry(
             symptomCategory: session.symptomCategory ?? .other,
             outcome: session.outcome ?? .abandoned,
-            primaryFindings: session.checkResults.values.map { $0.summary },
-            fixesAttempted: session.fixAttempts.map { $0.fixId },
+            primaryFindings: session.checkResults.values.map(\.summary),
+            fixesAttempted: session.fixAttempts.map(\.fixId),
             fixResults: session.fixAttempts.map { attempt in
                 "\(attempt.fixId): \(attempt.result.rawValue)"
             },

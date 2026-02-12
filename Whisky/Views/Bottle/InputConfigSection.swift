@@ -62,10 +62,10 @@ struct InputConfigSection: View {
                         isOn: $bottle.settings.disableControllerMapping
                     )
                     .help("""
-                        Sets SDL_GAMECONTROLLER_USE_BUTTON_LABELS=1 to preserve \
-                        native button layouts for PlayStation and Switch controllers \
-                        instead of converting to XInput format.
-                        """)
+                    Sets SDL_GAMECONTROLLER_USE_BUTTON_LABELS=1 to preserve \
+                    native button layouts for PlayStation and Switch controllers \
+                    instead of converting to XInput format.
+                    """)
 
                     // Native button labels toggle (new from Plan 02)
                     Toggle("Use Native Button Labels", isOn: $bottle.settings.useButtonLabels)
@@ -329,9 +329,9 @@ struct InputConfigSection: View {
         switch level {
         case 0.75...:
             return "battery.100"
-        case 0.50..<0.75:
+        case 0.50 ..< 0.75:
             return "battery.75"
-        case 0.25..<0.50:
+        case 0.25 ..< 0.50:
             return "battery.50"
         default:
             return "battery.25"
@@ -339,7 +339,7 @@ struct InputConfigSection: View {
     }
 
     private func copyControllerInfo() {
-        var lines: [String] = ["Connected Controllers:"]
+        var lines = ["Connected Controllers:"]
         for controller in controllerMonitor.controllers {
             lines.append("  - \(controller.name)")
             lines.append("    Type: \(controller.typeBadge.displayName)")

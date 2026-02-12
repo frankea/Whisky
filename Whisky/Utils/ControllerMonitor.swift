@@ -35,11 +35,11 @@ enum ControllerType: String, Sendable {
     var displayName: String {
         switch self {
         case .playStation:
-            return "PlayStation"
+            "PlayStation"
         case .xbox:
-            return "Xbox"
+            "Xbox"
         case .generic:
-            return "Generic"
+            "Generic"
         }
     }
 }
@@ -53,9 +53,9 @@ enum ConnectionType: String, Sendable {
     var sfSymbol: String {
         switch self {
         case .usb:
-            return "cable.connector"
+            "cable.connector"
         case .bluetooth:
-            return "wave.3.right"
+            "wave.3.right"
         }
     }
 }
@@ -132,7 +132,7 @@ class ControllerMonitor: ObservableObject {
     @Published var controllers: [ControllerInfo] = []
 
     /// The last time the controller list was refreshed.
-    @Published var lastRefreshed: Date = Date()
+    @Published var lastRefreshed: Date = .init()
 
     /// Recent controller history for diagnostics export (bounded to last 10 entries).
     var recentHistory: [ControllerHistoryEntry] = []
@@ -144,8 +144,8 @@ class ControllerMonitor: ObservableObject {
 
     /// Stored observer tokens for cleanup.
     /// Uses nonisolated(unsafe) to allow access from deinit (Swift 6 Sendable compliance).
-    nonisolated(unsafe) private var connectObserver: NSObjectProtocol?
-    nonisolated(unsafe) private var disconnectObserver: NSObjectProtocol?
+    private nonisolated(unsafe) var connectObserver: NSObjectProtocol?
+    private nonisolated(unsafe) var disconnectObserver: NSObjectProtocol?
 
     /// Maximum number of history entries to retain.
     private static let maxHistoryEntries = 10
@@ -242,18 +242,17 @@ class ControllerMonitor: ObservableObject {
     private func readBattery(_ controller: GCController) -> (level: Float, state: String)? {
         guard let battery = controller.battery else { return nil }
 
-        let stateString: String
-        switch battery.batteryState {
+        let stateString = switch battery.batteryState {
         case .charging:
-            stateString = "charging"
+            "charging"
         case .discharging:
-            stateString = "discharging"
+            "discharging"
         case .full:
-            stateString = "full"
+            "full"
         case .unknown:
-            stateString = "unknown"
+            "unknown"
         @unknown default:
-            stateString = "unknown"
+            "unknown"
         }
 
         return (level: battery.batteryLevel, state: stateString)

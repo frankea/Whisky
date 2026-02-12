@@ -191,18 +191,18 @@ struct ConsoleLogView: View {
 
     private func colorForChannel(_ channel: ConsoleLogChannel) -> Color {
         switch channel {
-        case .output: return .primary
-        case .stderr: return .red
-        case .wineDebug: return .gray
+        case .output: .primary
+        case .stderr: .red
+        case .wineDebug: .gray
         }
     }
 
     var filteredLines: [ConsoleLogLine] {
         logLines.filter { line in
             switch line.channel {
-            case .output: return showOutput
-            case .stderr: return showStderr
-            case .wineDebug: return showWineDebug
+            case .output: showOutput
+            case .stderr: showStderr
+            case .wineDebug: showWineDebug
             }
         }
     }
@@ -293,8 +293,8 @@ struct ConsoleLogView: View {
 extension ConsoleLogView {
     func formattedDuration(_ interval: TimeInterval) -> String {
         let totalSeconds = Int(interval)
-        let hours = totalSeconds / 3600
-        let minutes = (totalSeconds % 3600) / 60
+        let hours = totalSeconds / 3_600
+        let minutes = (totalSeconds % 3_600) / 60
         let seconds = totalSeconds % 60
 
         if hours > 0 {
@@ -368,11 +368,11 @@ extension ConsoleLogView {
             .filter { !$0.isEmpty }
             .map { line in
                 if isWineDebugLine(line) {
-                    return ConsoleLogLine(text: line, channel: .wineDebug)
+                    ConsoleLogLine(text: line, channel: .wineDebug)
                 } else if isStderrLine(line) {
-                    return ConsoleLogLine(text: line, channel: .stderr)
+                    ConsoleLogLine(text: line, channel: .stderr)
                 } else {
-                    return ConsoleLogLine(text: line, channel: .output)
+                    ConsoleLogLine(text: line, channel: .output)
                 }
             }
     }

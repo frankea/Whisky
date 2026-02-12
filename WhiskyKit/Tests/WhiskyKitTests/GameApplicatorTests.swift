@@ -23,7 +23,6 @@ import XCTest
 // MARK: - GameConfigApplicator Tests
 
 final class GameApplicatorTests: XCTestCase {
-
     // MARK: - Test Fixtures
 
     /// Creates a temporary bottle directory with a default Metadata.plist.
@@ -362,12 +361,11 @@ final class GameApplicatorTests: XCTestCase {
 // MARK: - StalenessChecker Tests
 
 final class StalenessCheckerTests: XCTestCase {
-
     // MARK: - Test 8: Fresh Entry (Not Stale)
 
     func testStalenessCheckFresh() {
         let testedWith = TestedWith(
-            lastTestedAt: Date().addingTimeInterval(-30 * 86400), // 30 days ago
+            lastTestedAt: Date().addingTimeInterval(-30 * 86_400), // 30 days ago
             macOSVersion: "15.3.0",
             wineVersion: "10.0"
         )
@@ -387,7 +385,7 @@ final class StalenessCheckerTests: XCTestCase {
 
     func testStalenessCheckDateExpired() {
         let testedWith = TestedWith(
-            lastTestedAt: Date().addingTimeInterval(-100 * 86400), // 100 days ago
+            lastTestedAt: Date().addingTimeInterval(-100 * 86_400), // 100 days ago
             macOSVersion: "15.3.0",
             wineVersion: "10.0"
         )
@@ -459,7 +457,7 @@ final class StalenessCheckerTests: XCTestCase {
 
     func testStalenessCheckMultipleReasons() {
         let testedWith = TestedWith(
-            lastTestedAt: Date().addingTimeInterval(-120 * 86400), // 120 days ago
+            lastTestedAt: Date().addingTimeInterval(-120 * 86_400), // 120 days ago
             macOSVersion: "14.0.0",
             wineVersion: "9.0"
         )

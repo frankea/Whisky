@@ -37,7 +37,6 @@ private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: 
 /// }
 /// ```
 enum DependencyManager {
-
     // MARK: - Status Checking
 
     /// Checks the installation status of dependencies for a bottle.
@@ -64,13 +63,12 @@ enum DependencyManager {
             let installed = requiredVerbs.filter { installedVerbs.contains($0) }
             let missing = requiredVerbs.filter { !installedVerbs.contains($0) }
 
-            let installStatus: DependencyInstallStatus
-            if missing.isEmpty {
-                installStatus = .installed
+            let installStatus: DependencyInstallStatus = if missing.isEmpty {
+                .installed
             } else if installed.isEmpty {
-                installStatus = .notInstalled
+                .notInstalled
             } else {
-                installStatus = .partiallyInstalled(installed: installed, missing: missing)
+                .partiallyInstalled(installed: installed, missing: missing)
             }
 
             return DependencyStatus(

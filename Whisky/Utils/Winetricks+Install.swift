@@ -125,7 +125,7 @@ extension Winetricks {
             let data = handle.availableData
             guard !data.isEmpty,
                   let line = String(data: data, encoding: .utf8)?
-                .trimmingCharacters(in: .whitespacesAndNewlines),
+                  .trimmingCharacters(in: .whitespacesAndNewlines),
                   !line.isEmpty
             else { return }
             continuation.yield(.output(line))

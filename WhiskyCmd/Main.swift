@@ -180,10 +180,10 @@ extension Whisky {
         @Argument(help: "Name of the bottle to use")
         var bottleName: String
 
-        // Path handling note: ArgumentParser treats @Argument as a single string
-        // (including spaces via shell quoting), and Wine.runProgram passes the URL
-        // through an argument array (not string interpolation), so paths with
-        // spaces, parentheses, apostrophes, and ampersands work correctly.
+        /// Path handling note: ArgumentParser treats @Argument as a single string
+        /// (including spaces via shell quoting), and Wine.runProgram passes the URL
+        /// through an argument array (not string interpolation), so paths with
+        /// spaces, parentheses, apostrophes, and ampersands work correctly.
         @Argument(help: "Path to the Windows executable")
         var path: String
 
@@ -364,11 +364,10 @@ extension Whisky {
             let shortcutName = name ?? url.deletingPathExtension().lastPathComponent
 
             // Determine output directory: --output option or ~/Applications/
-            let outputDir: URL
-            if let output {
-                outputDir = URL(fileURLWithPath: output)
+            let outputDir: URL = if let output {
+                URL(fileURLWithPath: output)
             } else {
-                outputDir = FileManager.default.homeDirectoryForCurrentUser
+                FileManager.default.homeDirectoryForCurrentUser
                     .appending(path: "Applications")
             }
 

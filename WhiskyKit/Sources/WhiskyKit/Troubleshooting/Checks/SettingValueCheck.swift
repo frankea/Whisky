@@ -102,43 +102,43 @@ public struct SettingValueCheck: TroubleshootingCheck {
     private func readSetting(_ name: String, from settings: BottleSettings) -> String? {
         switch name {
         case "enhancedSync":
-            return String(describing: settings.enhancedSync)
+            String(describing: settings.enhancedSync)
         case "graphicsBackend":
-            return settings.graphicsBackend.rawValue
+            settings.graphicsBackend.rawValue
         case "windowsVersion":
-            return String(describing: settings.windowsVersion)
+            String(describing: settings.windowsVersion)
         case "dxvk":
-            return settings.dxvk ? "true" : "false"
+            settings.dxvk ? "true" : "false"
         case "dxvkAsync":
-            return settings.dxvkAsync ? "true" : "false"
+            settings.dxvkAsync ? "true" : "false"
         case "metalHud":
-            return settings.metalHud ? "true" : "false"
+            settings.metalHud ? "true" : "false"
         case "metalTrace":
-            return settings.metalTrace ? "true" : "false"
+            settings.metalTrace ? "true" : "false"
         case "dxrEnabled":
-            return settings.dxrEnabled ? "true" : "false"
+            settings.dxrEnabled ? "true" : "false"
         case "metalValidation":
-            return settings.metalValidation ? "true" : "false"
+            settings.metalValidation ? "true" : "false"
         case "sequoiaCompatMode":
-            return settings.sequoiaCompatMode ? "true" : "false"
+            settings.sequoiaCompatMode ? "true" : "false"
         case "performancePreset":
-            return String(describing: settings.performancePreset)
+            String(describing: settings.performancePreset)
         case "shaderCacheEnabled":
-            return settings.shaderCacheEnabled ? "true" : "false"
+            settings.shaderCacheEnabled ? "true" : "false"
         case "forceD3D11":
-            return settings.forceD3D11 ? "true" : "false"
+            settings.forceD3D11 ? "true" : "false"
         case "avxEnabled":
-            return settings.avxEnabled ? "true" : "false"
+            settings.avxEnabled ? "true" : "false"
         case "launcherCompatibilityMode":
-            return settings.launcherCompatibilityMode ? "true" : "false"
+            settings.launcherCompatibilityMode ? "true" : "false"
         case "controllerCompatibilityMode":
-            return settings.controllerCompatibilityMode ? "true" : "false"
+            settings.controllerCompatibilityMode ? "true" : "false"
         case "virtualDesktopEnabled":
-            return settings.virtualDesktopEnabled ? "true" : "false"
+            settings.virtualDesktopEnabled ? "true" : "false"
         case "audioDriver":
-            return settings.audioDriver.rawValue
+            settings.audioDriver.rawValue
         default:
-            return nil
+            nil
         }
     }
 }

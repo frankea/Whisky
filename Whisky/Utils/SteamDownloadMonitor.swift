@@ -39,7 +39,6 @@ enum StallStatus: Sendable, Equatable {
 /// once per bottle per session.
 @MainActor
 class SteamDownloadMonitor: ObservableObject {
-
     @Published var status: StallStatus = .noDownloads
     @Published var isMonitoring: Bool = false
 
@@ -145,11 +144,13 @@ class SteamDownloadMonitor: ObservableObject {
             at: directory,
             includingPropertiesForKeys: [.isDirectoryKey],
             options: [.skipsHiddenFiles]
-        ) else { return snapshot }
+        )
+        else { return snapshot }
 
         for subdir in subdirs {
             guard let isDir = try? subdir.resourceValues(forKeys: [.isDirectoryKey]).isDirectory,
-                  isDir else { continue }
+                  isDir
+            else { continue }
             let (totalSize, newestMtime) = measureDirectory(at: subdir)
             snapshot[subdir.lastPathComponent] = (size: totalSize, mtime: newestMtime)
         }
@@ -165,12 +166,14 @@ class SteamDownloadMonitor: ObservableObject {
             at: directory,
             includingPropertiesForKeys: [.fileSizeKey, .contentModificationDateKey],
             options: [.skipsHiddenFiles]
-        ) else { return (totalSize, newestMtime) }
+        )
+        else { return (totalSize, newestMtime) }
 
         for case let fileURL as URL in enumerator {
             guard let values = try? fileURL.resourceValues(
                 forKeys: [.fileSizeKey, .contentModificationDateKey]
-            ) else { continue }
+            )
+            else { continue }
             if let size = values.fileSize { totalSize += UInt64(size) }
             if let mtime = values.contentModificationDate, mtime > newestMtime {
                 newestMtime = mtime
@@ -187,7 +190,9 @@ class SteamDownloadMonitor: ObservableObject {
         previous: [String: (size: UInt64, mtime: Date)]
     ) -> Bool {
         guard !previous.isEmpty else { return true }
-        for key in current.keys where previous[key] == nil { return true }
+        for key in current.keys where previous[key] == nil {
+            return true
+        }
         for (key, cur) in current {
             guard let prev = previous[key] else { continue }
             if cur.size > prev.size || cur.mtime > prev.mtime { return true }
@@ -206,7 +211,8 @@ class SteamDownloadMonitor: ObservableObject {
             at: logsFolder,
             includingPropertiesForKeys: [.contentModificationDateKey],
             options: [.skipsHiddenFiles]
-        ) else { return evidence }
+        )
+        else { return evidence }
 
         let recentLogs = logFiles
             .filter { $0.pathExtension == "log" }
@@ -224,7 +230,7 @@ class SteamDownloadMonitor: ObservableObject {
 
         for logFile in recentLogs {
             guard let content = try? String(contentsOf: logFile, encoding: .utf8) else { continue }
-            let tail = content.suffix(8000)
+            let tail = content.suffix(8_000)
             for pattern in patterns {
                 if let regex = try? Regex(pattern), tail.contains(regex) {
                     evidence.append("Log evidence: \(pattern) in \(logFile.lastPathComponent)")

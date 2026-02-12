@@ -119,8 +119,8 @@ struct ConsoleRunHistoryView: View {
                 .background(
                     RoundedRectangle(cornerRadius: 6)
                         .fill(selectedRunId == entry.id
-                              ? Color.accentColor.opacity(0.15)
-                              : Color.clear)
+                            ? Color.accentColor.opacity(0.15)
+                            : Color.clear)
                 )
             }
             .buttonStyle(.plain)
@@ -172,8 +172,8 @@ struct ConsoleRunHistoryView: View {
                     .background(
                         RoundedRectangle(cornerRadius: 4)
                             .fill(selectedRunId == entry.id
-                                  ? Color.accentColor.opacity(0.15)
-                                  : Color.clear)
+                                ? Color.accentColor.opacity(0.15)
+                                : Color.clear)
                     )
                 }
                 .buttonStyle(.plain)
@@ -272,8 +272,8 @@ struct ConsoleRunHistoryView: View {
 
     private func formattedDuration(_ interval: TimeInterval) -> String {
         let totalSeconds = Int(interval)
-        let hours = totalSeconds / 3600
-        let minutes = (totalSeconds % 3600) / 60
+        let hours = totalSeconds / 3_600
+        let minutes = (totalSeconds % 3_600) / 60
         let seconds = totalSeconds % 60
 
         if hours > 0 {

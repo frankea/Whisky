@@ -54,7 +54,7 @@ final class GameMatcherTests: XCTestCase {
         XCTAssertNotNil(entry.aliases)
         XCTAssertNotNil(entry.store)
         XCTAssertNotNil(entry.steamAppId)
-        XCTAssertEqual(entry.steamAppId, 1245620)
+        XCTAssertEqual(entry.steamAppId, 1_245_620)
         XCTAssertNotNil(entry.exeNames)
         XCTAssertNotNil(entry.pathPatterns)
         XCTAssertNotNil(entry.notes)
@@ -92,7 +92,7 @@ final class GameMatcherTests: XCTestCase {
         // Verify dates are in a reasonable range (after 2024)
         let calendar = Calendar.current
         let year = calendar.component(.year, from: testedWith.lastTestedAt)
-        XCTAssertGreaterThanOrEqual(year, 2024, "Tested date should be from 2024 or later")
+        XCTAssertGreaterThanOrEqual(year, 2_024, "Tested date should be from 2024 or later")
 
         // Also verify provenance date if present
         if let provLastUpdated = entry?.provenance?.lastUpdated {
@@ -117,7 +117,7 @@ final class GameMatcherTests: XCTestCase {
         let entries = loadTestEntries()
         let metadata = ProgramMetadata(
             exeName: "eldenring.exe",
-            steamAppId: 1245620
+            steamAppId: 1_245_620
         )
 
         let results = GameMatcher.match(metadata: metadata, against: entries)
@@ -278,7 +278,7 @@ final class GameMatcherTests: XCTestCase {
         // Steam App ID gives a clear 1.0 score -- unambiguous
         let metadata = ProgramMetadata(
             exeName: "eldenring.exe",
-            steamAppId: 1245620
+            steamAppId: 1_245_620
         )
 
         let best = GameMatcher.bestMatch(metadata: metadata, against: entries)

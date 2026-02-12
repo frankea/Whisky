@@ -39,20 +39,20 @@ public enum EntryContext: Sendable {
     /// The bottle URL associated with this entry context.
     public var bottleURL: URL {
         switch self {
-        case .program(_, let bottleURL): bottleURL
-        case .launchFailure(_, let bottleURL, _): bottleURL
-        case .bottleDiagnostics(let bottleURL): bottleURL
-        case .helpMenu(let bottleURL, _): bottleURL
+        case let .program(_, bottleURL): bottleURL
+        case let .launchFailure(_, bottleURL, _): bottleURL
+        case let .bottleDiagnostics(bottleURL): bottleURL
+        case let .helpMenu(bottleURL, _): bottleURL
         }
     }
 
     /// The program URL associated with this entry context, if any.
     public var programURL: URL? {
         switch self {
-        case .program(let programURL, _): programURL
-        case .launchFailure(let programURL, _, _): programURL
+        case let .program(programURL, _): programURL
+        case let .launchFailure(programURL, _, _): programURL
         case .bottleDiagnostics: nil
-        case .helpMenu(_, let programURL): programURL
+        case let .helpMenu(_, programURL): programURL
         }
     }
 

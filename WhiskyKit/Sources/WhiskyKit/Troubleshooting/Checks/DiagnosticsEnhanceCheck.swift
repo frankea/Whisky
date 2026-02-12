@@ -61,13 +61,12 @@ public struct DiagnosticsEnhanceCheck: TroubleshootingCheck {
 
         if let currentDebug, nonDefaultPresets.contains(currentDebug) {
             // Determine which preset is active
-            let presetName: String
-            if currentDebug == WineDebugPreset.crash.winedebugValue {
-                presetName = WineDebugPreset.crash.displayName
+            let presetName: String = if currentDebug == WineDebugPreset.crash.winedebugValue {
+                WineDebugPreset.crash.displayName
             } else if currentDebug == WineDebugPreset.dllLoad.winedebugValue {
-                presetName = WineDebugPreset.dllLoad.displayName
+                WineDebugPreset.dllLoad.displayName
             } else {
-                presetName = WineDebugPreset.verbose.displayName
+                WineDebugPreset.verbose.displayName
             }
 
             return CheckResult(

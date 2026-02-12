@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 10 (Guided Troubleshooting) -- check implementations complete
+**Current focus:** Phase 10 (Guided Troubleshooting) -- session persistence and fix application complete
 
 ## Current Position
 
 Phase: 10 of 10 (Guided Troubleshooting) -- IN PROGRESS
-Plan: 4 of 7 in current phase (4 complete)
+Plan: 5 of 7 in current phase (5 complete)
 Status: Executing
-Last activity: 2026-02-12 -- Plan 10-04 complete (15 check implementations + CheckRegistry wiring)
+Last activity: 2026-02-12 -- Plan 10-05 complete (session persistence + FixApplicator)
 
-Progress: [▓▓▓▓▓▓▓▓▓▒] 96%
+Progress: [▓▓▓▓▓▓▓▓▓▒] 97%
 
 ## Performance Metrics
 
@@ -36,11 +36,11 @@ Progress: [▓▓▓▓▓▓▓▓▓▒] 96%
 | 07-game-compatibility-database | 7/7 | 64min | 9.1min |
 | 08-remaining-platform-issues | 7/7 | 47min | 6.7min |
 | 09-ui-ux-feature-requests | 7/7 | 54min | 7.7min |
-| 10-guided-troubleshooting | 4/7 | 36min | 9.0min |
+| 10-guided-troubleshooting | 5/7 | 46min | 9.2min |
 
 **Recent Trend:**
-- Last 5 plans: 10-04 (24min), 10-02 (8min), 10-01 (4min), 09-04 (10min), 09-07 (6min)
-- Trend: Phase 10 progressing; check implementations wired in 24min
+- Last 5 plans: 10-05 (10min), 10-04 (24min), 10-02 (8min), 10-01 (4min), 09-04 (10min)
+- Trend: Phase 10 progressing; session persistence and fix applicator in 10min
 
 *Updated after each plan completion*
 
@@ -243,6 +243,10 @@ Recent decisions affecting current work:
 - [10-04]: SettingValueCheck uses switch-based property name dispatch for type-safe settings access
 - [10-04]: AudioTestCheck returns .unknown gracefully (MinGW test exe not compiled, expected condition)
 - [10-04]: CheckRegistry.init() auto-registers all 15 defaults; NSLock.withLock for Swift 6 async safety
+- [10-05]: StalenessChange uses >50% or >5 delta threshold for process count significance
+- [10-05]: Audio driver and buffer size fixes return .pending (registry writes are async)
+- [10-05]: FixApplicator delegates winetricks/dependency to existing infrastructure with .pending result
+- [10-05]: TroubleshootingHistory.save() is non-throwing; logs errors internally for simpler call sites
 
 ### Pending Todos
 
@@ -255,5 +259,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 10-04-PLAN.md
+Stopped at: Completed 10-05-PLAN.md
 Resume file: None

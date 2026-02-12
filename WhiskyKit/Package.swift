@@ -40,7 +40,8 @@ let package = Package(
             dependencies: ["SemanticVersion"],
             resources: [
                 .process("Diagnostics/Resources/"),
-                .process("GameDatabase/Resources/")
+                .process("GameDatabase/Resources/"),
+                .process("Troubleshooting/Resources/")
             ]
         ),
         .testTarget(

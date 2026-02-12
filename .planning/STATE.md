@@ -234,6 +234,11 @@ Recent decisions affecting current work:
 - [10-01]: CheckContext stores URLs/names instead of @MainActor Bottle/Program references for Sendable compliance
 - [10-01]: SessionPhase has 6 cases (adding escalation beyond 5 core FlowPhases) for post-flow state
 - [10-01]: EntryContext uses URL-based associated values for Sendable conformance
+- [10-03]: FlowLoader uses hardcoded fragment names due to SPM .process() directory flattening
+- [10-03]: CheckRegistry init is empty; registerDefaults placeholder for Plan 04 check implementations
+- [10-03]: PreflightCollector sets launcherType to nil (LauncherDetection in app target, not WhiskyKit)
+- [10-03]: TroubleshootingFlowEngine imports Combine (not SwiftUI) for @Published in WhiskyKit
+- [10-03]: PreflightCollector uses RunLogStore for recent log/exit code lookup
 - [10-04]: RegistryValueCheck parses .reg files directly (avoids @MainActor Bottle dependency for registry reads)
 - [10-04]: SettingValueCheck uses switch-based property name dispatch for type-safe settings access
 - [10-04]: AudioTestCheck returns .unknown gracefully (MinGW test exe not compiled, expected condition)

@@ -21881,6 +21881,606 @@
         }
       }
     },
+    "troubleshooting.back": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        }
+      }
+    },
+    "troubleshooting.branch.pathChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Path updated"
+          }
+        }
+      }
+    },
+    "troubleshooting.check.alreadyConfigured": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Already configured"
+          }
+        }
+      }
+    },
+    "troubleshooting.check.running": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Running check…"
+          }
+        }
+      }
+    },
+    "troubleshooting.entry.helpMenu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Troubleshoot…"
+          }
+        }
+      }
+    },
+    "troubleshooting.entry.proactive": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A troubleshooting guide is available for this issue"
+          }
+        }
+      }
+    },
+    "troubleshooting.entry.resumeSession": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume troubleshooting"
+          }
+        }
+      }
+    },
+    "troubleshooting.entry.startGuided": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Guided Troubleshooting"
+          }
+        }
+      }
+    },
+    "troubleshooting.entry.troubleshoot": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Troubleshoot…"
+          }
+        }
+      }
+    },
+    "troubleshooting.escalation.enhancedDiag": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run Enhanced Diagnostics"
+          }
+        }
+      }
+    },
+    "troubleshooting.escalation.export": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export Diagnostics"
+          }
+        }
+      }
+    },
+    "troubleshooting.escalation.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry from Step…"
+          }
+        }
+      }
+    },
+    "troubleshooting.escalation.supportDraft": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Support Issue Draft"
+          }
+        }
+      }
+    },
+    "troubleshooting.escalation.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could Not Resolve Automatically"
+          }
+        }
+      }
+    },
+    "troubleshooting.fix.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply Fix"
+          }
+        }
+      }
+    },
+    "troubleshooting.fix.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply this fix?"
+          }
+        }
+      }
+    },
+    "troubleshooting.fix.confirmHighImpact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a high-impact change. Are you sure?"
+          }
+        }
+      }
+    },
+    "troubleshooting.fix.irreversible": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone"
+          }
+        }
+      }
+    },
+    "troubleshooting.fix.preview.current": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current"
+          }
+        }
+      }
+    },
+    "troubleshooting.fix.preview.new": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New"
+          }
+        }
+      }
+    },
+    "troubleshooting.fix.reversible": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This change can be undone"
+          }
+        }
+      }
+    },
+    "troubleshooting.fix.skip": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip for now"
+          }
+        }
+      }
+    },
+    "troubleshooting.fix.undo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        }
+      }
+    },
+    "troubleshooting.history.abandoned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abandoned"
+          }
+        }
+      }
+    },
+    "troubleshooting.history.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No troubleshooting history"
+          }
+        }
+      }
+    },
+    "troubleshooting.history.exportReport": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export session report"
+          }
+        }
+      }
+    },
+    "troubleshooting.history.reopenTemplate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reopen as template"
+          }
+        }
+      }
+    },
+    "troubleshooting.history.resolved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolved"
+          }
+        }
+      }
+    },
+    "troubleshooting.history.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Troubleshooting History"
+          }
+        }
+      }
+    },
+    "troubleshooting.history.unresolved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unresolved"
+          }
+        }
+      }
+    },
+    "troubleshooting.rail.checks": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks"
+          }
+        }
+      }
+    },
+    "troubleshooting.rail.export": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export"
+          }
+        }
+      }
+    },
+    "troubleshooting.rail.fix": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fix"
+          }
+        }
+      }
+    },
+    "troubleshooting.rail.symptom": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Symptom"
+          }
+        }
+      }
+    },
+    "troubleshooting.rail.verify": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verify"
+          }
+        }
+      }
+    },
+    "troubleshooting.resolved.description": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The issue has been fixed. You can export a session report for your records."
+          }
+        }
+      }
+    },
+    "troubleshooting.resolved.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Problem resolved"
+          }
+        }
+      }
+    },
+    "troubleshooting.resume.description %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have a paused session for %@"
+          }
+        }
+      }
+    },
+    "troubleshooting.resume.discard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard"
+          }
+        }
+      }
+    },
+    "troubleshooting.resume.resume": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume"
+          }
+        }
+      }
+    },
+    "troubleshooting.resume.sinceYouLeft": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Since you left:"
+          }
+        }
+      }
+    },
+    "troubleshooting.resume.startOver": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Over"
+          }
+        }
+      }
+    },
+    "troubleshooting.resume.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume Troubleshooting?"
+          }
+        }
+      }
+    },
+    "troubleshooting.step.of %d %d": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step %1$d of %2$d"
+          }
+        }
+      }
+    },
+    "troubleshooting.symptom.audio": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio problems"
+          }
+        }
+      }
+    },
+    "troubleshooting.symptom.controllerInput": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controller / input problems"
+          }
+        }
+      }
+    },
+    "troubleshooting.symptom.graphics": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Graphics problems"
+          }
+        }
+      }
+    },
+    "troubleshooting.symptom.installDependencies": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install / dependency problems"
+          }
+        }
+      }
+    },
+    "troubleshooting.symptom.launchCrash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Won't launch / crashes immediately"
+          }
+        }
+      }
+    },
+    "troubleshooting.symptom.launcherIssues": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Launcher issues"
+          }
+        }
+      }
+    },
+    "troubleshooting.symptom.networkDownload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network / download problems"
+          }
+        }
+      }
+    },
+    "troubleshooting.symptom.other": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other"
+          }
+        }
+      }
+    },
+    "troubleshooting.symptom.performanceStability": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Performance / stability over time"
+          }
+        }
+      }
+    },
+    "troubleshooting.symptom.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What issue are you experiencing?"
+          }
+        }
+      }
+    },
+    "troubleshooting.verify.attempt %d %d": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fix attempt %1$d of %2$d"
+          }
+        }
+      }
+    },
+    "troubleshooting.verify.description": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try running your program again to check if the issue is resolved."
+          }
+        }
+      }
+    },
+    "troubleshooting.verify.fixed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yes, it's fixed"
+          }
+        }
+      }
+    },
+    "troubleshooting.verify.notFixed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No, still broken"
+          }
+        }
+      }
+    },
+    "troubleshooting.verify.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Did this fix the problem?"
+          }
+        }
+      }
+    },
+    "troubleshooting.wizard.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Troubleshooting"
+          }
+        }
+      }
+    },
     "update.whiskywine.description": {
       "localizations": {
         "ar": {

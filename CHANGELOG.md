@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Guided troubleshooting wizard with step-by-step diagnostic flows for 8 issue categories (Issue #50)
 - Terminal application selection: choose between Terminal, iTerm2, or Warp (Refs #47, upstream #911)
 - Duplicate bottle feature for cloning bottles without export/import (Refs #47, upstream #822)
 - App Nap management: disable macOS process throttling for better game performance (Refs #47, upstream #1297)

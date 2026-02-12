@@ -63,9 +63,9 @@ public final class CheckRegistry: @unchecked Sendable {
     ///
     /// - Parameter check: The check implementation to register.
     public func register(_ check: any TroubleshootingCheck) {
-        lock.lock()
-        defer { lock.unlock() }
-        checks[check.checkId] = check
+        lock.withLock {
+            checks[check.checkId] = check
+        }
         logger.debug("Registered check: \(check.checkId)")
     }
 

@@ -122,6 +122,9 @@
 		J1A2B3C4E5F61301A9B0C2D2 /* BranchExplanationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C2D3 /* BranchExplanationView.swift */; };
 		J1A2B3C4E5F61301A9B0C2D4 /* SessionResumeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C2D5 /* SessionResumeView.swift */; };
 		J1A2B3C4E5F61301A9B0C2D6 /* EscalationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C2D7 /* EscalationView.swift */; };
+		K1A2B3C4E5F61401A9B0C1D0 /* TroubleshootingHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = K1A2B3C4E5F61401A9B0C1D1 /* TroubleshootingHistoryView.swift */; };
+		K1A2B3C4E5F61401A9B0C1D2 /* TroubleshootingTargetPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = K1A2B3C4E5F61401A9B0C1D3 /* TroubleshootingTargetPicker.swift */; };
+		K1A2B3C4E5F61401A9B0C1D4 /* TroubleshootingEntryBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = K1A2B3C4E5F61401A9B0C1D5 /* TroubleshootingEntryBanner.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -283,6 +286,9 @@
 		J1A2B3C4E5F61301A9B0C2D3 /* BranchExplanationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BranchExplanationView.swift; sourceTree = "<group>"; };
 		J1A2B3C4E5F61301A9B0C2D5 /* SessionResumeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionResumeView.swift; sourceTree = "<group>"; };
 		J1A2B3C4E5F61301A9B0C2D7 /* EscalationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EscalationView.swift; sourceTree = "<group>"; };
+		K1A2B3C4E5F61401A9B0C1D1 /* TroubleshootingHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TroubleshootingHistoryView.swift; sourceTree = "<group>"; };
+		K1A2B3C4E5F61401A9B0C1D3 /* TroubleshootingTargetPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TroubleshootingTargetPicker.swift; sourceTree = "<group>"; };
+		K1A2B3C4E5F61401A9B0C1D5 /* TroubleshootingEntryBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TroubleshootingEntryBanner.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -480,6 +486,9 @@
 				J1A2B3C4E5F61301A9B0C2D3 /* BranchExplanationView.swift */,
 				J1A2B3C4E5F61301A9B0C2D5 /* SessionResumeView.swift */,
 				J1A2B3C4E5F61301A9B0C2D7 /* EscalationView.swift */,
+				K1A2B3C4E5F61401A9B0C1D1 /* TroubleshootingHistoryView.swift */,
+				K1A2B3C4E5F61401A9B0C1D3 /* TroubleshootingTargetPicker.swift */,
+				K1A2B3C4E5F61401A9B0C1D5 /* TroubleshootingEntryBanner.swift */,
 			);
 			path = Troubleshooting;
 			sourceTree = "<group>";
@@ -908,6 +917,9 @@
 				J1A2B3C4E5F61301A9B0C2D2 /* BranchExplanationView.swift in Sources */,
 				J1A2B3C4E5F61301A9B0C2D4 /* SessionResumeView.swift in Sources */,
 				J1A2B3C4E5F61301A9B0C2D6 /* EscalationView.swift in Sources */,
+				K1A2B3C4E5F61401A9B0C1D0 /* TroubleshootingHistoryView.swift in Sources */,
+				K1A2B3C4E5F61401A9B0C1D2 /* TroubleshootingTargetPicker.swift in Sources */,
+				K1A2B3C4E5F61401A9B0C1D4 /* TroubleshootingEntryBanner.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

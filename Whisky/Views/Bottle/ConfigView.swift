@@ -44,6 +44,10 @@ struct ConfigView: View {
     @State private var prefixRepairResult: PrefixRepairResult?
     @State private var gameConfigSnapshot: GameConfigSnapshot?
     @State private var showRevertConfirmation: Bool = false
+    @State private var showTroubleshootingWizard: Bool = false
+    @State private var hasActiveSession: Bool = false
+
+    private let sessionStore = TroubleshootingSessionStore()
 
     private enum PrefixRepairResult: Identifiable {
         case success
@@ -95,6 +99,16 @@ struct ConfigView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
+                if hasActiveSession {
+                    TroubleshootingEntryBanner(bannerType: .resumeSession) {
+                        showTroubleshootingWizard = true
+                    }
+                }
+
+                Button(String(localized: "troubleshooting.entry.startGuided")) {
+                    showTroubleshootingWizard = true
+                }
+
                 Button("Export Diagnostic Report\u{2026}") {
                     loadLatestDiagnosisAndExport()
                 }
@@ -104,6 +118,11 @@ struct ConfigView: View {
                     loadLatestDiagnosisAndView()
                 }
                 .disabled(mostRecentlyDiagnosedProgram == nil)
+
+                TroubleshootingHistoryView(
+                    bottleURL: bottle.url,
+                    programURL: nil
+                )
             }
             Section("Stability") {
                 Button("Generate Stability Diagnostics") {
@@ -158,6 +177,13 @@ struct ConfigView: View {
         .animation(.whiskyDefault, value: performanceSectionExpanded)
         .animation(.whiskyDefault, value: dllOverrideSectionExpanded)
         .animation(.whiskyDefault, value: cleanupSectionExpanded)
+        .sheet(isPresented: $showTroubleshootingWizard) {
+            TroubleshootingWizardView(
+                bottle: bottle,
+                program: nil,
+                entryContext: .bottleDiagnostics(bottleURL: bottle.url)
+            )
+        }
         .sheet(isPresented: $showStabilityDiagnostics) {
             DiagnosticsReportView(
                 title: "Stability Diagnostics Report",
@@ -245,6 +271,7 @@ struct ConfigView: View {
             loadDpi()
 
             gameConfigSnapshot = GameConfigSnapshot.load(from: bottle.url)
+            hasActiveSession = sessionStore.hasActiveSession(for: bottle.url)
         }
         .onChange(of: bottle.settings.windowsVersion) { _, newValue in
             if winVersionLoadingState == .success {

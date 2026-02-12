@@ -27,10 +27,16 @@ private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.fran
 struct WhiskyApp: App {
     @State var showSetup: Bool = false
     @State private var showDiagnosticsSheet: Bool = false
+    @State private var showTroubleshootingPicker: Bool = false
+    @State private var showTroubleshootingWizard: Bool = false
+    @State private var troubleshootingBottle: Bottle?
+    @State private var troubleshootingProgram: Program?
+    @State private var troubleshootingEntryContext: EntryContext?
     @State private var crashDiagnosisBanner: CrashDiagnosisBannerState?
     @State private var audioDeviceToast: ToastData?
     @State private var audioMonitor = AudioDeviceMonitor()
     @State private var audioAlertTracker = AudioAlertTracker()
+    @State private var lastTroubleshootingSuggestionAt: [String: Date] = [:]
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Environment(\.openURL) var openURL
     private let updaterController: SPUStandardUpdaterController
@@ -63,6 +69,29 @@ struct WhiskyApp: App {
                 .sheet(isPresented: $showDiagnosticsSheet) {
                     DiagnosticsPickerSheet()
                         .environmentObject(BottleVM.shared)
+                }
+                .sheet(isPresented: $showTroubleshootingPicker) {
+                    TroubleshootingTargetPicker(
+                        bottles: BottleVM.shared.bottles
+                    ) { bottle, program in
+                        troubleshootingBottle = bottle
+                        troubleshootingProgram = program
+                        troubleshootingEntryContext = .helpMenu(
+                            bottleURL: bottle.url,
+                            programURL: program?.url
+                        )
+                        showTroubleshootingWizard = true
+                    }
+                }
+                .sheet(isPresented: $showTroubleshootingWizard) {
+                    if let bottle = troubleshootingBottle,
+                       let context = troubleshootingEntryContext {
+                        TroubleshootingWizardView(
+                            bottle: bottle,
+                            program: troubleshootingProgram,
+                            entryContext: context
+                        )
+                    }
                 }
                 .overlay(alignment: .top) {
                     if let banner = crashDiagnosisBanner {
@@ -140,6 +169,10 @@ struct WhiskyApp: App {
                     showDiagnosticsSheet = true
                 }
                 .keyboardShortcut("D", modifiers: [.command, .shift])
+                Button(String(localized: "troubleshooting.entry.helpMenu")) {
+                    showTroubleshootingPicker = true
+                }
+                .keyboardShortcut("T", modifiers: [.command, .shift])
             }
         }
         Settings {
@@ -183,6 +216,11 @@ struct WhiskyApp: App {
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
+            Button(String(localized: "troubleshooting.entry.troubleshoot")) {
+                openTroubleshootingFromCrash(banner)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
             Button {
                 withAnimation {
                     crashDiagnosisBanner = nil
@@ -202,6 +240,60 @@ struct WhiskyApp: App {
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .transition(.move(edge: .top).combined(with: .opacity))
+    }
+
+    // MARK: - Troubleshooting from Crash Banner
+
+    private func openTroubleshootingFromCrash(_ banner: CrashDiagnosisBannerState) {
+        withAnimation {
+            crashDiagnosisBanner = nil
+        }
+
+        // Find the bottle and program for this crash
+        let programPath = banner.logFileURL.deletingLastPathComponent().path
+        for bottle in BottleVM.shared.bottles {
+            if let program = bottle.programs.first(where: { _ in
+                programPath.contains(bottle.url.path(percentEncoded: false))
+            }) {
+                let evidence: [String: String] = [
+                    "crashCategory": banner.diagnosis.primaryCategory?.rawValue ?? "unknown",
+                    "logFileURL": banner.logFileURL.absoluteString
+                ]
+                troubleshootingBottle = bottle
+                troubleshootingProgram = program
+                troubleshootingEntryContext = .launchFailure(
+                    programURL: program.url,
+                    bottleURL: bottle.url,
+                    evidence: evidence
+                )
+                showTroubleshootingWizard = true
+                return
+            }
+        }
+
+        // Fallback: open picker if we could not match the program
+        showTroubleshootingPicker = true
+    }
+
+    /// Checks whether a proactive troubleshooting suggestion should be shown
+    /// for the given program, respecting rate limits (30 min between suggestions,
+    /// 2 hours after dismissal/completion).
+    private func shouldShowProactiveSuggestion(for programKey: String) -> Bool {
+        guard let lastSuggestion = lastTroubleshootingSuggestionAt[programKey] else {
+            return true
+        }
+        let elapsed = Date().timeIntervalSince(lastSuggestion)
+        return elapsed > 1_800 // 30 minutes
+    }
+
+    private func recordTroubleshootingSuggestionShown(for programKey: String) {
+        lastTroubleshootingSuggestionAt[programKey] = Date()
+    }
+
+    private func suppressTroubleshootingSuggestions(for programKey: String) {
+        // Suppress for 2 hours by setting timestamp 90 minutes in the future
+        // (30-minute cooldown + 90 minutes = 2 hours from now)
+        lastTroubleshootingSuggestionAt[programKey] = Date().addingTimeInterval(5_400)
     }
 
     // MARK: - Audio Device Alerts

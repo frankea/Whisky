@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Game Compatibility Database** - Bundled known-good configurations with one-click apply
 - [x] **Phase 8: Remaining Platform Issues** - Launcher, controller, and installation fixes
 - [x] **Phase 9: UI/UX & Feature Requests** - Polish and top community-requested features
-- [ ] **Phase 10: Guided Troubleshooting** - Data-driven symptom/solution engine integrating all phases
+- [x] **Phase 10: Guided Troubleshooting** - Data-driven symptom/solution engine integrating all phases
 
 ## Phase Details
 
@@ -203,13 +203,13 @@ Plans:
 **Plans**: 7 plans
 
 Plans:
-- [ ] 10-01-PLAN.md -- Core data models: FlowDefinition, SymptomCategory, CheckResult, TroubleshootingCheck protocol, session types, Package.swift update
-- [ ] 10-02-PLAN.md -- JSON flow definitions: index.json, 8 category flows, 2 shared fragments
-- [ ] 10-03-PLAN.md -- Flow engine infrastructure: FlowLoader, FlowValidator, CheckRegistry, PreflightCollector, TroubleshootingFlowEngine state machine
-- [ ] 10-04-PLAN.md -- Check implementations: 15 TroubleshootingCheck wrappers for existing diagnostic primitives
-- [ ] 10-05-PLAN.md -- Session persistence: TroubleshootingSessionStore, TroubleshootingHistory, FixApplicator with preview/apply/undo
-- [ ] 10-06-PLAN.md -- Wizard UI: TroubleshootingWizardView, ProgressRailView, StepCardView, SymptomPickerView, FixPreviewView, FixVerifyView, BranchExplanationView, SessionResumeView, EscalationView
-- [ ] 10-07-PLAN.md -- Entry points, troubleshooting history view, proactive suggestions, Help menu integration, localization
+- [x] 10-01-PLAN.md -- Core data models: FlowDefinition, SymptomCategory, CheckResult, TroubleshootingCheck protocol, session types, Package.swift update
+- [x] 10-02-PLAN.md -- JSON flow definitions: index.json, 8 category flows, 2 shared fragments
+- [x] 10-03-PLAN.md -- Flow engine infrastructure: FlowLoader, FlowValidator, CheckRegistry, PreflightCollector, TroubleshootingFlowEngine state machine
+- [x] 10-04-PLAN.md -- Check implementations: 15 TroubleshootingCheck wrappers for existing diagnostic primitives
+- [x] 10-05-PLAN.md -- Session persistence: TroubleshootingSessionStore, TroubleshootingHistory, FixApplicator with preview/apply/undo
+- [x] 10-06-PLAN.md -- Wizard UI: TroubleshootingWizardView, ProgressRailView, StepCardView, SymptomPickerView, FixPreviewView, FixVerifyView, BranchExplanationView, SessionResumeView, EscalationView
+- [x] 10-07-PLAN.md -- Entry points, troubleshooting history view, proactive suggestions, Help menu integration, localization
 
 ## Progress
 
@@ -228,4 +228,4 @@ Note: Phases 3 and 4 are parallel-capable (no mutual dependencies). Phases 5 and
 | 7. Game Compatibility Database | 7/7 | ✓ Complete | 2026-02-10 |
 | 8. Remaining Platform Issues | 7/7 | ✓ Complete | 2026-02-11 |
 | 9. UI/UX & Feature Requests | 7/7 | ✓ Complete | 2026-02-11 |
-| 10. Guided Troubleshooting | 0/7 | Not started | - |
+| 10. Guided Troubleshooting | 7/7 | ✓ Complete | 2026-02-12 |

@@ -200,12 +200,16 @@ Plans:
   3. Troubleshooting guides for audio issues (crackling, missing sound, stuttering) are navigable in-app with step-by-step flows
   4. Troubleshooting guides for launcher issues (Steam, EA, Rockstar, Epic) are navigable in-app with step-by-step flows
   5. Guides include automated diagnostic checks that verify current settings, check file existence, and match log patterns before suggesting manual steps
-**Plans**: TBD
+**Plans**: 7 plans
 
 Plans:
-- [ ] 10-01: TBD
-- [ ] 10-02: TBD
-- [ ] 10-03: TBD
+- [ ] 10-01-PLAN.md -- Core data models: FlowDefinition, SymptomCategory, CheckResult, TroubleshootingCheck protocol, session types, Package.swift update
+- [ ] 10-02-PLAN.md -- JSON flow definitions: index.json, 8 category flows, 2 shared fragments
+- [ ] 10-03-PLAN.md -- Flow engine infrastructure: FlowLoader, FlowValidator, CheckRegistry, PreflightCollector, TroubleshootingFlowEngine state machine
+- [ ] 10-04-PLAN.md -- Check implementations: 15 TroubleshootingCheck wrappers for existing diagnostic primitives
+- [ ] 10-05-PLAN.md -- Session persistence: TroubleshootingSessionStore, TroubleshootingHistory, FixApplicator with preview/apply/undo
+- [ ] 10-06-PLAN.md -- Wizard UI: TroubleshootingWizardView, ProgressRailView, StepCardView, SymptomPickerView, FixPreviewView, FixVerifyView, BranchExplanationView, SessionResumeView, EscalationView
+- [ ] 10-07-PLAN.md -- Entry points, troubleshooting history view, proactive suggestions, Help menu integration, localization
 
 ## Progress
 
@@ -224,4 +228,4 @@ Note: Phases 3 and 4 are parallel-capable (no mutual dependencies). Phases 5 and
 | 7. Game Compatibility Database | 7/7 | ✓ Complete | 2026-02-10 |
 | 8. Remaining Platform Issues | 7/7 | ✓ Complete | 2026-02-11 |
 | 9. UI/UX & Feature Requests | 7/7 | ✓ Complete | 2026-02-11 |
-| 10. Guided Troubleshooting | 0/TBD | Not started | - |
+| 10. Guided Troubleshooting | 0/7 | Not started | - |

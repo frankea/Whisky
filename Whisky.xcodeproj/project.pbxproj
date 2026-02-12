@@ -113,6 +113,15 @@
 		I1A2B3C4E5F61201A9B0C1D0 /* SteamDownloadMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = I1A2B3C4E5F61201A9B0C1D1 /* SteamDownloadMonitor.swift */; };
 		E1A2B3C4E5F60901A9B0C1D0 /* ConsoleRunHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A2B3C4E5F60901A9B0C1D1 /* ConsoleRunHistoryView.swift */; };
 		E1A2B3C4E5F60901A9B0C1D2 /* ConsoleLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A2B3C4E5F60901A9B0C1D3 /* ConsoleLogView.swift */; };
+		J1A2B3C4E5F61301A9B0C1D0 /* TroubleshootingWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C1D1 /* TroubleshootingWizardView.swift */; };
+		J1A2B3C4E5F61301A9B0C1D2 /* ProgressRailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C1D3 /* ProgressRailView.swift */; };
+		J1A2B3C4E5F61301A9B0C1D4 /* SymptomPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C1D5 /* SymptomPickerView.swift */; };
+		J1A2B3C4E5F61301A9B0C1D6 /* StepCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C1D7 /* StepCardView.swift */; };
+		J1A2B3C4E5F61301A9B0C1D8 /* FixPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C1D9 /* FixPreviewView.swift */; };
+		J1A2B3C4E5F61301A9B0C2D0 /* FixVerifyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C2D1 /* FixVerifyView.swift */; };
+		J1A2B3C4E5F61301A9B0C2D2 /* BranchExplanationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C2D3 /* BranchExplanationView.swift */; };
+		J1A2B3C4E5F61301A9B0C2D4 /* SessionResumeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C2D5 /* SessionResumeView.swift */; };
+		J1A2B3C4E5F61301A9B0C2D6 /* EscalationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C2D7 /* EscalationView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -265,6 +274,15 @@
 		I1A2B3C4E5F61201A9B0C1D1 /* SteamDownloadMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteamDownloadMonitor.swift; sourceTree = "<group>"; };
 		E1A2B3C4E5F60901A9B0C1D1 /* ConsoleRunHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleRunHistoryView.swift; sourceTree = "<group>"; };
 		E1A2B3C4E5F60901A9B0C1D3 /* ConsoleLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleLogView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C1D1 /* TroubleshootingWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TroubleshootingWizardView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C1D3 /* ProgressRailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressRailView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C1D5 /* SymptomPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymptomPickerView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C1D7 /* StepCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepCardView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C1D9 /* FixPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixPreviewView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C2D1 /* FixVerifyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixVerifyView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C2D3 /* BranchExplanationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BranchExplanationView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C2D5 /* SessionResumeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionResumeView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C2D7 /* EscalationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EscalationView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -450,6 +468,22 @@
 			path = Install;
 			sourceTree = "<group>";
 		};
+		J1A2B3C4E5F61301A9B0C1DA /* Troubleshooting */ = {
+			isa = PBXGroup;
+			children = (
+				J1A2B3C4E5F61301A9B0C1D1 /* TroubleshootingWizardView.swift */,
+				J1A2B3C4E5F61301A9B0C1D3 /* ProgressRailView.swift */,
+				J1A2B3C4E5F61301A9B0C1D5 /* SymptomPickerView.swift */,
+				J1A2B3C4E5F61301A9B0C1D7 /* StepCardView.swift */,
+				J1A2B3C4E5F61301A9B0C1D9 /* FixPreviewView.swift */,
+				J1A2B3C4E5F61301A9B0C2D1 /* FixVerifyView.swift */,
+				J1A2B3C4E5F61301A9B0C2D3 /* BranchExplanationView.swift */,
+				J1A2B3C4E5F61301A9B0C2D5 /* SessionResumeView.swift */,
+				J1A2B3C4E5F61301A9B0C2D7 /* EscalationView.swift */,
+			);
+			path = Troubleshooting;
+			sourceTree = "<group>";
+		};
 		6E5197CD29D71FCD00CF655E /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -458,6 +492,7 @@
 				D1A2B3C4E5F60504A9B0C1D6 /* Diagnostics */,
 				E1A2B3C4E5F60701A9B0C1D4 /* GameDB */,
 				H1A2B3C4E5F61101A9B0C1D4 /* Install */,
+				J1A2B3C4E5F61301A9B0C1DA /* Troubleshooting */,
 				6E49E01F2AECB7D000009CAC /* Settings */,
 				6E6C0CF02A419A5800356232 /* Setup */,
 				6E17B6472AF3FE2E00831173 /* Programs */,
@@ -864,6 +899,15 @@
 				H1A2B3C4E5F61101A9B0C1D0 /* DependencyConfigSection.swift in Sources */,
 				H1A2B3C4E5F61101A9B0C1D2 /* DependencyInstallSheet.swift in Sources */,
 				I1A2B3C4E5F61201A9B0C1D0 /* SteamDownloadMonitor.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C1D0 /* TroubleshootingWizardView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C1D2 /* ProgressRailView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C1D4 /* SymptomPickerView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C1D6 /* StepCardView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C1D8 /* FixPreviewView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C2D0 /* FixVerifyView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C2D2 /* BranchExplanationView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C2D4 /* SessionResumeView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C2D6 /* EscalationView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

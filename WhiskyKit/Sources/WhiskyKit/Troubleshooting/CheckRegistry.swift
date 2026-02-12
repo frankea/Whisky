@@ -28,8 +28,7 @@ import os.log
 /// ## Usage
 ///
 /// ```swift
-/// let registry = CheckRegistry()
-/// registry.registerDefaults()
+/// let registry = CheckRegistry()  // All 15 checks pre-registered
 /// let result = await registry.run(
 ///     checkId: "graphics.backend_is",
 ///     params: ["expected": "dxvk"],
@@ -47,12 +46,14 @@ public final class CheckRegistry: @unchecked Sendable {
 
     // MARK: - Init
 
-    /// Creates an empty check registry.
+    /// Creates a check registry with all built-in checks pre-registered.
     ///
-    /// Call ``registerDefaults()`` after creation to register the built-in
-    /// check implementations. The registry starts empty so that construction
-    /// and registration can be separated for testing.
-    public init() {}
+    /// All 15 default check implementations are registered automatically.
+    /// Additional checks can be registered via ``register(_:)`` after
+    /// construction.
+    public init() {
+        registerDefaults()
+    }
 
     // MARK: - Registration
 
@@ -106,15 +107,37 @@ public final class CheckRegistry: @unchecked Sendable {
 
     // MARK: - Default Registration
 
-    /// Registers the built-in check implementations.
+    /// Registers all 15 built-in check implementations.
     ///
-    /// This is a placeholder that will be populated in Plan 04 once
-    /// the concrete check implementations are created.
+    /// Each check wraps an existing diagnostic primitive and returns a
+    /// normalized ``CheckResult``. Check IDs are stable and match the
+    /// references in flow definition JSON files.
     public func registerDefaults() {
-        // Concrete check implementations will be registered here in Plan 04.
-        // Example:
-        // register(GraphicsBackendCheck())
-        // register(CrashLogCheck())
-        // register(AudioDriverCheck())
+        // Graphics and crash diagnostics
+        register(CrashLogCheck())
+        register(GraphicsBackendCheck())
+        register(DXVKSettingsCheck())
+
+        // Audio diagnostics
+        register(AudioDriverCheck())
+        register(AudioDeviceCheck())
+        register(AudioTestCheck())
+
+        // Dependency and winetricks
+        register(DependencyCheck())
+        register(WinetricksVerbCheck())
+
+        // Launcher and process
+        register(LauncherTypeCheck())
+        register(ProcessRunningCheck())
+
+        // Environment and registry
+        register(EnvironmentCheck())
+        register(RegistryValueCheck())
+
+        // Game config, settings, and diagnostics
+        register(GameConfigAvailableCheck())
+        register(SettingValueCheck())
+        register(DiagnosticsEnhanceCheck())
     }
 }

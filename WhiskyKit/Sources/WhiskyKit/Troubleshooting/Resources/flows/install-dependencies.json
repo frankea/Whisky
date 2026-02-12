@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "categoryId": "install-dependencies",
+  "entryNodeId": "check_installed_verbs",
+  "nodes": {
+    "check_installed_verbs": {
+      "id": "check_installed_verbs",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check installed Winetricks verbs",
+      "description": "Scanning for commonly required runtime components: Visual C++, .NET, DirectX, and DXVK.",
+      "checkId": "winetricks.verb_check",
+      "params": {
+        "verbs": "vcrun2019,dotnet48,d3dx9,dxvk"
+      },
+      "on": {
+        "pass": "check_game_config",
+        "fail": "show_missing_deps",
+        "unknown": "check_game_config",
+        "error": "check_game_config"
+      },
+      "evidenceMap": {
+        "installedVerbs": "Installed verbs",
+        "missingVerbs": "Missing verbs"
+      }
+    },
+    "show_missing_deps": {
+      "id": "show_missing_deps",
+      "type": "info",
+      "phase": "checks",
+      "title": "Missing dependencies found",
+      "description": "One or more commonly required runtime components are not installed. Installing them may resolve the issue.",
+      "on": {
+        "continue": "fix_install_deps"
+      }
+    },
+    "fix_install_deps": {
+      "id": "fix_install_deps",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Install missing dependencies",
+      "description": "Install the missing runtime components via Winetricks. This may take several minutes and cannot be undone automatically.",
+      "fixId": "install-winetricks-verb",
+      "isReversible": false,
+      "requiresConfirmation": true,
+      "on": {
+        "applied": "verify_install",
+        "skipped": "check_dlls"
+      }
+    },
+    "verify_install": {
+      "id": "verify_install",
+      "type": "verify",
+      "phase": "verify",
+      "title": "Did installing dependencies help?",
+      "description": "Try launching the program again to check whether the dependency issue is resolved.",
+      "on": {
+        "yes": "resolved",
+        "no": "check_dlls"
+      }
+    },
+    "check_dlls": {
+      "id": "check_dlls",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check for specific DLL files",
+      "description": "Looking for specific DLL files that should be present in the bottle after dependency installation.",
+      "checkId": "dependency.check_missing",
+      "params": {
+        "dlls": "msvcr140.dll,d3d9.dll,d3d11.dll,d3dcompiler_47.dll"
+      },
+      "on": {
+        "pass": "check_game_config",
+        "fail": "show_dll_findings",
+        "unknown": "check_game_config",
+        "error": "check_game_config"
+      },
+      "evidenceMap": {
+        "missingDeps": "Missing DLLs",
+        "checkedCount": "DLLs checked"
+      }
+    },
+    "show_dll_findings": {
+      "id": "show_dll_findings",
+      "type": "info",
+      "phase": "checks",
+      "title": "Missing DLL files detected",
+      "description": "Some expected DLL files are missing from the bottle. Try installing them manually via Winetricks or check if an alternate verb provides the needed files.",
+      "on": {
+        "continue": "check_game_config"
+      }
+    },
+    "check_game_config": {
+      "id": "check_game_config",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check for known dependency requirements",
+      "description": "Checking the game database for known dependency requirements for this program.",
+      "checkId": "game.config_available",
+      "params": {},
+      "on": {
+        "pass": "suggest_game_deps",
+        "fail": "escalate",
+        "unknown": "escalate",
+        "error": "escalate"
+      },
+      "evidenceMap": {
+        "gameName": "Matched game",
+        "confidence": "Match confidence"
+      }
+    },
+    "suggest_game_deps": {
+      "id": "suggest_game_deps",
+      "type": "info",
+      "phase": "checks",
+      "title": "Known dependency configuration available",
+      "description": "A known-good dependency list exists for this program in the game database. Check the Game Config section for recommended Winetricks verbs.",
+      "on": {
+        "continue": "escalate"
+      }
+    },
+    "escalate": {
+      "id": "escalate",
+      "type": "info",
+      "phase": "export",
+      "title": "Additional diagnostics needed",
+      "description": "The automated dependency checks have not resolved the issue. Enhanced diagnostics or a support report may help identify the problem.",
+      "fragmentRef": "export-escalation"
+    },
+    "resolved": {
+      "id": "resolved",
+      "type": "info",
+      "phase": "export",
+      "title": "Problem resolved",
+      "description": "The dependency issue has been fixed. You can export a session report for your records."
+    }
+  }
+}

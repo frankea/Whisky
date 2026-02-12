@@ -1,0 +1,204 @@
+{
+  "version": 1,
+  "categoryId": "launch-crash",
+  "entryNodeId": "check_crash_log",
+  "nodes": {
+    "check_crash_log": {
+      "id": "check_crash_log",
+      "type": "check",
+      "phase": "checks",
+      "title": "Analyze crash log",
+      "description": "Examining the most recent log for crash patterns and error signatures.",
+      "checkId": "crash.log_classify",
+      "params": {},
+      "on": {
+        "pass": "check_environment",
+        "fail": "check_graphics_backend",
+        "unknown": "check_environment",
+        "error": "check_environment"
+      },
+      "evidenceMap": {
+        "primaryCategory": "Issue category",
+        "confidence": "Confidence",
+        "headline": "Finding",
+        "matchCount": "Patterns matched"
+      }
+    },
+    "check_graphics_backend": {
+      "id": "check_graphics_backend",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check graphics backend",
+      "description": "The crash appears graphics-related. Checking the current graphics translation layer.",
+      "checkId": "graphics.backend_is",
+      "params": {
+        "expected": "dxvk",
+        "scope": "program_or_bottle"
+      },
+      "on": {
+        "pass": "check_environment",
+        "already_configured": "check_environment",
+        "fail": "fix_switch_backend",
+        "unknown": "check_environment",
+        "error": "check_environment"
+      },
+      "evidenceMap": {
+        "current": "Current backend",
+        "expected": "Expected backend"
+      }
+    },
+    "fix_switch_backend": {
+      "id": "fix_switch_backend",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Switch graphics backend",
+      "description": "Switching to a different graphics translation layer may resolve the GPU-related crash.",
+      "fixId": "switch-backend",
+      "fixPreview": {
+        "settingName": "Graphics Backend",
+        "currentValueKey": "current",
+        "newValue": "dxvk",
+        "scope": "bottle"
+      },
+      "isReversible": true,
+      "requiresConfirmation": false,
+      "on": {
+        "applied": "verify_fix",
+        "skipped": "check_environment"
+      }
+    },
+    "check_dependencies": {
+      "id": "check_dependencies",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check for missing DLLs",
+      "description": "The crash log indicates a DLL loading failure. Checking for missing runtime dependencies.",
+      "checkId": "dependency.check_missing",
+      "params": {
+        "scope": "crash_related"
+      },
+      "on": {
+        "pass": "check_environment",
+        "fail": "fix_install_deps",
+        "unknown": "check_environment",
+        "error": "check_environment"
+      },
+      "evidenceMap": {
+        "missingDeps": "Missing dependencies",
+        "checkedCount": "Components checked"
+      },
+      "fragmentRef": "dependency-install"
+    },
+    "fix_install_deps": {
+      "id": "fix_install_deps",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Install missing runtime dependencies",
+      "description": "Install the missing runtime components via Winetricks. This may take a few minutes.",
+      "fixId": "install-dependency",
+      "isReversible": false,
+      "requiresConfirmation": true,
+      "on": {
+        "applied": "verify_fix",
+        "skipped": "check_environment"
+      }
+    },
+    "check_winetricks": {
+      "id": "check_winetricks",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check Winetricks verbs",
+      "description": "The crash suggests a memory access violation. Checking for common Winetricks fixes.",
+      "checkId": "winetricks.verb_check",
+      "params": {
+        "verbs": "vcrun2019,dotnet48,d3dcompiler_47"
+      },
+      "on": {
+        "pass": "check_environment",
+        "fail": "fix_install_verb",
+        "unknown": "check_environment",
+        "error": "check_environment"
+      },
+      "evidenceMap": {
+        "installedVerbs": "Installed verbs",
+        "missingVerbs": "Missing verbs"
+      }
+    },
+    "fix_install_verb": {
+      "id": "fix_install_verb",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Install recommended components",
+      "description": "Install missing runtime components that may resolve the access violation crash.",
+      "fixId": "install-winetricks-verb",
+      "isReversible": false,
+      "requiresConfirmation": true,
+      "on": {
+        "applied": "verify_fix",
+        "skipped": "check_environment"
+      }
+    },
+    "check_environment": {
+      "id": "check_environment",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check environment configuration",
+      "description": "Checking for environment variable issues that might prevent the program from starting.",
+      "checkId": "env.check_var",
+      "params": {
+        "vars": "WINEPREFIX,WINEARCH,WINEDLLOVERRIDES"
+      },
+      "on": {
+        "pass": "escalate",
+        "fail": "fix_environment",
+        "already_configured": "escalate",
+        "unknown": "escalate",
+        "error": "escalate"
+      },
+      "evidenceMap": {
+        "issueVar": "Problematic variable",
+        "currentValue": "Current value"
+      }
+    },
+    "fix_environment": {
+      "id": "fix_environment",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Fix environment configuration",
+      "description": "Correct the environment variable configuration to resolve the launch issue.",
+      "fixId": "fix-env-var",
+      "isReversible": true,
+      "requiresConfirmation": false,
+      "on": {
+        "applied": "verify_fix",
+        "skipped": "escalate"
+      }
+    },
+    "verify_fix": {
+      "id": "verify_fix",
+      "type": "verify",
+      "phase": "verify",
+      "title": "Did this fix the crash?",
+      "description": "Try launching the program again to see if the crash is resolved.",
+      "on": {
+        "yes": "resolved",
+        "no": "check_environment"
+      }
+    },
+    "resolved": {
+      "id": "resolved",
+      "type": "info",
+      "phase": "export",
+      "title": "Problem resolved",
+      "description": "The launch issue has been fixed. You can export a session report for your records."
+    },
+    "escalate": {
+      "id": "escalate",
+      "type": "info",
+      "phase": "export",
+      "title": "Additional diagnostics needed",
+      "description": "The automated checks have not resolved the launch issue. Enhanced diagnostics or a support report may help identify the problem.",
+      "fragmentRef": "export-escalation"
+    }
+  }
+}

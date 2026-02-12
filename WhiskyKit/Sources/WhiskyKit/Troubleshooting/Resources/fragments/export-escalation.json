@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "categoryId": "fragment-export-escalation",
+  "entryNodeId": "escalation_summary",
+  "nodes": {
+    "escalation_summary": {
+      "id": "escalation_summary",
+      "type": "info",
+      "phase": "export",
+      "title": "Unresolved issue",
+      "description": "The steps so far have not resolved this issue. Here is a summary of what was tried. You can run enhanced diagnostics to gather more information, or export a report.",
+      "on": {
+        "continue": "offer_enhanced_diagnostics"
+      }
+    },
+    "offer_enhanced_diagnostics": {
+      "id": "offer_enhanced_diagnostics",
+      "type": "check",
+      "phase": "export",
+      "title": "Check enhanced diagnostics availability",
+      "description": "Checking whether enhanced diagnostics can be run for additional information.",
+      "checkId": "diagnostics.can_enhance",
+      "params": {},
+      "on": {
+        "pass": "run_enhanced_diagnostics",
+        "fail": "export_bundle",
+        "already_configured": "export_bundle",
+        "unknown": "export_bundle",
+        "error": "export_bundle"
+      },
+      "evidenceMap": {
+        "canEnhance": "Enhanced diagnostics available",
+        "reason": "Reason"
+      }
+    },
+    "run_enhanced_diagnostics": {
+      "id": "run_enhanced_diagnostics",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Run enhanced diagnostics",
+      "description": "Enable a targeted WINEDEBUG preset to capture detailed debug output on the next launch. This will produce more verbose logs for analysis.",
+      "fixId": "run-enhanced-diagnostics",
+      "isReversible": true,
+      "requiresConfirmation": true,
+      "on": {
+        "applied": "reclassify_after_enhanced",
+        "skipped": "export_bundle"
+      }
+    },
+    "reclassify_after_enhanced": {
+      "id": "reclassify_after_enhanced",
+      "type": "check",
+      "phase": "checks",
+      "title": "Re-analyze with enhanced logs",
+      "description": "Analyzing the enhanced debug output for additional diagnostic patterns.",
+      "checkId": "crash.log_classify",
+      "params": {},
+      "on": {
+        "pass": "resolved",
+        "fail": "export_bundle",
+        "unknown": "export_bundle",
+        "error": "export_bundle"
+      },
+      "evidenceMap": {
+        "primaryCategory": "Issue category",
+        "confidence": "Confidence",
+        "headline": "Finding"
+      }
+    },
+    "resolved": {
+      "id": "resolved",
+      "type": "info",
+      "phase": "export",
+      "title": "Issue identified",
+      "description": "Enhanced diagnostics revealed additional information. Review the findings and consider restarting the troubleshooting flow with this new evidence."
+    },
+    "export_bundle": {
+      "id": "export_bundle",
+      "type": "info",
+      "phase": "export",
+      "title": "Export diagnostic report",
+      "description": "Export a comprehensive diagnostic bundle including all findings, attempted fixes, environment details, and relevant logs. This report can be shared for further analysis.",
+      "on": {
+        "continue": "open_support_draft"
+      }
+    },
+    "open_support_draft": {
+      "id": "open_support_draft",
+      "type": "info",
+      "phase": "export",
+      "title": "Open support issue draft",
+      "description": "Open a pre-filled support issue draft with the exported diagnostic bundle path and a summary of everything that was tried."
+    }
+  }
+}

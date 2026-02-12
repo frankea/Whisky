@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Every tracking issue (#40-#50) has a concrete response -- code fix, configuration UI, or in-app guidance
-**Current focus:** Phase 10 (Guided Troubleshooting) -- flow JSON definitions complete
+**Current focus:** Phase 10 (Guided Troubleshooting) -- check implementations complete
 
 ## Current Position
 
 Phase: 10 of 10 (Guided Troubleshooting) -- IN PROGRESS
-Plan: 2 of 7 in current phase (2 complete)
+Plan: 4 of 7 in current phase (4 complete)
 Status: Executing
-Last activity: 2026-02-12 -- Plan 10-02 complete (JSON flow definitions for all 8 categories)
+Last activity: 2026-02-12 -- Plan 10-04 complete (15 check implementations + CheckRegistry wiring)
 
-Progress: [▓▓▓▓▓▓▓▓▓▒] 94%
+Progress: [▓▓▓▓▓▓▓▓▓▒] 96%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 46
-- Average duration: 7.9min
-- Total execution time: 6.4 hours
+- Total plans completed: 48
+- Average duration: 8.1min
+- Total execution time: 6.8 hours
 
 **By Phase:**
 
@@ -36,11 +36,11 @@ Progress: [▓▓▓▓▓▓▓▓▓▒] 94%
 | 07-game-compatibility-database | 7/7 | 64min | 9.1min |
 | 08-remaining-platform-issues | 7/7 | 47min | 6.7min |
 | 09-ui-ux-feature-requests | 7/7 | 54min | 7.7min |
-| 10-guided-troubleshooting | 2/7 | 12min | 6.0min |
+| 10-guided-troubleshooting | 4/7 | 36min | 9.0min |
 
 **Recent Trend:**
-- Last 5 plans: 10-02 (8min), 10-01 (4min), 09-04 (10min), 09-07 (6min), 09-06 (12min)
-- Trend: Phase 10 progressing; flow definitions complete in 8min
+- Last 5 plans: 10-04 (24min), 10-02 (8min), 10-01 (4min), 09-04 (10min), 09-07 (6min)
+- Trend: Phase 10 progressing; check implementations wired in 24min
 
 *Updated after each plan completion*
 
@@ -234,6 +234,10 @@ Recent decisions affecting current work:
 - [10-01]: CheckContext stores URLs/names instead of @MainActor Bottle/Program references for Sendable compliance
 - [10-01]: SessionPhase has 6 cases (adding escalation beyond 5 core FlowPhases) for post-flow state
 - [10-01]: EntryContext uses URL-based associated values for Sendable conformance
+- [10-04]: RegistryValueCheck parses .reg files directly (avoids @MainActor Bottle dependency for registry reads)
+- [10-04]: SettingValueCheck uses switch-based property name dispatch for type-safe settings access
+- [10-04]: AudioTestCheck returns .unknown gracefully (MinGW test exe not compiled, expected condition)
+- [10-04]: CheckRegistry.init() auto-registers all 15 defaults; NSLock.withLock for Swift 6 async safety
 
 ### Pending Todos
 
@@ -246,5 +250,5 @@ None active.
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 10-02-PLAN.md
+Stopped at: Completed 10-04-PLAN.md
 Resume file: None

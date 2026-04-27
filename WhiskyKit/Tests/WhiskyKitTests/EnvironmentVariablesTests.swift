@@ -59,6 +59,7 @@ final class EnvironmentVariablesTests: XCTestCase {
 
     func testEnvironmentVariablesWithDXVKAsync() {
         var settings = BottleSettings()
+        settings.graphicsBackend = .dxvk
         settings.dxvkAsync = true
 
         var env: [String: String] = [:]
@@ -189,6 +190,7 @@ final class EnvironmentVariablesTests: XCTestCase {
 
     func testEnvironmentVariablesWithPerformancePreset() {
         var settings = BottleSettings()
+        settings.graphicsBackend = .dxvk
         settings.performancePreset = .performance
         settings.sequoiaCompatMode = false // Disable to test performance preset in isolation
 

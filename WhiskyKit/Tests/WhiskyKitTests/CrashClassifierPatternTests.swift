@@ -280,7 +280,9 @@ final class CrashClassifierPatternTests: XCTestCase {
             "anticheat-battleye":
                 "BattlEye Service: error initializing - BattlEye not supported",
             "wine-nonzero-exit":
-                "wine process exit code 1"
+                "wine process exit code 1",
+            "steam-download-stall":
+                "Steam content_log: download HTTP timed out"
         ]
     }
 

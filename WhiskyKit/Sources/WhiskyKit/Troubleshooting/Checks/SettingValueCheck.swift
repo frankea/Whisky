@@ -29,6 +29,7 @@ public struct SettingValueCheck: TroubleshootingCheck {
 
     public init() {}
 
+    // swiftlint:disable:next function_body_length
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         guard let settingName = params["setting"] else {
             return CheckResult(
@@ -99,6 +100,7 @@ public struct SettingValueCheck: TroubleshootingCheck {
 
     // MARK: - Private
 
+    // swiftlint:disable:next cyclomatic_complexity
     private func readSetting(_ name: String, from settings: BottleSettings) -> String? {
         switch name {
         case "enhancedSync":

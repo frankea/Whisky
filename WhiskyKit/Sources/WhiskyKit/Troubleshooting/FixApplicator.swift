@@ -80,7 +80,7 @@ public struct FixPreview: Sendable {
 /// | `install-dependency` | Dependency installation | No |
 /// | `run-enhanced-diagnostics` | WINEDEBUG preset | Yes |
 /// | `restart-wineserver` | Wineserver process restart | No |
-public enum FixApplicator {
+public enum FixApplicator { // swiftlint:disable:this type_body_length
     private static let logger = Logger(
         subsystem: "com.isaacmarovitz.Whisky",
         category: "FixApplicator"
@@ -100,6 +100,7 @@ public enum FixApplicator {
     ///   - program: The program to inspect, if applicable.
     /// - Returns: A ``FixPreview`` describing the change, or `nil` if the fix ID is unknown.
     @MainActor
+    // swiftlint:disable:next function_body_length cyclomatic_complexity
     public static func preview(
         fixId: String,
         params: [String: String],
@@ -232,6 +233,7 @@ public enum FixApplicator {
     ///   - program: The program to modify, if applicable.
     /// - Returns: A ``FixAttempt`` recording what was changed.
     @MainActor
+    // swiftlint:disable:next function_body_length cyclomatic_complexity
     public static func apply(
         fixId: String,
         params: [String: String],
@@ -370,6 +372,7 @@ public enum FixApplicator {
     ///   - program: The program to restore, if applicable.
     /// - Returns: `true` if the undo succeeded, `false` if the fix is non-reversible.
     @MainActor
+    // swiftlint:disable:next function_body_length cyclomatic_complexity
     public static func undo(
         attempt: FixAttempt,
         bottle: Bottle,

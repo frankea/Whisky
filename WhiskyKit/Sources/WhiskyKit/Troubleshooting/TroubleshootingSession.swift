@@ -154,12 +154,12 @@ public struct TroubleshootingSession: Codable, Sendable {
     ///
     /// - Parameters:
     ///   - from: The node ID where the branch originated.
-    ///   - to: The node ID that was chosen.
+    ///   - targetNodeId: The node ID that was chosen.
     ///   - reason: Optional explanation of why this branch was taken.
-    public mutating func recordBranch(from: String, to: String, reason: String? = nil) {
+    public mutating func recordBranch(from: String, targetNodeId: String, reason: String? = nil) {
         let decision = BranchDecision(
             fromNodeId: from,
-            toNodeId: to,
+            toNodeId: targetNodeId,
             reason: reason,
             timestamp: Date()
         )

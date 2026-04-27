@@ -124,7 +124,7 @@ final class GameDatabaseTests: XCTestCase {
         }
         """
 
-        let data = try XCTUnwrap(json.data(using: .utf8)) // swiftlint:disable:this force_unwrapping
+        let data = try XCTUnwrap(json.data(using: .utf8))
         let decoder = JSONDecoder()
         let entry = try decoder.decode(GameDBEntry.self, from: data)
 
@@ -184,7 +184,7 @@ final class GameDatabaseTests: XCTestCase {
         }
         """
 
-        let data = try XCTUnwrap(json.data(using: .utf8)) // swiftlint:disable:this force_unwrapping
+        let data = try XCTUnwrap(json.data(using: .utf8))
         let entry = try JSONDecoder().decode(GameDBEntry.self, from: data)
 
         XCTAssertEqual(entry.id, "minimal-game")
@@ -212,7 +212,7 @@ final class GameDatabaseTests: XCTestCase {
         {}
         """
 
-        let data = try XCTUnwrap(json.data(using: .utf8)) // swiftlint:disable:this force_unwrapping
+        let data = try XCTUnwrap(json.data(using: .utf8))
         let settings = try JSONDecoder().decode(GameConfigVariantSettings.self, from: data)
 
         XCTAssertNil(settings.graphicsBackend)

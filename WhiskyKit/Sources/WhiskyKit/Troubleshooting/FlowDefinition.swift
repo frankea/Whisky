@@ -72,7 +72,7 @@ public struct FlowStepNode: Codable, Sendable, Identifiable {
     public let params: [String: String]?
 
     /// Outcome-to-next-node-ID branching map.
-    public let on: [String: String]?
+    public let on: [String: String]? // swiftlint:disable:this identifier_name
 
     /// Maps evidence keys to user-facing labels for UI display.
     public let evidenceMap: [String: String]?
@@ -100,7 +100,7 @@ public struct FlowStepNode: Codable, Sendable, Identifiable {
         description: String? = nil,
         checkId: String? = nil,
         params: [String: String]? = nil,
-        on: [String: String]? = nil,
+        on: [String: String]? = nil, // swiftlint:disable:this identifier_name
         evidenceMap: [String: String]? = nil,
         fixId: String? = nil,
         fixPreview: FixPreviewData? = nil,

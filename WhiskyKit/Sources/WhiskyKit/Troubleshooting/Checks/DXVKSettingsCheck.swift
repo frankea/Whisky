@@ -28,6 +28,7 @@ public struct DXVKSettingsCheck: TroubleshootingCheck {
 
     public init() {}
 
+    // swiftlint:disable:next function_body_length
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         guard let setting = params["setting"] else {
             return CheckResult(

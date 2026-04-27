@@ -156,6 +156,7 @@ public enum FlowValidator {
 
     // MARK: - Private Validation
 
+    // swiftlint:disable:next function_body_length
     private static func validateFlow(
         flow: FlowDefinition,
         flowId: String,
@@ -178,15 +179,14 @@ public enum FlowValidator {
         for (nodeId, node) in flow.nodes {
             // Check on-map targets resolve
             if let onMap = node.on {
-                for (outcome, targetId) in onMap {
-                    if !allNodeIds.contains(targetId) {
-                        issues.append(ValidationIssue(
-                            flowId: flowId,
-                            nodeId: nodeId,
-                            message: "Target node '\(targetId)' for outcome '\(outcome)' not found in any flow or fragment",
-                            severity: .error
-                        ))
-                    }
+                for (outcome, targetId) in onMap where !allNodeIds.contains(targetId) {
+                    issues.append(ValidationIssue(
+                        flowId: flowId,
+                        nodeId: nodeId,
+                        message: "Target node '\(targetId)' for outcome '\(outcome)'"
+                            + " not found in any flow or fragment",
+                        severity: .error
+                    ))
                 }
             }
 
@@ -221,7 +221,8 @@ public enum FlowValidator {
             if maxDepth > maxAutomatedSteps {
                 issues.append(ValidationIssue(
                     flowId: flowId,
-                    message: "Flow has a path with \(maxDepth) automated steps without user interaction (limit: \(maxAutomatedSteps))",
+                    message: "Flow has a path with \(maxDepth) automated steps"
+                        + " without user interaction (limit: \(maxAutomatedSteps))",
                     severity: .warning
                 ))
             }
@@ -260,6 +261,7 @@ public enum FlowValidator {
         var maxDepth = 0
 
         // Stack entries: (nodeId, currentDepth, visited set for this path)
+        // swiftlint:disable:next large_tuple
         var stack: [(String, Int, Set<String>)] = [(startId, 0, [])]
 
         while !stack.isEmpty {

@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  WhiskyApp.swift
 //  Whisky
@@ -24,6 +25,7 @@ import WhiskyKit
 private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.franke.Whisky", category: "WhiskyApp")
 
 @main
+// swiftlint:disable:next type_body_length
 struct WhiskyApp: App {
     @State var showSetup: Bool = false
     @State private var showDiagnosticsSheet: Bool = false

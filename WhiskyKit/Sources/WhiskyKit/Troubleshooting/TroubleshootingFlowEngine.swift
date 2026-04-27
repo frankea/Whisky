@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  TroubleshootingFlowEngine.swift
 //  WhiskyKit
@@ -233,11 +234,14 @@ public final class TroubleshootingFlowEngine: ObservableObject {
             let outcome = result.outcome.rawValue
             if let nextNodeId = node.on?[outcome] {
                 logger.debug("Check \(checkId) outcome '\(outcome)' -> navigating to \(nextNodeId)")
-                session.recordBranch(from: node.id, to: nextNodeId, reason: "Check outcome: \(outcome)")
+                session.recordBranch(from: node.id, targetNodeId: nextNodeId, reason: "Check outcome: \(outcome)")
                 navigateToNode(nextNodeId)
             } else if let defaultNext = node.on?["default"] {
                 logger.debug("Check \(checkId) outcome '\(outcome)' not mapped, using default -> \(defaultNext)")
-                session.recordBranch(from: node.id, to: defaultNext, reason: "Default branch (outcome: \(outcome))")
+                session.recordBranch(
+                    from: node.id, targetNodeId: defaultNext,
+                    reason: "Default branch (outcome: \(outcome))"
+                )
                 navigateToNode(defaultNext)
             } else {
                 logger.warning("Check \(checkId) outcome '\(outcome)' has no target and no default")

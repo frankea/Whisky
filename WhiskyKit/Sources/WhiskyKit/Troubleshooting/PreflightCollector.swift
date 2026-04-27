@@ -62,7 +62,7 @@ public enum PreflightCollector {
         let (recentLogURL, lastExitCode) = findRecentRunInfo(for: bottle, program: program)
 
         logger.debug(
-            "Preflight collected: wineserver=\(isRunning), processes=\(processCount), backend=\(resolvedBackend.rawValue)"
+            "Preflight: wineserver=\(isRunning), procs=\(processCount), backend=\(resolvedBackend.rawValue)"
         )
 
         return PreflightData(
@@ -151,7 +151,12 @@ public enum PreflightCollector {
                 continue
             }
 
-            if mostRecentDate == nil || modDate > mostRecentDate! {
+            if let existingDate = mostRecentDate {
+                if modDate > existingDate {
+                    mostRecentDate = modDate
+                    mostRecentURL = fileURL
+                }
+            } else {
                 mostRecentDate = modDate
                 mostRecentURL = fileURL
             }

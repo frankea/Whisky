@@ -23,6 +23,7 @@ import WhiskyKit
 
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ConfigView")
 
+// swiftlint:disable:next type_body_length
 struct ConfigView: View {
     @ObservedObject var bottle: Bottle
     @State private var buildVersion: String = ""

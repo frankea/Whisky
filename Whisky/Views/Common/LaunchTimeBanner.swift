@@ -25,7 +25,7 @@ import WhiskyKit
 ///
 /// Carries a summary of launcher-specific fixes that were applied, including the
 /// launcher name, fix count, and deduplicated category list for display.
-struct LaunchTimeBannerData: Equatable, Sendable {
+struct LaunchTimeBannerData: Equatable {
     /// The display name of the detected launcher.
     let launcherName: String
     /// Deduplicated categories of fixes applied (e.g. ["locale", "sandbox"]).

@@ -21,7 +21,7 @@ import GameController
 import os.log
 
 /// The type of game controller based on its product category.
-enum ControllerType: String, Sendable {
+enum ControllerType: String {
     case playStation
     case xbox
     case generic
@@ -45,7 +45,7 @@ enum ControllerType: String, Sendable {
 }
 
 /// The connection type for a game controller.
-enum ConnectionType: String, Sendable {
+enum ConnectionType: String {
     case usb = "USB"
     case bluetooth = "Bluetooth"
 
@@ -64,7 +64,7 @@ enum ConnectionType: String, Sendable {
 ///
 /// Captures the name, type, connection method, and battery status
 /// of a controller discovered via the GameController framework.
-struct ControllerInfo: Identifiable, Sendable {
+struct ControllerInfo: Identifiable {
     /// Unique identifier for this controller snapshot.
     let id: UUID
 
@@ -102,7 +102,7 @@ struct ControllerInfo: Identifiable, Sendable {
 }
 
 /// A lightweight record of a previously-seen controller for diagnostics export.
-struct ControllerHistoryEntry: Codable, Sendable {
+struct ControllerHistoryEntry: Codable {
     /// The name of the controller.
     let name: String
 

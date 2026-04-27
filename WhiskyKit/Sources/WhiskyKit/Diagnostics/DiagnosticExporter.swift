@@ -540,7 +540,7 @@ extension DiagnosticExporter {
 ///
 /// ``CrashDiagnosis`` itself contains non-Codable ``DiagnosisMatch`` entries,
 /// so this wrapper encodes only the serializable portions.
-struct CrashDiagnosisCodableWrapper: Codable, Sendable {
+struct CrashDiagnosisCodableWrapper: Codable {
     let primaryCategory: String?
     let primaryConfidence: String?
     let headline: String?
@@ -550,7 +550,7 @@ struct CrashDiagnosisCodableWrapper: Codable, Sendable {
     let applicableRemediationIds: [String]
     let topMatches: [MatchSummary]
 
-    struct MatchSummary: Codable, Sendable {
+    struct MatchSummary: Codable {
         let patternId: String
         let category: String
         let confidence: Double

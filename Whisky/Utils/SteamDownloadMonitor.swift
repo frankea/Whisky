@@ -23,7 +23,7 @@ import WhiskyKit
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "SteamDownloadMonitor")
 
 /// Status of a Steam download stall check.
-enum StallStatus: Sendable, Equatable {
+enum StallStatus: Equatable {
     case noDownloads
     case downloading
     case likelyStalled(duration: TimeInterval)

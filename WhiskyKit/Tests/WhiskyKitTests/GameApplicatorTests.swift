@@ -238,7 +238,7 @@ final class GameApplicatorTests: XCTestCase {
     func testPendingWinetricksVerbsFiltersInstalled() {
         let variant = makeTestVariant(winetricksVerbs: ["vcrun2022", "dotnet48"])
 
-        let installedVerbs: Set<String> = ["vcrun2022"]
+        let installedVerbs: Set = ["vcrun2022"]
         let pending = GameConfigApplicator.pendingWinetricksVerbs(
             variant: variant,
             installedVerbs: installedVerbs

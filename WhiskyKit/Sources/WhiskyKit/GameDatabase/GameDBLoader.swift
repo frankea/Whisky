@@ -24,7 +24,7 @@ import Foundation
 /// methods for loading from a URL or from the default bundled resource.
 public enum GameDBLoader {
     /// The top-level container for ``GameDB.json``.
-    private struct GameDBFile: Codable, Sendable {
+    private struct GameDBFile: Codable {
         let version: Int
         let entries: [GameDBEntry]
     }

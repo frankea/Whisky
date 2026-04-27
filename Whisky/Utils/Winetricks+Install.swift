@@ -23,7 +23,7 @@ import WhiskyKit
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "WinetricksInstall")
 
 /// Progress events emitted during a headless winetricks verb installation.
-enum WinetricksInstallProgress: Sendable {
+enum WinetricksInstallProgress {
     /// The installation is being prepared (environment setup).
     case preparing
     /// A line of output from the winetricks process.

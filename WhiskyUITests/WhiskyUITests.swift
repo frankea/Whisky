@@ -36,12 +36,19 @@ final class WhiskyUITests: XCTestCase {
 
     /// Wait up to `timeout` for an element, returning it on success or failing the test on miss.
     @discardableResult
-    private func require(_ element: XCUIElement, _ description: String,
-                         timeout: TimeInterval = 5,
-                         file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
-        XCTAssertTrue(element.waitForExistence(timeout: timeout),
-                      "Required element missing: \(description)",
-                      file: file, line: line)
+    private func require(
+        _ element: XCUIElement,
+        _ description: String,
+        timeout: TimeInterval = 5,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) -> XCUIElement {
+        XCTAssertTrue(
+            element.waitForExistence(timeout: timeout),
+            "Required element missing: \(description)",
+            file: file,
+            line: line
+        )
         return element
     }
 
@@ -61,37 +68,48 @@ final class WhiskyUITests: XCTestCase {
 
     /// Navigate to Bottle Configuration view of the currently-selected bottle.
     private func openBottleConfiguration() {
-        let configRow = require(app.buttons["nav.bottleConfiguration"],
-                                "bottle nav row", timeout: 8)
+        let configRow = require(
+            app.buttons["nav.bottleConfiguration"],
+            "bottle nav row",
+            timeout: 8
+        )
         configRow.click()
-        require(app.staticTexts["Wine"], "Wine section header in Bottle Configuration",
-                timeout: 5)
+        require(
+            app.staticTexts["Wine"],
+            "Wine section header in Bottle Configuration",
+            timeout: 5
+        )
     }
 
     /// Navigate to Game Configurations view of the currently-selected bottle.
     /// Waits for the list to populate (GameDBLoader runs in `.onAppear`).
     private func openGameConfigurations() {
-        let row = require(app.buttons["nav.gameConfigurations"], "game configs nav row",
-                          timeout: 8)
+        let row = require(
+            app.buttons["nav.gameConfigurations"],
+            "game configs nav row",
+            timeout: 8
+        )
         row.click()
         let list = require(app.outlines["gamedb.list"], "GameDB list outline", timeout: 5)
         // Wait for the outline to actually have rows - the loader runs in onAppear so
         // there is a brief gap between the outline appearing and rows materializing.
         let firstRow = list.outlineRows.firstMatch
-        XCTAssertTrue(firstRow.waitForExistence(timeout: 5),
-                      "GameDB list rendered but no rows materialized within 5s")
+        XCTAssertTrue(
+            firstRow.waitForExistence(timeout: 5),
+            "GameDB list rendered but no rows materialized within 5s"
+        )
     }
 
     // MARK: - Smoke
 
-    func testAppLaunchesAndShowsBottleDetail() throws {
+    func testAppLaunchesAndShowsBottleDetail() {
         require(app.buttons["nav.bottleConfiguration"], "bottle nav row", timeout: 8)
         XCTAssertTrue(app.buttons["nav.installedPrograms"].exists)
         XCTAssertTrue(app.buttons["nav.runningProcesses"].exists)
         XCTAssertTrue(app.buttons["nav.gameConfigurations"].exists)
     }
 
-    func testBottomToolbarShowsAllFourActions() throws {
+    func testBottomToolbarShowsAllFourActions() {
         require(app.buttons["nav.bottleConfiguration"], "bottle main view", timeout: 8)
         // BottomBarButtonStyle wraps each button in a new Button, which strips our
         // accessibility identifiers. Look up by visible label instead.
@@ -101,22 +119,26 @@ final class WhiskyUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Run..."].exists, "Run button missing")
     }
 
-    func testCreateBottleButtonPresentInToolbar() throws {
+    func testCreateBottleButtonPresentInToolbar() {
         require(app.buttons["nav.bottleConfiguration"], "main view loaded", timeout: 8)
-        XCTAssertTrue(app.buttons.matching(identifier: "toolbar.createBottle").firstMatch.exists,
-                      "+ toolbar button missing")
+        XCTAssertTrue(
+            app.buttons.matching(identifier: "toolbar.createBottle").firstMatch.exists,
+            "+ toolbar button missing"
+        )
     }
 
     // MARK: - Bottle Configuration
 
-    func testBottleConfigurationSectionsRender() throws {
+    func testBottleConfigurationSectionsRender() {
         openBottleConfiguration()
         // Wine section is the first one expanded by default
         XCTAssertTrue(app.staticTexts["Wine"].exists)
         // Other section headers should be reachable as collapsible groups (collapsed by default)
-        XCTAssertTrue(app.staticTexts["Launcher Compatibility"].exists ||
-                      app.staticTexts["Controller & Input"].exists,
-                      "Expected at least one collapsible config section header")
+        XCTAssertTrue(
+            app.staticTexts["Launcher Compatibility"].exists ||
+                app.staticTexts["Controller & Input"].exists,
+            "Expected at least one collapsible config section header"
+        )
     }
 
     /// Verifies the Controller & Input section exists as a collapsed DisclosureGroup
@@ -124,37 +146,44 @@ final class WhiskyUITests: XCTestCase {
     /// inspection - SwiftUI doesn't expose collapsed DisclosureGroup contents in
     /// the AX tree, so we can't drive the toggle via XCUITest without expanding it,
     /// which itself requires clicking the chevron at a fragile coordinate.
-    func testControllerAndInputSectionExists() throws {
+    func testControllerAndInputSectionExists() {
         openBottleConfiguration()
         // The header renders as a DisclosureTriangle with label "Controller & Input",
         // not as a StaticText. Disclosure triangles report as descendant of a window.
         let predicate = NSPredicate(format: "label CONTAINS 'Controller'")
         let disclosure = app.descendants(matching: .disclosureTriangle).matching(predicate)
-                            .firstMatch
-        XCTAssertTrue(disclosure.waitForExistence(timeout: 5),
-                      "Controller & Input section header missing")
+            .firstMatch
+        XCTAssertTrue(
+            disclosure.waitForExistence(timeout: 5),
+            "Controller & Input section header missing"
+        )
     }
 
     // MARK: - Game Configurations browser
 
-    func testGameDBBrowserShowsEntries() throws {
+    func testGameDBBrowserShowsEntries() {
         openGameConfigurations()
         // We bundle 80+ entries; assert at least one row renders.
         let firstRow = app.outlines["gamedb.list"].outlineRows.firstMatch
-        XCTAssertTrue(firstRow.waitForExistence(timeout: 5),
-                      "GameDB browser is empty - bundled entries failed to load")
+        XCTAssertTrue(
+            firstRow.waitForExistence(timeout: 5),
+            "GameDB browser is empty - bundled entries failed to load"
+        )
     }
 
     /// Open the Celeste GameDB detail view. We use a deterministic row id rather
     /// than walking outline rows because OutlineRow descendants aren't reliably
     /// hittable on macOS - the actual click target is the inner Button.
     private func openCelesteDetail() {
-        let row = require(app.buttons["gamedb.row.celeste"],
-                          "Celeste row button", timeout: 5)
+        let row = require(
+            app.buttons["gamedb.row.celeste"],
+            "Celeste row button",
+            timeout: 5
+        )
         row.click()
     }
 
-    func testGameDBSearchFiltersEntries() throws {
+    func testGameDBSearchFiltersEntries() {
         openGameConfigurations()
         let searchField: XCUIElement = {
             if app.searchFields.firstMatch.exists { return app.searchFields.firstMatch }
@@ -165,31 +194,46 @@ final class WhiskyUITests: XCTestCase {
         searchField.typeText("celeste")
         // The Celeste row should still be present after filtering;
         // most other rows should be filtered out.
-        XCTAssertTrue(app.buttons["gamedb.row.celeste"].waitForExistence(timeout: 5),
-                      "Search for 'celeste' did not surface the Celeste row")
-        XCTAssertFalse(app.buttons["gamedb.row.aoe2-de"].exists,
-                       "Search filter should hide unrelated entries")
+        XCTAssertTrue(
+            app.buttons["gamedb.row.celeste"].waitForExistence(timeout: 5),
+            "Search for 'celeste' did not surface the Celeste row"
+        )
+        XCTAssertFalse(
+            app.buttons["gamedb.row.aoe2-de"].exists,
+            "Search filter should hide unrelated entries"
+        )
     }
 
-    func testGameDBDetailViewRendersForCeleste() throws {
+    func testGameDBDetailViewRendersForCeleste() {
         openGameConfigurations()
         openCelesteDetail()
-        require(app.buttons["gamedb.detail.applyButton"], "Apply button on detail view",
-                timeout: 5)
+        require(
+            app.buttons["gamedb.detail.applyButton"],
+            "Apply button on detail view",
+            timeout: 5
+        )
     }
 
-    func testApplyConfigPreviewSheetCancels() throws {
+    func testApplyConfigPreviewSheetCancels() {
         openGameConfigurations()
         openCelesteDetail()
 
-        let applyButton = require(app.buttons["gamedb.detail.applyButton"],
-                                  "Apply button", timeout: 5)
+        let applyButton = require(
+            app.buttons["gamedb.detail.applyButton"],
+            "Apply button",
+            timeout: 5
+        )
         applyButton.click()
 
-        let cancelButton = require(app.buttons["gamedb.preview.cancelButton"],
-                                   "preview Cancel button", timeout: 5)
-        XCTAssertTrue(app.buttons["gamedb.preview.applyButton"].exists,
-                      "preview Apply Configuration button missing")
+        let cancelButton = require(
+            app.buttons["gamedb.preview.cancelButton"],
+            "preview Cancel button",
+            timeout: 5
+        )
+        XCTAssertTrue(
+            app.buttons["gamedb.preview.applyButton"].exists,
+            "preview Apply Configuration button missing"
+        )
         cancelButton.click()
 
         // Sheet should dismiss
@@ -205,49 +249,57 @@ final class WhiskyUITests: XCTestCase {
     /// This is the highest-leverage test - catches the entire class of regressions
     /// that manual smoke testing kept finding (config.title.graphics, status.duplicating.*,
     /// bottle.subtitle.autoBackend, etc.).
-    func testNoRawKeysInBottleConfiguration() throws {
+    func testNoRawKeysInBottleConfiguration() {
         openBottleConfiguration()
         let leaks = rawKeyLeaks()
-        XCTAssertTrue(leaks.isEmpty,
-                      "Bottle Configuration leaked raw localization keys: \(leaks)")
+        XCTAssertTrue(
+            leaks.isEmpty,
+            "Bottle Configuration leaked raw localization keys: \(leaks)"
+        )
     }
 
     /// Same check, but for the GameDB browser.
-    func testNoRawKeysInGameConfigurations() throws {
+    func testNoRawKeysInGameConfigurations() {
         openGameConfigurations()
         let leaks = rawKeyLeaks()
-        XCTAssertTrue(leaks.isEmpty,
-                      "Game Configurations leaked raw localization keys: \(leaks)")
+        XCTAssertTrue(
+            leaks.isEmpty,
+            "Game Configurations leaked raw localization keys: \(leaks)"
+        )
     }
 
     /// Same check, but for the GameDB detail view.
-    func testNoRawKeysInGameDetail() throws {
+    func testNoRawKeysInGameDetail() {
         openGameConfigurations()
         openCelesteDetail()
         require(app.buttons["gamedb.detail.applyButton"], "detail view loaded", timeout: 5)
         let leaks = rawKeyLeaks()
-        XCTAssertTrue(leaks.isEmpty,
-                      "GameDB detail view leaked raw localization keys: \(leaks)")
+        XCTAssertTrue(
+            leaks.isEmpty,
+            "GameDB detail view leaked raw localization keys: \(leaks)"
+        )
     }
 
     /// Same check, but for the apply-config preview sheet (the overlay where the diff
     /// shows). Verifies sheet content is fully localized.
-    func testNoRawKeysInApplyPreviewSheet() throws {
+    func testNoRawKeysInApplyPreviewSheet() {
         openGameConfigurations()
         openCelesteDetail()
         require(app.buttons["gamedb.detail.applyButton"], "detail view", timeout: 5).click()
         require(app.buttons["gamedb.preview.cancelButton"], "preview sheet", timeout: 5)
 
         let leaks = rawKeyLeaks()
-        XCTAssertTrue(leaks.isEmpty,
-                      "Apply preview sheet leaked raw localization keys: \(leaks)")
+        XCTAssertTrue(
+            leaks.isEmpty,
+            "Apply preview sheet leaked raw localization keys: \(leaks)"
+        )
 
         app.buttons["gamedb.preview.cancelButton"].click()
     }
 
     // MARK: - Create-bottle sheet
 
-    func testCreateBottleSheetOpensAndCancels() throws {
+    func testCreateBottleSheetOpensAndCancels() {
         // macOS toolbar buttons render as paired wrapper+inner buttons sharing the
         // same identifier. Click the first match, which is the hittable wrapper.
         let createButton = require(
@@ -257,23 +309,32 @@ final class WhiskyUITests: XCTestCase {
         createButton.click()
 
         // Sheet should expose the name field and Cancel/Create buttons
-        let nameField = require(app.textFields["create.nameField"],
-                                "create-bottle name field", timeout: 3)
+        let nameField = require(
+            app.textFields["create.nameField"],
+            "create-bottle name field",
+            timeout: 3
+        )
         XCTAssertTrue(app.buttons["create.cancelButton"].exists, "Cancel button missing")
         // Create button should start disabled (empty name)
-        XCTAssertFalse(app.buttons["create.createButton"].isEnabled,
-                       "Create button should be disabled when name is empty")
+        XCTAssertFalse(
+            app.buttons["create.createButton"].isEnabled,
+            "Create button should be disabled when name is empty"
+        )
         // Type a name and verify Create becomes enabled
         nameField.click()
         nameField.typeText("UITestBottle")
-        XCTAssertTrue(app.buttons["create.createButton"].isEnabled,
-                      "Create button should enable once name is non-empty")
+        XCTAssertTrue(
+            app.buttons["create.createButton"].isEnabled,
+            "Create button should enable once name is non-empty"
+        )
         // Don't actually create - cancel out
         app.buttons["create.cancelButton"].click()
 
         // Sheet should dismiss
-        XCTAssertFalse(app.textFields["create.nameField"]
-                          .waitForExistence(timeout: 1),
-                      "Create sheet failed to dismiss after Cancel")
+        XCTAssertFalse(
+            app.textFields["create.nameField"]
+                .waitForExistence(timeout: 1),
+            "Create sheet failed to dismiss after Cancel"
+        )
     }
 }

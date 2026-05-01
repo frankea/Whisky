@@ -222,6 +222,10 @@ def save_snapshot(issues: list[Issue]) -> None:
 
 CITATION_RE = re.compile(r"whisky-app/whisky#(\d+)", re.IGNORECASE)
 UPSTREAM_HASH_RE = re.compile(r"\bupstream\s*#(\d+)", re.IGNORECASE)
+ISSUE_URL_RE = re.compile(
+    r"github\.com/whisky-app/whisky/(?:issues|pull)/(\d+)",
+    re.IGNORECASE,
+)
 
 
 def collect_citations() -> dict[int, list[dict]]:
@@ -233,8 +237,13 @@ def collect_citations() -> dict[int, list[dict]]:
     ]
     existing = [p for p in grep_paths if (REPO_ROOT / p).exists()]
     if existing:
-        out = run(["grep", "-rEn", r"whisky-app/whisky#[0-9]+|upstream\s*#[0-9]+",
-                   *existing, "--include=*.md", "--include=*.swift", "--include=*.py"])
+        out = run([
+            "grep", "-rEn",
+            r"whisky-app/whisky#[0-9]+|upstream\s*#[0-9]+|github\.com/whisky-app/whisky/(issues|pull)/[0-9]+",
+            *existing,
+            "--include=*.md", "--include=*.swift", "--include=*.py",
+            "--include=*.json",
+        ])
         for line in out.splitlines():
             # Format: path:line:content
             try:
@@ -249,6 +258,11 @@ def collect_citations() -> dict[int, list[dict]]:
             for match in UPSTREAM_HASH_RE.finditer(content):
                 citations[int(match.group(1))].append({
                     "type": "upstream-citation", "path": path, "line": int(lineno),
+                    "excerpt": content.strip()[:200],
+                })
+            for match in ISSUE_URL_RE.finditer(content):
+                citations[int(match.group(1))].append({
+                    "type": "url-citation", "path": path, "line": int(lineno),
                     "excerpt": content.strip()[:200],
                 })
     # Also scan git log so commit messages with `Closes whisky-app/whisky#NNN` count.

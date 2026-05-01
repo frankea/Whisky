@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'WhiskyKit/**'
+      - 'dist/pages/**'
       - '.github/workflows/Documentation.yml'
   workflow_dispatch:
 
@@ -56,6 +57,13 @@ jobs:
             --transform-for-static-hosting \
             --hosting-base-path Whisky \
             --output-path ../docs
+
+      - name: Stage distribution files
+        run: |
+          if [ -d dist/pages ]; then
+            cp -R dist/pages/. docs/
+          fi
+          ls -la docs/
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3

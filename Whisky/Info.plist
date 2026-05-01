@@ -64,7 +64,7 @@
 	<key>SUFeedURL</key>
 	<string>https://frankea.github.io/Whisky/appcast.xml</string>
 	<key>SUPublicEDKey</key>
-	<string>REPLACE_WITH_YOUR_SPARKLE_EDDSA_PUBLIC_KEY</string>
+	<string>rJHUOL+DnZ2+w0irWNhkZmt3SfYMyy1qcEPEmIGuszM=</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>

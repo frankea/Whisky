@@ -203,6 +203,76 @@
       }
     },
     {
+      "id": "assassins-creed-odyssey",
+      "title": "Assassin's Creed Odyssey",
+      "aliases": [],
+      "subtitle": "Ubisoft",
+      "store": "steam",
+      "steamAppId": 812140,
+      "rating": "unverified",
+      "exeNames": [
+        "ACOdyssey.exe"
+      ],
+      "pathPatterns": [
+        "assassins creed odyssey"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "Ubisoft AnvilNext title \u2014 esync avoids msync loader_section deadlock seen in user logs",
+            "Ubisoft Connect overlay DLL override needed for window creation"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "esync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [
+            {
+              "dllName": "ubiorbitapi_r2_loader",
+              "mode": "n,b"
+            }
+          ],
+          "winetricksVerbs": [
+            "vcrun2019"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1108"
+      }
+    },
+    {
       "id": "assetto-corsa",
       "title": "Assetto Corsa",
       "aliases": [],
@@ -441,6 +511,72 @@
       }
     },
     {
+      "id": "black-mesa",
+      "title": "Black Mesa",
+      "aliases": [],
+      "subtitle": "Crowbar Collective",
+      "store": "steam",
+      "steamAppId": 362890,
+      "rating": "unverified",
+      "exeNames": [
+        "bms.exe",
+        "hl2.exe"
+      ],
+      "pathPatterns": [
+        "black mesa"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "Source engine title broke on Sequoia beta \u2014 Sequoia compat mode unblocks",
+            "DXVK D3D9 path more stable than wineD3D for Source on Apple Silicon"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": true
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2019"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1137"
+      }
+    },
+    {
       "id": "celeste",
       "title": "Celeste",
       "aliases": [
@@ -584,6 +720,72 @@
         "author": "Whisky Community",
         "lastUpdated": "2026-04-30T00:00:00Z",
         "referenceURL": "https://github.com/whisky-app/whisky/issues/1268"
+      }
+    },
+    {
+      "id": "cobalt-core",
+      "title": "Cobalt Core",
+      "aliases": [],
+      "subtitle": "Rocket Rat Games",
+      "store": "steam",
+      "steamAppId": 2179850,
+      "rating": "unverified",
+      "exeNames": [
+        "CobaltCore.exe"
+      ],
+      "pathPatterns": [
+        "cobalt core"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "Built on FNA/MonoGame/.NET Framework \u2014 needs dotnet48 for stable load",
+            "DXVK improves Unity-style framebuffer handling over wineD3D"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2019",
+            "dotnet48"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/829"
       }
     },
     {
@@ -1556,6 +1758,77 @@
       }
     },
     {
+      "id": "far-cry-4",
+      "title": "Far Cry 4",
+      "aliases": [],
+      "subtitle": "Ubisoft",
+      "store": "steam",
+      "steamAppId": 298110,
+      "rating": "unverified",
+      "exeNames": [
+        "FarCry4.exe"
+      ],
+      "pathPatterns": [
+        "far cry 4",
+        "farcry4"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "Dunia engine DX11 \u2014 DXVK is required for playable framerates",
+            "Performance is GPU-bound on Apple Silicon; lower internal res recommended"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [
+            {
+              "dllName": "ubiorbitapi_r2_loader",
+              "mode": "n,b"
+            }
+          ],
+          "winetricksVerbs": [
+            "vcrun2019"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1157"
+      }
+    },
+    {
       "id": "fields-of-mistria",
       "title": "Fields of Mistria",
       "aliases": [],
@@ -1981,6 +2254,73 @@
         "author": "Whisky Community",
         "lastUpdated": "2026-01-22T00:00:00Z",
         "referenceURL": null
+      }
+    },
+    {
+      "id": "halo-master-chief-collection",
+      "title": "Halo: The Master Chief Collection",
+      "aliases": [],
+      "subtitle": "343 Industries",
+      "store": "steam",
+      "steamAppId": 976730,
+      "rating": "unverified",
+      "exeNames": [
+        "mcclauncher.exe",
+        "MCC-Win64-Shipping.exe"
+      ],
+      "pathPatterns": [
+        "halo the master chief collection",
+        "mcc"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "Anti-cheat free in campaign; multiplayer requires Easy Anti-Cheat (broken)",
+            "Periodic freeze on esync \u2014 msync + DXVK persistent cache stabilizes"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1180"
       }
     },
     {
@@ -2429,6 +2769,139 @@
       }
     },
     {
+      "id": "it-takes-two",
+      "title": "It Takes Two",
+      "aliases": [],
+      "subtitle": "Hazelight Studios",
+      "store": "steam",
+      "steamAppId": 1426210,
+      "rating": "unverified",
+      "exeNames": [
+        "ItTakesTwo.exe",
+        "ItTakesTwo_Trial.exe"
+      ],
+      "pathPatterns": [
+        "it takes two"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "EA Origin-launched title needs vcrun + d3dcompiler for DX11 startup",
+            "Friend's Pass complicates testing but core game launches with DXVK"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2019",
+            "d3dcompiler_47"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/631"
+      }
+    },
+    {
+      "id": "jusant",
+      "title": "Jusant",
+      "aliases": [],
+      "subtitle": "Don't Nod",
+      "store": "steam",
+      "steamAppId": 1977170,
+      "rating": "unverified",
+      "exeNames": [
+        "Jusant.exe",
+        "Jusant-Win64-Shipping.exe"
+      ],
+      "pathPatterns": [
+        "jusant"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "UE4 title with Don't Nod-typical DX11 startup error without vcrun2022",
+            "DXVK + async addresses initial Direct3D init pattern"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/694"
+      }
+    },
+    {
       "id": "mgs-master-collection-vol-1",
       "title": "Metal Gear Solid: Master Collection Vol. 1",
       "aliases": [
@@ -2569,6 +3042,140 @@
         "author": "Whisky Community",
         "lastUpdated": "2026-04-30T00:00:00Z",
         "referenceURL": "https://github.com/whisky-app/whisky/issues/1192"
+      }
+    },
+    {
+      "id": "monster-hunter-world",
+      "title": "Monster Hunter: World",
+      "aliases": [],
+      "subtitle": "Capcom",
+      "store": "steam",
+      "steamAppId": 582010,
+      "rating": "unverified",
+      "exeNames": [
+        "MonsterHunterWorld.exe"
+      ],
+      "pathPatterns": [
+        "monster hunter world",
+        "monsterhunterworld"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "MT Framework engine \u2014 cutscene freezes from missing Media Foundation",
+            "mf winetrick + DXVK addresses Iceborne ending cutscene hang"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2019",
+            "mf"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1320"
+      }
+    },
+    {
+      "id": "mortal-kombat-komplete-edition",
+      "title": "Mortal Kombat Komplete Edition",
+      "aliases": [],
+      "subtitle": "NetherRealm Studios",
+      "store": "steam",
+      "steamAppId": 237110,
+      "rating": "unverified",
+      "exeNames": [
+        "MKKE.exe"
+      ],
+      "pathPatterns": [
+        "mortal kombat komplete",
+        "mkke"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "2013-era DX11 fighter, requires legacy vcrun2013 + d3dcompiler",
+            "Splash-then-exit is classic D3D11 device init failure pattern"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2013",
+            "d3dcompiler_47"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1190"
       }
     },
     {
@@ -2722,6 +3329,74 @@
       }
     },
     {
+      "id": "persona-3-reload",
+      "title": "Persona 3 Reload",
+      "aliases": [],
+      "subtitle": "ATLUS",
+      "store": "steam",
+      "steamAppId": 2161700,
+      "rating": "unverified",
+      "exeNames": [
+        "P3R.exe",
+        "P3R-Win64-Shipping.exe"
+      ],
+      "pathPatterns": [
+        "p3r",
+        "persona 3 reload"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "UE4.27 Atlus port crashes in DXVK init without vcrun + d3dcompiler",
+            "Pattern matches other UE4 JRPG ports we've shipped"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022",
+            "d3dcompiler_47"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1208"
+      }
+    },
+    {
       "id": "ps-plus-pc-app",
       "title": "PlayStation Plus (PC App)",
       "aliases": [
@@ -2855,6 +3530,140 @@
         "author": "Whisky Community",
         "lastUpdated": "2026-04-30T00:00:00Z",
         "referenceURL": "https://github.com/whisky-app/whisky/issues/647"
+      }
+    },
+    {
+      "id": "psychonauts-2",
+      "title": "Psychonauts 2",
+      "aliases": [],
+      "subtitle": "Double Fine",
+      "store": "steam",
+      "steamAppId": 607080,
+      "rating": "unverified",
+      "exeNames": [
+        "Psychonauts2.exe",
+        "Psychonauts2-Win64-Shipping.exe"
+      ],
+      "pathPatterns": [
+        "psychonauts2",
+        "psychonauts 2"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "UE4 title where Win10 mode regression in newer Wine builds \u2014 Win11 + DXVK is stable path",
+            "Performance regression is upstream Wine bug; recommended settings sidestep it"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1025"
+      }
+    },
+    {
+      "id": "ready-or-not",
+      "title": "Ready Or Not",
+      "aliases": [],
+      "subtitle": "VOID Interactive",
+      "store": "steam",
+      "steamAppId": 1144200,
+      "rating": "unverified",
+      "exeNames": [
+        "ReadyOrNot.exe",
+        "ReadyOrNot-Win64-Shipping.exe"
+      ],
+      "pathPatterns": [
+        "ready or not",
+        "readyornot"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "UE4 shooter where pink/black artifacts indicate shader cache invalidation",
+            "DXVK with async cache + persistent shader cache resolves intermittent corruption"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1162"
       }
     },
     {
@@ -3019,6 +3828,139 @@
         "author": "Whisky Community",
         "lastUpdated": "2026-01-10T00:00:00Z",
         "referenceURL": null
+      }
+    },
+    {
+      "id": "severed-steel",
+      "title": "Severed Steel",
+      "aliases": [],
+      "subtitle": "Greylock Studio",
+      "store": "steam",
+      "steamAppId": 1227690,
+      "rating": "unverified",
+      "exeNames": [
+        "SeveredSteel.exe",
+        "SeveredSteel-Win64-Shipping.exe"
+      ],
+      "pathPatterns": [
+        "severed steel"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "UE4 voxel-destruction shooter that broke on Sequoia \u2014 compat mode + DXVK restores",
+            "Worked previously, regressed on macOS 15 beta \u2014 fits Sequoia compat fix pattern"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": true
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1160"
+      }
+    },
+    {
+      "id": "slime-rancher-2",
+      "title": "Slime Rancher 2",
+      "aliases": [],
+      "subtitle": "Monomi Park",
+      "store": "steam",
+      "steamAppId": 1657630,
+      "rating": "unverified",
+      "exeNames": [
+        "SlimeRancher2.exe",
+        "SlimeRancher2-Win64-Shipping.exe"
+      ],
+      "pathPatterns": [
+        "slime rancher 2",
+        "slimerancher2"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "UE5 Lumen-lit title \u2014 flashing in volumetric/lava scenes is known DXVK+Lumen quirk",
+            "Sequoia compat mode reduces flicker on macOS 15"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": true
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1235"
       }
     },
     {
@@ -3380,6 +4322,73 @@
       }
     },
     {
+      "id": "tales-of-berseria",
+      "title": "Tales of Berseria",
+      "aliases": [],
+      "subtitle": "Bandai Namco",
+      "store": "steam",
+      "steamAppId": 429660,
+      "rating": "unverified",
+      "exeNames": [
+        "TOB.exe",
+        "Tales of Berseria.exe"
+      ],
+      "pathPatterns": [
+        "tales of berseria"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "DX11 Bandai Namco JRPG with the silent-exit-on-launch pattern",
+            "vcrun2019 + d3dcompiler_47 unblocks DX11 device creation"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2019",
+            "d3dcompiler_47"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/727"
+      }
+    },
+    {
       "id": "team-fortress-2",
       "title": "Team Fortress 2",
       "aliases": [
@@ -3587,6 +4596,72 @@
         "author": "Whisky Community",
         "lastUpdated": "2026-01-20T00:00:00Z",
         "referenceURL": null
+      }
+    },
+    {
+      "id": "binding-of-isaac-rebirth",
+      "title": "The Binding of Isaac: Rebirth",
+      "aliases": [],
+      "subtitle": "Nicalis",
+      "store": "steam",
+      "steamAppId": 250900,
+      "rating": "unverified",
+      "exeNames": [
+        "isaac-ng.exe"
+      ],
+      "pathPatterns": [
+        "binding of isaac rebirth",
+        "the binding of isaac"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "DX9 sprite-based 2D engine works better via wineD3D than DXVK d3d9 on Apple Silicon",
+            "Repentance/Repentance+ DLC scripting depends on stable d3d9 path"
+          ],
+          "settings": {
+            "graphicsBackend": "wineD3D",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2019"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1258"
       }
     },
     {
@@ -4321,6 +5396,143 @@
       }
     },
     {
+      "id": "trackmania-turbo",
+      "title": "Trackmania Turbo",
+      "aliases": [],
+      "subtitle": "Ubisoft Nadeo",
+      "store": "steam",
+      "steamAppId": 360830,
+      "rating": "unverified",
+      "exeNames": [
+        "TrackmaniaTurbo.exe"
+      ],
+      "pathPatterns": [
+        "trackmania turbo"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "Requires working Ubisoft Connect overlay; covered by trackmania-2020 ubiconnect pattern",
+            "DXVK improves stability over wineD3D for the DX11 build"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [
+            {
+              "dllName": "ubiorbitapi_r2_loader",
+              "mode": "n,b"
+            }
+          ],
+          "winetricksVerbs": [
+            "vcrun2019"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/279"
+      }
+    },
+    {
+      "id": "train-sim-world-5",
+      "title": "Train Sim World 5",
+      "aliases": [],
+      "subtitle": "Dovetail Games",
+      "store": "steam",
+      "steamAppId": 2467730,
+      "rating": "unverified",
+      "exeNames": [
+        "TS5Game.exe",
+        "TS5Game-Win64-Shipping.exe"
+      ],
+      "pathPatterns": [
+        "train sim world 5",
+        "ts5"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "UE4.27 sim \u2014 msync regression in 2.3.2+ causes audio-only freeze; esync stable",
+            "DXVK on for DX12 \u2192 DX11 fallback path stability"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "esync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1124"
+      }
+    },
+    {
       "id": "turtle-wow",
       "title": "Turtle WoW",
       "aliases": [],
@@ -4678,6 +5890,73 @@
       }
     },
     {
+      "id": "ys-x-nordics",
+      "title": "Ys X: Nordics",
+      "aliases": [],
+      "subtitle": "Nihon Falcom",
+      "store": "steam",
+      "steamAppId": 2731870,
+      "rating": "unverified",
+      "exeNames": [
+        "YsX.exe"
+      ],
+      "pathPatterns": [
+        "ys x",
+        "ys-x"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "Falcom DX11 JRPG with the immediate-crash-on-launch pattern",
+            "vcrun2022 + d3dcompiler_47 unblocks DX11 device creation"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022",
+            "d3dcompiler_47"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1214"
+      }
+    },
+    {
       "id": "zuma-deluxe",
       "title": "Zuma Deluxe",
       "aliases": [],
@@ -4738,6 +6017,71 @@
         "author": "Whisky Community",
         "lastUpdated": "2026-04-30T00:00:00Z",
         "referenceURL": "https://github.com/whisky-app/whisky/issues/484"
+      }
+    },
+    {
+      "id": "killer7",
+      "title": "killer7",
+      "aliases": [],
+      "subtitle": "Grasshopper Manufacture",
+      "store": "steam",
+      "steamAppId": 1241890,
+      "rating": "unverified",
+      "exeNames": [
+        "killer7.exe"
+      ],
+      "pathPatterns": [
+        "killer7"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Community-tested configuration",
+          "rationale": [
+            "32-bit DX9 PS2-era port loads faster on wineD3D than DXVK on Apple Silicon",
+            "DXVK shader compile causes 2-5min loads; wineD3D bypasses"
+          ],
+          "settings": {
+            "graphicsBackend": "wineD3D",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2019"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1119"
       }
     }
   ]

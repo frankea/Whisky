@@ -72,6 +72,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   SpellForce 3 (corefonts + d3dcompiler), Fallout 4 (Sequoia compat + xact)
   (Closes whisky-app/whisky#748, whisky-app/whisky#890,
   whisky-app/whisky#980, whisky-app/whisky#1312).
+- Bundled GameDB gains 20 more entries from the fourth-pass retriage —
+  full coverage of the long tail of mainstream titles in the upstream
+  backlog: Jusant, Ready or Not, Persona 3 Reload, Binding of Isaac,
+  Trackmania Turbo, It Takes Two, Tales of Berseria, Cobalt Core,
+  Psychonauts 2, Assassin's Creed Odyssey, killer7, Train Sim World 5,
+  Black Mesa, Far Cry 4, Severed Steel, Halo: Master Chief Collection,
+  Mortal Kombat Komplete Edition, YS X: Nordics, Slime Rancher 2,
+  Monster Hunter: World (Iceborne) (Closes whisky-app/whisky#279,
+  whisky-app/whisky#631, whisky-app/whisky#694, whisky-app/whisky#727,
+  whisky-app/whisky#829, whisky-app/whisky#1025, whisky-app/whisky#1108,
+  whisky-app/whisky#1119, whisky-app/whisky#1124, whisky-app/whisky#1137,
+  whisky-app/whisky#1157, whisky-app/whisky#1160, whisky-app/whisky#1162,
+  whisky-app/whisky#1180, whisky-app/whisky#1190, whisky-app/whisky#1208,
+  whisky-app/whisky#1214, whisky-app/whisky#1235, whisky-app/whisky#1258,
+  whisky-app/whisky#1320). The bundled DB now covers 79 titles.
 - Diagnostic system-info reports use sysctl-based hardware detection
   (`hw.optional.arm64`) instead of the `#if arch(arm64)` compile-time
   macro, so a universal binary running its x86_64 slice through Rosetta

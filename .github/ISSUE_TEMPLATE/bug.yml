@@ -36,16 +36,17 @@ body:
     attributes:
       label: What version of Whisky are you using?
       description: You can find this in Whisky → About Whisky
-      placeholder: "e.g., 2.3.2"
+      placeholder: "e.g., 3.0.1"
     validations:
       required: true
   - type: dropdown
     id: mac-version
     attributes:
       label: What version of macOS are you using?
+      description: This fork requires macOS 15 (Sequoia) or later.
       options:
         - "Sequoia (macOS 15)"
-        - "Sonoma (macOS 14)"
+        - "Tahoe (macOS 26)"
     validations:
       required: true
   - type: checkboxes

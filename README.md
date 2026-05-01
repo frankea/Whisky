@@ -50,9 +50,26 @@ Whisky provides a clean and easy-to-use graphical wrapper for Wine built in nati
 
 ## Installation
 
-Download the latest release from the [Releases page](https://github.com/frankea/Whisky/releases).
+1. Download the latest **[Whisky-X.Y.Z.dmg](https://github.com/frankea/Whisky/releases/latest)** (signed and notarized — Gatekeeper-approved).
+2. Open the DMG and drag **Whisky.app** to **/Applications**.
+3. Launch Whisky. On first run it downloads the Wine runtime (~313 MB) and sets up your default bottle.
 
-> **Note:** This fork is not available via Homebrew. The `brew install --cask whisky` command installs the original Whisky project, not this fork.
+In-app updates are delivered through Sparkle from `https://frankea.github.io/Whisky/appcast.xml`.
+
+> **Note:** This fork is not yet available via Homebrew. `brew install --cask whisky` still installs the archived original.
+
+### Migrating from the original Whisky
+
+The original [whisky-app/whisky](https://github.com/whisky-app/whisky) was archived on **April 9, 2025** with a final maintenance notice. If you're running it today, you're on a stale build with no path forward for new fixes. This fork picks up where the upstream left off — version `3.0.1` shipped 54 requirements covering the 10 categories of upstream issue tracking (#40–#50).
+
+To switch:
+
+1. Quit the original Whisky app.
+2. Drag the existing **/Applications/Whisky.app** to the Trash. Your bottles in `~/Library/Containers/com.isaacmarovitz.Whisky/` are untouched, but this fork uses a different bundle identifier (`com.franke.Whisky`) so it will not see them automatically — export bottles you want to keep first via the original app's **Bottle → Export** menu.
+3. Install this fork using the steps above.
+4. Re-import any exported bottles through **File → Import Bottle** in the new app.
+
+If you have no critical bottles, you can skip the export — the new app will create a fresh bottle on first launch.
 
 ## Documentation
 
@@ -82,7 +99,6 @@ Whisky is possible thanks to the magic of several projects:
 - [Sparkle](https://github.com/sparkle-project/Sparkle) by sparkle-project
 - [SemanticVersion](https://github.com/SwiftPackageIndex/SemanticVersion) by SwiftPackageIndex
 - [swift-argument-parser](https://github.com/apple/swift-argument-parser) by Apple
-- [SwiftTextTable](https://github.com/scottrhoyt/SwiftyTextTable) by scottrhoyt
 - [CrossOver](https://www.codeweavers.com/crossover) by CodeWeavers and WineHQ
 - D3DMetal by Apple
 

@@ -1,239 +1,157 @@
-# Release Workflow Documentation
+# Release Workflow
 
-This document describes the process for publishing Wine Libraries and application updates to GitHub Releases and GitHub Pages.
+This document describes how to cut a release of the Whisky app and how to publish a new Wine Libraries archive.
 
-## Overview
+The fork uses two parallel artifact streams:
 
-The Whisky fork uses the following infrastructure for distribution:
+- **App releases** (`app-vX.Y.Z`) — `Whisky-X.Y.Z.dmg`, signed and notarized for direct distribution.
+- **Wine Libraries releases** (`vX.Y.Z`) — `Libraries.tar.gz` containing the Wine/DXVK runtime that the app downloads on first launch.
 
-- **GitHub Pages** (`gh-pages` branch): Hosts version metadata and Sparkle appcast
-- **GitHub Releases**: Hosts binary assets (Wine Libraries and application builds)
+Both live on GitHub Releases. Static metadata (version plist, Sparkle appcast) is served from GitHub Pages, which is **workflow-deployed** through `.github/workflows/Documentation.yml`. The `gh-pages` branch is unused; static files go in `dist/pages/`.
 
-## One-Time Setup: Sparkle EdDSA Keys
+## One-time setup
 
-Before publishing any application releases, you must generate a new Sparkle EdDSA key pair. This is required because this fork cannot use the original Whisky project's signing keys.
+These only need to be done once per maintainer machine.
 
-### Generate Keys
+### Apple Developer ID Application certificate
 
-1. **Using Sparkle's built-in tool** (if Sparkle is installed via SPM):
-   ```bash
-   # Navigate to the Sparkle package in DerivedData or use swift package plugin
-   ./generate_keys
+A Developer ID Application certificate is required to ship a Gatekeeper-friendly DMG. Apple Development and Apple Distribution certs are not sufficient.
+
+1. **Xcode → Settings → Accounts** → select your Apple ID → **Manage Certificates…**
+2. Click **+** → **Developer ID Application**
+3. The cert is installed in your login keychain automatically.
+
+### notarytool credentials
+
+Apple's notary service needs an app-specific password.
+
+1. Generate one at <https://appleid.apple.com> → **Sign-In and Security → App-Specific Passwords**.
+2. Store it as a notarytool keychain profile:
+   ```sh
+   xcrun notarytool store-credentials AC_PASSWORD \
+     --apple-id <your-apple-id-email> \
+     --team-id Z7JS58F8U3 \
+     --password <app-specific-password>
    ```
+3. The release script reads this profile by name (`AC_PASSWORD`).
 
-2. **Using the Sparkle framework** (if downloaded separately):
-   ```bash
-   ./Sparkle.framework/Versions/B/Resources/generate_keys
-   ```
+### Sparkle EdDSA keys
 
-3. **Output**: The tool will generate:
-   - **Private key**: Store securely (e.g., in a password manager or secure file). You'll need this to sign every release.
-   - **Public key**: A base64-encoded string to put in `Info.plist`
+A keypair is needed to sign appcast entries. Sparkle's `generate_keys` tool ships with the Sparkle SPM package; after building Whisky once, find it at:
 
-### Update Info.plist
-
-Replace the placeholder in `Whisky/Info.plist`:
-
-```xml
-<key>SUPublicEDKey</key>
-<string>YOUR_GENERATED_PUBLIC_KEY_HERE</string>
+```
+~/Library/Developer/Xcode/DerivedData/Whisky-*/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_keys
 ```
 
-### Store Private Key Securely
+Run it once. The private key is stored automatically in your login keychain. The public key is printed to stdout — it is already committed in `Whisky/Info.plist` under `SUPublicEDKey`. If you regenerate keys you will invalidate the existing public key in the bundled app and need to re-release.
 
-- **Never commit the private key** to version control
-- Store it in a secure location (password manager, encrypted file, etc.)
-- You'll need the private key path when running `generate_appcast` for releases
+## App release
 
-## Wine Libraries Release Process
+### 1. Bump versions
 
-### Prerequisites
+Update both fields in `Whisky.xcodeproj/project.pbxproj` (every occurrence):
 
-1. Wine/GPTK binaries compiled and packaged as `Libraries.tar.gz`
-2. Version number determined (e.g., `2.5.0`)
+- `MARKETING_VERSION = X.Y.Z;` — user-visible version.
+- `CURRENT_PROJECT_VERSION = N;` — Sparkle build number, must increment monotonically.
 
-### Steps
+### 2. Update the changelog
 
-1. **Update CHANGELOG.md**
-   ```bash
-   # Move items from [Unreleased] to new version section
-   # Add release date in format YYYY-MM-DD
-   ```
-   
-   Example:
-   ```markdown
-   ## [2.5.0] - 2026-01-10
-   
-   ### Added
-   - New Wine libraries with GPTK support
-   
-   ### Fixed
-   - Compatibility issues with macOS Sequoia
-   ```
+Move items from `[Unreleased]` to a new `[X.Y.Z] - YYYY-MM-DD (App)` section in `CHANGELOG.md`.
 
-2. **Create GitHub Release**
-   ```bash
-   # Create a new release tag (e.g., v2.5.0)
-   git tag v2.5.0
-   git push origin v2.5.0
-   ```
+### 3. Build, sign, notarize, package
 
-3. **Create Release on GitHub**
-   - Go to https://github.com/frankea/Whisky/releases/new
-   - Select tag: `v2.5.0`
-   - Title: `Wine Libraries v2.5.0`
-   - Description: Copy release notes from CHANGELOG.md
-   - Upload `Libraries.tar.gz` as a release asset
-   - Publish release
+```sh
+scripts/release.sh X.Y.Z
+```
 
-4. **Update Version Plist on gh-pages**
-   ```bash
-   git checkout gh-pages
-   # Edit WhiskyWineVersion.plist to match the new version
-   # Update version numbers:
-   #   major: 2
-   #   minor: 5
-   #   patch: 0
-   git add WhiskyWineVersion.plist
-   git commit -m "Update WhiskyWine version to 2.5.0"
-   git push origin gh-pages
-   git checkout main
-   ```
+The script:
 
-5. **Verify Download URL**
-   The download URL will be:
-   ```
-   https://github.com/frankea/Whisky/releases/download/v2.5.0/Libraries.tar.gz
-   ```
-   
-   Note: The version in the URL must match the GitHub Release tag exactly.
+1. Archives the app (Apple Development signing during archive — automatic provisioning handles cert resolution).
+2. Re-signs on export with **Developer ID Application** per `scripts/exportOptions.plist`.
+3. Verifies the signature with `codesign --verify --deep --strict`.
+4. Builds a UDZO disk image with `hdiutil`.
+5. Signs the DMG with the Developer ID Application certificate.
+6. Submits the DMG to Apple's notary service and waits for the verdict (typically 5–15 minutes).
+7. Staples the notarization ticket.
+8. Verifies the stapled DMG passes `spctl --assess`.
 
-## Application Release Process
+The artifact lands at `build/release/Whisky-X.Y.Z.dmg`.
 
-### Prerequisites
+### 4. Sign the DMG for Sparkle
 
-1. Application built and signed (if applicable)
-2. Application packaged as `Whisky.app.zip`
-3. Sparkle EdDSA signature generated for the release
-4. Version number determined (e.g., `1.0.0`)
+```sh
+~/Library/Developer/Xcode/DerivedData/Whisky-*/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update build/release/Whisky-X.Y.Z.dmg
+```
 
-### Steps
+Capture the printed `sparkle:edSignature` and `length`.
 
-1. **Update CHANGELOG.md**
-   ```bash
-   # Move items from [Unreleased] to new version section
-   # Add release date in format YYYY-MM-DD
-   # Update comparison links at bottom of file
-   ```
-   
-   Example:
-   ```markdown
-   ## [1.0.0] - 2026-02-01
-   
-   ### Added
-   - Initial release of Whisky application
-   - Bottle management for Wine prefixes
-   - Winetricks integration
-   
-   ### Fixed
-   - Memory leak in bottle creation
-   ```
+### 5. Add an appcast entry
 
-2. **Generate Sparkle Signature**
-   ```bash
-   # Using Sparkle's generate_appcast tool
-   # NOTE: ~/.ssh/sparkle_eddsa_key.pem is an example path. Replace it with the actual path
-   # to your Sparkle EdDSA private key. See the Sparkle documentation for key generation:
-   # https://sparkle-project.org/documentation/signing-updates/
-   generate_appcast --ed-key-file ~/.ssh/sparkle_eddsa_key.pem path/to/releases/
-   ```
+Edit `dist/pages/appcast.xml` and add a new `<item>` near the top of `<channel>`. Use the signature and length from the previous step:
 
-3. **Create GitHub Release**
-   ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
+```xml
+<item>
+    <title>Whisky X.Y.Z</title>
+    <pubDate>RFC822 date here</pubDate>
+    <sparkle:version>BUILD_NUMBER</sparkle:version>
+    <sparkle:shortVersionString>X.Y.Z</sparkle:shortVersionString>
+    <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+    <description><![CDATA[<p>Release notes...</p>]]></description>
+    <enclosure
+        url="https://github.com/frankea/Whisky/releases/download/app-vX.Y.Z/Whisky-X.Y.Z.dmg"
+        sparkle:edSignature="..."
+        length="..."
+        type="application/octet-stream" />
+</item>
+```
 
-4. **Create Release on GitHub**
-   - Go to https://github.com/frankea/Whisky/releases/new
-   - Select tag: `v1.0.0`
-   - Title: `Whisky v1.0.0`
-   - Description: Copy release notes from CHANGELOG.md
-   - Upload `Whisky.app.zip` as a release asset
-   - Publish release
+### 6. Commit, tag, and release
 
-5. **Update appcast.xml on gh-pages**
-   ```bash
-   git checkout gh-pages
-   # Edit appcast.xml to add new item:
-   ```
+```sh
+git add Whisky.xcodeproj/project.pbxproj CHANGELOG.md dist/pages/appcast.xml
+git commit -m "release: X.Y.Z"
+git push
+git tag -a app-vX.Y.Z -m "Whisky X.Y.Z"
+git push origin app-vX.Y.Z
+
+gh release create app-vX.Y.Z \
+  --repo frankea/Whisky \
+  --title "Whisky X.Y.Z" \
+  --notes "..." \
+  build/release/Whisky-X.Y.Z.dmg
+```
+
+The push to `main` triggers `.github/workflows/Documentation.yml`, which redeploys Pages with the updated appcast within ~1–2 minutes. Sparkle clients pick up the update on next launch.
+
+## Wine Libraries release
+
+When the Wine/DXVK runtime needs to change:
+
+1. Build/package the new runtime as `Libraries.tar.gz` (procedure for the Wine build itself is out of scope here).
+2. Tag with the bare version `vX.Y.Z` (no `app-` prefix).
+3. `gh release create vX.Y.Z --title "Wine Libraries vX.Y.Z" Libraries.tar.gz`.
+4. Update `dist/pages/WhiskyWineVersion.plist`:
    ```xml
-   <item>
-       <title>Version 1.0.0</title>
-       <sparkle:releaseNotesLink>https://github.com/frankea/Whisky/releases/tag/v1.0.0</sparkle:releaseNotesLink>
-       <pubDate>Thu, 01 Jan 2026 00:00:00 +0000</pubDate>
-       <enclosure url="https://github.com/frankea/Whisky/releases/download/v1.0.0/Whisky.app.zip"
-                  sparkle:version="1.0.0"
-                  sparkle:shortVersionString="1.0.0"
-                  length="SIZE_IN_BYTES"
-                  type="application/octet-stream"
-                  sparkle:edSignature="SIGNATURE_FROM_GENERATE_APPCAST"/>
-   </item>
+   <dict>
+       <key>version</key>
+       <dict>
+           <key>major</key><integer>X</integer>
+           <key>minor</key><integer>Y</integer>
+           <key>patch</key><integer>Z</integer>
+       </dict>
+   </dict>
    ```
-   ```bash
-   git add appcast.xml
-   git commit -m "Add Whisky v1.0.0 to appcast"
-   git push origin gh-pages
-   git checkout main
-   ```
+5. Commit and push. The Documentation workflow republishes Pages, and existing app installs prompt to update on their next Wine version check.
 
-## Version Numbering
+## URLs the app depends on
 
-- **Wine Libraries**: Use semantic versioning (e.g., `2.5.0`)
-  - Tag format: `v2.5.0`
-  - Release title: `Wine Libraries v2.5.0`
+- `https://frankea.github.io/Whisky/WhiskyWineVersion.plist` — Wine version metadata
+- `https://frankea.github.io/Whisky/appcast.xml` — Sparkle update feed
+- `https://github.com/frankea/Whisky/releases/download/vX.Y.Z/Libraries.tar.gz` — Wine binary archive
+- `https://github.com/frankea/Whisky/releases/download/app-vX.Y.Z/Whisky-X.Y.Z.dmg` — app DMG
 
-- **Application**: Use semantic versioning (e.g., `1.0.0`)
-  - Tag format: `v1.0.0`
-  - Release title: `Whisky v1.0.0`
+## Pitfalls
 
-## URL Structure
-
-### Wine Libraries
-- Version check: `https://frankea.github.io/Whisky/WhiskyWineVersion.plist`
-- Download: `https://github.com/frankea/Whisky/releases/download/v{VERSION}/Libraries.tar.gz`
-
-### Application Updates
-- Appcast: `https://frankea.github.io/Whisky/appcast.xml`
-- Download: `https://github.com/frankea/Whisky/releases/download/v{VERSION}/Whisky.app.zip`
-
-## Testing Checklist
-
-Before publishing a release:
-
-- [ ] CHANGELOG.md updated with release notes
-- [ ] Version plist/appcast updated on gh-pages
-- [ ] Release created on GitHub with correct tag
-- [ ] Assets uploaded to release
-- [ ] URLs accessible (test download links)
-- [ ] Version check works in application
-- [ ] Download succeeds in application
-- [ ] Sparkle signature valid (for app releases)
-
-## Troubleshooting
-
-### Download Fails
-- Verify release tag matches URL exactly (case-sensitive)
-- Check asset filename matches URL (`Libraries.tar.gz` or `Whisky.app.zip`)
-- Verify release is published (not draft)
-
-### Version Check Fails
-- Verify `WhiskyWineVersion.plist` is accessible at GitHub Pages URL
-- Check plist format is valid XML
-- Verify version numbers match expected format
-
-### Sparkle Update Check Fails
-- Verify `appcast.xml` is accessible at GitHub Pages URL
-- Check XML format is valid
-- Verify EdDSA signature is correct
-- Check `SUPublicEDKey` in Info.plist matches signing key
+- **Don't override `CODE_SIGN_IDENTITY` at archive time.** The project is configured for Apple Development with automatic signing; overriding it conflicts with provisioning. The release script lets `xcodebuild archive` use the project default and re-signs on export.
+- **Don't bundle the WhiskyKit folder as Resources.** Doing so packages the package's `.build` directory (DocC plugin executables) into the app, and Apple's notary rejects the archive because those plugin executables don't have hardened runtime. The PBXResourcesBuildPhase entry for `WhiskyKit` was removed from the project for this reason; do not add it back. The PBXFileReference and PBXGroup entries must remain or Xcode's SPM workspace integration crashes on CI.
+- **Pipe deadlocks in `Tar`.** `process.waitUntilExit()` must come *after* draining the pipe, not before. The verbose tar listing for a multi-hundred-megabyte archive will overflow the OS pipe buffer. See the fix in 3.0.1.

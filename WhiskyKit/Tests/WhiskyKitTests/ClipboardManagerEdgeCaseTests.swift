@@ -22,6 +22,7 @@ import XCTest
 
 // MARK: - Integration Tests
 
+@MainActor
 final class ClipboardManagerIntegrationTests: XCTestCase {
     var clipboardManager: ClipboardManager!
 
@@ -97,6 +98,7 @@ final class ClipboardManagerIntegrationTests: XCTestCase {
 
 // MARK: - Edge Case Tests
 
+@MainActor
 final class ClipboardManagerEdgeCaseTests: XCTestCase {
     var clipboardManager: ClipboardManager!
 

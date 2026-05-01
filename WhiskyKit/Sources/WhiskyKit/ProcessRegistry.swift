@@ -53,12 +53,37 @@ public final class ProcessRegistry: @unchecked Sendable {
         public let bottleURL: URL
         /// Name of the program/executable
         public let programName: String
+        /// Identity of the underlying `Process` object, used to disambiguate
+        /// pre-launch entries (where ``pid`` is still 0). Excluded from hashing
+        /// and equality so that updating ``pid`` does not change identity.
+        let processIdentity: ObjectIdentifier?
+
+        public init(
+            pid: Int32,
+            launchTime: Date,
+            bottleURL: URL,
+            programName: String,
+            processIdentity: ObjectIdentifier? = nil
+        ) {
+            self.pid = pid
+            self.launchTime = launchTime
+            self.bottleURL = bottleURL
+            self.programName = programName
+            self.processIdentity = processIdentity
+        }
 
         public func hash(into hasher: inout Hasher) {
             hasher.combine(pid)
             hasher.combine(launchTime)
             hasher.combine(bottleURL)
             hasher.combine(programName)
+        }
+
+        public static func == (lhs: ProcessInfo, rhs: ProcessInfo) -> Bool {
+            lhs.pid == rhs.pid &&
+                lhs.launchTime == rhs.launchTime &&
+                lhs.bottleURL == rhs.bottleURL &&
+                lhs.programName == rhs.programName
         }
     }
 
@@ -83,7 +108,8 @@ public final class ProcessRegistry: @unchecked Sendable {
             pid: 0, // Will be updated after launch
             launchTime: Date(),
             bottleURL: bottle.url,
-            programName: programName
+            programName: programName,
+            processIdentity: ObjectIdentifier(process)
         )
 
         var processes = activeProcesses[bottle.url] ?? Set()
@@ -102,16 +128,18 @@ public final class ProcessRegistry: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
 
-        // Find and update the process with PID 0
+        let identity = ObjectIdentifier(process)
+
         for (bottleURL, processes) in activeProcesses {
-            for info in processes where info.pid == 0 {
+            for info in processes where info.processIdentity == identity {
                 var mutableProcesses = processes
                 mutableProcesses.remove(info)
                 let updatedInfo = ProcessInfo(
                     pid: pid,
                     launchTime: info.launchTime,
                     bottleURL: info.bottleURL,
-                    programName: info.programName
+                    programName: info.programName,
+                    processIdentity: info.processIdentity
                 )
                 mutableProcesses.insert(updatedInfo)
                 activeProcesses[bottleURL] = mutableProcesses
@@ -120,6 +148,8 @@ public final class ProcessRegistry: @unchecked Sendable {
                 return
             }
         }
+
+        logger.warning("updatePID called for unregistered Process (pid: \(pid))")
     }
 
     /// Unregisters a process by PID.
@@ -248,8 +278,9 @@ public final class ProcessRegistry: @unchecked Sendable {
         // Wait for processes to terminate
         try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
 
-        // Check if processes are still running
-        let remainingProcesses = getProcesses(for: bottle).filter { $0.pid > 0 }
+        // Check if processes are still running. Use kill(pid, 0) to verify
+        // OS-level liveness so already-exited processes don't receive SIGKILL.
+        let remainingProcesses = getProcesses(for: bottle).filter { Self.isAlive(pid: $0.pid) }
 
         if !remainingProcesses.isEmpty, force {
             logger
@@ -293,6 +324,17 @@ public final class ProcessRegistry: @unchecked Sendable {
             // ESRCH means process doesn't exist, which is expected
             logger.error("Failed to send signal \(signal) to PID \(pid): \(String(cString: strerror(errno)))")
         }
+    }
+
+    /// Returns whether a PID currently corresponds to a running process.
+    ///
+    /// Sends signal 0, which performs error checking without delivering a signal.
+    /// `ESRCH` means the process is gone; any other result (including `EPERM`)
+    /// means it is still around.
+    private static func isAlive(pid: Int32) -> Bool {
+        guard pid > 0 else { return false }
+        if kill(pid, 0) == 0 { return true }
+        return errno != ESRCH
     }
 
     // MARK: - Testing Support

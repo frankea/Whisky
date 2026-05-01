@@ -109,7 +109,7 @@ public final class TempFileTracker: @unchecked Sendable {
         defer { lock.unlock() }
 
         guard var info = tempFiles[file] else {
-            logger.warning("File not registered for cleanup: \(file.path)")
+            logger.debug("markForCleanup: file not registered (already removed?): \(file.path)")
             return
         }
 
@@ -131,6 +131,8 @@ public final class TempFileTracker: @unchecked Sendable {
     ///   - maxRetries: Maximum number of cleanup attempts (default: 3)
     public func cleanupWithRetry(file: URL, maxRetries: Int = 3) async {
         for attempt in 0 ..< maxRetries {
+            markForCleanup(file: file)
+
             // Check if file is locked
             if isFileLocked(file) {
                 logger.warning("File '\(file.lastPathComponent)' is locked, attempt \(attempt + 1)/\(maxRetries)")
@@ -217,16 +219,7 @@ public final class TempFileTracker: @unchecked Sendable {
         logger.info("Cleaning up \(oldFileURLs.count) old temp file(s) (older than \(seconds) seconds)")
 
         for file in oldFileURLs {
-            do {
-                try FileManager.default.removeItem(at: file)
-                removeFromRegistry(file)
-                logger.debug("Cleaned up old temp file '\(file.lastPathComponent)'")
-            } catch {
-                logger
-                    .warning(
-                        "Failed to cleanup old temp file '\(file.lastPathComponent)': \(error.localizedDescription)"
-                    )
-            }
+            await cleanupWithRetry(file: file)
         }
     }
 

@@ -65,14 +65,21 @@ public enum ClipboardCheckResult: Sendable {
 /// // Check before launching a program
 /// let result = ClipboardManager.shared.checkBeforeLaunch(launcher: .steam, policy: .auto)
 /// ```
-public final class ClipboardManager: @unchecked Sendable {
+///
+/// All methods that touch `NSPasteboard` are isolated to `@MainActor` because
+/// `NSPasteboard` is documented as main-thread-only.
+@MainActor
+public final class ClipboardManager {
     public static let shared = ClipboardManager()
 
     private let pasteboard = NSPasteboard.general
     private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ClipboardManager")
 
-    /// Size threshold for considering clipboard content "large" (10 KB)
-    public static let largeContentThreshold: Int = 10 * 1_024 // 10 KB
+    /// Size threshold for considering clipboard content "large" (10 KB).
+    ///
+    /// Marked `nonisolated` so it can serve as a default value for non-isolated
+    /// types like `BottleCleanupConfig` without forcing them onto the main actor.
+    public nonisolated static let largeContentThreshold: Int = 10 * 1_024 // 10 KB
 
     /// Types of clipboard content.
     public enum ClipboardContent: @unchecked Sendable {

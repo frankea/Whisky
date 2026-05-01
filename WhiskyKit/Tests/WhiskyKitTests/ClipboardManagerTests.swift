@@ -20,6 +20,7 @@ import AppKit
 @testable import WhiskyKit
 import XCTest
 
+@MainActor
 final class ClipboardManagerTests: XCTestCase {
     var clipboardManager: ClipboardManager!
 

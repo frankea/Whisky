@@ -80,12 +80,15 @@ public enum StabilityDiagnostics {
         let version = MacOSVersion.current
         info += "macOS Version: \(version.description)\n"
 
-        #if arch(arm64)
-        info += "Architecture: Apple Silicon (arm64)\n"
-        info += "Rosetta 2: \(Rosetta2.isRosettaInstalled ? "✅ Installed" : "❌ Not Installed")\n"
-        #else
-        info += "Architecture: Intel (x86_64)\n"
-        #endif
+        // Use sysctl-based hardware detection rather than the compile-time
+        // `#if arch(arm64)` macro: a universal binary running its x86_64
+        // slice through Rosetta would otherwise misreport the host as Intel.
+        if HostArchitecture.isAppleSilicon {
+            info += "Architecture: Apple Silicon (arm64)\n"
+            info += "Rosetta 2: \(Rosetta2.isRosettaInstalled ? "✅ Installed" : "❌ Not Installed")\n"
+        } else {
+            info += "Architecture: Intel (x86_64)\n"
+        }
 
         let appVersion = config.bundle.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
         let buildNumber = config.bundle.infoDictionary?["CFBundleVersion"] as? String ?? ""

@@ -860,6 +860,78 @@
       }
     },
     {
+      "id": "djmax-respect-v",
+      "title": "DJMAX RESPECT V",
+      "aliases": [
+        "DJMAX"
+      ],
+      "subtitle": "ROCKY STUDIO / NEOWIZ",
+      "store": "steam",
+      "steamAppId": 960170,
+      "rating": "unverified",
+      "exeNames": [
+        "DJMAX RESPECT V.exe"
+      ],
+      "pathPatterns": [
+        "djmax respect v"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "dxvk-plus-korean-fonts",
+          "label": "DXVK + Korean fonts",
+          "isDefault": true,
+          "whenToUse": "Recommended community-tested configuration",
+          "rationale": [
+            "Unity IL2CPP loader fails without specific runtime + Korean fonts",
+            "DXVK avoids the IL2CPP/D3DMetal interop bug",
+            "fakekorean handles missing locale-specific assets"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "cjkfonts",
+            "fakekorean",
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "IL2CPP failures usually indicate runtime/font gaps, not code bugs"
+      ],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1312"
+      }
+    },
+    {
       "id": "dark-souls-3",
       "title": "Dark Souls III",
       "aliases": [
@@ -1412,6 +1484,75 @@
         "author": "Whisky Community",
         "lastUpdated": "2026-01-15T00:00:00Z",
         "referenceURL": null
+      }
+    },
+    {
+      "id": "fallout-4",
+      "title": "Fallout 4",
+      "subtitle": "Bethesda Game Studios",
+      "store": "steam",
+      "steamAppId": 377160,
+      "rating": "unverified",
+      "exeNames": [
+        "Fallout4Launcher.exe",
+        "Fallout4.exe"
+      ],
+      "pathPatterns": [
+        "fallout 4"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "dxvk-plus-xact-plus-sequoia-compat",
+          "label": "DXVK + xact + Sequoia compat",
+          "isDefault": true,
+          "whenToUse": "Recommended community-tested configuration",
+          "rationale": [
+            "Creation Engine queries display modes via legacy DDraw which trips up macOS Retina detection",
+            "DXVK + force D3D11 + sequoiaCompatMode gives consistent display detection",
+            "xact installs MS audio runtime expected by Creation Engine"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": true,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": true
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022",
+            "xact"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Disable Retina mode in bottle settings if launcher reports garbled resolutions"
+      ],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/890"
       }
     },
     {
@@ -2881,6 +3022,76 @@
       }
     },
     {
+      "id": "spellforce-3",
+      "title": "SpellForce 3",
+      "aliases": [
+        "SpellForce 3 Reforced"
+      ],
+      "subtitle": "Grimlore Games / THQ Nordic",
+      "store": "steam",
+      "steamAppId": 311290,
+      "rating": "unverified",
+      "exeNames": [
+        "sf3.exe",
+        "SpellForce3.exe"
+      ],
+      "pathPatterns": [
+        "spellforce 3"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "dxvk-plus-fonts-plus-d3dcompiler",
+          "label": "DXVK + fonts + d3dcompiler",
+          "isDefault": true,
+          "whenToUse": "Recommended community-tested configuration",
+          "rationale": [
+            "DX11 font renderer init fails without corefonts + d3dcompiler_47",
+            "DXVK gives reliable D3D11 translation"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "corefonts",
+            "d3dcompiler_47",
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/748"
+      }
+    },
+    {
       "id": "stardew-valley",
       "title": "Stardew Valley",
       "aliases": [
@@ -3744,6 +3955,71 @@
         "author": "Whisky Community",
         "lastUpdated": "2026-01-12T00:00:00Z",
         "referenceURL": null
+      }
+    },
+    {
+      "id": "they-are-billions",
+      "title": "They Are Billions",
+      "subtitle": "Numantian Games",
+      "store": "steam",
+      "steamAppId": 644930,
+      "rating": "unverified",
+      "exeNames": [
+        "TheyAreBillions.exe"
+      ],
+      "pathPatterns": [
+        "they are billions"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "dxvk-plus-d3dcompiler",
+          "label": "DXVK + d3dcompiler",
+          "isDefault": true,
+          "whenToUse": "Recommended community-tested configuration",
+          "rationale": [
+            "DX11 RTS title; DXVK reliably handles the rendering",
+            "vcrun2022 + d3dcompiler_47 cover the DX11 shader-init dependencies"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022",
+            "d3dcompiler_47"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/980"
       }
     },
     {

@@ -67,6 +67,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (Closes whisky-app/whisky#411).
 
 ### Changed
+- Bundled GameDB grows by 4 more entries from the third-pass retriage:
+  DJMAX RESPECT V (Korean fonts + DXVK), They Are Billions (vcrun + DXVK),
+  SpellForce 3 (corefonts + d3dcompiler), Fallout 4 (Sequoia compat + xact)
+  (Closes whisky-app/whisky#748, whisky-app/whisky#890,
+  whisky-app/whisky#980, whisky-app/whisky#1312).
+- Diagnostic system-info reports use sysctl-based hardware detection
+  (`hw.optional.arm64`) instead of the `#if arch(arm64)` compile-time
+  macro, so a universal binary running its x86_64 slice through Rosetta
+  no longer misreports the host as Intel
+  (Closes whisky-app/whisky#1097).
 - Installed-programs list filters out known launcher helpers and crash
   reporters (steamerrorreporter, steamservice, steamwebhelper, GameOverlayUI,
   vc_redist, UEPrereqSetup, the CrossOver HTML engine helper, etc.) so the

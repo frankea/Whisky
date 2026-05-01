@@ -106,21 +106,17 @@ enum LauncherDiagnostics {
             info += "Wine Version: Unable to detect\n"
         }
 
-        // Processor architecture
-        #if arch(arm64)
-        info += "Architecture: Apple Silicon (arm64)\n"
-        #else
-        info += "Architecture: Intel (x86_64)\n"
-        #endif
-
-        // Rosetta 2 status (for Apple Silicon)
-        #if arch(arm64)
-        if Rosetta2.isRosettaInstalled {
-            info += "Rosetta 2: ✅ Installed\n"
+        // Processor architecture (host hardware, independent of running slice)
+        if HostArchitecture.isAppleSilicon {
+            info += "Architecture: Apple Silicon (arm64)\n"
+            if Rosetta2.isRosettaInstalled {
+                info += "Rosetta 2: ✅ Installed\n"
+            } else {
+                info += "Rosetta 2: ❌ Not Installed\n"
+            }
         } else {
-            info += "Rosetta 2: ❌ Not Installed\n"
+            info += "Architecture: Intel (x86_64)\n"
         }
-        #endif
 
         info += "\n"
         return info

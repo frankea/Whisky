@@ -151,11 +151,11 @@ public enum DiagnosticExporter {
         var section = "### System Info\n\n"
         let version = MacOSVersion.current
         section += "- **macOS:** \(version.description)\n"
-        #if arch(arm64)
-        section += "- **Architecture:** Apple Silicon (arm64)\n"
-        #else
-        section += "- **Architecture:** Intel (x86_64)\n"
-        #endif
+        if HostArchitecture.isAppleSilicon {
+            section += "- **Architecture:** Apple Silicon (arm64)\n"
+        } else {
+            section += "- **Architecture:** Intel (x86_64)\n"
+        }
         if let whiskyWineVersion = WhiskyWineInstaller.whiskyWineVersion() {
             section += "- **WhiskyWine:** \(whiskyWineVersion.major).\(whiskyWineVersion.minor)"
             section += ".\(whiskyWineVersion.patch)\n"
@@ -289,12 +289,7 @@ public enum DiagnosticExporter {
         var info: [String: String] = [:]
         let version = MacOSVersion.current
         info["macOS"] = version.description
-
-        #if arch(arm64)
-        info["architecture"] = "arm64"
-        #else
-        info["architecture"] = "x86_64"
-        #endif
+        info["architecture"] = HostArchitecture.isAppleSilicon ? "arm64" : "x86_64"
 
         if let whiskyWineVersion = WhiskyWineInstaller.whiskyWineVersion() {
             info["whiskyWineVersion"] =

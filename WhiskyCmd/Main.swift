@@ -23,7 +23,7 @@ import SemanticVersion
 import WhiskyKit
 
 @main
-struct Whisky: ParsableCommand {
+struct Whisky: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "A CLI interface for Whisky.",
         subcommands: [
@@ -71,6 +71,17 @@ extension Whisky {
 
         @MainActor
         mutating func run() async throws {
+            let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else {
+                throw ValidationError("Bottle name cannot be empty.")
+            }
+
+            var bottlesList = BottleData()
+            let existing = bottlesList.loadBottles()
+            if existing.contains(where: { $0.settings.name == trimmed }) {
+                throw ValidationError("A bottle named \"\(trimmed)\" already exists.")
+            }
+
             let bottleURL = BottleData.defaultBottleDir.appending(path: UUID().uuidString)
 
             do {
@@ -79,16 +90,12 @@ extension Whisky {
                     withIntermediateDirectories: true
                 )
                 let bottle = Bottle(bottleUrl: bottleURL, inFlight: true)
-                // Should allow customisation
                 bottle.settings.windowsVersion = .win10
-                bottle.settings.name = name
-//                try await Wine.changeWinVersion(bottle: bottle, win: winVersion)
-//                let wineVer = try await Wine.wineVersion()
+                bottle.settings.name = trimmed
                 bottle.settings.wineVersion = SemanticVersion(0, 0, 0)
 
-                var bottlesList = BottleData()
                 bottlesList.paths.append(bottleURL)
-                print("Created new bottle \"\(name)\".")
+                print("Created bottle \"\(trimmed)\". Open Whisky to bootstrap the Wine prefix.")
             } catch {
                 throw ValidationError("\(error)")
             }
@@ -208,8 +215,7 @@ extension Whisky {
                 throw ValidationError("A bottle with that name doesn't exist.")
             }
 
-            // URL(fileURLWithPath:) handles paths with special characters correctly
-            let url = URL(fileURLWithPath: path)
+            let url = URL(fileURLWithPath: Self.resolveExecutablePath(path, in: bottle))
             let program = Program(url: url, bottle: bottle)
 
             if command {
@@ -223,6 +229,24 @@ extension Whisky {
                 // Default mode: launch and print deterministic confirmation
                 try await runDefault(url: url, args: args, bottle: bottle, program: program)
             }
+        }
+
+        /// Resolves a user-supplied path to a Unix path inside the bottle.
+        ///
+        /// Windows-style paths like `C:\windows\notepad.exe` get translated to the
+        /// bottle's `drive_c/windows/notepad.exe`. Everything else is taken verbatim
+        /// (URL(fileURLWithPath:) will resolve relative paths against the CWD).
+        @MainActor
+        static func resolveExecutablePath(_ raw: String, in bottle: Bottle) -> String {
+            // Match drive-letter Windows paths like `C:\...` or `C:/...`
+            guard let driveMatch = raw.range(of: #"^([A-Za-z]):[\\/]"#, options: .regularExpression) else {
+                return raw
+            }
+            let drive = raw[raw.index(driveMatch.lowerBound, offsetBy: 0)].lowercased()
+            let rest = raw[driveMatch.upperBound...]
+                .replacingOccurrences(of: "\\", with: "/")
+            let prefix = bottle.url.appending(path: "drive_\(drive)")
+            return prefix.appending(path: rest).path(percentEncoded: false)
         }
 
         /// Default run mode: launches the program and prints a deterministic confirmation line.

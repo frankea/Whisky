@@ -607,6 +607,16 @@ public struct BottleSettings: Codable, Equatable {
         set { inputConfig.useButtonLabels = newValue }
     }
 
+    /// Whether the macOS Command key is mapped to Windows Ctrl inside Wine.
+    ///
+    /// When true, Wine's Mac driver registry receives `LeftCommandIsCtrl=Y`
+    /// and `RightCommandIsCtrl=Y` so common shortcuts (Cmd+A/C/V/S) register
+    /// inside Wine apps as their Windows equivalents.
+    public var commandActsAsControl: Bool {
+        get { inputConfig.commandActsAsControl }
+        set { inputConfig.commandActsAsControl = newValue }
+    }
+
     // MARK: - Custom DLL overrides
 
     /// User-defined DLL overrides for this bottle.

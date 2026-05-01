@@ -74,6 +74,17 @@ struct InputConfigSection: View {
                         PlayStation controllers instead of XInput layout (A/B/X/Y).
                         """)
 
+                    // Map macOS Cmd to Windows Ctrl inside Wine
+                    Toggle("Map Command Key to Windows Ctrl", isOn: $bottle.settings.commandActsAsControl)
+                        .help("""
+                        Sets LeftCommandIsCtrl/RightCommandIsCtrl in Wine's Mac \
+                        driver registry so Cmd+A/C/V/S register inside Wine apps \
+                        as Ctrl+A/C/V/S.
+                        """)
+                        .onChange(of: bottle.settings.commandActsAsControl) { _, newValue in
+                            applyCommandKeyMapping(enabled: newValue)
+                        }
+
                     Divider()
 
                     // Connected Controllers subpanel
@@ -362,6 +373,23 @@ struct InputConfigSection: View {
         let text = lines.joined(separator: "\n")
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
+    }
+
+    /// Writes (or removes) the Wine Mac driver registry keys that map macOS
+    /// Command to Windows Ctrl. Runs `wine reg` so the UI stays responsive.
+    @MainActor
+    private func applyCommandKeyMapping(enabled: Bool) {
+        let bottleRef = bottle
+        let value = enabled ? "Y" : "N"
+        Task {
+            let key = #"HKCU\Software\Wine\Mac Driver"#
+            for name in ["LeftCommandIsCtrl", "RightCommandIsCtrl"] {
+                _ = try? await Wine.runWine(
+                    ["reg", "add", key, "/v", name, "/t", "REG_SZ", "/d", value, "/f"],
+                    bottle: bottleRef
+                )
+            }
+        }
     }
 }
 

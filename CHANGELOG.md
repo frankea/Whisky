@@ -30,6 +30,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (Closes whisky-app/whisky#547).
 - Bundled GameDB ships entries for Diablo IV, Skyrim Special Edition, and
   Warhammer 40,000: Space Marine (Closes whisky-app/whisky#813, whisky-app/whisky#1125, whisky-app/whisky#1246).
+- Input config gains "Map Command Key to Windows Ctrl" toggle (under
+  Controller Compatibility Mode). Writes
+  `HKCU\Software\Wine\Mac Driver\{Left,Right}CommandIsCtrl` so common
+  Cmd+A/C/V/S keystrokes register inside Wine apps as Ctrl+A/C/V/S
+  (Closes whisky-app/whisky#1060).
 - Setup/Welcome view's "Uninstall" button now offers two options: remove the
   WhiskyWine runtime only (preserves bottles for later reinstall) or remove
   everything (runtime + default bottles directory + BottleData registry).

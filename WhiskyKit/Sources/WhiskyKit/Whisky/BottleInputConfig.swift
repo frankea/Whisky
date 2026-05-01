@@ -79,6 +79,14 @@ public struct BottleInputConfig: Codable, Equatable {
     /// When `false` (default), the XInput layout is used.
     var useButtonLabels: Bool = false
 
+    /// Whether the Mac `Command` key acts as Windows `Ctrl` inside Wine windows.
+    ///
+    /// When `true`, sets `LeftCommandIsCtrl` and `RightCommandIsCtrl` under
+    /// `HKCU\Software\Wine\Mac Driver` so common Cmd+A/Cmd+C/Cmd+V/Cmd+S
+    /// keystrokes register inside Wine apps as their Windows equivalents.
+    /// Applied at bottle init / on toggle via `winetricks` registry writes.
+    var commandActsAsControl: Bool = false
+
     public init() {}
 
     public init(from decoder: Decoder) throws {
@@ -99,6 +107,10 @@ public struct BottleInputConfig: Codable, Equatable {
         self.useButtonLabels = try container.decodeIfPresent(
             Bool.self,
             forKey: .useButtonLabels
+        ) ?? false
+        self.commandActsAsControl = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .commandActsAsControl
         ) ?? false
     }
 }

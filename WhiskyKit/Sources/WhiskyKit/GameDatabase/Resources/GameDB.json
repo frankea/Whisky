@@ -4633,7 +4633,7 @@
             "Repentance/Repentance+ DLC scripting depends on stable d3d9 path"
           ],
           "settings": {
-            "graphicsBackend": "wineD3D",
+            "graphicsBackend": "wined3d",
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
@@ -5990,7 +5990,7 @@
             "WinXP version setting matches the game's expectations"
           ],
           "settings": {
-            "graphicsBackend": "wineD3D",
+            "graphicsBackend": "wined3d",
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
@@ -6053,7 +6053,7 @@
             "DXVK shader compile causes 2-5min loads; wineD3D bypasses"
           ],
           "settings": {
-            "graphicsBackend": "wineD3D",
+            "graphicsBackend": "wined3d",
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",

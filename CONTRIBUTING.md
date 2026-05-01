@@ -115,12 +115,31 @@ through a coordinated rewrite.
 
 ### Running Tests
 
-Whisky uses Swift's built-in testing framework. To run the full test suite:
+Whisky has two test layers:
+
+**WhiskyKit unit tests** — the framework's pure-Swift logic, runnable
+without launching the app:
 
 ```bash
-# Test the WhiskyKit framework
 swift test --package-path WhiskyKit
 ```
+
+**WhiskyUITests** — XCUITest end-to-end coverage of the SwiftUI surface,
+runnable from Xcode or via `xcodebuild`:
+
+```bash
+xcodebuild -project Whisky.xcodeproj \
+  -scheme Whisky \
+  -destination 'platform=macOS' \
+  -only-testing:WhiskyUITests test
+```
+
+Tests that need bottle fixtures call `requireBottleFixture()`, which
+`XCTSkip`s them when the user container has no bottles (always true on a
+fresh CI runner). The fixture-free tests — the create-bottle sheet flow
+and toolbar checks — run for real on every CI run. To exercise the
+fixture-dependent tests locally, create at least one bottle in Whisky
+before running the suite.
 
 All tests must pass before your PR can be merged.
 
@@ -145,6 +164,11 @@ swift test --package-path WhiskyKit
 
 # Build Whisky app
 xcodebuild -scheme Whisky -configuration Debug build
+
+# Run UI tests (skip-aware on fresh containers)
+xcodebuild -project Whisky.xcodeproj -scheme Whisky \
+  -destination 'platform=macOS' \
+  -only-testing:WhiskyUITests test
 
 # Check formatting
 swiftformat --lint .

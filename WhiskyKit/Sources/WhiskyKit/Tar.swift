@@ -122,9 +122,14 @@ public class Tar {
         process.standardError = pipe
 
         try process.run()
+
+        // Drain the pipe BEFORE waitUntilExit. The verbose tar listing for a
+        // multi-hundred-MB archive easily exceeds the pipe buffer; if we wait
+        // for tar to exit first, tar blocks writing while we wait for it to
+        // finish and the install hangs forever.
+        let output = try pipe.fileHandleForReading.readToEnd() ?? Data()
         process.waitUntilExit()
 
-        let output = try pipe.fileHandleForReading.readToEnd() ?? Data()
         let listing = String(data: output, encoding: .utf8) ?? ""
 
         // Ensure the tar listing command succeeded - if it fails, we cannot

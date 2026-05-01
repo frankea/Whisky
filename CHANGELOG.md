@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-05-01 (App)
+
+### Fixed
+- WhiskyWine install hung at "Installing WhiskyWine — Almost there" because
+  `Tar.validateArchivePaths` waited for the `tar -tvzf` process to exit before
+  reading its stdout pipe. With the 313 MB Wine Libraries archive the verbose
+  listing easily exceeds the pipe buffer, so tar blocked writing while Whisky
+  waited for it to finish — a classic pipe deadlock. The pipe is now drained
+  before `waitUntilExit`.
+
 ## [3.0.0] - 2026-05-01 (App)
 
 First app release of the active community fork of [whisky-app/whisky](https://github.com/whisky-app/whisky)

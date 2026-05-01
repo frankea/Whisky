@@ -1080,7 +1080,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 44;
+				CURRENT_PROJECT_VERSION = 45;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Whisky/Preview Content\"";
 				DEVELOPMENT_TEAM = Z7JS58F8U3;
@@ -1098,7 +1098,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 3.0.0;
+				MARKETING_VERSION = 3.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.franke.Whisky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1118,7 +1118,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 44;
+				CURRENT_PROJECT_VERSION = 45;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Whisky/Preview Content\"";
 				DEVELOPMENT_TEAM = Z7JS58F8U3;
@@ -1136,7 +1136,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 3.0.0;
+				MARKETING_VERSION = 3.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.franke.Whisky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1204,7 +1204,7 @@
 				CODE_SIGN_ENTITLEMENTS = WhiskyThumbnail/WhiskyThumbnail.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 44;
+				CURRENT_PROJECT_VERSION = 45;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = Z7JS58F8U3;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -1220,7 +1220,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.0.0;
+				MARKETING_VERSION = 3.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.franke.Whisky.WhiskyThumbnail;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1239,7 +1239,7 @@
 				CODE_SIGN_ENTITLEMENTS = WhiskyThumbnail/WhiskyThumbnail.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 44;
+				CURRENT_PROJECT_VERSION = 45;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = Z7JS58F8U3;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -1255,7 +1255,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.0.0;
+				MARKETING_VERSION = 3.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.franke.Whisky.WhiskyThumbnail;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

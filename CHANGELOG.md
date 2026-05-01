@@ -28,8 +28,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   activity events on macOS, so without this, gaming with only a controller
   would still trigger the screen saver
   (Closes whisky-app/whisky#547).
-- Bundled GameDB ships entries for Diablo IV, Skyrim Special Edition, and
-  Warhammer 40,000: Space Marine (Closes whisky-app/whisky#813, whisky-app/whisky#1125, whisky-app/whisky#1246).
+- Bundled GameDB ships 29 new per-game entries with curated configs that
+  GAME-02/GAME-03 surface as one-click recommendations:
+  - Diablo IV, Skyrim Special Edition, Warhammer 40,000: Space Marine
+    (Closes whisky-app/whisky#813, whisky-app/whisky#1125, whisky-app/whisky#1246).
+  - AVX-off recipes for Granblue Fantasy: Relink, Turtle WoW
+    (Closes whisky-app/whisky#508, whisky-app/whisky#805).
+  - DXVK + runtime recipes for Age of Empires II DE, Bannerlord II,
+    Warframe, Thunderstore Mod Manager, Animal Well, Supermarket Together,
+    Talos Principle 2, Street Fighter 6, PS Plus PC App, Fields of Mistria,
+    Horizon Forbidden West, Injustice 2, Monster Hunter Wilds, Trackmania
+    2020, Trackmania Nations Forever, Team Fortress 2, Potion Craft,
+    TMNT: Shredder's Revenge, Assetto Corsa, Futureport 82
+    (Closes whisky-app/whisky#314, whisky-app/whisky#524, whisky-app/whisky#548,
+    whisky-app/whisky#594, whisky-app/whisky#647, whisky-app/whisky#679,
+    whisky-app/whisky#699, whisky-app/whisky#757, whisky-app/whisky#769,
+    whisky-app/whisky#782, whisky-app/whisky#845, whisky-app/whisky#867,
+    whisky-app/whisky#880, whisky-app/whisky#891, whisky-app/whisky#982,
+    whisky-app/whisky#1026, whisky-app/whisky#1037, whisky-app/whisky#1105,
+    whisky-app/whisky#1192, whisky-app/whisky#1236, whisky-app/whisky#1281,
+    whisky-app/whisky#1350).
+  - D3DMetal-preferred recipe for Among Us (DXVK shadow glitch)
+    (Closes whisky-app/whisky#1123).
+  - "Broken/unplayable" entries for Cities: Skylines II and Metal Gear Solid
+    Master Collection Vol. 1 with diagnostic notes
+    (Closes whisky-app/whisky#1032, whisky-app/whisky#1268).
+  - Classic-DDraw recipe (wineD3D + WinXP) for Zuma Deluxe
+    (Closes whisky-app/whisky#484).
 - Input config gains "Map Command Key to Windows Ctrl" toggle (under
   Controller Compatibility Mode). Writes
   `HKCU\Software\Wine\Mac Driver\{Left,Right}CommandIsCtrl` so common

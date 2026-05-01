@@ -88,6 +88,29 @@ matching entry in
 include the upstream issue URL in the entry's `provenance.referenceURL`
 field — the audit picks up that URL form too.
 
+## Secret scanning
+
+CI runs [TruffleHog](https://github.com/trufflesecurity/trufflehog) against
+every PR and every push to `main`, configured to **only fail on verified
+secrets** (i.e., the credential is real and currently active). Compiled
+binaries in the bundled Wine libraries trigger false positives on byte
+patterns that match Box/Eraser/NPM token formats, but those are unverified
+and ignored.
+
+To scan locally before pushing:
+
+```bash
+brew install trufflehog
+./scripts/scan-secrets.sh        # scans HEAD vs origin/main
+./scripts/scan-secrets.sh main   # scans HEAD vs local main
+```
+
+If the scan fails on a real secret, **rotate the credential first** (treat
+it as compromised), then remove it from history with
+[`git filter-repo`](https://github.com/newren/git-filter-repo) or
+[BFG](https://rtyley.github.io/bfg-repo-cleaner/) and force-push the fix
+through a coordinated rewrite.
+
 ## Testing
 
 ### Running Tests

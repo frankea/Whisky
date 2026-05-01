@@ -16,6 +16,8 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+// swiftlint:disable file_length
+
 import Foundation
 import os.log
 
@@ -61,6 +63,13 @@ public final class ClickOnceManager: @unchecked Sendable {
 
     private init() {}
 
+    /// Resolves the Wine username for a bottle, preferring the actual user
+    /// directory found in `drive_c/users/` and falling back to "crossover".
+    private static func resolveWineUsername(for bottle: Bottle) -> String {
+        let usersDir = bottle.url.appending(path: "drive_c").appending(path: "users")
+        return WinePrefixValidation.detectWineUsername(in: usersDir) ?? "crossover"
+    }
+
     // MARK: - Detection
 
     /// Detects ClickOnce application reference files in a bottle.
@@ -70,13 +79,16 @@ public final class ClickOnceManager: @unchecked Sendable {
     ///
     /// - Parameters:
     ///   - bottle: The bottle to scan for ClickOnce apps
-    ///   - wineUsername: The Wine username for path construction (defaults to "crossover")
+    ///   - wineUsername: The Wine username for path construction. When `nil`
+    ///     the username is auto-detected from the bottle's `drive_c/users`
+    ///     directory (falling back to "crossover").
     /// - Returns: Array of URLs to detected `.appref-ms` files
-    public func detectAppRefFile(in bottle: Bottle, wineUsername: String = "crossover") -> [URL] {
+    public func detectAppRefFile(in bottle: Bottle, wineUsername: String? = nil) -> [URL] {
+        let resolvedUsername = wineUsername ?? Self.resolveWineUsername(for: bottle)
         let clickOnceDir = bottle.url
             .appending(path: "drive_c")
             .appending(path: "users")
-            .appending(path: wineUsername)
+            .appending(path: resolvedUsername)
             .appending(path: "AppData")
             .appending(path: "Roaming")
             .appending(path: "Microsoft")
@@ -280,12 +292,14 @@ public final class ClickOnceManager: @unchecked Sendable {
     /// - Parameters:
     ///   - manifest: The ClickOnce manifest to install
     ///   - bottle: The bottle to install into
-    ///   - wineUsername: The Wine username for path construction (defaults to "crossover")
+    ///   - wineUsername: The Wine username for path construction. When `nil`
+    ///     the username is auto-detected from the bottle's `drive_c/users`
+    ///     directory (falling back to "crossover").
     /// - Throws: Error if installation fails
     public func install(
         manifest: ClickOnceManifest,
         in bottle: Bottle,
-        wineUsername: String = "crossover"
+        wineUsername: String? = nil
     ) async throws {
         guard validateManifest(manifest) else {
             throw ClickOnceError.installationFailed("Manifest failed validation")
@@ -294,10 +308,11 @@ public final class ClickOnceManager: @unchecked Sendable {
         let bottleName = bottle.url.lastPathComponent
         logger.info("Installing ClickOnce app '\(manifest.name)' v\(manifest.version) in bottle '\(bottleName)'")
 
+        let resolvedUsername = wineUsername ?? Self.resolveWineUsername(for: bottle)
         let clickOnceDir = bottle.url
             .appending(path: "drive_c")
             .appending(path: "users")
-            .appending(path: wineUsername)
+            .appending(path: resolvedUsername)
             .appending(path: "AppData")
             .appending(path: "Roaming")
             .appending(path: "Microsoft")

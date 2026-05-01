@@ -177,10 +177,10 @@ public class Wine {
         fileHandle.writeApplicationInfo()
         fileHandle.writeInfo(for: bottle)
 
-        let wineEnvironment = constructWineEnvironment(for: bottle, environment: environment)
+        let wineserverEnvironment = constructWineEnvironment(for: bottle, environment: environment)
 
         return try runProcess(
-            name: name, args: args, environment: wineEnvironment, executableURL: wineserverBinary,
+            name: name, args: args, environment: wineserverEnvironment, executableURL: wineserverBinary,
             fileHandle: fileHandle
         )
     }

@@ -91,6 +91,14 @@ fastlane/test_output
 
 iOSInjectionProject/
 
+# Audit tooling
+.planning/audit/snapshot.json
+.planning/audit/.llm_cache.json
+.planning/audit/batches/
+.planning/audit/decisions/
+__pycache__/
+.venv/
+
 # Claude Code
 CLAUDE.md
 plans/

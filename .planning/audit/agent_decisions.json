@@ -1,0 +1,2773 @@
+{
+  "1001": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Ragnarok Online timezone validation; game-specific.",
+    "status": "unverified"
+  },
+  "1002": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Genshin/YuanShen no response post-launch; game-specific.",
+    "status": "unverified"
+  },
+  "1003": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "System language change breaks all programs; localization-related, not directly mapped.",
+    "status": "unverified"
+  },
+  "1005": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "MISC-03",
+      "FEAT-04"
+    ],
+    "rationale": "Extremely large log files \u2014 temp file cleanup and console persistence cover log management.",
+    "status": "addressed-categorical"
+  },
+  "1008": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Skyrim AE mod UI rendering; game/mod-specific.",
+    "status": "unverified"
+  },
+  "1010": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "MISC-04",
+      "PROC-02"
+    ],
+    "rationale": "Whisky 100% CPU loop on log pipe read \u2014 relates to process/log management cleanup.",
+    "status": "addressed-categorical"
+  },
+  "1011": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "CFGF-04",
+      "INST-01"
+    ],
+    "rationale": "Winetricks d3dcompiler_47 fails due to empty %AppData% \u2014 winetricks verbs and DX install requirement apply.",
+    "status": "addressed-categorical"
+  },
+  "1013": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Windows build number reads as 0; registry/Wine-internal issue.",
+    "status": "unverified"
+  },
+  "1014": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Psychonauts 2 GOG kernel panic; kernel-level crash, no direct shipped mapping.",
+    "status": "unverified"
+  },
+  "1015": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "INST-01",
+      "INST-03"
+    ],
+    "rationale": "DirectX install fails \u2014 directly maps to in-app DX install requirement.",
+    "status": "addressed-categorical"
+  },
+  "1016": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Tekken 8 online connection drops; game-networking issue.",
+    "status": "unverified"
+  },
+  "1017": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "FNAF6 minigame lag; game-specific perf.",
+    "status": "unverified"
+  },
+  "1020": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "WhiskyWine download stuck at 0KB; network/CDN issue without direct mapping.",
+    "status": "unverified"
+  },
+  "1025": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Psychonauts 2) unplayable after version update; not a Steam/launcher issue.",
+    "status": "unverified"
+  },
+  "1026": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Injustice 2) fails to launch from Steam; not a categorical Steam stall.",
+    "status": "unverified"
+  },
+  "1029": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Bottle creation failure with screenshot; needs investigation.",
+    "status": "unverified"
+  },
+  "1030": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "AUDT-02",
+      "AUDT-03"
+    ],
+    "rationale": "Audio micro-delay/lag falls under audio troubleshooting and FAudio/sample rate guidance.",
+    "status": "addressed-categorical"
+  },
+  "1031": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "INST-01"
+    ],
+    "rationale": "Steam will not open due to missing components and Battle.net launcher issues; covered by launcher and in-app installer flows.",
+    "status": "addressed-categorical"
+  },
+  "1032": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (MGS 3 Master Collection) fails to launch; launcher works.",
+    "status": "unverified"
+  },
+  "1037": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific app installer (PS Plus) gets stuck.",
+    "status": "unverified"
+  },
+  "1038": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Feature request for sharing/import-export of winetricks app presets; not directly mapped to shipped requirements.",
+    "status": "unverified"
+  },
+  "1043": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Game-specific freeze (Risk of Rain 2) tied to clipboard text; possibly clipboard MISC-02 but unclear.",
+    "status": "unverified"
+  },
+  "1044": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "OpenXR/VR passthrough requires Wine source patches and is out of scope.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "1045": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04"
+    ],
+    "rationale": "Whisky crashes when launching Windows-only Steam game; covered by Steam stall detection and launcher troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "1047": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Ghost of Tsushima) cannot run; needs investigation.",
+    "status": "unverified"
+  },
+  "1049": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "CTRL-02"
+    ],
+    "rationale": "Microphone not detected; covered by mic permission flow.",
+    "status": "addressed-categorical"
+  },
+  "1050": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Unity dynamic font issue with documented user workaround; not directly mapped.",
+    "status": "unverified"
+  },
+  "1051": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Asks if game runs via Heroic + Whisky; support inquiry, not a tracked issue.",
+    "status": "unverified"
+  },
+  "1053": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific app (HikVision) does not start after install.",
+    "status": "unverified"
+  },
+  "1054": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Game-specific webcam/video disc behavior in Steam Content Warning.",
+    "status": "unverified"
+  },
+  "1055": {
+    "confidence": "low",
+    "matched_requirement_ids": [
+      "UIUX-04"
+    ],
+    "rationale": "Spinner/launch indicator UI request; loosely related to UI/UX feedback for launches.",
+    "status": "addressed-categorical"
+  },
+  "1057": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Far Cry 5) atiadlxx.dll unimplemented function; Wine internal bug.",
+    "status": "unverified"
+  },
+  "1060": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Cmd-A vs Ctrl-A keyboard translation issue; not directly mapped.",
+    "status": "unverified"
+  },
+  "1061": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Bottle creation/wine64 path issue; needs investigation.",
+    "status": "unverified"
+  },
+  "1062": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04"
+    ],
+    "rationale": "Steam.exe will not run; user provides reinstall workaround. Covered by Steam stall detection and launcher troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "1063": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Old Chrome v37/v45 not working; specific app.",
+    "status": "unverified"
+  },
+  "1064": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "System crash/restart while playing Homeworld 3; specific game with kernel-level crash.",
+    "status": "unverified"
+  },
+  "1066": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Monster Hunter World) GPU crash; not Steam launcher.",
+    "status": "unverified"
+  },
+  "1067": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "AUDT-02",
+      "AUDT-03"
+    ],
+    "rationale": "Crackling/distorted audio is directly covered by audio troubleshooting and FAudio/sample-rate guidance.",
+    "status": "addressed-categorical"
+  },
+  "1069": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "PkHex .NET 8 EntryPointNotFoundException; .NET runtime issue but not the in-app installer scope.",
+    "status": "unverified"
+  },
+  "1070": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "WhiskyWine downloader does not adapt to ethernet when wifi disconnected; networking edge case.",
+    "status": "unverified"
+  },
+  "1073": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (CarX Drift Racing) regression after update.",
+    "status": "unverified"
+  },
+  "1077": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "GTA V Online texture glitches without DXVK; specific rendering bug.",
+    "status": "unverified"
+  },
+  "1079": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Bottle vanishes immediately after creation; needs investigation.",
+    "status": "unverified"
+  },
+  "1080": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "INST-01"
+    ],
+    "rationale": "App reports dotnet 4.0 30319 not installed; covered by in-app .NET installer.",
+    "status": "addressed-categorical"
+  },
+  "1081": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Obscure 2D shooter rendering issue; specific game.",
+    "status": "unverified"
+  },
+  "1082": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04"
+    ],
+    "rationale": "Steam program will not start in bottle; covered by Steam stall detection and launcher troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "1085": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Wolfenstein Youngblood) crash at launch.",
+    "status": "unverified"
+  },
+  "1095": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "AUDT-02",
+      "AUDT-03"
+    ],
+    "rationale": "Static sound during game playback; directly covered by audio troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "1097": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "App fails to install on M1 MacBook Pro; needs investigation.",
+    "status": "unverified"
+  },
+  "1099": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "TRBL-02",
+      "GFXC-01"
+    ],
+    "rationale": "Game black-screening on M1; categorical black screen on launch.",
+    "status": "addressed-categorical"
+  },
+  "1100": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04"
+    ],
+    "rationale": "Lethal Company fails due to Steam server connection issue; covered by Steam launcher troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "1104": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific older game (Armies of Exigo) cannot start.",
+    "status": "unverified"
+  },
+  "1105": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Supermarket Together) closes during loading.",
+    "status": "unverified"
+  },
+  "1108": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (AC Odyssey) runs but window does not appear.",
+    "status": "unverified"
+  },
+  "1109": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "OSError running BFME II patcher; specific app.",
+    "status": "unverified"
+  },
+  "1110": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Bottle disappears on open; needs investigation.",
+    "status": "unverified"
+  },
+  "1111": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "32-bit games slow with audio/graphics lag; could relate to AUDT but lacks specifics.",
+    "status": "unverified"
+  },
+  "1113": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "TRBL-02",
+      "GFXC-01"
+    ],
+    "rationale": "NFS Unbound stuck on black screen at launch; categorical black-screen-on-launch.",
+    "status": "addressed-categorical"
+  },
+  "1114": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "INST-01"
+    ],
+    "rationale": "Cannot install dotnet 48 via winetricks; covered by in-app .NET installer flow.",
+    "status": "addressed-categorical"
+  },
+  "1115": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "MISC-03"
+    ],
+    "rationale": "Logs filling disk with msync errors; relates to temp/log file cleanup.",
+    "status": "addressed-categorical"
+  },
+  "1119": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (killer7) has very slow loading; needs investigation.",
+    "status": "unverified"
+  },
+  "1122": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Add support for [game] with anti-cheat (Point Blank); anti-cheat blocks are out of scope.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "1123": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Among Us) shadow rendering bug.",
+    "status": "unverified"
+  },
+  "1124": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Train Sim World 5) freezing after update.",
+    "status": "unverified"
+  },
+  "1125": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Space Marine) Failed to create dump file error 183.",
+    "status": "unverified"
+  },
+  "1129": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "System reboot when launching Steam games; possibly GPU/kernel-level crash, needs investigation.",
+    "status": "unverified"
+  },
+  "1131": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Generic 'application crash on launch'; insufficient detail.",
+    "status": "unverified"
+  },
+  "1132": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (UNRAVEL 2) green foggy visuals on macOS 15.1; specific rendering bug.",
+    "status": "unverified"
+  },
+  "1133": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04"
+    ],
+    "rationale": "Steam window UI bug with windows sticking to cursor; covered by Steam launcher troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "1134": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "PROC-01",
+      "PROC-02",
+      "PROC-03",
+      "MISC-04"
+    ],
+    "rationale": "Wine opens 15 times in background and Steam relaunches; covered by ProcessRegistry, orphan detection, auto-terminate, and zombie cleanup.",
+    "status": "addressed-categorical"
+  },
+  "1137": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Black Mesa) fails to launch on macOS 15.1 beta.",
+    "status": "unverified"
+  },
+  "1138": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "LNCH-04"
+    ],
+    "rationale": "Rockstar Games Launcher (GTA V) fails to initialize; covered by Rockstar guidance.",
+    "status": "addressed-categorical"
+  },
+  "1139": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Failed to open oDFe.x64.exe with parsing error; needs investigation.",
+    "status": "unverified"
+  },
+  "1140": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "UIUX-03"
+    ],
+    "rationale": "WhiskyCmd not launching the game; covered by WhiskyCmd CLI work.",
+    "status": "addressed-categorical"
+  },
+  "1143": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (CS2) intermittent black screen and freezes during play; not at launch.",
+    "status": "unverified"
+  },
+  "1144": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "CTRL-01",
+      "CTRL-03"
+    ],
+    "rationale": "Xbox controller not detected in Steam; covered by persistent controller detection and mappings.",
+    "status": "addressed-categorical"
+  },
+  "1145": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "CTRL-04"
+    ],
+    "rationale": "Mouse cursor not syncing with in-game cursor on external monitor; relates to retina/scaling controller fixes.",
+    "status": "addressed-categorical"
+  },
+  "1146": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Core Keepers) online co-op networking issue.",
+    "status": "unverified"
+  },
+  "1147": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (UNRAVEL 2) regression after WhiskyWine update.",
+    "status": "unverified"
+  },
+  "1150": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Bottle launching specific app (Enterprise Architect) hangs; needs investigation.",
+    "status": "unverified"
+  },
+  "1151": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "SIGSEGV after update on macOS 15; needs investigation.",
+    "status": "unverified"
+  },
+  "1152": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Minecraft Launcher does not boot; specific launcher issue.",
+    "status": "unverified"
+  },
+  "1153": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game crash (Alien Isolation Epic Games) \u2014 non-Steam launcher, requires reproduction.",
+    "status": "unverified"
+  },
+  "1157": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Game-specific performance issue (Far Cry 4) \u2014 needs reproduction.",
+    "status": "unverified"
+  },
+  "1159": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Whisky itself crashes on launch on M1 Pro Sequoia \u2014 app stability issue, not a shipped categorical fix.",
+    "status": "unverified"
+  },
+  "1160": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Specific games (Severed Steel and others) crashing \u2014 needs reproduction.",
+    "status": "unverified"
+  },
+  "1161": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game crash (Deadlock overlays cause hard freezes) \u2014 likely Wine internal bug.",
+    "status": "unverified"
+  },
+  "1162": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Game-specific graphics glitching (Ready Or Not) \u2014 needs reproduction.",
+    "status": "unverified"
+  },
+  "1163": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Request to bundle DXMT \u2014 explicitly out of scope.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "1164": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Kernel panic on macOS \u2014 kernel-mode/driver issue beyond Whisky's scope.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "1166": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Quake 2 RTX requires ray tracing GPU \u2014 game-specific hardware capability check.",
+    "status": "unverified"
+  },
+  "1168": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game multiplayer/lobby networking issue (Rivals of Aether 2).",
+    "status": "unverified"
+  },
+  "1170": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "CFGF-03",
+      "INST-01"
+    ],
+    "rationale": "Question about winetricks for dotnet launcher transparency \u2014 covered by per-program DLL overrides/winetricks verbs and in-app .NET installer.",
+    "status": "addressed-categorical"
+  },
+  "1175": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "CS2 mouse input issue \u2014 could be controller/raw input but text doesn't map cleanly to a shipped fix.",
+    "status": "unverified"
+  },
+  "1177": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Generic 'cannot load DLL' on an unspecified program \u2014 needs reproduction.",
+    "status": "unverified"
+  },
+  "1180": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Halo MCC freezes periodically \u2014 game-specific, requires reproduction.",
+    "status": "unverified"
+  },
+  "1181": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Specific GameCube adapter (Mayflash) controller support \u2014 niche hardware, likely Wine HID layer issue.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "1184": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-03"
+    ],
+    "rationale": "EA App settings crashes \u2014 EA launcher guidance shipped under LNCH-03.",
+    "status": "addressed-categorical"
+  },
+  "1188": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "TRBL-02",
+      "GFXC-01"
+    ],
+    "rationale": "Game exits after splash screen \u2014 categorical 'black screen on launch' style covered by graphics troubleshooting guide and backend selection.",
+    "status": "addressed-categorical"
+  },
+  "1189": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "TRBL-02",
+      "GFXC-01"
+    ],
+    "rationale": "Same pattern as #1188 (RE0 HD splash exit) \u2014 covered by graphics troubleshooting and backends.",
+    "status": "addressed-categorical"
+  },
+  "1190": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "MK Komplete Edition exits at splash \u2014 could match graphics guide but text doesn't directly identify cause.",
+    "status": "unverified"
+  },
+  "1191": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Blank screen after creating bottle post-reinstall \u2014 bottle creation/permissions issue, needs reproduction.",
+    "status": "unverified"
+  },
+  "1192": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Monster Hunter Wilds Beta) doesn't launch via Steam \u2014 needs reproduction.",
+    "status": "unverified"
+  },
+  "1193": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Cannot load Qt6PrintSupport.dll for an unnamed exe \u2014 generic missing-runtime issue, doesn't directly map.",
+    "status": "unverified"
+  },
+  "1194": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Honkai Star Rail black screen via HoyoPlay \u2014 Hoyo launcher specific, no shipped fix path.",
+    "status": "unverified"
+  },
+  "1197": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "CTRL-01",
+      "CTRL-03"
+    ],
+    "rationale": "DualShock 4 input issues with Steam \u2014 controller persistent detection and mappings shipped.",
+    "status": "addressed-categorical"
+  },
+  "1208": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Persona 3 Reload crashes \u2014 specific game crash, needs reproduction.",
+    "status": "unverified"
+  },
+  "1209": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "FEAT-04"
+    ],
+    "rationale": "Request to keep console open after termination and redirect stdout \u2014 console persistence shipped under FEAT-04.",
+    "status": "addressed-categorical"
+  },
+  "1211": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "World of Warships Game Center installer fails \u2014 specific launcher issue, needs reproduction.",
+    "status": "unverified"
+  },
+  "1212": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Issue body deleted; no actionable content.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "1213": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Witcher 3 freezes on save load \u2014 specific game freeze, needs reproduction.",
+    "status": "unverified"
+  },
+  "1214": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game crash (Ys X Nordics) \u2014 needs reproduction.",
+    "status": "unverified"
+  },
+  "1215": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "CrossOver HTML engine appears as installed in Whisky bottles \u2014 installed-apps detection bug, not a shipped categorical fix.",
+    "status": "unverified"
+  },
+  "1216": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04"
+    ],
+    "rationale": "Steam download stalls on FarCry5 \u2014 Steam stall detection and launcher troubleshooting shipped.",
+    "status": "addressed-categorical"
+  },
+  "1217": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "TRBL-02",
+      "GFXC-01"
+    ],
+    "rationale": "Half-Life blinks black screen and exits \u2014 categorical black-screen-on-launch covered by graphics guide and backends.",
+    "status": "addressed-categorical"
+  },
+  "1218": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Localization request (zh-HK) handled on Crowdin per project policy, not in code.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "1219": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Master Duel performance regression \u2014 specific game performance issue.",
+    "status": "unverified"
+  },
+  "1220": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04"
+    ],
+    "rationale": "'steamwebhelper not responding / can't open Steam' \u2014 Steam stall detection and launcher troubleshooting shipped.",
+    "status": "addressed-categorical"
+  },
+  "1221": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Genshin Impact loads gray on M1 Air 8GB \u2014 Hoyo-specific behaviour and possibly resource constraint, needs reproduction.",
+    "status": "unverified"
+  },
+  "1225": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "GTA 5 prologue rendering glitch \u2014 specific game graphics bug.",
+    "status": "unverified"
+  },
+  "1226": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Mac reboots while running Steam installer \u2014 kernel-level reboot, beyond Whisky scope.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "1227": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Force feedback on PS4 controller \u2014 controller mappings shipped (CTRL-03) but rumble/FFB is a separate Wine HID capability; conservative.",
+    "status": "unverified"
+  },
+  "1228": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "UIUX-03"
+    ],
+    "rationale": "Request to read bottle paths from command line \u2014 WhiskyCmd CLI shipped covers programmatic access.",
+    "status": "addressed-categorical"
+  },
+  "1230": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Lethal Company crashes on lobby join \u2014 specific game multiplayer crash.",
+    "status": "unverified"
+  },
+  "1231": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Steam bottle disappears after creation \u2014 bottle creation regression, not directly mapped to a shipped fix.",
+    "status": "unverified"
+  },
+  "1232": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Bottles immediately disappear after creation \u2014 bottle creation bug, needs reproduction.",
+    "status": "unverified"
+  },
+  "1234": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Game runs in slow motion after fixing steamwebhelper \u2014 performance issue, no clear categorical mapping.",
+    "status": "unverified"
+  },
+  "1235": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Slime Rancher 2 texture flashing \u2014 game-specific graphics glitch.",
+    "status": "unverified"
+  },
+  "1236": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Supermarket Together) crashes after loading screen.",
+    "status": "unverified"
+  },
+  "1237": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Same pattern as #1232 \u2014 new bottles disappear after one second; bottle creation bug needs reproduction.",
+    "status": "unverified"
+  },
+  "1239": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "CTRL-01",
+      "CTRL-03"
+    ],
+    "rationale": "Xbox controller recognized but not visible to Steam \u2014 controller persistent detection and mappings shipped.",
+    "status": "addressed-categorical"
+  },
+  "1240": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Intel Mac install \u2014 Whisky requires Apple Silicon by design.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "1242": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Issue is about WineBottler, not Whisky.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "1246": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Steam reports OS unsupported after SkyrimSE wiki steps \u2014 wiki/setup issue, needs reproduction.",
+    "status": "unverified"
+  },
+  "1247": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Wrap installed-app icons in macOS HIG style \u2014 cosmetic feature request not in shipped scope.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "1248": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "winetricks riched20 install fails \u2014 winetricks plumbing exists (CFGF-03) but specific verb failure needs reproduction.",
+    "status": "unverified"
+  },
+  "1249": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Request for borderless windowed mode for older games \u2014 display-mode feature not in shipped scope mapping.",
+    "status": "unverified"
+  },
+  "1250": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "AUDT-02",
+      "AUDT-03"
+    ],
+    "rationale": "Audio jittering/stuttering during gameplay (Arkham Asylum) \u2014 categorical audio crackle/stutter covered by audio troubleshooting and FAudio/dsound/sample-rate fixes.",
+    "status": "addressed-categorical"
+  },
+  "1251": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "MISC-03"
+    ],
+    "rationale": "Elin fails to delete temp directory during save \u2014 temp file cleanup category shipped under MISC-03.",
+    "status": "addressed-categorical"
+  },
+  "1252": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Steam Overlay no longer shows \u2014 Steam-internal feature, not directly covered by shipped categorical fixes.",
+    "status": "unverified"
+  },
+  "1253": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "INST-01"
+    ],
+    "rationale": "Wine C++ runtime error launching Marvel Rivals \u2014 in-app vcruntime installer shipped under INST-01.",
+    "status": "addressed-categorical"
+  },
+  "1254": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "LNCH-04"
+    ],
+    "rationale": "Rockstar Games launcher won't show \u2014 Rockstar guidance shipped under LNCH-04.",
+    "status": "addressed-categorical"
+  },
+  "1255": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Assetto Corsa crashes \u2014 specific game crash.",
+    "status": "unverified"
+  },
+  "1257": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "INST-01"
+    ],
+    "rationale": "Corepunk launcher requires dotnet7 \u2014 in-app .NET install flow shipped under INST-01.",
+    "status": "addressed-categorical"
+  },
+  "1258": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Binding of Isaac Repentance+ scripts not running \u2014 specific game scripting issue.",
+    "status": "unverified"
+  },
+  "1261": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Logfile spam from repeating wine errors leading to multi-GB logs \u2014 log management issue, not a shipped categorical fix.",
+    "status": "unverified"
+  },
+  "1265": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "HSR via HoyoPlay black screen and crash \u2014 Hoyo-specific, no clear categorical mapping.",
+    "status": "unverified"
+  },
+  "1266": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "CTRL-02"
+    ],
+    "rationale": "Microphone permission needed for Steam voice chat \u2014 mic permission shipped under CTRL-02.",
+    "status": "addressed-categorical"
+  },
+  "1267": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04"
+    ],
+    "rationale": "Steam install incomplete and not responding \u2014 Steam stall detection and launcher guidance shipped.",
+    "status": "addressed-categorical"
+  },
+  "1268": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "Cities Skylines 2 v1.2.0f2 crashes on launch \u2014 specific game crash.",
+    "status": "unverified"
+  },
+  "1269": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "AUDT-02",
+      "AUDT-03"
+    ],
+    "rationale": "AoE2 HD audio skipping/stuttering \u2014 categorical audio stutter covered by audio troubleshooting and FAudio/dsound/sample-rate fixes.",
+    "status": "addressed-categorical"
+  },
+  "1271": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "WhiskyWine installer stalls at 0 seconds remaining \u2014 installer/runtime download issue, no direct categorical match.",
+    "status": "unverified"
+  },
+  "1272": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific BG3 modding toolkit subwindow mouse interaction issue; not a categorical match to shipped features.",
+    "status": "unverified"
+  },
+  "1273": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Game-specific keyboard input issue in Genshin login; not a known shipped fix.",
+    "status": "unverified"
+  },
+  "1275": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "INST-03",
+      "TRBL-01"
+    ],
+    "rationale": "WhiskyWine install crash now covered by status tracking and data-driven troubleshooting checks.",
+    "status": "addressed-categorical"
+  },
+  "1276": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "TRBL-02",
+      "GFXC-01"
+    ],
+    "rationale": "Game crash on startup with no error matches black-screen / graphics troubleshooting and tiered backend selection.",
+    "status": "addressed-categorical"
+  },
+  "1277": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "GFXC-01",
+      "TRBL-02"
+    ],
+    "rationale": "OpenGL context failure; addressed by tiered graphics backends (D3DMetal/DXVK/wined3d) and graphics troubleshooting guide.",
+    "status": "addressed-categorical"
+  },
+  "1278": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "INST-03",
+      "LNCH-01",
+      "TRBL-01"
+    ],
+    "rationale": "Bottle creation/wine64 missing covered by install status tracking and Steam stall detection.",
+    "status": "addressed-categorical"
+  },
+  "1280": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "AUDT-02",
+      "AUDT-03",
+      "FEAT-01"
+    ],
+    "rationale": "Audio stuttering and performance vs CrossOver addressed by audio troubleshooting, FAudio/sample-rate fixes, and App Nap toggle.",
+    "status": "addressed-categorical"
+  },
+  "1281": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Game-specific Win32 errors and end-of-day freeze in Fields of Mistria; not categorical.",
+    "status": "unverified"
+  },
+  "1284": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "CTRL-01",
+      "CTRL-03"
+    ],
+    "rationale": "Controller detection inconsistency addressed by persistent detection and controller mappings.",
+    "status": "addressed-categorical"
+  },
+  "1285": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "GFXC-01",
+      "GFXC-04"
+    ],
+    "rationale": "Black shadows resolved by switching to DXVK; per-program backend override now supported.",
+    "status": "addressed-categorical"
+  },
+  "1287": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Special K compatibility is a third-party Wine/injector compat request; out of scope.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "1288": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "INST-01",
+      "INST-03",
+      "CTRL-03"
+    ],
+    "rationale": "Driver install failure with status tracking and controller mapping support cover this category.",
+    "status": "addressed-categorical"
+  },
+  "1289": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "CTRL-04"
+    ],
+    "rationale": "Retina scaling mouse coordinate mismatch directly matches CTRL-04.",
+    "status": "addressed-categorical"
+  },
+  "1290": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "AUDT-01",
+      "AUDT-02",
+      "AUDT-03"
+    ],
+    "rationale": "No audio in a Steam game directly maps to CoreAudio detection, troubleshooting guide, and FAudio/dsound/sample-rate fixes.",
+    "status": "addressed-categorical"
+  },
+  "1291": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "CTRL-01"
+    ],
+    "rationale": "'Failed to create gamepad device' / inconsistent controller detection directly matches persistent controller detection.",
+    "status": "addressed-categorical"
+  },
+  "1293": {
+    "confidence": "low",
+    "matched_requirement_ids": [
+      "UIUX-02",
+      "UIUX-03"
+    ],
+    "rationale": "Running .cmd files addressed via shortcut paths and WhiskyCmd interface.",
+    "status": "addressed-categorical"
+  },
+  "1295": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "GFXC-01",
+      "TRBL-02"
+    ],
+    "rationale": "Mihoyo launcher silent failure resembles launcher stall and graphics startup category.",
+    "status": "addressed-categorical"
+  },
+  "1301": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "GAME-02",
+      "GAME-03",
+      "TRBL-01"
+    ],
+    "rationale": "Skyrim FSR/fsound guide breakage covered by per-game notes and one-click apply with version staleness checks.",
+    "status": "addressed-categorical"
+  },
+  "1302": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "FEAT-03"
+    ],
+    "rationale": "Resolution change feature directly matches FEAT-03.",
+    "status": "addressed-categorical"
+  },
+  "1303": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "GrandMA3D won't open with no logs; insufficient info, not categorical.",
+    "status": "unverified"
+  },
+  "1306": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "INST-03",
+      "TRBL-01"
+    ],
+    "rationale": "Bottle disappearing on creation falls under install status tracking and automated troubleshooting checks.",
+    "status": "addressed-categorical"
+  },
+  "1311": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "INST-03",
+      "TRBL-01"
+    ],
+    "rationale": "Bottle not created post-install matches install status tracking and automated checks.",
+    "status": "addressed-categorical"
+  },
+  "1312": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "DJMAX Respect V il2cpp load failure is a game-specific Unity/Wine issue; not categorical.",
+    "status": "unverified"
+  },
+  "1315": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "PROC-03",
+      "PROC-05",
+      "STAB-02"
+    ],
+    "rationale": "Game freeze requiring force-restart matches force-kill, auto-terminate, and crash matching.",
+    "status": "addressed-categorical"
+  },
+  "1316": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Dying Light 2 specific water-fall hang; game-specific behavior, not categorical.",
+    "status": "unverified"
+  },
+  "1317": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "INST-01",
+      "INST-03"
+    ],
+    "rationale": ".NET application installation directly matches in-app DX/.NET/vcruntime installer with status tracking.",
+    "status": "addressed-categorical"
+  },
+  "1318": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "USB/Bluetooth engine controller hardware passthrough is outside Whisky's Wine-on-macOS scope.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "1319": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "FEAT-03",
+      "CTRL-04"
+    ],
+    "rationale": "Resolution and screen-scaling issues match resolution change feature and retina scaling fix.",
+    "status": "addressed-categorical"
+  },
+  "1320": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific MHW:I cutscene freeze; game-specific, not categorical.",
+    "status": "unverified"
+  },
+  "1321": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "LNCH-03"
+    ],
+    "rationale": "EA App support guidance directly matches LNCH-03 EA guidance.",
+    "status": "addressed-categorical"
+  },
+  "1323": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Nobunaga's Ambition specific second-turn crash; game-specific Wine/Vulkan issue.",
+    "status": "unverified"
+  },
+  "1325": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "UIUX-03"
+    ],
+    "rationale": "WhiskyCmd path usage question directly maps to UIUX-03 WhiskyCmd shipped feature/docs.",
+    "status": "addressed-categorical"
+  },
+  "1327": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "GFXC-01",
+      "TRBL-02",
+      "STAB-03"
+    ],
+    "rationale": "DSDKMTQueryAdapterInfo / D3D entry point error covered by tiered backends, graphics troubleshooting, and GPU/Metal detection.",
+    "status": "addressed-categorical"
+  },
+  "1329": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "MetaEditor 5 navigator UI rendering glitch; not categorical.",
+    "status": "unverified"
+  },
+  "1331": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Steam download stuck at 83% appears to be a Steam client / network issue, not a categorical Whisky fix.",
+    "status": "unverified"
+  },
+  "1332": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "CTRL-01",
+      "CTRL-03"
+    ],
+    "rationale": "Controller detected by Whisky/Windows but not by Steam directly maps to persistent detection and controller mappings.",
+    "status": "addressed-categorical"
+  },
+  "1338": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04"
+    ],
+    "rationale": "Steam won't open with steamwebhelper error directly matches calibration rule for LNCH-01 and launcher troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "1343": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "STAB-04",
+      "TRBL-01"
+    ],
+    "rationale": "Whisky config UI freeze/crash addressed by classified diagnostics and troubleshooting engine.",
+    "status": "addressed-categorical"
+  },
+  "1350": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "In-game H.264 video playback rendering as white screen is a game/codec specific issue, not categorical.",
+    "status": "unverified"
+  },
+  "1352": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "AUDT-02",
+      "AUDT-03",
+      "AUDT-04"
+    ],
+    "rationale": "Touhou 6 scratchy/static music directly matches audio troubleshooting, FAudio/dsound/sample-rate, and Bluetooth/sample-rate mismatch fixes.",
+    "status": "addressed-categorical"
+  },
+  "1354": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "TRBL-02",
+      "GFXC-01"
+    ],
+    "rationale": "Black screen after intro directly matches calibration rule for TRBL-02 / GFXC-01.",
+    "status": "addressed-categorical"
+  },
+  "1364": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-02",
+      "TRBL-01"
+    ],
+    "rationale": "Bottles not shown on macOS 15.4 matches macOS 15.4 compatibility work and automated checks.",
+    "status": "addressed-categorical"
+  },
+  "1365": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Pinned apps and Run launches silently failing with no logs; insufficient context for categorical match.",
+    "status": "unverified"
+  },
+  "1367": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "STAB-03",
+      "TRBL-02",
+      "UIUX-01"
+    ],
+    "rationale": "AMD/D3D12 driver warning matches GPU/Metal detection, graphics troubleshooting, and GPTK dialog handling.",
+    "status": "addressed-categorical"
+  },
+  "1369": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific Genshin Impact 5.5 driverError on macOS 15.3.2; game-specific regression.",
+    "status": "unverified"
+  },
+  "1370": {
+    "confidence": "low",
+    "matched_requirement_ids": [
+      "INST-01",
+      "INST-03",
+      "TRBL-01"
+    ],
+    "rationale": "Browser install failures fall under in-app installer flow and automated troubleshooting checks.",
+    "status": "addressed-categorical"
+  },
+  "251": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "App-specific crash (Sony Music Center) needing per-game investigation; no fork-side fix shipped.",
+    "status": "unverified"
+  },
+  "252": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (HoMM3) launch failure; not in known-good DB without verification.",
+    "status": "unverified"
+  },
+  "262": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "CTRL-01",
+      "CTRL-03",
+      "LNCH-01"
+    ],
+    "rationale": "Steam controller (DualShock 4) issue covered by per-controller mappings and Steam launcher work.",
+    "status": "addressed-categorical"
+  },
+  "267": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Yu-Gi-Oh Duel Links) crash mid-duel; needs per-game investigation.",
+    "status": "unverified"
+  },
+  "279": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Trackmania Turbo specific launch failure via Ubisoft Connect; not a covered launcher.",
+    "status": "unverified"
+  },
+  "293": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Wine download resume on broken connection; no shipped fork-side resume feature.",
+    "status": "unverified"
+  },
+  "298": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Steam Join Game button missing; specific UI behavior in Steam, not a covered launcher fix.",
+    "status": "unverified"
+  },
+  "301": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "AUDT-02",
+      "AUDT-03",
+      "TRBL-03"
+    ],
+    "rationale": "Audio crackling/wheezing in games covered by audio troubleshooting and per-bottle audio settings.",
+    "status": "addressed-categorical"
+  },
+  "314": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Age of Empires II DE specific launch failure via Steam; not in confirmed game DB.",
+    "status": "unverified"
+  },
+  "335": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "TRBL-02",
+      "GFXC-01"
+    ],
+    "rationale": "Black screen on launch covered by graphics troubleshooting and backend selection.",
+    "status": "addressed-categorical"
+  },
+  "336": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Cloudpunk crash in d3dmetal; could be Wine/GPTK inherited bug needing per-game investigation.",
+    "status": "unverified"
+  },
+  "354": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Feature request for post-run command; not a shipped fork feature.",
+    "status": "unverified"
+  },
+  "359": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Bottles disappearing; vague report needing investigation, not clearly a shipped fix area.",
+    "status": "unverified"
+  },
+  "363": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Amazon Games launcher; not a covered launcher in LNCH requirements.",
+    "status": "unverified"
+  },
+  "368": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "TRBL-04",
+      "STAB-01",
+      "STAB-02"
+    ],
+    "rationale": "Epic Launcher crash covered by launcher troubleshooting and crash pattern matching.",
+    "status": "addressed-categorical"
+  },
+  "369": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04",
+      "INST-02"
+    ],
+    "rationale": "Steam Missing file privileges/install error covered by Steam launcher troubleshooting and permission flow.",
+    "status": "addressed-categorical"
+  },
+  "370": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Foxhole crash in d3metal at media playback; specific game issue, likely Wine-inherited.",
+    "status": "unverified"
+  },
+  "381": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Feature request for easier install UX; not directly mapped to a shipped UIUX requirement.",
+    "status": "unverified"
+  },
+  "391": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04",
+      "STAB-02"
+    ],
+    "rationale": "Steam crashes/restarts on Library covered by Steam stall detection and launcher troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "411": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Feature request for full uninstaller; not a shipped fork feature.",
+    "status": "unverified"
+  },
+  "420": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific 800x600x32 video card error on game start; needs per-game investigation.",
+    "status": "unverified"
+  },
+  "428": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Galgame scene transition crash; specific game, likely Wine-inherited.",
+    "status": "unverified"
+  },
+  "431": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Blocklist UI glitch in Installed Programs; specific UI bug not clearly addressed.",
+    "status": "unverified"
+  },
+  "432": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Feature request to hide junk in Installed Programs; not a shipped UIUX item.",
+    "status": "unverified"
+  },
+  "442": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Question about TextShaping.dll for specific JP game; Wine-internal DLL question.",
+    "status": "unverified"
+  },
+  "443": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Genshin Impact installer disk space error; specific launcher behavior, not covered.",
+    "status": "unverified"
+  },
+  "445": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "AUDT-02",
+      "AUDT-03",
+      "AUDT-04",
+      "TRBL-03"
+    ],
+    "rationale": "Distorted/slow sound in Source games covered by audio troubleshooting, sample rate detection, per-bottle audio settings.",
+    "status": "addressed-categorical"
+  },
+  "446": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "CFGF-03"
+    ],
+    "rationale": "Adding DLL to bottle relates to per-program DLL overrides though slightly different intent.",
+    "status": "addressed-categorical"
+  },
+  "456": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Whisky 2.0 broad app launch failure; vague report needing investigation.",
+    "status": "unverified"
+  },
+  "468": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Aliens vs Predator Classic 2000 D3D init failure; 32-bit specific game issue.",
+    "status": "unverified"
+  },
+  "470": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "winetricks fails with non-POSIX login shell (xonsh); specific shell compatibility not shipped.",
+    "status": "unverified"
+  },
+  "472": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Skyrim Russian error; very vague, no detail.",
+    "status": "unverified"
+  },
+  "475": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "CTRL-01",
+      "CTRL-03"
+    ],
+    "rationale": "Controllers detected but not working in games; covered by controller persistence and per-controller mappings.",
+    "status": "addressed-categorical"
+  },
+  "479": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Core Keeper save file read/write issue; specific game file access bug.",
+    "status": "unverified"
+  },
+  "484": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Zuma Deluxe no graphics; specific old game rendering issue, likely Wine-inherited.",
+    "status": "unverified"
+  },
+  "486": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Feature request for selectable GPTK versions; relates to Wine/GPTK source management out of scope.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "492": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Lesta Game Center launcher fails to open; not a covered launcher.",
+    "status": "unverified"
+  },
+  "503": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "4Game launcher install failure; not a covered launcher.",
+    "status": "unverified"
+  },
+  "508": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Turtle WoW illegal instruction error; specific game/private server issue.",
+    "status": "unverified"
+  },
+  "513": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Scorn black screen; specific game, not in known-good DB without verification.",
+    "status": "unverified"
+  },
+  "515": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "winetricks corefonts install failing; specific winetricks verb failure, not directly shipped fix.",
+    "status": "unverified"
+  },
+  "516": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Vague program won't run report; insufficient detail to map to shipped fix.",
+    "status": "unverified"
+  },
+  "524": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Warframe launcher white screen; specific launcher rendering issue.",
+    "status": "unverified"
+  },
+  "525": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Feature request for macOS Game Mode auto-toggle; not a shipped feature.",
+    "status": "unverified"
+  },
+  "526": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "GFXC-01",
+      "TRBL-02"
+    ],
+    "rationale": "Shadow of War failed to create D3D11 device; covered by graphics backend selection and graphics troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "530": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Company of Heroes 3 via Steam crash; specific game, page-fault, needs investigation.",
+    "status": "unverified"
+  },
+  "534": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "TRBL-02",
+      "GFXC-01"
+    ],
+    "rationale": "Monster Hunter World long black screen on launch covered by graphics troubleshooting/backend tuning.",
+    "status": "addressed-categorical"
+  },
+  "540": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Wargaming launcher white window; not a covered launcher.",
+    "status": "unverified"
+  },
+  "541": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": ".NET ERP app silent launch failure; specific app behavior, not clearly a shipped fix area.",
+    "status": "unverified"
+  },
+  "544": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "App window disappears on second monitor; specific multi-monitor bug.",
+    "status": "unverified"
+  },
+  "546": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Diablo Immortal won't run; specific game, no detail.",
+    "status": "unverified"
+  },
+  "547": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Screen saver activates during controller-only gaming; macOS sleep/idle behavior, not a shipped fix.",
+    "status": "unverified"
+  },
+  "548": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Street Fighter 6 fatal d3d error; specific game, possibly anti-cheat/DRM gated.",
+    "status": "unverified"
+  },
+  "557": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "ACE audio driver for streaming through Discord/Teams; specific kernel-ish driver use case.",
+    "status": "unverified"
+  },
+  "584": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04"
+    ],
+    "rationale": "Steam doesn't start covered by Steam stall detection and launcher troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "586": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Sea of Thieves Xbox Live login failure; specific online auth issue not in covered launchers.",
+    "status": "unverified"
+  },
+  "594": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Talos Principle 2 model loading issue; specific game rendering bug.",
+    "status": "unverified"
+  },
+  "609": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Visual novel (Murasama / Nitro+) freezing at intro; specific game compatibility.",
+    "status": "unverified"
+  },
+  "611": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Parallel TCG update button doesn't work; specific game launcher issue.",
+    "status": "unverified"
+  },
+  "613": {
+    "confidence": "low",
+    "matched_requirement_ids": [
+      "STAB-02",
+      "TRBL-02"
+    ],
+    "rationale": "Batman Arkham Origins crash dump error; broad crash pattern matching may apply but not specific.",
+    "status": "addressed-categorical"
+  },
+  "615": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "INST-01",
+      "INST-03"
+    ],
+    "rationale": "Cyberpunk GOG installer .NET missing; in-app DirectX/.NET installer addresses dependency installation.",
+    "status": "addressed-categorical"
+  },
+  "616": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "CoD: WWII multiplayer crash; likely anti-cheat related but not explicitly stated; per-game investigation.",
+    "status": "unverified"
+  },
+  "617": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04"
+    ],
+    "rationale": "Steam fails to update / network error covered by Steam stall detection and launcher troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "618": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Pharaoh: A New Hope opening video black screen; specific old game media foundation issue.",
+    "status": "unverified"
+  },
+  "622": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Notch resolution unsupported by older games; macOS hardware-specific display issue not addressed.",
+    "status": "unverified"
+  },
+  "626": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "PROC-01",
+      "PROC-02",
+      "PROC-03",
+      "PROC-05",
+      "MISC-04"
+    ],
+    "rationale": "Wine processes not terminating on Whisky close directly addressed by ProcessRegistry and auto-terminate features.",
+    "status": "addressed-categorical"
+  },
+  "631": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "It Takes Two won't run; specific game, no detail.",
+    "status": "unverified"
+  },
+  "639": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "FIFA 22 file type association error after EA fix; specific game file association issue.",
+    "status": "unverified"
+  },
+  "641": {
+    "confidence": "low",
+    "matched_requirement_ids": [
+      "TRBL-02",
+      "STAB-02",
+      "GFXC-01"
+    ],
+    "rationale": "Dark Souls 2 black window then crash; broad crash/black screen patterns may apply.",
+    "status": "addressed-categorical"
+  },
+  "644": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04"
+    ],
+    "rationale": "Steam doesn't launch its window after install covered by Steam stall detection and launcher troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "647": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game stuck on loading; not a Steam/launcher pattern, likely Wine bug we inherit.",
+    "status": "unverified"
+  },
+  "651": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific GOG game install/launch issue; insufficient info to map to shipped fix.",
+    "status": "unverified"
+  },
+  "661": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Whisky UI slow with pinned app due to icon fetching; not directly mapped to a v1.0 requirement.",
+    "status": "unverified"
+  },
+  "664": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game crash; no clear mapping to launcher/graphics shipped fix.",
+    "status": "unverified"
+  },
+  "665": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific app fails with wineusb.sys error; Wine internal, we inherit.",
+    "status": "unverified"
+  },
+  "666": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-03",
+      "TRBL-04"
+    ],
+    "rationale": "Battle.net launcher crash; covered by launcher guidance and troubleshooting guides.",
+    "status": "addressed-categorical"
+  },
+  "671": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "wineusb.sys related crash in specific app; Wine internal.",
+    "status": "unverified"
+  },
+  "674": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Java games launch problem; insufficient detail to map to shipped fix.",
+    "status": "unverified"
+  },
+  "679": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game won't launch; no Steam-specific pattern indicated.",
+    "status": "unverified"
+  },
+  "680": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "PROC-02",
+      "PROC-03",
+      "MISC-04"
+    ],
+    "rationale": "Steam relaunches after Whisky closed; orphan/zombie process detection and auto-terminate ship in PROC.",
+    "status": "addressed-categorical"
+  },
+  "682": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-03",
+      "CFGF-01"
+    ],
+    "rationale": "Battle.net needs WINE_SIMULATE_WRITECOPY env var; addressed via env var precedence and launcher guidance.",
+    "status": "addressed-categorical"
+  },
+  "685": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Dark and Darker) won't launch; no clear shipped-fix mapping.",
+    "status": "unverified"
+  },
+  "687": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "HL2 icon parsing issue; PE icon extraction exists but not clearly mapped to a v1.0 requirement.",
+    "status": "unverified"
+  },
+  "688": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Whisky UI hang fetching icons on main thread; not directly mapped to a v1.0 requirement.",
+    "status": "unverified"
+  },
+  "694": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game startup error; insufficient info.",
+    "status": "unverified"
+  },
+  "696": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Redlauncher (GOG) window not loading via Steam; specific launcher behaviour, unclear mapping.",
+    "status": "unverified"
+  },
+  "698": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "PROC-04",
+      "PROC-05"
+    ],
+    "rationale": "User asks for Task Manager to kill processes; RunningProcessesView and force-kill ship this.",
+    "status": "addressed-categorical"
+  },
+  "699": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game crashes on map load; likely Wine/graphics bug we inherit.",
+    "status": "unverified"
+  },
+  "701": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "AUDT-02",
+      "AUDT-03"
+    ],
+    "rationale": "Skyrim staticky/choppy sound; covered by audio troubleshooting guide and FAudio/sample-rate fixes.",
+    "status": "addressed-categorical"
+  },
+  "702": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game gamepad LR button issue; controller mappings exist but unclear if this exact issue is fixed.",
+    "status": "unverified"
+  },
+  "711": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Diablo 4) launch issue without enough detail to map to shipped fix.",
+    "status": "unverified"
+  },
+  "712": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Shift-click terminal launch fails with pidl error; not a clear v1.0 requirement match.",
+    "status": "unverified"
+  },
+  "720": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Feature request to fake GPU IDs for compatibility; not a shipped v1.0 feature.",
+    "status": "unverified"
+  },
+  "727": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game won't launch on Steam; insufficient mapping to a steamwebhelper-class fix.",
+    "status": "unverified"
+  },
+  "728": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "GPTK crash in Wine file browser via Steam; Wine/GPTK internal.",
+    "status": "unverified"
+  },
+  "730": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game crashes at startup; not enough to map to STAB shipped diagnostics.",
+    "status": "unverified"
+  },
+  "734": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (BO2) won't load; no clear mapping.",
+    "status": "unverified"
+  },
+  "738": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Wine-bug labelled multiplayer crash; we inherit Wine bugs.",
+    "status": "unverified"
+  },
+  "741": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Wine-bug labelled controller input issue in specific game; inherited Wine behaviour.",
+    "status": "unverified"
+  },
+  "742": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "PROC-02",
+      "PROC-03",
+      "MISC-04"
+    ],
+    "rationale": "Steam exe keeps restarting after close; orphan/zombie process and auto-terminate cover this.",
+    "status": "addressed-categorical"
+  },
+  "743": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Feature request for Mac camera passthrough into Wine; out of scope (Wine/driver work).",
+    "status": "wont-fix-out-of-scope"
+  },
+  "748": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Game has missing text rendering; specific bug not clearly mapped.",
+    "status": "unverified"
+  },
+  "756": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Feature request for .url file support and auto-pinning; not a shipped v1.0 feature.",
+    "status": "unverified"
+  },
+  "757": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Bannerlord II) fails to launch via Steam; insufficient mapping.",
+    "status": "unverified"
+  },
+  "760": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "INST-01",
+      "INST-03",
+      "TRBL-01"
+    ],
+    "rationale": "GPTK detection/install setup hang; addressed by in-app installer and status tracking plus troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "761": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "AUDT-02",
+      "AUDT-03"
+    ],
+    "rationale": "Sound problems with old games; AUDT covers FAudio/dsound/sample-rate plus audio troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "762": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game can't be played; no detail to map.",
+    "status": "unverified"
+  },
+  "763": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Feature request for winetricks search; not in v1.0 requirements.",
+    "status": "unverified"
+  },
+  "766": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Witcher 3 missing water layer; graphics rendering bug in DXVK/D3DMetal, inherited.",
+    "status": "unverified"
+  },
+  "769": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (Assetto Corsa) won't run; insufficient detail.",
+    "status": "unverified"
+  },
+  "772": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Visual noise artefacts in GoW 2018; graphics rendering bug, likely inherited.",
+    "status": "unverified"
+  },
+  "778": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game can't download; insufficient info.",
+    "status": "unverified"
+  },
+  "781": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific app won't start; no clear mapping.",
+    "status": "unverified"
+  },
+  "782": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Thunderstore Mod Manager installer failure; insufficient detail.",
+    "status": "unverified"
+  },
+  "787": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "No wifi when launching Steam; networking issue not in v1.0 requirements.",
+    "status": "unverified"
+  },
+  "790": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Feature request to share bottles with CrossOver; cross-app interop out of scope.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "792": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific app (AmiBroker) doesn't run; no clear mapping.",
+    "status": "unverified"
+  },
+  "797": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-03",
+      "TRBL-02"
+    ],
+    "rationale": "Battle.net Diablo IV install screen doesn't render; addressed by launcher guidance and graphics troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "798": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Bottles disappear after creation; no clear mapping to shipped fix.",
+    "status": "unverified"
+  },
+  "801": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "INST-01",
+      "INST-03"
+    ],
+    "rationale": "GPTK download stuck at 0/0 KB; in-app GPTK install with status tracking covers this class.",
+    "status": "addressed-categorical"
+  },
+  "802": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game (HighFleet) issue; no clear mapping.",
+    "status": "unverified"
+  },
+  "804": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game launch issue; insufficient detail.",
+    "status": "unverified"
+  },
+  "805": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game crash on launch; not enough info to map to STAB diagnostics.",
+    "status": "unverified"
+  },
+  "807": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "UIUX-04",
+      "GFXC-02"
+    ],
+    "rationale": "Request to describe bottle config options; UIUX shows real values and tiered graphics UI explains backends.",
+    "status": "addressed-categorical"
+  },
+  "809": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Cannot open GTA5 after update; insufficient detail.",
+    "status": "unverified"
+  },
+  "811": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "CTRL-01",
+      "CTRL-03"
+    ],
+    "rationale": "DS5 controller not detected; persistent controller detection and mappings ship in CTRL.",
+    "status": "addressed-categorical"
+  },
+  "813": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Battle.net misidentifies OS; Wine config issue, not directly a v1.0 requirement.",
+    "status": "unverified"
+  },
+  "814": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Multiplayer hosting issue in specific game; networking, no clear mapping.",
+    "status": "unverified"
+  },
+  "815": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": ".msix installer not selectable; feature gap, not a shipped v1.0 fix.",
+    "status": "unverified"
+  },
+  "816": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Discord RPC support feature request; out of scope.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "819": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Bottle created but not shown in app; unclear mapping to shipped fix.",
+    "status": "unverified"
+  },
+  "820": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Body too vague (erased bin file); cannot classify.",
+    "status": "unverified"
+  },
+  "821": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "GTA V graphical glitches with DXVK; rendering bug we inherit from DXVK.",
+    "status": "unverified"
+  },
+  "823": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "INST-01"
+    ],
+    "rationale": "Request for in-app .NET/DirectX/vcruntime install; INST-01 ships in-app DX/.NET/vcruntime installer.",
+    "status": "addressed-categorical"
+  },
+  "826": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": ".appref-ms ClickOnce shortcut not addable; MISC-01 covers ClickOnce but pin-as-app gap unclear.",
+    "status": "unverified"
+  },
+  "829": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Specific game launch issue; insufficient mapping.",
+    "status": "unverified"
+  },
+  "830": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Bottle move clears all pinned programs across bottles; not directly mapped to a shipped fix.",
+    "status": "unverified"
+  },
+  "832": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Heroic launcher GTA V error via Rockstar launcher; complex chain, no clear mapping.",
+    "status": "unverified"
+  },
+  "834": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "User asking about save file location; not a Whisky bug or shipped feature.",
+    "status": "unverified"
+  },
+  "836": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04"
+    ],
+    "rationale": "Steam steamwebhelper crash on launch; LNCH-01 Steam stall detection and TRBL-04 launcher guide cover this.",
+    "status": "addressed-categorical"
+  },
+  "837": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Wine printing subsystem issue; not addressed by any shipped requirement.",
+    "status": "unverified"
+  },
+  "844": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "CTRL-01",
+      "CTRL-03",
+      "GFXC-01"
+    ],
+    "rationale": "Controller detection with D3DMetal \u2014 covered by persistent controller detection and mappings.",
+    "status": "addressed-categorical"
+  },
+  "845": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Game-specific performance regression in Trackmania; no direct mapping.",
+    "status": "unverified"
+  },
+  "847": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "WinForms rendering issue (transparent background); Wine internals.",
+    "status": "unverified"
+  },
+  "848": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "UIUX-01"
+    ],
+    "rationale": "GPTK update dialog UX \u2014 covered by the GPTK dialog requirement.",
+    "status": "addressed-categorical"
+  },
+  "849": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "UIUX-01",
+      "TRBL-02",
+      "GFXC-01"
+    ],
+    "rationale": "Post-GPTK-update breakage maps to GPTK dialog, graphics troubleshooting, and backend selection.",
+    "status": "addressed-categorical"
+  },
+  "853": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Localization rendering bug for Czech primary language; localization system issue not addressed.",
+    "status": "unverified"
+  },
+  "854": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "LNCH-04",
+      "TRBL-04"
+    ],
+    "rationale": "Rockstar launcher non-functional \u2014 covered by Rockstar guidance and launcher troubleshooting.",
+    "status": "addressed-categorical"
+  },
+  "860": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "CPU/multicore limiting feature request; not in shipped scope.",
+    "status": "unverified"
+  },
+  "861": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "PROC-04",
+      "UIUX-04"
+    ],
+    "rationale": "Visual feedback while running \u2014 RunningProcessesView and showing real values cover this.",
+    "status": "addressed-categorical"
+  },
+  "862": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "UIUX-01",
+      "TRBL-02",
+      "GFXC-01"
+    ],
+    "rationale": "Post-GPTK-update breakage; GPTK dialog plus graphics troubleshooting/backend selection.",
+    "status": "addressed-categorical"
+  },
+  "863": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "STAB-03",
+      "TRBL-02",
+      "GFXC-01"
+    ],
+    "rationale": "GPU detection failure (\"No GPUs found\") \u2014 GPU/IOMFB detection and graphics troubleshooting cover.",
+    "status": "addressed-categorical"
+  },
+  "864": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Game-specific cutscene crash in DMC5; no direct mapping.",
+    "status": "unverified"
+  },
+  "867": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Generic Bannerlord Wine error; game-specific without clear category.",
+    "status": "unverified"
+  },
+  "869": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "MISC-04",
+      "PROC-02",
+      "PROC-03"
+    ],
+    "rationale": "Stale Steam menu icon after uninstall \u2014 orphan/zombie process cleanup applies.",
+    "status": "addressed-categorical"
+  },
+  "872": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04"
+    ],
+    "rationale": "Nexon launcher won't launch \u2014 covered by launcher troubleshooting guide.",
+    "status": "addressed-categorical"
+  },
+  "875": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "HDR support feature request; out of shipped scope but not categorically excluded.",
+    "status": "unverified"
+  },
+  "880": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Game-specific crash in Horizon Forbidden West; no direct mapping.",
+    "status": "unverified"
+  },
+  "884": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Razer Synapse won't launch; app-specific without clear category.",
+    "status": "unverified"
+  },
+  "890": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Game-specific display detection issue in Fallout 4.",
+    "status": "unverified"
+  },
+  "891": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Game-specific TF2 training crash.",
+    "status": "unverified"
+  },
+  "892": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "WebGL TypeError in dlsite game; game-specific.",
+    "status": "unverified"
+  },
+  "895": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "PROC-03",
+      "PROC-02",
+      "MISC-04"
+    ],
+    "rationale": "Auto-terminate of Wine processes after close/crash \u2014 directly maps to PROC-03 and orphan/zombie cleanup.",
+    "status": "addressed-categorical"
+  },
+  "897": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04"
+    ],
+    "rationale": "Steam launches game then process disappears \u2014 Steam stall detection and launcher troubleshooting cover this.",
+    "status": "addressed-categorical"
+  },
+  "902": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Microsoft Edge installer fails; app-specific without direct mapping.",
+    "status": "unverified"
+  },
+  "903": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "AUDT-02",
+      "AUDT-03",
+      "TRBL-03"
+    ],
+    "rationale": "Audio crackle/staticky sound in Warframe \u2014 directly covered by audio troubleshooting and dsound/sample-rate fixes.",
+    "status": "addressed-categorical"
+  },
+  "904": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "UIUX-02"
+    ],
+    "rationale": "Created shortcuts fail with spaces in path \u2014 directly maps to shortcut path handling.",
+    "status": "addressed-categorical"
+  },
+  "905": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "BG3 cloud saves via Steam launcher; game/launcher integration request.",
+    "status": "unverified"
+  },
+  "906": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "INST-02"
+    ],
+    "rationale": "Volume permission prompt during play \u2014 maps to permission flow handling.",
+    "status": "addressed-categorical"
+  },
+  "919": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "CTRL-01",
+      "CTRL-03"
+    ],
+    "rationale": "Joystick/controller detection regression \u2014 persistent controller detection covers this category.",
+    "status": "addressed-categorical"
+  },
+  "922": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-01",
+      "TRBL-04",
+      "GFXC-01"
+    ],
+    "rationale": "SteamUI not rendering \u2014 Steam stall/launcher troubleshooting and graphics backend selection.",
+    "status": "addressed-categorical"
+  },
+  "925": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Account-specific exe execution issue; unclear root cause.",
+    "status": "unverified"
+  },
+  "926": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "MISC-01"
+    ],
+    "rationale": "ClickOnce locale handling \u2014 directly maps to ClickOnce support.",
+    "status": "addressed-categorical"
+  },
+  "928": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Genshin Impact reCAPTCHA rendering; game-specific embedded browser issue.",
+    "status": "unverified"
+  },
+  "931": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Microsoft VOLT app not working; app-specific without mapping.",
+    "status": "unverified"
+  },
+  "936": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "TS2 installer fails to download files; installer-specific.",
+    "status": "unverified"
+  },
+  "942": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "UIUX-02"
+    ],
+    "rationale": "AppleScript path-with-identifier parsing error \u2014 maps to shortcut/path handling.",
+    "status": "addressed-categorical"
+  },
+  "953": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "exe install hangs at loading; insufficient detail to map.",
+    "status": "unverified"
+  },
+  "958": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "CTRL-03"
+    ],
+    "rationale": "DualSense detected as XInput \u2014 controller mappings requirement covers this.",
+    "status": "addressed-categorical"
+  },
+  "959": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Bottle creation hangs; insufficient detail.",
+    "status": "unverified"
+  },
+  "964": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Touhou Hisoutensoku wineusb driver failure; Wine-internal issue.",
+    "status": "unverified"
+  },
+  "965": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "UIUX-03"
+    ],
+    "rationale": "CLI tool fails to run installed game \u2014 directly maps to WhiskyCmd.",
+    "status": "addressed-categorical"
+  },
+  "966": {
+    "confidence": "high",
+    "matched_requirement_ids": [],
+    "rationale": "User cannot upgrade macOS to 14.0; out of scope (OS minimum requirement).",
+    "status": "wont-fix-out-of-scope"
+  },
+  "975": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "libldap missing for specific game; Wine-internal.",
+    "status": "unverified"
+  },
+  "976": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "SpaceEngineer lighting issue; game-specific rendering.",
+    "status": "unverified"
+  },
+  "977": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "GFXC-01",
+      "TRBL-02",
+      "STAB-03"
+    ],
+    "rationale": "Failed to initialize graphics device \u2014 graphics backend selection and troubleshooting cover this.",
+    "status": "addressed-categorical"
+  },
+  "980": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "They Are Billions file read error; game-specific.",
+    "status": "unverified"
+  },
+  "982": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Animal Well rendering hazy screens; game-specific.",
+    "status": "unverified"
+  },
+  "984": {
+    "confidence": "medium",
+    "matched_requirement_ids": [],
+    "rationale": "Rage MP for GTA V grand RP \u2014 multiplayer mod with anti-cheat-style protections; out of scope.",
+    "status": "wont-fix-out-of-scope"
+  },
+  "987": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "CS2 thread starvation/driver-out-of-date; game-specific Wine perf.",
+    "status": "unverified"
+  },
+  "990": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "RaceRoom Racing stuck post-launch; game-specific.",
+    "status": "unverified"
+  },
+  "993": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Rain World stuttering; game-specific perf.",
+    "status": "unverified"
+  },
+  "995": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "Wine download stuck; network/install issue without specific mapping.",
+    "status": "unverified"
+  },
+  "996": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "uxtheme.dll DelayLoad failure; Wine-internal across all programs.",
+    "status": "unverified"
+  },
+  "997": {
+    "confidence": "high",
+    "matched_requirement_ids": [
+      "CTRL-01"
+    ],
+    "rationale": "Controller works only after reboot \u2014 persistent controller detection directly addresses this.",
+    "status": "addressed-categorical"
+  },
+  "998": {
+    "confidence": "medium",
+    "matched_requirement_ids": [
+      "LNCH-04",
+      "TRBL-04"
+    ],
+    "rationale": "Rockstar Games Launcher not detecting external HDD GTA V \u2014 Rockstar guidance covers.",
+    "status": "addressed-categorical"
+  },
+  "999": {
+    "confidence": "low",
+    "matched_requirement_ids": [],
+    "rationale": "FibuScan installer URL parse error; app-specific.",
+    "status": "unverified"
+  }
+}

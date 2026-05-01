@@ -47,7 +47,7 @@ final class ProgramCoreTests: XCTestCase {
     // MARK: - Name Property Tests
 
     @MainActor
-    func testProgramNameFromURL() throws {
+    func testProgramNameFromURL() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -55,7 +55,7 @@ final class ProgramCoreTests: XCTestCase {
     }
 
     @MainActor
-    func testProgramNameWithSpaces() throws {
+    func testProgramNameWithSpaces() {
         let spaceURL = bottleURL.appending(path: "drive_c/Program With Spaces.exe")
         try? Data("fake exe".utf8).write(to: spaceURL)
 
@@ -68,7 +68,7 @@ final class ProgramCoreTests: XCTestCase {
     // MARK: - ID Property Tests
 
     @MainActor
-    func testProgramIdEqualsURL() throws {
+    func testProgramIdEqualsURL() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -78,7 +78,7 @@ final class ProgramCoreTests: XCTestCase {
     // MARK: - Equatable Tests
 
     @MainActor
-    func testProgramEquatableWithSameURL() throws {
+    func testProgramEquatableWithSameURL() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program1 = Program(url: programURL, bottle: bottle)
         let program2 = Program(url: programURL, bottle: bottle)
@@ -87,7 +87,7 @@ final class ProgramCoreTests: XCTestCase {
     }
 
     @MainActor
-    func testProgramEquatableWithDifferentURL() throws {
+    func testProgramEquatableWithDifferentURL() {
         let otherURL = bottleURL.appending(path: "drive_c/other.exe")
         try? Data("fake exe".utf8).write(to: otherURL)
 
@@ -101,7 +101,7 @@ final class ProgramCoreTests: XCTestCase {
     // MARK: - Hashable Tests
 
     @MainActor
-    func testProgramHashableConsistency() throws {
+    func testProgramHashableConsistency() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program1 = Program(url: programURL, bottle: bottle)
         let program2 = Program(url: programURL, bottle: bottle)
@@ -110,7 +110,7 @@ final class ProgramCoreTests: XCTestCase {
     }
 
     @MainActor
-    func testProgramHashableInSet() throws {
+    func testProgramHashableInSet() {
         let otherURL = bottleURL.appending(path: "drive_c/other.exe")
         try? Data("fake exe".utf8).write(to: otherURL)
 
@@ -128,7 +128,7 @@ final class ProgramCoreTests: XCTestCase {
     }
 
     @MainActor
-    func testProgramHashableDeduplication() throws {
+    func testProgramHashableDeduplication() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program1 = Program(url: programURL, bottle: bottle)
         let program2 = Program(url: programURL, bottle: bottle)
@@ -144,7 +144,7 @@ final class ProgramCoreTests: XCTestCase {
     // MARK: - Settings URL Tests
 
     @MainActor
-    func testProgramSettingsURLLocation() throws {
+    func testProgramSettingsURLLocation() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -155,7 +155,7 @@ final class ProgramCoreTests: XCTestCase {
     // MARK: - Pinned Property Tests
 
     @MainActor
-    func testProgramInitiallyNotPinned() throws {
+    func testProgramInitiallyNotPinned() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -163,7 +163,7 @@ final class ProgramCoreTests: XCTestCase {
     }
 
     @MainActor
-    func testProgramPinAddsToBottlePins() throws {
+    func testProgramPinAddsToBottlePins() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -174,7 +174,7 @@ final class ProgramCoreTests: XCTestCase {
     }
 
     @MainActor
-    func testProgramUnpinRemovesFromBottlePins() throws {
+    func testProgramUnpinRemovesFromBottlePins() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -186,7 +186,7 @@ final class ProgramCoreTests: XCTestCase {
     }
 
     @MainActor
-    func testProgramPinnedNameRemovesExeExtension() throws {
+    func testProgramPinnedNameRemovesExeExtension() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 
@@ -203,7 +203,7 @@ final class ProgramCoreTests: XCTestCase {
     // MARK: - Bottle Reference Tests
 
     @MainActor
-    func testProgramHasCorrectBottleReference() throws {
+    func testProgramHasCorrectBottleReference() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)
 

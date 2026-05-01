@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "id": "launch-crash",
+      "title": "Won't launch / crashes immediately",
+      "sfSymbol": "xmark.app",
+      "flowFile": "launch-crash.json",
+      "depth": "deep",
+      "description": "Program fails to start or crashes within seconds of launching"
+    },
+    {
+      "id": "launcher-issues",
+      "title": "Launcher issues",
+      "sfSymbol": "app.badge.checkmark",
+      "flowFile": "launcher-issues.json",
+      "depth": "deep",
+      "description": "Problems with Steam, EA App, Epic Games, or Rockstar launchers"
+    },
+    {
+      "id": "graphics",
+      "title": "Graphics problems",
+      "sfSymbol": "display.trianglebadge.exclamationmark",
+      "flowFile": "graphics.json",
+      "depth": "deep",
+      "description": "Black screen, flickering, visual artifacts, or low frame rate"
+    },
+    {
+      "id": "audio",
+      "title": "Audio problems",
+      "sfSymbol": "speaker.slash",
+      "flowFile": "audio.json",
+      "depth": "deep",
+      "description": "No sound, crackling, popping, or wrong output device"
+    },
+    {
+      "id": "controller-input",
+      "title": "Controller / input problems",
+      "sfSymbol": "gamecontroller",
+      "flowFile": "controller-input.json",
+      "depth": "shallow",
+      "description": "Controller not detected or buttons mapped incorrectly"
+    },
+    {
+      "id": "install-dependencies",
+      "title": "Install / dependency problems",
+      "sfSymbol": "shippingbox",
+      "flowFile": "install-dependencies.json",
+      "depth": "deep",
+      "description": "Missing .NET, VC++, DirectX, or Winetricks components"
+    },
+    {
+      "id": "network-download",
+      "title": "Network / download problems",
+      "sfSymbol": "wifi.exclamationmark",
+      "flowFile": "network-download.json",
+      "depth": "deep",
+      "description": "Download timeouts, Steam stalls, or connection failures"
+    },
+    {
+      "id": "performance-stability",
+      "title": "Performance / stability over time",
+      "sfSymbol": "chart.line.downtrend.xyaxis",
+      "flowFile": "performance-stability.json",
+      "depth": "shallow",
+      "description": "Stuttering, frame drops, or hangs after playing for a while"
+    }
+  ]
+}

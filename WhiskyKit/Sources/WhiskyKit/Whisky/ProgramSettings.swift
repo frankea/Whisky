@@ -138,6 +138,64 @@ public struct ProgramSettings: Codable {
     /// Arguments are appended after the executable path when the
     /// program is launched through Wine.
     public var arguments: String = ""
+    /// Per-program overrides for bottle settings.
+    ///
+    /// When `nil`, the program inherits all settings from its bottle.
+    /// Individual fields within ``ProgramOverrides`` can override specific
+    /// bottle settings while leaving others inherited.
+    public var overrides: ProgramOverrides?
+
+    // MARK: - Diagnostics
+
+    /// The active WINEDEBUG preset for this program.
+    ///
+    /// When `nil`, the default `fixme-all` is used. Set to a non-normal preset
+    /// before a diagnostic re-run, then clear it afterward. This is transient:
+    /// set by the diagnostics UI before a re-run and cleared after completion.
+    public var activeWineDebugPreset: WineDebugPreset?
+
+    /// URL to the most recent Wine log file for this program.
+    ///
+    /// Updated after each Wine process run completes, providing the diagnostics
+    /// system with a path to the latest log for classification.
+    public var lastLogFileURL: URL?
+
+    /// Timestamp of the most recent diagnosis run for this program.
+    ///
+    /// Used by the diagnostics UI to display when the last analysis occurred.
+    public var lastDiagnosisDate: Date?
+
+    // MARK: - Dependencies
+
+    /// IDs of dependency recommendations the user has dismissed for this program.
+    ///
+    /// Prevents dismissed recommendations from reappearing until new
+    /// evidence (e.g., a fresh crash diagnosis) is found.
+    public var dismissedDependencyRecommendations: Set<String>?
+
+    /// Creates a new ProgramSettings with default values.
+    public init() {}
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.locale = try container.decodeIfPresent(Locales.self, forKey: .locale) ?? .auto
+        self.environment = try container.decodeIfPresent(
+            [String: String].self,
+            forKey: .environment
+        ) ?? [:]
+        self.arguments = try container.decodeIfPresent(String.self, forKey: .arguments) ?? ""
+        self.overrides = try container.decodeIfPresent(ProgramOverrides.self, forKey: .overrides)
+        self.activeWineDebugPreset = try container.decodeIfPresent(
+            WineDebugPreset.self,
+            forKey: .activeWineDebugPreset
+        )
+        self.lastLogFileURL = try container.decodeIfPresent(URL.self, forKey: .lastLogFileURL)
+        self.lastDiagnosisDate = try container.decodeIfPresent(Date.self, forKey: .lastDiagnosisDate)
+        self.dismissedDependencyRecommendations = try container.decodeIfPresent(
+            Set<String>.self,
+            forKey: .dismissedDependencyRecommendations
+        )
+    }
 
     /// Loads program settings from a plist file.
     ///

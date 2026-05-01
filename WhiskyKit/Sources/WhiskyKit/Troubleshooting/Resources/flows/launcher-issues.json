@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "categoryId": "launcher-issues",
+  "entryNodeId": "check_launcher_type",
+  "nodes": {
+    "check_launcher_type": {
+      "id": "check_launcher_type",
+      "type": "check",
+      "phase": "checks",
+      "title": "Detect launcher type",
+      "description": "Identifying which game launcher is being used to determine the appropriate troubleshooting path.",
+      "checkId": "launcher.type_check",
+      "params": {},
+      "on": {
+        "pass": "branch_by_launcher",
+        "fail": "check_generic_env",
+        "unknown": "check_generic_env",
+        "error": "check_generic_env"
+      },
+      "evidenceMap": {
+        "launcherType": "Detected launcher",
+        "launcherName": "Launcher name"
+      }
+    },
+    "branch_by_launcher": {
+      "id": "branch_by_launcher",
+      "type": "info",
+      "phase": "checks",
+      "title": "Launcher identified",
+      "description": "Routing to launcher-specific troubleshooting steps based on the detected launcher.",
+      "on": {
+        "steam": "check_steam_process",
+        "ea": "check_launcher_env",
+        "epic": "check_launcher_env",
+        "rockstar": "check_launcher_env",
+        "default": "check_generic_env"
+      }
+    },
+    "check_steam_process": {
+      "id": "check_steam_process",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check Steam web helper",
+      "description": "Checking whether Steam's web helper processes are running correctly.",
+      "checkId": "process.running_check",
+      "params": {
+        "process": "steamwebhelper"
+      },
+      "on": {
+        "pass": "check_steam_download",
+        "fail": "fix_restart_launcher",
+        "unknown": "check_steam_download",
+        "error": "check_steam_download"
+      },
+      "evidenceMap": {
+        "processName": "Process",
+        "running": "Running",
+        "processCount": "Instance count"
+      }
+    },
+    "fix_restart_launcher": {
+      "id": "fix_restart_launcher",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Restart launcher processes",
+      "description": "Launcher processes appear to be stuck or not running. Restarting the Wine server and relaunching may resolve the issue.",
+      "fixId": "restart-wineserver",
+      "isReversible": false,
+      "requiresConfirmation": true,
+      "on": {
+        "applied": "verify_fix",
+        "skipped": "check_launcher_env"
+      }
+    },
+    "check_steam_download": {
+      "id": "check_steam_download",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check Steam download settings",
+      "description": "Checking for download configuration issues that can cause Steam to stall or fail.",
+      "checkId": "setting.value_check",
+      "params": {
+        "setting": "steamDownloadRegion",
+        "scope": "launcher"
+      },
+      "on": {
+        "pass": "check_launcher_env",
+        "fail": "show_steam_download_info",
+        "already_configured": "check_launcher_env",
+        "unknown": "check_launcher_env",
+        "error": "check_launcher_env"
+      },
+      "evidenceMap": {
+        "currentValue": "Current region",
+        "recommendation": "Recommendation"
+      }
+    },
+    "show_steam_download_info": {
+      "id": "show_steam_download_info",
+      "type": "info",
+      "phase": "checks",
+      "title": "Steam download region",
+      "description": "Try changing your Steam download region in Steam Settings > Downloads. Select a region closer to your location or try a different region if downloads are stalling.",
+      "on": {
+        "continue": "check_launcher_env"
+      }
+    },
+    "check_launcher_env": {
+      "id": "check_launcher_env",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check launcher environment",
+      "description": "Verifying that environment variables are correctly configured for launcher compatibility.",
+      "checkId": "env.check_var",
+      "params": {
+        "vars": "WINEDLLOVERRIDES,STEAM_COMPAT_CLIENT_INSTALL_PATH,EA_DESKTOP_INSTALL_LANG"
+      },
+      "on": {
+        "pass": "escalate",
+        "fail": "fix_launcher_env",
+        "already_configured": "escalate",
+        "unknown": "escalate",
+        "error": "escalate"
+      },
+      "evidenceMap": {
+        "issueVar": "Variable",
+        "currentValue": "Current value"
+      }
+    },
+    "fix_launcher_env": {
+      "id": "fix_launcher_env",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Fix launcher environment",
+      "description": "Applying known launcher compatibility fixes for Wine on macOS.",
+      "fixId": "fix-env-var",
+      "isReversible": true,
+      "requiresConfirmation": false,
+      "on": {
+        "applied": "verify_fix",
+        "skipped": "escalate"
+      }
+    },
+    "check_generic_env": {
+      "id": "check_generic_env",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check general launcher environment",
+      "description": "Checking general environment configuration for launcher compatibility.",
+      "checkId": "env.check_var",
+      "params": {
+        "vars": "WINEDLLOVERRIDES,WINEPREFIX"
+      },
+      "on": {
+        "pass": "escalate",
+        "fail": "fix_launcher_env",
+        "already_configured": "escalate",
+        "unknown": "escalate",
+        "error": "escalate"
+      },
+      "evidenceMap": {
+        "issueVar": "Variable",
+        "currentValue": "Current value"
+      }
+    },
+    "verify_fix": {
+      "id": "verify_fix",
+      "type": "verify",
+      "phase": "verify",
+      "title": "Did this fix the launcher issue?",
+      "description": "Try launching the program again to check whether the issue is resolved.",
+      "on": {
+        "yes": "resolved",
+        "no": "check_launcher_env"
+      }
+    },
+    "escalate": {
+      "id": "escalate",
+      "type": "info",
+      "phase": "export",
+      "title": "Additional diagnostics needed",
+      "description": "The automated launcher checks have not resolved the issue. Enhanced diagnostics or a support report may help identify the problem.",
+      "fragmentRef": "export-escalation"
+    },
+    "resolved": {
+      "id": "resolved",
+      "type": "info",
+      "phase": "export",
+      "title": "Problem resolved",
+      "description": "The launcher issue has been fixed. You can export a session report for your records."
+    }
+  }
+}

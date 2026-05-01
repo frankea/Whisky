@@ -1,0 +1,258 @@
+{
+  "version": 1,
+  "patterns": [
+    {
+      "id": "dll-load-failure",
+      "category": "dependenciesLoading",
+      "severity": "error",
+      "confidence": 0.9,
+      "substringPrefilter": "import_dll",
+      "regex": "err:module:import_dll Library (\\S+\\.dll).*not found",
+      "tags": ["dll", "missing-dependency"],
+      "captureGroups": ["dllName"],
+      "remediationActionIds": ["install-vcredist", "install-dotnet"]
+    },
+    {
+      "id": "dll-load-d3dcompiler",
+      "category": "dependenciesLoading",
+      "severity": "error",
+      "confidence": 0.85,
+      "substringPrefilter": "d3dcompiler",
+      "regex": "err:.*(?:d3dcompiler_\\d+\\.dll).*(?:not found|could not be loaded)",
+      "tags": ["dll", "d3dcompiler", "directx"],
+      "captureGroups": null,
+      "remediationActionIds": ["install-dx-redist"]
+    },
+    {
+      "id": "dll-load-d3dx9",
+      "category": "dependenciesLoading",
+      "severity": "error",
+      "confidence": 0.85,
+      "substringPrefilter": "d3dx9",
+      "regex": "err:.*(?:d3dx9_\\d+\\.dll).*(?:not found|could not be loaded)",
+      "tags": ["dll", "d3dx9", "directx"],
+      "captureGroups": null,
+      "remediationActionIds": ["install-dx-redist"]
+    },
+    {
+      "id": "dll-load-xinput",
+      "category": "dependenciesLoading",
+      "severity": "warning",
+      "confidence": 0.8,
+      "substringPrefilter": "xinput",
+      "regex": "err:.*(?:xinput\\d+_\\d+\\.dll).*(?:not found|could not be loaded)",
+      "tags": ["dll", "xinput", "controller"],
+      "captureGroups": null,
+      "remediationActionIds": ["install-dx-redist"]
+    },
+    {
+      "id": "dll-load-xaudio2",
+      "category": "dependenciesLoading",
+      "severity": "warning",
+      "confidence": 0.8,
+      "substringPrefilter": "xaudio2",
+      "regex": "err:.*(?:xaudio2_\\d+\\.dll).*(?:not found|could not be loaded)",
+      "tags": ["dll", "xaudio2", "audio"],
+      "captureGroups": null,
+      "remediationActionIds": ["install-dx-redist"]
+    },
+    {
+      "id": "dotnet-clr-missing",
+      "category": "dependenciesLoading",
+      "severity": "error",
+      "confidence": 0.9,
+      "substringPrefilter": "mscoree",
+      "regex": "err:.*(?:mscoree\\.dll|mscorlib\\.dll|fusion\\.dll).*(?:not found|could not be loaded)",
+      "tags": ["dotnet", "clr", "mscoree"],
+      "captureGroups": null,
+      "remediationActionIds": ["install-dotnet"]
+    },
+    {
+      "id": "access-violation",
+      "category": "coreCrashFatal",
+      "severity": "critical",
+      "confidence": 0.95,
+      "substringPrefilter": "c0000005",
+      "regex": "(?:err:seh|Unhandled exception).*c0000005",
+      "tags": ["crash", "access-violation", "segfault"],
+      "captureGroups": null,
+      "remediationActionIds": ["switch-backend", "reinstall-prefix"]
+    },
+    {
+      "id": "page-fault",
+      "category": "coreCrashFatal",
+      "severity": "critical",
+      "confidence": 0.95,
+      "substringPrefilter": "page fault",
+      "regex": "wine: Unhandled page fault on (?:read|write|execute) access",
+      "tags": ["crash", "page-fault", "segfault"],
+      "captureGroups": null,
+      "remediationActionIds": ["switch-backend", "reinstall-prefix"]
+    },
+    {
+      "id": "nt-raise-exception",
+      "category": "coreCrashFatal",
+      "severity": "critical",
+      "confidence": 0.9,
+      "substringPrefilter": "NtRaiseException",
+      "regex": "err:seh:NtRaiseException Unhandled exception",
+      "tags": ["crash", "exception", "seh"],
+      "captureGroups": null,
+      "remediationActionIds": ["switch-backend"]
+    },
+    {
+      "id": "ldr-init-failure",
+      "category": "coreCrashFatal",
+      "severity": "critical",
+      "confidence": 0.85,
+      "substringPrefilter": "LdrInitializeThunk",
+      "regex": "err:.*LdrInitializeThunk.*failed",
+      "tags": ["crash", "loader", "startup"],
+      "captureGroups": null,
+      "remediationActionIds": ["reinstall-prefix"]
+    },
+    {
+      "id": "gpu-device-lost-dxvk",
+      "category": "graphics",
+      "severity": "error",
+      "confidence": 0.7,
+      "substringPrefilter": "device_lost",
+      "regex": "(?:err:.*device_lost|DXGI_ERROR_DEVICE_REMOVED|D3D.*device lost)",
+      "tags": ["gpu", "dxvk", "device-removed"],
+      "captureGroups": null,
+      "remediationActionIds": ["switch-backend", "disable-dxr"]
+    },
+    {
+      "id": "gpu-metal-validation",
+      "category": "graphics",
+      "severity": "error",
+      "confidence": 0.65,
+      "substringPrefilter": "Metal",
+      "regex": "Metal.*(?:validation|error|assert|failed)",
+      "tags": ["gpu", "metal", "validation"],
+      "captureGroups": null,
+      "remediationActionIds": ["switch-backend"]
+    },
+    {
+      "id": "gpu-d3d-device-hung",
+      "category": "graphics",
+      "severity": "error",
+      "confidence": 0.7,
+      "substringPrefilter": "device hung",
+      "regex": "(?:D3D|d3d).*device hung",
+      "tags": ["gpu", "d3d", "hung"],
+      "captureGroups": null,
+      "remediationActionIds": ["switch-backend", "disable-dxr"]
+    },
+    {
+      "id": "dx12-path-issue",
+      "category": "graphics",
+      "severity": "warning",
+      "confidence": 0.6,
+      "substringPrefilter": null,
+      "regex": "(?:DX12|dx12|D3D12).*(?:not supported|failed|error|unsupported)",
+      "tags": ["gpu", "dx12", "backend"],
+      "captureGroups": null,
+      "remediationActionIds": ["force-d3d11"]
+    },
+    {
+      "id": "swapchain-failure",
+      "category": "graphics",
+      "severity": "error",
+      "confidence": 0.65,
+      "substringPrefilter": "swapchain",
+      "regex": "(?:err|ERR).*swapchain.*(?:fail|error|create)",
+      "tags": ["gpu", "swapchain"],
+      "captureGroups": null,
+      "remediationActionIds": ["switch-backend"]
+    },
+    {
+      "id": "prefix-corruption",
+      "category": "prefixFilesystem",
+      "severity": "error",
+      "confidence": 0.7,
+      "substringPrefilter": "could not load",
+      "regex": "wine: could not load .+, status c[0-9a-f]+",
+      "tags": ["prefix", "corruption", "load-failure"],
+      "captureGroups": null,
+      "remediationActionIds": ["reinstall-prefix"]
+    },
+    {
+      "id": "prefix-user-dirs-missing",
+      "category": "prefixFilesystem",
+      "severity": "warning",
+      "confidence": 0.6,
+      "substringPrefilter": "user dirs",
+      "regex": "(?:err|warn).*user dirs.*(?:missing|not found|cannot)",
+      "tags": ["prefix", "user-dirs"],
+      "captureGroups": null,
+      "remediationActionIds": ["reinstall-prefix"]
+    },
+    {
+      "id": "network-winhttp-tls",
+      "category": "networkingLaunchers",
+      "severity": "error",
+      "confidence": 0.65,
+      "substringPrefilter": "winhttp",
+      "regex": "err:winhttp:.*(?:secure connection failed|certificate|SSL|TLS)",
+      "tags": ["network", "tls", "winhttp"],
+      "captureGroups": null,
+      "remediationActionIds": ["network-info"]
+    },
+    {
+      "id": "network-http-timeout",
+      "category": "networkingLaunchers",
+      "severity": "warning",
+      "confidence": 0.5,
+      "substringPrefilter": null,
+      "regex": "(?:err|ERR):(?:winhttp|wininet).*(?:timeout|timed out)",
+      "tags": ["network", "timeout"],
+      "captureGroups": null,
+      "remediationActionIds": ["network-info"]
+    },
+    {
+      "id": "anticheat-eac",
+      "category": "antiCheatUnsupported",
+      "severity": "critical",
+      "confidence": 0.99,
+      "substringPrefilter": "EasyAntiCheat",
+      "regex": "EasyAntiCheat.*(?:Fatal|error|not installed|cannot)",
+      "tags": ["anticheat", "eac"],
+      "captureGroups": null,
+      "remediationActionIds": ["anticheat-info"]
+    },
+    {
+      "id": "anticheat-battleye",
+      "category": "antiCheatUnsupported",
+      "severity": "critical",
+      "confidence": 0.99,
+      "substringPrefilter": "BattlEye",
+      "regex": "BattlEye.*(?:error|failed|not supported|cannot)",
+      "tags": ["anticheat", "battleye"],
+      "captureGroups": null,
+      "remediationActionIds": ["anticheat-info"]
+    },
+    {
+      "id": "steam-download-stall",
+      "category": "networkingLaunchers",
+      "severity": "warning",
+      "confidence": 0.6,
+      "substringPrefilter": "download",
+      "regex": "(?:Steam|steam|content_log).*(?:download|HTTP).*(?:stall|timeout|failed|timed out|connection reset)",
+      "tags": ["steam", "download", "stall", "network"],
+      "captureGroups": null,
+      "remediationActionIds": ["steam-download-fix"]
+    },
+    {
+      "id": "wine-nonzero-exit",
+      "category": "otherUnknown",
+      "severity": "info",
+      "confidence": 0.3,
+      "substringPrefilter": "exit code",
+      "regex": "(?:process|wine|wineserver).*exit code (?!0\\b)(\\d+)",
+      "tags": ["exit", "nonzero", "unknown"],
+      "captureGroups": ["exitCode"],
+      "remediationActionIds": null
+    }
+  ]
+}

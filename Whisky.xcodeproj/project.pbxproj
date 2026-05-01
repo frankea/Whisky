@@ -7,10 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E1A2B3C4E5F60701A9B0C1D0 /* GameEntryRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A2B3C4E5F60701A9B0C1D1 /* GameEntryRowView.swift */; };
+		E1A2B3C4E5F60701A9B0C1D2 /* GameConfigurationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A2B3C4E5F60701A9B0C1D3 /* GameConfigurationView.swift */; };
+		E1A2B3C4E5F60701A9B0C2D0 /* GameEntryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A2B3C4E5F60701A9B0C2D1 /* GameEntryDetailView.swift */; };
+		E1A2B3C4E5F60701A9B0C2D2 /* GameVariantPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A2B3C4E5F60701A9B0C2D3 /* GameVariantPickerView.swift */; };
+		E1A2B3C4E5F60701A9B0C2D4 /* GameConfigPreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A2B3C4E5F60701A9B0C2D5 /* GameConfigPreviewSheet.swift */; };
+		E1A2B3C4E5F60701A9B0C3D0 /* GameConfigBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A2B3C4E5F60701A9B0C3D1 /* GameConfigBannerView.swift */; };
 		160B41C4006351293AAEEF27 /* LauncherConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D27C1F7764AE4F0AED2FD03D /* LauncherConfigSection.swift */; };
 		1A2B3C4D2E0107F000AABBCC /* TextTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4E2E0107F000AABBCC /* TextTable.swift */; };
+		1A8BB6C8C6FC24E0837A3C59 /* CleanupConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 407A01251379955919903C3F /* CleanupConfigSection.swift */; };
 		2E9E4AD3124BDF8D5238BE32 /* DPIConfigSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3735C5328F7A6ABD2D1248 /* DPIConfigSheetView.swift */; };
 		396CD6101FAF0380C459ACEE /* DXVKConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5770D2EE01AEF235634646 /* DXVKConfigSection.swift */; };
+		484A57DAD0A7634094236533 /* DiagnosticsPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8797408D60F55718DFC61664 /* DiagnosticsPickerSheet.swift */; };
 		52513FA35312809A9760BCB2 /* MetalConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2699006F97F862815633C9F /* MetalConfigSection.swift */; };
 		6330DD962B1B0EA4007A625A /* RenameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6330DD952B1B0EA4007A625A /* RenameView.swift */; };
 		6365C4C12B1AA69D00AAE1FD /* Animation+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6365C4C02B1AA69D00AAE1FD /* Animation+Extensions.swift */; };
@@ -57,6 +65,7 @@
 		6EFDF6512AAE2DA800EF622F /* ThumbnailProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EFDF6502AAE2DA800EF622F /* ThumbnailProvider.swift */; };
 		6EFDF6562AAE2DA800EF622F /* WhiskyThumbnail.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6EFDF64A2AAE2DA800EF622F /* WhiskyThumbnail.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6EFDF6662AAE303300EF622F /* Icons.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6EFDF6652AAE303300EF622F /* Icons.xcassets */; };
+		6F2BCF2BAEDFAAA7B418E096 /* Winetricks+InstalledVerbs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F2BCF2BAEDF0AA7B418E096 /* Winetricks+InstalledVerbs.swift */; };
 		744CFC7F2B2281370D39A466 /* WineConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258BF9104045ED48882E009D /* WineConfigSection.swift */; };
 		77A2EE1594CEE1B55E88AFAB /* InputConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000C327847E981AEF33EFB61 /* InputConfigSection.swift */; };
 		8C2AEFC82AED79B700CB568F /* WhiskyKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8C2AEFC72AED79B700CB568F /* WhiskyKit */; };
@@ -65,14 +74,57 @@
 		8CB681E52AED7C6F0018D319 /* WhiskyKit in Resources */ = {isa = PBXBuildFile; fileRef = 8CB681E42AED7C6F0018D319 /* WhiskyKit */; };
 		8CB681E72AED7CD00018D319 /* WhiskyKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8CB681E62AED7CD00018D319 /* WhiskyKit */; };
 		954F64484BFDF7786A5B184E /* LauncherDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366E8BD2A51FD444160DFC10 /* LauncherDetection.swift */; };
+		A1B2C3D4E5F60718A9B0C1D2 /* DLLOverrideEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718A9B0C1D3 /* DLLOverrideEditor.swift */; };
+		A1B2C3D4E5F60718A9B0C1D4 /* DLLOverrideConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718A9B0C1D5 /* DLLOverrideConfigSection.swift */; };
+		A1B2C3D4E5F60718A9B0C1D6 /* ProgramOverrideSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718A9B0C1D7 /* ProgramOverrideSettingsView.swift */; };
 		AB0BCABD2B61036E00E21C31 /* RunningProcessesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0BCABC2B61036E00E21C31 /* RunningProcessesView.swift */; };
+		B1A2C3D4E5F60302A9B0C1D3 /* ProcessesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A2C3D4E5F60302A9B0C1D2 /* ProcessesViewModel.swift */; };
+		B1C2D3E4F5A60402A9B0C1E0 /* BackendPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60402A9B0C1E1 /* BackendPickerView.swift */; };
+		B1C2D3E4F5A60402A9B0C1E2 /* GraphicsConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60402A9B0C1E3 /* GraphicsConfigSection.swift */; };
+		D1A2B3C4E5F60901A9B0C1D0 /* ResolutionConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60901A9B0C1D1 /* ResolutionConfigSection.swift */; };
+		B1C2D3E4F5A60402A9B0C1E4 /* DXVKSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60402A9B0C1E5 /* DXVKSettingsView.swift */; };
 		C08ECD035DDFEDB70ACA1D1B /* PerformanceConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3724CE6DD2C1B22D80442DB6 /* PerformanceConfigSection.swift */; };
+		C1A2B3C4E5F60601A9B0C1D0 /* AudioStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C1D1 /* AudioStatusView.swift */; };
+		C1A2B3C4E5F60601A9B0C1D2 /* AudioTestButtonsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C1D3 /* AudioTestButtonsView.swift */; };
+		C1A2B3C4E5F60601A9B0C1D4 /* AudioSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C1D5 /* AudioSettingsView.swift */; };
+		C1A2B3C4E5F60601A9B0C1D6 /* AudioFindingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C1D7 /* AudioFindingsView.swift */; };
+		C1A2B3C4E5F60601A9B0C1D8 /* AudioConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C1D9 /* AudioConfigSection.swift */; };
+		C1A2B3C4E5F60601A9B0C2D0 /* AudioTroubleshootingWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C2D1 /* AudioTroubleshootingWizardView.swift */; };
+		C1A2B3C4E5F60601A9B0C2D2 /* AudioDeviceListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C2D3 /* AudioDeviceListView.swift */; };
+		C1A2B3C4E5F60601A9B0C2D4 /* AudioDeviceHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0C2D5 /* AudioDeviceHistoryView.swift */; };
+		D1A2B3C4E5F60504A9B0C1D1 /* DiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60504A9B0C1D0 /* DiagnosticsView.swift */; };
+		D1A2B3C4E5F60504A9B0C1D3 /* RemediationCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60504A9B0C1D2 /* RemediationCardView.swift */; };
+		D1A2B3C4E5F60504A9B0C1D5 /* LogViewerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60504A9B0C1D4 /* LogViewerView.swift */; };
+		D1A2B3C4E5F60504A9B0C1E1 /* DiagnosticExportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60504A9B0C1E0 /* DiagnosticExportSheet.swift */; };
+		D1A2B3C4E5F60504A9B0C1E3 /* DiagnosisHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60504A9B0C1E2 /* DiagnosisHistoryView.swift */; };
+		D6EEECF2BAE764BAE529B9BA /* AudioAlertTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA9ADA587AF95DCFEC04F25 /* AudioAlertTracker.swift */; };
 		DB696FC82AFAE5DA0037EB2F /* PinCreationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB696FC72AFAE5DA0037EB2F /* PinCreationView.swift */; };
 		E24B756A38C48A1EE4374F25 /* SettingItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAE15F0C1EF1F06C7DB73DF5 /* SettingItemView.swift */; };
 		EB58FB552A499896002DC184 /* SemanticVersion in Frameworks */ = {isa = PBXBuildFile; productRef = EB58FB542A499896002DC184 /* SemanticVersion */; };
 		EEA5A2462A31DD65008274AE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEA5A2452A31DD65008274AE /* AppDelegate.swift */; };
 		F748991F03BA464CFCDA99F3 /* StatusToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E2D80EAABBB985BAED42548 /* StatusToast.swift */; };
+		H1A2B3C4E5F61001A9B0C1D0 /* LaunchTimeBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = H1A2B3C4E5F61001A9B0C1D1 /* LaunchTimeBanner.swift */; };
 		FBD19F7BAD838BE3ABB2CCC2 /* LaunchResult+Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2516958D60EC8937A2AF71 /* LaunchResult+Toast.swift */; };
+		F1A2B3C4E5F60801A9B0C1D1 /* ControllerMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4E5F60801A9B0C1D0 /* ControllerMonitor.swift */; };
+		G1A2B3C4E5F60901A9B0C1D0 /* DependencyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = G1A2B3C4E5F60901A9B0C1D1 /* DependencyManager.swift */; };
+		G1A2B3C4E5F60901A9B0C1D2 /* Winetricks+Install.swift in Sources */ = {isa = PBXBuildFile; fileRef = G1A2B3C4E5F60901A9B0C1D3 /* Winetricks+Install.swift */; };
+		H1A2B3C4E5F61101A9B0C1D0 /* DependencyConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = H1A2B3C4E5F61101A9B0C1D1 /* DependencyConfigSection.swift */; };
+		H1A2B3C4E5F61101A9B0C1D2 /* DependencyInstallSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = H1A2B3C4E5F61101A9B0C1D3 /* DependencyInstallSheet.swift */; };
+		I1A2B3C4E5F61201A9B0C1D0 /* SteamDownloadMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = I1A2B3C4E5F61201A9B0C1D1 /* SteamDownloadMonitor.swift */; };
+		E1A2B3C4E5F60901A9B0C1D0 /* ConsoleRunHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A2B3C4E5F60901A9B0C1D1 /* ConsoleRunHistoryView.swift */; };
+		E1A2B3C4E5F60901A9B0C1D2 /* ConsoleLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A2B3C4E5F60901A9B0C1D3 /* ConsoleLogView.swift */; };
+		J1A2B3C4E5F61301A9B0C1D0 /* TroubleshootingWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C1D1 /* TroubleshootingWizardView.swift */; };
+		J1A2B3C4E5F61301A9B0C1D2 /* ProgressRailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C1D3 /* ProgressRailView.swift */; };
+		J1A2B3C4E5F61301A9B0C1D4 /* SymptomPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C1D5 /* SymptomPickerView.swift */; };
+		J1A2B3C4E5F61301A9B0C1D6 /* StepCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C1D7 /* StepCardView.swift */; };
+		J1A2B3C4E5F61301A9B0C1D8 /* FixPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C1D9 /* FixPreviewView.swift */; };
+		J1A2B3C4E5F61301A9B0C2D0 /* FixVerifyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C2D1 /* FixVerifyView.swift */; };
+		J1A2B3C4E5F61301A9B0C2D2 /* BranchExplanationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C2D3 /* BranchExplanationView.swift */; };
+		J1A2B3C4E5F61301A9B0C2D4 /* SessionResumeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C2D5 /* SessionResumeView.swift */; };
+		J1A2B3C4E5F61301A9B0C2D6 /* EscalationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C2D7 /* EscalationView.swift */; };
+		K1A2B3C4E5F61401A9B0C1D0 /* TroubleshootingHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = K1A2B3C4E5F61401A9B0C1D1 /* TroubleshootingHistoryView.swift */; };
+		K1A2B3C4E5F61401A9B0C1D2 /* TroubleshootingTargetPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = K1A2B3C4E5F61401A9B0C1D3 /* TroubleshootingTargetPicker.swift */; };
+		K1A2B3C4E5F61401A9B0C1D4 /* TroubleshootingEntryBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = K1A2B3C4E5F61401A9B0C1D5 /* TroubleshootingEntryBanner.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -122,11 +174,19 @@
 
 /* Begin PBXFileReference section */
 		000C327847E981AEF33EFB61 /* InputConfigSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = InputConfigSection.swift; sourceTree = "<group>"; };
+		E1A2B3C4E5F60701A9B0C1D1 /* GameEntryRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEntryRowView.swift; sourceTree = "<group>"; };
+		E1A2B3C4E5F60701A9B0C1D3 /* GameConfigurationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConfigurationView.swift; sourceTree = "<group>"; };
+		E1A2B3C4E5F60701A9B0C2D1 /* GameEntryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEntryDetailView.swift; sourceTree = "<group>"; };
+		E1A2B3C4E5F60701A9B0C2D3 /* GameVariantPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameVariantPickerView.swift; sourceTree = "<group>"; };
+		E1A2B3C4E5F60701A9B0C2D5 /* GameConfigPreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConfigPreviewSheet.swift; sourceTree = "<group>"; };
+		E1A2B3C4E5F60701A9B0C3D1 /* GameConfigBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConfigBannerView.swift; sourceTree = "<group>"; };
 		1A2B3C4E2E0107F000AABBCC /* TextTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTable.swift; sourceTree = "<group>"; };
 		258BF9104045ED48882E009D /* WineConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineConfigSection.swift; sourceTree = "<group>"; };
 		366E8BD2A51FD444160DFC10 /* LauncherDetection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherDetection.swift; sourceTree = "<group>"; };
 		3724CE6DD2C1B22D80442DB6 /* PerformanceConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceConfigSection.swift; sourceTree = "<group>"; };
+		407A01251379955919903C3F /* CleanupConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanupConfigSection.swift; sourceTree = "<group>"; };
 		4E2D80EAABBB985BAED42548 /* StatusToast.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Whisky/Views/Common/StatusToast.swift; sourceTree = SOURCE_ROOT; };
+		H1A2B3C4E5F61001A9B0C1D1 /* LaunchTimeBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Whisky/Views/Common/LaunchTimeBanner.swift; sourceTree = SOURCE_ROOT; };
 		6330DD952B1B0EA4007A625A /* RenameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenameView.swift; sourceTree = "<group>"; };
 		6365C4C02B1AA69D00AAE1FD /* Animation+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Animation+Extensions.swift"; sourceTree = "<group>"; };
 		6365C4C22B1AA8CD00AAE1FD /* BottleListEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottleListEntry.swift; sourceTree = "<group>"; };
@@ -173,18 +233,62 @@
 		6EFDF6522AAE2DA800EF622F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6EFDF6532AAE2DA800EF622F /* WhiskyThumbnail.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WhiskyThumbnail.entitlements; sourceTree = "<group>"; };
 		6EFDF6652AAE303300EF622F /* Icons.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Icons.xcassets; sourceTree = "<group>"; };
+		6F2BCF2BAEDF0AA7B418E096 /* Winetricks+InstalledVerbs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Winetricks+InstalledVerbs.swift"; sourceTree = "<group>"; };
+		8797408D60F55718DFC61664 /* DiagnosticsPickerSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DiagnosticsPickerSheet.swift; sourceTree = "<group>"; };
 		8C73E1332AF472FC00B6FB45 /* ProgramMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramMenuView.swift; sourceTree = "<group>"; };
 		8CB681E42AED7C6F0018D319 /* WhiskyKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = WhiskyKit; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718A9B0C1D3 /* DLLOverrideEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLLOverrideEditor.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718A9B0C1D5 /* DLLOverrideConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLLOverrideConfigSection.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718A9B0C1D7 /* ProgramOverrideSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramOverrideSettingsView.swift; sourceTree = "<group>"; };
 		AA2516958D60EC8937A2AF71 /* LaunchResult+Toast.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "LaunchResult+Toast.swift"; sourceTree = "<group>"; };
 		AA88CFEB38031323229CD377 /* LauncherDiagnostics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherDiagnostics.swift; sourceTree = "<group>"; };
 		AB0BCABC2B61036E00E21C31 /* RunningProcessesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningProcessesView.swift; sourceTree = "<group>"; };
+		ADA9ADA587AF95DCFEC04F25 /* AudioAlertTracker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AudioAlertTracker.swift; sourceTree = "<group>"; };
+		B1A2C3D4E5F60302A9B0C1D2 /* ProcessesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessesViewModel.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5A60402A9B0C1E1 /* BackendPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendPickerView.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5A60402A9B0C1E3 /* GraphicsConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphicsConfigSection.swift; sourceTree = "<group>"; };
+		D1A2B3C4E5F60901A9B0C1D1 /* ResolutionConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResolutionConfigSection.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5A60402A9B0C1E5 /* DXVKSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DXVKSettingsView.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C1D1 /* AudioStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioStatusView.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C1D3 /* AudioTestButtonsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioTestButtonsView.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C1D5 /* AudioSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSettingsView.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C1D7 /* AudioFindingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioFindingsView.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C1D9 /* AudioConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioConfigSection.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C2D1 /* AudioTroubleshootingWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioTroubleshootingWizardView.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C2D3 /* AudioDeviceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceListView.swift; sourceTree = "<group>"; };
+		C1A2B3C4E5F60601A9B0C2D5 /* AudioDeviceHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceHistoryView.swift; sourceTree = "<group>"; };
 		CA5770D2EE01AEF235634646 /* DXVKConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DXVKConfigSection.swift; sourceTree = "<group>"; };
+		D1A2B3C4E5F60504A9B0C1D0 /* DiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsView.swift; sourceTree = "<group>"; };
+		D1A2B3C4E5F60504A9B0C1D2 /* RemediationCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemediationCardView.swift; sourceTree = "<group>"; };
+		D1A2B3C4E5F60504A9B0C1D4 /* LogViewerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogViewerView.swift; sourceTree = "<group>"; };
+		D1A2B3C4E5F60504A9B0C1E0 /* DiagnosticExportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticExportSheet.swift; sourceTree = "<group>"; };
+		D1A2B3C4E5F60504A9B0C1E2 /* DiagnosisHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosisHistoryView.swift; sourceTree = "<group>"; };
 		D27C1F7764AE4F0AED2FD03D /* LauncherConfigSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherConfigSection.swift; sourceTree = "<group>"; };
 		DB696FC72AFAE5DA0037EB2F /* PinCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinCreationView.swift; sourceTree = "<group>"; };
 		DD3735C5328F7A6ABD2D1248 /* DPIConfigSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DPIConfigSheetView.swift; sourceTree = "<group>"; };
 		E2699006F97F862815633C9F /* MetalConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalConfigSection.swift; sourceTree = "<group>"; };
 		EAE15F0C1EF1F06C7DB73DF5 /* SettingItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingItemView.swift; sourceTree = "<group>"; };
 		EEA5A2452A31DD65008274AE /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		F1A2B3C4E5F60801A9B0C1D0 /* ControllerMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerMonitor.swift; sourceTree = "<group>"; };
+		G1A2B3C4E5F60901A9B0C1D1 /* DependencyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyManager.swift; sourceTree = "<group>"; };
+		G1A2B3C4E5F60901A9B0C1D3 /* Winetricks+Install.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Winetricks+Install.swift"; sourceTree = "<group>"; };
+		H1A2B3C4E5F61101A9B0C1D1 /* DependencyConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyConfigSection.swift; sourceTree = "<group>"; };
+		H1A2B3C4E5F61101A9B0C1D3 /* DependencyInstallSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyInstallSheet.swift; sourceTree = "<group>"; };
+		I1A2B3C4E5F61201A9B0C1D1 /* SteamDownloadMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteamDownloadMonitor.swift; sourceTree = "<group>"; };
+		E1A2B3C4E5F60901A9B0C1D1 /* ConsoleRunHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleRunHistoryView.swift; sourceTree = "<group>"; };
+		E1A2B3C4E5F60901A9B0C1D3 /* ConsoleLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleLogView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C1D1 /* TroubleshootingWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TroubleshootingWizardView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C1D3 /* ProgressRailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressRailView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C1D5 /* SymptomPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymptomPickerView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C1D7 /* StepCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepCardView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C1D9 /* FixPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixPreviewView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C2D1 /* FixVerifyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixVerifyView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C2D3 /* BranchExplanationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BranchExplanationView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C2D5 /* SessionResumeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionResumeView.swift; sourceTree = "<group>"; };
+		J1A2B3C4E5F61301A9B0C2D7 /* EscalationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EscalationView.swift; sourceTree = "<group>"; };
+		K1A2B3C4E5F61401A9B0C1D1 /* TroubleshootingHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TroubleshootingHistoryView.swift; sourceTree = "<group>"; };
+		K1A2B3C4E5F61401A9B0C1D3 /* TroubleshootingTargetPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TroubleshootingTargetPicker.swift; sourceTree = "<group>"; };
+		K1A2B3C4E5F61401A9B0C1D5 /* TroubleshootingEntryBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TroubleshootingEntryBanner.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -258,6 +362,9 @@
 				6E355E5D29D7D85D002D83BE /* ProgramView.swift */,
 				6E17B6482AF4118F00831173 /* EnvironmentArgView.swift */,
 				8C73E1332AF472FC00B6FB45 /* ProgramMenuView.swift */,
+				A1B2C3D4E5F60718A9B0C1D7 /* ProgramOverrideSettingsView.swift */,
+				E1A2B3C4E5F60901A9B0C1D1 /* ConsoleRunHistoryView.swift */,
+				E1A2B3C4E5F60901A9B0C1D3 /* ConsoleLogView.swift */,
 			);
 			path = Programs;
 			sourceTree = "<group>";
@@ -273,6 +380,7 @@
 		6E355E5629D78202002D83BE /* Bottle */ = {
 			isa = PBXGroup;
 			children = (
+				C1A2B3C4E5F60601A9B0C1D9 /* AudioConfigSection.swift */,
 				6E40498029CCA8B0006E3F1B /* BottleView.swift */,
 				6365C4C22B1AA8CD00AAE1FD /* BottleListEntry.swift */,
 				6E50D98429CDF25B008C39F6 /* BottleCreationView.swift */,
@@ -280,6 +388,9 @@
 				DD3735C5328F7A6ABD2D1248 /* DPIConfigSheetView.swift */,
 				EAE15F0C1EF1F06C7DB73DF5 /* SettingItemView.swift */,
 				258BF9104045ED48882E009D /* WineConfigSection.swift */,
+				A1B2C3D4E5F60718A9B0C1D3 /* DLLOverrideEditor.swift */,
+				A1B2C3D4E5F60718A9B0C1D5 /* DLLOverrideConfigSection.swift */,
+				H1A2B3C4E5F61101A9B0C1D1 /* DependencyConfigSection.swift */,
 				CA5770D2EE01AEF235634646 /* DXVKConfigSection.swift */,
 				E2699006F97F862815633C9F /* MetalConfigSection.swift */,
 				3724CE6DD2C1B22D80442DB6 /* PerformanceConfigSection.swift */,
@@ -288,6 +399,11 @@
 				6E17B6422AF3FD6E00831173 /* Pins */,
 				D27C1F7764AE4F0AED2FD03D /* LauncherConfigSection.swift */,
 				000C327847E981AEF33EFB61 /* InputConfigSection.swift */,
+				407A01251379955919903C3F /* CleanupConfigSection.swift */,
+				B1C2D3E4F5A60402A9B0C1E1 /* BackendPickerView.swift */,
+				B1C2D3E4F5A60402A9B0C1E3 /* GraphicsConfigSection.swift */,
+				D1A2B3C4E5F60901A9B0C1D1 /* ResolutionConfigSection.swift */,
+				B1C2D3E4F5A60402A9B0C1E5 /* DXVKSettingsView.swift */,
 			);
 			path = Bottle;
 			sourceTree = "<group>";
@@ -350,10 +466,42 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
+		H1A2B3C4E5F61101A9B0C1D4 /* Install */ = {
+			isa = PBXGroup;
+			children = (
+				H1A2B3C4E5F61101A9B0C1D3 /* DependencyInstallSheet.swift */,
+			);
+			path = Install;
+			sourceTree = "<group>";
+		};
+		J1A2B3C4E5F61301A9B0C1DA /* Troubleshooting */ = {
+			isa = PBXGroup;
+			children = (
+				J1A2B3C4E5F61301A9B0C1D1 /* TroubleshootingWizardView.swift */,
+				J1A2B3C4E5F61301A9B0C1D3 /* ProgressRailView.swift */,
+				J1A2B3C4E5F61301A9B0C1D5 /* SymptomPickerView.swift */,
+				J1A2B3C4E5F61301A9B0C1D7 /* StepCardView.swift */,
+				J1A2B3C4E5F61301A9B0C1D9 /* FixPreviewView.swift */,
+				J1A2B3C4E5F61301A9B0C2D1 /* FixVerifyView.swift */,
+				J1A2B3C4E5F61301A9B0C2D3 /* BranchExplanationView.swift */,
+				J1A2B3C4E5F61301A9B0C2D5 /* SessionResumeView.swift */,
+				J1A2B3C4E5F61301A9B0C2D7 /* EscalationView.swift */,
+				K1A2B3C4E5F61401A9B0C1D1 /* TroubleshootingHistoryView.swift */,
+				K1A2B3C4E5F61401A9B0C1D3 /* TroubleshootingTargetPicker.swift */,
+				K1A2B3C4E5F61401A9B0C1D5 /* TroubleshootingEntryBanner.swift */,
+			);
+			path = Troubleshooting;
+			sourceTree = "<group>";
+		};
 		6E5197CD29D71FCD00CF655E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				C1A2B3C4E5F60601A9B0C1DA /* Audio */,
 				63FFDE822ADEFADF00178665 /* Common */,
+				D1A2B3C4E5F60504A9B0C1D6 /* Diagnostics */,
+				E1A2B3C4E5F60701A9B0C1D4 /* GameDB */,
+				H1A2B3C4E5F61101A9B0C1D4 /* Install */,
+				J1A2B3C4E5F61301A9B0C1DA /* Troubleshooting */,
 				6E49E01F2AECB7D000009CAC /* Settings */,
 				6E6C0CF02A419A5800356232 /* Setup */,
 				6E17B6472AF3FE2E00831173 /* Programs */,
@@ -363,6 +511,7 @@
 				6E064B1329DD331F00D9A2D2 /* SparkleView.swift */,
 				6E7C07BF2AAF570100F6E66B /* FileOpenView.swift */,
 				FADF69F903E9EA676A27FC69 /* Common */,
+				8797408D60F55718DFC61664 /* DiagnosticsPickerSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -371,6 +520,7 @@
 			isa = PBXGroup;
 			children = (
 				6E50D98229CD6066008C39F6 /* BottleVM.swift */,
+				B1A2C3D4E5F60302A9B0C1D2 /* ProcessesViewModel.swift */,
 			);
 			path = "View Models";
 			sourceTree = "<group>";
@@ -379,11 +529,16 @@
 			isa = PBXGroup;
 			children = (
 				6E621CEE2A5F631200C9AAB3 /* Winetricks.swift */,
+				6F2BCF2BAEDF0AA7B418E096 /* Winetricks+InstalledVerbs.swift */,
+				G1A2B3C4E5F60901A9B0C1D3 /* Winetricks+Install.swift */,
 				6E70A4A02A9A280C007799E9 /* WhiskyCmd.swift */,
 				6E7C07BD2AAE7B0100F6E66B /* ProgramShortcut.swift */,
 				6763D8F52BC6314100651D27 /* Constants.swift */,
 				366E8BD2A51FD444160DFC10 /* LauncherDetection.swift */,
 				AA88CFEB38031323229CD377 /* LauncherDiagnostics.swift */,
+				G1A2B3C4E5F60901A9B0C1D1 /* DependencyManager.swift */,
+				F1A2B3C4E5F60801A9B0C1D0 /* ControllerMonitor.swift */,
+				I1A2B3C4E5F61201A9B0C1D1 /* SteamDownloadMonitor.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -429,9 +584,50 @@
 			path = WhiskyThumbnail;
 			sourceTree = "<group>";
 		};
+		C1A2B3C4E5F60601A9B0C1DA /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				C1A2B3C4E5F60601A9B0C2D5 /* AudioDeviceHistoryView.swift */,
+				C1A2B3C4E5F60601A9B0C2D3 /* AudioDeviceListView.swift */,
+				C1A2B3C4E5F60601A9B0C1D7 /* AudioFindingsView.swift */,
+				C1A2B3C4E5F60601A9B0C1D5 /* AudioSettingsView.swift */,
+				C1A2B3C4E5F60601A9B0C1D1 /* AudioStatusView.swift */,
+				C1A2B3C4E5F60601A9B0C1D3 /* AudioTestButtonsView.swift */,
+				C1A2B3C4E5F60601A9B0C2D1 /* AudioTroubleshootingWizardView.swift */,
+				ADA9ADA587AF95DCFEC04F25 /* AudioAlertTracker.swift */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
+		E1A2B3C4E5F60701A9B0C1D4 /* GameDB */ = {
+			isa = PBXGroup;
+			children = (
+				E1A2B3C4E5F60701A9B0C3D1 /* GameConfigBannerView.swift */,
+				E1A2B3C4E5F60701A9B0C2D5 /* GameConfigPreviewSheet.swift */,
+				E1A2B3C4E5F60701A9B0C1D3 /* GameConfigurationView.swift */,
+				E1A2B3C4E5F60701A9B0C2D1 /* GameEntryDetailView.swift */,
+				E1A2B3C4E5F60701A9B0C1D1 /* GameEntryRowView.swift */,
+				E1A2B3C4E5F60701A9B0C2D3 /* GameVariantPickerView.swift */,
+			);
+			path = GameDB;
+			sourceTree = "<group>";
+		};
+		D1A2B3C4E5F60504A9B0C1D6 /* Diagnostics */ = {
+			isa = PBXGroup;
+			children = (
+				D1A2B3C4E5F60504A9B0C1E2 /* DiagnosisHistoryView.swift */,
+				D1A2B3C4E5F60504A9B0C1E0 /* DiagnosticExportSheet.swift */,
+				D1A2B3C4E5F60504A9B0C1D0 /* DiagnosticsView.swift */,
+				D1A2B3C4E5F60504A9B0C1D4 /* LogViewerView.swift */,
+				D1A2B3C4E5F60504A9B0C1D2 /* RemediationCardView.swift */,
+			);
+			path = Diagnostics;
+			sourceTree = "<group>";
+		};
 		FADF69F903E9EA676A27FC69 /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				H1A2B3C4E5F61001A9B0C1D1 /* LaunchTimeBanner.swift */,
 				4E2D80EAABBB985BAED42548 /* StatusToast.swift */,
 			);
 			name = Common;
@@ -639,6 +835,8 @@
 				2E9E4AD3124BDF8D5238BE32 /* DPIConfigSheetView.swift in Sources */,
 				E24B756A38C48A1EE4374F25 /* SettingItemView.swift in Sources */,
 				744CFC7F2B2281370D39A466 /* WineConfigSection.swift in Sources */,
+				A1B2C3D4E5F60718A9B0C1D2 /* DLLOverrideEditor.swift in Sources */,
+				A1B2C3D4E5F60718A9B0C1D4 /* DLLOverrideConfigSection.swift in Sources */,
 				396CD6101FAF0380C459ACEE /* DXVKConfigSection.swift in Sources */,
 				52513FA35312809A9760BCB2 /* MetalConfigSection.swift in Sources */,
 				C08ECD035DDFEDB70ACA1D1B /* PerformanceConfigSection.swift in Sources */,
@@ -655,11 +853,16 @@
 				6365C4C12B1AA69D00AAE1FD /* Animation+Extensions.swift in Sources */,
 				6E40498329CCA91B006E3F1B /* Bottle+Extensions.swift in Sources */,
 				6E621CEF2A5F631300C9AAB3 /* Winetricks.swift in Sources */,
+				6F2BCF2BAEDFAAA7B418E096 /* Winetricks+InstalledVerbs.swift in Sources */,
 				6E17B6462AF3FDC100831173 /* PinView.swift in Sources */,
 				6E064B1429DD331F00D9A2D2 /* SparkleView.swift in Sources */,
 				6E40495629CCA19C006E3F1B /* WhiskyApp.swift in Sources */,
 				8C73E1342AF472FC00B6FB45 /* ProgramMenuView.swift in Sources */,
+				A1B2C3D4E5F60718A9B0C1D6 /* ProgramOverrideSettingsView.swift in Sources */,
+				E1A2B3C4E5F60901A9B0C1D0 /* ConsoleRunHistoryView.swift in Sources */,
+				E1A2B3C4E5F60901A9B0C1D2 /* ConsoleLogView.swift in Sources */,
 				6E50D98329CD6066008C39F6 /* BottleVM.swift in Sources */,
+				B1A2C3D4E5F60302A9B0C1D3 /* ProcessesViewModel.swift in Sources */,
 				6E2B25C12B0E20F50084A67A /* PinAddView.swift in Sources */,
 				6E49E0212AECB7DB00009CAC /* SettingsView.swift in Sources */,
 				6E7C07C02AAF570100F6E66B /* FileOpenView.swift in Sources */,
@@ -670,8 +873,53 @@
 				689B4F6DF3B8006E89E1395F /* LauncherDiagnostics.swift in Sources */,
 				160B41C4006351293AAEEF27 /* LauncherConfigSection.swift in Sources */,
 				F748991F03BA464CFCDA99F3 /* StatusToast.swift in Sources */,
+				H1A2B3C4E5F61001A9B0C1D0 /* LaunchTimeBanner.swift in Sources */,
 				FBD19F7BAD838BE3ABB2CCC2 /* LaunchResult+Toast.swift in Sources */,
 				77A2EE1594CEE1B55E88AFAB /* InputConfigSection.swift in Sources */,
+				1A8BB6C8C6FC24E0837A3C59 /* CleanupConfigSection.swift in Sources */,
+				B1C2D3E4F5A60402A9B0C1E0 /* BackendPickerView.swift in Sources */,
+				B1C2D3E4F5A60402A9B0C1E2 /* GraphicsConfigSection.swift in Sources */,
+				D1A2B3C4E5F60901A9B0C1D0 /* ResolutionConfigSection.swift in Sources */,
+				B1C2D3E4F5A60402A9B0C1E4 /* DXVKSettingsView.swift in Sources */,
+				D1A2B3C4E5F60504A9B0C1D1 /* DiagnosticsView.swift in Sources */,
+				D1A2B3C4E5F60504A9B0C1D3 /* RemediationCardView.swift in Sources */,
+				D1A2B3C4E5F60504A9B0C1D5 /* LogViewerView.swift in Sources */,
+				D1A2B3C4E5F60504A9B0C1E1 /* DiagnosticExportSheet.swift in Sources */,
+				D1A2B3C4E5F60504A9B0C1E3 /* DiagnosisHistoryView.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C1D0 /* AudioStatusView.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C1D2 /* AudioTestButtonsView.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C1D4 /* AudioSettingsView.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C1D6 /* AudioFindingsView.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C1D8 /* AudioConfigSection.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C2D0 /* AudioTroubleshootingWizardView.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C2D2 /* AudioDeviceListView.swift in Sources */,
+				C1A2B3C4E5F60601A9B0C2D4 /* AudioDeviceHistoryView.swift in Sources */,
+				D6EEECF2BAE764BAE529B9BA /* AudioAlertTracker.swift in Sources */,
+				484A57DAD0A7634094236533 /* DiagnosticsPickerSheet.swift in Sources */,
+				E1A2B3C4E5F60701A9B0C1D0 /* GameEntryRowView.swift in Sources */,
+				E1A2B3C4E5F60701A9B0C1D2 /* GameConfigurationView.swift in Sources */,
+				E1A2B3C4E5F60701A9B0C2D0 /* GameEntryDetailView.swift in Sources */,
+				E1A2B3C4E5F60701A9B0C2D2 /* GameVariantPickerView.swift in Sources */,
+				E1A2B3C4E5F60701A9B0C2D4 /* GameConfigPreviewSheet.swift in Sources */,
+				E1A2B3C4E5F60701A9B0C3D0 /* GameConfigBannerView.swift in Sources */,
+				F1A2B3C4E5F60801A9B0C1D1 /* ControllerMonitor.swift in Sources */,
+				G1A2B3C4E5F60901A9B0C1D0 /* DependencyManager.swift in Sources */,
+				G1A2B3C4E5F60901A9B0C1D2 /* Winetricks+Install.swift in Sources */,
+				H1A2B3C4E5F61101A9B0C1D0 /* DependencyConfigSection.swift in Sources */,
+				H1A2B3C4E5F61101A9B0C1D2 /* DependencyInstallSheet.swift in Sources */,
+				I1A2B3C4E5F61201A9B0C1D0 /* SteamDownloadMonitor.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C1D0 /* TroubleshootingWizardView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C1D2 /* ProgressRailView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C1D4 /* SymptomPickerView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C1D6 /* StepCardView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C1D8 /* FixPreviewView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C2D0 /* FixVerifyView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C2D2 /* BranchExplanationView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C2D4 /* SessionResumeView.swift in Sources */,
+				J1A2B3C4E5F61301A9B0C2D6 /* EscalationView.swift in Sources */,
+				K1A2B3C4E5F61401A9B0C1D0 /* TroubleshootingHistoryView.swift in Sources */,
+				K1A2B3C4E5F61401A9B0C1D2 /* TroubleshootingTargetPicker.swift in Sources */,
+				K1A2B3C4E5F61401A9B0C1D4 /* TroubleshootingEntryBanner.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

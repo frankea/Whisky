@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "categoryId": "fragment-dependency-install",
+  "entryNodeId": "check_dependencies",
+  "nodes": {
+    "check_dependencies": {
+      "id": "check_dependencies",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check for missing dependencies",
+      "description": "Scanning the bottle for missing runtime libraries and components.",
+      "checkId": "dependency.check_missing",
+      "params": {},
+      "on": {
+        "pass": "dependencies_ok",
+        "fail": "install_dependency",
+        "unknown": "dependencies_ok",
+        "error": "dependencies_ok"
+      },
+      "evidenceMap": {
+        "missingDeps": "Missing dependencies",
+        "checkedCount": "Components checked"
+      }
+    },
+    "install_dependency": {
+      "id": "install_dependency",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Install missing dependency",
+      "description": "Install the missing runtime component via Winetricks. This may take a few minutes and cannot be undone automatically.",
+      "fixId": "install-dependency",
+      "isReversible": false,
+      "requiresConfirmation": true,
+      "on": {
+        "applied": "verify_dependency",
+        "skipped": "dependencies_ok"
+      }
+    },
+    "verify_dependency": {
+      "id": "verify_dependency",
+      "type": "verify",
+      "phase": "verify",
+      "title": "Did the installation help?",
+      "description": "Try launching the program again to check whether the dependency installation resolved the issue.",
+      "on": {
+        "yes": "dependencies_resolved",
+        "no": "dependencies_ok"
+      }
+    },
+    "dependencies_resolved": {
+      "id": "dependencies_resolved",
+      "type": "info",
+      "phase": "export",
+      "title": "Dependency issue resolved",
+      "description": "The missing dependency has been installed and the issue appears to be resolved."
+    },
+    "dependencies_ok": {
+      "id": "dependencies_ok",
+      "type": "info",
+      "phase": "checks",
+      "title": "Dependencies checked",
+      "description": "Dependency check complete. Continuing to the next diagnostic step."
+    }
+  }
+}

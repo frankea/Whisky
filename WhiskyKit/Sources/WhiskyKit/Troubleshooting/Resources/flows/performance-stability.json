@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "categoryId": "performance-stability",
+  "entryNodeId": "check_enhanced_sync",
+  "nodes": {
+    "check_enhanced_sync": {
+      "id": "check_enhanced_sync",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check enhanced sync and DXVK settings",
+      "description": "Checking whether enhanced sync (esync/msync) is enabled and DXVK is configured for optimal performance.",
+      "checkId": "setting.value_check",
+      "params": {
+        "setting": "enhancedSync",
+        "scope": "bottle"
+      },
+      "on": {
+        "pass": "escalate",
+        "already_configured": "escalate",
+        "fail": "fix_enable_esync",
+        "unknown": "escalate",
+        "error": "escalate"
+      },
+      "evidenceMap": {
+        "currentValue": "Enhanced sync",
+        "recommendation": "Recommendation"
+      }
+    },
+    "fix_enable_esync": {
+      "id": "fix_enable_esync",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Enable enhanced sync",
+      "description": "Enabling enhanced sync reduces CPU overhead and improves frame pacing. Enable the DXVK HUD in Graphics settings to monitor frame times after applying this fix.",
+      "fixId": "enable-enhanced-sync",
+      "fixPreview": {
+        "settingName": "Enhanced Sync",
+        "currentValueKey": "currentValue",
+        "newValue": "esync",
+        "scope": "bottle"
+      },
+      "isReversible": true,
+      "requiresConfirmation": false,
+      "on": {
+        "applied": "verify_fix",
+        "skipped": "escalate"
+      }
+    },
+    "verify_fix": {
+      "id": "verify_fix",
+      "type": "verify",
+      "phase": "verify",
+      "title": "Did this improve performance?",
+      "description": "Try launching the program and playing for a few minutes. Check if stuttering or instability is reduced.",
+      "on": {
+        "yes": "resolved",
+        "no": "escalate"
+      }
+    },
+    "escalate": {
+      "id": "escalate",
+      "type": "info",
+      "phase": "export",
+      "title": "Additional diagnostics needed",
+      "description": "Try enabling the DXVK HUD in Graphics settings to monitor frame times, and check the Game Config section for recommended performance settings. Export a diagnostic report for further analysis.",
+      "fragmentRef": "export-escalation"
+    },
+    "resolved": {
+      "id": "resolved",
+      "type": "info",
+      "phase": "export",
+      "title": "Problem resolved",
+      "description": "The performance issue has been improved. You can export a session report for your records."
+    }
+  }
+}

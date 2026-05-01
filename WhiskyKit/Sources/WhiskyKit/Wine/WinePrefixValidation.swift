@@ -174,7 +174,7 @@ public enum WinePrefixValidation {
         }
 
         // Filter to only directories and skip system directories
-        let systemDirs: Set<String> = ["Public"]
+        let systemDirs: Set = ["Public"]
         let userDirs = entries.filter { entry in
             let name = entry.lastPathComponent
             guard !systemDirs.contains(name) else { return false }

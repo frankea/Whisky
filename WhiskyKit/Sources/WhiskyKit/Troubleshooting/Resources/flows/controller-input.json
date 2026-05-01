@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "categoryId": "controller-input",
+  "entryNodeId": "check_controller_setting",
+  "nodes": {
+    "check_controller_setting": {
+      "id": "check_controller_setting",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check controller compatibility mode",
+      "description": "Checking whether controller compatibility mode is enabled and SDL environment variables are correctly configured.",
+      "checkId": "setting.value_check",
+      "params": {
+        "setting": "controllerCompatibilityMode",
+        "scope": "program"
+      },
+      "on": {
+        "pass": "escalate",
+        "already_configured": "escalate",
+        "fail": "fix_enable_compat",
+        "unknown": "escalate",
+        "error": "escalate"
+      },
+      "evidenceMap": {
+        "currentValue": "Compatibility mode",
+        "recommendation": "Recommendation"
+      }
+    },
+    "fix_enable_compat": {
+      "id": "fix_enable_compat",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Enable controller compatibility mode",
+      "description": "Enabling controller compatibility mode improves detection and button mapping. If using Bluetooth, also try unpairing and re-pairing in macOS System Settings > Bluetooth.",
+      "fixId": "enable-controller-compat",
+      "fixPreview": {
+        "settingName": "Controller Compatibility Mode",
+        "currentValueKey": "currentValue",
+        "newValue": "true",
+        "scope": "program"
+      },
+      "isReversible": true,
+      "requiresConfirmation": false,
+      "on": {
+        "applied": "verify_fix",
+        "skipped": "escalate"
+      }
+    },
+    "verify_fix": {
+      "id": "verify_fix",
+      "type": "verify",
+      "phase": "verify",
+      "title": "Did this fix the controller issue?",
+      "description": "Try launching the program and testing the controller. For wireless controllers, also check macOS System Settings > Bluetooth and try re-pairing.",
+      "on": {
+        "yes": "resolved",
+        "no": "escalate"
+      }
+    },
+    "resolved": {
+      "id": "resolved",
+      "type": "info",
+      "phase": "export",
+      "title": "Problem resolved",
+      "description": "The controller issue has been fixed. You can export a session report for your records."
+    },
+    "escalate": {
+      "id": "escalate",
+      "type": "info",
+      "phase": "export",
+      "title": "Additional diagnostics needed",
+      "description": "The automated controller checks have not resolved the issue. For Bluetooth controllers, try unpairing and re-pairing in macOS System Settings > Bluetooth. For wired controllers, try a different USB port or cable. Export a diagnostic report for further analysis.",
+      "fragmentRef": "export-escalation"
+    }
+  }
+}

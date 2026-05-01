@@ -25,11 +25,23 @@ struct ProgramView: View {
     @State private var programLoading: Bool = false
     @State private var cachedIconImage: Image?
     @State private var toast: ToastData?
+    @State private var showTroubleshootingWizard: Bool = false
+    @State private var hasActiveSession: Bool = false
     @AppStorage("configSectionExapnded") private var configSectionExpanded: Bool = true
     @AppStorage("envArgsSectionExpanded") private var envArgsSectionExpanded: Bool = true
+    @AppStorage("overridesSectionExpanded") private var overridesSectionExpanded: Bool = false
+    @AppStorage("consoleRunsSectionExpanded") private var consoleRunsSectionExpanded: Bool = false
+    @State private var selectedRunId: UUID?
+
+    private let sessionStore = TroubleshootingSessionStore()
 
     var body: some View {
         Form {
+            if hasActiveSession {
+                TroubleshootingEntryBanner(bannerType: .resumeSession) {
+                    showTroubleshootingWizard = true
+                }
+            }
             Section("program.config", isExpanded: $configSectionExpanded) {
                 Picker("locale.title", selection: $program.settings.locale) {
                     ForEach(Locales.allCases, id: \.self) { locale in
@@ -48,10 +60,36 @@ struct ProgramView: View {
                 }
             }
             EnvironmentArgView(program: program, isExpanded: $envArgsSectionExpanded)
+            ProgramOverrideSettingsView(
+                bottle: program.bottle,
+                program: program,
+                isExpanded: $overridesSectionExpanded
+            )
+            Section("console.title", isExpanded: $consoleRunsSectionExpanded) {
+                ConsoleRunHistoryView(
+                    program: program,
+                    bottle: program.bottle,
+                    selectedRunId: $selectedRunId
+                )
+                if let runId = selectedRunId,
+                   let entry = findRunEntry(id: runId) {
+                    ConsoleLogView(runEntry: entry, bottle: program.bottle)
+                }
+            }
+        }
+        .sheet(isPresented: $showTroubleshootingWizard) {
+            TroubleshootingWizardView(
+                bottle: program.bottle,
+                program: program,
+                entryContext: .program(programURL: program.url, bottleURL: program.bottle.url)
+            )
         }
         .bottomBar {
             HStack {
                 Spacer()
+                Button(String(localized: "troubleshooting.entry.troubleshoot")) {
+                    showTroubleshootingWizard = true
+                }
                 Button("button.showInFinder") {
                     NSWorkspace.shared.activateFileViewerSelecting([program.url])
                 }
@@ -111,11 +149,21 @@ struct ProgramView: View {
         .formStyle(.grouped)
         .animation(.whiskyDefault, value: configSectionExpanded)
         .animation(.whiskyDefault, value: envArgsSectionExpanded)
+        .animation(.whiskyDefault, value: overridesSectionExpanded)
+        .animation(.whiskyDefault, value: consoleRunsSectionExpanded)
         .task {
             if let icon = await IconCache.shared.iconAsync(for: program.url, peFile: program.peFile) {
                 self.cachedIconImage = Image(nsImage: icon)
             }
         }
+        .onAppear {
+            hasActiveSession = sessionStore.hasActiveSession(for: program.bottle.url)
+        }
+    }
+
+    private func findRunEntry(id: UUID) -> RunLogEntry? {
+        let history = RunLogStore.load(for: program.name, in: program.bottle.url)
+        return history.entries.first(where: { $0.id == id })
     }
 
     private func launchProgram() {

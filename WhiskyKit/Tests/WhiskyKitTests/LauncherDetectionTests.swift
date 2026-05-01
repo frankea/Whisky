@@ -31,31 +31,31 @@ import XCTest
 final class LauncherDetectionTests: XCTestCase {
     // MARK: - Steam Detection Tests
 
-    func testDetectSteamFromStandardPath() throws {
+    func testDetectSteamFromStandardPath() {
         let url = URL(fileURLWithPath: "C:/Program Files (x86)/Steam/steam.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .steam, "Should detect Steam from standard installation path")
     }
 
-    func testDetectSteamFromFilename() throws {
+    func testDetectSteamFromFilename() {
         let url = URL(fileURLWithPath: "C:/SomeFolder/steam.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .steam, "Should detect Steam from filename alone")
     }
 
-    func testDetectSteamWebHelper() throws {
+    func testDetectSteamWebHelper() {
         let url = URL(fileURLWithPath: "C:/Program Files/Steam/bin/steamwebhelper.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .steam, "Should detect Steam from steamwebhelper component")
     }
 
-    func testDetectSteamService() throws {
+    func testDetectSteamService() {
         let url = URL(fileURLWithPath: "C:/Steam/steamservice.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .steam, "Should detect Steam from service executable")
     }
 
-    func testDetectSteamCaseInsensitive() throws {
+    func testDetectSteamCaseInsensitive() {
         let url = URL(fileURLWithPath: "C:/STEAM/STEAM.EXE")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .steam, "Detection should be case-insensitive")
@@ -63,38 +63,38 @@ final class LauncherDetectionTests: XCTestCase {
 
     // MARK: - Rockstar Games Detection Tests
 
-    func testDetectRockstarFromStandardPath() throws {
+    func testDetectRockstarFromStandardPath() {
         let url = URL(fileURLWithPath: "C:/Program Files/Rockstar Games/Launcher/Launcher.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .rockstar, "Should detect Rockstar from standard path")
     }
 
-    func testDetectRockstarFromFilename() throws {
+    func testDetectRockstarFromFilename() {
         let url = URL(fileURLWithPath: "C:/Games/RockstarLauncher.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .rockstar, "Should detect Rockstar from filename")
     }
 
-    func testDetectRockstarLauncherPatcher() throws {
+    func testDetectRockstarLauncherPatcher() {
         let url = URL(fileURLWithPath: "C:/Games/Rockstar/LauncherPatcher.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .rockstar, "Should detect Rockstar LauncherPatcher workaround")
     }
 
-    func testDetectRockstarSocialClub() throws {
+    func testDetectRockstarSocialClub() {
         let url = URL(fileURLWithPath: "C:/Program Files/Rockstar Games/Social Club/Launcher.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .rockstar, "Should detect Rockstar via Social Club path")
     }
 
-    func testGenericLauncherNotRockstar() throws {
+    func testGenericLauncherNotRockstar() {
         let url = URL(fileURLWithPath: "C:/Program Files/SomeGame/Launcher.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertNotEqual(detected, .rockstar, "Generic launcher.exe should not match Rockstar")
         XCTAssertNil(detected, "Generic launcher.exe with no Rockstar path should return nil")
     }
 
-    func testGenericLauncherWithoutSpecificPath() throws {
+    func testGenericLauncherWithoutSpecificPath() {
         // Test that launcher.exe alone is not enough - requires "rockstar games" or "social club" in path
         let falsePaths = [
             "C:/Program Files/MyLauncher/Launcher.exe",
@@ -111,7 +111,7 @@ final class LauncherDetectionTests: XCTestCase {
         }
     }
 
-    func testRockstarRequiresSpecificPath() throws {
+    func testRockstarRequiresSpecificPath() {
         // Verify Rockstar detection requires "rockstar games" or "social club" in full
         let validRockstarPaths = [
             "C:/Program Files/Rockstar Games/Launcher/Launcher.exe",
@@ -128,25 +128,25 @@ final class LauncherDetectionTests: XCTestCase {
 
     // MARK: - EA App / Origin Detection Tests
 
-    func testDetectEAAppFromStandardPath() throws {
+    func testDetectEAAppFromStandardPath() {
         let url = URL(fileURLWithPath: "C:/Program Files/Electronic Arts/EA Desktop/EA App/EADesktop.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .eaApp, "Should detect EA App from standard path")
     }
 
-    func testDetectEAAppFromFilename() throws {
+    func testDetectEAAppFromFilename() {
         let url = URL(fileURLWithPath: "C:/Games/EADesktop.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .eaApp, "Should detect EA App from filename")
     }
 
-    func testDetectOriginLegacy() throws {
+    func testDetectOriginLegacy() {
         let url = URL(fileURLWithPath: "C:/Program Files (x86)/Origin/Origin.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .eaApp, "Should detect legacy Origin as EA App")
     }
 
-    func testDetectEAAppVariants() throws {
+    func testDetectEAAppVariants() {
         let variants = [
             "C:/EAApp.exe",
             "C:/EA App/EADesktop.exe",
@@ -162,20 +162,20 @@ final class LauncherDetectionTests: XCTestCase {
 
     // MARK: - Epic Games Detection Tests
 
-    func testDetectEpicGamesFromStandardPath() throws {
+    func testDetectEpicGamesFromStandardPath() {
         let path = "C:/Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe"
         let url = URL(fileURLWithPath: path)
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .epicGames, "Should detect Epic Games from standard path")
     }
 
-    func testDetectEpicGamesFromFilename() throws {
+    func testDetectEpicGamesFromFilename() {
         let url = URL(fileURLWithPath: "C:/Games/EpicGamesLauncher.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .epicGames, "Should detect Epic from filename")
     }
 
-    func testDetectEpicWebHelper() throws {
+    func testDetectEpicWebHelper() {
         let url = URL(fileURLWithPath: "C:/Epic Games/Launcher/EpicWebHelper.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .epicGames, "Should detect Epic web helper component")
@@ -183,19 +183,19 @@ final class LauncherDetectionTests: XCTestCase {
 
     // MARK: - Ubisoft Connect Detection Tests
 
-    func testDetectUbisoftConnectFromStandardPath() throws {
+    func testDetectUbisoftConnectFromStandardPath() {
         let url = URL(fileURLWithPath: "C:/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .ubisoft, "Should detect Ubisoft Connect from standard path")
     }
 
-    func testDetectUplayLegacy() throws {
+    func testDetectUplayLegacy() {
         let url = URL(fileURLWithPath: "C:/Program Files/Ubisoft/Uplay/upc.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .ubisoft, "Should detect legacy Uplay")
     }
 
-    func testDetectUbisoftVariants() throws {
+    func testDetectUbisoftVariants() {
         let variants = [
             "C:/Ubisoft/UbisoftConnect.exe",
             "C:/Games/uplay.exe",
@@ -211,13 +211,13 @@ final class LauncherDetectionTests: XCTestCase {
 
     // MARK: - Battle.net Detection Tests
 
-    func testDetectBattleNetFromStandardPath() throws {
+    func testDetectBattleNetFromStandardPath() {
         let url = URL(fileURLWithPath: "C:/Program Files (x86)/Battle.net/Battle.net.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .battleNet, "Should detect Battle.net from standard path")
     }
 
-    func testDetectBattleNetVariants() throws {
+    func testDetectBattleNetVariants() {
         let variants = [
             "C:/Battle.net/Battle.net.exe",
             "C:/BattleNet/battlenet.exe",
@@ -233,25 +233,25 @@ final class LauncherDetectionTests: XCTestCase {
 
     // MARK: - Paradox Launcher Detection Tests
 
-    func testDetectParadoxFromStandardPath() throws {
+    func testDetectParadoxFromStandardPath() {
         let url = URL(fileURLWithPath: "C:/Users/User/AppData/Local/Programs/Paradox Launcher/Paradox Launcher.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .paradox, "Should detect Paradox Launcher from standard path")
     }
 
-    func testDetectParadoxFromDirectory() throws {
+    func testDetectParadoxFromDirectory() {
         let url = URL(fileURLWithPath: "C:/Paradox Launcher/Launcher.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .paradox, "Should detect Paradox from 'Paradox Launcher' directory")
     }
 
-    func testDetectParadoxFromParadoxInteractive() throws {
+    func testDetectParadoxFromParadoxInteractive() {
         let url = URL(fileURLWithPath: "C:/Program Files/Paradox Interactive/Launcher/Launcher.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .paradox, "Should detect Paradox from 'Paradox Interactive' directory")
     }
 
-    func testGenericParadoxGameNotDetectedAsLauncher() throws {
+    func testGenericParadoxGameNotDetectedAsLauncher() {
         // Paradox game folder (not the launcher)
         let url = URL(fileURLWithPath: "C:/Games/Paradox Interactive/Europa Universalis/game.exe")
         let detected = LauncherType.detectFromPath(url)
@@ -260,13 +260,13 @@ final class LauncherDetectionTests: XCTestCase {
 
     // MARK: - False Positive Prevention Tests
 
-    func testDoNotDetectRegularGame() throws {
+    func testDoNotDetectRegularGame() {
         let url = URL(fileURLWithPath: "C:/Program Files/MyGame/game.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertNil(detected, "Regular game executable should not match any launcher")
     }
 
-    func testDoNotDetectUnrelatedPrograms() throws {
+    func testDoNotDetectUnrelatedPrograms() {
         let unrelatedPaths = [
             "C:/Windows/System32/notepad.exe",
             "C:/Program Files/Firefox/firefox.exe",
@@ -281,7 +281,7 @@ final class LauncherDetectionTests: XCTestCase {
         }
     }
 
-    func testDoNotConfuseSteamInPathWithActualSteam() throws {
+    func testDoNotConfuseSteamInPathWithActualSteam() {
         // Edge case: game folder contains "steam" but isn't Steam launcher
         let url = URL(fileURLWithPath: "C:/Games/Steamworld/game.exe")
         let detected = LauncherType.detectFromPath(url)
@@ -293,19 +293,19 @@ final class LauncherDetectionTests: XCTestCase {
 
     // MARK: - Path Separator Handling Tests
 
-    func testWindowsPathSeparators() throws {
+    func testWindowsPathSeparators() {
         let url = URL(fileURLWithPath: "C:\\Program Files\\Steam\\steam.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .steam, "Should handle Windows backslash separators")
     }
 
-    func testUnixPathSeparators() throws {
+    func testUnixPathSeparators() {
         let url = URL(fileURLWithPath: "/drive_c/Program Files/Steam/steam.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .steam, "Should handle Unix forward slash separators")
     }
 
-    func testMixedPathSeparators() throws {
+    func testMixedPathSeparators() {
         let url = URL(fileURLWithPath: "C:/Program Files\\Rockstar Games/Launcher.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .rockstar, "Should handle mixed path separators")
@@ -313,19 +313,19 @@ final class LauncherDetectionTests: XCTestCase {
 
     // MARK: - Special Characters and Encoding Tests
 
-    func testPathWithSpaces() throws {
+    func testPathWithSpaces() {
         let url = URL(fileURLWithPath: "C:/Program Files (x86)/Epic Games/Launcher/EpicGamesLauncher.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .epicGames, "Should handle spaces in path")
     }
 
-    func testPathWithParentheses() throws {
+    func testPathWithParentheses() {
         let url = URL(fileURLWithPath: "C:/Program Files (x86)/Origin/Origin.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .eaApp, "Should handle parentheses in path")
     }
 
-    func testPathWithDots() throws {
+    func testPathWithDots() {
         let url = URL(fileURLWithPath: "C:/Battle.net/Battle.net.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .battleNet, "Should handle dots in path")
@@ -333,19 +333,19 @@ final class LauncherDetectionTests: XCTestCase {
 
     // MARK: - Edge Cases and Corner Cases
 
-    func testEmptyPath() throws {
+    func testEmptyPath() {
         let url = URL(fileURLWithPath: "")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertNil(detected, "Empty path should return nil")
     }
 
-    func testRootPath() throws {
+    func testRootPath() {
         let url = URL(fileURLWithPath: "/")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertNil(detected, "Root path should return nil")
     }
 
-    func testFilenameOnlyNoPath() throws {
+    func testFilenameOnlyNoPath() {
         let url = URL(fileURLWithPath: "steam.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .steam, "Should detect from filename even without full path")
@@ -353,7 +353,7 @@ final class LauncherDetectionTests: XCTestCase {
 
     // MARK: - Multiple Launcher Keyword Tests
 
-    func testSteamKeywordDoesntMatchOthers() throws {
+    func testSteamKeywordDoesntMatchOthers() {
         let url = URL(fileURLWithPath: "C:/Steam/steam.exe")
         let detected = LauncherType.detectFromPath(url)
         XCTAssertEqual(detected, .steam)
@@ -361,7 +361,7 @@ final class LauncherDetectionTests: XCTestCase {
         XCTAssertNotEqual(detected, .eaApp)
     }
 
-    func testAllLaunchersHaveUniqueDetection() throws {
+    func testAllLaunchersHaveUniqueDetection() {
         let testPaths: [(String, LauncherType)] = [
             ("C:/Steam/steam.exe", .steam),
             ("C:/Rockstar Games/Launcher.exe", .rockstar),
@@ -385,7 +385,7 @@ final class LauncherDetectionTests: XCTestCase {
 
     // MARK: - Real-World Path Examples
 
-    func testRealWorldSteamPaths() throws {
+    func testRealWorldSteamPaths() {
         let realPaths = [
             "C:/Program Files (x86)/Steam/steam.exe",
             "D:/SteamLibrary/steam.exe",
@@ -399,7 +399,7 @@ final class LauncherDetectionTests: XCTestCase {
         }
     }
 
-    func testRealWorldRockstarPaths() throws {
+    func testRealWorldRockstarPaths() {
         let realPaths = [
             "C:/Program Files/Rockstar Games/Launcher/Launcher.exe",
             "C:/Program Files/Rockstar Games/Social Club/Launcher.exe",
@@ -415,7 +415,7 @@ final class LauncherDetectionTests: XCTestCase {
 
     // MARK: - Performance Tests
 
-    func testDetectionPerformance() throws {
+    func testDetectionPerformance() {
         let url = URL(fileURLWithPath: "C:/Program Files/Steam/steam.exe")
 
         measure {
@@ -431,8 +431,8 @@ final class LauncherDetectionTests: XCTestCase {
 // MARK: - Helper Extension for Testing
 
 extension LauncherType {
-    // Test helper method that calls the actual detection logic.
-    // This would normally be in LauncherDetection, but we need to test it from WhiskyKit tests.
+    /// Test helper method that calls the actual detection logic.
+    /// This would normally be in LauncherDetection, but we need to test it from WhiskyKit tests.
     fileprivate static func detectFromPath(_ url: URL) -> LauncherType? {
         let filename = url.lastPathComponent.lowercased()
         let path = url.path.lowercased()

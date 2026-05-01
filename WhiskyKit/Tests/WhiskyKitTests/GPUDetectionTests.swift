@@ -20,28 +20,28 @@
 import XCTest
 
 final class GPUDetectionTests: XCTestCase {
-    func testNVIDIAVendorID() throws {
+    func testNVIDIAVendorID() {
         XCTAssertEqual(GPUVendor.nvidia.vendorID, "0x10DE")
         XCTAssertEqual(GPUVendor.nvidia.modelName, "NVIDIA GeForce RTX 4090")
     }
 
-    func testAMDVendorID() throws {
+    func testAMDVendorID() {
         XCTAssertEqual(GPUVendor.amd.vendorID, "0x1002")
         XCTAssertEqual(GPUVendor.amd.modelName, "AMD Radeon RX 6900 XT")
     }
 
-    func testIntelVendorID() throws {
+    func testIntelVendorID() {
         XCTAssertEqual(GPUVendor.intel.vendorID, "0x8086")
     }
 
-    func testGPUSpoofingIncludesVendorID() throws {
+    func testGPUSpoofingIncludesVendorID() {
         let env = GPUDetection.spoofGPU(vendor: .nvidia)
 
         XCTAssertEqual(env["GPU_VENDOR_ID"], "0x10DE")
         XCTAssertNotNil(env["GPU_DEVICE_ID"])
     }
 
-    func testGPUSpoofingIncludesFeatureLevels() throws {
+    func testGPUSpoofingIncludesFeatureLevels() {
         let env = GPUDetection.spoofGPU(vendor: .nvidia)
 
         // Should report DirectX 12.1 support
@@ -50,7 +50,7 @@ final class GPUDetectionTests: XCTestCase {
         XCTAssertEqual(env["D3DM_FEATURE_LEVEL_11_1"], "1")
     }
 
-    func testGPUSpoofingIncludesOpenGLVersion() throws {
+    func testGPUSpoofingIncludesOpenGLVersion() {
         let env = GPUDetection.spoofGPU(vendor: .nvidia)
 
         // Should report OpenGL 4.6
@@ -58,21 +58,21 @@ final class GPUDetectionTests: XCTestCase {
         XCTAssertEqual(env["MESA_GLSL_VERSION_OVERRIDE"], "460")
     }
 
-    func testGPUSpoofingIncludesVRAM() throws {
+    func testGPUSpoofingIncludesVRAM() {
         let env = GPUDetection.spoofGPU(vendor: .nvidia)
 
         // Should report at least 8GB VRAM
         XCTAssertEqual(env["GPU_MEMORY_SIZE"], "8192")
     }
 
-    func testGPUSpoofingIncludesRayTracing() throws {
+    func testGPUSpoofingIncludesRayTracing() {
         let env = GPUDetection.spoofGPU(vendor: .nvidia)
 
         // Should report DXR support
         XCTAssertEqual(env["D3DM_SUPPORT_DXR"], "1")
     }
 
-    func testAppleSiliconSpoofing() throws {
+    func testAppleSiliconSpoofing() {
         let env = GPUDetection.spoofAppleSilicon()
 
         // Should spoof as NVIDIA for best compatibility
@@ -82,14 +82,14 @@ final class GPUDetectionTests: XCTestCase {
         XCTAssertNotNil(env["MTL_SHADER_VALIDATION"])
     }
 
-    func testCustomModelName() throws {
+    func testCustomModelName() {
         let customModel = "Custom GPU Name"
         let env = GPUDetection.spoofGPU(vendor: .amd, model: customModel)
 
         XCTAssertEqual(env["GPU_DESCRIPTION"], customModel)
     }
 
-    func testSpoofWithVendor() throws {
+    func testSpoofWithVendor() {
         let nvidiaEnv = GPUDetection.spoofWithVendor(.nvidia)
         let amdEnv = GPUDetection.spoofWithVendor(.amd)
 
@@ -97,7 +97,7 @@ final class GPUDetectionTests: XCTestCase {
         XCTAssertEqual(amdEnv["GPU_VENDOR_ID"], "0x1002")
     }
 
-    func testValidateSpoofingEnvironment() throws {
+    func testValidateSpoofingEnvironment() {
         // Valid environment
         var validEnv = GPUDetection.spoofGPU(vendor: .nvidia)
         XCTAssertTrue(GPUDetection.validateSpoofingEnvironment(validEnv))
@@ -107,7 +107,7 @@ final class GPUDetectionTests: XCTestCase {
         XCTAssertFalse(GPUDetection.validateSpoofingEnvironment(validEnv))
     }
 
-    func testAllVendorsHaveDeviceIDs() throws {
+    func testAllVendorsHaveDeviceIDs() {
         for vendor in GPUVendor.allCases {
             XCTAssertFalse(vendor.vendorID.isEmpty)
             XCTAssertFalse(vendor.deviceID.isEmpty)
@@ -115,7 +115,7 @@ final class GPUDetectionTests: XCTestCase {
         }
     }
 
-    func testVulkanConfiguration() throws {
+    func testVulkanConfiguration() {
         let env = GPUDetection.spoofGPU(vendor: .nvidia)
 
         // Should include MoltenVK ICD path
@@ -123,7 +123,7 @@ final class GPUDetectionTests: XCTestCase {
         XCTAssertTrue(env["VK_ICD_FILENAMES"]?.contains("MoltenVK") ?? false)
     }
 
-    func testShaderModelSupport() throws {
+    func testShaderModelSupport() {
         let env = GPUDetection.spoofGPU(vendor: .nvidia)
 
         // Should report modern shader model

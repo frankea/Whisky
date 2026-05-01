@@ -18,7 +18,7 @@
 
 import Foundation
 
-public enum DXVKHUD: Codable, Equatable {
+public enum DXVKHUD: Codable, Equatable, Sendable {
     case full, partial, fps, off
 }
 

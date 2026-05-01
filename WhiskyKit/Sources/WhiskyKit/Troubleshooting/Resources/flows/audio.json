@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "categoryId": "audio",
+  "entryNodeId": "check_audio_device",
+  "nodes": {
+    "check_audio_device": {
+      "id": "check_audio_device",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check audio output device",
+      "description": "Verifying that a valid audio output device is available and configured.",
+      "checkId": "audio.device_check",
+      "params": {},
+      "on": {
+        "pass": "check_audio_driver",
+        "fail": "show_device_issue",
+        "already_configured": "check_audio_driver",
+        "unknown": "check_audio_driver",
+        "error": "show_device_issue"
+      },
+      "evidenceMap": {
+        "deviceName": "Output device",
+        "transportType": "Connection type",
+        "sampleRate": "Sample rate"
+      }
+    },
+    "show_device_issue": {
+      "id": "show_device_issue",
+      "type": "info",
+      "phase": "checks",
+      "title": "Audio device issue detected",
+      "description": "There appears to be a problem with the audio output device. Check that your audio device is connected and selected as the default output in macOS System Settings > Sound.",
+      "on": {
+        "continue": "check_audio_driver"
+      }
+    },
+    "check_audio_driver": {
+      "id": "check_audio_driver",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check Wine audio driver",
+      "description": "Verifying the Wine audio driver configuration in the registry.",
+      "checkId": "audio.driver_check",
+      "params": {
+        "expected": "pulseaudio"
+      },
+      "on": {
+        "pass": "check_audio_buffer",
+        "already_configured": "check_audio_buffer",
+        "fail": "fix_audio_driver",
+        "unknown": "check_audio_buffer",
+        "error": "check_audio_buffer"
+      },
+      "evidenceMap": {
+        "currentDriver": "Current driver",
+        "expectedDriver": "Expected driver"
+      }
+    },
+    "fix_audio_driver": {
+      "id": "fix_audio_driver",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Configure Wine audio driver",
+      "description": "Setting the Wine audio driver to the recommended value for macOS compatibility.",
+      "fixId": "set-audio-driver",
+      "fixPreview": {
+        "settingName": "Wine Audio Driver",
+        "currentValueKey": "currentDriver",
+        "newValue": "pulseaudio",
+        "scope": "bottle"
+      },
+      "isReversible": true,
+      "requiresConfirmation": false,
+      "on": {
+        "applied": "verify_fix",
+        "skipped": "check_audio_buffer"
+      }
+    },
+    "check_audio_buffer": {
+      "id": "check_audio_buffer",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check DirectSound buffer settings",
+      "description": "Checking the DirectSound buffer size in the Wine registry. An incorrect buffer size can cause crackling or latency.",
+      "checkId": "registry.value_check",
+      "params": {
+        "key": "HKCU\\Software\\Wine\\DirectSound",
+        "value": "DefaultBufSize",
+        "expected": "20480"
+      },
+      "on": {
+        "pass": "check_sample_rate",
+        "already_configured": "check_sample_rate",
+        "fail": "fix_buffer_size",
+        "unknown": "check_sample_rate",
+        "error": "check_sample_rate"
+      },
+      "evidenceMap": {
+        "currentValue": "Current buffer size",
+        "expectedValue": "Recommended buffer size"
+      }
+    },
+    "fix_buffer_size": {
+      "id": "fix_buffer_size",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Adjust DirectSound buffer size",
+      "description": "Setting the DirectSound buffer to the recommended size to reduce audio crackling and latency.",
+      "fixId": "set-registry-value",
+      "fixPreview": {
+        "settingName": "DirectSound Buffer Size",
+        "currentValueKey": "currentValue",
+        "newValue": "20480",
+        "scope": "bottle"
+      },
+      "isReversible": true,
+      "requiresConfirmation": false,
+      "on": {
+        "applied": "verify_fix",
+        "skipped": "check_sample_rate"
+      }
+    },
+    "check_sample_rate": {
+      "id": "check_sample_rate",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check audio sample rate",
+      "description": "Verifying that the system audio sample rate is compatible with Wine audio output.",
+      "checkId": "audio.device_check",
+      "params": {
+        "check": "sample_rate_compat"
+      },
+      "on": {
+        "pass": "escalate",
+        "already_configured": "escalate",
+        "fail": "show_sample_rate_info",
+        "unknown": "escalate",
+        "error": "escalate"
+      },
+      "evidenceMap": {
+        "sampleRate": "System sample rate",
+        "recommendedRate": "Recommended rate"
+      }
+    },
+    "show_sample_rate_info": {
+      "id": "show_sample_rate_info",
+      "type": "info",
+      "phase": "checks",
+      "title": "Sample rate mismatch",
+      "description": "The system audio sample rate may not be compatible with Wine. Try changing the sample rate in macOS Audio MIDI Setup to 44100 Hz or 48000 Hz.",
+      "on": {
+        "continue": "escalate"
+      }
+    },
+    "verify_fix": {
+      "id": "verify_fix",
+      "type": "verify",
+      "phase": "verify",
+      "title": "Did this fix the audio problem?",
+      "description": "Try launching the program again to check whether sound is working correctly.",
+      "on": {
+        "yes": "resolved",
+        "no": "check_audio_buffer"
+      }
+    },
+    "escalate": {
+      "id": "escalate",
+      "type": "info",
+      "phase": "export",
+      "title": "Additional diagnostics needed",
+      "description": "The automated audio checks have not resolved the issue. Enhanced diagnostics or a support report may help identify the problem.",
+      "fragmentRef": "export-escalation"
+    },
+    "resolved": {
+      "id": "resolved",
+      "type": "info",
+      "phase": "export",
+      "title": "Problem resolved",
+      "description": "The audio issue has been fixed. You can export a session report for your records."
+    }
+  }
+}

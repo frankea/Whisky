@@ -18,7 +18,7 @@
 
 import Foundation
 
-enum RegistryType: String {
+public enum RegistryType: String {
     case binary = "REG_BINARY"
     case dword = "REG_DWORD"
     case qword = "REG_QWORD"
@@ -30,10 +30,12 @@ public extension Wine {
         case currentVersion = #"HKLM\Software\Microsoft\Windows NT\CurrentVersion"#
         case macDriver = #"HKCU\Software\Wine\Mac Driver"#
         case desktop = #"HKCU\Control Panel\Desktop"#
+        case explorer = #"HKCU\Software\Wine\Explorer"#
+        case explorerDesktops = #"HKCU\Software\Wine\Explorer\Desktops"#
     }
 
     @MainActor
-    private static func addRegistryKey(
+    static func addRegistryKey(
         bottle: Bottle, key: String, name: String, data: String, type: RegistryType
     ) async throws {
         try await runWine(
@@ -43,7 +45,7 @@ public extension Wine {
     }
 
     @MainActor
-    private static func queryRegistryKey(
+    static func queryRegistryKey(
         bottle: Bottle, key: String, name: String, type: RegistryType
     ) async throws -> String? {
         let output = try await runWine(["reg", "query", key, "-v", name], bottle: bottle)
@@ -98,16 +100,21 @@ public extension Wine {
     }
 
     @MainActor
-    static func retinaMode(bottle: Bottle) async throws -> Bool {
-        let values: Set<String> = ["y", "n"]
+    static func retinaMode(bottle: Bottle) async throws -> Bool? {
         guard let output = try await Wine.queryRegistryKey(
             bottle: bottle, key: RegistryKey.macDriver.rawValue, name: "RetinaMode", type: .string
-        ), values.contains(output)
+        )
         else {
-            try await changeRetinaMode(bottle: bottle, retinaMode: false)
-            return false
+            return nil
         }
-        return output == "y"
+        switch output {
+        case "y":
+            return true
+        case "n":
+            return false
+        default:
+            return nil
+        }
     }
 
     @MainActor
@@ -164,5 +171,73 @@ public extension Wine {
     @MainActor
     static func changeWinVersion(bottle: Bottle, win: WinVersion) async throws -> String {
         try await Wine.runWine(["winecfg", "-v", win.rawValue], bottle: bottle)
+    }
+
+    // MARK: - Virtual Desktop
+
+    /// Enables Wine's virtual desktop mode with the given resolution.
+    ///
+    /// Writes two registry values:
+    /// - `Desktop = "Default"` in `HKCU\Software\Wine\Explorer`
+    /// - `Default = "{width}x{height}"` in `HKCU\Software\Wine\Explorer\Desktops`
+    ///
+    /// - Parameters:
+    ///   - bottle: The bottle whose registry to modify.
+    ///   - resolution: A resolution string like `"1920x1080"`.
+    @MainActor
+    static func enableVirtualDesktop(bottle: Bottle, resolution: String) async throws {
+        try await addRegistryKey(
+            bottle: bottle,
+            key: RegistryKey.explorer.rawValue,
+            name: "Desktop",
+            data: "Default",
+            type: .string
+        )
+        try await addRegistryKey(
+            bottle: bottle,
+            key: RegistryKey.explorerDesktops.rawValue,
+            name: "Default",
+            data: resolution,
+            type: .string
+        )
+    }
+
+    /// Disables Wine's virtual desktop mode by removing the Desktop value.
+    ///
+    /// - Parameter bottle: The bottle whose registry to modify.
+    @MainActor
+    static func disableVirtualDesktop(bottle: Bottle) async throws {
+        do {
+            try await runWine(
+                ["reg", "delete", RegistryKey.explorer.rawValue, "-v", "Desktop", "-f"],
+                bottle: bottle
+            )
+        } catch {
+            // Key might not exist; this is expected on bottles that never had virtual desktop
+        }
+    }
+
+    /// Queries whether Wine's virtual desktop is currently enabled and returns the resolution.
+    ///
+    /// - Parameter bottle: The bottle whose registry to query.
+    /// - Returns: The resolution string (e.g., `"1920x1080"`) if virtual desktop is enabled, or `nil`.
+    @MainActor
+    static func queryVirtualDesktop(bottle: Bottle) async throws -> String? {
+        guard let desktop = try await queryRegistryKey(
+            bottle: bottle,
+            key: RegistryKey.explorer.rawValue,
+            name: "Desktop",
+            type: .string
+        ), !desktop.isEmpty
+        else {
+            return nil
+        }
+        // Desktop value is present -- query the resolution
+        return try await queryRegistryKey(
+            bottle: bottle,
+            key: RegistryKey.explorerDesktops.rawValue,
+            name: "Default",
+            type: .string
+        )
     }
 }

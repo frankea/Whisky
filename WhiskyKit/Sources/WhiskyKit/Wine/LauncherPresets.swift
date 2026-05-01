@@ -18,6 +18,49 @@
 
 import Foundation
 
+/// Categorizes the type of fix an environment variable override addresses.
+///
+/// Used by ``LauncherFixDetail`` and ``MacOSFix`` to classify why a particular
+/// environment variable is being set, enabling UI display of fix provenance.
+public enum FixCategory: String, Codable, CaseIterable, Sendable {
+    /// Locale or encoding fixes (LC_ALL, LANG, etc.)
+    case locale
+    /// Sandbox disablement or security boundary fixes
+    case sandbox
+    /// Graphics driver or rendering fixes (DXVK, D3D, Metal)
+    case graphics
+    /// Network timeout or connection pooling fixes
+    case network
+    /// Thread management, CPU topology, or synchronization fixes
+    case threading
+    /// General compatibility workarounds
+    case compatibility
+}
+
+/// Structured metadata for a single launcher-specific environment variable fix.
+///
+/// Wraps the same key-value pair as ``LauncherType/environmentOverrides()`` but
+/// adds a human-readable reason and category for provenance display.
+///
+/// ## Example
+///
+/// ```swift
+/// let details = LauncherType.steam.fixDetails()
+/// for detail in details {
+///     print("\(detail.key)=\(detail.value) (\(detail.reason))")
+/// }
+/// ```
+public struct LauncherFixDetail: Sendable {
+    /// The environment variable name.
+    public let key: String
+    /// The environment variable value.
+    public let value: String
+    /// Human-readable explanation of why this fix is applied.
+    public let reason: String
+    /// The category of issue this fix addresses.
+    public let category: FixCategory
+}
+
 /// Represents different game launcher platforms with optimized configurations.
 ///
 /// This enum provides launcher-specific environment variable presets to address
@@ -68,7 +111,39 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     /// Paradox Launcher
     case paradox = "Paradox Launcher"
 
-    public var id: String { rawValue }
+    public var id: String {
+        rawValue
+    }
+
+    /// Display name for the launcher.
+    public var displayName: String {
+        switch self {
+        case .steam:
+            "Steam"
+        case .rockstar:
+            "Rockstar Games Launcher"
+        case .eaApp:
+            "EA App"
+        case .epicGames:
+            "Epic Games Store"
+        case .ubisoft:
+            "Ubisoft Connect"
+        case .battleNet:
+            "Battle.net"
+        case .paradox:
+            "Paradox Launcher"
+        }
+    }
+
+    /// Whether this launcher is known to use the clipboard for multiplayer features.
+    public var usesClipboard: Bool {
+        switch self {
+        case .steam, .epicGames, .battleNet:
+            true
+        default:
+            false
+        }
+    }
 
     /// Returns optimized environment variables for this launcher.
     ///
@@ -77,6 +152,9 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     /// - **Rockstar**: Requires DXVK for logo rendering (whisky-app/whisky#1335, #835)
     /// - **EA App/Epic**: Chromium-based, need sandbox and locale fixes
     /// - **Ubisoft**: Requires D3D11 mode for stability (whisky-app/whisky#1004)
+    ///
+    /// - Note: For richer metadata including human-readable reasons and categories,
+    ///   use ``fixDetails()`` instead.
     ///
     /// - Returns: Dictionary of environment variable key-value pairs
     public func environmentOverrides() -> [String: String] {

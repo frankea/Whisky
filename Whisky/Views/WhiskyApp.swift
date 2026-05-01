@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  WhiskyApp.swift
 //  Whisky
@@ -24,8 +25,20 @@ import WhiskyKit
 private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.franke.Whisky", category: "WhiskyApp")
 
 @main
+// swiftlint:disable:next type_body_length
 struct WhiskyApp: App {
     @State var showSetup: Bool = false
+    @State private var showDiagnosticsSheet: Bool = false
+    @State private var showTroubleshootingPicker: Bool = false
+    @State private var showTroubleshootingWizard: Bool = false
+    @State private var troubleshootingBottle: Bottle?
+    @State private var troubleshootingProgram: Program?
+    @State private var troubleshootingEntryContext: EntryContext?
+    @State private var crashDiagnosisBanner: CrashDiagnosisBannerState?
+    @State private var audioDeviceToast: ToastData?
+    @State private var audioMonitor = AudioDeviceMonitor()
+    @State private var audioAlertTracker = AudioAlertTracker()
+    @State private var lastTroubleshootingSuggestionAt: [String: Date] = [:]
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Environment(\.openURL) var openURL
     private let updaterController: SPUStandardUpdaterController
@@ -45,11 +58,49 @@ struct WhiskyApp: App {
                 .environmentObject(BottleVM.shared)
                 .onAppear {
                     NSWindow.allowsAutomaticWindowTabbing = false
-
                     Task.detached {
                         await WhiskyApp.deleteOldLogs()
                     }
+                    startAudioDeviceListening()
                 }
+                .onReceive(
+                    NotificationCenter.default.publisher(for: .crashDiagnosisAvailable)
+                ) { notification in
+                    handleCrashDiagnosisNotification(notification)
+                }
+                .sheet(isPresented: $showDiagnosticsSheet) {
+                    DiagnosticsPickerSheet()
+                        .environmentObject(BottleVM.shared)
+                }
+                .sheet(isPresented: $showTroubleshootingPicker) {
+                    TroubleshootingTargetPicker(
+                        bottles: BottleVM.shared.bottles
+                    ) { bottle, program in
+                        troubleshootingBottle = bottle
+                        troubleshootingProgram = program
+                        troubleshootingEntryContext = .helpMenu(
+                            bottleURL: bottle.url,
+                            programURL: program?.url
+                        )
+                        showTroubleshootingWizard = true
+                    }
+                }
+                .sheet(isPresented: $showTroubleshootingWizard) {
+                    if let bottle = troubleshootingBottle,
+                       let context = troubleshootingEntryContext {
+                        TroubleshootingWizardView(
+                            bottle: bottle,
+                            program: troubleshootingProgram,
+                            entryContext: context
+                        )
+                    }
+                }
+                .overlay(alignment: .top) {
+                    if let banner = crashDiagnosisBanner {
+                        crashDiagnosisBannerView(banner)
+                    }
+                }
+                .toast($audioDeviceToast)
         }
         // Don't ask me how this works, it just does
         .handlesExternalEvents(matching: ["{same path of URL?}"])
@@ -115,6 +166,15 @@ struct WhiskyApp: App {
                         openURL(url)
                     }
                 }
+                Divider()
+                Button("Run Diagnostics\u{2026}") {
+                    showDiagnosticsSheet = true
+                }
+                .keyboardShortcut("D", modifiers: [.command, .shift])
+                Button(String(localized: "troubleshooting.entry.helpMenu")) {
+                    showTroubleshootingPicker = true
+                }
+                .keyboardShortcut("T", modifiers: [.command, .shift])
             }
         }
         Settings {
@@ -122,6 +182,157 @@ struct WhiskyApp: App {
         }
     }
 
+    // MARK: - Crash Diagnosis Notification
+
+    private func handleCrashDiagnosisNotification(_ notification: Notification) {
+        guard let diagnosis = notification.userInfo?["diagnosis"] as? CrashDiagnosis,
+              let programPath = notification.userInfo?["programPath"] as? String,
+              let logFileURL = notification.userInfo?["logFileURL"] as? URL
+        else { return }
+
+        let programName = URL(fileURLWithPath: programPath).deletingPathExtension().lastPathComponent
+        crashDiagnosisBanner = CrashDiagnosisBannerState(
+            diagnosis: diagnosis,
+            programName: programName,
+            logFileURL: logFileURL
+        )
+
+        // Auto-dismiss after 8 seconds
+        Task {
+            try? await Task.sleep(for: .seconds(8))
+            withAnimation {
+                crashDiagnosisBanner = nil
+            }
+        }
+    }
+
+    private func crashDiagnosisBannerView(_ banner: CrashDiagnosisBannerState) -> some View {
+        HStack {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+            Text("Crash detected \u{2014} \(banner.programName)")
+                .fontWeight(.medium)
+            Spacer()
+            Button("View Diagnosis") {
+                crashDiagnosisBanner = nil
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            Button(String(localized: "troubleshooting.entry.troubleshoot")) {
+                openTroubleshootingFromCrash(banner)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+            Button {
+                withAnimation {
+                    crashDiagnosisBanner = nil
+                }
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.caption)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(.controlBackgroundColor))
+                .shadow(radius: 4)
+        )
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .transition(.move(edge: .top).combined(with: .opacity))
+    }
+
+    // MARK: - Troubleshooting from Crash Banner
+
+    private func openTroubleshootingFromCrash(_ banner: CrashDiagnosisBannerState) {
+        withAnimation {
+            crashDiagnosisBanner = nil
+        }
+
+        // Find the bottle and program for this crash
+        let programPath = banner.logFileURL.deletingLastPathComponent().path
+        for bottle in BottleVM.shared.bottles {
+            if let program = bottle.programs.first(where: { _ in
+                programPath.contains(bottle.url.path(percentEncoded: false))
+            }) {
+                let evidence: [String: String] = [
+                    "crashCategory": banner.diagnosis.primaryCategory?.rawValue ?? "unknown",
+                    "logFileURL": banner.logFileURL.absoluteString
+                ]
+                troubleshootingBottle = bottle
+                troubleshootingProgram = program
+                troubleshootingEntryContext = .launchFailure(
+                    programURL: program.url,
+                    bottleURL: bottle.url,
+                    evidence: evidence
+                )
+                showTroubleshootingWizard = true
+                return
+            }
+        }
+
+        // Fallback: open picker if we could not match the program
+        showTroubleshootingPicker = true
+    }
+
+    /// Checks whether a proactive troubleshooting suggestion should be shown
+    /// for the given program, respecting rate limits (30 min between suggestions,
+    /// 2 hours after dismissal/completion).
+    private func shouldShowProactiveSuggestion(for programKey: String) -> Bool {
+        guard let lastSuggestion = lastTroubleshootingSuggestionAt[programKey] else {
+            return true
+        }
+        let elapsed = Date().timeIntervalSince(lastSuggestion)
+        return elapsed > 1_800 // 30 minutes
+    }
+
+    private func recordTroubleshootingSuggestionShown(for programKey: String) {
+        lastTroubleshootingSuggestionAt[programKey] = Date()
+    }
+
+    private func suppressTroubleshootingSuggestions(for programKey: String) {
+        // Suppress for 2 hours by setting timestamp 90 minutes in the future
+        // (30-minute cooldown + 90 minutes = 2 hours from now)
+        lastTroubleshootingSuggestionAt[programKey] = Date().addingTimeInterval(5_400)
+    }
+
+    // MARK: - Audio Device Alerts
+
+    private func startAudioDeviceListening() {
+        audioMonitor.startListening { event in
+            Task { @MainActor in
+                guard audioAlertTracker.shouldAlert(deviceName: event.deviceName) else { return }
+
+                switch event.eventType {
+                case .defaultOutputChanged, .disconnected:
+                    let message = String(
+                        localized: "audio.alert.disconnected"
+                    ) + ": \(event.deviceName)"
+                    audioDeviceToast = ToastData(message: message, style: .info)
+                case .reconnected:
+                    let message = String(
+                        localized: "audio.alert.reconnected"
+                    ) + ": \(event.deviceName)"
+                    audioDeviceToast = ToastData(message: message, style: .success)
+                case .sampleRateChanged:
+                    // Check for low sample rate (HFP/Bluetooth issue)
+                    if let device = audioMonitor.defaultOutputDevice(),
+                       device.sampleRate < 22_050, device.sampleRate > 0 {
+                        let message = String(localized: "audio.alert.lowSampleRate")
+                            + ": \(event.deviceName)"
+                        audioDeviceToast = ToastData(message: message, style: .info)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - WhiskyApp Utility Methods
+
+extension WhiskyApp {
     @MainActor
     static func killBottles() {
         for bottle in BottleVM.shared.bottles {

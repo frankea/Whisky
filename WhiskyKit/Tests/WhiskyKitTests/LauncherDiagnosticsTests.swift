@@ -30,7 +30,7 @@ import XCTest
 final class LauncherDiagnosticsTests: XCTestCase {
     // MARK: - Bottle Configuration Tests
 
-    func testDiagnosticsWithDefaultBottleSettings() async throws {
+    func testDiagnosticsWithDefaultBottleSettings() throws {
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempURL) }
@@ -48,7 +48,7 @@ final class LauncherDiagnosticsTests: XCTestCase {
         XCTAssertNil(settings.detectedLauncher)
     }
 
-    func testDiagnosticsWithLauncherCompatibilityEnabled() async throws {
+    func testDiagnosticsWithLauncherCompatibilityEnabled() throws {
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempURL) }
@@ -64,7 +64,7 @@ final class LauncherDiagnosticsTests: XCTestCase {
         XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
     }
 
-    func testDiagnosticsWithAllLauncherTypes() async throws {
+    func testDiagnosticsWithAllLauncherTypes() throws {
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempURL) }
@@ -125,7 +125,7 @@ final class LauncherDiagnosticsTests: XCTestCase {
 
     // MARK: - Edge Cases and Error Handling
 
-    func testDiagnosticsWithNilLauncher() async throws {
+    func testDiagnosticsWithNilLauncher() throws {
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempURL) }
@@ -141,7 +141,7 @@ final class LauncherDiagnosticsTests: XCTestCase {
         XCTAssertTrue(true, "Should not crash with nil launcher")
     }
 
-    func testDiagnosticsWithExtremeTimeout() async throws {
+    func testDiagnosticsWithExtremeTimeout() throws {
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempURL) }
@@ -166,7 +166,7 @@ final class LauncherDiagnosticsTests: XCTestCase {
         XCTAssertNil(env3["WINHTTP_CONNECT_TIMEOUT"], "Default timeout should not set environment variable")
     }
 
-    func testDiagnosticsWithAllGPUVendors() async throws {
+    func testDiagnosticsWithAllGPUVendors() throws {
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempURL) }
@@ -391,7 +391,8 @@ final class LauncherDiagnosticsTests: XCTestCase {
         bottle.settings.environmentVariables(wineEnv: &env)
 
         // DXVK should be auto-enabled because Rockstar requires it
-        XCTAssertEqual(env["WINEDLLOVERRIDES"], "dxgi,d3d9,d3d10core,d3d11=n,b")
+        // DLL overrides are now composed per-DLL via DLLOverrideResolver (sorted alphabetically)
+        XCTAssertEqual(env["WINEDLLOVERRIDES"], "d3d10core=n,b;d3d11=n,b;d3d9=n,b;dxgi=n,b")
     }
 
     func testAutoEnableDXVKNotTriggeredForSteam() throws {

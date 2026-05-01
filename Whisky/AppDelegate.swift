@@ -44,11 +44,49 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.hasShownMoveToApplicationsAlert = true
             }
         }
+
+        // Background cleanup of orphaned temp files from previous sessions
+        Task.detached {
+            await TempFileTracker.shared.cleanupOldFiles(olderThan: 24 * 60 * 60)
+        }
+
+        // Startup orphan process detection
+        // Probe each known bottle's wineserver to detect processes from previous sessions
+        Task {
+            // Wait for bottles to load (BottleVM needs time to initialize)
+            try? await Task.sleep(for: .seconds(2))
+            await self.sweepOrphanProcesses()
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        if UserDefaults.standard.bool(forKey: "killOnTerminate") {
-            WhiskyApp.killBottles()
+        let globalKill = UserDefaults.standard.bool(forKey: "killOnTerminate")
+
+        // Per-bottle kill-on-quit with policy overrides
+        for bottle in BottleVM.shared.bottles {
+            let bottlePolicy = bottle.settings.killOnQuit
+            let shouldKill: Bool = switch bottlePolicy {
+            case .inherit:
+                globalKill
+            case .alwaysKill:
+                true
+            case .neverKill:
+                false
+            }
+
+            if shouldKill {
+                Wine.killBottle(bottle: bottle)
+                ProcessRegistry.shared.clearRegistry(for: bottle.url)
+                logger.info(
+                    "Killing bottle '\(bottle.settings.name)' on quit (policy: \(String(describing: bottlePolicy)))"
+                )
+            }
+        }
+
+        // Synchronous best-effort temp file cleanup (cannot await in applicationWillTerminate)
+        let trackedFiles = TempFileTracker.shared.getAllTrackedFiles()
+        for (fileURL, _) in trackedFiles {
+            try? FileManager.default.removeItem(at: fileURL)
         }
     }
 
@@ -67,6 +105,48 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return url.path.contains("Xcode") || url.path.contains(expectedUrl.path)
         }
         return false
+    }
+
+    @MainActor
+    private func sweepOrphanProcesses() async {
+        var cleanedCount = 0
+
+        for bottle in BottleVM.shared.bottles {
+            let isRunning = await Wine.isWineserverRunning(for: bottle)
+            guard isRunning else { continue }
+
+            let bottleName = bottle.settings.name
+            let policy = bottle.settings.killOnQuit
+            let globalKill = UserDefaults.standard.bool(forKey: "killOnTerminate")
+            let shouldAutoClean: Bool = switch policy {
+            case .inherit: globalKill
+            case .alwaysKill: true
+            case .neverKill: false
+            }
+
+            if shouldAutoClean {
+                // Auto-clean orphans per kill-on-quit policy
+                Wine.killBottle(bottle: bottle)
+                cleanedCount += 1
+                logger.info(
+                    "Auto-cleaned orphan processes in bottle '\(bottleName)' (kill-on-quit policy active)"
+                )
+            } else {
+                // Flag only -- do NOT auto-clean
+                logger.info(
+                    "Detected orphan Wine processes in bottle '\(bottleName)' (flagged, not auto-cleaned)"
+                )
+            }
+        }
+
+        // Post notification for cleaned orphans (toast display in ContentView)
+        if cleanedCount > 0 {
+            NotificationCenter.default.post(
+                name: .zombieProcessesCleaned,
+                object: nil,
+                userInfo: ["count": cleanedCount]
+            )
+        }
     }
 
     @MainActor
@@ -90,4 +170,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+}
+
+extension Notification.Name {
+    /// Posted when orphaned Wine processes are cleaned up at launch.
+    /// Contains userInfo key "count" (Int) with the number of processes killed.
+    static let zombieProcessesCleaned = Notification.Name("zombieProcessesCleaned")
+
+    /// Posted from program settings to navigate to the Audio troubleshooting panel.
+    static let openAudioTroubleshooting = Notification.Name(
+        "com.isaacmarovitz.Whisky.openAudioTroubleshooting"
+    )
 }

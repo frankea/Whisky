@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  ConfigView.swift
 //  Whisky
@@ -22,10 +23,11 @@ import WhiskyKit
 
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ConfigView")
 
+// swiftlint:disable:next type_body_length
 struct ConfigView: View {
     @ObservedObject var bottle: Bottle
-    @State private var buildVersion: Int = 0
-    @State private var retinaMode: Bool = false
+    @State private var buildVersion: String = ""
+    @State private var retinaModeState: RetinaModeState = .unknown
     @State private var dpiConfig: Int = 96
     @State private var winVersionLoadingState: LoadingState = .loading
     @State private var buildVersionLoadingState: LoadingState = .loading
@@ -34,8 +36,19 @@ struct ConfigView: View {
     @State private var dpiSheetPresented: Bool = false
     @State private var showStabilityDiagnostics: Bool = false
     @State private var stabilityDiagnosticReport: String = ""
+    @State private var showDiagnosticExportSheet: Bool = false
+    @State private var showCrashDiagnosticsSheet: Bool = false
+    @State private var latestDiagnosis: CrashDiagnosis?
+    @State private var latestDiagnosisLogText: String = ""
+    @State private var latestDiagnosisProgram: Program?
     @State private var isRepairingPrefix: Bool = false
     @State private var prefixRepairResult: PrefixRepairResult?
+    @State private var gameConfigSnapshot: GameConfigSnapshot?
+    @State private var showRevertConfirmation: Bool = false
+    @State private var showTroubleshootingWizard: Bool = false
+    @State private var hasActiveSession: Bool = false
+
+    private let sessionStore = TroubleshootingSessionStore()
 
     private enum PrefixRepairResult: Identifiable {
         case success
@@ -50,11 +63,11 @@ struct ConfigView: View {
     }
 
     @AppStorage("wineSectionExpanded") private var wineSectionExpanded: Bool = true
-    @AppStorage("dxvkSectionExpanded") private var dxvkSectionExpanded: Bool = true
-    @AppStorage("metalSectionExpanded") private var metalSectionExpanded: Bool = true
     @AppStorage("performanceSectionExpanded") private var performanceSectionExpanded: Bool = true
     @AppStorage("launcherSectionExpanded") private var launcherSectionExpanded: Bool = false
     @AppStorage("inputSectionExpanded") private var inputSectionExpanded: Bool = false
+    @AppStorage("dllOverrideSectionExpanded") private var dllOverrideSectionExpanded: Bool = false
+    @AppStorage("cleanupSectionExpanded") private var cleanupSectionExpanded: Bool = false
 
     var body: some View {
         Form {
@@ -62,7 +75,7 @@ struct ConfigView: View {
                 bottle: bottle,
                 isExpanded: $wineSectionExpanded,
                 buildVersion: $buildVersion,
-                retinaMode: $retinaMode,
+                retinaModeState: $retinaModeState,
                 dpiConfig: $dpiConfig,
                 winVersionLoadingState: $winVersionLoadingState,
                 buildVersionLoadingState: $buildVersionLoadingState,
@@ -75,9 +88,43 @@ struct ConfigView: View {
             )
             LauncherConfigSection(bottle: bottle, isExpanded: $launcherSectionExpanded)
             InputConfigSection(bottle: bottle, isExpanded: $inputSectionExpanded)
-            DXVKConfigSection(bottle: bottle, isExpanded: $dxvkSectionExpanded)
-            MetalConfigSection(bottle: bottle, isExpanded: $metalSectionExpanded)
+            GraphicsConfigSection(bottle: bottle)
+            AudioConfigSection(bottle: bottle)
+            ResolutionConfigSection(bottle: bottle)
             PerformanceConfigSection(bottle: bottle, isExpanded: $performanceSectionExpanded)
+            DLLOverrideConfigSection(bottle: bottle, isExpanded: $dllOverrideSectionExpanded)
+            DependencyConfigSection(bottle: bottle)
+            gameConfigRevertSection
+            Section("Diagnostics") {
+                Text("Analyze Wine crash output for troubleshooting guidance")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                if hasActiveSession {
+                    TroubleshootingEntryBanner(bannerType: .resumeSession) {
+                        showTroubleshootingWizard = true
+                    }
+                }
+
+                Button(String(localized: "troubleshooting.entry.startGuided")) {
+                    showTroubleshootingWizard = true
+                }
+
+                Button("Export Diagnostic Report\u{2026}") {
+                    loadLatestDiagnosisAndExport()
+                }
+                .disabled(latestDiagnosis == nil && mostRecentlyDiagnosedProgram == nil)
+
+                Button("View Latest Diagnosis") {
+                    loadLatestDiagnosisAndView()
+                }
+                .disabled(mostRecentlyDiagnosedProgram == nil)
+
+                TroubleshootingHistoryView(
+                    bottleURL: bottle.url,
+                    programURL: nil
+                )
+            }
             Section("Stability") {
                 Button("Generate Stability Diagnostics") {
                     Task {
@@ -122,20 +169,50 @@ struct ConfigView: View {
                 .disabled(isRepairingPrefix)
                 .help("config.repairPrefix.help")
             }
+            CleanupConfigSection(bottle: bottle, isExpanded: $cleanupSectionExpanded)
         }
         .formStyle(.grouped)
         .animation(.whiskyDefault, value: wineSectionExpanded)
         .animation(.whiskyDefault, value: launcherSectionExpanded)
         .animation(.whiskyDefault, value: inputSectionExpanded)
-        .animation(.whiskyDefault, value: dxvkSectionExpanded)
-        .animation(.whiskyDefault, value: metalSectionExpanded)
         .animation(.whiskyDefault, value: performanceSectionExpanded)
+        .animation(.whiskyDefault, value: dllOverrideSectionExpanded)
+        .animation(.whiskyDefault, value: cleanupSectionExpanded)
+        .sheet(isPresented: $showTroubleshootingWizard) {
+            TroubleshootingWizardView(
+                bottle: bottle,
+                program: nil,
+                entryContext: .bottleDiagnostics(bottleURL: bottle.url)
+            )
+        }
         .sheet(isPresented: $showStabilityDiagnostics) {
             DiagnosticsReportView(
                 title: "Stability Diagnostics Report",
                 report: stabilityDiagnosticReport,
                 defaultFilenamePrefix: "whisky-stability-diagnostics"
             )
+        }
+        .sheet(isPresented: $showDiagnosticExportSheet) {
+            if let diagnosis = latestDiagnosis, let program = latestDiagnosisProgram {
+                DiagnosticExportSheet(
+                    diagnosis: diagnosis,
+                    bottle: bottle,
+                    program: program,
+                    logFileURL: program.settings.lastLogFileURL
+                )
+            }
+        }
+        .sheet(isPresented: $showCrashDiagnosticsSheet) {
+            if let diagnosis = latestDiagnosis, let program = latestDiagnosisProgram {
+                DiagnosticsView(
+                    diagnosis: diagnosis,
+                    logText: latestDiagnosisLogText,
+                    programName: program.name,
+                    bottleName: bottle.settings.name,
+                    timestamp: program.settings.lastDiagnosisDate ?? Date()
+                )
+                .frame(minWidth: 600, minHeight: 400)
+            }
         }
         .alert(item: $prefixRepairResult) { result in
             switch result {
@@ -193,6 +270,9 @@ struct ConfigView: View {
             loadBuildName()
             loadRetinaMode()
             loadDpi()
+
+            gameConfigSnapshot = GameConfigSnapshot.load(from: bottle.url)
+            hasActiveSession = sessionStore.hasActiveSession(for: bottle.url)
         }
         .onChange(of: bottle.settings.windowsVersion) { _, newValue in
             if winVersionLoadingState == .success {
@@ -226,17 +306,16 @@ struct ConfigView: View {
             }
         }
     }
+}
 
+// MARK: - Loading Functions
+
+extension ConfigView {
     func loadBuildName() {
         buildVersionLoadingState = .loading
         Task(priority: .userInitiated) {
             do {
-                if let buildVersionString = try await Wine.buildVersion(bottle: bottle) {
-                    buildVersion = Int(buildVersionString) ?? 0
-                } else {
-                    buildVersion = 0
-                }
-
+                buildVersion = try await Wine.buildVersion(bottle: bottle) ?? ""
                 buildVersionLoadingState = .success
             } catch {
                 logger.error("Failed to load build version: \(error.localizedDescription)")
@@ -249,7 +328,15 @@ struct ConfigView: View {
         retinaModeLoadingState = .loading
         Task(priority: .userInitiated) {
             do {
-                retinaMode = try await Wine.retinaMode(bottle: bottle)
+                let value = try await Wine.retinaMode(bottle: bottle)
+                switch value {
+                case .some(true):
+                    retinaModeState = .enabled
+                case .some(false):
+                    retinaModeState = .disabled
+                case .none:
+                    retinaModeState = .unknown
+                }
                 retinaModeLoadingState = .success
             } catch {
                 logger.error("Failed to get retina mode: \(error.localizedDescription)")
@@ -273,3 +360,105 @@ struct ConfigView: View {
         }
     }
 }
+
+// MARK: - Game Config Revert
+
+extension ConfigView {
+    @ViewBuilder
+    var gameConfigRevertSection: some View {
+        if let snapshot = gameConfigSnapshot {
+            Section(String(localized: "gameConfig.revert.title")) {
+                HStack {
+                    Image(systemName: "gamecontroller.fill")
+                        .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        let timeAgo = snapshot.timestamp.formatted(
+                            .relative(presentation: .named)
+                        )
+                        Text("gameConfig.revert.applied \(snapshot.appliedEntryId) \(timeAgo)")
+                            .font(.callout)
+                        if let verbs = snapshot.installedVerbs, !verbs.isEmpty {
+                            Text(
+                                "gameConfig.revert.verbsRemain \(verbs.joined(separator: ", "))"
+                            )
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
+                Button(role: .destructive) {
+                    showRevertConfirmation = true
+                } label: {
+                    Text("gameConfig.revert.button")
+                }
+                .alert(
+                    String(localized: "gameConfig.revert.confirm.title"),
+                    isPresented: $showRevertConfirmation
+                ) {
+                    Button(
+                        String(localized: "gameConfig.revert.confirm.revert"),
+                        role: .destructive
+                    ) {
+                        revertGameConfig(snapshot)
+                    }
+                    Button("button.cancel", role: .cancel) {}
+                } message: {
+                    Text("gameConfig.revert.confirm.message")
+                }
+            }
+        }
+    }
+
+    func revertGameConfig(_ snapshot: GameConfigSnapshot) {
+        do {
+            let remainingVerbs = try GameConfigApplicator.revert(bottle: bottle, snapshot: snapshot)
+            try GameConfigSnapshot.delete(from: bottle.url)
+            gameConfigSnapshot = nil
+            if !remainingVerbs.isEmpty {
+                logger.info(
+                    "Config reverted; installed components remain: \(remainingVerbs.joined(separator: ", "))"
+                )
+            }
+        } catch {
+            logger.error("Failed to revert game config: \(error.localizedDescription)")
+        }
+    }
+}
+
+// MARK: - Diagnostics Helpers
+
+extension ConfigView {
+    var mostRecentlyDiagnosedProgram: Program? {
+        bottle.programs
+            .filter { $0.settings.lastDiagnosisDate != nil }
+            .max { ($0.settings.lastDiagnosisDate ?? .distantPast) < ($1.settings.lastDiagnosisDate ?? .distantPast) }
+    }
+
+    func loadLatestDiagnosisAndExport() {
+        guard let program = mostRecentlyDiagnosedProgram,
+              let logURL = program.settings.lastLogFileURL
+        else { return }
+        Task {
+            guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else { return }
+            latestDiagnosis = diagnosis
+            latestDiagnosisProgram = program
+            showDiagnosticExportSheet = true
+        }
+    }
+
+    func loadLatestDiagnosisAndView() {
+        guard let program = mostRecentlyDiagnosedProgram,
+              let logURL = program.settings.lastLogFileURL
+        else { return }
+        Task {
+            guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else { return }
+            latestDiagnosis = diagnosis
+            latestDiagnosisProgram = program
+            latestDiagnosisLogText = (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
+            showCrashDiagnosticsSheet = true
+        }
+    }
+}
+
+// swiftlint:enable file_length

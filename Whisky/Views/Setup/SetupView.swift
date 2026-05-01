@@ -61,5 +61,12 @@ struct SetupView: View {
         }
         .padding()
         .interactiveDismissDisabled()
+        .onAppear {
+            // When opened for an update (not first launch), skip the welcome screen
+            // and navigate directly to the download stage.
+            if !firstTime, !WhiskyWineInstaller.isWhiskyWineInstalled() {
+                path = [.whiskyWineDownload]
+            }
+        }
     }
 }

@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "categoryId": "network-download",
+  "entryNodeId": "check_launcher_type",
+  "nodes": {
+    "check_launcher_type": {
+      "id": "check_launcher_type",
+      "type": "check",
+      "phase": "checks",
+      "title": "Detect launcher type",
+      "description": "Identifying which launcher is being used to determine the appropriate network troubleshooting path.",
+      "checkId": "launcher.type_check",
+      "params": {},
+      "on": {
+        "pass": "branch_by_launcher",
+        "fail": "check_general_network",
+        "unknown": "check_general_network",
+        "error": "check_general_network"
+      },
+      "evidenceMap": {
+        "launcherType": "Detected launcher",
+        "launcherName": "Launcher name"
+      }
+    },
+    "branch_by_launcher": {
+      "id": "branch_by_launcher",
+      "type": "info",
+      "phase": "checks",
+      "title": "Launcher identified",
+      "description": "Routing to launcher-specific network troubleshooting steps.",
+      "on": {
+        "steam": "check_steam_download",
+        "default": "check_general_network"
+      }
+    },
+    "check_steam_download": {
+      "id": "check_steam_download",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check Steam download processes",
+      "description": "Checking Steam web helper process count. Too many processes can cause download stalls.",
+      "checkId": "process.running_check",
+      "params": {
+        "process": "steamwebhelper"
+      },
+      "on": {
+        "pass": "fix_download_region",
+        "fail": "fix_restart_steam",
+        "unknown": "fix_download_region",
+        "error": "fix_download_region"
+      },
+      "evidenceMap": {
+        "processName": "Process",
+        "running": "Running",
+        "processCount": "Instance count"
+      }
+    },
+    "fix_restart_steam": {
+      "id": "fix_restart_steam",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Restart Steam",
+      "description": "Killing the Wine server and relaunching Steam can resolve download stalls caused by stuck processes.",
+      "fixId": "restart-wineserver",
+      "isReversible": false,
+      "requiresConfirmation": true,
+      "on": {
+        "applied": "verify_fix",
+        "skipped": "fix_download_region"
+      }
+    },
+    "fix_download_region": {
+      "id": "fix_download_region",
+      "type": "info",
+      "phase": "fix",
+      "title": "Change Steam download region",
+      "description": "Steam download stalls can sometimes be resolved by changing the download region. Open Steam Settings > Downloads and try selecting a different region closer to your location.",
+      "on": {
+        "continue": "check_general_network"
+      }
+    },
+    "check_general_network": {
+      "id": "check_general_network",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check network environment",
+      "description": "Checking for proxy, DNS, and other network-related environment variables that may affect connectivity.",
+      "checkId": "env.check_var",
+      "params": {
+        "vars": "http_proxy,https_proxy,no_proxy,ALL_PROXY"
+      },
+      "on": {
+        "pass": "check_wine_dns",
+        "fail": "fix_network_env",
+        "already_configured": "check_wine_dns",
+        "unknown": "check_wine_dns",
+        "error": "check_wine_dns"
+      },
+      "evidenceMap": {
+        "issueVar": "Variable",
+        "currentValue": "Current value"
+      }
+    },
+    "fix_network_env": {
+      "id": "fix_network_env",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Fix network environment",
+      "description": "Correcting network-related environment variables that may be interfering with connectivity.",
+      "fixId": "fix-env-var",
+      "isReversible": true,
+      "requiresConfirmation": false,
+      "on": {
+        "applied": "verify_fix",
+        "skipped": "check_wine_dns"
+      }
+    },
+    "check_wine_dns": {
+      "id": "check_wine_dns",
+      "type": "check",
+      "phase": "checks",
+      "title": "Check Wine DNS settings",
+      "description": "Checking Wine registry for DNS configuration issues that may affect network connectivity.",
+      "checkId": "registry.value_check",
+      "params": {
+        "key": "HKLM\\System\\CurrentControlSet\\Services\\Tcpip\\Parameters",
+        "value": "NameServer"
+      },
+      "on": {
+        "pass": "escalate",
+        "fail": "fix_wine_dns",
+        "already_configured": "escalate",
+        "unknown": "escalate",
+        "error": "escalate"
+      },
+      "evidenceMap": {
+        "currentValue": "Current DNS",
+        "expectedValue": "Expected value"
+      }
+    },
+    "fix_wine_dns": {
+      "id": "fix_wine_dns",
+      "type": "fix",
+      "phase": "fix",
+      "title": "Fix Wine DNS configuration",
+      "description": "Correcting the Wine DNS registry settings to use system DNS resolution.",
+      "fixId": "set-registry-value",
+      "isReversible": true,
+      "requiresConfirmation": false,
+      "on": {
+        "applied": "verify_fix",
+        "skipped": "escalate"
+      }
+    },
+    "verify_fix": {
+      "id": "verify_fix",
+      "type": "verify",
+      "phase": "verify",
+      "title": "Did this fix the network issue?",
+      "description": "Try the download or connection again to check whether the issue is resolved.",
+      "on": {
+        "yes": "resolved",
+        "no": "check_general_network"
+      }
+    },
+    "escalate": {
+      "id": "escalate",
+      "type": "info",
+      "phase": "export",
+      "title": "Additional diagnostics needed",
+      "description": "The automated network checks have not resolved the issue. Enhanced diagnostics or a support report may help identify the problem.",
+      "fragmentRef": "export-escalation"
+    },
+    "resolved": {
+      "id": "resolved",
+      "type": "info",
+      "phase": "export",
+      "title": "Problem resolved",
+      "description": "The network issue has been fixed. You can export a session report for your records."
+    }
+  }
+}

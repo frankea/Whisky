@@ -26,7 +26,7 @@ extension View {
     }
 }
 
-private struct BottomBarViewModifier<BarContent>: ViewModifier where BarContent: View {
+private struct BottomBarViewModifier<BarContent: View>: ViewModifier {
     var barContent: BarContent
 
     func body(content: Content) -> some View {

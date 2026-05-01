@@ -93,3 +93,6 @@ iOSInjectionProject/
 
 # Claude Code
 CLAUDE.md
+plans/
+.claude/
+mise.toml

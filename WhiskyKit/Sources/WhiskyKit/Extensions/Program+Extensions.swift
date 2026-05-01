@@ -20,12 +20,62 @@ import AppKit
 import Foundation
 import os.log
 
+// MARK: - Crash Diagnosis Notification
+
+public extension Notification.Name {
+    /// Posted when a crash diagnosis is available after a Wine process exits abnormally.
+    ///
+    /// UserInfo keys:
+    /// - `"diagnosis"`: ``CrashDiagnosis``
+    /// - `"programPath"`: `String` (program URL path)
+    /// - `"logFileURL"`: `URL`
+    static let crashDiagnosisAvailable = Notification.Name("com.isaacmarovitz.Whisky.crashDiagnosisAvailable")
+}
+
+// MARK: - Crash Signature Detection
+
+private let crashSignatures: Set<String> = [
+    "Unhandled exception",
+    "page fault",
+    "device lost",
+    "DEVICE_REMOVED",
+    "DEVICE_HUNG",
+    "Fatal error"
+]
+
 public extension Program {
     func run() {
         if NSEvent.modifierFlags.contains(.shift) {
             self.runInTerminal()
         } else {
             self.runInWine()
+        }
+    }
+
+    /// Checks the clipboard before launching a Wine program, applying the bottle's policy.
+    ///
+    /// For `.needsUserDecision` results, presents a blocking alert asking the user
+    /// to clear or keep the clipboard. For `.autoCleared` results, the clipboard has
+    /// already been cleared by ``ClipboardManager``.
+    ///
+    /// - Returns: The clipboard check result after any user interaction.
+    @MainActor
+    func performClipboardCheck() -> ClipboardCheckResult {
+        let policy = bottle.settings.clipboardPolicy
+        let threshold = bottle.settings.clipboardThreshold
+        let launcher = bottle.settings.detectedLauncher
+
+        let result = ClipboardManager.shared.checkBeforeLaunch(
+            launcher: launcher, policy: policy, threshold: threshold
+        )
+
+        switch result {
+        case .safe, .autoCleared:
+            return result
+        case let .needsUserDecision(contentType, sizeBytes, textPreview):
+            return showClipboardAlert(
+                contentType: contentType, sizeBytes: sizeBytes, textPreview: textPreview
+            )
         }
     }
 
@@ -47,12 +97,104 @@ public extension Program {
         let environment = generateEnvironment()
 
         do {
-            try await Wine.runProgram(
-                at: self.url, args: arguments, bottle: self.bottle, environment: environment
+            let result = try await Wine.runProgram(
+                at: self.url, args: arguments, bottle: self.bottle, environment: environment,
+                programOverrides: settings.overrides, programSettings: settings
             )
+
+            // Track the log file URL for diagnostics
+            settings.lastLogFileURL = result.logFileURL
+
+            // Trigger classification if non-zero exit or crash signatures detected in log
+            if result.exitCode != 0 || logContainsCrashSignatures(result.logFileURL) {
+                triggerCrashClassification(
+                    logFileURL: result.logFileURL,
+                    exitCode: result.exitCode
+                )
+            }
+
             return .launchedSuccessfully(programName: self.name)
         } catch {
             return .launchFailed(programName: self.name, errorDescription: error.localizedDescription)
+        }
+    }
+
+    /// Checks whether the log file contains crash signatures that warrant classification.
+    ///
+    /// Reads the tail of the log file (bounded to 64 KiB) and searches for known crash
+    /// signatures. This is a lightweight heuristic before running the full classifier.
+    private func logContainsCrashSignatures(_ logFileURL: URL) -> Bool {
+        let maxBytes = 64 * 1_024
+
+        guard let handle = try? FileHandle(forReadingFrom: logFileURL) else { return false }
+        defer { try? handle.close() }
+
+        guard let end = try? handle.seekToEnd() else { return false }
+        let start = end > UInt64(maxBytes) ? end - UInt64(maxBytes) : 0
+        try? handle.seek(toOffset: start)
+
+        guard let data = try? handle.readToEnd(),
+              let text = String(data: data, encoding: .utf8)
+        else { return false }
+
+        return crashSignatures.contains(where: { text.contains($0) })
+    }
+
+    /// Triggers background crash classification and posts a notification with the result.
+    ///
+    /// Classification runs on a background task (`.utility` priority) to avoid
+    /// blocking the main thread. On completion, persists a ``DiagnosisHistoryEntry``
+    /// and posts ``Notification.Name.crashDiagnosisAvailable``.
+    private func triggerCrashClassification(logFileURL: URL, exitCode: Int32) {
+        let programPath = self.url.path(percentEncoded: false)
+        let programName = self.name
+        let bottleName = self.bottle.settings.name
+        let bottleURL = self.bottle.url
+        let activePreset = self.settings.activeWineDebugPreset
+
+        Task.detached(priority: .utility) {
+            guard let diagnosis = await Wine.classifyLastRun(
+                logFileURL: logFileURL,
+                exitCode: exitCode
+            ), !diagnosis.isEmpty
+            else {
+                return
+            }
+
+            // Build and persist a DiagnosisHistoryEntry
+            let entry = DiagnosisHistoryEntry(
+                timestamp: Date(),
+                logFileRef: logFileURL.lastPathComponent,
+                primaryCategory: diagnosis.primaryCategory ?? .otherUnknown,
+                confidenceTier: diagnosis.primaryConfidence ?? .low,
+                topSignatures: Array(diagnosis.matches.prefix(3).map(\.pattern.id)),
+                remediationCardIds: diagnosis.applicableRemediationIds,
+                wineDebugPreset: activePreset,
+                bottleIdentifier: bottleName,
+                programPath: programPath
+            )
+
+            let historyURL = bottleURL
+                .appending(path: "Program Settings")
+                .appending(path: programName)
+                .appendingPathExtension("diagnosis-history.plist")
+            var history = DiagnosisHistory.load(from: historyURL)
+            history.append(entry)
+            try? history.save(to: historyURL)
+
+            // Update lastDiagnosisDate on the main actor
+            await MainActor.run {
+                // Post notification for the UI to react
+                NotificationCenter.default.post(
+                    name: .crashDiagnosisAvailable,
+                    object: nil,
+                    userInfo: [
+                        "diagnosis": diagnosis,
+                        "programPath": programPath,
+                        "logFileURL": logFileURL
+                    ]
+                )
+            }
         }
     }
 
@@ -99,6 +241,9 @@ public extension Program {
             return
         }
 
+        // Register temp script for tracking and cleanup
+        TempFileTracker.shared.register(file: scriptURL)
+
         // Use the user's preferred terminal application
         let terminal = TerminalApp.preferred
         let appleScript = terminal.generateAppleScript(for: scriptURL.path)
@@ -116,7 +261,7 @@ public extension Program {
 
             // Clean up temp script after a delay to ensure the terminal has read it
             try? await Task.sleep(for: .seconds(5))
-            try? FileManager.default.removeItem(at: scriptURL)
+            await TempFileTracker.shared.cleanupWithRetry(file: scriptURL)
         }
     }
 
@@ -130,6 +275,50 @@ public extension Program {
         alert.addButton(withTitle: String(localized: "button.ok"))
         alert.runModal()
     }
+
+    /// Shows a blocking alert when the clipboard contains large content that needs user decision.
+    ///
+    /// - Parameters:
+    ///   - contentType: The type of clipboard content ("text", "image", or "other")
+    ///   - sizeBytes: Size of the content in bytes
+    ///   - textPreview: Optional preview of text content (first 50 characters)
+    /// - Returns: `.autoCleared` if user chose to clear, `.safe` if user chose to keep
+    @MainActor private func showClipboardAlert(
+        contentType: String,
+        sizeBytes: Int,
+        textPreview: String?
+    ) -> ClipboardCheckResult {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "clipboard.large.title")
+
+        let sizeKB = String(format: "%.1f", Double(sizeBytes) / 1_024.0)
+        let message: String
+        switch contentType {
+        case "text":
+            let preview = textPreview ?? ""
+            message = String(localized: "clipboard.large.message.text")
+                .replacingOccurrences(of: "{size}", with: sizeKB)
+                .replacingOccurrences(of: "{preview}", with: preview)
+        case "image":
+            message = String(localized: "clipboard.large.message.image")
+                .replacingOccurrences(of: "{size}", with: sizeKB)
+        default:
+            message = String(localized: "clipboard.large.message.other")
+                .replacingOccurrences(of: "{size}", with: sizeKB)
+        }
+
+        alert.informativeText = message
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: String(localized: "clipboard.clear"))
+        alert.addButton(withTitle: String(localized: "clipboard.keep"))
+
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            ClipboardManager.shared.clear()
+            return .autoCleared(contentType: contentType, sizeBytes: sizeBytes)
+        }
+        return .safe
+    }
 }
 
 extension Program {
@@ -139,9 +328,21 @@ extension Program {
 
         Task {
             do {
-                try await Wine.runProgram(
-                    at: self.url, args: arguments, bottle: self.bottle, environment: environment
+                let result = try await Wine.runProgram(
+                    at: self.url, args: arguments, bottle: self.bottle, environment: environment,
+                    programOverrides: settings.overrides, programSettings: settings
                 )
+
+                // Track the log file URL
+                settings.lastLogFileURL = result.logFileURL
+
+                // Trigger classification on non-zero exit or crash signatures
+                if result.exitCode != 0 || logContainsCrashSignatures(result.logFileURL) {
+                    triggerCrashClassification(
+                        logFileURL: result.logFileURL,
+                        exitCode: result.exitCode
+                    )
+                }
             } catch {
                 self.showRunError(message: error.localizedDescription)
             }

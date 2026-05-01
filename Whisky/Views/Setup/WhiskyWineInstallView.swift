@@ -29,7 +29,7 @@ struct WhiskyWineInstallView: View {
     @Binding var showSetup: Bool
     /// Shared diagnostics recorder for the setup flow, capturing events across download and install stages.
     @Binding var diagnostics: WhiskyWineSetupDiagnostics
-    // Delay to show the success checkmark before dismissing setup.
+    /// Delay to show the success checkmark before dismissing setup.
     private static let installSuccessDelay: Duration = .seconds(2)
 
     var body: some View {

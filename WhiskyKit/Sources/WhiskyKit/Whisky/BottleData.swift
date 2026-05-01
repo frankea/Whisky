@@ -20,7 +20,7 @@ import Foundation
 import os.log
 import SemanticVersion
 
-// Minimal BottleData for fallback encoding
+/// Minimal BottleData for fallback encoding
 private struct BottleDataMinimal: Codable {
     var paths: [URL]
 }

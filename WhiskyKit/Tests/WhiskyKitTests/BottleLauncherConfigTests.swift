@@ -20,7 +20,7 @@
 import XCTest
 
 final class BottleLauncherConfigTests: XCTestCase {
-    func testDefaultLauncherConfig() throws {
+    func testDefaultLauncherConfig() {
         let config = BottleLauncherConfig()
 
         XCTAssertFalse(config.compatibilityMode)
@@ -58,7 +58,7 @@ final class BottleLauncherConfigTests: XCTestCase {
         XCTAssertEqual(decoded.networkTimeout, 90_000)
     }
 
-    func testLauncherModeEnum() throws {
+    func testLauncherModeEnum() {
         XCTAssertEqual(LauncherMode.auto.rawValue, "auto")
         XCTAssertEqual(LauncherMode.manual.rawValue, "manual")
 
@@ -69,7 +69,7 @@ final class BottleLauncherConfigTests: XCTestCase {
         XCTAssertTrue(allCases.contains(.manual))
     }
 
-    func testBottleSettingsIncludesLauncherConfig() throws {
+    func testBottleSettingsIncludesLauncherConfig() {
         let settings = BottleSettings()
 
         // Test default values are accessible
@@ -80,7 +80,7 @@ final class BottleLauncherConfigTests: XCTestCase {
         XCTAssertEqual(settings.gpuVendor, .nvidia)
     }
 
-    func testBottleSettingsLauncherConfigModification() throws {
+    func testBottleSettingsLauncherConfigModification() {
         var settings = BottleSettings()
 
         // Modify launcher settings
@@ -100,7 +100,7 @@ final class BottleLauncherConfigTests: XCTestCase {
         XCTAssertEqual(settings.networkTimeout, 120_000)
     }
 
-    func testEnvironmentVariablesWithLauncherCompatibility() throws {
+    func testEnvironmentVariablesWithLauncherCompatibility() {
         var settings = BottleSettings()
         settings.launcherCompatibilityMode = true
         settings.detectedLauncher = .steam
@@ -122,7 +122,7 @@ final class BottleLauncherConfigTests: XCTestCase {
         XCTAssertNotNil(env["D3DM_FEATURE_LEVEL_12_1"])
     }
 
-    func testEnvironmentVariablesWithoutLauncherCompatibility() throws {
+    func testEnvironmentVariablesWithoutLauncherCompatibility() {
         var settings = BottleSettings()
         settings.launcherCompatibilityMode = false
 
@@ -134,7 +134,7 @@ final class BottleLauncherConfigTests: XCTestCase {
         // GPU spoofing should not be applied if launcher compat is off
     }
 
-    func testNetworkTimeoutConfiguration() throws {
+    func testNetworkTimeoutConfiguration() {
         var settings = BottleSettings()
         settings.launcherCompatibilityMode = true
         settings.networkTimeout = 45_000
@@ -147,7 +147,7 @@ final class BottleLauncherConfigTests: XCTestCase {
         XCTAssertEqual(env["WINHTTP_RECEIVE_TIMEOUT"], "90000") // 2x connect timeout
     }
 
-    func testAutoEnableDXVKForRockstar() throws {
+    func testAutoEnableDXVKForRockstar() {
         var settings = BottleSettings()
         settings.launcherCompatibilityMode = true
         settings.detectedLauncher = .rockstar
@@ -158,10 +158,11 @@ final class BottleLauncherConfigTests: XCTestCase {
         settings.environmentVariables(wineEnv: &env)
 
         // Should still enable DXVK overrides because Rockstar requires it
-        XCTAssertEqual(env["WINEDLLOVERRIDES"], "dxgi,d3d9,d3d10core,d3d11=n,b")
+        // DLL overrides are now composed per-DLL via DLLOverrideResolver (sorted alphabetically)
+        XCTAssertEqual(env["WINEDLLOVERRIDES"], "d3d10core=n,b;d3d11=n,b;d3d9=n,b;dxgi=n,b")
     }
 
-    func testSSLTLSConfiguration() throws {
+    func testSSLTLSConfiguration() {
         var settings = BottleSettings()
         settings.launcherCompatibilityMode = true
 
@@ -173,7 +174,7 @@ final class BottleLauncherConfigTests: XCTestCase {
         XCTAssertEqual(env["WINE_SSL_VERSION_MIN"], "TLS1.2")
     }
 
-    func testConnectionPoolingFixes() throws {
+    func testConnectionPoolingFixes() {
         var settings = BottleSettings()
         settings.launcherCompatibilityMode = true
 

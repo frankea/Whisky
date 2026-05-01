@@ -20,7 +20,7 @@
 import XCTest
 
 final class LauncherPresetTests: XCTestCase {
-    func testSteamPresetIncludesLocale() throws {
+    func testSteamPresetIncludesLocale() {
         let env = LauncherType.steam.environmentOverrides()
 
         // Steam should set en_US locale to fix steamwebhelper crashes
@@ -32,7 +32,7 @@ final class LauncherPresetTests: XCTestCase {
         XCTAssertEqual(env["LC_NUMERIC"], "C")
     }
 
-    func testSteamPresetDisablesSandbox() throws {
+    func testSteamPresetDisablesSandbox() {
         let env = LauncherType.steam.environmentOverrides()
 
         // Steam-specific CEF sandbox disable
@@ -47,7 +47,7 @@ final class LauncherPresetTests: XCTestCase {
         XCTAssertEqual(env["STEAM_RUNTIME"], "0")
     }
 
-    func testSteamPresetIncludesNetworkFixes() throws {
+    func testSteamPresetIncludesNetworkFixes() {
         let env = LauncherType.steam.environmentOverrides()
 
         // Network timeouts are now configured via bottle.settings.networkTimeout
@@ -61,7 +61,7 @@ final class LauncherPresetTests: XCTestCase {
         XCTAssertEqual(env["DXVK_ASYNC"], "1")
     }
 
-    func testRockstarRequiresDXVK() throws {
+    func testRockstarRequiresDXVK() {
         let launcher = LauncherType.rockstar
 
         // Rockstar Launcher requires DXVK to display logo
@@ -72,7 +72,7 @@ final class LauncherPresetTests: XCTestCase {
         XCTAssertEqual(env["D3DM_FORCE_D3D11"], "1")
     }
 
-    func testEAAppRequiresGPUDetection() throws {
+    func testEAAppRequiresGPUDetection() {
         let env = LauncherType.eaApp.environmentOverrides()
 
         // EA App needs D3D feature level reporting
@@ -82,7 +82,7 @@ final class LauncherPresetTests: XCTestCase {
         XCTAssertNil(env["CEF_DISABLE_SANDBOX"], "Should be set globally, not in preset")
     }
 
-    func testEpicGamesPreset() throws {
+    func testEpicGamesPreset() {
         let env = LauncherType.epicGames.environmentOverrides()
 
         // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
@@ -94,7 +94,7 @@ final class LauncherPresetTests: XCTestCase {
         XCTAssertEqual(env["D3DM_FORCE_D3D11"], "1")
     }
 
-    func testUbisoftPreset() throws {
+    func testUbisoftPreset() {
         let env = LauncherType.ubisoft.environmentOverrides()
 
         // Ubisoft Connect requires D3D11 mode
@@ -102,7 +102,7 @@ final class LauncherPresetTests: XCTestCase {
         XCTAssertEqual(env["DXVK_ASYNC"], "1")
     }
 
-    func testBattleNetPreset() throws {
+    func testBattleNetPreset() {
         let env = LauncherType.battleNet.environmentOverrides()
 
         // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
@@ -113,7 +113,7 @@ final class LauncherPresetTests: XCTestCase {
         XCTAssertEqual(env["WINE_CPU_TOPOLOGY"], "8:8")
     }
 
-    func testParadoxPreset() throws {
+    func testParadoxPreset() {
         let env = LauncherType.paradox.environmentOverrides()
 
         // Paradox Launcher resource lookup workaround
@@ -121,7 +121,7 @@ final class LauncherPresetTests: XCTestCase {
         XCTAssertEqual(env["D3DM_FORCE_D3D11"], "1")
     }
 
-    func testRecommendedLocales() throws {
+    func testRecommendedLocales() {
         // Steam, EA App, Epic Games, Battle.net should recommend English
         XCTAssertEqual(LauncherType.steam.recommendedLocale, .english)
         XCTAssertEqual(LauncherType.eaApp.recommendedLocale, .english)
@@ -133,7 +133,7 @@ final class LauncherPresetTests: XCTestCase {
         XCTAssertEqual(LauncherType.ubisoft.recommendedLocale, .auto)
     }
 
-    func testFixesDescription() throws {
+    func testFixesDescription() {
         // Each launcher should have a description of fixes
         for launcher in LauncherType.allCases {
             XCTAssertFalse(
@@ -143,7 +143,7 @@ final class LauncherPresetTests: XCTestCase {
         }
     }
 
-    func testLauncherTypeIdentifiable() throws {
+    func testLauncherTypeIdentifiable() {
         // LauncherType conforms to Identifiable for SwiftUI
         let launcher = LauncherType.steam
         XCTAssertEqual(launcher.id, launcher.rawValue)

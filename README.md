@@ -19,6 +19,10 @@
 
 Whisky provides a clean and easy-to-use graphical wrapper for Wine built in native SwiftUI. You can make and manage bottles, install and run Windows apps and games, and unlock the full potential of your Mac with no technical knowledge required.
 
+<!-- Drop the screencast at images/demo.gif (see images/README-DEMO.md for the
+     storyboard and recording recipe), then uncomment the line below to ship it. -->
+<!-- <img width="650" alt="Whisky in action" src="./images/demo.gif"> -->
+
 <img width="650" alt="Config" src="./images/config-screenshot.png">
 
 *Familiar UI that integrates seamlessly with macOS*
@@ -105,6 +109,22 @@ archived upstream repo. Read [docs/AUDIT.md](docs/AUDIT.md) for the
 methodology — including how to read the `addressed-direct` vs
 `addressed-categorical` distinction and what `unverified` GameDB entries
 actually mean.
+
+### Test coverage
+
+The Coverage badge above reports line coverage for **WhiskyKit only** —
+the framework that holds the bottle, Wine, GameDB, and PE-parser logic.
+The SwiftUI app target (`Whisky/`), `WhiskyCmd`, and `WhiskyThumbnail`
+aren't measured because CI runs `swift test --enable-code-coverage`
+against the WhiskyKit Swift package per
+[`.github/workflows/CI.yml`](.github/workflows/CI.yml). Read the badge as
+"WhiskyKit unit-test coverage," not full-app coverage.
+
+WhiskyUITests gives behavioural coverage of the SwiftUI surface (toolbar,
+create-bottle sheet, fixture-dependent flows), but those tests don't feed
+the Codecov number. A future job that runs `xcodebuild test
+-enableCodeCoverage YES` against the `Whisky` scheme would close that
+gap; tracked as a follow-up.
 
 ---
 

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Whisky — OG Card</title>
+<style>
+  /* Render at exactly 1200x630. scripts/build-og-card.sh sets the headless
+     window to that size. Edit visuals here, re-run the build script to
+     regenerate images/og-card.png. */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1200px; height: 630px;
+    background: #1d1d1f;
+    color: #f5f5f7;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  .card {
+    width: 1200px; height: 630px;
+    padding: 80px 96px;
+    display: flex; flex-direction: column; justify-content: center;
+    background:
+      radial-gradient(ellipse at top right, rgba(206, 139, 65, 0.18), transparent 55%),
+      radial-gradient(ellipse at bottom left, rgba(206, 139, 65, 0.08), transparent 60%),
+      #1d1d1f;
+    position: relative;
+  }
+  .accent-rule {
+    width: 64px; height: 4px;
+    background: #ce8b41;
+    border-radius: 2px;
+    margin-bottom: 28px;
+  }
+  .wordmark {
+    font-size: 132px;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin-bottom: 24px;
+  }
+  .tagline {
+    font-size: 36px;
+    font-weight: 400;
+    color: #a1a1a6;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    margin-bottom: 56px;
+    max-width: 900px;
+  }
+  .chips {
+    display: flex;
+    gap: 14px;
+  }
+  .chip {
+    font-size: 20px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 999px;
+    border: 1px solid #424245;
+    color: #f5f5f7;
+    background: rgba(245, 245, 247, 0.04);
+    white-space: nowrap;
+  }
+  .chip.accent {
+    border-color: rgba(206, 139, 65, 0.5);
+    background: rgba(206, 139, 65, 0.12);
+    color: #ce8b41;
+  }
+  .domain {
+    position: absolute;
+    bottom: 60px;
+    right: 96px;
+    font-size: 22px;
+    color: #6e6e73;
+    letter-spacing: -0.01em;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="accent-rule"></div>
+    <div class="wordmark">Whisky</div>
+    <div class="tagline">Run Windows games and apps on macOS, using Wine.</div>
+    <div class="chips">
+      <span class="chip accent">Apple Silicon</span>
+      <span class="chip">macOS 15+</span>
+      <span class="chip">Open source — GPL v3</span>
+    </div>
+    <div class="domain">github.com/frankea/Whisky</div>
+  </div>
+</body>
+</html>

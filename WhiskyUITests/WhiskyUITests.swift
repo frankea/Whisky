@@ -331,11 +331,16 @@ final class WhiskyUITests: XCTestCase {
         )
         createButton.click()
 
-        // Sheet should expose the name field and Cancel/Create buttons
+        // Wait for the sheet to materialize before querying its inner controls.
+        // The sheet's Cancel toolbar button is the most reliable signal that the
+        // sheet has fully rendered; SwiftUI Form-rendered TextFields can lag the
+        // AX tree by a beat on slow CI runners, so probing for the name field
+        // first races the sheet animation.
+        require(app.buttons["create.cancelButton"], "create-bottle sheet", timeout: 5)
+
         let nameField = require(
             app.textFields["create.nameField"],
-            "create-bottle name field",
-            timeout: 3
+            "create-bottle name field"
         )
         XCTAssertTrue(app.buttons["create.cancelButton"].exists, "Cancel button missing")
         // Create button should start disabled (empty name)

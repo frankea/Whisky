@@ -87,6 +87,14 @@ WhiskyKit, the core framework powering Whisky, has comprehensive API documentati
 - **Controller Issues** - Enable "Controller Compatibility Mode" in Bottle Config → Controller & Input
 - **[Game Support Wiki](https://github.com/frankea/Whisky/wiki/Game-Support)** - Community-maintained game compatibility list
 
+### Upstream issue audit
+
+Per-issue accounting of how this fork addresses the open issues from the
+archived upstream repo. Read [docs/AUDIT.md](docs/AUDIT.md) for the
+methodology — including how to read the `addressed-direct` vs
+`addressed-categorical` distinction and what `unverified` GameDB entries
+actually mean.
+
 ---
 
 ## Credits & Acknowledgments

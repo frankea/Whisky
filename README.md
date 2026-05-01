@@ -3,8 +3,11 @@
   # Whisky 🥃
   *Wine but a bit stronger*
 
-  > **Community Fork** - This is an independent fork maintained by [@frankea](https://github.com/frankea).
-  > Not affiliated with the original Whisky project or getwhisky.app.
+  > **Active community fork.** The original [whisky-app/whisky](https://github.com/whisky-app/whisky)
+  > was archived on April 9, 2025 with a final maintenance notice. This fork, maintained by
+  > [@frankea](https://github.com/frankea), continues development — addressing the backlog of
+  > upstream issues and adding new functionality. Not affiliated with the original project or
+  > getwhisky.app.
 
   ![](https://img.shields.io/github/actions/workflow/status/frankea/Whisky/CI.yml?style=for-the-badge&label=CI)
   [![](https://img.shields.io/codecov/c/github/frankea/Whisky?style=for-the-badge&logo=codecov&label=Coverage)](https://codecov.io/gh/frankea/Whisky)

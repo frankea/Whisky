@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-05-01 (App)
+
+First app release of the active community fork of [whisky-app/whisky](https://github.com/whisky-app/whisky)
+(archived April 2025). Resolves all 54 v1.0 milestone requirements covering 10 categories of
+upstream issues (#40, #41, #42, #43, #44, #45, #47, #48, #49, #50). Bumps the macOS minimum
+to 15 (Sequoia).
+
 ### Added
 - Guided troubleshooting wizard with step-by-step diagnostic flows for 8 issue categories (Issue #50)
 - Terminal application selection: choose between Terminal, iTerm2, or Warp (Refs #47, upstream #911)

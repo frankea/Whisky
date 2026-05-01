@@ -89,6 +89,7 @@ struct GameConfigurationView: View {
         List {
             if filteredEntries.isEmpty {
                 emptyStateView
+                    .accessibilityIdentifier("gamedb.emptyState")
             } else {
                 ForEach(filteredEntries, id: \.id) { entry in
                     NavigationLink {
@@ -96,9 +97,11 @@ struct GameConfigurationView: View {
                     } label: {
                         GameEntryRowView(entry: entry)
                     }
+                    .accessibilityIdentifier("gamedb.row.\(entry.id)")
                 }
             }
         }
+        .accessibilityIdentifier("gamedb.list")
         .searchable(text: $searchText, prompt: "gamedb.search.prompt")
         .safeAreaInset(edge: .top) {
             filterBar

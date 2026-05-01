@@ -84,6 +84,7 @@ struct InputConfigSection: View {
                         .onChange(of: bottle.settings.commandActsAsControl) { _, newValue in
                             applyCommandKeyMapping(enabled: newValue)
                         }
+                        .accessibilityIdentifier("input.commandActsAsControl")
 
                     Divider()
 

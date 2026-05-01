@@ -242,6 +242,7 @@ extension GameEntryDetailView {
             }
             .controlSize(.large)
             .buttonStyle(.borderedProminent)
+            .accessibilityIdentifier("gamedb.detail.applyButton")
         }
         .padding(.vertical, 4)
     }

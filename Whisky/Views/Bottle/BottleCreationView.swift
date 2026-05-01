@@ -37,6 +37,7 @@ struct BottleCreationView: View {
                     .onChange(of: newBottleName) { _, name in
                         nameValid = !name.isEmpty
                     }
+                    .accessibilityIdentifier("create.nameField")
 
                 Picker("create.win", selection: $newBottleVersion) {
                     ForEach(WinVersion.allCases.reversed(), id: \.self) {
@@ -70,6 +71,7 @@ struct BottleCreationView: View {
                         dismiss()
                     }
                     .keyboardShortcut(.cancelAction)
+                    .accessibilityIdentifier("create.cancelButton")
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button("create.create") {
@@ -77,6 +79,7 @@ struct BottleCreationView: View {
                     }
                     .keyboardShortcut(.defaultAction)
                     .disabled(!nameValid)
+                    .accessibilityIdentifier("create.createButton")
                 }
             }
             .onSubmit {

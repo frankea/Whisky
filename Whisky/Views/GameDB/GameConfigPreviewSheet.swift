@@ -300,6 +300,7 @@ extension GameConfigPreviewSheet {
                 dismiss()
             }
             .keyboardShortcut(.cancelAction)
+            .accessibilityIdentifier("gamedb.preview.cancelButton")
 
             Button("gameConfig.preview.applyButton") {
                 Task {
@@ -309,6 +310,7 @@ extension GameConfigPreviewSheet {
             .buttonStyle(.borderedProminent)
             .disabled(isApplying)
             .keyboardShortcut(.defaultAction)
+            .accessibilityIdentifier("gamedb.preview.applyButton")
         }
         .padding()
         .background(.bar)

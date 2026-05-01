@@ -86,6 +86,7 @@ struct ContentView: View {
                     Image(systemName: "plus")
                         .help("button.createBottle")
                 }
+                .accessibilityIdentifier("toolbar.createBottle")
             }
             ToolbarItem(placement: .primaryAction) {
                 Button {

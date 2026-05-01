@@ -92,12 +92,15 @@ struct BottleView: View {
                     Button("button.cDrive") {
                         bottle.openCDrive()
                     }
+                    .accessibilityIdentifier("bottle.openCDrive")
                     Button("button.terminal") {
                         bottle.openTerminal()
                     }
+                    .accessibilityIdentifier("bottle.openTerminal")
                     Button("button.winetricks") {
                         showWinetricksSheet.toggle()
                     }
+                    .accessibilityIdentifier("bottle.openWinetricks")
                     Button("button.run") {
                         let panel = NSOpenPanel()
                         panel.allowsMultipleSelection = false
@@ -168,6 +171,7 @@ struct BottleView: View {
                             }
                         }
                     }
+                    .accessibilityIdentifier("bottle.runProgram")
                     .disabled(programLoading)
                     if programLoading {
                         Spacer()

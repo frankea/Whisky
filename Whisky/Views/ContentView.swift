@@ -233,6 +233,7 @@ struct ContentView: View {
             .animation(.default, value: bottleVM.bottles)
             .animation(.default, value: bottleFilter)
             .listStyle(.sidebar)
+            .accessibilityIdentifier("bottleSidebar")
             .searchable(text: $bottleFilter, placement: .sidebar)
             .onChange(of: newlyCreatedBottleURL) { _, url in
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {

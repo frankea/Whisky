@@ -235,6 +235,7 @@
 		6F2BCF2BAEDF0AA7B418E096 /* Winetricks+InstalledVerbs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Winetricks+InstalledVerbs.swift"; sourceTree = "<group>"; };
 		8797408D60F55718DFC61664 /* DiagnosticsPickerSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DiagnosticsPickerSheet.swift; sourceTree = "<group>"; };
 		8C73E1332AF472FC00B6FB45 /* ProgramMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramMenuView.swift; sourceTree = "<group>"; };
+		8CB681E42AED7C6F0018D319 /* WhiskyKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = WhiskyKit; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718A9B0C1D3 /* DLLOverrideEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLLOverrideEditor.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718A9B0C1D5 /* DLLOverrideConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLLOverrideConfigSection.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718A9B0C1D7 /* ProgramOverrideSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramOverrideSettingsView.swift; sourceTree = "<group>"; };
@@ -412,6 +413,7 @@
 				6E40495429CCA19C006E3F1B /* Whisky */,
 				6E70A4992A9A2197007799E9 /* WhiskyCmd */,
 				6EFDF64F2AAE2DA800EF622F /* WhiskyThumbnail */,
+				8CB681E42AED7C6F0018D319 /* WhiskyKit */,
 				6E2FB15F2B589A9000E344C6 /* Libraries */,
 				6E40495329CCA19C006E3F1B /* Products */,
 				6E5967692A9A424900D64F70 /* Frameworks */,

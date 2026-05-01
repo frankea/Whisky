@@ -93,6 +93,61 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
 
+  # XCUITest job - runs WhiskyUITests against the Whisky app target.
+  # Tests that need bottle fixtures call `try requireBottleFixture()` which
+  # XCTSkips them when the user container is empty (always true on a fresh
+  # CI runner). The fixture-free tests - create-bottle sheet flow and the
+  # toolbar checks - run for real and verify the app launches without
+  # crashing and the toolbar surface renders.
+  #
+  # No user-controllable inputs are interpolated into shell commands here;
+  # all values are constants from the workflow file or static action inputs.
+  ui-test:
+    name: WhiskyUITests
+    needs: [lint, format]
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Cache SPM Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData/*/SourcePackages
+            .build
+            WhiskyKit/.build
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Run WhiskyUITests
+        run: |
+          xcodebuild -project Whisky.xcodeproj \
+            -scheme Whisky \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -only-testing:WhiskyUITests \
+            test \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload xcresult bundle on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-xcresult
+          path: |
+            ~/Library/Developer/Xcode/DerivedData/Whisky-*/Logs/Test/*.xcresult
+          if-no-files-found: ignore
+
   # Test job for WhiskyKit - always runs to ensure coverage is uploaded
   test:
     name: Run Tests

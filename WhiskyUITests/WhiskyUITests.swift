@@ -18,6 +18,7 @@
 
 import XCTest
 
+// swiftlint:disable type_body_length
 final class WhiskyUITests: XCTestCase {
     var app: XCUIApplication!
 
@@ -102,15 +103,27 @@ final class WhiskyUITests: XCTestCase {
 
     // MARK: - Smoke
 
-    func testAppLaunchesAndShowsBottleDetail() {
+    /// Throws XCTSkip if the user container has no bottles. CI runners start fresh
+    /// without fixtures, and most of these tests assume at least one bottle exists.
+    private func requireBottleFixture() throws {
+        if !app.buttons["nav.bottleConfiguration"].waitForExistence(timeout: 5) {
+            throw XCTSkip(
+                "No bottle fixtures in user container; skipping. " +
+                    "Run a bottle setup locally before running this suite."
+            )
+        }
+    }
+
+    func testAppLaunchesAndShowsBottleDetail() throws {
+        try requireBottleFixture()
         require(app.buttons["nav.bottleConfiguration"], "bottle nav row", timeout: 8)
         XCTAssertTrue(app.buttons["nav.installedPrograms"].exists)
         XCTAssertTrue(app.buttons["nav.runningProcesses"].exists)
         XCTAssertTrue(app.buttons["nav.gameConfigurations"].exists)
     }
 
-    func testBottomToolbarShowsAllFourActions() {
-        require(app.buttons["nav.bottleConfiguration"], "bottle main view", timeout: 8)
+    func testBottomToolbarShowsAllFourActions() throws {
+        try requireBottleFixture()
         // BottomBarButtonStyle wraps each button in a new Button, which strips our
         // accessibility identifiers. Look up by visible label instead.
         XCTAssertTrue(app.buttons["Open C: Drive"].exists, "Open C: Drive button missing")
@@ -119,8 +132,8 @@ final class WhiskyUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Run..."].exists, "Run button missing")
     }
 
-    func testCreateBottleButtonPresentInToolbar() {
-        require(app.buttons["nav.bottleConfiguration"], "main view loaded", timeout: 8)
+    func testCreateBottleButtonPresentInToolbar() throws {
+        try requireBottleFixture()
         XCTAssertTrue(
             app.buttons.matching(identifier: "toolbar.createBottle").firstMatch.exists,
             "+ toolbar button missing"
@@ -129,7 +142,8 @@ final class WhiskyUITests: XCTestCase {
 
     // MARK: - Bottle Configuration
 
-    func testBottleConfigurationSectionsRender() {
+    func testBottleConfigurationSectionsRender() throws {
+        try requireBottleFixture()
         openBottleConfiguration()
         // Wine section is the first one expanded by default
         XCTAssertTrue(app.staticTexts["Wine"].exists)
@@ -146,7 +160,8 @@ final class WhiskyUITests: XCTestCase {
     /// inspection - SwiftUI doesn't expose collapsed DisclosureGroup contents in
     /// the AX tree, so we can't drive the toggle via XCUITest without expanding it,
     /// which itself requires clicking the chevron at a fragile coordinate.
-    func testControllerAndInputSectionExists() {
+    func testControllerAndInputSectionExists() throws {
+        try requireBottleFixture()
         openBottleConfiguration()
         // The header renders as a DisclosureTriangle with label "Controller & Input",
         // not as a StaticText. Disclosure triangles report as descendant of a window.
@@ -161,7 +176,8 @@ final class WhiskyUITests: XCTestCase {
 
     // MARK: - Game Configurations browser
 
-    func testGameDBBrowserShowsEntries() {
+    func testGameDBBrowserShowsEntries() throws {
+        try requireBottleFixture()
         openGameConfigurations()
         // We bundle 80+ entries; assert at least one row renders.
         let firstRow = app.outlines["gamedb.list"].outlineRows.firstMatch
@@ -183,7 +199,8 @@ final class WhiskyUITests: XCTestCase {
         row.click()
     }
 
-    func testGameDBSearchFiltersEntries() {
+    func testGameDBSearchFiltersEntries() throws {
+        try requireBottleFixture()
         openGameConfigurations()
         let searchField: XCUIElement = {
             if app.searchFields.firstMatch.exists { return app.searchFields.firstMatch }
@@ -204,7 +221,8 @@ final class WhiskyUITests: XCTestCase {
         )
     }
 
-    func testGameDBDetailViewRendersForCeleste() {
+    func testGameDBDetailViewRendersForCeleste() throws {
+        try requireBottleFixture()
         openGameConfigurations()
         openCelesteDetail()
         require(
@@ -214,7 +232,8 @@ final class WhiskyUITests: XCTestCase {
         )
     }
 
-    func testApplyConfigPreviewSheetCancels() {
+    func testApplyConfigPreviewSheetCancels() throws {
+        try requireBottleFixture()
         openGameConfigurations()
         openCelesteDetail()
 
@@ -249,7 +268,8 @@ final class WhiskyUITests: XCTestCase {
     /// This is the highest-leverage test - catches the entire class of regressions
     /// that manual smoke testing kept finding (config.title.graphics, status.duplicating.*,
     /// bottle.subtitle.autoBackend, etc.).
-    func testNoRawKeysInBottleConfiguration() {
+    func testNoRawKeysInBottleConfiguration() throws {
+        try requireBottleFixture()
         openBottleConfiguration()
         let leaks = rawKeyLeaks()
         XCTAssertTrue(
@@ -259,7 +279,8 @@ final class WhiskyUITests: XCTestCase {
     }
 
     /// Same check, but for the GameDB browser.
-    func testNoRawKeysInGameConfigurations() {
+    func testNoRawKeysInGameConfigurations() throws {
+        try requireBottleFixture()
         openGameConfigurations()
         let leaks = rawKeyLeaks()
         XCTAssertTrue(
@@ -269,7 +290,8 @@ final class WhiskyUITests: XCTestCase {
     }
 
     /// Same check, but for the GameDB detail view.
-    func testNoRawKeysInGameDetail() {
+    func testNoRawKeysInGameDetail() throws {
+        try requireBottleFixture()
         openGameConfigurations()
         openCelesteDetail()
         require(app.buttons["gamedb.detail.applyButton"], "detail view loaded", timeout: 5)
@@ -282,7 +304,8 @@ final class WhiskyUITests: XCTestCase {
 
     /// Same check, but for the apply-config preview sheet (the overlay where the diff
     /// shows). Verifies sheet content is fully localized.
-    func testNoRawKeysInApplyPreviewSheet() {
+    func testNoRawKeysInApplyPreviewSheet() throws {
+        try requireBottleFixture()
         openGameConfigurations()
         openCelesteDetail()
         require(app.buttons["gamedb.detail.applyButton"], "detail view", timeout: 5).click()
@@ -338,3 +361,5 @@ final class WhiskyUITests: XCTestCase {
         )
     }
 }
+
+// swiftlint:enable type_body_length

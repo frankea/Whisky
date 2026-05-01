@@ -50,13 +50,23 @@ Whisky provides a clean and easy-to-use graphical wrapper for Wine built in nati
 
 ## Installation
 
+### Homebrew (recommended)
+
+```sh
+brew install --cask frankea/whisky/whisky
+```
+
+This taps [frankea/homebrew-whisky](https://github.com/frankea/homebrew-whisky) and installs the latest signed/notarized DMG. `brew upgrade --cask` picks up new releases.
+
+> The default `brew install --cask whisky` still installs the **archived original** (last release April 2025) and always will until that cask is updated. Use the qualified `frankea/whisky/whisky` form to get this fork.
+
+### Manual
+
 1. Download the latest **[Whisky-X.Y.Z.dmg](https://github.com/frankea/Whisky/releases/latest)** (signed and notarized — Gatekeeper-approved).
 2. Open the DMG and drag **Whisky.app** to **/Applications**.
 3. Launch Whisky. On first run it downloads the Wine runtime (~313 MB) and sets up your default bottle.
 
 In-app updates are delivered through Sparkle from `https://frankea.github.io/Whisky/appcast.xml`.
-
-> **Note:** This fork is not yet available via Homebrew. `brew install --cask whisky` still installs the archived original.
 
 ### Migrating from the original Whisky
 
@@ -65,9 +75,10 @@ The original [whisky-app/whisky](https://github.com/whisky-app/whisky) was archi
 To switch:
 
 1. Quit the original Whisky app.
-2. Drag the existing **/Applications/Whisky.app** to the Trash. Your bottles in `~/Library/Containers/com.isaacmarovitz.Whisky/` are untouched, but this fork uses a different bundle identifier (`com.franke.Whisky`) so it will not see them automatically — export bottles you want to keep first via the original app's **Bottle → Export** menu.
-3. Install this fork using the steps above.
-4. Re-import any exported bottles through **File → Import Bottle** in the new app.
+2. Export bottles you want to keep first via the original app's **Bottle → Export** menu — this fork uses a different bundle identifier (`com.franke.Whisky`) so it won't see them automatically.
+3. Drag the existing **/Applications/Whisky.app** to the Trash, or `brew uninstall --cask whisky` if you installed it via Homebrew. Bottles in `~/Library/Containers/com.isaacmarovitz.Whisky/` stay put.
+4. Install this fork: `brew install --cask frankea/whisky/whisky` or follow the manual steps above.
+5. Re-import any exported bottles through **File → Import Bottle** in the new app.
 
 If you have no critical bottles, you can skip the export — the new app will create a fresh bottle on first launch.
 

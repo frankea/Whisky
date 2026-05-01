@@ -92,12 +92,7 @@ fastlane/test_output
 iOSInjectionProject/
 
 # Audit tooling
-.planning/audit/snapshot.json
-.planning/audit/.llm_cache.json
-.planning/audit/batches/
-.planning/audit/decisions/
-.planning/audit/triage/
-.planning/audit/triage_decisions/
+.planning/
 __pycache__/
 .venv/
 

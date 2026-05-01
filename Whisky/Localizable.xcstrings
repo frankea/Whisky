@@ -24505,7 +24505,7 @@
         }
       }
     },
-    "bottle.subtitle.autoBackend": {
+    "bottle.subtitle.autoBackend %@": {
       "extractionState": "manual",
       "localizations": {
         "en": {

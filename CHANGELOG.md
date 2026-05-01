@@ -30,6 +30,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (Closes whisky-app/whisky#547).
 - Bundled GameDB ships entries for Diablo IV, Skyrim Special Edition, and
   Warhammer 40,000: Space Marine (Closes whisky-app/whisky#813, #1125, #1246).
+- Setup/Welcome view's "Uninstall" button now offers two options: remove the
+  WhiskyWine runtime only (preserves bottles for later reinstall) or remove
+  everything (runtime + default bottles directory + BottleData registry).
+  Bottles at custom paths outside the default directory are preserved
+  (Closes whisky-app/whisky#411).
 
 ### Changed
 - Installed-programs list filters out known launcher helpers and crash

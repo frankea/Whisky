@@ -154,6 +154,37 @@ public class WhiskyWineInstaller {
         }
     }
 
+    /// Removes everything Whisky has stored under Application Support: the
+    /// WhiskyWine runtime and every bottle whose plist registration lives in
+    /// the default bottles list. Caller is responsible for confirming with
+    /// the user — this is destructive and unrecoverable.
+    ///
+    /// Bottles stored at custom paths outside the default bottles directory
+    /// are not removed; their tracking entries are dropped from the
+    /// `BottleData` plist but the on-disk bottle directories are preserved
+    /// to avoid surprising users who relocated bottles intentionally.
+    public static func uninstallAll() {
+        // Drop the runtime first so partial failures still leave a coherent state.
+        uninstall()
+
+        // Default bottles directory (matches `Bottle.defaultBottlesDirectory`).
+        let defaultBottles = applicationFolder.appending(path: "Bottles")
+        if FileManager.default.fileExists(atPath: defaultBottles.path(percentEncoded: false)) {
+            do {
+                try FileManager.default.removeItem(at: defaultBottles)
+            } catch {
+                logger.error("Failed to remove default bottles folder: \(error.localizedDescription)")
+            }
+        }
+
+        // BottleData.plist registers bottle paths; remove it so a reinstall
+        // starts with no orphaned entries pointing at deleted directories.
+        let bottleData = applicationFolder.appending(path: "BottleData.plist")
+        if FileManager.default.fileExists(atPath: bottleData.path(percentEncoded: false)) {
+            try? FileManager.default.removeItem(at: bottleData)
+        }
+    }
+
     /// Checks if a newer version of WhiskyWine is available.
     ///
     /// This method compares the locally installed version against the

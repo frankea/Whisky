@@ -24394,6 +24394,72 @@
           }
         }
       }
+    },
+    "setup.uninstall.confirm.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uninstall Whisky?"
+          }
+        }
+      }
+    },
+    "setup.uninstall.confirm.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove the Wine runtime only, or remove everything Whisky has stored — including all bottles?\n\nRemoving everything is permanent and cannot be undone."
+          }
+        }
+      }
+    },
+    "setup.uninstall.confirm.runtimeOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Runtime only"
+          }
+        }
+      }
+    },
+    "setup.uninstall.confirm.everything": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove everything"
+          }
+        }
+      }
+    },
+    "setup.uninstall.confirm.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "winetricks.search.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search verbs"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

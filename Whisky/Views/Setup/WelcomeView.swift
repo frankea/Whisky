@@ -150,9 +150,31 @@ struct InstallStatusView: View {
 
     func uninstall() {
         if name == "WhiskyWine" {
-            WhiskyWineInstaller.uninstall()
+            uninstallWhiskyWineWithOptionalBottles()
         }
 
         shouldCheckInstallStatus.toggle()
+    }
+
+    /// Asks the user whether to also delete bottles + tracking metadata, then
+    /// performs the requested level of cleanup. Whisky-Wine-only is the
+    /// default; "Remove everything" is a destructive escape hatch.
+    private func uninstallWhiskyWineWithOptionalBottles() {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = String(localized: "setup.uninstall.confirm.title")
+        alert.informativeText = String(localized: "setup.uninstall.confirm.body")
+        alert.addButton(withTitle: String(localized: "setup.uninstall.confirm.runtimeOnly"))
+        alert.addButton(withTitle: String(localized: "setup.uninstall.confirm.everything"))
+        alert.addButton(withTitle: String(localized: "setup.uninstall.confirm.cancel"))
+
+        switch alert.runModal() {
+        case .alertFirstButtonReturn:
+            WhiskyWineInstaller.uninstall()
+        case .alertSecondButtonReturn:
+            WhiskyWineInstaller.uninstallAll()
+        default:
+            break
+        }
     }
 }

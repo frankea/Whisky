@@ -1,32 +1,47 @@
-name: Feature Request
-description: Request a new feature.
+name: ✨ Feature Request
+description: Suggest a new feature or improvement.
 type: "Enhancement"
+labels: ["enhancement"]
 body:
-  - type: textarea
-    id: related-to-problem
+  - type: markdown
     attributes:
-      label: Is your feature request related to a problem?
-      description: A clear and concise description of what the problem is.
+      value: |
+        Thanks for taking the time to suggest something. Please:
+        - Search [existing issues](https://github.com/frankea/Whisky/issues?q=is%3Aissue) to avoid duplicates.
+        - Check [docs/AUDIT.md](https://github.com/frankea/Whisky/blob/main/docs/AUDIT.md) — your feature may already be tracked.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem the feature would solve
+      description: A clear description of the user-facing problem. ("I want to do X but the app makes that hard because…")
     validations:
       required: true
   - type: textarea
     id: solution
     attributes:
-      label: Describe the solution you'd like
-      description: A clear and concise description of what you're suggesting.
+      label: Proposed solution
+      description: How would the app behave if the feature existed? Be specific.
     validations:
       required: true
   - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you thought about, or workarounds you currently use.
+    validations:
+      required: false
+  - type: textarea
     id: extra-info
     attributes:
-      label: Anything else?
-      description: Upload any relevant images, links, screenshots that might help realise your suggestion.
+      label: Additional context
+      description: Screenshots, mockups, links, anything that helps explain.
     validations:
-      required: true
+      required: false
   - type: checkboxes
     attributes:
-      label: Issue Language
-      description: All issues must be written in clear plain English so that all devs are able to read them.
+      label: Pre-flight checks
       options:
-        - label: Yes my issue is written in English
+        - label: I searched existing issues and didn't find a duplicate.
+          required: true
+        - label: My request is written in English.
           required: true

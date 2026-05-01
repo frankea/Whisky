@@ -1,0 +1,132 @@
+name: 🎮 Game Compatibility Report
+description: A specific game won't run, crashes, or runs poorly.
+type: "Game compatibility"
+labels: ["game-compatibility"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for **game-specific** issues — a particular game crashing, freezing, rendering wrong, or not launching.
+        For non-game bugs (Whisky UI, bottle creation, etc.), use the **Bug Report** template instead.
+
+        **Before filing:**
+        - Check the [Game Support wiki](https://github.com/frankea/Whisky/wiki/Game-Support) for known status.
+        - Open the **Game Configurations** browser inside Whisky — your game may already have a recommended config.
+        - Search [existing issues](https://github.com/frankea/Whisky/issues?q=is%3Aissue+label%3Agame-compatibility).
+  - type: input
+    id: game-name
+    attributes:
+      label: Game name
+      placeholder: "e.g., Baldur's Gate 3"
+    validations:
+      required: true
+  - type: input
+    id: game-store
+    attributes:
+      label: Store / launcher
+      description: Where you bought / launch the game from.
+      placeholder: "e.g., Steam, Epic, GOG, EA App, standalone installer"
+    validations:
+      required: true
+  - type: dropdown
+    id: rating
+    attributes:
+      label: Compatibility rating you'd give it
+      description: Match the GameDB rating system.
+      options:
+        - "Works — runs perfectly with no issues"
+        - "Playable — runs with minor issues or required tweaks"
+        - "Broken — crashes, freezes, or unplayable"
+        - "Doesn't launch — installer or launcher fails before game loads"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happens
+    attributes:
+      label: What happens
+      description: Crash on launch? Black screen? Bad performance? Audio cuts out? Be specific.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps you took
+      description: Including any tweaks (DXVK, registry edits, winetricks verbs, env vars) you applied before hitting the issue.
+    validations:
+      required: true
+  - type: dropdown
+    id: graphics-backend
+    attributes:
+      label: Graphics backend tried
+      options:
+        - "Recommended (auto)"
+        - "D3DMetal"
+        - "DXVK"
+        - "DXVK with Async"
+        - "WineD3D"
+    validations:
+      required: true
+  - type: input
+    id: gamedb-id
+    attributes:
+      label: GameDB entry id (if you applied one)
+      description: From the URL in the Game Configurations browser, e.g. `baldurs-gate-3`. Leave blank if no recommended config exists yet.
+      placeholder: "e.g., baldurs-gate-3 — or leave blank"
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Wine log (relevant excerpt)
+      description: |
+        Press **⌘L** in Whisky to open the most recent Wine log. Paste the parts around the crash / error.
+      render: bash
+    validations:
+      required: false
+  - type: input
+    id: whisky-version
+    attributes:
+      label: Whisky version
+      placeholder: "e.g., 3.0.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: mac-version
+    attributes:
+      label: macOS version
+      options:
+        - "Sequoia (macOS 15.0)"
+        - "Sequoia (macOS 15.1)"
+        - "Sequoia (macOS 15.2)"
+        - "Sequoia (macOS 15.3)"
+        - "Sequoia (macOS 15.4)"
+        - "Sequoia (macOS 15.5+)"
+        - "Tahoe (macOS 26)"
+        - "Other (specify in description)"
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware
+      description: Apple Silicon model + RAM. From **Apple Menu → About This Mac**.
+      placeholder: "e.g., MacBook Pro M4 Max, 64GB"
+    validations:
+      required: true
+  - type: checkboxes
+    attributes:
+      label: Anti-cheat
+      description: Some anti-cheat systems are fundamentally incompatible with Wine on macOS.
+      options:
+        - label: This game uses an anti-cheat system (EasyAntiCheat, BattlEye, Vanguard, Denuvo, etc.) that I'm aware of.
+          required: false
+  - type: checkboxes
+    attributes:
+      label: Pre-flight checks
+      options:
+        - label: I checked the Game Support wiki and Game Configurations browser for an existing config.
+          required: true
+        - label: I searched existing issues for this game.
+          required: true
+        - label: My issue is written in English.
+          required: true

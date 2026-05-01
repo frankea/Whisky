@@ -1,5 +1,17 @@
 blank_issues_enabled: false
 contact_links:
-  - name: GitHub Issues
-    url: https://github.com/frankea/Whisky/issues
-    about: Search existing issues or open a new one for bug reports and feature requests.
+  - name: 🔧 Launcher / Steam / Epic / EA App troubleshooting
+    url: https://github.com/frankea/Whisky/blob/main/docs/LauncherTroubleshooting.md
+    about: Most launcher issues are addressed here before opening a new issue.
+  - name: 💥 Crash / freeze / kernel panic troubleshooting
+    url: https://github.com/frankea/Whisky/blob/main/docs/StabilityTroubleshooting.md
+    about: Run the in-app diagnostics (Bottle Configuration → View Diagnostics) before reporting.
+  - name: 🎮 Game support wiki (community-maintained)
+    url: https://github.com/frankea/Whisky/wiki/Game-Support
+    about: Check whether your game already has a known status or a recommended config.
+  - name: 📜 Upstream issue audit
+    url: https://github.com/frankea/Whisky/blob/main/docs/AUDIT.md
+    about: Per-issue accounting of how this fork addresses the archived upstream's open issues.
+  - name: 📦 Archived upstream (whisky-app/whisky)
+    url: https://github.com/whisky-app/whisky
+    about: Do NOT open issues there — that repo is archived and unmaintained. Issues filed there will not be seen.

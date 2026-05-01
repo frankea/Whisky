@@ -1,58 +1,103 @@
-name: Bug Report
-description: Report a bug.
+name: 🐛 Bug Report
+description: App crash, broken feature, or unexpected behaviour.
 type: "Bug"
+labels: ["bug"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Before submitting, please:
+        - Search [existing issues](https://github.com/frankea/Whisky/issues?q=is%3Aissue) — your bug may already be reported.
+        - Check the [troubleshooting docs](https://github.com/frankea/Whisky/blob/main/docs/) — many common issues have known fixes.
+        - For game-specific compatibility problems, use the **Game Compatibility Report** template instead.
   - type: textarea
     id: description
     attributes:
       label: Description
-      description: Please provide a description of the bug.
+      description: What's broken? One or two sentences.
     validations:
       required: true
   - type: textarea
     id: reproduce
     attributes:
       label: Steps to reproduce
-      description: Please provide detailed step-by-step instructions on how to reproduce this issue.
+      description: Detailed step-by-step instructions to trigger the bug.
+      placeholder: |
+        1. Open Whisky
+        2. Click "..."
+        3. Observe ...
     validations:
       required: true
   - type: textarea
     id: expected-behaviour
     attributes:
       label: Expected behaviour
-      description: Please provide a clear a detailed description of what you expected to happen.
+      description: What should have happened instead?
     validations:
       required: true
   - type: textarea
     id: logs
     attributes:
-      label: Logs
-      description: Please provide the logs from the launched Wine process. These can be found by pressing `CMD + L` in Whisky.
+      label: Wine logs
+      description: |
+        Press **⌘L** in Whisky to open the most recent Wine log, then paste the relevant excerpt here.
+        For crashes/freezes, attach the diagnostic export from **Bottle Configuration → View Diagnostics**.
       render: bash
     validations:
-      required: true
+      required: false
   - type: input
     id: whisky-version
     attributes:
-      label: What version of Whisky are you using?
-      description: You can find this in Whisky → About Whisky
+      label: Whisky version
+      description: From **Whisky → About Whisky**.
       placeholder: "e.g., 3.0.1"
     validations:
       required: true
   - type: dropdown
     id: mac-version
     attributes:
-      label: What version of macOS are you using?
+      label: macOS version
       description: This fork requires macOS 15 (Sequoia) or later.
       options:
-        - "Sequoia (macOS 15)"
+        - "Sequoia (macOS 15.0)"
+        - "Sequoia (macOS 15.1)"
+        - "Sequoia (macOS 15.2)"
+        - "Sequoia (macOS 15.3)"
+        - "Sequoia (macOS 15.4)"
+        - "Sequoia (macOS 15.5+)"
         - "Tahoe (macOS 26)"
+        - "Other (specify in description)"
     validations:
       required: true
+  - type: dropdown
+    id: graphics-backend
+    attributes:
+      label: Graphics backend in use
+      description: From **Bottle Configuration → Graphics**. Recommended just means whatever the auto-resolver picked — note the actual backend if you know it.
+      options:
+        - "Recommended (auto)"
+        - "D3DMetal"
+        - "DXVK"
+        - "DXVK with Async"
+        - "WineD3D"
+        - "Don't know"
+    validations:
+      required: true
+  - type: input
+    id: wine-version
+    attributes:
+      label: Wine runtime version
+      description: From **Bottle Configuration → Wine** (the WhiskyWine runtime version).
+      placeholder: "e.g., 11.0"
+    validations:
+      required: false
   - type: checkboxes
     attributes:
-      label: Issue Language
-      description: All issues must be written in clear plain English so that all devs are able to read them.
+      label: Pre-flight checks
       options:
-        - label: Yes my issue is written in English
+        - label: I searched existing issues and didn't find a duplicate.
+          required: true
+        - label: I confirmed this is **not** a game-specific compatibility issue (use the other template if it is).
+          required: true
+        - label: My issue is written in English so all maintainers can read it.
           required: true

@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import IOKit.pwr_mgt
 import os.log
 
 /// Registry for tracking Wine processes launched by Whisky.
@@ -40,6 +41,11 @@ public final class ProcessRegistry: @unchecked Sendable {
 
     private let lock = NSLock()
     private var activeProcesses: [URL: Set<ProcessInfo>] = [:]
+
+    /// IOKit power assertion held while at least one Wine process is registered.
+    /// Prevents the screen saver and display sleep during gaming sessions where
+    /// only a controller is generating input (whisky-app/whisky#547).
+    private var displayWakeAssertion: IOPMAssertionID = .init(0)
 
     private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ProcessRegistry")
 
@@ -116,6 +122,8 @@ public final class ProcessRegistry: @unchecked Sendable {
         processes.insert(info)
         activeProcesses[bottle.url] = processes
 
+        ensureDisplayWakeAssertionLocked()
+
         logger.info("Registered process '\(programName)' for bottle '\(bottle.url.lastPathComponent)'")
     }
 
@@ -166,6 +174,8 @@ public final class ProcessRegistry: @unchecked Sendable {
                 var mutableProcesses = processes
                 mutableProcesses.remove(info)
                 activeProcesses[bottleURL] = mutableProcesses
+
+                releaseDisplayWakeAssertionIfIdleLocked()
 
                 logger.info("Unregistered process '\(info.programName)' (PID: \(pid))")
                 return
@@ -310,7 +320,42 @@ public final class ProcessRegistry: @unchecked Sendable {
     public func clearRegistry(for bottleURL: URL) {
         lock.lock()
         activeProcesses[bottleURL] = nil
+        releaseDisplayWakeAssertionIfIdleLocked()
         lock.unlock()
+    }
+
+    // MARK: - Display Wake Assertion
+
+    /// Total tracked process count across all bottles. Caller must hold ``lock``.
+    private func totalProcessCountLocked() -> Int {
+        activeProcesses.values.reduce(0) { $0 + $1.count }
+    }
+
+    /// Acquires an IOKit `NoDisplaySleep` assertion if not already held and at
+    /// least one process is registered. Caller must hold ``lock``.
+    private func ensureDisplayWakeAssertionLocked() {
+        guard displayWakeAssertion == 0, totalProcessCountLocked() > 0 else { return }
+        var assertionID = IOPMAssertionID(0)
+        let reason = "Whisky game running" as CFString
+        let result = IOPMAssertionCreateWithName(
+            kIOPMAssertionTypeNoDisplaySleep as CFString,
+            IOPMAssertionLevel(kIOPMAssertionLevelOn),
+            reason,
+            &assertionID
+        )
+        if result == kIOReturnSuccess {
+            displayWakeAssertion = assertionID
+        } else {
+            logger.warning("Failed to create display-sleep assertion: \(result)")
+        }
+    }
+
+    /// Releases the display-sleep assertion if no processes remain. Caller must
+    /// hold ``lock``.
+    private func releaseDisplayWakeAssertionIfIdleLocked() {
+        guard displayWakeAssertion != 0, totalProcessCountLocked() == 0 else { return }
+        IOPMAssertionRelease(displayWakeAssertion)
+        displayWakeAssertion = IOPMAssertionID(0)
     }
 
     /// Kills a process by sending the specified signal.

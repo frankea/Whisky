@@ -11,9 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bottle creation now copies host fonts (Arial Unicode, Arial, Tahoma) into
   `drive_c/windows/Fonts` so Unity titles render fallback glyphs instead of
   empty boxes (Closes whisky-app/whisky#1050).
-- File pickers for "Run" and "Pin Program" now accept `.msix`, `.appx`, and
-  `.appref-ms` files in addition to `.exe`/`.msi`/`.bat`
-  (Closes whisky-app/whisky#815, #826).
+- File pickers for "Run" and "Pin Program" now accept `.msix`, `.appx`,
+  `.appref-ms`, and `.url` files in addition to `.exe`/`.msi`/`.bat`. Steam
+  desktop shortcuts (`.url`) launch correctly via Wine's `start` handler
+  (Closes whisky-app/whisky#756, #815, #826).
 - Winetricks verb browser is searchable: filter the verb table by name or
   description (Closes whisky-app/whisky#763).
 - Wine inherits the host timezone (`TZ`) so games keying off date/time render
@@ -22,13 +23,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PE icon extraction returns a generic Windows-executable system icon when
   parsing fails, so program tiles and pins never render blank
   (Closes whisky-app/whisky#687).
+- Display sleep / screen saver is now suppressed via an `IOPMAssertion` for
+  as long as any Wine process is registered. Controllers don't generate user
+  activity events on macOS, so without this, gaming with only a controller
+  would still trigger the screen saver
+  (Closes whisky-app/whisky#547).
+- Bundled GameDB ships entries for Diablo IV, Skyrim Special Edition, and
+  Warhammer 40,000: Space Marine (Closes whisky-app/whisky#813, #1125, #1246).
 
 ### Changed
 - Installed-programs list filters out known launcher helpers and crash
   reporters (steamerrorreporter, steamservice, steamwebhelper, GameOverlayUI,
-  vc_redist, UEPrereqSetup, etc.) so the visible list stays clean by default
-  while leaving the user blocklist for app-specific filtering
-  (Closes whisky-app/whisky#432).
+  vc_redist, UEPrereqSetup, the CrossOver HTML engine helper, etc.) so the
+  visible list stays clean by default while leaving the user blocklist for
+  app-specific filtering
+  (Closes whisky-app/whisky#432, #1215).
 - WhiskyWine download survives transient Wi-Fi/Ethernet/VPN disconnects via
   `waitsForConnectivity` and bounded request/resource timeouts so a stalled
   download surfaces an error instead of hanging forever

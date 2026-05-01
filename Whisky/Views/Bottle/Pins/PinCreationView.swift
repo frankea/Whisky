@@ -48,7 +48,8 @@ struct PinCreationView: View {
                         UTType(exportedAs: "com.microsoft.bat"),
                         UTType(exportedAs: "com.microsoft.msix-package"),
                         UTType(exportedAs: "com.microsoft.appx-package"),
-                        UTType(exportedAs: "com.microsoft.application-reference")
+                        UTType(exportedAs: "com.microsoft.application-reference"),
+                        UTType(exportedAs: "com.microsoft.windows-internet-shortcut")
                     ]
                     panel.directoryURL = newPinURL ?? bottle.url.appending(path: "drive_c")
                     panel.canChooseDirectories = false

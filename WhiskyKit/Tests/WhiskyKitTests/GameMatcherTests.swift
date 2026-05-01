@@ -28,8 +28,13 @@ final class GameMatcherTests: XCTestCase {
         let entries = GameDBLoader.loadDefaults()
         XCTAssertFalse(entries.isEmpty, "loadDefaults() should return a non-empty array")
 
-        // Verify first entry has an expected ID (stardew-valley is first in the seed file)
-        XCTAssertEqual(entries.first?.id, "stardew-valley")
+        // Sentinel entry that has shipped since the initial seed file. Don't pin
+        // on entry order — entries are sorted by title and new ones are added
+        // over time.
+        XCTAssertNotNil(
+            entries.first { $0.id == "stardew-valley" },
+            "Expected to find stardew-valley entry in defaults"
+        )
     }
 
     // MARK: - Test 2: GameDBLoader Decodes All Fields

@@ -2,464 +2,28 @@
   "version": 1,
   "entries": [
     {
-      "id": "stardew-valley",
-      "title": "Stardew Valley",
-      "aliases": ["StardewValley"],
-      "subtitle": "ConcernedApe",
-      "store": "steam",
-      "steamAppId": 413150,
-      "rating": "works",
-      "exeNames": ["Stardew Valley.exe"],
-      "pathPatterns": ["stardew valley"],
-      "antiCheat": null,
-      "constraints": {
-        "cpuArchitectures": ["arm64", "x86_64"],
-        "minMacOSVersion": "14.0.0",
-        "minWineVersion": "9.0"
-      },
-      "variants": [
-        {
-          "id": "recommended",
-          "label": "Recommended",
-          "isDefault": true,
-          "whenToUse": "Works out of the box with default settings",
-          "rationale": [
-            "Simple 2D game with minimal GPU requirements",
-            "D3DMetal provides native Metal performance",
-            "No special configuration needed"
-          ],
-          "settings": {
-            "graphicsBackend": "d3dMetal",
-            "dxvk": false,
-            "dxvkAsync": false,
-            "enhancedSync": "msync",
-            "forceD3D11": false,
-            "shaderCacheEnabled": true,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {},
-          "dllOverrides": [],
-          "winetricksVerbs": [],
-          "testedWith": {
-            "lastTestedAt": "2026-01-20T00:00:00Z",
-            "macOSVersion": "15.3.0",
-            "wineVersion": "10.0",
-            "whiskyVersion": "3.0.0",
-            "cpuArchitecture": "arm64"
-          }
-        }
-      ],
-      "notes": [
-        "Works perfectly with default settings on both Apple Silicon and Intel",
-        "Controller support works natively through Wine input mapping",
-        "Mods using SMAPI may require additional configuration"
-      ],
-      "knownIssues": [
-        {
-          "description": "SMAPI mod loader may fail to initialize on first run",
-          "severity": "minor",
-          "workaround": "Run the game once without SMAPI, then re-enable it"
-        }
-      ],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2026-01-20T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
-      "id": "hollow-knight",
-      "title": "Hollow Knight",
-      "aliases": ["HollowKnight"],
-      "subtitle": "Team Cherry",
-      "store": "steam",
-      "steamAppId": 367520,
-      "rating": "works",
-      "exeNames": ["hollow_knight.exe"],
-      "pathPatterns": ["hollow knight"],
-      "antiCheat": null,
-      "constraints": {
-        "cpuArchitectures": ["arm64", "x86_64"],
-        "minMacOSVersion": "14.0.0",
-        "minWineVersion": "9.0"
-      },
-      "variants": [
-        {
-          "id": "recommended",
-          "label": "Recommended",
-          "isDefault": true,
-          "whenToUse": "Standard setup for all Macs",
-          "rationale": [
-            "Unity-based 2D game runs well with D3DMetal",
-            "Low GPU requirements ensure stable performance",
-            "No workarounds needed"
-          ],
-          "settings": {
-            "graphicsBackend": "d3dMetal",
-            "dxvk": false,
-            "dxvkAsync": false,
-            "enhancedSync": "msync",
-            "forceD3D11": false,
-            "shaderCacheEnabled": true,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {},
-          "dllOverrides": [],
-          "winetricksVerbs": [],
-          "testedWith": {
-            "lastTestedAt": "2026-01-18T00:00:00Z",
-            "macOSVersion": "15.3.0",
-            "wineVersion": "10.0",
-            "whiskyVersion": "3.0.0",
-            "cpuArchitecture": "arm64"
-          }
-        }
-      ],
-      "notes": [
-        "Runs flawlessly on both Apple Silicon and Intel Macs",
-        "Full controller support works out of the box",
-        "Save files are compatible with other platforms"
-      ],
-      "knownIssues": [],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2026-01-18T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
-      "id": "celeste",
-      "title": "Celeste",
-      "aliases": ["celeste"],
-      "subtitle": "Extremely OK Games",
-      "store": "steam",
-      "steamAppId": 504230,
-      "rating": "works",
-      "exeNames": ["Celeste.exe"],
-      "pathPatterns": ["celeste"],
-      "antiCheat": null,
-      "constraints": {
-        "cpuArchitectures": ["arm64", "x86_64"],
-        "minMacOSVersion": "14.0.0",
-        "minWineVersion": "9.0"
-      },
-      "variants": [
-        {
-          "id": "recommended",
-          "label": "Recommended",
-          "isDefault": true,
-          "whenToUse": "Works with minimal configuration on any Mac",
-          "rationale": [
-            "XNA/FNA-based 2D game with very low resource usage",
-            "D3DMetal handles the simple rendering pipeline perfectly",
-            "No additional components required"
-          ],
-          "settings": {
-            "graphicsBackend": "d3dMetal",
-            "dxvk": false,
-            "dxvkAsync": false,
-            "enhancedSync": "msync",
-            "forceD3D11": false,
-            "shaderCacheEnabled": true,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {},
-          "dllOverrides": [],
-          "winetricksVerbs": [],
-          "testedWith": {
-            "lastTestedAt": "2026-01-15T00:00:00Z",
-            "macOSVersion": "15.3.0",
-            "wineVersion": "10.0",
-            "whiskyVersion": "3.0.0",
-            "cpuArchitecture": "arm64"
-          }
-        }
-      ],
-      "notes": [
-        "Perfect performance with no configuration needed",
-        "Speedrun timer works correctly under Wine",
-        "Everest mod loader is compatible with additional setup"
-      ],
-      "knownIssues": [],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2026-01-15T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
-      "id": "elden-ring",
-      "title": "Elden Ring",
-      "aliases": ["ELDEN RING", "eldenring"],
-      "subtitle": "Bandai Namco / FromSoftware",
-      "store": "steam",
-      "steamAppId": 1245620,
-      "rating": "playable",
-      "exeNames": ["eldenring.exe"],
-      "pathPatterns": ["elden ring/game"],
-      "antiCheat": "EasyAntiCheat",
-      "constraints": {
-        "cpuArchitectures": ["arm64"],
-        "minMacOSVersion": "15.0.0",
-        "minWineVersion": "9.0"
-      },
-      "variants": [
-        {
-          "id": "recommended-apple-silicon",
-          "label": "Recommended (Apple Silicon)",
-          "isDefault": true,
-          "whenToUse": "Standard setup for M-series Macs with anti-cheat disabled",
-          "rationale": [
-            "D3DMetal provides best performance on Apple Silicon",
-            "Enhanced sync improves frame pacing",
-            "Shader cache reduces first-run stuttering"
-          ],
-          "settings": {
-            "graphicsBackend": "d3dMetal",
-            "dxvk": false,
-            "dxvkAsync": false,
-            "enhancedSync": "esync",
-            "forceD3D11": false,
-            "shaderCacheEnabled": true,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {
-            "D3DM_SUPPORT_DXR": "0"
-          },
-          "dllOverrides": [],
-          "winetricksVerbs": ["vcrun2022"],
-          "testedWith": {
-            "lastTestedAt": "2026-01-15T00:00:00Z",
-            "macOSVersion": "15.3.0",
-            "wineVersion": "10.0",
-            "whiskyVersion": "3.0.0",
-            "cpuArchitecture": "arm64"
-          }
-        }
-      ],
-      "notes": [
-        "Easy Anti-Cheat must be disabled; online play is not available",
-        "First launch may take 2-3 minutes for shader compilation",
-        "Performance improves significantly after initial shader cache is built"
-      ],
-      "knownIssues": [
-        {
-          "description": "Occasional shader compilation stutter in open world areas",
-          "severity": "minor",
-          "workaround": "Enable shader cache and allow initial compilation pass to complete"
-        },
-        {
-          "description": "Online features unavailable due to anti-cheat requirement",
-          "severity": "major",
-          "workaround": "Launch with anti-cheat disabled via Steam launch options"
-        }
-      ],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2026-01-15T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
-      "id": "cyberpunk-2077",
-      "title": "Cyberpunk 2077",
-      "aliases": ["Cyberpunk", "CP2077"],
-      "subtitle": "CD Projekt Red",
-      "store": "steam",
-      "steamAppId": 1091500,
-      "rating": "playable",
-      "exeNames": ["Cyberpunk2077.exe"],
-      "pathPatterns": ["cyberpunk 2077/bin/x64"],
-      "antiCheat": null,
-      "constraints": {
-        "cpuArchitectures": ["arm64"],
-        "minMacOSVersion": "15.0.0",
-        "minWineVersion": "9.0"
-      },
-      "variants": [
-        {
-          "id": "recommended-apple-silicon",
-          "label": "Recommended (Apple Silicon)",
-          "isDefault": true,
-          "whenToUse": "Best performance on M-series Macs with D3DMetal",
-          "rationale": [
-            "D3DMetal provides significantly better performance than DXVK on Apple Silicon",
-            "Ray tracing must be disabled for stable performance",
-            "Shader cache is critical for reducing stuttering in Night City"
-          ],
-          "settings": {
-            "graphicsBackend": "d3dMetal",
-            "dxvk": false,
-            "dxvkAsync": false,
-            "enhancedSync": "esync",
-            "forceD3D11": false,
-            "shaderCacheEnabled": true,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {
-            "D3DM_SUPPORT_DXR": "0"
-          },
-          "dllOverrides": [],
-          "winetricksVerbs": ["vcrun2022"],
-          "testedWith": {
-            "lastTestedAt": "2026-01-10T00:00:00Z",
-            "macOSVersion": "15.3.0",
-            "wineVersion": "10.0",
-            "whiskyVersion": "3.0.0",
-            "cpuArchitecture": "arm64"
-          }
-        },
-        {
-          "id": "dxvk-fallback",
-          "label": "DXVK (Fallback)",
-          "isDefault": false,
-          "whenToUse": "Use if D3DMetal causes graphical glitches or crashes",
-          "rationale": [
-            "DXVK provides an alternative rendering path via Vulkan/MoltenVK",
-            "Async shader compilation reduces stuttering",
-            "May work better on certain GPU configurations"
-          ],
-          "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
-            "enhancedSync": "esync",
-            "forceD3D11": false,
-            "shaderCacheEnabled": true,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {},
-          "dllOverrides": [],
-          "winetricksVerbs": ["vcrun2022"],
-          "testedWith": {
-            "lastTestedAt": "2026-01-10T00:00:00Z",
-            "macOSVersion": "15.3.0",
-            "wineVersion": "10.0",
-            "whiskyVersion": "3.0.0",
-            "cpuArchitecture": "arm64"
-          }
-        }
-      ],
-      "notes": [
-        "Disable ray tracing in-game for stable performance",
-        "Medium graphics preset is recommended for M1/M2; High for M3 Pro and above",
-        "Photo mode and driving work well after shader cache warm-up"
-      ],
-      "knownIssues": [
-        {
-          "description": "Shader compilation stuttering during first 30-60 minutes of gameplay",
-          "severity": "minor",
-          "workaround": "Shader cache builds over time; performance improves on subsequent launches"
-        },
-        {
-          "description": "Occasional texture streaming delays in dense city areas",
-          "severity": "minor",
-          "workaround": "Lower texture quality setting by one step"
-        }
-      ],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2026-01-10T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
-      "id": "the-witcher-3",
-      "title": "The Witcher 3: Wild Hunt",
-      "aliases": ["Witcher 3", "TW3", "Wild Hunt"],
-      "subtitle": "CD Projekt Red",
-      "store": "steam",
-      "steamAppId": 292030,
-      "rating": "playable",
-      "exeNames": ["witcher3.exe"],
-      "pathPatterns": ["the witcher 3/bin/x64"],
-      "antiCheat": null,
-      "constraints": {
-        "cpuArchitectures": ["arm64", "x86_64"],
-        "minMacOSVersion": "14.0.0",
-        "minWineVersion": "9.0"
-      },
-      "variants": [
-        {
-          "id": "recommended",
-          "label": "Recommended (D3DMetal)",
-          "isDefault": true,
-          "whenToUse": "Best experience for the Next-Gen update on Apple Silicon",
-          "rationale": [
-            "D3DMetal handles DX12 rendering well for the next-gen update",
-            "Shader cache reduces stuttering during exploration",
-            "Enhanced sync provides smoother frame delivery"
-          ],
-          "settings": {
-            "graphicsBackend": "d3dMetal",
-            "dxvk": false,
-            "dxvkAsync": false,
-            "enhancedSync": "esync",
-            "forceD3D11": false,
-            "shaderCacheEnabled": true,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {},
-          "dllOverrides": [],
-          "winetricksVerbs": [],
-          "testedWith": {
-            "lastTestedAt": "2026-01-12T00:00:00Z",
-            "macOSVersion": "15.3.0",
-            "wineVersion": "10.0",
-            "whiskyVersion": "3.0.0",
-            "cpuArchitecture": "arm64"
-          }
-        }
-      ],
-      "notes": [
-        "Next-Gen update uses DX12 and works well with D3DMetal on Apple Silicon",
-        "Minor shader stuttering during cutscenes on first playthrough",
-        "HDR is not supported; disable it in game settings"
-      ],
-      "knownIssues": [
-        {
-          "description": "Minor shader compilation stutter during cutscenes and area transitions",
-          "severity": "minor",
-          "workaround": "Shader cache improves over time; pre-load by exploring areas slowly"
-        },
-        {
-          "description": "Ray tracing features may cause instability",
-          "severity": "major",
-          "workaround": "Disable all ray tracing options in graphics settings"
-        }
-      ],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2026-01-12T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
       "id": "baldurs-gate-3",
       "title": "Baldur's Gate 3",
-      "aliases": ["BG3", "Baldurs Gate 3"],
+      "aliases": [
+        "BG3",
+        "Baldurs Gate 3"
+      ],
       "subtitle": "Larian Studios",
       "store": "steam",
       "steamAppId": 1086940,
       "rating": "playable",
-      "exeNames": ["bg3.exe", "bg3_dx11.exe"],
-      "pathPatterns": ["baldurs gate 3/bin"],
+      "exeNames": [
+        "bg3.exe",
+        "bg3_dx11.exe"
+      ],
+      "pathPatterns": [
+        "baldurs gate 3/bin"
+      ],
       "antiCheat": null,
       "constraints": {
-        "cpuArchitectures": ["arm64"],
+        "cpuArchitectures": [
+          "arm64"
+        ],
         "minMacOSVersion": "15.0.0",
         "minWineVersion": "9.0"
       },
@@ -486,7 +50,9 @@
           },
           "environmentVariables": {},
           "dllOverrides": [],
-          "winetricksVerbs": ["vcrun2022"],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
           "testedWith": {
             "lastTestedAt": "2026-01-08T00:00:00Z",
             "macOSVersion": "15.3.0",
@@ -521,368 +87,28 @@
       }
     },
     {
-      "id": "hades",
-      "title": "Hades",
-      "aliases": ["Hades 1"],
-      "subtitle": "Supergiant Games",
-      "store": "steam",
-      "steamAppId": 1145360,
-      "rating": "playable",
-      "exeNames": ["Hades.exe"],
-      "pathPatterns": ["hades/x64"],
-      "antiCheat": null,
-      "constraints": {
-        "cpuArchitectures": ["arm64", "x86_64"],
-        "minMacOSVersion": "14.0.0",
-        "minWineVersion": "9.0"
-      },
-      "variants": [
-        {
-          "id": "recommended",
-          "label": "Recommended",
-          "isDefault": true,
-          "whenToUse": "Standard setup for all Macs",
-          "rationale": [
-            "D3DMetal handles the custom engine well",
-            "Game is lightweight and runs at high framerates",
-            "Audio workaround prevents crackling"
-          ],
-          "settings": {
-            "graphicsBackend": "d3dMetal",
-            "dxvk": false,
-            "dxvkAsync": false,
-            "enhancedSync": "msync",
-            "forceD3D11": false,
-            "shaderCacheEnabled": true,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {
-            "PULSE_LATENCY_MSEC": "60"
-          },
-          "dllOverrides": [],
-          "winetricksVerbs": [],
-          "testedWith": {
-            "lastTestedAt": "2026-01-22T00:00:00Z",
-            "macOSVersion": "15.3.0",
-            "wineVersion": "10.0",
-            "whiskyVersion": "3.0.0",
-            "cpuArchitecture": "arm64"
-          }
-        }
-      ],
-      "notes": [
-        "Excellent performance on both Apple Silicon and Intel",
-        "Set PULSE_LATENCY_MSEC to 60 to prevent audio crackling",
-        "Controller support works natively"
-      ],
-      "knownIssues": [
-        {
-          "description": "Audio crackling or popping during fast-paced gameplay",
-          "severity": "minor",
-          "workaround": "Set PULSE_LATENCY_MSEC environment variable to 60"
-        }
-      ],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2026-01-22T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
-      "id": "dark-souls-3",
-      "title": "Dark Souls III",
-      "aliases": ["Dark Souls 3", "DS3", "DARK SOULS III"],
-      "subtitle": "Bandai Namco / FromSoftware",
-      "store": "steam",
-      "steamAppId": 374320,
-      "rating": "playable",
-      "exeNames": ["DarkSoulsIII.exe"],
-      "pathPatterns": ["dark souls iii/game"],
-      "antiCheat": null,
-      "constraints": {
-        "cpuArchitectures": ["arm64", "x86_64"],
-        "minMacOSVersion": "14.0.0",
-        "minWineVersion": "9.0"
-      },
-      "variants": [
-        {
-          "id": "recommended",
-          "label": "Recommended (D3DMetal)",
-          "isDefault": true,
-          "whenToUse": "Standard setup with esync for thread synchronization",
-          "rationale": [
-            "D3DMetal provides stable rendering for DX11 content",
-            "Esync improves thread synchronization performance",
-            "Game runs at solid framerates with minor config"
-          ],
-          "settings": {
-            "graphicsBackend": "d3dMetal",
-            "dxvk": false,
-            "dxvkAsync": false,
-            "enhancedSync": "esync",
-            "forceD3D11": false,
-            "shaderCacheEnabled": true,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {},
-          "dllOverrides": [],
-          "winetricksVerbs": [],
-          "testedWith": {
-            "lastTestedAt": "2026-01-14T00:00:00Z",
-            "macOSVersion": "15.3.0",
-            "wineVersion": "10.0",
-            "whiskyVersion": "3.0.0",
-            "cpuArchitecture": "arm64"
-          }
-        }
-      ],
-      "notes": [
-        "Online play requires disabling anti-cheat protections if present",
-        "Esync is recommended for proper thread synchronization",
-        "Save files are stored in the Wine prefix AppData directory"
-      ],
-      "knownIssues": [
-        {
-          "description": "Frame pacing issues may occur during boss fights",
-          "severity": "minor",
-          "workaround": "Enable V-Sync in game settings or use enhanced sync"
-        }
-      ],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2026-01-14T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
-      "id": "hogwarts-legacy",
-      "title": "Hogwarts Legacy",
-      "aliases": ["Hogwarts"],
-      "subtitle": "Avalanche Software / Warner Bros.",
-      "store": "steam",
-      "steamAppId": 990080,
-      "rating": "unverified",
-      "exeNames": ["HogwartsLegacy.exe"],
-      "pathPatterns": ["hogwarts legacy/phoenix/binaries/win64"],
-      "antiCheat": null,
-      "constraints": {
-        "cpuArchitectures": ["arm64"],
-        "minMacOSVersion": "15.0.0",
-        "minWineVersion": "9.0"
-      },
-      "variants": [
-        {
-          "id": "experimental",
-          "label": "Experimental (Untested)",
-          "isDefault": true,
-          "whenToUse": "Unverified configuration based on community reports",
-          "rationale": [
-            "Large UE5 game with heavy GPU requirements",
-            "D3DMetal may handle DX12 rendering",
-            "Performance is likely GPU-bound on most Apple Silicon Macs"
-          ],
-          "settings": {
-            "graphicsBackend": "d3dMetal",
-            "dxvk": false,
-            "dxvkAsync": false,
-            "enhancedSync": "esync",
-            "forceD3D11": false,
-            "shaderCacheEnabled": true,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {
-            "D3DM_SUPPORT_DXR": "0"
-          },
-          "dllOverrides": [],
-          "winetricksVerbs": ["vcrun2022"],
-          "testedWith": {
-            "lastTestedAt": "2025-09-15T00:00:00Z",
-            "macOSVersion": "14.6.0",
-            "wineVersion": "9.5",
-            "cpuArchitecture": "arm64"
-          }
-        }
-      ],
-      "notes": [
-        "This configuration is unverified and may not work on current versions",
-        "Very demanding game; expect low framerates even on M3 Max",
-        "Disable ray tracing and use lowest settings for best chance of success"
-      ],
-      "knownIssues": [
-        {
-          "description": "Game may fail to launch or crash during loading screens",
-          "severity": "major",
-          "workaround": "No reliable workaround known; try different Wine versions"
-        }
-      ],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2025-09-15T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
-      "id": "starfield",
-      "title": "Starfield",
-      "aliases": ["starfield"],
-      "subtitle": "Bethesda Game Studios",
-      "store": "steam",
-      "steamAppId": 1716740,
-      "rating": "unverified",
-      "exeNames": ["Starfield.exe"],
-      "pathPatterns": ["starfield"],
-      "antiCheat": null,
-      "constraints": {
-        "cpuArchitectures": ["arm64"],
-        "minMacOSVersion": "15.0.0",
-        "minWineVersion": "10.0"
-      },
-      "variants": [
-        {
-          "id": "experimental-dxvk",
-          "label": "Experimental (DXVK)",
-          "isDefault": true,
-          "whenToUse": "Unverified; DXVK may handle DX12 better for this title",
-          "rationale": [
-            "DX12 game that may benefit from DXVK translation path",
-            "Async shader compilation could help with stuttering",
-            "Very demanding title; expect poor performance"
-          ],
-          "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
-            "enhancedSync": "esync",
-            "forceD3D11": false,
-            "shaderCacheEnabled": true,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {},
-          "dllOverrides": [],
-          "winetricksVerbs": ["vcrun2022"],
-          "testedWith": {
-            "lastTestedAt": "2025-08-20T00:00:00Z",
-            "macOSVersion": "14.5.0",
-            "wineVersion": "9.3",
-            "cpuArchitecture": "arm64"
-          }
-        }
-      ],
-      "notes": [
-        "This configuration is unverified and likely does not work well",
-        "Extremely demanding game; even native ports on consoles struggle",
-        "AVX instructions may be required; check compatibility"
-      ],
-      "knownIssues": [
-        {
-          "description": "Likely crashes or fails to launch due to DX12 requirements",
-          "severity": "critical",
-          "workaround": "No reliable workaround known"
-        }
-      ],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2025-08-20T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
-      "id": "red-dead-redemption-2",
-      "title": "Red Dead Redemption 2",
-      "aliases": ["RDR2", "Red Dead 2"],
-      "subtitle": "Rockstar Games",
-      "store": "steam",
-      "steamAppId": 1174180,
-      "rating": "broken",
-      "exeNames": ["RDR2.exe"],
-      "pathPatterns": ["red dead redemption 2"],
-      "antiCheat": null,
-      "constraints": {
-        "cpuArchitectures": ["arm64"],
-        "minMacOSVersion": "15.0.0",
-        "minWineVersion": "9.0"
-      },
-      "variants": [
-        {
-          "id": "known-broken",
-          "label": "Known Broken",
-          "isDefault": true,
-          "whenToUse": "Game currently does not work due to Rockstar Launcher issues",
-          "rationale": [
-            "Rockstar Games Launcher is required and has compatibility problems",
-            "DXVK is required for the launcher but the game itself fails to start",
-            "DRM verification frequently times out or fails"
-          ],
-          "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
-            "enhancedSync": "esync",
-            "forceD3D11": true,
-            "shaderCacheEnabled": true,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {
-            "DXVK_REQUIRED": "1",
-            "D3DM_FORCE_D3D11": "1",
-            "WINE_LARGE_ADDRESS_AWARE": "1"
-          },
-          "dllOverrides": [],
-          "winetricksVerbs": ["vcrun2022"],
-          "testedWith": {
-            "lastTestedAt": "2025-12-01T00:00:00Z",
-            "macOSVersion": "15.1.0",
-            "wineVersion": "9.8",
-            "cpuArchitecture": "arm64"
-          }
-        }
-      ],
-      "notes": [
-        "The Rockstar Games Launcher is required but has persistent issues under Wine",
-        "Even when the launcher works, the game often fails during DRM verification",
-        "This title may become playable with future Wine/Whisky updates"
-      ],
-      "knownIssues": [
-        {
-          "description": "Rockstar Games Launcher fails to authenticate or hangs during DRM check",
-          "severity": "critical",
-          "workaround": "No reliable workaround; wait for upstream fixes"
-        },
-        {
-          "description": "Game crashes on startup even when launcher is bypassed",
-          "severity": "critical",
-          "workaround": "None available"
-        }
-      ],
-      "provenance": {
-        "source": "whisky-knowledge",
-        "author": "Whisky Team",
-        "lastUpdated": "2025-12-01T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
       "id": "battlefield-2042",
       "title": "Battlefield 2042",
-      "aliases": ["BF2042", "Battlefield 2042"],
+      "aliases": [
+        "BF2042",
+        "Battlefield 2042"
+      ],
       "subtitle": "EA / DICE",
       "store": "steam",
       "steamAppId": 1517290,
       "rating": "broken",
-      "exeNames": ["BF2042.exe"],
-      "pathPatterns": ["battlefield 2042"],
+      "exeNames": [
+        "BF2042.exe"
+      ],
+      "pathPatterns": [
+        "battlefield 2042"
+      ],
       "antiCheat": "EasyAntiCheat",
       "constraints": {
-        "cpuArchitectures": ["arm64", "x86_64"],
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
         "minMacOSVersion": "14.0.0",
         "minWineVersion": "9.0"
       },
@@ -943,155 +169,265 @@
       }
     },
     {
-      "id": "valorant",
-      "title": "Valorant",
-      "aliases": ["VALORANT"],
-      "subtitle": "Riot Games",
-      "store": "other",
-      "rating": "notSupported",
-      "exeNames": ["VALORANT.exe", "VALORANT-Win64-Shipping.exe"],
-      "pathPatterns": ["riot games/valorant"],
-      "antiCheat": "Vanguard",
-      "constraints": {},
-      "variants": [
-        {
-          "id": "not-supported",
-          "label": "Not Supported",
-          "isDefault": true,
-          "whenToUse": "This game cannot run under Wine due to kernel-level anti-cheat",
-          "rationale": [
-            "Vanguard anti-cheat requires a Windows kernel driver",
-            "The kernel driver cannot operate under Wine or macOS",
-            "There is no offline or anti-cheat-free mode"
-          ],
-          "settings": {
-            "graphicsBackend": "d3dMetal",
-            "dxvk": false,
-            "dxvkAsync": false,
-            "enhancedSync": "none",
-            "forceD3D11": false,
-            "shaderCacheEnabled": false,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {},
-          "dllOverrides": [],
-          "winetricksVerbs": [],
-          "testedWith": {
-            "lastTestedAt": "2025-10-01T00:00:00Z",
-            "macOSVersion": "15.0.0",
-            "wineVersion": "9.6",
-            "cpuArchitecture": "arm64"
-          }
-        }
+      "id": "celeste",
+      "title": "Celeste",
+      "aliases": [
+        "celeste"
       ],
-      "notes": [
-        "Vanguard anti-cheat requires a Windows kernel driver that cannot run on macOS",
-        "This is a fundamental limitation; no configuration can make this game work",
-        "Consider native alternatives or cloud gaming services"
-      ],
-      "knownIssues": [
-        {
-          "description": "Vanguard kernel-level anti-cheat prevents the game from launching",
-          "severity": "critical",
-          "workaround": "None; this is a fundamental incompatibility with Wine/macOS"
-        }
-      ],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2025-10-01T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
-      "id": "fortnite",
-      "title": "Fortnite",
-      "aliases": ["FN", "Fortnite Battle Royale"],
-      "subtitle": "Epic Games",
-      "store": "epic",
-      "rating": "notSupported",
-      "exeNames": ["FortniteClient-Win64-Shipping.exe"],
-      "pathPatterns": ["fortnite/fortnitegame/binaries/win64"],
-      "antiCheat": "EasyAntiCheat",
-      "constraints": {},
-      "variants": [
-        {
-          "id": "not-supported",
-          "label": "Not Supported",
-          "isDefault": true,
-          "whenToUse": "This game cannot run under Wine due to kernel-level anti-cheat",
-          "rationale": [
-            "Easy Anti-Cheat kernel mode does not work under Wine",
-            "Epic Games has not enabled EAC Wine/Proton support for Fortnite",
-            "All game modes require anti-cheat to be active"
-          ],
-          "settings": {
-            "graphicsBackend": "d3dMetal",
-            "dxvk": false,
-            "dxvkAsync": false,
-            "enhancedSync": "none",
-            "forceD3D11": false,
-            "shaderCacheEnabled": false,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {},
-          "dllOverrides": [],
-          "winetricksVerbs": [],
-          "testedWith": {
-            "lastTestedAt": "2025-10-01T00:00:00Z",
-            "macOSVersion": "15.0.0",
-            "wineVersion": "9.6",
-            "cpuArchitecture": "arm64"
-          }
-        }
-      ],
-      "notes": [
-        "Easy Anti-Cheat in kernel mode blocks all Wine/Proton execution",
-        "Epic Games has not opted into EAC Wine support for Fortnite",
-        "Consider cloud gaming services as an alternative"
-      ],
-      "knownIssues": [
-        {
-          "description": "Easy Anti-Cheat prevents game launch; Epic has not enabled Wine support",
-          "severity": "critical",
-          "workaround": "None; Epic must enable EAC Wine/Proton support, which they have not done"
-        }
-      ],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2025-10-01T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
-      "id": "god-of-war",
-      "title": "God of War",
-      "aliases": ["God of War 2018", "GoW"],
-      "subtitle": "Santa Monica Studio / Sony",
+      "subtitle": "Extremely OK Games",
       "store": "steam",
-      "steamAppId": 1593500,
-      "rating": "playable",
-      "exeNames": ["GoW.exe"],
-      "pathPatterns": ["god of war"],
+      "steamAppId": 504230,
+      "rating": "works",
+      "exeNames": [
+        "Celeste.exe"
+      ],
+      "pathPatterns": [
+        "celeste"
+      ],
       "antiCheat": null,
       "constraints": {
-        "cpuArchitectures": ["arm64"],
-        "minMacOSVersion": "15.0.0",
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
         "minWineVersion": "9.0"
       },
       "variants": [
         {
           "id": "recommended",
-          "label": "Recommended (D3DMetal)",
+          "label": "Recommended",
           "isDefault": true,
-          "whenToUse": "Standard setup for Apple Silicon Macs",
+          "whenToUse": "Works with minimal configuration on any Mac",
           "rationale": [
-            "D3DMetal provides best DX11 translation on Apple Silicon",
-            "Shader cache is essential to avoid stuttering during combat",
-            "Esync improves thread synchronization"
+            "XNA/FNA-based 2D game with very low resource usage",
+            "D3DMetal handles the simple rendering pipeline perfectly",
+            "No additional components required"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "testedWith": {
+            "lastTestedAt": "2026-01-15T00:00:00Z",
+            "macOSVersion": "15.3.0",
+            "wineVersion": "10.0",
+            "whiskyVersion": "3.0.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Perfect performance with no configuration needed",
+        "Speedrun timer works correctly under Wine",
+        "Everest mod loader is compatible with additional setup"
+      ],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-01-15T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "control",
+      "title": "Control",
+      "aliases": [
+        "Control Ultimate Edition"
+      ],
+      "subtitle": "Remedy Entertainment / 505 Games",
+      "store": "epic",
+      "rating": "playable",
+      "exeNames": [
+        "Control_DX11.exe",
+        "Control_DX12.exe"
+      ],
+      "pathPatterns": [
+        "control"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended-dxvk",
+          "label": "Recommended (DXVK, DX11)",
+          "isDefault": true,
+          "whenToUse": "DXVK with DX11 for best compatibility; disable ray tracing",
+          "rationale": [
+            "DXVK provides better rendering for the Northlight engine",
+            "DX11 executable is more stable than DX12",
+            "Ray tracing must be disabled for performance"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "esync",
+            "forceD3D11": true,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-01-06T00:00:00Z",
+            "macOSVersion": "15.3.0",
+            "wineVersion": "10.0",
+            "whiskyVersion": "3.0.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Launch Control_DX11.exe for best compatibility; DX12 may crash",
+        "Disable ray tracing in graphics settings for stable performance",
+        "Epic Games Store version; Epic launcher setup required"
+      ],
+      "knownIssues": [
+        {
+          "description": "DX12 mode causes frequent crashes; use DX11 instead",
+          "severity": "major",
+          "workaround": "Launch Control_DX11.exe instead of Control_DX12.exe"
+        },
+        {
+          "description": "Ray tracing causes severe performance degradation",
+          "severity": "major",
+          "workaround": "Disable all ray tracing options in graphics settings"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-01-06T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "cuphead",
+      "title": "Cuphead",
+      "aliases": [
+        "cuphead"
+      ],
+      "subtitle": "Studio MDHR",
+      "store": "steam",
+      "steamAppId": 268910,
+      "rating": "works",
+      "exeNames": [
+        "Cuphead.exe"
+      ],
+      "pathPatterns": [
+        "cuphead"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Works great with D3DMetal on any Mac",
+          "rationale": [
+            "2D hand-drawn art style is not GPU intensive",
+            "Unity engine works well under Wine",
+            "D3DMetal provides smooth 60 FPS gameplay"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "testedWith": {
+            "lastTestedAt": "2026-01-15T00:00:00Z",
+            "macOSVersion": "15.3.0",
+            "wineVersion": "10.0",
+            "whiskyVersion": "3.0.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Runs perfectly with smooth 60 FPS gameplay",
+        "The Delicious Last Course DLC works without issues",
+        "Local co-op works with two controllers"
+      ],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-01-15T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "cyberpunk-2077",
+      "title": "Cyberpunk 2077",
+      "aliases": [
+        "Cyberpunk",
+        "CP2077"
+      ],
+      "subtitle": "CD Projekt Red",
+      "store": "steam",
+      "steamAppId": 1091500,
+      "rating": "playable",
+      "exeNames": [
+        "Cyberpunk2077.exe"
+      ],
+      "pathPatterns": [
+        "cyberpunk 2077/bin/x64"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended-apple-silicon",
+          "label": "Recommended (Apple Silicon)",
+          "isDefault": true,
+          "whenToUse": "Best performance on M-series Macs with D3DMetal",
+          "rationale": [
+            "D3DMetal provides significantly better performance than DXVK on Apple Silicon",
+            "Ray tracing must be disabled for stable performance",
+            "Shader cache is critical for reducing stuttering in Night City"
           ],
           "settings": {
             "graphicsBackend": "d3dMetal",
@@ -1103,63 +439,30 @@
             "avxEnabled": false,
             "sequoiaCompatMode": false
           },
-          "environmentVariables": {},
+          "environmentVariables": {
+            "D3DM_SUPPORT_DXR": "0"
+          },
           "dllOverrides": [],
-          "winetricksVerbs": ["vcrun2022"],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
           "testedWith": {
-            "lastTestedAt": "2026-01-05T00:00:00Z",
+            "lastTestedAt": "2026-01-10T00:00:00Z",
             "macOSVersion": "15.3.0",
             "wineVersion": "10.0",
             "whiskyVersion": "3.0.0",
             "cpuArchitecture": "arm64"
           }
-        }
-      ],
-      "notes": [
-        "Shader cache is important; first playthrough may have stuttering during effects",
-        "Controller strongly recommended; button prompts default to PlayStation layout",
-        "Performance is GPU-bound; lower resolution helps on M1/M2"
-      ],
-      "knownIssues": [
+        },
         {
-          "description": "Shader compilation stuttering during large-scale combat encounters",
-          "severity": "minor",
-          "workaround": "Enable shader cache; stuttering diminishes over time"
-        }
-      ],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2026-01-05T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
-      "id": "horizon-zero-dawn",
-      "title": "Horizon Zero Dawn",
-      "aliases": ["HZD", "Horizon Zero Dawn Complete Edition"],
-      "subtitle": "Guerrilla Games / Sony",
-      "store": "steam",
-      "steamAppId": 1151640,
-      "rating": "playable",
-      "exeNames": ["HorizonZeroDawn.exe"],
-      "pathPatterns": ["horizon zero dawn"],
-      "antiCheat": null,
-      "constraints": {
-        "cpuArchitectures": ["arm64"],
-        "minMacOSVersion": "15.0.0",
-        "minWineVersion": "9.0"
-      },
-      "variants": [
-        {
-          "id": "recommended-dxvk",
-          "label": "Recommended (DXVK)",
-          "isDefault": true,
-          "whenToUse": "DXVK provides better compatibility for this Vulkan-capable title",
+          "id": "dxvk-fallback",
+          "label": "DXVK (Fallback)",
+          "isDefault": false,
+          "whenToUse": "Use if D3DMetal causes graphical glitches or crashes",
           "rationale": [
-            "DXVK with async shaders reduces stuttering significantly",
-            "Esync is needed for proper thread synchronization",
-            "Shader cache prevents repeated compilation"
+            "DXVK provides an alternative rendering path via Vulkan/MoltenVK",
+            "Async shader compilation reduces stuttering",
+            "May work better on certain GPU configurations"
           ],
           "settings": {
             "graphicsBackend": "dxvk",
@@ -1173,9 +476,11 @@
           },
           "environmentVariables": {},
           "dllOverrides": [],
-          "winetricksVerbs": ["vcrun2022"],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
           "testedWith": {
-            "lastTestedAt": "2026-01-03T00:00:00Z",
+            "lastTestedAt": "2026-01-10T00:00:00Z",
             "macOSVersion": "15.3.0",
             "wineVersion": "10.0",
             "whiskyVersion": "3.0.0",
@@ -1184,42 +489,130 @@
         }
       ],
       "notes": [
-        "DXVK is preferred over D3DMetal for this title due to better shader handling",
-        "Lower settings to Medium for M1/M2; High works on M3 Pro and above",
-        "Save files are compatible with Steam Cloud"
+        "Disable ray tracing in-game for stable performance",
+        "Medium graphics preset is recommended for M1/M2; High for M3 Pro and above",
+        "Photo mode and driving work well after shader cache warm-up"
       ],
       "knownIssues": [
         {
-          "description": "Long initial shader compilation on first launch (5-10 minutes)",
+          "description": "Shader compilation stuttering during first 30-60 minutes of gameplay",
           "severity": "minor",
-          "workaround": "Wait for shader compilation to complete before playing"
+          "workaround": "Shader cache builds over time; performance improves on subsequent launches"
         },
         {
-          "description": "Occasional crashes during fast travel",
+          "description": "Occasional texture streaming delays in dense city areas",
           "severity": "minor",
-          "workaround": "Save frequently; game auto-saves before fast travel"
+          "workaround": "Lower texture quality setting by one step"
         }
       ],
       "provenance": {
         "source": "community-reference",
         "author": "Whisky Community",
-        "lastUpdated": "2026-01-03T00:00:00Z",
+        "lastUpdated": "2026-01-10T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "dark-souls-3",
+      "title": "Dark Souls III",
+      "aliases": [
+        "Dark Souls 3",
+        "DS3",
+        "DARK SOULS III"
+      ],
+      "subtitle": "Bandai Namco / FromSoftware",
+      "store": "steam",
+      "steamAppId": 374320,
+      "rating": "playable",
+      "exeNames": [
+        "DarkSoulsIII.exe"
+      ],
+      "pathPatterns": [
+        "dark souls iii/game"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended (D3DMetal)",
+          "isDefault": true,
+          "whenToUse": "Standard setup with esync for thread synchronization",
+          "rationale": [
+            "D3DMetal provides stable rendering for DX11 content",
+            "Esync improves thread synchronization performance",
+            "Game runs at solid framerates with minor config"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "esync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "testedWith": {
+            "lastTestedAt": "2026-01-14T00:00:00Z",
+            "macOSVersion": "15.3.0",
+            "wineVersion": "10.0",
+            "whiskyVersion": "3.0.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Online play requires disabling anti-cheat protections if present",
+        "Esync is recommended for proper thread synchronization",
+        "Save files are stored in the Wine prefix AppData directory"
+      ],
+      "knownIssues": [
+        {
+          "description": "Frame pacing issues may occur during boss fights",
+          "severity": "minor",
+          "workaround": "Enable V-Sync in game settings or use enhanced sync"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-01-14T00:00:00Z",
         "referenceURL": null
       }
     },
     {
       "id": "death-stranding",
       "title": "Death Stranding",
-      "aliases": ["Death Stranding Director's Cut", "DS"],
+      "aliases": [
+        "Death Stranding Director's Cut",
+        "DS"
+      ],
       "subtitle": "Kojima Productions / 505 Games",
       "store": "steam",
       "steamAppId": 1850570,
       "rating": "playable",
-      "exeNames": ["ds.exe"],
-      "pathPatterns": ["death stranding"],
+      "exeNames": [
+        "ds.exe"
+      ],
+      "pathPatterns": [
+        "death stranding"
+      ],
       "antiCheat": null,
       "constraints": {
-        "cpuArchitectures": ["arm64"],
+        "cpuArchitectures": [
+          "arm64"
+        ],
         "minMacOSVersion": "15.0.0",
         "minWineVersion": "9.0"
       },
@@ -1276,18 +669,190 @@
       }
     },
     {
+      "id": "destiny-2",
+      "title": "Destiny 2",
+      "aliases": [
+        "D2",
+        "Destiny2"
+      ],
+      "subtitle": "Bungie",
+      "store": "steam",
+      "steamAppId": 1085660,
+      "rating": "broken",
+      "exeNames": [
+        "destiny2.exe"
+      ],
+      "pathPatterns": [
+        "destiny 2"
+      ],
+      "antiCheat": "BattlEye",
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "known-broken",
+          "label": "Known Broken",
+          "isDefault": true,
+          "whenToUse": "Game does not work; BattlEye blocks Wine execution",
+          "rationale": [
+            "BattlEye anti-cheat does not support Wine/Proton",
+            "Bungie has not enabled BattlEye Wine support",
+            "Previously worked briefly but was patched out"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "none",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "testedWith": {
+            "lastTestedAt": "2025-11-20T00:00:00Z",
+            "macOSVersion": "15.1.0",
+            "wineVersion": "9.7",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Destiny 2 previously worked under Wine but Bungie has not enabled BattlEye support",
+        "Online-only game; cannot bypass anti-cheat for any game mode",
+        "Was briefly playable in 2023 before being blocked"
+      ],
+      "knownIssues": [
+        {
+          "description": "BattlEye anti-cheat blocks game launch; Bungie has not enabled Wine support",
+          "severity": "critical",
+          "workaround": "None; Bungie must enable BattlEye Wine/Proton support"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2025-11-20T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "diablo-iv",
+      "title": "Diablo IV",
+      "aliases": [
+        "Diablo 4",
+        "D4"
+      ],
+      "subtitle": "Blizzard Entertainment",
+      "store": "battlenet",
+      "steamAppId": null,
+      "rating": "unverified",
+      "exeNames": [
+        "Diablo IV.exe",
+        "Diablo IV Launcher.exe"
+      ],
+      "pathPatterns": [
+        "diablo iv"
+      ],
+      "antiCheat": "battleye",
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "10.0"
+      },
+      "variants": [
+        {
+          "id": "battlenet-experimental",
+          "label": "Battle.net (Experimental)",
+          "isDefault": true,
+          "whenToUse": "Launching Diablo IV through the bundled Battle.net launcher",
+          "rationale": [
+            "Battle.net Chromium UI requires GPU spoofing to pass platform checks",
+            "Game is DX12 only; D3DMetal handles DX12 better than DXVK on Apple Silicon",
+            "Launcher and game are sensitive to Windows version mismatch \u2014 Win10 is required"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022",
+            "corefonts"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Battle.net launcher must be installed first; use the in-app dependency installer",
+        "Anti-cheat (BattlEye) blocks online play; offline content may work",
+        "Set Windows version to Win10 in bottle settings if the launcher refuses to start"
+      ],
+      "knownIssues": [
+        {
+          "description": "Battle.net 'No GPUs found' on first launch",
+          "severity": "major",
+          "workaround": "Enable GPU spoofing and DXVK temporarily during launcher startup, then disable DXVK before launching the game"
+        },
+        {
+          "description": "BattlEye anti-cheat prevents online play",
+          "severity": "major",
+          "workaround": "No workaround; this game is functionally offline-only on Whisky"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/813"
+      }
+    },
+    {
       "id": "disco-elysium",
       "title": "Disco Elysium: The Final Cut",
-      "aliases": ["Disco Elysium", "DE"],
+      "aliases": [
+        "Disco Elysium",
+        "DE"
+      ],
       "subtitle": "ZA/UM",
       "store": "steam",
       "steamAppId": 632470,
       "rating": "works",
-      "exeNames": ["disco elysium.exe"],
-      "pathPatterns": ["disco elysium"],
+      "exeNames": [
+        "disco elysium.exe"
+      ],
+      "pathPatterns": [
+        "disco elysium"
+      ],
       "antiCheat": null,
       "constraints": {
-        "cpuArchitectures": ["arm64", "x86_64"],
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
         "minMacOSVersion": "14.0.0",
         "minWineVersion": "9.0"
       },
@@ -1338,85 +903,29 @@
       }
     },
     {
-      "id": "sekiro",
-      "title": "Sekiro: Shadows Die Twice",
-      "aliases": ["Sekiro", "SEKIRO"],
-      "subtitle": "FromSoftware / Activision",
-      "store": "steam",
-      "steamAppId": 814380,
-      "rating": "playable",
-      "exeNames": ["sekiro.exe"],
-      "pathPatterns": ["sekiro"],
-      "antiCheat": null,
-      "constraints": {
-        "cpuArchitectures": ["arm64"],
-        "minMacOSVersion": "15.0.0",
-        "minWineVersion": "9.0"
-      },
-      "variants": [
-        {
-          "id": "recommended",
-          "label": "Recommended (D3DMetal)",
-          "isDefault": true,
-          "whenToUse": "Standard setup for Apple Silicon",
-          "rationale": [
-            "D3DMetal provides good DX11 rendering for this FromSoftware title",
-            "Esync improves frame pacing during fast combat",
-            "Shader cache prevents stuttering during sword clashes"
-          ],
-          "settings": {
-            "graphicsBackend": "d3dMetal",
-            "dxvk": false,
-            "dxvkAsync": false,
-            "enhancedSync": "esync",
-            "forceD3D11": false,
-            "shaderCacheEnabled": true,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {},
-          "dllOverrides": [],
-          "winetricksVerbs": [],
-          "testedWith": {
-            "lastTestedAt": "2026-01-10T00:00:00Z",
-            "macOSVersion": "15.3.0",
-            "wineVersion": "10.0",
-            "whiskyVersion": "3.0.0",
-            "cpuArchitecture": "arm64"
-          }
-        }
-      ],
-      "notes": [
-        "Runs well with D3DMetal on Apple Silicon; minor shader stutter on first encounters",
-        "Controller is strongly recommended for this game",
-        "Frame rate cap to 60 FPS is recommended for stability"
-      ],
-      "knownIssues": [
-        {
-          "description": "Minor frame drops during particle-heavy boss attacks",
-          "severity": "minor",
-          "workaround": "Cap frame rate to 60 FPS in game settings"
-        }
-      ],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2026-01-10T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
       "id": "divinity-original-sin-2",
       "title": "Divinity: Original Sin 2",
-      "aliases": ["DOS2", "Divinity OS2"],
+      "aliases": [
+        "DOS2",
+        "Divinity OS2"
+      ],
       "subtitle": "Larian Studios",
       "store": "gog",
       "rating": "playable",
-      "exeNames": ["bg3.exe", "SupportTool.exe", "EoCApp.exe"],
-      "pathPatterns": ["divinity original sin 2"],
+      "exeNames": [
+        "bg3.exe",
+        "SupportTool.exe",
+        "EoCApp.exe"
+      ],
+      "pathPatterns": [
+        "divinity original sin 2"
+      ],
       "antiCheat": null,
       "constraints": {
-        "cpuArchitectures": ["arm64", "x86_64"],
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
         "minMacOSVersion": "14.0.0",
         "minWineVersion": "9.0"
       },
@@ -1473,31 +982,580 @@
       }
     },
     {
-      "id": "total-war-warhammer-3",
-      "title": "Total War: Warhammer III",
-      "aliases": ["Warhammer 3", "TW:WH3", "TWW3"],
-      "subtitle": "Creative Assembly / SEGA",
+      "id": "elden-ring",
+      "title": "Elden Ring",
+      "aliases": [
+        "ELDEN RING",
+        "eldenring"
+      ],
+      "subtitle": "Bandai Namco / FromSoftware",
       "store": "steam",
-      "steamAppId": 1142710,
+      "steamAppId": 1245620,
       "rating": "playable",
-      "exeNames": ["Warhammer3.exe"],
-      "pathPatterns": ["total war warhammer iii"],
+      "exeNames": [
+        "eldenring.exe"
+      ],
+      "pathPatterns": [
+        "elden ring/game"
+      ],
+      "antiCheat": "EasyAntiCheat",
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended-apple-silicon",
+          "label": "Recommended (Apple Silicon)",
+          "isDefault": true,
+          "whenToUse": "Standard setup for M-series Macs with anti-cheat disabled",
+          "rationale": [
+            "D3DMetal provides best performance on Apple Silicon",
+            "Enhanced sync improves frame pacing",
+            "Shader cache reduces first-run stuttering"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "esync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {
+            "D3DM_SUPPORT_DXR": "0"
+          },
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-01-15T00:00:00Z",
+            "macOSVersion": "15.3.0",
+            "wineVersion": "10.0",
+            "whiskyVersion": "3.0.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Easy Anti-Cheat must be disabled; online play is not available",
+        "First launch may take 2-3 minutes for shader compilation",
+        "Performance improves significantly after initial shader cache is built"
+      ],
+      "knownIssues": [
+        {
+          "description": "Occasional shader compilation stutter in open world areas",
+          "severity": "minor",
+          "workaround": "Enable shader cache and allow initial compilation pass to complete"
+        },
+        {
+          "description": "Online features unavailable due to anti-cheat requirement",
+          "severity": "major",
+          "workaround": "Launch with anti-cheat disabled via Steam launch options"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-01-15T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "fortnite",
+      "title": "Fortnite",
+      "aliases": [
+        "FN",
+        "Fortnite Battle Royale"
+      ],
+      "subtitle": "Epic Games",
+      "store": "epic",
+      "rating": "notSupported",
+      "exeNames": [
+        "FortniteClient-Win64-Shipping.exe"
+      ],
+      "pathPatterns": [
+        "fortnite/fortnitegame/binaries/win64"
+      ],
+      "antiCheat": "EasyAntiCheat",
+      "constraints": {},
+      "variants": [
+        {
+          "id": "not-supported",
+          "label": "Not Supported",
+          "isDefault": true,
+          "whenToUse": "This game cannot run under Wine due to kernel-level anti-cheat",
+          "rationale": [
+            "Easy Anti-Cheat kernel mode does not work under Wine",
+            "Epic Games has not enabled EAC Wine/Proton support for Fortnite",
+            "All game modes require anti-cheat to be active"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "none",
+            "forceD3D11": false,
+            "shaderCacheEnabled": false,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "testedWith": {
+            "lastTestedAt": "2025-10-01T00:00:00Z",
+            "macOSVersion": "15.0.0",
+            "wineVersion": "9.6",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Easy Anti-Cheat in kernel mode blocks all Wine/Proton execution",
+        "Epic Games has not opted into EAC Wine support for Fortnite",
+        "Consider cloud gaming services as an alternative"
+      ],
+      "knownIssues": [
+        {
+          "description": "Easy Anti-Cheat prevents game launch; Epic has not enabled Wine support",
+          "severity": "critical",
+          "workaround": "None; Epic must enable EAC Wine/Proton support, which they have not done"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2025-10-01T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "god-of-war",
+      "title": "God of War",
+      "aliases": [
+        "God of War 2018",
+        "GoW"
+      ],
+      "subtitle": "Santa Monica Studio / Sony",
+      "store": "steam",
+      "steamAppId": 1593500,
+      "rating": "playable",
+      "exeNames": [
+        "GoW.exe"
+      ],
+      "pathPatterns": [
+        "god of war"
+      ],
       "antiCheat": null,
       "constraints": {
-        "cpuArchitectures": ["arm64"],
+        "cpuArchitectures": [
+          "arm64"
+        ],
         "minMacOSVersion": "15.0.0",
-        "minWineVersion": "10.0"
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended (D3DMetal)",
+          "isDefault": true,
+          "whenToUse": "Standard setup for Apple Silicon Macs",
+          "rationale": [
+            "D3DMetal provides best DX11 translation on Apple Silicon",
+            "Shader cache is essential to avoid stuttering during combat",
+            "Esync improves thread synchronization"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "esync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-01-05T00:00:00Z",
+            "macOSVersion": "15.3.0",
+            "wineVersion": "10.0",
+            "whiskyVersion": "3.0.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Shader cache is important; first playthrough may have stuttering during effects",
+        "Controller strongly recommended; button prompts default to PlayStation layout",
+        "Performance is GPU-bound; lower resolution helps on M1/M2"
+      ],
+      "knownIssues": [
+        {
+          "description": "Shader compilation stuttering during large-scale combat encounters",
+          "severity": "minor",
+          "workaround": "Enable shader cache; stuttering diminishes over time"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-01-05T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "hades",
+      "title": "Hades",
+      "aliases": [
+        "Hades 1"
+      ],
+      "subtitle": "Supergiant Games",
+      "store": "steam",
+      "steamAppId": 1145360,
+      "rating": "playable",
+      "exeNames": [
+        "Hades.exe"
+      ],
+      "pathPatterns": [
+        "hades/x64"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Standard setup for all Macs",
+          "rationale": [
+            "D3DMetal handles the custom engine well",
+            "Game is lightweight and runs at high framerates",
+            "Audio workaround prevents crackling"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {
+            "PULSE_LATENCY_MSEC": "60"
+          },
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "testedWith": {
+            "lastTestedAt": "2026-01-22T00:00:00Z",
+            "macOSVersion": "15.3.0",
+            "wineVersion": "10.0",
+            "whiskyVersion": "3.0.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Excellent performance on both Apple Silicon and Intel",
+        "Set PULSE_LATENCY_MSEC to 60 to prevent audio crackling",
+        "Controller support works natively"
+      ],
+      "knownIssues": [
+        {
+          "description": "Audio crackling or popping during fast-paced gameplay",
+          "severity": "minor",
+          "workaround": "Set PULSE_LATENCY_MSEC environment variable to 60"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-01-22T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "hitman-3",
+      "title": "Hitman: World of Assassination",
+      "aliases": [
+        "Hitman 3",
+        "HITMAN 3",
+        "Hitman WoA"
+      ],
+      "subtitle": "IO Interactive",
+      "store": "epic",
+      "rating": "playable",
+      "exeNames": [
+        "HITMAN3.exe"
+      ],
+      "pathPatterns": [
+        "hitman3"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended (D3DMetal)",
+          "isDefault": true,
+          "whenToUse": "D3DMetal handles Glacier engine well on Apple Silicon",
+          "rationale": [
+            "D3DMetal provides good DX12 translation for the Glacier 2 engine",
+            "Shader cache is essential for smooth level transitions",
+            "Performance is acceptable at medium settings"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "esync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "testedWith": {
+            "lastTestedAt": "2026-01-04T00:00:00Z",
+            "macOSVersion": "15.3.0",
+            "wineVersion": "10.0",
+            "whiskyVersion": "3.0.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Epic Games Store version; requires Epic launcher setup",
+        "Medium graphics preset recommended for M1/M2",
+        "Always-online requirement means internet connection is necessary"
+      ],
+      "knownIssues": [
+        {
+          "description": "Long loading times between levels compared to native",
+          "severity": "minor",
+          "workaround": "Use an SSD for the Wine bottle to improve load times"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-01-04T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "hogwarts-legacy",
+      "title": "Hogwarts Legacy",
+      "aliases": [
+        "Hogwarts"
+      ],
+      "subtitle": "Avalanche Software / Warner Bros.",
+      "store": "steam",
+      "steamAppId": 990080,
+      "rating": "unverified",
+      "exeNames": [
+        "HogwartsLegacy.exe"
+      ],
+      "pathPatterns": [
+        "hogwarts legacy/phoenix/binaries/win64"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "experimental",
+          "label": "Experimental (Untested)",
+          "isDefault": true,
+          "whenToUse": "Unverified configuration based on community reports",
+          "rationale": [
+            "Large UE5 game with heavy GPU requirements",
+            "D3DMetal may handle DX12 rendering",
+            "Performance is likely GPU-bound on most Apple Silicon Macs"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "esync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {
+            "D3DM_SUPPORT_DXR": "0"
+          },
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2025-09-15T00:00:00Z",
+            "macOSVersion": "14.6.0",
+            "wineVersion": "9.5",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "This configuration is unverified and may not work on current versions",
+        "Very demanding game; expect low framerates even on M3 Max",
+        "Disable ray tracing and use lowest settings for best chance of success"
+      ],
+      "knownIssues": [
+        {
+          "description": "Game may fail to launch or crash during loading screens",
+          "severity": "major",
+          "workaround": "No reliable workaround known; try different Wine versions"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2025-09-15T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "hollow-knight",
+      "title": "Hollow Knight",
+      "aliases": [
+        "HollowKnight"
+      ],
+      "subtitle": "Team Cherry",
+      "store": "steam",
+      "steamAppId": 367520,
+      "rating": "works",
+      "exeNames": [
+        "hollow_knight.exe"
+      ],
+      "pathPatterns": [
+        "hollow knight"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Standard setup for all Macs",
+          "rationale": [
+            "Unity-based 2D game runs well with D3DMetal",
+            "Low GPU requirements ensure stable performance",
+            "No workarounds needed"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "testedWith": {
+            "lastTestedAt": "2026-01-18T00:00:00Z",
+            "macOSVersion": "15.3.0",
+            "wineVersion": "10.0",
+            "whiskyVersion": "3.0.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Runs flawlessly on both Apple Silicon and Intel Macs",
+        "Full controller support works out of the box",
+        "Save files are compatible with other platforms"
+      ],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-01-18T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "horizon-zero-dawn",
+      "title": "Horizon Zero Dawn",
+      "aliases": [
+        "HZD",
+        "Horizon Zero Dawn Complete Edition"
+      ],
+      "subtitle": "Guerrilla Games / Sony",
+      "store": "steam",
+      "steamAppId": 1151640,
+      "rating": "playable",
+      "exeNames": [
+        "HorizonZeroDawn.exe"
+      ],
+      "pathPatterns": [
+        "horizon zero dawn"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "9.0"
       },
       "variants": [
         {
           "id": "recommended-dxvk",
           "label": "Recommended (DXVK)",
           "isDefault": true,
-          "whenToUse": "DXVK with async shaders for large-scale battles",
+          "whenToUse": "DXVK provides better compatibility for this Vulkan-capable title",
           "rationale": [
-            "DXVK handles the Total War rendering pipeline better than D3DMetal",
-            "Async shader compilation is essential for battle scenes",
-            "High VRAM usage benefits from DXVK memory management"
+            "DXVK with async shaders reduces stuttering significantly",
+            "Esync is needed for proper thread synchronization",
+            "Shader cache prevents repeated compilation"
           ],
           "settings": {
             "graphicsBackend": "dxvk",
@@ -1511,9 +1569,11 @@
           },
           "environmentVariables": {},
           "dllOverrides": [],
-          "winetricksVerbs": ["vcrun2022"],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
           "testedWith": {
-            "lastTestedAt": "2026-01-08T00:00:00Z",
+            "lastTestedAt": "2026-01-03T00:00:00Z",
             "macOSVersion": "15.3.0",
             "wineVersion": "10.0",
             "whiskyVersion": "3.0.0",
@@ -1522,42 +1582,446 @@
         }
       ],
       "notes": [
-        "DXVK is recommended for better handling of large-scale battles",
-        "Lower unit sizes in battle settings for better performance",
-        "Campaign map runs smoother than real-time battles"
+        "DXVK is preferred over D3DMetal for this title due to better shader handling",
+        "Lower settings to Medium for M1/M2; High works on M3 Pro and above",
+        "Save files are compatible with Steam Cloud"
       ],
       "knownIssues": [
         {
-          "description": "Frame drops during large-scale battles with many units",
-          "severity": "major",
-          "workaround": "Reduce unit size and detail settings; DXVK async helps significantly"
+          "description": "Long initial shader compilation on first launch (5-10 minutes)",
+          "severity": "minor",
+          "workaround": "Wait for shader compilation to complete before playing"
         },
         {
-          "description": "Initial shader compilation causes stuttering on first battle",
+          "description": "Occasional crashes during fast travel",
           "severity": "minor",
-          "workaround": "Shader cache builds over multiple battles"
+          "workaround": "Save frequently; game auto-saves before fast travel"
         }
       ],
       "provenance": {
         "source": "community-reference",
         "author": "Whisky Community",
-        "lastUpdated": "2026-01-08T00:00:00Z",
+        "lastUpdated": "2026-01-03T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "pubg",
+      "title": "PUBG: Battlegrounds",
+      "aliases": [
+        "PUBG",
+        "PlayerUnknown's Battlegrounds"
+      ],
+      "subtitle": "Krafton",
+      "store": "steam",
+      "steamAppId": 578080,
+      "rating": "broken",
+      "exeNames": [
+        "TslGame.exe"
+      ],
+      "pathPatterns": [
+        "pubg/tslgame/binaries/win64"
+      ],
+      "antiCheat": "BattlEye",
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "known-broken",
+          "label": "Known Broken",
+          "isDefault": true,
+          "whenToUse": "Game does not work; anti-cheat blocks Wine execution",
+          "rationale": [
+            "BattlEye anti-cheat is required for all game modes",
+            "Krafton has not enabled BattlEye Wine/Proton support",
+            "Free-to-play game with mandatory anti-cheat"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "none",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "testedWith": {
+            "lastTestedAt": "2025-11-15T00:00:00Z",
+            "macOSVersion": "15.1.0",
+            "wineVersion": "9.7",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "BattlEye anti-cheat blocks all Wine/Proton execution",
+        "Multiplayer-only game; anti-cheat cannot be bypassed",
+        "Unlikely to work until Krafton enables BattlEye Wine support"
+      ],
+      "knownIssues": [
+        {
+          "description": "BattlEye prevents game from launching under Wine",
+          "severity": "critical",
+          "workaround": "None; developer must enable BattlEye Wine/Proton support"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2025-11-15T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "red-dead-redemption-2",
+      "title": "Red Dead Redemption 2",
+      "aliases": [
+        "RDR2",
+        "Red Dead 2"
+      ],
+      "subtitle": "Rockstar Games",
+      "store": "steam",
+      "steamAppId": 1174180,
+      "rating": "broken",
+      "exeNames": [
+        "RDR2.exe"
+      ],
+      "pathPatterns": [
+        "red dead redemption 2"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "known-broken",
+          "label": "Known Broken",
+          "isDefault": true,
+          "whenToUse": "Game currently does not work due to Rockstar Launcher issues",
+          "rationale": [
+            "Rockstar Games Launcher is required and has compatibility problems",
+            "DXVK is required for the launcher but the game itself fails to start",
+            "DRM verification frequently times out or fails"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "esync",
+            "forceD3D11": true,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {
+            "DXVK_REQUIRED": "1",
+            "D3DM_FORCE_D3D11": "1",
+            "WINE_LARGE_ADDRESS_AWARE": "1"
+          },
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2025-12-01T00:00:00Z",
+            "macOSVersion": "15.1.0",
+            "wineVersion": "9.8",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "The Rockstar Games Launcher is required but has persistent issues under Wine",
+        "Even when the launcher works, the game often fails during DRM verification",
+        "This title may become playable with future Wine/Whisky updates"
+      ],
+      "knownIssues": [
+        {
+          "description": "Rockstar Games Launcher fails to authenticate or hangs during DRM check",
+          "severity": "critical",
+          "workaround": "No reliable workaround; wait for upstream fixes"
+        },
+        {
+          "description": "Game crashes on startup even when launcher is bypassed",
+          "severity": "critical",
+          "workaround": "None available"
+        }
+      ],
+      "provenance": {
+        "source": "whisky-knowledge",
+        "author": "Whisky Team",
+        "lastUpdated": "2025-12-01T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "sekiro",
+      "title": "Sekiro: Shadows Die Twice",
+      "aliases": [
+        "Sekiro",
+        "SEKIRO"
+      ],
+      "subtitle": "FromSoftware / Activision",
+      "store": "steam",
+      "steamAppId": 814380,
+      "rating": "playable",
+      "exeNames": [
+        "sekiro.exe"
+      ],
+      "pathPatterns": [
+        "sekiro"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended (D3DMetal)",
+          "isDefault": true,
+          "whenToUse": "Standard setup for Apple Silicon",
+          "rationale": [
+            "D3DMetal provides good DX11 rendering for this FromSoftware title",
+            "Esync improves frame pacing during fast combat",
+            "Shader cache prevents stuttering during sword clashes"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "esync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "testedWith": {
+            "lastTestedAt": "2026-01-10T00:00:00Z",
+            "macOSVersion": "15.3.0",
+            "wineVersion": "10.0",
+            "whiskyVersion": "3.0.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Runs well with D3DMetal on Apple Silicon; minor shader stutter on first encounters",
+        "Controller is strongly recommended for this game",
+        "Frame rate cap to 60 FPS is recommended for stability"
+      ],
+      "knownIssues": [
+        {
+          "description": "Minor frame drops during particle-heavy boss attacks",
+          "severity": "minor",
+          "workaround": "Cap frame rate to 60 FPS in game settings"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-01-10T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "stardew-valley",
+      "title": "Stardew Valley",
+      "aliases": [
+        "StardewValley"
+      ],
+      "subtitle": "ConcernedApe",
+      "store": "steam",
+      "steamAppId": 413150,
+      "rating": "works",
+      "exeNames": [
+        "Stardew Valley.exe"
+      ],
+      "pathPatterns": [
+        "stardew valley"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "recommended",
+          "label": "Recommended",
+          "isDefault": true,
+          "whenToUse": "Works out of the box with default settings",
+          "rationale": [
+            "Simple 2D game with minimal GPU requirements",
+            "D3DMetal provides native Metal performance",
+            "No special configuration needed"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "testedWith": {
+            "lastTestedAt": "2026-01-20T00:00:00Z",
+            "macOSVersion": "15.3.0",
+            "wineVersion": "10.0",
+            "whiskyVersion": "3.0.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Works perfectly with default settings on both Apple Silicon and Intel",
+        "Controller support works natively through Wine input mapping",
+        "Mods using SMAPI may require additional configuration"
+      ],
+      "knownIssues": [
+        {
+          "description": "SMAPI mod loader may fail to initialize on first run",
+          "severity": "minor",
+          "workaround": "Run the game once without SMAPI, then re-enable it"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-01-20T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "starfield",
+      "title": "Starfield",
+      "aliases": [
+        "starfield"
+      ],
+      "subtitle": "Bethesda Game Studios",
+      "store": "steam",
+      "steamAppId": 1716740,
+      "rating": "unverified",
+      "exeNames": [
+        "Starfield.exe"
+      ],
+      "pathPatterns": [
+        "starfield"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "10.0"
+      },
+      "variants": [
+        {
+          "id": "experimental-dxvk",
+          "label": "Experimental (DXVK)",
+          "isDefault": true,
+          "whenToUse": "Unverified; DXVK may handle DX12 better for this title",
+          "rationale": [
+            "DX12 game that may benefit from DXVK translation path",
+            "Async shader compilation could help with stuttering",
+            "Very demanding title; expect poor performance"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "esync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2025-08-20T00:00:00Z",
+            "macOSVersion": "14.5.0",
+            "wineVersion": "9.3",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "This configuration is unverified and likely does not work well",
+        "Extremely demanding game; even native ports on consoles struggle",
+        "AVX instructions may be required; check compatibility"
+      ],
+      "knownIssues": [
+        {
+          "description": "Likely crashes or fails to launch due to DX12 requirements",
+          "severity": "critical",
+          "workaround": "No reliable workaround known"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2025-08-20T00:00:00Z",
         "referenceURL": null
       }
     },
     {
       "id": "terraria",
       "title": "Terraria",
-      "aliases": ["terraria"],
+      "aliases": [
+        "terraria"
+      ],
       "subtitle": "Re-Logic",
       "store": "steam",
       "steamAppId": 105600,
       "rating": "works",
-      "exeNames": ["Terraria.exe"],
-      "pathPatterns": ["terraria"],
+      "exeNames": [
+        "Terraria.exe"
+      ],
+      "pathPatterns": [
+        "terraria"
+      ],
       "antiCheat": null,
       "constraints": {
-        "cpuArchitectures": ["arm64", "x86_64"],
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
         "minMacOSVersion": "14.0.0",
         "minWineVersion": "9.0"
       },
@@ -1608,31 +2072,41 @@
       }
     },
     {
-      "id": "undertale",
-      "title": "Undertale",
-      "aliases": ["UNDERTALE"],
-      "subtitle": "tobyfox",
+      "id": "skyrim-se",
+      "title": "The Elder Scrolls V: Skyrim Special Edition",
+      "aliases": [
+        "Skyrim",
+        "Skyrim SE",
+        "SkyrimSE"
+      ],
+      "subtitle": "Bethesda Game Studios",
       "store": "steam",
-      "steamAppId": 391540,
+      "steamAppId": 489830,
       "rating": "works",
-      "exeNames": ["UNDERTALE.exe"],
-      "pathPatterns": ["undertale"],
+      "exeNames": [
+        "SkyrimSE.exe"
+      ],
+      "pathPatterns": [
+        "skyrim special edition"
+      ],
       "antiCheat": null,
       "constraints": {
-        "cpuArchitectures": ["arm64", "x86_64"],
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
         "minMacOSVersion": "14.0.0",
         "minWineVersion": "9.0"
       },
       "variants": [
         {
-          "id": "recommended",
-          "label": "Recommended",
+          "id": "vanilla",
+          "label": "Vanilla (no mods)",
           "isDefault": true,
-          "whenToUse": "Everything works with defaults",
+          "whenToUse": "Playing the base game without SKSE or mod loaders",
           "rationale": [
-            "GameMaker-based game with minimal system requirements",
-            "Runs perfectly under any Wine configuration",
-            "No special settings needed"
+            "DX11 title runs well via D3DMetal on Apple Silicon",
+            "No special DLL overrides needed for vanilla play"
           ],
           "settings": {
             "graphicsBackend": "d3dMetal",
@@ -1648,101 +2122,88 @@
           "dllOverrides": [],
           "winetricksVerbs": [],
           "testedWith": {
-            "lastTestedAt": "2026-01-22T00:00:00Z",
-            "macOSVersion": "15.3.0",
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
             "wineVersion": "10.0",
-            "whiskyVersion": "3.0.0",
             "cpuArchitecture": "arm64"
           }
-        }
-      ],
-      "notes": [
-        "Runs flawlessly with absolutely no configuration needed",
-        "All game features including controller support work perfectly",
-        "Save files are in the expected AppData location within the Wine prefix"
-      ],
-      "knownIssues": [],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2026-01-22T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
-      "id": "cuphead",
-      "title": "Cuphead",
-      "aliases": ["cuphead"],
-      "subtitle": "Studio MDHR",
-      "store": "steam",
-      "steamAppId": 268910,
-      "rating": "works",
-      "exeNames": ["Cuphead.exe"],
-      "pathPatterns": ["cuphead"],
-      "antiCheat": null,
-      "constraints": {
-        "cpuArchitectures": ["arm64", "x86_64"],
-        "minMacOSVersion": "14.0.0",
-        "minWineVersion": "9.0"
-      },
-      "variants": [
+        },
         {
-          "id": "recommended",
-          "label": "Recommended",
-          "isDefault": true,
-          "whenToUse": "Works great with D3DMetal on any Mac",
+          "id": "skse-modded",
+          "label": "SKSE / Modded",
+          "isDefault": false,
+          "whenToUse": "Running with Skyrim Script Extender (SKSE) and mods",
           "rationale": [
-            "2D hand-drawn art style is not GPU intensive",
-            "Unity engine works well under Wine",
-            "D3DMetal provides smooth 60 FPS gameplay"
+            "SKSE injects a custom DLL; vcrun2022 is required",
+            "DXVK helps stability with ENB / heavy texture mods",
+            "Mods often pull in DirectX-style D3D11 paths"
           ],
           "settings": {
-            "graphicsBackend": "d3dMetal",
-            "dxvk": false,
-            "dxvkAsync": false,
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
             "enhancedSync": "msync",
             "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
           },
-          "environmentVariables": {},
+          "environmentVariables": {
+            "DXVK_ASYNC": "1"
+          },
           "dllOverrides": [],
-          "winetricksVerbs": [],
+          "winetricksVerbs": [
+            "vcrun2022",
+            "d3dcompiler_47"
+          ],
           "testedWith": {
-            "lastTestedAt": "2026-01-15T00:00:00Z",
-            "macOSVersion": "15.3.0",
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
             "wineVersion": "10.0",
-            "whiskyVersion": "3.0.0",
             "cpuArchitecture": "arm64"
           }
         }
       ],
       "notes": [
-        "Runs perfectly with smooth 60 FPS gameplay",
-        "The Delicious Last Course DLC works without issues",
-        "Local co-op works with two controllers"
+        "Vanilla Skyrim SE plays well; modded play is heavier and may need DXVK",
+        "Avoid third-party 'optimization guides' that recommend stale Wine flags"
       ],
-      "knownIssues": [],
+      "knownIssues": [
+        {
+          "description": "ENB shader presets may render inverted or missing effects",
+          "severity": "minor",
+          "workaround": "Disable ENB postprocess passes that rely on D3D9 wrappers"
+        }
+      ],
       "provenance": {
         "source": "community-reference",
         "author": "Whisky Community",
-        "lastUpdated": "2026-01-15T00:00:00Z",
-        "referenceURL": null
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1246"
       }
     },
     {
       "id": "the-witcher-2",
       "title": "The Witcher 2: Assassins of Kings",
-      "aliases": ["Witcher 2", "TW2"],
+      "aliases": [
+        "Witcher 2",
+        "TW2"
+      ],
       "subtitle": "CD Projekt Red",
       "store": "gog",
       "rating": "playable",
-      "exeNames": ["witcher2.exe"],
-      "pathPatterns": ["the witcher 2"],
+      "exeNames": [
+        "witcher2.exe"
+      ],
+      "pathPatterns": [
+        "the witcher 2"
+      ],
       "antiCheat": null,
       "constraints": {
-        "cpuArchitectures": ["arm64", "x86_64"],
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
         "minMacOSVersion": "14.0.0",
         "minWineVersion": "9.0"
       },
@@ -1830,90 +2291,30 @@
       }
     },
     {
-      "id": "control",
-      "title": "Control",
-      "aliases": ["Control Ultimate Edition"],
-      "subtitle": "Remedy Entertainment / 505 Games",
-      "store": "epic",
+      "id": "the-witcher-3",
+      "title": "The Witcher 3: Wild Hunt",
+      "aliases": [
+        "Witcher 3",
+        "TW3",
+        "Wild Hunt"
+      ],
+      "subtitle": "CD Projekt Red",
+      "store": "steam",
+      "steamAppId": 292030,
       "rating": "playable",
-      "exeNames": ["Control_DX11.exe", "Control_DX12.exe"],
-      "pathPatterns": ["control"],
+      "exeNames": [
+        "witcher3.exe"
+      ],
+      "pathPatterns": [
+        "the witcher 3/bin/x64"
+      ],
       "antiCheat": null,
       "constraints": {
-        "cpuArchitectures": ["arm64"],
-        "minMacOSVersion": "15.0.0",
-        "minWineVersion": "9.0"
-      },
-      "variants": [
-        {
-          "id": "recommended-dxvk",
-          "label": "Recommended (DXVK, DX11)",
-          "isDefault": true,
-          "whenToUse": "DXVK with DX11 for best compatibility; disable ray tracing",
-          "rationale": [
-            "DXVK provides better rendering for the Northlight engine",
-            "DX11 executable is more stable than DX12",
-            "Ray tracing must be disabled for performance"
-          ],
-          "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
-            "enhancedSync": "esync",
-            "forceD3D11": true,
-            "shaderCacheEnabled": true,
-            "avxEnabled": false,
-            "sequoiaCompatMode": false
-          },
-          "environmentVariables": {},
-          "dllOverrides": [],
-          "winetricksVerbs": ["vcrun2022"],
-          "testedWith": {
-            "lastTestedAt": "2026-01-06T00:00:00Z",
-            "macOSVersion": "15.3.0",
-            "wineVersion": "10.0",
-            "whiskyVersion": "3.0.0",
-            "cpuArchitecture": "arm64"
-          }
-        }
-      ],
-      "notes": [
-        "Launch Control_DX11.exe for best compatibility; DX12 may crash",
-        "Disable ray tracing in graphics settings for stable performance",
-        "Epic Games Store version; Epic launcher setup required"
-      ],
-      "knownIssues": [
-        {
-          "description": "DX12 mode causes frequent crashes; use DX11 instead",
-          "severity": "major",
-          "workaround": "Launch Control_DX11.exe instead of Control_DX12.exe"
-        },
-        {
-          "description": "Ray tracing causes severe performance degradation",
-          "severity": "major",
-          "workaround": "Disable all ray tracing options in graphics settings"
-        }
-      ],
-      "provenance": {
-        "source": "community-reference",
-        "author": "Whisky Community",
-        "lastUpdated": "2026-01-06T00:00:00Z",
-        "referenceURL": null
-      }
-    },
-    {
-      "id": "hitman-3",
-      "title": "Hitman: World of Assassination",
-      "aliases": ["Hitman 3", "HITMAN 3", "Hitman WoA"],
-      "subtitle": "IO Interactive",
-      "store": "epic",
-      "rating": "playable",
-      "exeNames": ["HITMAN3.exe"],
-      "pathPatterns": ["hitman3"],
-      "antiCheat": null,
-      "constraints": {
-        "cpuArchitectures": ["arm64"],
-        "minMacOSVersion": "15.0.0",
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
         "minWineVersion": "9.0"
       },
       "variants": [
@@ -1921,11 +2322,11 @@
           "id": "recommended",
           "label": "Recommended (D3DMetal)",
           "isDefault": true,
-          "whenToUse": "D3DMetal handles Glacier engine well on Apple Silicon",
+          "whenToUse": "Best experience for the Next-Gen update on Apple Silicon",
           "rationale": [
-            "D3DMetal provides good DX12 translation for the Glacier 2 engine",
-            "Shader cache is essential for smooth level transitions",
-            "Performance is acceptable at medium settings"
+            "D3DMetal handles DX12 rendering well for the next-gen update",
+            "Shader cache reduces stuttering during exploration",
+            "Enhanced sync provides smoother frame delivery"
           ],
           "settings": {
             "graphicsBackend": "d3dMetal",
@@ -1941,7 +2342,7 @@
           "dllOverrides": [],
           "winetricksVerbs": [],
           "testedWith": {
-            "lastTestedAt": "2026-01-04T00:00:00Z",
+            "lastTestedAt": "2026-01-12T00:00:00Z",
             "macOSVersion": "15.3.0",
             "wineVersion": "10.0",
             "whiskyVersion": "3.0.0",
@@ -1950,56 +2351,155 @@
         }
       ],
       "notes": [
-        "Epic Games Store version; requires Epic launcher setup",
-        "Medium graphics preset recommended for M1/M2",
-        "Always-online requirement means internet connection is necessary"
+        "Next-Gen update uses DX12 and works well with D3DMetal on Apple Silicon",
+        "Minor shader stuttering during cutscenes on first playthrough",
+        "HDR is not supported; disable it in game settings"
       ],
       "knownIssues": [
         {
-          "description": "Long loading times between levels compared to native",
+          "description": "Minor shader compilation stutter during cutscenes and area transitions",
           "severity": "minor",
-          "workaround": "Use an SSD for the Wine bottle to improve load times"
+          "workaround": "Shader cache improves over time; pre-load by exploring areas slowly"
+        },
+        {
+          "description": "Ray tracing features may cause instability",
+          "severity": "major",
+          "workaround": "Disable all ray tracing options in graphics settings"
         }
       ],
       "provenance": {
         "source": "community-reference",
         "author": "Whisky Community",
-        "lastUpdated": "2026-01-04T00:00:00Z",
+        "lastUpdated": "2026-01-12T00:00:00Z",
         "referenceURL": null
       }
     },
     {
-      "id": "destiny-2",
-      "title": "Destiny 2",
-      "aliases": ["D2", "Destiny2"],
-      "subtitle": "Bungie",
+      "id": "total-war-warhammer-3",
+      "title": "Total War: Warhammer III",
+      "aliases": [
+        "Warhammer 3",
+        "TW:WH3",
+        "TWW3"
+      ],
+      "subtitle": "Creative Assembly / SEGA",
       "store": "steam",
-      "steamAppId": 1085660,
-      "rating": "broken",
-      "exeNames": ["destiny2.exe"],
-      "pathPatterns": ["destiny 2"],
-      "antiCheat": "BattlEye",
+      "steamAppId": 1142710,
+      "rating": "playable",
+      "exeNames": [
+        "Warhammer3.exe"
+      ],
+      "pathPatterns": [
+        "total war warhammer iii"
+      ],
+      "antiCheat": null,
       "constraints": {
-        "cpuArchitectures": ["arm64", "x86_64"],
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "10.0"
+      },
+      "variants": [
+        {
+          "id": "recommended-dxvk",
+          "label": "Recommended (DXVK)",
+          "isDefault": true,
+          "whenToUse": "DXVK with async shaders for large-scale battles",
+          "rationale": [
+            "DXVK handles the Total War rendering pipeline better than D3DMetal",
+            "Async shader compilation is essential for battle scenes",
+            "High VRAM usage benefits from DXVK memory management"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "esync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-01-08T00:00:00Z",
+            "macOSVersion": "15.3.0",
+            "wineVersion": "10.0",
+            "whiskyVersion": "3.0.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "DXVK is recommended for better handling of large-scale battles",
+        "Lower unit sizes in battle settings for better performance",
+        "Campaign map runs smoother than real-time battles"
+      ],
+      "knownIssues": [
+        {
+          "description": "Frame drops during large-scale battles with many units",
+          "severity": "major",
+          "workaround": "Reduce unit size and detail settings; DXVK async helps significantly"
+        },
+        {
+          "description": "Initial shader compilation causes stuttering on first battle",
+          "severity": "minor",
+          "workaround": "Shader cache builds over multiple battles"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-01-08T00:00:00Z",
+        "referenceURL": null
+      }
+    },
+    {
+      "id": "undertale",
+      "title": "Undertale",
+      "aliases": [
+        "UNDERTALE"
+      ],
+      "subtitle": "tobyfox",
+      "store": "steam",
+      "steamAppId": 391540,
+      "rating": "works",
+      "exeNames": [
+        "UNDERTALE.exe"
+      ],
+      "pathPatterns": [
+        "undertale"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
         "minMacOSVersion": "14.0.0",
         "minWineVersion": "9.0"
       },
       "variants": [
         {
-          "id": "known-broken",
-          "label": "Known Broken",
+          "id": "recommended",
+          "label": "Recommended",
           "isDefault": true,
-          "whenToUse": "Game does not work; BattlEye blocks Wine execution",
+          "whenToUse": "Everything works with defaults",
           "rationale": [
-            "BattlEye anti-cheat does not support Wine/Proton",
-            "Bungie has not enabled BattlEye Wine support",
-            "Previously worked briefly but was patched out"
+            "GameMaker-based game with minimal system requirements",
+            "Runs perfectly under any Wine configuration",
+            "No special settings needed"
           ],
           "settings": {
             "graphicsBackend": "d3dMetal",
             "dxvk": false,
             "dxvkAsync": false,
-            "enhancedSync": "none",
+            "enhancedSync": "msync",
             "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -2009,58 +2509,55 @@
           "dllOverrides": [],
           "winetricksVerbs": [],
           "testedWith": {
-            "lastTestedAt": "2025-11-20T00:00:00Z",
-            "macOSVersion": "15.1.0",
-            "wineVersion": "9.7",
+            "lastTestedAt": "2026-01-22T00:00:00Z",
+            "macOSVersion": "15.3.0",
+            "wineVersion": "10.0",
+            "whiskyVersion": "3.0.0",
             "cpuArchitecture": "arm64"
           }
         }
       ],
       "notes": [
-        "Destiny 2 previously worked under Wine but Bungie has not enabled BattlEye support",
-        "Online-only game; cannot bypass anti-cheat for any game mode",
-        "Was briefly playable in 2023 before being blocked"
+        "Runs flawlessly with absolutely no configuration needed",
+        "All game features including controller support work perfectly",
+        "Save files are in the expected AppData location within the Wine prefix"
       ],
-      "knownIssues": [
-        {
-          "description": "BattlEye anti-cheat blocks game launch; Bungie has not enabled Wine support",
-          "severity": "critical",
-          "workaround": "None; Bungie must enable BattlEye Wine/Proton support"
-        }
-      ],
+      "knownIssues": [],
       "provenance": {
         "source": "community-reference",
         "author": "Whisky Community",
-        "lastUpdated": "2025-11-20T00:00:00Z",
+        "lastUpdated": "2026-01-22T00:00:00Z",
         "referenceURL": null
       }
     },
     {
-      "id": "pubg",
-      "title": "PUBG: Battlegrounds",
-      "aliases": ["PUBG", "PlayerUnknown's Battlegrounds"],
-      "subtitle": "Krafton",
-      "store": "steam",
-      "steamAppId": 578080,
-      "rating": "broken",
-      "exeNames": ["TslGame.exe"],
-      "pathPatterns": ["pubg/tslgame/binaries/win64"],
-      "antiCheat": "BattlEye",
-      "constraints": {
-        "cpuArchitectures": ["arm64", "x86_64"],
-        "minMacOSVersion": "14.0.0",
-        "minWineVersion": "9.0"
-      },
+      "id": "valorant",
+      "title": "Valorant",
+      "aliases": [
+        "VALORANT"
+      ],
+      "subtitle": "Riot Games",
+      "store": "other",
+      "rating": "notSupported",
+      "exeNames": [
+        "VALORANT.exe",
+        "VALORANT-Win64-Shipping.exe"
+      ],
+      "pathPatterns": [
+        "riot games/valorant"
+      ],
+      "antiCheat": "Vanguard",
+      "constraints": {},
       "variants": [
         {
-          "id": "known-broken",
-          "label": "Known Broken",
+          "id": "not-supported",
+          "label": "Not Supported",
           "isDefault": true,
-          "whenToUse": "Game does not work; anti-cheat blocks Wine execution",
+          "whenToUse": "This game cannot run under Wine due to kernel-level anti-cheat",
           "rationale": [
-            "BattlEye anti-cheat is required for all game modes",
-            "Krafton has not enabled BattlEye Wine/Proton support",
-            "Free-to-play game with mandatory anti-cheat"
+            "Vanguard anti-cheat requires a Windows kernel driver",
+            "The kernel driver cannot operate under Wine or macOS",
+            "There is no offline or anti-cheat-free mode"
           ],
           "settings": {
             "graphicsBackend": "d3dMetal",
@@ -2068,7 +2565,7 @@
             "dxvkAsync": false,
             "enhancedSync": "none",
             "forceD3D11": false,
-            "shaderCacheEnabled": true,
+            "shaderCacheEnabled": false,
             "avxEnabled": false,
             "sequoiaCompatMode": false
           },
@@ -2076,30 +2573,112 @@
           "dllOverrides": [],
           "winetricksVerbs": [],
           "testedWith": {
-            "lastTestedAt": "2025-11-15T00:00:00Z",
-            "macOSVersion": "15.1.0",
-            "wineVersion": "9.7",
+            "lastTestedAt": "2025-10-01T00:00:00Z",
+            "macOSVersion": "15.0.0",
+            "wineVersion": "9.6",
             "cpuArchitecture": "arm64"
           }
         }
       ],
       "notes": [
-        "BattlEye anti-cheat blocks all Wine/Proton execution",
-        "Multiplayer-only game; anti-cheat cannot be bypassed",
-        "Unlikely to work until Krafton enables BattlEye Wine support"
+        "Vanguard anti-cheat requires a Windows kernel driver that cannot run on macOS",
+        "This is a fundamental limitation; no configuration can make this game work",
+        "Consider native alternatives or cloud gaming services"
       ],
       "knownIssues": [
         {
-          "description": "BattlEye prevents game from launching under Wine",
+          "description": "Vanguard kernel-level anti-cheat prevents the game from launching",
           "severity": "critical",
-          "workaround": "None; developer must enable BattlEye Wine/Proton support"
+          "workaround": "None; this is a fundamental incompatibility with Wine/macOS"
         }
       ],
       "provenance": {
         "source": "community-reference",
         "author": "Whisky Community",
-        "lastUpdated": "2025-11-15T00:00:00Z",
+        "lastUpdated": "2025-10-01T00:00:00Z",
         "referenceURL": null
+      }
+    },
+    {
+      "id": "warhammer-40k-space-marine",
+      "title": "Warhammer 40,000: Space Marine",
+      "aliases": [
+        "Space Marine"
+      ],
+      "subtitle": "Relic Entertainment / THQ",
+      "store": "steam",
+      "steamAppId": 55150,
+      "rating": "unverified",
+      "exeNames": [
+        "spacemarine.exe",
+        "SpaceMarine.exe"
+      ],
+      "pathPatterns": [
+        "warhammer 40,000 space marine",
+        "warhammer 40000 space marine"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "minMacOSVersion": "14.0.0",
+        "minWineVersion": "9.0"
+      },
+      "variants": [
+        {
+          "id": "dxvk-recommended",
+          "label": "DXVK recommended",
+          "isDefault": true,
+          "whenToUse": "Default configuration for the original 2011 release",
+          "rationale": [
+            "DX9-era title; DXVK gives the most consistent rendering",
+            "Async shader compilation hides first-launch hitches",
+            "Game uses dxgi/d3d11 fallback on certain branches; native overrides help"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "forceD3D11": false,
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [
+            {
+              "dllName": "dxgi",
+              "mode": "n,b"
+            },
+            {
+              "dllName": "d3d11",
+              "mode": "n,b"
+            }
+          ],
+          "winetricksVerbs": [
+            "vcrun2010"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-04-30T00:00:00Z",
+            "macOSVersion": "15.4.0",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Original 2011 release; for 'Space Marine 2' (2024), see a separate entry once verified",
+        "Steam launches the game directly without a wrapper launcher"
+      ],
+      "knownIssues": [],
+      "provenance": {
+        "source": "community-reference",
+        "author": "Whisky Community",
+        "lastUpdated": "2026-04-30T00:00:00Z",
+        "referenceURL": "https://github.com/whisky-app/whisky/issues/1125"
       }
     }
   ]

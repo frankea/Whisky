@@ -80,7 +80,8 @@ extension Bottle {
         "vcredist_x86.exe",
         "vcredist_x64.exe",
         "ueprereqsetup_x86.exe",
-        "ueprereqsetup_x64.exe"
+        "ueprereqsetup_x64.exe",
+        "crossover html engine.exe"
     ]
 
     /// The detected Wine username for this bottle.

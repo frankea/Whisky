@@ -5,5 +5,22 @@
         <link>https://frankea.github.io/Whisky/appcast.xml</link>
         <description>Whisky update feed</description>
         <language>en</language>
+        <item>
+            <title>Whisky 3.0.0</title>
+            <pubDate>Thu, 01 May 2026 02:39:00 +0000</pubDate>
+            <sparkle:version>44</sparkle:version>
+            <sparkle:shortVersionString>3.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <p>First app release of the active community fork. Resolves all 54 v1.0 milestone requirements covering 10 categories of upstream issues.</p>
+                <p>Breaking change: macOS 15 Sequoia is now the minimum.</p>
+                <p>See the <a href="https://github.com/frankea/Whisky/releases/tag/app-v3.0.0">release notes</a> for the full changelog.</p>
+            ]]></description>
+            <enclosure
+                url="https://github.com/frankea/Whisky/releases/download/app-v3.0.0/Whisky-3.0.0.dmg"
+                sparkle:edSignature="nSccH+I3Obx5k+XvUqjktJzhH47L1vo9omoDnvkeGo13so9k7ShnazfoxjVoWaXxVYM3nOmMzZoNxGff1KCmDQ=="
+                length="8456930"
+                type="application/octet-stream" />
+        </item>
     </channel>
 </rss>

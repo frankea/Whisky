@@ -45,17 +45,17 @@ xcodebuild \
     -configuration Release \
     -destination 'generic/platform=macOS' \
     -archivePath "$ARCHIVE_PATH" \
-    CODE_SIGN_IDENTITY="Developer ID Application" \
-    CODE_SIGN_STYLE=Automatic \
+    -allowProvisioningUpdates \
     archive
 
-echo "==> Exporting signed app"
+echo "==> Exporting and re-signing with Developer ID"
 rm -rf "$EXPORT_PATH"
 xcodebuild \
     -exportArchive \
     -archivePath "$ARCHIVE_PATH" \
     -exportPath "$EXPORT_PATH" \
-    -exportOptionsPlist scripts/exportOptions.plist
+    -exportOptionsPlist scripts/exportOptions.plist \
+    -allowProvisioningUpdates
 
 APP_PATH="$EXPORT_PATH/Whisky.app"
 [ -d "$APP_PATH" ] || { echo "Whisky.app not found at $APP_PATH"; exit 1; }

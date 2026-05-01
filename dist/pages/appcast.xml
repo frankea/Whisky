@@ -6,20 +6,19 @@
         <description>Whisky update feed</description>
         <language>en</language>
         <item>
-            <title>Whisky 3.0.0</title>
-            <pubDate>Thu, 01 May 2026 02:39:00 +0000</pubDate>
-            <sparkle:version>44</sparkle:version>
-            <sparkle:shortVersionString>3.0.0</sparkle:shortVersionString>
+            <title>Whisky 3.0.1</title>
+            <pubDate>Thu, 01 May 2026 02:55:00 +0000</pubDate>
+            <sparkle:version>45</sparkle:version>
+            <sparkle:shortVersionString>3.0.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
             <description><![CDATA[
-                <p>First app release of the active community fork. Resolves all 54 v1.0 milestone requirements covering 10 categories of upstream issues.</p>
-                <p>Breaking change: macOS 15 Sequoia is now the minimum.</p>
-                <p>See the <a href="https://github.com/frankea/Whisky/releases/tag/app-v3.0.0">release notes</a> for the full changelog.</p>
+                <p>Fixes a pipe deadlock in <code>Tar.validateArchivePaths</code> that caused the WhiskyWine installer to hang at "Installing WhiskyWine — Almost there." Tar's verbose listing for the 313 MB Libraries archive overflowed the OS pipe buffer; Whisky now drains the pipe before waiting for tar to exit.</p>
+                <p>See the <a href="https://github.com/frankea/Whisky/releases/tag/app-v3.0.1">release notes</a> for the full changelog.</p>
             ]]></description>
             <enclosure
-                url="https://github.com/frankea/Whisky/releases/download/app-v3.0.0/Whisky-3.0.0.dmg"
-                sparkle:edSignature="nSccH+I3Obx5k+XvUqjktJzhH47L1vo9omoDnvkeGo13so9k7ShnazfoxjVoWaXxVYM3nOmMzZoNxGff1KCmDQ=="
-                length="8456930"
+                url="https://github.com/frankea/Whisky/releases/download/app-v3.0.1/Whisky-3.0.1.dmg"
+                sparkle:edSignature="NJLtJug+5JkHnY8+2lFsUB8qa9ImVyqg9zAWSQC18SaNkusqOn+l3/6PpN/WgLyDbTmlzSrYwIs2WWUvGwneCg=="
+                length="8456935"
                 type="application/octet-stream" />
         </item>
     </channel>

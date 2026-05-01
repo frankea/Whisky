@@ -26,6 +26,7 @@ struct WinetricksView: View {
     @State private var installedVerbs: Set<String> = []
     @State private var isLoadingInstalledVerbs = true
     @State private var verbFilter: VerbFilter = .all
+    @State private var searchText: String = ""
     @Environment(\.dismiss) var dismiss
 
     private enum VerbFilter: String, CaseIterable {
@@ -102,6 +103,7 @@ struct WinetricksView: View {
             }
         }
         .padding()
+        .searchable(text: $searchText, placement: .toolbar, prompt: "winetricks.search.prompt")
         .onAppear {
             Task.detached {
                 let tricks = await Winetricks.parseVerbs()
@@ -158,11 +160,17 @@ struct WinetricksView: View {
     }
 
     private func filteredVerbs(for category: WinetricksCategory) -> [WinetricksVerb] {
-        switch verbFilter {
+        let base: [WinetricksVerb] = switch verbFilter {
         case .all:
             category.verbs
         case .installed:
             category.verbs.filter { installedVerbs.contains($0.name) }
+        }
+        let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return base }
+        return base.filter {
+            $0.name.localizedCaseInsensitiveContains(trimmed)
+                || $0.description.localizedCaseInsensitiveContains(trimmed)
         }
     }
 

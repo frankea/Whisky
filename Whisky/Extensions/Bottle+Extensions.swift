@@ -60,6 +60,29 @@ func nextDuplicateName(baseName: String, existingNames: [String]) -> String {
 private var wineUsernameCache: [URL: String] = [:]
 
 extension Bottle {
+    /// Lower-case basenames of known helper/crash-reporter executables that
+    /// pollute the installed-programs list. Filtered before the user's
+    /// `blocklist` so the visible list stays clean by default.
+    /// Conservative: only unambiguously-noise binaries (helpers, crash
+    /// reporters, redistributables). Generic `setup.exe`/`installer.exe`
+    /// are not included because users still need to launch installers.
+    fileprivate static let noiseExeNames: Set<String> = [
+        "steamerrorreporter.exe",
+        "steamerrorreporter64.exe",
+        "steamservice.exe",
+        "steamwebhelper.exe",
+        "crashreporter.exe",
+        "crashhandler.exe",
+        "crashpad_handler.exe",
+        "gameoverlayui.exe",
+        "vc_redist.x86.exe",
+        "vc_redist.x64.exe",
+        "vcredist_x86.exe",
+        "vcredist_x64.exe",
+        "ueprereqsetup_x86.exe",
+        "ueprereqsetup_x64.exe"
+    ]
+
     /// The detected Wine username for this bottle.
     ///
     /// Wine creates user profile directories in `drive_c/users/`. This property
@@ -220,6 +243,8 @@ extension Bottle {
                 guard !url.hasDirectoryPath, url.pathExtension == "exe" else { continue }
                 // Skip ClickOnce cache executables (noisy internal artifacts)
                 guard !url.path.contains("/Apps/2.0/") else { continue }
+                // Skip known launcher helpers and crash reporters that pollute the list
+                guard !Self.noiseExeNames.contains(url.lastPathComponent.lowercased()) else { continue }
                 guard !settings.blocklist.contains(url) else { continue }
                 foundURLS.insert(url)
                 programs.append(Program(url: url, bottle: self))
@@ -251,8 +276,8 @@ extension Bottle {
                 bottle.inFlight = true
                 for index in 0 ..< bottle.settings.pins.count {
                     let pin = bottle.settings.pins[index]
-                    if let url = pin.url {
-                        bottle.settings.pins[index].url = url.updateParentBottle(
+                    if let pinURL = pin.url {
+                        bottle.settings.pins[index].url = pinURL.updateParentBottle(
                             old: url,
                             new: destination
                         )

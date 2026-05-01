@@ -61,6 +61,14 @@ extension Wine {
         for fix in MacOSCompatibilityFixes.activeFixes() {
             builder.set(fix.key, fix.value, layer: .platform, reason: fix.reason)
         }
+        // Forward host timezone so games that read system time/date behave correctly.
+        // macOS does not export TZ by default; without this, Wine sees UTC.
+        if ProcessInfo.processInfo.environment["TZ"] == nil {
+            builder.set(
+                "TZ", TimeZone.current.identifier, layer: .platform,
+                reason: "Host timezone forwarding"
+            )
+        }
         // Handle conditional WINEESYNC (depends on existing environment state)
         var platformConditional: [String: String] = [:]
         applyMacOSCompatibilityFixes(to: &platformConditional)

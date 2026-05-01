@@ -61,6 +61,17 @@ struct WhiskyWineDownloadView: View {
     @Binding var showSetup: Bool
     @Binding var diagnostics: WhiskyWineSetupDiagnostics
 
+    /// URLSession that survives transient connectivity loss (Wi-Fi/Ethernet
+    /// switches, VPN reconnects) and applies bounded request/resource timeouts
+    /// so a stalled download surfaces an error instead of hanging forever.
+    private static let resilientSession: URLSession = {
+        let config = URLSessionConfiguration.ephemeral
+        config.waitsForConnectivity = true
+        config.timeoutIntervalForRequest = 60
+        config.timeoutIntervalForResource = 600
+        return URLSession(configuration: config)
+    }()
+
     var body: some View {
         VStack {
             VStack {
@@ -275,7 +286,7 @@ extension WhiskyWineDownloadView {
 
         diagnostics.downloadStartedAt = Date()
         diagnostics.record("Starting download")
-        downloadTask = URLSession(configuration: .ephemeral).downloadTask(with: url) { fileURL, response, error in
+        downloadTask = Self.resilientSession.downloadTask(with: url) { fileURL, response, error in
             // URLSession deletes the temporary file immediately after completion handler returns.
             // We must move it to a safe location synchronously before the async Task executes.
             var permanentURL: URL?

@@ -6,10 +6,10 @@ Snapshot: **959** non-PR issues from `whisky-app/whisky` — **434 open**, **525
 
 | Status | Count | Share |
 |--------|------:|------:|
-| Addressed (direct citation) | 34 | 7.8% |
-| Addressed (categorical) | 130 | 30.0% |
-| Won't fix (out of scope) | 23 | 5.3% |
-| Unverified | 247 | 56.9% |
+| Addressed (direct citation) | 43 | 9.9% |
+| Addressed (categorical) | 158 | 36.4% |
+| Won't fix (out of scope) | 69 | 15.9% |
+| Unverified | 164 | 37.8% |
 | **Total open** | **434** | 100.0% |
 
 ## Closed issues — for context
@@ -27,10 +27,10 @@ Already closed in upstream before the archive on 2025-04-09. Listed here so the 
 
 | Status | AUDT | CFGF | CTRL | FEAT | GAME | GFXC | INST | LNCH | MISC | PROC | STAB | TRBL | UIUX | (none) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Addressed (direct citation) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 34 |
-| Addressed (categorical) | 14 | 61 | 13 | 13 | 3 | 26 | 58 | 83 | 1 | 3 | 10 | 14 | 16 | 7 |
-| Won't fix (out of scope) | 1 | 2 | 1 | 10 | 0 | 2 | 5 | 3 | 0 | 0 | 3 | 1 | 0 | 7 |
-| Unverified | 11 | 112 | 6 | 13 | 4 | 57 | 96 | 112 | 2 | 4 | 25 | 15 | 43 | 27 |
+| Addressed (direct citation) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 43 |
+| Addressed (categorical) | 14 | 72 | 15 | 16 | 4 | 30 | 66 | 95 | 2 | 4 | 12 | 16 | 22 | 11 |
+| Won't fix (out of scope) | 4 | 22 | 3 | 14 | 2 | 11 | 24 | 25 | 0 | 0 | 7 | 4 | 10 | 11 |
+| Unverified | 8 | 79 | 2 | 4 | 1 | 44 | 64 | 76 | 1 | 3 | 19 | 10 | 27 | 18 |
 
 ## Top 25 unaddressed open issues (by reactions + comments)
 
@@ -45,17 +45,13 @@ manual review or override.
 | 492 | [Bug]: Lesta Game Center doesn't open | unverified | 43 | [link](https://github.com/Whisky-App/Whisky/issues/492) |
 | 682 | [Bug]: Battle.net client doesn't start with latest battle.net update | addressed-categorical | 31 | [link](https://github.com/Whisky-App/Whisky/issues/682) |
 | 479 | [Bug]: Core Keeper doesn't have access to read/write files | unverified | 29 | [link](https://github.com/Whisky-App/Whisky/issues/479) |
-| 525 | [Feature]: Game mode when playing a game | unverified | 26 | [link](https://github.com/Whisky-App/Whisky/issues/525) |
-| 711 | [Bug]:  Running Diablo 4 | unverified | 25 | [link](https://github.com/Whisky-App/Whisky/issues/711) |
 | 1253 | wine c++ runtime library runtime error | addressed-categorical | 23 | [link](https://github.com/Whisky-App/Whisky/issues/1253) |
 | 475 | [Bug]: Controllers not working | addressed-categorical | 22 | [link](https://github.com/Whisky-App/Whisky/issues/475) |
 | 805 | [Bug]: Unexpected Crash Launch Granblue Fantasy Relink | unverified | 21 | [link](https://github.com/Whisky-App/Whisky/issues/805) |
 | 314 | [Bug]: Age of Empire II DE doesn't work | unverified | 20 | [link](https://github.com/Whisky-App/Whisky/issues/314) |
 | 524 | [Bug]: Warframe game launcher white screen | unverified | 17 | [link](https://github.com/Whisky-App/Whisky/issues/524) |
 | 720 | [Feature]: "Pioneers of Pagonia" (on Steam) does not recoginze a compatible GPU. | unverified | 17 | [link](https://github.com/Whisky-App/Whisky/issues/720) |
-| 987 | [Bug]: Counter Strike 2 Driver Out of Date & Thread Starvation | unverified | 17 | [link](https://github.com/Whisky-App/Whisky/issues/987) |
 | 1350 | Futureport 82 In game videos display white screen | unverified | 17 | [link](https://github.com/Whisky-App/Whisky/issues/1350) |
-| 787 | [Bug]:  No Wifi when launching steam? | unverified | 16 | [link](https://github.com/Whisky-App/Whisky/issues/787) |
 | 757 | Mount and Blade Bannerlord II Failing to launch of Steam via Whiskey[Bug]:  | unverified | 14 | [link](https://github.com/Whisky-App/Whisky/issues/757) |
 | 1213 | Witcher 3 freezing when loading saved game | unverified | 14 | [link](https://github.com/Whisky-App/Whisky/issues/1213) |
 | 782 | [Bug]: Unable to run Thunderstore Mod Manager installer | unverified | 13 | [link](https://github.com/Whisky-App/Whisky/issues/782) |
@@ -64,21 +60,25 @@ manual review or override.
 | 1236 | error on startup supermarket together | unverified | 12 | [link](https://github.com/Whisky-App/Whisky/issues/1236) |
 | 368 | [Bug]: Epic Launcher crashes at start | addressed-categorical | 11 | [link](https://github.com/Whisky-App/Whisky/issues/368) |
 | 958 | [Bug]: DualSense PS5 controller detected as XInput Controller on Steam | addressed-categorical | 11 | [link](https://github.com/Whisky-App/Whisky/issues/958) |
-| 252 | [Bug]: Heroes of Might and Magic 3: Complete fails to open | unverified | 10 | [link](https://github.com/Whisky-App/Whisky/issues/252) |
+| 995 | [Bug]: Can't download wine | unverified | 10 | [link](https://github.com/Whisky-App/Whisky/issues/995) |
+| 1010 | [Bug]: Whisky app takes 100% CPU the entire time it's running | addressed-categorical | 10 | [link](https://github.com/Whisky-App/Whisky/issues/1010) |
+| 508 | [Bug]: Turtle WOW ERROR | unverified | 9 | [link](https://github.com/Whisky-App/Whisky/issues/508) |
+| 807 | [Feature]: Describe bottle configuration options | addressed-categorical | 9 | [link](https://github.com/Whisky-App/Whisky/issues/807) |
+| 849 | [Bug]: Can't run a steam game after updating GPTK as prompted  | addressed-categorical | 9 | [link](https://github.com/Whisky-App/Whisky/issues/849) |
 
 ## Samples per status
 
 ### Addressed (direct citation)
 
-- **#822**: [Feature]: Allow to "duplicate" a bottle — _Cited 1 time(s) in tree/git log._
-  - URL: https://github.com/Whisky-App/Whisky/issues/822
+- **#293**: [Bug]: Resume Download if connection was broken — _Cited 1 time(s) in tree/git log._
+  - URL: https://github.com/Whisky-App/Whisky/issues/293
   - Cited in: CHANGELOG.md
-- **#827**: [Feature]: UI Indicator when archiving bottles — _Cited 1 time(s) in tree/git log._
-  - URL: https://github.com/Whisky-App/Whisky/issues/827
+- **#431**: [Bug]: Adding items to blocklist is glitchy — _Cited 1 time(s) in tree/git log._
+  - URL: https://github.com/Whisky-App/Whisky/issues/431
   - Cited in: CHANGELOG.md
-- **#835**: [Bug]: GTA won't launch Rockstar Games launcher freezes on Logo — _Cited 2 time(s) in tree/git log._
-  - URL: https://github.com/Whisky-App/Whisky/issues/835
-  - Cited in: Whisky/Utils/LauncherDetection.swift, docs/LauncherTroubleshooting.md
+- **#432**: [Feature]: Don't confuse the user with useless junk in "Installed Programs" (hide by default) — _Cited 1 time(s) in tree/git log._
+  - URL: https://github.com/Whisky-App/Whisky/issues/432
+  - Cited in: CHANGELOG.md
 
 ### Addressed (categorical)
 
@@ -91,21 +91,21 @@ manual review or override.
 
 ### Won't fix (out of scope)
 
-- **#486**: [Feature]: Support different GPTK versions — _Feature request for selectable GPTK versions; relates to Wine/GPTK source management out of scope._
-  - URL: https://github.com/Whisky-App/Whisky/issues/486
-- **#676**: [Feature]: Have an easy way to reorder pinned programs — _Matches OOS keyword (anti-cheat / kernel / mobile / Wine source)._
-  - URL: https://github.com/Whisky-App/Whisky/issues/676
-- **#743**: [Feature]: Support mac camera — _Feature request for Mac camera passthrough into Wine; out of scope (Wine/driver work)._
-  - URL: https://github.com/Whisky-App/Whisky/issues/743
+- **#252**: [Bug]: Heroes of Might and Magic 3: Complete fails to open — _out-of-scope (triage): HoMM3 Complete (32-bit DirectDraw legacy) — labeled wine-bug. 32-bit DirectDraw on macOS is a Wine/GPTK upstream issue, not app-layer._
+  - URL: https://github.com/Whisky-App/Whisky/issues/252
+- **#267**: [Bug]: Yu-Gi-Oh Duel Links crash when starting a duel — _out-of-scope (triage): Yu-Gi-Oh Duel Links crashes on entering duel — Konami's title commonly uses Cygnus/anti-cheat checks. Per-title combat-scene crash, anti-cheat-adjacent; out of scope._
+  - URL: https://github.com/Whisky-App/Whisky/issues/267
+- **#298**: [Bug]: Steam "Join Game" button missing — _out-of-scope (triage): Steam 'Join Game' button missing — Steam friends socket on port 27036 binding inside Wine. Steam-internal IPC over local sockets; no actionable Whisky-side change beyond what LauncherPresets already p_
+  - URL: https://github.com/Whisky-App/Whisky/issues/298
 
 ### Unverified
 
 - **#251**: [Bug]: Music Center Not Working — _App-specific crash (Sony Music Center) needing per-game investigation; no fork-side fix shipped._
   - URL: https://github.com/Whisky-App/Whisky/issues/251
-- **#252**: [Bug]: Heroes of Might and Magic 3: Complete fails to open — _Specific game (HoMM3) launch failure; not in known-good DB without verification._
-  - URL: https://github.com/Whisky-App/Whisky/issues/252
-- **#267**: [Bug]: Yu-Gi-Oh Duel Links crash when starting a duel — _Specific game (Yu-Gi-Oh Duel Links) crash mid-duel; needs per-game investigation._
-  - URL: https://github.com/Whisky-App/Whisky/issues/267
+- **#279**: [Bug]: Trackmania Turbo Doesn't Start — _Trackmania Turbo specific launch failure via Ubisoft Connect; not a covered launcher._
+  - URL: https://github.com/Whisky-App/Whisky/issues/279
+- **#314**: [Bug]: Age of Empire II DE doesn't work — _Age of Empires II DE specific launch failure via Steam; not in confirmed game DB._
+  - URL: https://github.com/Whisky-App/Whisky/issues/314
 
 ### Closed upstream — completed
 
@@ -132,4 +132,4 @@ Five-step heuristic classifier in `scripts/audit_upstream.py`. See
 
 Categories with all v1.0 requirements shipped: CFGF, GFXC, AUDT, PROC, STAB, GAME, TRBL, LNCH, CTRL, INST, UIUX, FEAT, MISC
 
-Citation breakdown: **8** in CHANGELOG, **0** in git log, **0** manual overrides, **396** LLM-classified.
+Citation breakdown: **17** in CHANGELOG, **0** in git log, **74** manual overrides, **313** LLM-classified.

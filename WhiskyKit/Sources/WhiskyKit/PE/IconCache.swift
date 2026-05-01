@@ -18,6 +18,7 @@
 
 import AppKit
 import Foundation
+import UniformTypeIdentifiers
 
 /// Thread-safe cache for program icons extracted from PE files.
 ///
@@ -73,6 +74,14 @@ public actor IconCache {
     public func iconAsync(for url: URL, peFile: PEFile? = nil) -> NSImage? {
         icon(for: url, peFile: peFile)
     }
+
+    /// Returns the extracted icon, or a generic Windows-executable system icon
+    /// if PE parsing fails. Use from views that should never render a blank tile.
+    public func iconOrFallback(for url: URL, peFile: PEFile? = nil) -> NSImage {
+        icon(for: url, peFile: peFile) ?? Self.fallbackIcon
+    }
+
+    private static let fallbackIcon: NSImage = NSWorkspace.shared.icon(for: .exe)
 
     /// Removes a specific icon from the cache.
     ///

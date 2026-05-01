@@ -152,9 +152,8 @@ struct ProgramView: View {
         .animation(.whiskyDefault, value: overridesSectionExpanded)
         .animation(.whiskyDefault, value: consoleRunsSectionExpanded)
         .task {
-            if let icon = await IconCache.shared.iconAsync(for: program.url, peFile: program.peFile) {
-                self.cachedIconImage = Image(nsImage: icon)
-            }
+            let icon = await IconCache.shared.iconOrFallback(for: program.url, peFile: program.peFile)
+            self.cachedIconImage = Image(nsImage: icon)
         }
         .onAppear {
             hasActiveSession = sessionStore.hasActiveSession(for: program.bottle.url)

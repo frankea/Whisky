@@ -45,7 +45,10 @@ struct PinCreationView: View {
                     panel.allowedContentTypes = [
                         UTType.exe,
                         UTType(exportedAs: "com.microsoft.msi-installer"),
-                        UTType(exportedAs: "com.microsoft.bat")
+                        UTType(exportedAs: "com.microsoft.bat"),
+                        UTType(exportedAs: "com.microsoft.msix-package"),
+                        UTType(exportedAs: "com.microsoft.appx-package"),
+                        UTType(exportedAs: "com.microsoft.application-reference")
                     ]
                     panel.directoryURL = newPinURL ?? bottle.url.appending(path: "drive_c")
                     panel.canChooseDirectories = false

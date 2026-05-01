@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Bottle creation now copies host fonts (Arial Unicode, Arial, Tahoma) into
+  `drive_c/windows/Fonts` so Unity titles render fallback glyphs instead of
+  empty boxes (Closes whisky-app/whisky#1050).
+- File pickers for "Run" and "Pin Program" now accept `.msix`, `.appx`, and
+  `.appref-ms` files in addition to `.exe`/`.msi`/`.bat`
+  (Closes whisky-app/whisky#815, #826).
+- Winetricks verb browser is searchable: filter the verb table by name or
+  description (Closes whisky-app/whisky#763).
+- Wine inherits the host timezone (`TZ`) so games keying off date/time render
+  correctly instead of treating the bottle as UTC
+  (Closes whisky-app/whisky#1001).
+- PE icon extraction returns a generic Windows-executable system icon when
+  parsing fails, so program tiles and pins never render blank
+  (Closes whisky-app/whisky#687).
+
+### Changed
+- Installed-programs list filters out known launcher helpers and crash
+  reporters (steamerrorreporter, steamservice, steamwebhelper, GameOverlayUI,
+  vc_redist, UEPrereqSetup, etc.) so the visible list stays clean by default
+  while leaving the user blocklist for app-specific filtering
+  (Closes whisky-app/whisky#432).
+- WhiskyWine download survives transient Wi-Fi/Ethernet/VPN disconnects via
+  `waitsForConnectivity` and bounded request/resource timeouts so a stalled
+  download surfaces an error instead of hanging forever
+  (Closes whisky-app/whisky#293, #995, #1020, #1070).
+
+### Fixed
+- Moving a bottle no longer wipes its pinned-program list. The `move()` loop
+  was shadowing the bottle's `url` with `pin.url`, causing
+  `updateParentBottle` to compare a pin path against itself instead of the
+  bottle root. Pin paths are now correctly rewritten to point at the new
+  bottle location (Closes whisky-app/whisky#830).
+- Right-click "Add to blocklist" no longer creates duplicate entries. The
+  context-menu actions dedupe against the existing blocklist before
+  appending, both for single-row and multi-selection cases
+  (Closes whisky-app/whisky#431).
+
 ## [3.0.1] - 2026-05-01 (App)
 
 ### Fixed

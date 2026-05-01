@@ -112,6 +112,9 @@ final class BottleVM: ObservableObject {
             let wineVer = try await Wine.wineVersion()
             createdBottle.settings.wineVersion = SemanticVersion(wineVer) ?? SemanticVersion(0, 0, 0)
 
+            // Bootstrap host fonts so Unity titles render fallback glyphs correctly.
+            BottleFontBootstrap.copySystemFonts(toPrefix: createdBottle.url)
+
             // Save settings
             createdBottle.saveBottleSettings()
 

@@ -96,6 +96,8 @@ iOSInjectionProject/
 .planning/audit/.llm_cache.json
 .planning/audit/batches/
 .planning/audit/decisions/
+.planning/audit/triage/
+.planning/audit/triage_decisions/
 __pycache__/
 .venv/
 

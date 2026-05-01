@@ -58,7 +58,9 @@ struct ProgramsView: View {
                         let selectedPrograms = selectedSearchedPrograms
                         if selectedPrograms.contains(program), selectedPrograms.count > 1 {
                             Button("program.add.selected.blocklist", systemImage: "hand.raised") {
-                                bottle.settings.blocklist.append(contentsOf: selectedPrograms.map(\.url))
+                                let existing = Set(bottle.settings.blocklist)
+                                let additions = selectedPrograms.map(\.url).filter { !existing.contains($0) }
+                                bottle.settings.blocklist.append(contentsOf: additions)
                                 blocklist = bottle.settings.blocklist
                             }
                             .labelStyle(.titleAndIcon)
@@ -67,7 +69,9 @@ struct ProgramsView: View {
 
                             Section {
                                 Button("program.add.blocklist", systemImage: "hand.raised") {
-                                    bottle.settings.blocklist.append(program.url)
+                                    if !bottle.settings.blocklist.contains(program.url) {
+                                        bottle.settings.blocklist.append(program.url)
+                                    }
                                     blocklist = bottle.settings.blocklist
                                 }
                                 .labelStyle(.titleAndIcon)

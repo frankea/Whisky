@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - File pickers for "Run" and "Pin Program" now accept `.msix`, `.appx`,
   `.appref-ms`, and `.url` files in addition to `.exe`/`.msi`/`.bat`. Steam
   desktop shortcuts (`.url`) launch correctly via Wine's `start` handler
-  (Closes whisky-app/whisky#756, #815, #826).
+  (Closes whisky-app/whisky#756, whisky-app/whisky#815, whisky-app/whisky#826).
 - Winetricks verb browser is searchable: filter the verb table by name or
   description (Closes whisky-app/whisky#763).
 - Wine inherits the host timezone (`TZ`) so games keying off date/time render
@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   would still trigger the screen saver
   (Closes whisky-app/whisky#547).
 - Bundled GameDB ships entries for Diablo IV, Skyrim Special Edition, and
-  Warhammer 40,000: Space Marine (Closes whisky-app/whisky#813, #1125, #1246).
+  Warhammer 40,000: Space Marine (Closes whisky-app/whisky#813, whisky-app/whisky#1125, whisky-app/whisky#1246).
 - Setup/Welcome view's "Uninstall" button now offers two options: remove the
   WhiskyWine runtime only (preserves bottles for later reinstall) or remove
   everything (runtime + default bottles directory + BottleData registry).
@@ -42,11 +42,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   vc_redist, UEPrereqSetup, the CrossOver HTML engine helper, etc.) so the
   visible list stays clean by default while leaving the user blocklist for
   app-specific filtering
-  (Closes whisky-app/whisky#432, #1215).
+  (Closes whisky-app/whisky#432, whisky-app/whisky#1215).
 - WhiskyWine download survives transient Wi-Fi/Ethernet/VPN disconnects via
   `waitsForConnectivity` and bounded request/resource timeouts so a stalled
   download surfaces an error instead of hanging forever
-  (Closes whisky-app/whisky#293, #995, #1020, #1070).
+  (Closes whisky-app/whisky#293, whisky-app/whisky#995, whisky-app/whisky#1020, whisky-app/whisky#1070).
 
 ### Fixed
 - Moving a bottle no longer wipes its pinned-program list. The `move()` loop

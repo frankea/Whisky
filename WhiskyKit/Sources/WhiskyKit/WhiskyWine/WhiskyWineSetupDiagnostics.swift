@@ -34,7 +34,7 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
     private static let reportSectionOverhead = 20
 
     private static let eventTimestampFormatter = Date.ISO8601FormatStyle()
-    private static let issueURL = "https://github.com/Whisky-App/Whisky/issues/63"
+    private static let issueURL = "https://github.com/frankea/Whisky/issues"
 
     public struct InstallAttempt: Codable, Sendable {
         public let startedAt: Date

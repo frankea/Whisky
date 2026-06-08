@@ -82,7 +82,7 @@ public struct FixPreview: Sendable {
 /// | `restart-wineserver` | Wineserver process restart | No |
 public enum FixApplicator { // swiftlint:disable:this type_body_length
     private static let logger = Logger(
-        subsystem: "com.isaacmarovitz.Whisky",
+        subsystem: "com.franke.Whisky",
         category: "FixApplicator"
     )
 

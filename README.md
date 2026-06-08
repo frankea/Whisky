@@ -88,6 +88,10 @@ If you have no critical bottles, you can skip the export — the new app will cr
 
 ## Documentation
 
+- **[Support](docs/SUPPORT.md)** - Where to file bugs and what to expect from a single-maintainer fork
+- **[Governance & continuity](docs/GOVERNANCE.md)** - Who maintains this and the honest bus-factor situation
+- **[Runtime dependencies](docs/DEPENDENCIES.md)** - The bundled Wine/DXVK/D3DMetal/DXMT versions and their upstream sources
+
 WhiskyKit, the core framework powering Whisky, has comprehensive API documentation:
 
 - **[WhiskyKit API Documentation](https://frankea.github.io/Whisky/documentation/whiskykit/)** - Full API reference with usage examples

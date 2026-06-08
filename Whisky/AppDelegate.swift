@@ -179,6 +179,6 @@ extension Notification.Name {
 
     /// Posted from program settings to navigate to the Audio troubleshooting panel.
     static let openAudioTroubleshooting = Notification.Name(
-        "com.isaacmarovitz.Whisky.openAudioTroubleshooting"
+        "com.franke.Whisky.openAudioTroubleshooting"
     )
 }

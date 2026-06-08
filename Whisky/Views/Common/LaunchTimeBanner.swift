@@ -54,7 +54,7 @@ extension Notification.Name {
     /// Posted when the user taps "View Details" on the launch-time banner to
     /// navigate to the Launcher section in ConfigView.
     static let openLauncherConfig = Notification.Name(
-        "com.isaacmarovitz.Whisky.openLauncherConfig"
+        "com.franke.Whisky.openLauncherConfig"
     )
 }
 

@@ -29,7 +29,7 @@ import os.log
 /// early. In release builds, failures return nil or empty collections gracefully.
 public enum FlowLoader {
     private static let logger = Logger(
-        subsystem: "com.isaacmarovitz.Whisky",
+        subsystem: "com.franke.Whisky",
         category: "FlowLoader"
     )
 

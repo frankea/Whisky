@@ -53,7 +53,7 @@ public struct WinePrefixDiagnostics: Codable, Sendable {
     /// Maximum report size in UTF-8 bytes to keep sharing manageable.
     public static let maxReportBytes = 8_000
 
-    private static let issueURL = "https://github.com/Whisky-App/Whisky/issues/64"
+    private static let issueURL = "https://github.com/frankea/Whisky/issues"
     private static let eventTimestampFormatter = Date.ISO8601FormatStyle()
 
     // MARK: - Prefix State

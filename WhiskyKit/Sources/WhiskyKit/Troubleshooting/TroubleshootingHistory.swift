@@ -78,7 +78,7 @@ public struct TroubleshootingHistory: Codable, Sendable {
             let data = try Data(contentsOf: url)
             return try PropertyListDecoder().decode(TroubleshootingHistory.self, from: data)
         } catch {
-            Logger(subsystem: "com.isaacmarovitz.Whisky", category: "TroubleshootingHistory")
+            Logger(subsystem: "com.franke.Whisky", category: "TroubleshootingHistory")
                 .error("Failed to load troubleshooting history: \(error.localizedDescription)")
             return TroubleshootingHistory()
         }
@@ -95,7 +95,7 @@ public struct TroubleshootingHistory: Codable, Sendable {
             let data = try encoder.encode(self)
             try data.write(to: url, options: .atomic)
         } catch {
-            Logger(subsystem: "com.isaacmarovitz.Whisky", category: "TroubleshootingHistory")
+            Logger(subsystem: "com.franke.Whisky", category: "TroubleshootingHistory")
                 .error("Failed to save troubleshooting history: \(error.localizedDescription)")
         }
     }

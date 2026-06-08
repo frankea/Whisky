@@ -883,6 +883,6 @@ struct ProgramOverrideSettingsView: View {
 extension Notification.Name {
     /// Posted to navigate to the Dependencies section in ConfigView.
     static let openDependenciesSection = Notification.Name(
-        "com.isaacmarovitz.Whisky.openDependenciesSection"
+        "com.franke.Whisky.openDependenciesSection"
     )
 }

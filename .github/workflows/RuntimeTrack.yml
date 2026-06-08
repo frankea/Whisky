@@ -1,0 +1,87 @@
+name: Runtime Dependency Tracking
+
+# Polls the upstream sources of the bundled Wine runtime and opens a tracking issue when a pinned
+# component falls behind its latest upstream release. The runtime (Libraries.tar.gz) is assembled
+# from third-party binaries; this keeps that otherwise-invisible dependency visible.
+#
+# Pinned tags live below in `env`. When you cut a new runtime release, bump the matching *_PINNED tag
+# to whatever you actually consumed and keep docs/DEPENDENCIES.md in sync. A pin left as "SET_ME"
+# is treated as informational only (reported, never flagged as drift) so this is safe to run unattended.
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'   # Mondays 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  # repo (owner/name)         pinned upstream tag we currently bundle
+  WINE_REPO: Gcenx/macOS_Wine_builds
+  WINE_PINNED: SET_ME
+  DXVK_REPO: Gcenx/DXVK-macOS
+  DXVK_PINNED: SET_ME
+  DXMT_REPO: 3Shain/dxmt
+  DXMT_PINNED: SET_ME
+
+jobs:
+  track:
+    name: Check runtime upstreams
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compare pinned vs latest and open an issue on drift
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          latest_tag() {
+            # Latest *published* release tag for a repo, or empty string if none.
+            gh api "repos/$1/releases/latest" --jq '.tag_name' 2>/dev/null || true
+          }
+
+          drift_body=""
+          summary="| Component | Pinned | Latest upstream | Status |\n|---|---|---|---|\n"
+
+          check() {
+            local name="$1" repo="$2" pinned="$3"
+            local latest
+            latest="$(latest_tag "$repo")"
+            latest="${latest:-(none found)}"
+            local status
+            if [ "$pinned" = "SET_ME" ]; then
+              status="ℹ️ pin not set"
+            elif [ "$pinned" = "$latest" ]; then
+              status="✅ current"
+            else
+              status="⚠️ behind"
+              drift_body="${drift_body}- **${name}** (\`${repo}\`): bundled \`${pinned}\` → latest \`${latest}\`\n"
+            fi
+            summary="${summary}| ${name} | ${pinned} | ${latest} | ${status} |\n"
+          }
+
+          check "Wine"  "$WINE_REPO" "$WINE_PINNED"
+          check "DXVK"  "$DXVK_REPO" "$DXVK_PINNED"
+          check "DXMT"  "$DXMT_REPO" "$DXMT_PINNED"
+
+          printf "### Runtime dependency check\n\n%b\n" "$summary" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ -z "$drift_body" ]; then
+            echo "No drift detected."
+            exit 0
+          fi
+
+          title="Runtime dependency drift detected"
+          existing="$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number' || true)"
+          body="$(printf "One or more bundled runtime components are behind upstream:\n\n%b\nReview, test, and (if appropriate) bump the runtime per docs/ReleaseWorkflow.md, then update the pinned tags in .github/workflows/RuntimeTrack.yml and docs/DEPENDENCIES.md.\n\n_Filed automatically by RuntimeTrack._" "$drift_body")"
+
+          if [ -n "${existing:-}" ] && [ "${existing}" != "null" ]; then
+            gh issue comment "$existing" --body "$body"
+            echo "Updated existing tracking issue #$existing"
+          else
+            gh issue create --title "$title" --label runtime --body "$body"
+            echo "Opened new tracking issue"
+          fi

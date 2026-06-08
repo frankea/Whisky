@@ -38,7 +38,7 @@ public final class WineAudioTestProbe: AudioProbe, @unchecked Sendable {
     private let bottle: Bottle
     private let testExeURL: URL?
     private let logger = Logger(
-        subsystem: "com.isaacmarovitz.Whisky",
+        subsystem: "com.franke.Whisky",
         category: "WineAudioTestProbe"
     )
 

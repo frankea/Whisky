@@ -40,7 +40,7 @@ public final class CheckRegistry: @unchecked Sendable {
     private var checks: [String: any TroubleshootingCheck] = [:]
 
     private let logger = Logger(
-        subsystem: "com.isaacmarovitz.Whisky",
+        subsystem: "com.franke.Whisky",
         category: "CheckRegistry"
     )
 

@@ -26,7 +26,7 @@ import os.log
 /// flow load time to catch authoring errors early.
 public enum FlowValidator {
     private static let logger = Logger(
-        subsystem: "com.isaacmarovitz.Whisky",
+        subsystem: "com.franke.Whisky",
         category: "FlowValidator"
     )
 

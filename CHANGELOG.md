@@ -67,6 +67,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (Closes whisky-app/whisky#411).
 
 ### Changed
+- Diagnostic reports (WhiskyWine setup and Wine prefix) now link to this fork's issue tracker
+  (`frankea/Whisky`) instead of the archived upstream, so reports reach a maintained repo. Internal
+  Logger subsystems and notification names also moved off the archived `com.isaacmarovitz.Whisky`
+  namespace onto `com.franke.Whisky`.
 - Bundled GameDB grows by 4 more entries from the third-pass retriage:
   DJMAX RESPECT V (Korean fonts + DXVK), They Are Billions (vcrun + DXVK),
   SpellForce 3 (corefonts + d3dcompiler), Fallout 4 (Sequoia compat + xact)
@@ -113,6 +117,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   context-menu actions dedupe against the existing blocklist before
   appending, both for single-row and multi-selection cases
   (Closes whisky-app/whisky#431).
+
+### Documentation
+- Added project governance and support docs: `docs/GOVERNANCE.md` (honest single-maintainer
+  continuity stance), `docs/SUPPORT.md` (where to file and what to expect), and
+  `.planning/DEPENDENCIES.md` (pinned Wine/DXVK/D3DMetal/DXMT runtime components and their sources).
+- Documented the reproducible runtime-assembly procedure in `docs/ReleaseWorkflow.md` (previously
+  marked "out of scope") and added a weekly `RuntimeTrack` workflow that flags when a bundled runtime
+  component falls behind upstream. The bug-report template now asks reporters to confirm they're on
+  this fork rather than the archived original.
 
 ## [3.0.1] - 2026-05-01 (App)
 

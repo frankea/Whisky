@@ -138,7 +138,7 @@ class ControllerMonitor: ObservableObject {
     var recentHistory: [ControllerHistoryEntry] = []
 
     private let logger = Logger(
-        subsystem: "com.isaacmarovitz.Whisky",
+        subsystem: "com.franke.Whisky",
         category: "ControllerMonitor"
     )
 

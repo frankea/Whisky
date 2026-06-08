@@ -28,6 +28,7 @@ private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.fran
 // swiftlint:disable:next type_body_length
 struct WhiskyApp: App {
     @State var showSetup: Bool = false
+    @State private var showMigrate: Bool = false
     @State private var showDiagnosticsSheet: Bool = false
     @State private var showTroubleshootingPicker: Bool = false
     @State private var showTroubleshootingWizard: Bool = false
@@ -95,6 +96,10 @@ struct WhiskyApp: App {
                         )
                     }
                 }
+                .sheet(isPresented: $showMigrate) {
+                    MigrateBottlesSheet()
+                        .environmentObject(BottleVM.shared)
+                }
                 .overlay(alignment: .top) {
                     if let banner = crashDiagnosisBanner {
                         crashDiagnosisBannerView(banner)
@@ -140,6 +145,9 @@ struct WhiskyApp: App {
                     }
                 }
                 .keyboardShortcut("I", modifiers: [.command])
+                Button("Migrate from the Original Whisky…") {
+                    showMigrate = true
+                }
             }
             CommandGroup(after: .importExport) {
                 Button("open.logs") {

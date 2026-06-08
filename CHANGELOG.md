@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **File → Migrate from the Original Whisky** discovers bottles created by the
+  archived original app (`com.isaacmarovitz.Whisky`) and imports them in one
+  step, with checkboxes to choose which. Bottles are referenced in place —
+  nothing is moved or copied — so the import is non-destructive and the original
+  app keeps working, replacing the previous manual export/import dance.
 - Bottle creation now copies host fonts (Arial Unicode, Arial, Tahoma) into
   `drive_c/windows/Fonts` so Unity titles render fallback glyphs instead of
   empty boxes (Closes whisky-app/whisky#1050).

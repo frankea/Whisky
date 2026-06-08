@@ -134,9 +134,12 @@ struct MigrateBottlesSheet: View {
     }
 
     private func importSelected() {
-        for url in rows.filter(\.isSelected).map(\.bottle.url)
-            where !bottleVM.bottlesList.paths.contains(url) {
-            bottleVM.bottlesList.paths.append(url)
+        let existing = bottleVM.bottlesList.paths
+        let toAdd = rows.filter(\.isSelected).map(\.bottle.url).filter { !existing.contains($0) }
+        if !toAdd.isEmpty {
+            // Assign once: `BottleData.paths` re-encodes the registry plist in its didSet,
+            // so appending in a loop would rewrite it N times.
+            bottleVM.bottlesList.paths = existing + toAdd
         }
         bottleVM.loadBottles()
         dismiss()

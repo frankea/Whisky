@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import SemanticVersion
 @testable import WhiskyKit
 import XCTest
 
@@ -115,6 +116,42 @@ final class LegacyBottleImportTests: XCTestCase {
 
         // Discovery is non-destructive: the original metadata is untouched.
         XCTAssertEqual(try Data(contentsOf: metadata), before)
+    }
+
+    func testReadsRealNameWithoutRewritingMetadata() throws {
+        let bottles = try bottlesDir()
+        let dir = bottles.appending(path: "real-bottle")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let metadata = dir.appending(path: "Metadata").appendingPathExtension("plist")
+
+        var settings = BottleSettings()
+        settings.name = "My Real Bottle"
+        // Deliberately differ from the current default so the writing BottleSettings.decode(from:)
+        // path would rewrite this file — discovery must not.
+        settings.wineVersion = SemanticVersion(0, 0, 1)
+        try settings.encode(to: metadata)
+        let before = try Data(contentsOf: metadata)
+
+        let discovered = LegacyBottleImport.importableBottles(legacyContainer: container, existingPaths: [])
+        XCTAssertEqual(discovered.map(\.url), [dir.standardizedFileURL])
+        XCTAssertEqual(discovered.first?.name, "My Real Bottle")
+        XCTAssertEqual(
+            try Data(contentsOf: metadata),
+            before,
+            "discovery must not rewrite the original bottle's metadata"
+        )
+    }
+
+    func testExcludesRegistryEntriesWhoseDirectoryIsGone() throws {
+        // The original registry can list a bottle whose directory was since deleted; it must
+        // not be offered for import (no Metadata.plist marker to validate).
+        let bottles = try bottlesDir()
+        let present = try makeBottle("present", in: bottles)
+        let deleted = container.appending(path: "Bottles").appending(path: "deleted").standardizedFileURL
+        try writeRegistry([present, deleted])
+
+        let found = LegacyBottleImport.importableBottleURLs(legacyContainer: container, existingPaths: [])
+        XCTAssertEqual(found, [present])
     }
 
     func testReturnsEmptyWhenContainerMissing() {

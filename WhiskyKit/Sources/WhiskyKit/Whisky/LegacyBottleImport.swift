@@ -116,17 +116,31 @@ public enum LegacyBottleImport {
     }
 
     /// Like ``importableBottleURLs(legacyContainer:existingPaths:)`` but also reads each bottle's
-    /// display name. Names are read **non-destructively** with ``BottleSettings/decode(from:)`` —
-    /// unlike constructing a ``Bottle``, this never rewrites the original bottle's metadata.
+    /// display name. Names are read **non-destructively** (see ``readOnlyName(at:)``) — discovery
+    /// must never mutate the original app's bottles.
     public static func importableBottles(
         legacyContainer: URL = legacyContainerDirectory,
         existingPaths: [URL]
     ) -> [DiscoveredBottle] {
         importableBottleURLs(legacyContainer: legacyContainer, existingPaths: existingPaths).map { url in
-            let metadata = url.appending(path: "Metadata").appendingPathExtension("plist")
-            let name = (try? BottleSettings.decode(from: metadata))?.name ?? url.lastPathComponent
-            return DiscoveredBottle(url: url, name: name)
+            DiscoveredBottle(url: url, name: readOnlyName(at: url) ?? url.lastPathComponent)
         }
+    }
+
+    /// Reads a bottle's display name from its `Metadata.plist` **without writing anything**.
+    ///
+    /// This decodes `BottleSettings` directly via `PropertyListDecoder` (whose `init(from:)` is
+    /// pure). It deliberately does **not** use `BottleSettings.decode(from:)` or construct a
+    /// `Bottle`: both of those rewrite the metadata file when the bottle's file/wine version
+    /// differs from the current app's defaults — which a bottle from the original app almost
+    /// always does — and that would silently mutate the user's original bottles just by opening
+    /// the migration sheet. Returns `nil` if the metadata is missing or undecodable.
+    private static func readOnlyName(at bottleURL: URL) -> String? {
+        let metadata = bottleURL.appending(path: "Metadata").appendingPathExtension("plist")
+        guard let data = try? Data(contentsOf: metadata),
+              let settings = try? PropertyListDecoder().decode(BottleSettings.self, from: data)
+        else { return nil }
+        return settings.name
     }
 
     /// A directory is treated as a bottle when it contains a `Metadata.plist`, the marker

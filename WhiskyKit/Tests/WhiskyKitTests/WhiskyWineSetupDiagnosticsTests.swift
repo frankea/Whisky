@@ -16,6 +16,7 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import SemanticVersion
 @testable import WhiskyKit
 import XCTest
 
@@ -41,6 +42,42 @@ final class WhiskyWineSetupDiagnosticsTests: XCTestCase {
         // The [VERSION] section is always present; the runtime/DXVK lines under it
         // only render when an installed runtime plist records them.
         XCTAssertTrue(report.contains("[VERSION]"))
+    }
+
+    func testVersionSectionRendersRuntimeAndDXVK() {
+        let info = WhiskyWineVersion(version: SemanticVersion(3, 0, 0), dxvkVersion: "1.10.3")
+
+        let lines = WhiskyWineSetupDiagnostics.versionSectionLines(for: info)
+
+        XCTAssertEqual(lines.first, "[VERSION]")
+        XCTAssertTrue(lines.contains("WhiskyWine: 3.0.0"))
+        XCTAssertTrue(lines.contains("DXVK: 1.10.3"))
+    }
+
+    func testVersionSectionOmitsDXVKWhenAbsent() {
+        let info = WhiskyWineVersion(version: SemanticVersion(3, 0, 0))
+
+        let lines = WhiskyWineSetupDiagnostics.versionSectionLines(for: info)
+
+        XCTAssertTrue(lines.contains("WhiskyWine: 3.0.0"))
+        XCTAssertFalse(lines.contains(where: { $0.hasPrefix("DXVK:") }))
+    }
+
+    func testVersionSectionOmitsBlankDXVK() {
+        // An empty DXVK string normalizes to nil, so no dangling "DXVK:" line.
+        let info = WhiskyWineVersion(version: SemanticVersion(3, 0, 0), dxvkVersion: "")
+
+        let lines = WhiskyWineSetupDiagnostics.versionSectionLines(for: info)
+
+        XCTAssertFalse(lines.contains(where: { $0.hasPrefix("DXVK:") }))
+    }
+
+    func testVersionSectionHeaderOnlyWhenNoRuntime() {
+        let lines = WhiskyWineSetupDiagnostics.versionSectionLines(for: nil)
+
+        XCTAssertEqual(lines.first, "[VERSION]")
+        XCTAssertFalse(lines.contains(where: { $0.hasPrefix("WhiskyWine:") }))
+        XCTAssertFalse(lines.contains(where: { $0.hasPrefix("DXVK:") }))
     }
 
     func testEventTruncationKeepsMostRecent() {

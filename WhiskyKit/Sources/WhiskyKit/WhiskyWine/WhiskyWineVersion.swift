@@ -47,7 +47,7 @@ public struct WhiskyWineVersion: Codable {
 
     public init(version: SemanticVersion, dxvkVersion: String? = nil) {
         self.version = version
-        self.dxvkVersion = dxvkVersion
+        self.dxvkVersion = Self.normalized(dxvkVersion)
     }
 
     public init(from decoder: Decoder) throws {
@@ -57,7 +57,14 @@ public struct WhiskyWineVersion: Codable {
         let minor = try versionDict.decode(Int.self, forKey: .minor)
         let patch = try versionDict.decode(Int.self, forKey: .patch)
         version = SemanticVersion(major, minor, patch)
-        dxvkVersion = try container.decodeIfPresent(String.self, forKey: .dxvkVersion)
+        dxvkVersion = try Self.normalized(container.decodeIfPresent(String.self, forKey: .dxvkVersion))
+    }
+
+    /// Collapses an empty DXVK version string to `nil` so "absent" and "blank"
+    /// map to the same state (and never render as a dangling `DXVK:` line).
+    private static func normalized(_ value: String?) -> String? {
+        guard let value, !value.isEmpty else { return nil }
+        return value
     }
 
     public func encode(to encoder: Encoder) throws {

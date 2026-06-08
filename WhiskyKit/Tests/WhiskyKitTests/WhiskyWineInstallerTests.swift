@@ -96,4 +96,30 @@ final class WhiskyWineInstallerTests: XCTestCase {
 
         XCTAssertNil(WhiskyWineInstaller.whiskyWineInfo(at: missing))
     }
+
+    func testWhiskyWineInfoAtMalformedFileReturnsNil() throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        // A present-but-corrupt plist must be swallowed to nil, not crash.
+        let garbageURL = tempDir.appendingPathComponent("WhiskyWineVersion").appendingPathExtension("plist")
+        try Data("this is not a plist".utf8).write(to: garbageURL)
+
+        XCTAssertNil(WhiskyWineInstaller.whiskyWineInfo(at: garbageURL))
+    }
+
+    func testWhiskyWineInfoAtPartialPlistReturnsNil() throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        // Valid plist but missing a required version field — decode throws, swallowed to nil.
+        let partialURL = tempDir.appendingPathComponent("WhiskyWineVersion").appendingPathExtension("plist")
+        let plist: [String: Any] = ["version": ["major": 3, "minor": 0]]
+        let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+        try data.write(to: partialURL)
+
+        XCTAssertNil(WhiskyWineInstaller.whiskyWineInfo(at: partialURL))
+    }
 }

@@ -259,9 +259,10 @@ public class WhiskyWineInstaller {
         return whiskyWineInfo(at: versionPlist)
     }
 
-    /// Reads a WhiskyWine version record from an arbitrary plist URL.
+    /// Reads a WhiskyWine version record from a plist at an arbitrary URL.
     ///
-    /// Exposed for testability; ``whiskyWineInfo()`` is the production entry point.
+    /// ``whiskyWineInfo()`` resolves the installed location; this overload reads
+    /// any plist URL (also convenient for tests).
     ///
     /// - Parameter url: The location of a `WhiskyWineVersion.plist` file.
     /// - Returns: The decoded record, or `nil` if it is missing or malformed.
@@ -270,8 +271,13 @@ public class WhiskyWineInstaller {
             let decoder = PropertyListDecoder()
             let data = try Data(contentsOf: url)
             return try decoder.decode(WhiskyWineVersion.self, from: data)
+        } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
+            // Expected when WhiskyWine simply isn't installed yet.
+            logger.debug("WhiskyWine version plist absent: \(error.localizedDescription)")
+            return nil
         } catch {
-            logger.debug("WhiskyWine version not found: \(error.localizedDescription)")
+            // Present but unreadable/undecodable — likely a corrupt install.
+            logger.error("WhiskyWine version plist unreadable, likely corrupt: \(error.localizedDescription)")
             return nil
         }
     }

@@ -125,6 +125,7 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         lines.reserveCapacity(estimatedCapacity)
 
         appendHeaderLines(into: &lines, stage: stage, error: error)
+        appendVersionLines(into: &lines)
         appendNetworkLines(into: &lines)
         appendProgressLines(into: &lines)
         appendInstallAttemptLines(into: &lines)
@@ -139,6 +140,14 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         lines.append("Stage: \(stage)")
         lines.append("Generated: \(Date().formatted(Self.eventTimestampFormatter))")
         appendIfPresent("Error", value: error, into: &lines)
+        lines.append("")
+    }
+
+    private func appendVersionLines(into lines: inout [String]) {
+        lines.append("[VERSION]")
+        let info = WhiskyWineInstaller.whiskyWineInfo()
+        appendIfPresent("WhiskyWine", value: info?.version.description, into: &lines)
+        appendIfPresent("DXVK", value: info?.dxvkVersion, into: &lines)
         lines.append("")
     }
 

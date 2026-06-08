@@ -70,6 +70,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   everything (runtime + default bottles directory + BottleData registry).
   Bottles at custom paths outside the default directory are preserved
   (Closes whisky-app/whisky#411).
+- The bundled DXVK version is now tracked alongside the runtime version. The
+  WhiskyWine version record carries an optional `dxvkVersion`, and the setup
+  diagnostics report gained a `[VERSION]` section listing the installed runtime
+  and DXVK versions to speed up triage of runtime-mismatch issues. The field is
+  backward-compatible: runtime plists without it still load.
 
 ### Changed
 - Diagnostic reports (WhiskyWine setup and Wine prefix) now link to this fork's issue tracker

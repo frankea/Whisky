@@ -238,15 +238,38 @@ public class WhiskyWineInstaller {
     ///   or `nil` if WhiskyWine is not installed or the version
     ///   file cannot be read.
     public static func whiskyWineVersion() -> SemanticVersion? {
-        do {
-            let versionPlist = libraryFolder
-                .appending(path: "WhiskyWineVersion")
-                .appendingPathExtension("plist")
+        whiskyWineInfo()?.version
+    }
 
+    /// The bundled DXVK (macOS) version recorded in the installed runtime's
+    /// version plist, or `nil` if WhiskyWine is not installed or the plist does
+    /// not record a DXVK version.
+    public static func whiskyWineDXVKVersion() -> String? {
+        whiskyWineInfo()?.dxvkVersion
+    }
+
+    /// Reads the full version record from the installed WhiskyWine runtime.
+    ///
+    /// - Returns: The decoded ``WhiskyWineVersion``, or `nil` if WhiskyWine is
+    ///   not installed or the version file cannot be read.
+    public static func whiskyWineInfo() -> WhiskyWineVersion? {
+        let versionPlist = libraryFolder
+            .appending(path: "WhiskyWineVersion")
+            .appendingPathExtension("plist")
+        return whiskyWineInfo(at: versionPlist)
+    }
+
+    /// Reads a WhiskyWine version record from an arbitrary plist URL.
+    ///
+    /// Exposed for testability; ``whiskyWineInfo()`` is the production entry point.
+    ///
+    /// - Parameter url: The location of a `WhiskyWineVersion.plist` file.
+    /// - Returns: The decoded record, or `nil` if it is missing or malformed.
+    public static func whiskyWineInfo(at url: URL) -> WhiskyWineVersion? {
+        do {
             let decoder = PropertyListDecoder()
-            let data = try Data(contentsOf: versionPlist)
-            let info = try decoder.decode(WhiskyWineVersion.self, from: data)
-            return info.version
+            let data = try Data(contentsOf: url)
+            return try decoder.decode(WhiskyWineVersion.self, from: data)
         } catch {
             logger.debug("WhiskyWine version not found: \(error.localizedDescription)")
             return nil

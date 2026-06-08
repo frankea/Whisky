@@ -260,6 +260,59 @@ final class WhiskyWineVersionInitializerTests: XCTestCase {
     }
 }
 
+// MARK: - DXVK Version Tests
+
+final class WhiskyWineVersionDXVKTests: XCTestCase {
+    func testDecodeWithDXVKVersion() throws {
+        let plist: [String: Any] = [
+            "version": ["major": 3, "minor": 0, "patch": 0],
+            "dxvkVersion": "1.10.3"
+        ]
+
+        let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+        let versionInfo = try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)
+
+        XCTAssertEqual(versionInfo.version, SemanticVersion(3, 0, 0))
+        XCTAssertEqual(versionInfo.dxvkVersion, "1.10.3")
+    }
+
+    func testDecodeWithoutDXVKVersionIsNil() throws {
+        // Older runtime plists predate the dxvkVersion key and must still decode.
+        let plist: [String: Any] = [
+            "version": ["major": 3, "minor": 0, "patch": 0]
+        ]
+
+        let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+        let versionInfo = try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)
+
+        XCTAssertNil(versionInfo.dxvkVersion)
+    }
+
+    func testRoundTripPreservesDXVKVersion() throws {
+        let original = WhiskyWineVersion(version: SemanticVersion(3, 0, 0), dxvkVersion: "1.10.3")
+
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(original)
+        let decoded = try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)
+
+        XCTAssertEqual(decoded.version, original.version)
+        XCTAssertEqual(decoded.dxvkVersion, "1.10.3")
+    }
+
+    func testNilDXVKVersionIsOmittedFromEncoding() throws {
+        let original = WhiskyWineVersion(version: SemanticVersion(3, 0, 0))
+
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(original)
+        let plist = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+
+        XCTAssertNotNil(plist)
+        XCTAssertNil(plist?["dxvkVersion"], "A nil DXVK version should not be written to the plist")
+    }
+}
+
 // MARK: - Test Helper Types
 
 private struct VersionComponents {

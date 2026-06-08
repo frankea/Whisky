@@ -11,5 +11,7 @@
 		<key>patch</key>
 		<integer>0</integer>
 	</dict>
+	<key>dxvkVersion</key>
+	<string>1.10.3</string>
 </dict>
 </plist>

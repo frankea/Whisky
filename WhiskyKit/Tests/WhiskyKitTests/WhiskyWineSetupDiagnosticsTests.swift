@@ -33,6 +33,16 @@ final class WhiskyWineSetupDiagnosticsTests: XCTestCase {
         XCTAssertTrue(report.contains("[EVENTS]"))
     }
 
+    func testReportIncludesVersionSection() {
+        let diagnostics = WhiskyWineSetupDiagnostics()
+
+        let report = diagnostics.reportString(stage: "install", error: "boom")
+
+        // The [VERSION] section is always present; the runtime/DXVK lines under it
+        // only render when an installed runtime plist records them.
+        XCTAssertTrue(report.contains("[VERSION]"))
+    }
+
     func testEventTruncationKeepsMostRecent() {
         var diagnostics = WhiskyWineSetupDiagnostics()
         let overflowEventCount = 5

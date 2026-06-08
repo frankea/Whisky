@@ -41,10 +41,16 @@ flags:
     paths:
       - WhiskyKit/Sources/**
     carryforward: true
+  whiskyapp:
+    paths:
+      - Whisky/**
+    carryforward: true
 
 # Ignore paths from coverage calculation
 ignore:
   - "WhiskyKit/Tests/**"
+  - "WhiskyTests/**"
+  - "WhiskyUITests/**"
   - "**/*.generated.swift"
   - "**/Preview Content/**"
 
@@ -63,3 +69,7 @@ component_management:
       name: WhiskyKit
       paths:
         - WhiskyKit/Sources/**
+    - component_id: whiskyapp
+      name: Whisky (app)
+      paths:
+        - Whisky/**

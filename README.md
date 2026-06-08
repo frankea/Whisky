@@ -121,10 +121,12 @@ against the WhiskyKit Swift package per
 "WhiskyKit unit-test coverage," not full-app coverage.
 
 WhiskyUITests gives behavioural coverage of the SwiftUI surface (toolbar,
-create-bottle sheet, fixture-dependent flows), but those tests don't feed
-the Codecov number. A future job that runs `xcodebuild test
--enableCodeCoverage YES` against the `Whisky` scheme would close that
-gap; tracked as a follow-up.
+create-bottle sheet, fixture-dependent flows). CI now runs them with
+`-enableCodeCoverage YES` and uploads the resulting app-target coverage to
+Codecov under a separate `whiskyapp` flag (best-effort — the upload never gates
+CI). Because UI tests exercise far less of the app than the unit tests do of
+WhiskyKit, expect the app-target number to read lower than the WhiskyKit badge
+above.
 
 ---
 

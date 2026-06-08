@@ -111,10 +111,23 @@ public extension Process {
         fileHandle: FileHandle?
     ) -> @Sendable (FileHandle) -> Void {
         { pipeHandle in
-            guard let line = pipeHandle.nextLine() else { return }
-            outputLock.lock()
-            defer { outputLock.unlock() }
-            self.emit(line: line, kind: kind, continuation: continuation, fileHandle: fileHandle)
+            switch pipeHandle.nextOutput() {
+            case .endOfFile:
+                // The pipe's write end closed while this handler is still installed
+                // (the process can stop writing well before it exits). `readabilityHandler`
+                // keeps firing on the permanently-readable EOF condition, pegging a CPU
+                // core, so remove it here. Any final bytes are drained by the termination
+                // handler's `readToEnd` (whisky-app/whisky#917).
+                pipeHandle.readabilityHandler = nil
+            case .pending:
+                // Non-empty but not yet decodable (e.g. a split multi-byte sequence) —
+                // keep the handler installed and wait for the next read.
+                return
+            case let .text(line):
+                outputLock.lock()
+                defer { outputLock.unlock() }
+                self.emit(line: line, kind: kind, continuation: continuation, fileHandle: fileHandle)
+            }
         }
     }
 
@@ -217,12 +230,26 @@ public extension Process {
 }
 
 extension FileHandle {
-    func nextLine() -> String? {
-        guard let line = String(data: availableData, encoding: .utf8) else { return nil }
-        if !line.isEmpty {
-            return line
-        } else {
-            return nil
-        }
+    /// The classification of a single read from a pipe's readable end.
+    enum OutputRead: Equatable {
+        /// Decodable, non-empty output ready to emit.
+        case text(String)
+        /// A non-empty but not-yet-decodable chunk (e.g. a split multi-byte
+        /// sequence); the caller should keep reading.
+        case pending
+        /// An empty read: the pipe's write end has closed. The caller should
+        /// remove its `readabilityHandler`, which otherwise fires continuously
+        /// on the permanently-readable EOF condition.
+        case endOfFile
+    }
+
+    /// Reads the next available chunk, distinguishing EOF (an empty read) from a
+    /// merely not-yet-decodable chunk. The distinction lets a `readabilityHandler`
+    /// stop itself on EOF instead of spinning on it (whisky-app/whisky#917).
+    func nextOutput() -> OutputRead {
+        let data = availableData
+        guard !data.isEmpty else { return .endOfFile }
+        guard let text = String(data: data, encoding: .utf8), !text.isEmpty else { return .pending }
+        return .text(text)
     }
 }

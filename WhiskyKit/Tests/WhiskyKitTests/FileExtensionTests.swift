@@ -334,20 +334,26 @@ final class FileManagerReplaceDLLsTests: XCTestCase {
 
     func testReplaceDLLsReplacesDLLWhenNonDLLPresent() throws {
         // Regression: a non-DLL entry in the source directory must not abort the
-        // copy before later DLLs are processed. The non-DLL files are created
-        // first so the enumerator is likely to yield one before the DLL.
-        try Data("notes".utf8).write(to: sourceDir.appending(path: "readme.txt"))
-        try Data("cache".utf8).write(to: sourceDir.appending(path: ".DS_Store"))
+        // copy. With the old early-return, the first non-DLL the enumerator
+        // yielded skipped every remaining DLL. `enumerator(at:)` order is
+        // unspecified, so we interleave several non-DLL files among multiple
+        // DLLs and assert that *all* DLLs are replaced regardless of order.
+        for name in ["aaa.txt", "mmm.cfg", ".DS_Store", "zzz.log"] {
+            try Data("ignore".utf8).write(to: sourceDir.appending(path: name))
+        }
 
-        let destDLL = destinationDir.appending(path: "core.dll")
-        let srcDLL = sourceDir.appending(path: "core.dll")
-        try Data("original dll".utf8).write(to: destDLL)
-        try Data("new dll".utf8).write(to: srcDLL)
+        let dllNames = ["d3d9.dll", "d3d11.dll", "dxgi.dll", "d3d10.dll"]
+        for name in dllNames {
+            try Data("original".utf8).write(to: destinationDir.appending(path: name))
+            try Data("replacement".utf8).write(to: sourceDir.appending(path: name))
+        }
 
         try FileManager.default.replaceDLLs(in: destinationDir, withContentsIn: sourceDir)
 
-        let content = try String(contentsOf: destDLL, encoding: .utf8)
-        XCTAssertEqual(content, "new dll", "DLL must be replaced even when non-DLL files are also present")
+        for name in dllNames {
+            let content = try String(contentsOf: destinationDir.appending(path: name), encoding: .utf8)
+            XCTAssertEqual(content, "replacement", "\(name) must be replaced even when non-DLL files are present")
+        }
     }
 
     func testReplaceDLLsWithMakeOriginalCopy() throws {

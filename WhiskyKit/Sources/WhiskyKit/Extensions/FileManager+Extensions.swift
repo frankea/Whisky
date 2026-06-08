@@ -27,9 +27,10 @@ extension FileManager {
         )
 
         while let fileURL = enumerator?.nextObject() as? URL {
-            // Skip non-DLL entries (e.g. .DS_Store, license files) and keep
-            // scanning. Using `return` here would abort the whole copy on the
-            // first non-DLL the enumerator yields, silently leaving later DLLs
+            // Skip non-DLL entries and keep scanning. The enumerator is
+            // recursive, so it also yields subdirectory URLs and stray files
+            // (.DS_Store, license text). Using `return` here would abort the
+            // whole copy on the first such entry, silently leaving later DLLs
             // uninstalled.
             guard fileURL.pathExtension == "dll" else { continue }
             let originalURL = destinationDirectory.appending(path: fileURL.lastPathComponent)

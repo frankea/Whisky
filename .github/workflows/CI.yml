@@ -152,6 +152,9 @@ jobs:
         run: |
           brew install xcresultparser
           xcresultparser --output-format cobertura TestResults.xcresult > coverage-app.xml
+          # Normalize any absolute source paths to repo-relative so Codecov's `Whisky/**`
+          # flag filter matches. No-op if xcresultparser already emits relative paths.
+          sed -i '' "s|${GITHUB_WORKSPACE}/||g" coverage-app.xml || true
           echo "=== coverage-app.xml (first 20 lines) ==="
           head -20 coverage-app.xml || true
 

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-06-08 (App)
+
 ### Added
 - **File → Migrate from the Original Whisky** discovers bottles created by the
   archived original app (`com.isaacmarovitz.Whisky`) and imports them in one

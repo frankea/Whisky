@@ -14,6 +14,7 @@
 		2E9E4AD3124BDF8D5238BE32 /* DPIConfigSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3735C5328F7A6ABD2D1248 /* DPIConfigSheetView.swift */; };
 		396CD6101FAF0380C459ACEE /* DXVKConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5770D2EE01AEF235634646 /* DXVKConfigSection.swift */; };
 		484A57DAD0A7634094236533 /* DiagnosticsPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8797408D60F55718DFC61664 /* DiagnosticsPickerSheet.swift */; };
+		C16DA5430762A5F33C8714AA /* MigrateBottlesSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB85C8A3D3900AA9A7DDCE72 /* MigrateBottlesSheet.swift */; };
 		52513FA35312809A9760BCB2 /* MetalConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2699006F97F862815633C9F /* MetalConfigSection.swift */; };
 		6330DD962B1B0EA4007A625A /* RenameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6330DD952B1B0EA4007A625A /* RenameView.swift */; };
 		6365C4C12B1AA69D00AAE1FD /* Animation+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6365C4C02B1AA69D00AAE1FD /* Animation+Extensions.swift */; };
@@ -239,6 +240,7 @@
 		6EFDF6652AAE303300EF622F /* Icons.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Icons.xcassets; sourceTree = "<group>"; };
 		6F2BCF2BAEDF0AA7B418E096 /* Winetricks+InstalledVerbs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Winetricks+InstalledVerbs.swift"; sourceTree = "<group>"; };
 		8797408D60F55718DFC61664 /* DiagnosticsPickerSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DiagnosticsPickerSheet.swift; sourceTree = "<group>"; };
+		DB85C8A3D3900AA9A7DDCE72 /* MigrateBottlesSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MigrateBottlesSheet.swift; sourceTree = "<group>"; };
 		8C73E1332AF472FC00B6FB45 /* ProgramMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramMenuView.swift; sourceTree = "<group>"; };
 		8CB681E42AED7C6F0018D319 /* WhiskyKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = WhiskyKit; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718A9B0C1D3 /* DLLOverrideEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLLOverrideEditor.swift; sourceTree = "<group>"; };
@@ -507,6 +509,7 @@
 				6E7C07BF2AAF570100F6E66B /* FileOpenView.swift */,
 				FADF69F903E9EA676A27FC69 /* Common */,
 				8797408D60F55718DFC61664 /* DiagnosticsPickerSheet.swift */,
+				DB85C8A3D3900AA9A7DDCE72 /* MigrateBottlesSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -970,6 +973,7 @@
 				C1A2B3C4E5F60601A9B0C2D4 /* AudioDeviceHistoryView.swift in Sources */,
 				D6EEECF2BAE764BAE529B9BA /* AudioAlertTracker.swift in Sources */,
 				484A57DAD0A7634094236533 /* DiagnosticsPickerSheet.swift in Sources */,
+				C16DA5430762A5F33C8714AA /* MigrateBottlesSheet.swift in Sources */,
 				E1A2B3C4E5F60701A9B0C1D0 /* GameEntryRowView.swift in Sources */,
 				E1A2B3C4E5F60701A9B0C1D2 /* GameConfigurationView.swift in Sources */,
 				E1A2B3C4E5F60701A9B0C2D0 /* GameEntryDetailView.swift in Sources */,

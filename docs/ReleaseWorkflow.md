@@ -125,9 +125,21 @@ The push to `main` triggers `.github/workflows/Documentation.yml`, which redeplo
 
 ## Wine Libraries release
 
-When the Wine/DXVK runtime needs to change:
+The runtime (`Libraries.tar.gz`) is **assembled from upstream binaries, not built from source** — see
+[`DEPENDENCIES.md`](DEPENDENCIES.md) for the authoritative list of components,
+their pinned versions, and where each comes from. When the runtime needs to change:
 
-1. Build/package the new runtime as `Libraries.tar.gz` (procedure for the Wine build itself is out of scope here).
+1. **Assemble `Libraries.tar.gz`** from the pinned upstream binaries. The archive unpacks to a
+   `Libraries/` tree the app expects (`Libraries/Wine/bin/…` is the Wine binary dir per
+   `WhiskyWineInstaller.binFolder`). To reproduce a build:
+   - Download the pinned **Wine** build (Gcenx `macOS_Wine_builds`) and unpack it as `Libraries/Wine/`.
+   - Add the pinned **DXVK-macOS** DLLs and **DXMT** prebuilt release into the runtime per the Gcenx
+     layout.
+   - Place **D3DMetal** as extracted from Apple's Game Porting Toolkit. ⚠️ Redistribution is governed by
+     Apple's GPTK license — confirm terms before publishing.
+   - Record the exact versions you used back into `docs/DEPENDENCIES.md`, and bump the matching
+     `*_PINNED` tags in `.github/workflows/RuntimeTrack.yml` so drift detection stays accurate.
+   - `tar -czf Libraries.tar.gz Libraries/` (mind the `Tar` pipe-drain pitfall noted below).
 2. Tag with the bare version `vX.Y.Z` (no `app-` prefix).
 3. `gh release create vX.Y.Z --title "Wine Libraries vX.Y.Z" Libraries.tar.gz`.
 4. Update `dist/pages/WhiskyWineVersion.plist`:

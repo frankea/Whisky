@@ -129,23 +129,52 @@ jobs:
 
       - name: Run WhiskyUITests
         run: |
+          rm -rf TestResults.xcresult
           xcodebuild -project Whisky.xcodeproj \
             -scheme Whisky \
             -configuration Debug \
             -destination 'platform=macOS' \
             -only-testing:WhiskyUITests \
+            -enableCodeCoverage YES \
+            -resultBundlePath TestResults.xcresult \
             test \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
+
+      # App-target (Whisky scheme) coverage from the UI-test run, uploaded under the
+      # `whiskyapp` Codecov flag so the SwiftUI app/CLI/thumbnail aren't completely
+      # dark. This is BEST-EFFORT: every step below is `continue-on-error`, so a broken
+      # extraction just means no app-target number that run and can never gate CI.
+      - name: Convert app-target coverage to Cobertura
+        if: always()
+        continue-on-error: true
+        run: |
+          brew install xcresultparser
+          xcresultparser --output-format cobertura TestResults.xcresult > coverage-app.xml
+          # Normalize any absolute source paths to repo-relative so Codecov's `Whisky/**`
+          # flag filter matches. No-op if xcresultparser already emits relative paths.
+          sed -i '' "s|${GITHUB_WORKSPACE}/||g" coverage-app.xml || true
+          echo "=== coverage-app.xml (first 20 lines) ==="
+          head -20 coverage-app.xml || true
+
+      - name: Upload app-target coverage to Codecov
+        if: always()
+        continue-on-error: true
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage-app.xml
+          flags: whiskyapp
+          fail_ci_if_error: false
+          verbose: true
 
       - name: Upload xcresult bundle on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: ui-test-xcresult
-          path: |
-            ~/Library/Developer/Xcode/DerivedData/Whisky-*/Logs/Test/*.xcresult
+          path: TestResults.xcresult
           if-no-files-found: ignore
 
   # Test job for WhiskyKit - always runs to ensure coverage is uploaded

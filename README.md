@@ -78,15 +78,17 @@ The original [whisky-app/whisky](https://github.com/whisky-app/whisky) was archi
 
 To switch:
 
-1. Quit the original Whisky app.
-2. Export bottles you want to keep first via the original app's **Bottle → Export** menu — this fork uses a different bundle identifier (`com.franke.Whisky`) so it won't see them automatically.
-3. Drag the existing **/Applications/Whisky.app** to the Trash, or `brew uninstall --cask whisky` if you installed it via Homebrew. Bottles in `~/Library/Containers/com.isaacmarovitz.Whisky/` stay put.
-4. Install this fork: `brew install --cask frankea/whisky/whisky` or follow the manual steps above.
-5. Re-import any exported bottles through **File → Import Bottle** in the new app.
+1. Install this fork: `brew install --cask frankea/whisky/whisky` or follow the manual steps above.
+2. Open it and choose **File → Migrate from the Original Whisky**. It finds the bottles the original app left in `~/Library/Containers/com.isaacmarovitz.Whisky/` and imports the ones you pick. Bottles are referenced **in place** — nothing is moved or copied — so the original app keeps working if you'd like to keep it around.
+3. *(Optional)* Once you're happy, remove the original app: drag **/Applications/Whisky.app** to the Trash, or `brew uninstall --cask whisky` if you installed it via Homebrew. Your bottles stay put.
 
-If you have no critical bottles, you can skip the export — the new app will create a fresh bottle on first launch.
+The original app uses a different bundle identifier (`com.franke.Whisky` here vs. `com.isaacmarovitz.Whisky`), which is why bottles aren't shared automatically. The old **Bottle → Export** / **File → Import Bottle** route still works if you'd rather move bottles by hand or onto another Mac. With no critical bottles, you can skip migration entirely — the new app creates a fresh bottle on first launch.
 
 ## Documentation
+
+- **[Support](docs/SUPPORT.md)** - Where to file bugs and what to expect from a single-maintainer fork
+- **[Governance & continuity](docs/GOVERNANCE.md)** - Who maintains this and the honest bus-factor situation
+- **[Runtime dependencies](docs/DEPENDENCIES.md)** - The bundled Wine/DXVK/D3DMetal/DXMT versions and their upstream sources
 
 WhiskyKit, the core framework powering Whisky, has comprehensive API documentation:
 
@@ -121,10 +123,12 @@ against the WhiskyKit Swift package per
 "WhiskyKit unit-test coverage," not full-app coverage.
 
 WhiskyUITests gives behavioural coverage of the SwiftUI surface (toolbar,
-create-bottle sheet, fixture-dependent flows), but those tests don't feed
-the Codecov number. A future job that runs `xcodebuild test
--enableCodeCoverage YES` against the `Whisky` scheme would close that
-gap; tracked as a follow-up.
+create-bottle sheet, fixture-dependent flows). CI now runs them with
+`-enableCodeCoverage YES` and uploads the resulting app-target coverage to
+Codecov under a separate `whiskyapp` flag (best-effort — the upload never gates
+CI). Because UI tests exercise far less of the app than the unit tests do of
+WhiskyKit, expect the app-target number to read lower than the WhiskyKit badge
+above.
 
 ---
 

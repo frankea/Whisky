@@ -464,7 +464,7 @@ private struct ActiveEnvironmentOverrides: View {
 extension Notification.Name {
     /// Posted to navigate to the Diagnostics section in ConfigView.
     static let openDiagnosticsSection = Notification.Name(
-        "com.isaacmarovitz.Whisky.openDiagnosticsSection"
+        "com.franke.Whisky.openDiagnosticsSection"
     )
 }
 

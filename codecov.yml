@@ -15,6 +15,10 @@ coverage:
         if_ci_failed: error
         # Only post coverage status on pull requests, not on commits to default branch
         only_pulls: true
+        # Gate on WhiskyKit unit-test coverage only. The best-effort app-target (whiskyapp)
+        # coverage from UI tests is informational and must not drag this project gate down.
+        flags:
+          - whiskykit
     # Per-patch (diff) coverage requirements
     patch:
       default:
@@ -41,10 +45,16 @@ flags:
     paths:
       - WhiskyKit/Sources/**
     carryforward: true
+  whiskyapp:
+    paths:
+      - Whisky/**
+    carryforward: true
 
 # Ignore paths from coverage calculation
 ignore:
   - "WhiskyKit/Tests/**"
+  - "WhiskyTests/**"
+  - "WhiskyUITests/**"
   - "**/*.generated.swift"
   - "**/Preview Content/**"
 
@@ -63,3 +73,7 @@ component_management:
       name: WhiskyKit
       paths:
         - WhiskyKit/Sources/**
+    - component_id: whiskyapp
+      name: Whisky (app)
+      paths:
+        - Whisky/**

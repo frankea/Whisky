@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **File → Migrate from the Original Whisky** discovers bottles created by the
+  archived original app (`com.isaacmarovitz.Whisky`) and imports them in one
+  step, with checkboxes to choose which. Bottles are referenced in place —
+  nothing is moved or copied — so the import is non-destructive and the original
+  app keeps working, replacing the previous manual export/import dance.
 - Bottle creation now copies host fonts (Arial Unicode, Arial, Tahoma) into
   `drive_c/windows/Fonts` so Unity titles render fallback glyphs instead of
   empty boxes (Closes whisky-app/whisky#1050).
@@ -67,6 +72,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (Closes whisky-app/whisky#411).
 
 ### Changed
+- Diagnostic reports (WhiskyWine setup and Wine prefix) now link to this fork's issue tracker
+  (`frankea/Whisky`) instead of the archived upstream, so reports reach a maintained repo. Internal
+  Logger subsystems and notification names also moved off the archived `com.isaacmarovitz.Whisky`
+  namespace onto `com.franke.Whisky`.
 - Bundled GameDB grows by 4 more entries from the third-pass retriage:
   DJMAX RESPECT V (Korean fonts + DXVK), They Are Billions (vcrun + DXVK),
   SpellForce 3 (corefonts + d3dcompiler), Fallout 4 (Sequoia compat + xact)
@@ -104,6 +113,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (Closes whisky-app/whisky#293, whisky-app/whisky#995, whisky-app/whisky#1020, whisky-app/whisky#1070).
 
 ### Fixed
+- Wine no longer pegs a CPU core when a running process goes quiet. After a
+  process closed its stdout/stderr but kept running, the pipe's readability
+  handler fired continuously on the permanently-readable EOF condition. The
+  handler now removes itself on EOF (the final bytes are still drained when the
+  process exits), so an idle Wine process no longer spins
+  (Closes whisky-app/whisky#917).
 - Moving a bottle no longer wipes its pinned-program list. The `move()` loop
   was shadowing the bottle's `url` with `pin.url`, causing
   `updateParentBottle` to compare a pin path against itself instead of the
@@ -115,6 +130,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (Closes whisky-app/whisky#431).
 
 ### Documentation
+- Added project governance and support docs: `docs/GOVERNANCE.md` (honest single-maintainer
+  continuity stance), `docs/SUPPORT.md` (where to file and what to expect), and
+  `docs/DEPENDENCIES.md` (pinned Wine/DXVK/D3DMetal/DXMT runtime components and their sources).
+- Documented the reproducible runtime-assembly procedure in `docs/ReleaseWorkflow.md` (previously
+  marked "out of scope") and added a weekly `RuntimeTrack` workflow that flags when a bundled runtime
+  component falls behind upstream. The bug-report template now asks reporters to confirm they're on
+  this fork rather than the archived original.
 - `SECURITY.md` now documents how Wine/DXVK runtime vulnerabilities are handled — pinned versions are
   tracked against upstream, and a critical bundled-component CVE triggers an out-of-band runtime rebuild
   and release. Added `FUNDING.md` describing the volunteer, single-maintainer sustainability model.

@@ -86,7 +86,7 @@ public final class AudioTroubleshootingEngine: ObservableObject {
     private let maxFixAttempts = 3
 
     private let logger = Logger(
-        subsystem: "com.isaacmarovitz.Whisky",
+        subsystem: "com.franke.Whisky",
         category: "AudioTroubleshootingEngine"
     )
 

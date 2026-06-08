@@ -62,7 +62,7 @@ public struct TroubleshootingSessionStore: TroubleshootingSessionStoring {
     public static let staleSessionDays = 14
 
     private let logger = Logger(
-        subsystem: "com.isaacmarovitz.Whisky",
+        subsystem: "com.franke.Whisky",
         category: "TroubleshootingSessionStore"
     )
 

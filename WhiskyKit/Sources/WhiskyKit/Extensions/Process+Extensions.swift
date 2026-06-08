@@ -111,10 +111,25 @@ public extension Process {
         fileHandle: FileHandle?
     ) -> @Sendable (FileHandle) -> Void {
         { pipeHandle in
-            guard let line = pipeHandle.nextLine() else { return }
-            outputLock.lock()
-            defer { outputLock.unlock() }
-            self.emit(line: line, kind: kind, continuation: continuation, fileHandle: fileHandle)
+            switch pipeHandle.nextOutput() {
+            case .endOfFile:
+                // The pipe's write end closed while this handler is still installed
+                // (the process can stop writing well before it exits). `readabilityHandler`
+                // keeps firing on the permanently-readable EOF condition, pegging a CPU
+                // core, so remove it here. Any final bytes are drained by the termination
+                // handler's `readToEnd` (whisky-app/whisky#917).
+                pipeHandle.readabilityHandler = nil
+            case .pending:
+                // A non-empty chunk that isn't valid UTF-8 on its own (e.g. a multi-byte
+                // sequence split across reads). Its bytes are already consumed, so this is not
+                // a recovery — we just don't treat the stream as EOF, and leave the handler
+                // installed for the remaining output.
+                return
+            case let .text(line):
+                outputLock.lock()
+                defer { outputLock.unlock() }
+                self.emit(line: line, kind: kind, continuation: continuation, fileHandle: fileHandle)
+            }
         }
     }
 
@@ -217,12 +232,28 @@ public extension Process {
 }
 
 extension FileHandle {
-    func nextLine() -> String? {
-        guard let line = String(data: availableData, encoding: .utf8) else { return nil }
-        if !line.isEmpty {
-            return line
-        } else {
-            return nil
-        }
+    /// The classification of a single read from a pipe's readable end.
+    enum OutputRead: Equatable {
+        /// Decodable, non-empty output ready to emit.
+        case text(String)
+        /// A non-empty read that isn't valid UTF-8 on its own (e.g. a multi-byte sequence
+        /// split across reads). The bytes are already consumed, so this is not EOF — the
+        /// caller should keep its handler installed for the rest of the output. The split
+        /// character itself is not reassembled.
+        case pending
+        /// An empty read: the pipe's write end has closed. The caller should
+        /// remove its `readabilityHandler`, which otherwise fires continuously
+        /// on the permanently-readable EOF condition.
+        case endOfFile
+    }
+
+    /// Reads the next available chunk, distinguishing EOF (an empty read) from a
+    /// merely not-yet-decodable chunk. The distinction lets a `readabilityHandler`
+    /// stop itself on EOF instead of spinning on it (whisky-app/whisky#917).
+    func nextOutput() -> OutputRead {
+        let data = availableData
+        guard !data.isEmpty else { return .endOfFile }
+        guard let text = String(data: data, encoding: .utf8), !text.isEmpty else { return .pending }
+        return .text(text)
     }
 }

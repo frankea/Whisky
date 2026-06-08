@@ -29,7 +29,7 @@ public extension Notification.Name {
     /// - `"diagnosis"`: ``CrashDiagnosis``
     /// - `"programPath"`: `String` (program URL path)
     /// - `"logFileURL"`: `URL`
-    static let crashDiagnosisAvailable = Notification.Name("com.isaacmarovitz.Whisky.crashDiagnosisAvailable")
+    static let crashDiagnosisAvailable = Notification.Name("com.franke.Whisky.crashDiagnosisAvailable")
 }
 
 // MARK: - Crash Signature Detection

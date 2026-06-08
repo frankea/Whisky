@@ -24659,28 +24659,6 @@
         }
       }
     },
-    "config.graphics.warning.d3dmetalMacOS": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "D3DMetal requires macOS 14 (Sonoma) or later"
-          }
-        }
-      }
-    },
-    "config.graphics.warning.dxvkMacOS": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DXVK works best on macOS 15 (Sequoia) or later"
-          }
-        }
-      }
-    },
     "config.virtualDesktop.custom": {
       "extractionState": "manual",
       "localizations": {

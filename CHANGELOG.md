@@ -118,6 +118,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `SECURITY.md` now documents how Wine/DXVK runtime vulnerabilities are handled — pinned versions are
   tracked against upstream, and a critical bundled-component CVE triggers an out-of-band runtime rebuild
   and release. Added `FUNDING.md` describing the volunteer, single-maintainer sustainability model.
+- Removed the inherited CrossOver affiliate links (`ad=1010`) from the README and funding config; this
+  fork has no affiliate or revenue-sharing arrangement, and those links credited the original project.
 
 ## [3.0.1] - 2026-05-01 (App)
 

@@ -27,7 +27,11 @@ extension FileManager {
         )
 
         while let fileURL = enumerator?.nextObject() as? URL {
-            guard fileURL.pathExtension == "dll" else { return }
+            // Skip non-DLL entries (e.g. .DS_Store, license files) and keep
+            // scanning. Using `return` here would abort the whole copy on the
+            // first non-DLL the enumerator yields, silently leaving later DLLs
+            // uninstalled.
+            guard fileURL.pathExtension == "dll" else { continue }
             let originalURL = destinationDirectory.appending(path: fileURL.lastPathComponent)
             try FileManager.default.replaceFile(at: originalURL, with: fileURL, makeOriginalCopy: makeOriginalCopy)
         }

@@ -279,7 +279,10 @@ struct BottleView: View {
                 // For some godforsaken reason "foo/bar" != "foo/Bar" so...
                 program.url.path().caseInsensitiveCompare(startMenuProgram.url.path()) == .orderedSame {
                 program.pinned = true
-                guard !bottle.settings.pins.contains(where: { $0.url == program.url }) else { return }
+                // Skip programs that are already pinned, but keep processing the
+                // rest. Using `return` here would stop pinning every remaining
+                // start-menu program after the first already-pinned one.
+                guard !bottle.settings.pins.contains(where: { $0.url == program.url }) else { continue }
                 bottle.settings.pins.append(PinnedProgram(
                     name: program.url.deletingPathExtension().lastPathComponent,
                     url: program.url

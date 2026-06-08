@@ -332,6 +332,24 @@ final class FileManagerReplaceDLLsTests: XCTestCase {
         XCTAssertEqual(content, "original exe")
     }
 
+    func testReplaceDLLsReplacesDLLWhenNonDLLPresent() throws {
+        // Regression: a non-DLL entry in the source directory must not abort the
+        // copy before later DLLs are processed. The non-DLL files are created
+        // first so the enumerator is likely to yield one before the DLL.
+        try Data("notes".utf8).write(to: sourceDir.appending(path: "readme.txt"))
+        try Data("cache".utf8).write(to: sourceDir.appending(path: ".DS_Store"))
+
+        let destDLL = destinationDir.appending(path: "core.dll")
+        let srcDLL = sourceDir.appending(path: "core.dll")
+        try Data("original dll".utf8).write(to: destDLL)
+        try Data("new dll".utf8).write(to: srcDLL)
+
+        try FileManager.default.replaceDLLs(in: destinationDir, withContentsIn: sourceDir)
+
+        let content = try String(contentsOf: destDLL, encoding: .utf8)
+        XCTAssertEqual(content, "new dll", "DLL must be replaced even when non-DLL files are also present")
+    }
+
     func testReplaceDLLsWithMakeOriginalCopy() throws {
         let destDLL = destinationDir.appending(path: "test.dll")
         let srcDLL = sourceDir.appending(path: "test.dll")

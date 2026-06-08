@@ -128,6 +128,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   context-menu actions dedupe against the existing blocklist before
   appending, both for single-row and multi-selection cases
   (Closes whisky-app/whisky#431).
+- DXVK installation no longer stops short when the bundle directory contains a
+  non-DLL file. The copy loop returned on the first non-`.dll` entry (e.g. a
+  stray `.DS_Store`), which could leave some DXVK DLLs uninstalled; it now skips
+  non-DLL entries and continues.
+- Pinning start-menu programs no longer stops at the first already-pinned entry.
+  The pin loop returned early once it found a program already in the pin list,
+  leaving every subsequent start-menu program unpinned; it now skips that entry
+  and continues processing the rest.
 
 ### Documentation
 - Added project governance and support docs: `docs/GOVERNANCE.md` (honest single-maintainer

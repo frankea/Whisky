@@ -154,7 +154,7 @@ Special thanks to Gcenx, ohaiibuzzle, Nat Brown, and [Isaac Marovitz](https://gi
         </picture>
     </td>
     <td>
-        Whisky doesn't exist without CrossOver. Support the work of CodeWeavers using our <a href="https://www.codeweavers.com/store?ad=1010">affiliate link</a>.
+        Whisky doesn't exist without CrossOver. If you want a fully-supported commercial Wine experience on macOS, check out <a href="https://www.codeweavers.com/crossover">CrossOver</a> from CodeWeavers. (This fork has no affiliate arrangement and receives nothing from CrossOver sales.)
     </td>
   </tr>
 </table>

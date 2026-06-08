@@ -1,9 +1,8 @@
-# Funding for Whisky Fork
+# Funding for Whisky (this fork)
 #
-# This fork is maintained by @frankea
-# The custom links below support key community contributors whose work makes Whisky possible:
-# - Gcenx: Maintains Wine macOS builds and DXVK-macOS
-# - CodeWeavers: Develops CrossOver/Wine (affiliate link)
+# Maintained by @frankea. This project has NO affiliate or revenue-sharing arrangement with anyone.
+# The custom link points to Gcenx, who maintains the macOS Wine and DXVK-macOS builds Whisky bundles —
+# it's a direct donation to that upstream contributor, not income for this fork.
 
 github: frankea
-custom: ["https://ko-fi.com/gcenx", "https://www.codeweavers.com/store?ad=1010"]
+custom: ["https://ko-fi.com/gcenx"]

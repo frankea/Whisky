@@ -47,6 +47,22 @@ The following are generally out of scope:
 - Vulnerabilities in DXVK (report to the respective project)
 - Issues in third-party dependencies (report upstream, then notify us)
 
+### Wine / DXVK Vulnerability Response
+
+Whisky bundles a Wine runtime (Wine, DXVK, D3DMetal, and related components) that it does not develop.
+A vulnerability in those components is fixed upstream, not here — but it still reaches Whisky users, so
+we track it as a runtime-currency concern rather than a closed door:
+
+- Bundled component versions are pinned and checked against their upstream sources, so a new upstream
+  build carrying a security fix is surfaced rather than missed.
+- A **critical** vulnerability in a bundled component (one exploitable through normal Whisky use) is a
+  trigger to rebuild the runtime archive on the patched upstream version and cut a new app release out
+  of band, rather than waiting for the next scheduled runtime update.
+- Non-critical upstream fixes are picked up as part of the normal runtime-update cadence.
+
+If you believe a bundled-runtime vulnerability is being mishandled or under-prioritized in Whisky's
+packaging, report it through the private channel above and say so explicitly.
+
 ## Security Best Practices for Users
 
 - Only run trusted Windows applications within Whisky

@@ -41,19 +41,6 @@ struct BackendPickerView: View {
 
             // Helper text below grid
             helperText
-
-            // Inline compatibility warning
-            if let warning = compatibilityWarning {
-                HStack(alignment: .top, spacing: 6) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.yellow)
-                    Text(warning)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(8)
-                .background(.yellow.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
-            }
         }
     }
 
@@ -69,25 +56,6 @@ struct BackendPickerView: View {
             Text("config.graphics.helperNextLaunch")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-        }
-    }
-
-    // MARK: - Compatibility Warning
-
-    private var compatibilityWarning: String? {
-        switch selection {
-        case .dxvk:
-            if #unavailable(macOS 14.0) {
-                return String(localized: "config.graphics.warning.dxvkMacOS")
-            }
-            return nil
-        case .d3dMetal:
-            if #unavailable(macOS 14.0) {
-                return String(localized: "config.graphics.warning.d3dmetalMacOS")
-            }
-            return nil
-        case .wined3d, .recommended:
-            return nil
         }
     }
 }

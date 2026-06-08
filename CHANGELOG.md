@@ -114,6 +114,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   appending, both for single-row and multi-selection cases
   (Closes whisky-app/whisky#431).
 
+### Documentation
+- `SECURITY.md` now documents how Wine/DXVK runtime vulnerabilities are handled — pinned versions are
+  tracked against upstream, and a critical bundled-component CVE triggers an out-of-band runtime rebuild
+  and release. Added `FUNDING.md` describing the volunteer, single-maintainer sustainability model.
+
 ## [3.0.1] - 2026-05-01 (App)
 
 ### Fixed

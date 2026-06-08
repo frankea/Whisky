@@ -121,7 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 - Added project governance and support docs: `docs/GOVERNANCE.md` (honest single-maintainer
   continuity stance), `docs/SUPPORT.md` (where to file and what to expect), and
-  `.planning/DEPENDENCIES.md` (pinned Wine/DXVK/D3DMetal/DXMT runtime components and their sources).
+  `docs/DEPENDENCIES.md` (pinned Wine/DXVK/D3DMetal/DXMT runtime components and their sources).
 - Documented the reproducible runtime-assembly procedure in `docs/ReleaseWorkflow.md` (previously
   marked "out of scope") and added a weekly `RuntimeTrack` workflow that flags when a bundled runtime
   component falls behind upstream. The bug-report template now asks reporters to confirm they're on

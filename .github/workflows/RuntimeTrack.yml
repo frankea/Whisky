@@ -39,8 +39,15 @@ jobs:
           set -euo pipefail
 
           latest_tag() {
-            # Latest *published* release tag for a repo, or empty string if none.
-            gh api "repos/$1/releases/latest" --jq '.tag_name' 2>/dev/null || true
+            # Latest published release tag for a repo. Echoes "ERROR" when the API call fails
+            # (network / rate-limit / no releases) so a transient failure is not mistaken for
+            # "behind" and does not file a spurious drift issue.
+            local out
+            if out="$(gh api "repos/$1/releases/latest" --jq '.tag_name' 2>/dev/null)"; then
+              echo "${out:-ERROR}"
+            else
+              echo "ERROR"
+            fi
           }
 
           drift_body=""
@@ -48,11 +55,11 @@ jobs:
 
           check() {
             local name="$1" repo="$2" pinned="$3"
-            local latest
+            local latest status
             latest="$(latest_tag "$repo")"
-            latest="${latest:-(none found)}"
-            local status
-            if [ "$pinned" = "SET_ME" ]; then
+            if [ "$latest" = "ERROR" ]; then
+              status="⚠️ could not check (skipped)"
+            elif [ "$pinned" = "SET_ME" ]; then
               status="ℹ️ pin not set"
             elif [ "$pinned" = "$latest" ]; then
               status="✅ current"
@@ -82,6 +89,6 @@ jobs:
             gh issue comment "$existing" --body "$body"
             echo "Updated existing tracking issue #$existing"
           else
-            gh issue create --title "$title" --label runtime --body "$body"
+            gh issue create --title "$title" --body "$body"
             echo "Opened new tracking issue"
           fi

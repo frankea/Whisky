@@ -31,8 +31,10 @@ flags when a bundled component falls behind upstream.
 ## Tracking cadence
 
 - **Wine:** check each January for the new stable (next: **Wine 12, ~Jan 2027**). Test before bundling.
-- **DXVK-macOS / DXMT / D3DMetal (GPTK):** `RuntimeTrack.yml` polls upstream releases weekly and opens
-  an issue when a bundled version is behind. Triage; bumping is a deliberate, tested decision, not automatic.
+- **Wine / DXVK-macOS / DXMT:** `RuntimeTrack.yml` polls these GitHub release feeds weekly and opens an
+  issue when a bundled version is behind. Triage; bumping is a deliberate, tested decision, not automatic.
+- **D3DMetal (GPTK):** Apple ships it as a Game Porting Toolkit download with no GitHub release feed, so
+  it is **tracked manually** — check Apple's GPTK page when a new GPTK lands.
 - **Security:** a critical Wine/DXVK CVE should trigger an out-of-band runtime rebuild + app release.
   See `SECURITY.md`.
 

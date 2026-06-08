@@ -120,8 +120,10 @@ public extension Process {
                 // handler's `readToEnd` (whisky-app/whisky#917).
                 pipeHandle.readabilityHandler = nil
             case .pending:
-                // Non-empty but not yet decodable (e.g. a split multi-byte sequence) —
-                // keep the handler installed and wait for the next read.
+                // A non-empty chunk that isn't valid UTF-8 on its own (e.g. a multi-byte
+                // sequence split across reads). Its bytes are already consumed, so this is not
+                // a recovery — we just don't treat the stream as EOF, and leave the handler
+                // installed for the remaining output.
                 return
             case let .text(line):
                 outputLock.lock()
@@ -234,8 +236,10 @@ extension FileHandle {
     enum OutputRead: Equatable {
         /// Decodable, non-empty output ready to emit.
         case text(String)
-        /// A non-empty but not-yet-decodable chunk (e.g. a split multi-byte
-        /// sequence); the caller should keep reading.
+        /// A non-empty read that isn't valid UTF-8 on its own (e.g. a multi-byte sequence
+        /// split across reads). The bytes are already consumed, so this is not EOF — the
+        /// caller should keep its handler installed for the rest of the output. The split
+        /// character itself is not reassembled.
         case pending
         /// An empty read: the pipe's write end has closed. The caller should
         /// remove its `readabilityHandler`, which otherwise fires continuously

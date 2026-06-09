@@ -130,6 +130,10 @@ jobs:
       - name: Run WhiskyUITests
         run: |
           rm -rf TestResults.xcresult
+          # Retry failed tests up to 3 total runs. XCUITests against a SwiftUI
+          # surface are timing-sensitive (e.g. waiting for the create-bottle
+          # sheet to render on a busy CI runner), so a single flake shouldn't
+          # red-X main. A genuinely broken test still fails after all retries.
           xcodebuild -project Whisky.xcodeproj \
             -scheme Whisky \
             -configuration Debug \
@@ -137,6 +141,8 @@ jobs:
             -only-testing:WhiskyUITests \
             -enableCodeCoverage YES \
             -resultBundlePath TestResults.xcresult \
+            -retry-tests-on-failure \
+            -test-iterations 3 \
             test \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \

@@ -182,38 +182,45 @@ final class WhiskyWineInstallerSHA256Tests: XCTestCase {
         XCTAssertNil(WhiskyWineInstaller.sha256(ofFileAt: missing))
     }
 
-    func testVerifyMatchesCorrectHash() {
+    private let abcDigest = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+
+    func testIntegrityResultMatch() {
         let url = writeTempFile(Data("abc".utf8))
-        XCTAssertTrue(WhiskyWineInstaller.verify(
-            fileAt: url,
-            matches: "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
-        ))
+        XCTAssertEqual(
+            WhiskyWineInstaller.integrityResult(forFileAt: url, expectedSHA256: abcDigest),
+            .match
+        )
     }
 
-    func testVerifyIsCaseInsensitive() {
+    func testIntegrityResultIsCaseInsensitive() {
         // The advertised digest may be uppercase; comparison must not care.
         let url = writeTempFile(Data("abc".utf8))
-        XCTAssertTrue(WhiskyWineInstaller.verify(
-            fileAt: url,
-            matches: "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD"
-        ))
+        XCTAssertEqual(
+            WhiskyWineInstaller.integrityResult(forFileAt: url, expectedSHA256: abcDigest.uppercased()),
+            .match
+        )
     }
 
-    func testVerifyRejectsWrongHash() {
+    func testIntegrityResultMismatchCarriesActualDigest() {
+        // A mismatch must report the real digest so diagnostics can distinguish
+        // a corrupted download from a wrongly published hash.
         let url = writeTempFile(Data("abc".utf8))
-        XCTAssertFalse(WhiskyWineInstaller.verify(
-            fileAt: url,
-            matches: "0000000000000000000000000000000000000000000000000000000000000000"
-        ))
+        XCTAssertEqual(
+            WhiskyWineInstaller.integrityResult(
+                forFileAt: url,
+                expectedSHA256: "0000000000000000000000000000000000000000000000000000000000000000"
+            ),
+            .mismatch(actual: abcDigest)
+        )
     }
 
-    func testVerifyMissingFileReturnsFalse() {
+    func testIntegrityResultUnreadableForMissingFile() {
         let missing = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
             .appendingPathExtension("bin")
-        XCTAssertFalse(WhiskyWineInstaller.verify(
-            fileAt: missing,
-            matches: "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
-        ))
+        XCTAssertEqual(
+            WhiskyWineInstaller.integrityResult(forFileAt: missing, expectedSHA256: abcDigest),
+            .unreadable
+        )
     }
 }

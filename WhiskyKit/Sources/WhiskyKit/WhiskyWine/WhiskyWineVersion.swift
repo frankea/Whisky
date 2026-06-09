@@ -56,7 +56,7 @@ public struct WhiskyWineVersion: Codable {
     public init(version: SemanticVersion, dxvkVersion: String? = nil, sha256: String? = nil) {
         self.version = version
         self.dxvkVersion = Self.normalized(dxvkVersion)
-        self.sha256 = Self.normalized(sha256)
+        self.sha256 = Self.normalizedDigest(sha256)
     }
 
     public init(from decoder: Decoder) throws {
@@ -67,7 +67,7 @@ public struct WhiskyWineVersion: Codable {
         let patch = try versionDict.decode(Int.self, forKey: .patch)
         version = SemanticVersion(major, minor, patch)
         dxvkVersion = try Self.normalized(container.decodeIfPresent(String.self, forKey: .dxvkVersion))
-        sha256 = try Self.normalized(container.decodeIfPresent(String.self, forKey: .sha256))
+        sha256 = try Self.normalizedDigest(container.decodeIfPresent(String.self, forKey: .sha256))
     }
 
     /// Collapses an empty string to `nil` so "absent" and "blank" map to the
@@ -75,6 +75,20 @@ public struct WhiskyWineVersion: Codable {
     private static func normalized(_ value: String?) -> String? {
         guard let value, !value.isEmpty else { return nil }
         return value
+    }
+
+    /// Normalizes an advertised SHA-256: trims surrounding whitespace, lowercases,
+    /// and requires exactly 64 hex characters. A blank or malformed value (a
+    /// publisher typo, truncated paste, placeholder) collapses to `nil` so that
+    /// release simply goes unverified, rather than failing every download against
+    /// an impossible digest — which would brick installs with a misleading
+    /// "download corrupted" error. Integrity here is a corruption tripwire, not
+    /// supply-chain trust, so degrading to "unverified" on bad metadata is the
+    /// safer failure mode.
+    private static func normalizedDigest(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return trimmed.count == 64 && trimmed.allSatisfy(\.isHexDigit) ? trimmed : nil
     }
 
     public func encode(to encoder: Encoder) throws {

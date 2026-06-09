@@ -348,10 +348,17 @@ extension WhiskyWineDownloadView {
     private func verifyThenProceed(fileURL: URL) async {
         if let expected = expectedSHA256 {
             diagnostics.record("Verifying runtime archive (SHA-256)")
-            // Computed off the main actor — the archive is hundreds of megabytes.
-            let actual = await Task.detached { WhiskyWineInstaller.sha256(ofFileAt: fileURL) }.value
-            guard let actual, actual.caseInsensitiveCompare(expected) == .orderedSame else {
-                diagnostics.record("Integrity check FAILED — expected \(expected), got \(actual ?? "unreadable")")
+            // Hashed off the main actor — the archive is hundreds of megabytes.
+            let result = await Task.detached {
+                WhiskyWineInstaller.integrityResult(forFileAt: fileURL, expectedSHA256: expected)
+            }.value
+            let failure: String? = switch result {
+            case .match: nil
+            case let .mismatch(actual): "expected \(expected), got \(actual)"
+            case .unreadable: "expected \(expected), archive unreadable"
+            }
+            if let failure {
+                diagnostics.record("Integrity check FAILED — \(failure)")
                 WhiskyWineInstaller.cleanupTarball(at: fileURL)
                 downloadError = String(
                     localized: "setup.whiskywine.error.checksumMismatch",

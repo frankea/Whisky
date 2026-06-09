@@ -160,20 +160,36 @@ public class WhiskyWineInstaller {
         return hasher.finalize().map { String(format: "%02x", $0) }.joined()
     }
 
-    /// Verifies that a file's SHA-256 matches an expected lowercase hex digest.
+    /// The outcome of checking a downloaded archive against an expected digest.
+    public enum IntegrityResult: Equatable, Sendable {
+        /// The file's digest matched the expected value.
+        case match
+        /// The file hashed successfully but did not match. Carries the actual
+        /// lowercase-hex digest so callers can report it in diagnostics.
+        case mismatch(actual: String)
+        /// The file could not be read to compute a digest.
+        case unreadable
+    }
+
+    /// Checks a file's SHA-256 against an expected hex digest.
     ///
     /// This is an integrity check — it confirms the downloaded archive is the
     /// exact bytes the runtime metadata advertised, catching truncated or
-    /// corrupted downloads (and a different-origin substitution) before install.
-    /// It is not a substitute for the transport-level trust provided by HTTPS.
+    /// corrupted downloads before install. It is not a substitute for the
+    /// transport-level trust provided by HTTPS.
     ///
     /// - Parameters:
     ///   - url: The file to check.
-    ///   - expected: The expected SHA-256 as a hex string (case-insensitive).
-    /// - Returns: `true` only if the file hashes successfully and matches.
-    public static func verify(fileAt url: URL, matches expected: String) -> Bool {
-        guard let actual = sha256(ofFileAt: url) else { return false }
-        return actual.caseInsensitiveCompare(expected) == .orderedSame
+    ///   - expected: The expected SHA-256 as a hex string (compared
+    ///     case-insensitively).
+    /// - Returns: ``IntegrityResult/match``, ``IntegrityResult/mismatch(actual:)``,
+    ///   or ``IntegrityResult/unreadable``.
+    public static func integrityResult(
+        forFileAt url: URL,
+        expectedSHA256 expected: String
+    ) -> IntegrityResult {
+        guard let actual = sha256(ofFileAt: url) else { return .unreadable }
+        return actual.caseInsensitiveCompare(expected) == .orderedSame ? .match : .mismatch(actual: actual)
     }
 
     /// Removes the installation tarball after successful installation.

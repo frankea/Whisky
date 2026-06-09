@@ -142,7 +142,13 @@ their pinned versions, and where each comes from. When the runtime needs to chan
    - `tar -czf Libraries.tar.gz Libraries/` (mind the `Tar` pipe-drain pitfall noted below).
 2. Tag with the bare version `vX.Y.Z` (no `app-` prefix).
 3. `gh release create vX.Y.Z --title "Wine Libraries vX.Y.Z" Libraries.tar.gz`.
-4. Update `dist/pages/WhiskyWineVersion.plist`:
+4. Compute the SHA-256 of the **exact published asset** — the app verifies the download against this
+   and fails closed on a mismatch, so an incorrect value blocks every fresh install:
+   ```sh
+   shasum -a 256 Libraries.tar.gz
+   ```
+5. Update `dist/pages/WhiskyWineVersion.plist` with the version, bundled DXVK version, and the digest
+   from the previous step. Record the same digest in [`DEPENDENCIES.md`](DEPENDENCIES.md):
    ```xml
    <dict>
        <key>version</key>
@@ -151,9 +157,13 @@ their pinned versions, and where each comes from. When the runtime needs to chan
            <key>minor</key><integer>Y</integer>
            <key>patch</key><integer>Z</integer>
        </dict>
+       <key>dxvkVersion</key>
+       <string>1.10.3</string>
+       <key>sha256</key>
+       <string>…64-hex-digest…</string>
    </dict>
    ```
-5. Commit and push. The Documentation workflow republishes Pages, and existing app installs prompt to update on their next Wine version check.
+6. Commit and push. The Documentation workflow republishes Pages, and existing app installs prompt to update on their next Wine version check.
 
 ## URLs the app depends on
 

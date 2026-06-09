@@ -313,6 +313,80 @@ final class WhiskyWineVersionDXVKTests: XCTestCase {
     }
 }
 
+// MARK: - SHA-256 Tests
+
+final class WhiskyWineVersionSHA256Tests: XCTestCase {
+    private let sampleHash = "9c3d2a7d9bb682ae8398d8bae458e3cb52bb9f5a3345fb0830a64d9b6a1025f8"
+
+    func testDecodeWithSHA256() throws {
+        let plist: [String: Any] = [
+            "version": ["major": 3, "minor": 0, "patch": 0],
+            "sha256": sampleHash
+        ]
+
+        let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+        let versionInfo = try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)
+
+        XCTAssertEqual(versionInfo.version, SemanticVersion(3, 0, 0))
+        XCTAssertEqual(versionInfo.sha256, sampleHash)
+    }
+
+    func testDecodeWithoutSHA256IsNil() throws {
+        // Older runtime plists predate the sha256 key and must still decode.
+        let plist: [String: Any] = [
+            "version": ["major": 3, "minor": 0, "patch": 0]
+        ]
+
+        let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+        let versionInfo = try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)
+
+        XCTAssertNil(versionInfo.sha256)
+    }
+
+    func testEmptySHA256NormalizesToNil() throws {
+        // A blank string must collapse to nil so verification is skipped rather
+        // than failing every download against an impossible empty digest.
+        let plist: [String: Any] = [
+            "version": ["major": 3, "minor": 0, "patch": 0],
+            "sha256": ""
+        ]
+
+        let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+        let versionInfo = try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)
+
+        XCTAssertNil(versionInfo.sha256)
+    }
+
+    func testRoundTripPreservesSHA256() throws {
+        let original = WhiskyWineVersion(
+            version: SemanticVersion(3, 0, 0),
+            dxvkVersion: "1.10.3",
+            sha256: sampleHash
+        )
+
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(original)
+        let decoded = try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)
+
+        XCTAssertEqual(decoded.version, original.version)
+        XCTAssertEqual(decoded.dxvkVersion, "1.10.3")
+        XCTAssertEqual(decoded.sha256, sampleHash)
+    }
+
+    func testNilSHA256IsOmittedFromEncoding() throws {
+        let original = WhiskyWineVersion(version: SemanticVersion(3, 0, 0))
+
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(original)
+        let plist = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+
+        XCTAssertNotNil(plist)
+        XCTAssertNil(plist?["sha256"], "A nil SHA-256 should not be written to the plist")
+    }
+}
+
 // MARK: - Test Helper Types
 
 private struct VersionComponents {

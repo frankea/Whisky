@@ -16,6 +16,7 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import CryptoKit
 import SemanticVersion
 @testable import WhiskyKit
 import XCTest
@@ -121,5 +122,98 @@ final class WhiskyWineInstallerTests: XCTestCase {
         try data.write(to: partialURL)
 
         XCTAssertNil(WhiskyWineInstaller.whiskyWineInfo(at: partialURL))
+    }
+}
+
+// MARK: - SHA-256 Integrity Tests
+
+final class WhiskyWineInstallerSHA256Tests: XCTestCase {
+    /// Writes `data` to a unique temp file and returns its URL, registering
+    /// cleanup with the test case.
+    private func writeTempFile(_ data: Data, file: StaticString = #filePath, line: UInt = #line) -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("bin")
+        do {
+            try data.write(to: url)
+        } catch {
+            XCTFail("Failed to write temp file: \(error)", file: file, line: line)
+        }
+        addTeardownBlock { try? FileManager.default.removeItem(at: url) }
+        return url
+    }
+
+    func testSHA256OfKnownVector() {
+        // NIST FIPS 180-4 test vector: SHA-256("abc").
+        let url = writeTempFile(Data("abc".utf8))
+        XCTAssertEqual(
+            WhiskyWineInstaller.sha256(ofFileAt: url),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        )
+    }
+
+    func testSHA256OfEmptyFile() {
+        // Well-known digest of the empty input.
+        let url = writeTempFile(Data())
+        XCTAssertEqual(
+            WhiskyWineInstaller.sha256(ofFileAt: url),
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        )
+    }
+
+    func testSHA256MatchesOneShotForMultiChunkFile() {
+        // Larger than the 1 MiB streaming chunk so the read loop runs several
+        // iterations and crosses a chunk boundary. Cross-checked against
+        // CryptoKit's one-shot hash of the same bytes (not a circular check of
+        // the streaming code against itself).
+        let byteCount = 3 * (1 << 20) + 7
+        let bytes: [UInt8] = (0 ..< byteCount).map { UInt8($0 & 0xFF) }
+        let data = Data(bytes)
+        let expected = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+
+        let url = writeTempFile(data)
+        XCTAssertEqual(WhiskyWineInstaller.sha256(ofFileAt: url), expected)
+    }
+
+    func testSHA256OfMissingFileReturnsNil() {
+        let missing = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("bin")
+        XCTAssertNil(WhiskyWineInstaller.sha256(ofFileAt: missing))
+    }
+
+    func testVerifyMatchesCorrectHash() {
+        let url = writeTempFile(Data("abc".utf8))
+        XCTAssertTrue(WhiskyWineInstaller.verify(
+            fileAt: url,
+            matches: "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        ))
+    }
+
+    func testVerifyIsCaseInsensitive() {
+        // The advertised digest may be uppercase; comparison must not care.
+        let url = writeTempFile(Data("abc".utf8))
+        XCTAssertTrue(WhiskyWineInstaller.verify(
+            fileAt: url,
+            matches: "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD"
+        ))
+    }
+
+    func testVerifyRejectsWrongHash() {
+        let url = writeTempFile(Data("abc".utf8))
+        XCTAssertFalse(WhiskyWineInstaller.verify(
+            fileAt: url,
+            matches: "0000000000000000000000000000000000000000000000000000000000000000"
+        ))
+    }
+
+    func testVerifyMissingFileReturnsFalse() {
+        let missing = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("bin")
+        XCTAssertFalse(WhiskyWineInstaller.verify(
+            fileAt: missing,
+            matches: "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        ))
     }
 }

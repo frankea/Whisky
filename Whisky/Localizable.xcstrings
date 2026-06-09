@@ -20022,6 +20022,16 @@
         }
       }
     },
+    "setup.whiskywine.error.checksumMismatch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The downloaded Wine runtime failed its integrity check and was not installed. This usually means the download was corrupted. Please try again."
+          }
+        }
+      }
+    },
     "setup.whiskywine.error.downloadFailed": {
       "localizations": {
         "en": {

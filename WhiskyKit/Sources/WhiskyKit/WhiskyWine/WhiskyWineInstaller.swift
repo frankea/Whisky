@@ -16,6 +16,7 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import CryptoKit
 import Foundation
 import os
 import SemanticVersion
@@ -123,6 +124,56 @@ public class WhiskyWineInstaller {
         } catch {
             logger.error("Failed to install WhiskyWine: \(error.localizedDescription)")
         }
+    }
+
+    /// Computes the SHA-256 of a file by streaming it in chunks.
+    ///
+    /// The archive can be several hundred megabytes, so the file is hashed
+    /// incrementally rather than read fully into memory.
+    ///
+    /// - Parameter url: The file to hash.
+    /// - Returns: The lowercase hex SHA-256 digest, or `nil` if the file cannot
+    ///   be opened or read.
+    public static func sha256(ofFileAt url: URL) -> String? {
+        guard let handle = try? FileHandle(forReadingFrom: url) else {
+            logger.error("Cannot open \(url.path) to compute SHA-256")
+            return nil
+        }
+        defer { try? handle.close() }
+
+        var hasher = SHA256()
+        let chunkSize = 1 << 20 // 1 MiB
+        do {
+            while true {
+                // `read(upToCount:)` returns nil at EOF and may return an empty
+                // (non-nil) Data on some streams; treat both as "no more bytes".
+                guard let chunk = try handle.read(upToCount: chunkSize), !chunk.isEmpty else {
+                    break
+                }
+                hasher.update(data: chunk)
+            }
+        } catch {
+            logger.error("Failed reading \(url.path) for SHA-256: \(error.localizedDescription)")
+            return nil
+        }
+
+        return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+    }
+
+    /// Verifies that a file's SHA-256 matches an expected lowercase hex digest.
+    ///
+    /// This is an integrity check — it confirms the downloaded archive is the
+    /// exact bytes the runtime metadata advertised, catching truncated or
+    /// corrupted downloads (and a different-origin substitution) before install.
+    /// It is not a substitute for the transport-level trust provided by HTTPS.
+    ///
+    /// - Parameters:
+    ///   - url: The file to check.
+    ///   - expected: The expected SHA-256 as a hex string (case-insensitive).
+    /// - Returns: `true` only if the file hashes successfully and matches.
+    public static func verify(fileAt url: URL, matches expected: String) -> Bool {
+        guard let actual = sha256(ofFileAt: url) else { return false }
+        return actual.caseInsensitiveCompare(expected) == .orderedSame
     }
 
     /// Removes the installation tarball after successful installation.

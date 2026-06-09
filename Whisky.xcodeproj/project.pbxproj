@@ -48,6 +48,7 @@
 		6E6C0CF22A419A6800356232 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E6C0CF12A419A6800356232 /* WelcomeView.swift */; };
 		6E6C0CF42A419A7600356232 /* RosettaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E6C0CF32A419A7600356232 /* RosettaView.swift */; };
 		6E6C0CF62A419A8300356232 /* WhiskyWineDownloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E6C0CF52A419A8300356232 /* WhiskyWineDownloadView.swift */; };
+		6EFA17E70000000000000001 /* WhiskyWineDownloadFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EFA17E70000000000000002 /* WhiskyWineDownloadFormatting.swift */; };
 		6E6C0CF82A419A8C00356232 /* WhiskyWineInstallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E6C0CF72A419A8C00356232 /* WhiskyWineInstallView.swift */; };
 		6E70A49B2A9A2197007799E9 /* Main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E70A49A2A9A2197007799E9 /* Main.swift */; };
 		6E70A4A12A9A280C007799E9 /* WhiskyCmd.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E70A4A02A9A280C007799E9 /* WhiskyCmd.swift */; };
@@ -222,6 +223,7 @@
 		6E6C0CF12A419A6800356232 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		6E6C0CF32A419A7600356232 /* RosettaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosettaView.swift; sourceTree = "<group>"; };
 		6E6C0CF52A419A8300356232 /* WhiskyWineDownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhiskyWineDownloadView.swift; sourceTree = "<group>"; };
+		6EFA17E70000000000000002 /* WhiskyWineDownloadFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhiskyWineDownloadFormatting.swift; sourceTree = "<group>"; };
 		6E6C0CF72A419A8C00356232 /* WhiskyWineInstallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhiskyWineInstallView.swift; sourceTree = "<group>"; };
 		6E70A4982A9A2197007799E9 /* WhiskyCmd */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = WhiskyCmd; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E70A49A2A9A2197007799E9 /* Main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Main.swift; sourceTree = "<group>"; };
@@ -558,6 +560,7 @@
 				6E6C0CF12A419A6800356232 /* WelcomeView.swift */,
 				6E6C0CF32A419A7600356232 /* RosettaView.swift */,
 				6E6C0CF52A419A8300356232 /* WhiskyWineDownloadView.swift */,
+				6EFA17E70000000000000002 /* WhiskyWineDownloadFormatting.swift */,
 				6E6C0CF72A419A8C00356232 /* WhiskyWineInstallView.swift */,
 			);
 			path = Setup;
@@ -919,6 +922,7 @@
 				C08ECD035DDFEDB70ACA1D1B /* PerformanceConfigSection.swift in Sources */,
 				63FFDE862ADF0C7700178665 /* BottomBar.swift in Sources */,
 				6E6C0CF62A419A8300356232 /* WhiskyWineDownloadView.swift in Sources */,
+				6EFA17E70000000000000001 /* WhiskyWineDownloadFormatting.swift in Sources */,
 				6365C4C32B1AA8CD00AAE1FD /* BottleListEntry.swift in Sources */,
 				6E50D98529CDF25B008C39F6 /* BottleCreationView.swift in Sources */,
 				6E182FCA2B0BF64E00AADE81 /* WinetricksView.swift in Sources */,

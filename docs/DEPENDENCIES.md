@@ -22,6 +22,20 @@ flags when a bundled component falls behind upstream.
 > The exact MoltenVK/msync versions live inside the published `Libraries.tar.gz`, not this repo. When
 > you cut a runtime release, read them off the build and fill them in here so this table is authoritative.
 
+### Archive integrity
+
+| Artifact | SHA-256 |
+|----------|---------|
+| `Libraries.tar.gz` (`v3.0.0`) | `9c3d2a7d9bb682ae8398d8bae458e3cb52bb9f5a3345fb0830a64d9b6a1025f8` |
+
+The same digest is published in
+[`dist/pages/WhiskyWineVersion.plist`](../dist/pages/WhiskyWineVersion.plist) under the `sha256` key.
+The app verifies the downloaded archive against it before installing and **fails closed** on a
+mismatch (a corrupted or truncated download is the common cause). This is an integrity check, not a
+substitute for HTTPS transport trust. When cutting a runtime release, compute the digest of the exact
+published asset (`shasum -a 256 Libraries.tar.gz`) and update **both** this table and the plist — an
+incorrect value will block every fresh install.
+
 ## Planned additions
 
 | Component | Target version | Upstream source | Notes |

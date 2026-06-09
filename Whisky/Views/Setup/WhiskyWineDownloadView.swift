@@ -24,28 +24,6 @@ import WhiskyKit
 
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "WhiskyWineDownloadView")
 
-private func formatHTTPError(statusCode: Int) -> String {
-    let statusMessage = switch statusCode {
-    case 404:
-        String(localized: "setup.whiskywine.error.fileNotFound")
-    case 403:
-        String(localized: "setup.whiskywine.error.accessDenied")
-    case 429:
-        String(localized: "setup.whiskywine.error.rateLimit")
-    case 500 ... 599:
-        String(localized: "setup.whiskywine.error.serverError")
-    default:
-        String(
-            format: String(localized: "setup.whiskywine.error.httpError"),
-            statusCode
-        )
-    }
-    return String(
-        format: String(localized: "setup.whiskywine.error.downloadFailed"),
-        statusMessage
-    )
-}
-
 struct WhiskyWineDownloadView: View {
     @State private var fractionProgress: Double = 0
     @State private var completedBytes: Int64 = 0
@@ -56,6 +34,9 @@ struct WhiskyWineDownloadView: View {
     @State private var startTime: Date?
     @State private var downloadError: String?
     @State private var currentDownloadTaskID: UUID?
+    /// Expected SHA-256 of the runtime archive, from the version plist. `nil`
+    /// when no hash is advertised, in which case verification is skipped.
+    @State private var expectedSHA256: String?
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
@@ -105,21 +86,6 @@ struct WhiskyWineDownloadView: View {
 }
 
 extension WhiskyWineDownloadView {
-    /// Cached formatters to avoid repeated allocations during progress updates.
-    private static let byteCountFormatter: ByteCountFormatter = {
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        formatter.zeroPadsFractionDigits = true
-        return formatter
-    }()
-
-    private static let remainingTimeFormatter: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.hour, .minute, .second]
-        formatter.unitsStyle = .full
-        return formatter
-    }()
-
     private func errorView(error: String) -> some View {
         VStack(spacing: 16) {
             Image(systemName: "xmark.circle")
@@ -256,6 +222,7 @@ extension WhiskyWineDownloadView {
             }
 
             let versionInfo = try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)
+            expectedSHA256 = versionInfo.sha256
 
             let version = versionInfo.version
             let versionString = "\(version.major).\(version.minor).\(version.patch)"
@@ -362,15 +329,44 @@ extension WhiskyWineDownloadView {
         }
 
         if let url = fileURL {
-            tarLocation = url
             diagnostics.downloadFinishedAt = Date()
             diagnostics.record("Download completed: moved to temp")
-            proceed()
+            Task { await verifyThenProceed(fileURL: url) }
         } else {
             diagnostics.downloadFinishedAt = Date()
             diagnostics.record("Download completed but no file URL received")
             downloadError = String(localized: "setup.whiskywine.error.noFileReceived")
         }
+    }
+
+    /// Verifies the downloaded archive against the advertised SHA-256, then
+    /// continues to the install stage. Fails closed on a mismatch (deletes the
+    /// archive, surfaces an error) rather than installing unverified bytes. When
+    /// no hash is advertised, verification is skipped so older runtime metadata
+    /// still installs.
+    @MainActor
+    private func verifyThenProceed(fileURL: URL) async {
+        if let expected = expectedSHA256 {
+            diagnostics.record("Verifying runtime archive (SHA-256)")
+            // Computed off the main actor — the archive is hundreds of megabytes.
+            let actual = await Task.detached { WhiskyWineInstaller.sha256(ofFileAt: fileURL) }.value
+            guard let actual, actual.caseInsensitiveCompare(expected) == .orderedSame else {
+                diagnostics.record("Integrity check FAILED — expected \(expected), got \(actual ?? "unreadable")")
+                WhiskyWineInstaller.cleanupTarball(at: fileURL)
+                downloadError = String(
+                    localized: "setup.whiskywine.error.checksumMismatch",
+                    defaultValue: """
+                    The downloaded Wine runtime failed its integrity check and was not installed. \
+                    This usually means the download was corrupted. Please try again.
+                    """
+                )
+                return
+            }
+            diagnostics.record("Integrity check passed")
+        }
+
+        tarLocation = fileURL
+        proceed()
     }
 
     @MainActor

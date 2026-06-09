@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+- Landing page (`frankea.github.io/Whisky`) now shows app screenshots, adds an
+  honest "Graphics backends" section (D3DMetal default, why DXVK is pinned at
+  1.10.3 by design, and the Wine-wide anti-cheat limitation), and bumps the
+  advertised version to 3.1.0.
+- Replaced the dead "Game Support wiki" links (the wiki page bounced to the repo
+  root) across the README, landing page, and issue templates with the bundled
+  Game Configurations database.
+
 ## [3.1.0] - 2026-06-08 (App)
 
 ### Added

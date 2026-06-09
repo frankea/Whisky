@@ -6,9 +6,9 @@ contact_links:
   - name: 💥 Crash / freeze / kernel panic troubleshooting
     url: https://github.com/frankea/Whisky/blob/main/docs/StabilityTroubleshooting.md
     about: Run the in-app diagnostics (Bottle Configuration → View Diagnostics) before reporting.
-  - name: 🎮 Game support wiki (community-maintained)
-    url: https://github.com/frankea/Whisky/wiki/Game-Support
-    about: Check whether your game already has a known status or a recommended config.
+  - name: 🎮 Game configurations (bundled)
+    url: https://github.com/frankea/Whisky/blob/main/WhiskyKit/Sources/WhiskyKit/GameDatabase/Resources/GameDB.json
+    about: Check whether your game already has a recommended config (also browsable in-app under Game Configurations).
   - name: 📜 Upstream issue audit
     url: https://github.com/frankea/Whisky/blob/main/docs/AUDIT.md
     about: Per-issue accounting of how this fork addresses the archived upstream's open issues.

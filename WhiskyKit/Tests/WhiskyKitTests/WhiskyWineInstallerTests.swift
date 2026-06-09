@@ -122,4 +122,58 @@ final class WhiskyWineInstallerTests: XCTestCase {
 
         XCTAssertNil(WhiskyWineInstaller.whiskyWineInfo(at: partialURL))
     }
+
+    // MARK: - install(from:) error propagation
+
+    func testInstallThrowsWhenTarballMissing() {
+        // The guard runs before the destination is touched, so this is safe to
+        // exercise against the real application folder.
+        let missing = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("tar.gz")
+
+        XCTAssertThrowsError(try WhiskyWineInstaller.install(from: missing)) { error in
+            XCTAssertEqual(error as? WhiskyWineInstallError, .tarballNotFound)
+        }
+    }
+
+    func testInstallThrowsOnInvalidArchive() throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        // A non-tar payload makes the extraction fail; `into:` keeps it off the
+        // real application folder.
+        let badTarball = tempDir.appendingPathComponent("bad").appendingPathExtension("tar.gz")
+        try Data("not a tarball".utf8).write(to: badTarball)
+        let destination = tempDir.appendingPathComponent("dest")
+
+        XCTAssertThrowsError(try WhiskyWineInstaller.install(tarball: badTarball, into: destination))
+    }
+
+    func testInstallExtractsValidArchiveIntoDestination() throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        // Build a tiny source tree and gzip-tar it the way the runtime archive ships.
+        let sourceDir = tempDir.appendingPathComponent("Libraries")
+        try FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
+        try Data("marker".utf8).write(to: sourceDir.appendingPathComponent("marker.txt"))
+
+        let tarball = tempDir.appendingPathComponent("archive").appendingPathExtension("tar.gz")
+        let tar = Process()
+        tar.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
+        tar.currentDirectoryURL = tempDir
+        tar.arguments = ["-czf", tarball.path, "Libraries"]
+        try tar.run()
+        tar.waitUntilExit()
+        try XCTSkipUnless(tar.terminationStatus == 0, "Could not build the tar fixture")
+
+        let destination = tempDir.appendingPathComponent("dest")
+        try WhiskyWineInstaller.install(tarball: tarball, into: destination)
+
+        let extracted = destination.appendingPathComponent("Libraries/marker.txt")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: extracted.path))
+    }
 }

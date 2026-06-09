@@ -813,6 +813,26 @@
         }
       }
     },
+    "bottle.creation.preflight.insufficientSpace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There isn't enough free space to create a bottle: %1$@ available, but about %2$@ is needed. Free up space or choose another disk."
+          }
+        }
+      }
+    },
+    "bottle.creation.preflight.notWritable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisky can't write to the folder you chose (%@). Pick a folder you can modify, such as one inside your home folder."
+          }
+        }
+      }
+    },
     "bottle.orphan.tooltip": {
       "localizations": {
         "en": {
@@ -20204,6 +20224,16 @@
         }
       }
     },
+    "setup.whiskywine.error.installFailed.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation failed: %@"
+          }
+        }
+      }
+    },
     "setup.whiskywine.error.invalidDownloadURL": {
       "localizations": {
         "en": {
@@ -20250,6 +20280,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Server error. Please try again later."
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.tarballMissing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The downloaded Wine runtime is missing and can't be installed. It was likely removed before installation finished. Please try again."
           }
         }
       }

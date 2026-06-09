@@ -28,6 +28,10 @@ enum BottleCreationError: LocalizedError {
     case metadataCreationFailed
     case wineVersionChangeFailed
     case persistenceSaveFailed
+    /// The chosen location failed pre-flight validation. Carries the already
+    /// localized, user-facing message (built at the throw site) since the alert
+    /// displays `errorDescription` verbatim.
+    case locationUnsuitable(message: String)
 
     var errorDescription: String? {
         switch self {
@@ -39,6 +43,8 @@ enum BottleCreationError: LocalizedError {
             "Failed to configure Windows version"
         case .persistenceSaveFailed:
             "Failed to save bottle to persistence"
+        case let .locationUnsuitable(message):
+            message
         }
     }
 }
@@ -96,6 +102,26 @@ final class BottleVM: ObservableObject {
     private func createBottleTask(request: BottleCreationRequest) async {
         var bottle: Bottle?
         do {
+            // Pre-flight the chosen location before creating anything, so an
+            // unwritable or near-full destination surfaces a clear error up
+            // front instead of a cryptic late wineboot failure (issue #61).
+            switch BottleLocationValidation.validate(at: request.bottleURL) {
+            case .valid:
+                break
+            case let .notWritable(path):
+                throw BottleCreationError.locationUnsuitable(
+                    message: String(format: String(localized: "bottle.creation.preflight.notWritable"), path)
+                )
+            case let .insufficientSpace(availableBytes, requiredBytes):
+                throw BottleCreationError.locationUnsuitable(
+                    message: String(
+                        format: String(localized: "bottle.creation.preflight.insufficientSpace"),
+                        ByteCountFormatter.string(fromByteCount: availableBytes, countStyle: .file),
+                        ByteCountFormatter.string(fromByteCount: requiredBytes, countStyle: .file)
+                    )
+                )
+            }
+
             try createBottleDirectory(at: request.newBottleDir)
 
             // Create bottle on main actor (since Bottle is @MainActor)

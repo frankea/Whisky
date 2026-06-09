@@ -22,6 +22,20 @@ import SemanticVersion
 
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "WhiskyWineInstaller")
 
+/// Errors thrown by ``WhiskyWineInstaller/install(from:)``.
+public enum WhiskyWineInstallError: LocalizedError, Equatable {
+    /// The downloaded tarball was not found at the expected path — typically the
+    /// OS purged the temporary download before installation ran.
+    case tarballNotFound
+
+    public var errorDescription: String? {
+        switch self {
+        case .tarballNotFound:
+            String(localized: "setup.whiskywine.error.tarballMissing")
+        }
+    }
+}
+
 /// Manages the installation and updates of the WhiskyWine runtime.
 ///
 /// `WhiskyWineInstaller` handles downloading, installing, and managing the
@@ -49,7 +63,11 @@ private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: 
 ///
 /// ```swift
 /// // After downloading the tarball
-/// WhiskyWineInstaller.install(from: downloadedTarballURL)
+/// do {
+///     try WhiskyWineInstaller.install(from: downloadedTarballURL)
+/// } catch {
+///     // Surface the failure cause to the user
+/// }
 /// ```
 ///
 /// ## Topics
@@ -100,29 +118,32 @@ public class WhiskyWineInstaller {
     /// - Parameter from: The URL to the downloaded tarball file.
     /// - Note: The tarball is NOT deleted after extraction. Call ``cleanupTarball(at:)``
     ///   after verifying installation success with ``isWhiskyWineInstalled()``.
+    /// - Throws: ``WhiskyWineInstallError/tarballNotFound`` if the tarball is gone,
+    ///   or a `TarError`/`CocoaError` if extraction or the destination rebuild fails.
+    ///   The cause propagates so callers can surface the specific reason.
     ///
     /// - Important: Ensure the tarball is from a trusted source.
-    public static func install(from: URL) {
-        do {
-            // Verify tarball exists before modifying application folder.
-            // This prevents data loss if the OS has cleaned up the temp file.
-            guard FileManager.default.fileExists(atPath: from.path) else {
-                logger.error("Tarball not found at \(from.path) - cannot install")
-                return
-            }
+    public static func install(from: URL) throws {
+        try install(tarball: from, into: applicationFolder)
+    }
 
-            if !FileManager.default.fileExists(atPath: applicationFolder.path) {
-                try FileManager.default.createDirectory(at: applicationFolder, withIntermediateDirectories: true)
-            } else {
-                // Recreate it
-                try FileManager.default.removeItem(at: applicationFolder)
-                try FileManager.default.createDirectory(at: applicationFolder, withIntermediateDirectories: true)
-            }
-
-            try Tar.untar(tarBall: from, toURL: applicationFolder)
-        } catch {
-            logger.error("Failed to install WhiskyWine: \(error.localizedDescription)")
+    /// Extracts a WhiskyWine tarball into `destination`, replacing any existing
+    /// contents. Factored out of ``install(from:)`` so extraction can be tested
+    /// against a temporary directory without touching the real application
+    /// support folder.
+    static func install(tarball: URL, into destination: URL) throws {
+        // Verify the tarball exists before modifying the destination, so a
+        // purged temp file can't leave the destination half-rebuilt.
+        guard FileManager.default.fileExists(atPath: tarball.path) else {
+            throw WhiskyWineInstallError.tarballNotFound
         }
+
+        if FileManager.default.fileExists(atPath: destination.path) {
+            try FileManager.default.removeItem(at: destination)
+        }
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+
+        try Tar.untar(tarBall: tarball, toURL: destination)
     }
 
     /// Removes the installation tarball after successful installation.

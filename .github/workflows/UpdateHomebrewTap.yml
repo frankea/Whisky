@@ -57,6 +57,16 @@ jobs:
           sed -i -E "s/version \"[^\"]+\"/version \"${version}\"/" Casks/whisky.rb
           sed -i -E "s/sha256 \"[0-9a-f]{64}\"/sha256 \"${sha}\"/" Casks/whisky.rb
 
+          # `sed -i` exits 0 even when it matches nothing, so assert both edits
+          # actually landed. Otherwise a partial match (e.g. the existing sha256
+          # line not being 64-lowercase-hex) could push a cask carrying the new
+          # version with a stale hash — silently breaking `brew install` for
+          # every user while the workflow stays green.
+          grep -qF "version \"${version}\"" Casks/whisky.rb \
+            || { echo "::error::version line was not updated in Casks/whisky.rb"; exit 1; }
+          grep -qF "sha256 \"${sha}\"" Casks/whisky.rb \
+            || { echo "::error::sha256 line was not updated (existing line not 64-lowercase-hex?)"; exit 1; }
+
           if git diff --quiet; then
             echo "Cask already at ${version}; nothing to do."
             exit 0

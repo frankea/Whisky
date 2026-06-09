@@ -176,4 +176,39 @@ final class WhiskyWineInstallerTests: XCTestCase {
         let extracted = destination.appendingPathComponent("Libraries/marker.txt")
         XCTAssertTrue(FileManager.default.fileExists(atPath: extracted.path))
     }
+
+    func testInstallReplacesExistingDestinationContents() throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let sourceDir = tempDir.appendingPathComponent("Libraries")
+        try FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
+        try Data("marker".utf8).write(to: sourceDir.appendingPathComponent("marker.txt"))
+
+        let tarball = tempDir.appendingPathComponent("archive").appendingPathExtension("tar.gz")
+        let tar = Process()
+        tar.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
+        tar.currentDirectoryURL = tempDir
+        tar.arguments = ["-czf", tarball.path, "Libraries"]
+        try tar.run()
+        tar.waitUntilExit()
+        try XCTSkipUnless(tar.terminationStatus == 0, "Could not build the tar fixture")
+
+        // Pre-existing install with a stale file that the rebuild must remove,
+        // rather than merging the new contents on top of it.
+        let destination = tempDir.appendingPathComponent("dest")
+        let stale = destination.appendingPathComponent("Libraries/stale.txt")
+        try FileManager.default.createDirectory(
+            at: stale.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try Data("stale".utf8).write(to: stale)
+
+        try WhiskyWineInstaller.install(tarball: tarball, into: destination)
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: stale.path), "Stale contents should be removed")
+        let extracted = destination.appendingPathComponent("Libraries/marker.txt")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: extracted.path))
+    }
 }

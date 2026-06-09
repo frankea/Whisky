@@ -143,11 +143,10 @@ struct WhiskyWineInstallView: View {
 
             let capturedTarURL = tarLocation
             diagnostics.record("Invoking WhiskyWineInstaller.install(from:) in detached task")
-            let installFailureMessage = await Self.performInstall(tarball: capturedTarURL)
+            let (installFailureMessage, isInstalled) = await Self.performInstall(tarball: capturedTarURL)
             if let installFailureMessage {
                 diagnostics.record("Install failed: \(installFailureMessage)")
             }
-            let isInstalled = installFailureMessage == nil && WhiskyWineInstaller.isWhiskyWineInstalled()
             let installStatus = isInstalled ? "installed" : "not installed"
             diagnostics.record(
                 "Detached WhiskyWineInstaller.install(from:) task completed: \(installStatus)"
@@ -182,15 +181,16 @@ struct WhiskyWineInstallView: View {
         }
     }
 
-    /// Runs the install off the main actor and returns the (Sendable) failure
-    /// message, or `nil` on success.
-    private static func performInstall(tarball: URL) async -> String? {
+    /// Runs the install and post-install verification off the main actor, keeping
+    /// the plist read off the main thread. Returns the (Sendable) failure message
+    /// (`nil` on success) and whether the runtime is now present.
+    private static func performInstall(tarball: URL) async -> (failureMessage: String?, installed: Bool) {
         await Task.detached {
             do {
                 try WhiskyWineInstaller.install(from: tarball)
-                return nil
+                return (nil, WhiskyWineInstaller.isWhiskyWineInstalled())
             } catch {
-                return error.localizedDescription
+                return (error.localizedDescription, false)
             }
         }.value
     }

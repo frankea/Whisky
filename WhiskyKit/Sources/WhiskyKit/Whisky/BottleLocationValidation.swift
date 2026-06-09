@@ -75,11 +75,15 @@ public enum BottleLocationValidation {
         return .valid
     }
 
-    /// Walks up from `url` to the first existing directory, so writability and
+    /// Walks up from `url` to the first existing path, so writability and
     /// capacity can be probed even when the chosen path does not exist yet.
+    ///
+    /// The first existing path may be a regular file (a malformed location); the
+    /// caller's write probe then fails and yields `.notWritable` rather than
+    /// silently validating the file's parent.
     static func nearestExistingDirectory(for url: URL, fileManager: FileManager) -> URL {
         var candidate = url.resolvingSymlinksInPath()
-        while !fileManager.fileExists(atPath: candidate.path(percentEncoded: false)) {
+        while !exists(candidate, fileManager: fileManager) {
             let parent = candidate.deletingLastPathComponent()
             // `deletingLastPathComponent()` on "/" returns "/"; stop at the root
             // rather than looping forever.
@@ -89,6 +93,17 @@ public enum BottleLocationValidation {
             candidate = parent
         }
         return candidate
+    }
+
+    /// `fileExists(atPath:)` with a trailing slash returns `false` for a regular
+    /// file, and `deletingLastPathComponent()` introduces trailing slashes — so
+    /// strip them before testing existence to detect file components correctly.
+    private static func exists(_ url: URL, fileManager: FileManager) -> Bool {
+        var path = url.path(percentEncoded: false)
+        while path.count > 1, path.hasSuffix("/") {
+            path.removeLast()
+        }
+        return fileManager.fileExists(atPath: path)
     }
 
     /// Probes writability by creating and removing a unique temp file.

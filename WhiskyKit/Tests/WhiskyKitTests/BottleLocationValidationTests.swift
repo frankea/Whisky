@@ -51,8 +51,23 @@ final class BottleLocationValidationTests: XCTestCase {
         try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: tempDir.path)
         let target = tempDir.appendingPathComponent("bottle")
 
-        guard case .notWritable = BottleLocationValidation.validate(at: target, minimumFreeBytes: 0) else {
+        // The carried path must be the original target the user chose (it is
+        // shown to them), not the nearest existing ancestor that was probed.
+        guard case let .notWritable(path) = BottleLocationValidation.validate(at: target, minimumFreeBytes: 0) else {
             return XCTFail("Expected .notWritable for a read-only directory")
+        }
+        XCTAssertEqual(path, target.path(percentEncoded: false))
+    }
+
+    func testNotWritableWhenNearestAncestorIsRegularFile() throws {
+        // If the walk-up lands on a regular file (a malformed location), the
+        // probe write fails and the result is .notWritable rather than a crash.
+        let file = tempDir.appendingPathComponent("not-a-directory")
+        try Data("x".utf8).write(to: file)
+        let target = file.appendingPathComponent("bottle")
+
+        guard case .notWritable = BottleLocationValidation.validate(at: target, minimumFreeBytes: 0) else {
+            return XCTFail("Expected .notWritable when the nearest ancestor is a regular file")
         }
     }
 

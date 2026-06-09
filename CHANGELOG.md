@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bottle creation now validates the chosen location before doing any work: if
   the folder isn't writable or the disk is nearly full, you get a clear,
   actionable error up front instead of the bottle silently disappearing after a
-  cryptic Wine failure (Closes #61).
+  cryptic Wine failure. Builds on the bottle-creation diagnostics added for
+  issue #61.
 - Runtime installation failures now surface their cause. `install(from:)`
   propagates the underlying error (missing tarball, disk full, archive
   extraction failure) instead of swallowing it, so the setup screen shows the

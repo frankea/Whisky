@@ -36,13 +36,13 @@ enum BottleCreationError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .directoryCreationFailed:
-            "Failed to create bottle directory"
+            String(localized: "bottle.creation.error.directoryCreationFailed")
         case .metadataCreationFailed:
-            "Failed to create bottle metadata"
+            String(localized: "bottle.creation.error.metadataCreationFailed")
         case .wineVersionChangeFailed:
-            "Failed to configure Windows version"
+            String(localized: "bottle.creation.error.wineVersionChangeFailed")
         case .persistenceSaveFailed:
-            "Failed to save bottle to persistence"
+            String(localized: "bottle.creation.error.persistenceSaveFailed")
         case let .locationUnsuitable(message):
             message
         }
@@ -64,7 +64,6 @@ final class BottleVM: ObservableObject {
 
     struct BottleCreationAlert: Identifiable {
         let id = UUID()
-        let title: String
         let message: String
         let diagnostics: String
     }
@@ -185,7 +184,6 @@ final class BottleVM: ObservableObject {
         bottleVMLogger.error("Failed to create new bottle: \(message)")
         bottleVMLogger.error("\(diagnostics, privacy: .public)")
         bottleCreationAlert = BottleCreationAlert(
-            title: "Bottle Creation Failed",
             message: message,
             diagnostics: diagnostics
         )

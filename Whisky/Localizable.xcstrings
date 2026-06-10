@@ -793,6 +793,46 @@
         }
       }
     },
+    "bottle.creation.error.directoryCreationFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to create the bottle directory."
+          }
+        }
+      }
+    },
+    "bottle.creation.error.metadataCreationFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to create the bottle metadata."
+          }
+        }
+      }
+    },
+    "bottle.creation.error.persistenceSaveFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to save the bottle."
+          }
+        }
+      }
+    },
+    "bottle.creation.error.wineVersionChangeFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to configure the Windows version."
+          }
+        }
+      }
+    },
     "bottle.creation.failed.copyDiagnostics": {
       "localizations": {
         "en": {

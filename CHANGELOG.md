@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   propagates the underlying error (missing tarball, disk full, archive
   extraction failure) instead of swallowing it, so the setup screen shows the
   specific reason and the diagnostics report captures it.
+- Bottle-creation error messages are now localizable instead of English-only,
+  so non-English users see translated text when creation fails.
 
 ### Documentation
 - Landing page (`frankea.github.io/Whisky`) now shows app screenshots, adds an

@@ -88,7 +88,12 @@ public struct WhiskyWineVersion: Codable {
     private static func normalizedDigest(_ value: String?) -> String? {
         guard let value else { return nil }
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        return trimmed.count == 64 && trimmed.allSatisfy(\.isHexDigit) ? trimmed : nil
+        // ASCII-only: `Character.isHexDigit` also matches fullwidth Unicode hex
+        // forms, which can never equal CryptoKit's `%02x` output — so without the
+        // `isASCII` guard a fullwidth digest would pass here and then fail every
+        // download as a mismatch instead of collapsing to nil (skip).
+        let isHexDigest = trimmed.count == 64 && trimmed.allSatisfy { $0.isHexDigit && $0.isASCII }
+        return isHexDigest ? trimmed : nil
     }
 
     public func encode(to encoder: Encoder) throws {

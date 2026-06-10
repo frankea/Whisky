@@ -97,7 +97,8 @@ final class WhiskyWineVersionSHA256Tests: XCTestCase {
             "TODO",
             String(sampleHash.dropLast()), // 63 chars
             sampleHash + "0", // 65 chars
-            "9c3d2a7d9bb682ae8398d8bae458e3cb52bb9f5a3345fb0830a64d9b6a1025fzz" // non-hex
+            "9c3d2a7d9bb682ae8398d8bae458e3cb52bb9f5a3345fb0830a64d9b6a1025fzz", // non-hex
+            String(repeating: "\u{FF10}", count: 64) // 64 fullwidth digits (non-ASCII)
         ]
 
         for malformed in malformedValues {

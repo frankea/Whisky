@@ -227,7 +227,10 @@ public struct PEFile: Hashable, Equatable, Sendable {
         guard let rsrc = rsrc(handle: handle, types: [.icon]) else { return nil }
         let icons = rsrc.allEntries
             .compactMap { entry -> NSImage? in
-                guard let offset = entry.resolveRVA(sections: sections) else { return nil }
+                guard let offset = entry.resolveRVA(sections: sections) else {
+                    logger.notice("Skipping icon entry with unresolvable RVA")
+                    return nil
+                }
                 let bitmapInfo = BitmapInfoHeader(handle: handle, offset: UInt64(offset))
                 if bitmapInfo.size != 40 {
                     do {
@@ -243,8 +246,8 @@ public struct PEFile: Hashable, Equatable, Sendable {
                         logger.error("Failed to read icon data: \(error.localizedDescription)")
                     }
                 } else if bitmapInfo.colorFormat != .unknown {
-                    // Widen before adding: both values come from the file and
-                    // their 32-bit sum can overflow on a crafted PE.
+                    // Widen before adding: `offset` is derived from file-controlled
+                    // fields and can be near UInt32.max, so a 32-bit sum can trap.
                     return bitmapInfo.renderBitmap(handle: handle, offset: UInt64(offset) + UInt64(bitmapInfo.size))
                 }
 

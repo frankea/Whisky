@@ -8,10 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- Opening a Windows executable with crafted or corrupt headers can no longer
-  crash Whisky (or the Finder thumbnail extension) during icon extraction:
-  resource offsets are now resolved with overflow-checked math, and circular
-  resource directories are detected instead of recursing forever.
+- Closed three crash vectors when opening a Windows executable with crafted or
+  corrupt headers during icon extraction (also reached by the Finder thumbnail
+  extension): overflow traps in resource-offset math, and unbounded recursion on
+  circular or pathologically deep resource directories. Resource offsets are now
+  resolved with overflow-checked math and the directory walk is depth-capped.
 
 ## [3.2.0] - 2026-06-10 (App)
 

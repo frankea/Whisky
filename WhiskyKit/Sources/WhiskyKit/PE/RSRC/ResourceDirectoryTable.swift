@@ -17,7 +17,10 @@
 //
 
 import Foundation
+import os.log
 import SemanticVersion
+
+private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ResourceDirectoryTable")
 
 /// This data structure should be considered the heading of a table,
 /// because the table actually consists of directory entries
@@ -33,9 +36,12 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
     public let subtables: [ResourceDirectoryTable]
     public let entries: [ResourceDataEntry]
 
-    /// Resource trees are at most three levels deep by spec (type → name → language);
-    /// anything deeper is a malformed or hostile file.
-    private static let maxDepth = 3
+    /// Windows resource trees use three levels by convention (type → name →
+    /// language), 0-indexed here as table depths 0–2. The PE/COFF format
+    /// technically allows arbitrary depth, but nothing real produces more, so
+    /// recursion is capped at this depth to guard against hostile or circular
+    /// directories. A directory entry found at this depth is not recursed into.
+    private static let maxTableDepth = 2
 
     /// Read the Resource Directory Table
     ///
@@ -72,9 +78,12 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
         )
     }
 
-    /// Worker that carries the recursion guards: a depth cap and the set of
-    /// table offsets already visited, so a crafted file whose directory entries
-    /// point back at an ancestor (or fan out endlessly) can't recurse forever.
+    /// Worker that carries the recursion guards: a hard depth cap (the
+    /// stack-overflow bound) and a path-scoped set of ancestor table offsets, so
+    /// a crafted file whose directory entry points back up its own branch can't
+    /// recurse forever. The visited set is path-scoped (an offset is removed once
+    /// its subtree is done), so legitimately shared subtables — a DAG, which the
+    /// format permits — still parse on every branch.
     private init(
         handle: FileHandle,
         pointerToRawData: UInt64,
@@ -143,9 +152,13 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
 
             if directoryEntry.isDirectory {
                 let subtableOffset = UInt64(directoryEntry.offset)
-                guard depth < Self.maxDepth, visited.insert(subtableOffset).inserted else {
+                guard depth < Self.maxTableDepth, !visited.contains(subtableOffset) else {
+                    logger.notice(
+                        "Truncating resource directory: depth or cycle limit hit at offset \(subtableOffset)"
+                    )
                     continue
                 }
+                visited.insert(subtableOffset)
                 let subtable = ResourceDirectoryTable(
                     handle: handle,
                     pointerToRawData: pointerToRawData,
@@ -154,6 +167,7 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
                     depth: depth + 1,
                     visited: &visited
                 )
+                visited.remove(subtableOffset)
                 subtables.append(subtable)
             } else if let entry = ResourceDataEntry(
                 handle: handle,

@@ -28,7 +28,8 @@ struct WhiskyWineDownloadView: View {
     @State private var fractionProgress: Double = 0
     @State private var completedBytes: Int64 = 0
     @State private var totalBytes: Int64 = 0
-    @State private var downloadSpeed: Double = 0
+    // Internal so the formatting helpers in WhiskyWineDownloadFormatting.swift can read it.
+    @State var downloadSpeed: Double = 0
     @State private var downloadTask: URLSessionDownloadTask?
     @State private var observation: NSKeyValueObservation?
     @State private var startTime: Date?
@@ -37,6 +38,9 @@ struct WhiskyWineDownloadView: View {
     /// Expected SHA-256 of the runtime archive, from the version plist. `nil`
     /// when no hash is advertised, in which case verification is skipped.
     @State private var expectedSHA256: String?
+    /// Set to a more specific reason (e.g. verification) before `downloadError`
+    /// so the failure event carries the right classification.
+    @State private var telemetryFailureReason: Telemetry.InstallFailureReason = .downloadFailed
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
@@ -79,8 +83,14 @@ struct WhiskyWineDownloadView: View {
             Task {
                 diagnostics.reset()
                 diagnostics.record("Entered download stage")
+                Telemetry.capture(.runtimeInstallStarted)
                 await fetchVersionAndDownload()
             }
+        }
+        .onChange(of: downloadError) { _, newValue in
+            guard newValue != nil else { return }
+            Telemetry.capture(.runtimeInstallFailed(reason: telemetryFailureReason))
+            telemetryFailureReason = .downloadFailed
         }
     }
 }
@@ -178,22 +188,9 @@ extension WhiskyWineDownloadView {
         }
     }
 
-    private func formatBytes(bytes: Int64) -> String {
-        Self.byteCountFormatter.string(fromByteCount: bytes)
-    }
-
     private func shouldShowEstimate() -> Bool {
         let elapsedTime = Date().timeIntervalSince(startTime ?? Date())
         return Int(elapsedTime.rounded()) > 5 && completedBytes != 0
-    }
-
-    private func formatRemainingTime(remainingBytes: Int64) -> String {
-        // Guard against invalid values that would produce meaningless time estimates.
-        guard remainingBytes > 0, downloadSpeed > 0 else {
-            return ""
-        }
-        let remainingTimeInSeconds = Double(remainingBytes) / downloadSpeed
-        return Self.remainingTimeFormatter.string(from: remainingTimeInSeconds) ?? ""
     }
 
     private func proceed() {
@@ -360,6 +357,7 @@ extension WhiskyWineDownloadView {
             if let failure {
                 diagnostics.record("Integrity check FAILED — \(failure)")
                 WhiskyWineInstaller.cleanupTarball(at: fileURL)
+                telemetryFailureReason = .verifyFailed
                 downloadError = String(
                     localized: "setup.whiskywine.error.checksumMismatch",
                     defaultValue: """

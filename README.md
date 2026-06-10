@@ -84,6 +84,29 @@ To switch:
 
 The original app uses a different bundle identifier (`com.franke.Whisky` here vs. `com.isaacmarovitz.Whisky`), which is why bottles aren't shared automatically. The old **Bottle → Export** / **File → Import Bottle** route still works if you'd rather move bottles by hand or onto another Mac. With no critical bottles, you can skip migration entirely — the new app creates a fresh bottle on first launch.
 
+## Telemetry (opt-in)
+
+Whisky sends **no data by default**. During first-run setup you can opt in to
+anonymous usage telemetry — a checkbox that is **off** unless you tick it, and a
+toggle you can change anytime in **Settings → Privacy**.
+
+When (and only when) enabled, Whisky sends five events covering the first-run
+funnel, so the maintainer can see where new installs fail:
+
+| Event | Properties |
+| --- | --- |
+| `runtime_install_started` | — |
+| `runtime_install_succeeded` | — |
+| `runtime_install_failed` | `reason`: one of `download_failed`, `verify_failed`, `tarball_missing`, `extract_failed` |
+| `first_bottle_created` | — |
+| `first_program_launched` | — |
+
+No personal data, file names, paths, or identifiers tied to you are ever sent —
+events carry only a random anonymous ID. The entire integration lives in
+[`Whisky/Utils/Telemetry.swift`](Whisky/Utils/Telemetry.swift), with every
+automatic capture feature of the analytics SDK disabled, so the table above is
+the complete list of what can leave the app.
+
 ## Documentation
 
 - **[Support](docs/SUPPORT.md)** - Where to file bugs and what to expect from a single-maintainer fork

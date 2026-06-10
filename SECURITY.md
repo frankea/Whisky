@@ -63,6 +63,22 @@ we track it as a runtime-currency concern rather than a closed door:
 If you believe a bundled-runtime vulnerability is being mishandled or under-prioritized in Whisky's
 packaging, report it through the private channel above and say so explicitly.
 
+## Telemetry & Data Collection
+
+Whisky sends no data by default. An **opt-in** (default off) first-run checkbox
+— mirrored by a toggle in Settings → Privacy — enables exactly five anonymous
+events: `runtime_install_started`, `runtime_install_succeeded`,
+`runtime_install_failed` (with a coarse `reason` property:
+`download_failed` / `verify_failed` / `tarball_missing` / `extract_failed`),
+`first_bottle_created`, and `first_program_launched`.
+
+Events carry a random per-install anonymous ID and never include personal data,
+file names, paths, or raw error text. The full implementation is a single file,
+[`Whisky/Utils/Telemetry.swift`](Whisky/Utils/Telemetry.swift): the analytics
+SDK is configured with all automatic capture (lifecycle events, screen views,
+feature flags, swizzling) disabled and `identify()` is never called. Opting out
+clears the queued events and the anonymous ID.
+
 ## Security Best Practices for Users
 
 - Only run trusted Windows applications within Whisky

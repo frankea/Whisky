@@ -143,7 +143,9 @@ struct WhiskyWineInstallView: View {
 
             let capturedTarURL = tarLocation
             diagnostics.record("Invoking WhiskyWineInstaller.install(from:) in detached task")
-            let (installFailureMessage, isInstalled) = await Self.performInstall(tarball: capturedTarURL)
+            let outcome = await Self.performInstall(tarball: capturedTarURL)
+            let installFailureMessage = outcome.failureMessage
+            let isInstalled = outcome.installed
             if let installFailureMessage {
                 diagnostics.record("Install failed: \(installFailureMessage)")
             }
@@ -162,16 +164,7 @@ struct WhiskyWineInstallView: View {
             diagnostics.record("Install attempt \(attemptNumber) finished (\(attemptResult))")
             diagnostics.record(finishLogMessage)
             installing = false
-            if isInstalled {
-                installError = nil
-            } else if let installFailureMessage {
-                installError = String(
-                    format: String(localized: "setup.whiskywine.error.installFailed.detail"),
-                    Self.shortened(installFailureMessage)
-                )
-            } else {
-                installError = String(localized: "setup.whiskywine.error.installFailed")
-            }
+            applyInstallOutcome(outcome)
             guard isInstalled else { return }
             // Only cleanup tarball after verified successful installation
             // This preserves it for retry attempts if installation fails
@@ -181,16 +174,53 @@ struct WhiskyWineInstallView: View {
         }
     }
 
-    /// Runs the install and post-install verification off the main actor, keeping
-    /// the plist read off the main thread. Returns the (Sendable) failure message
-    /// (`nil` on success) and whether the runtime is now present.
-    private static func performInstall(tarball: URL) async -> (failureMessage: String?, installed: Bool) {
+    /// Reports the funnel event and sets the user-facing error state.
+    @MainActor
+    private func applyInstallOutcome(_ outcome: InstallOutcome) {
+        if outcome.installed {
+            Telemetry.capture(.runtimeInstallSucceeded)
+            installError = nil
+        } else {
+            Telemetry.capture(
+                .runtimeInstallFailed(reason: outcome.tarballMissing ? .tarballMissing : .extractFailed)
+            )
+            if let failureMessage = outcome.failureMessage {
+                installError = String(
+                    format: String(localized: "setup.whiskywine.error.installFailed.detail"),
+                    Self.shortened(failureMessage)
+                )
+            } else {
+                installError = String(localized: "setup.whiskywine.error.installFailed")
+            }
+        }
+    }
+
+    /// Outcome of an install attempt: the failure message (`nil` on success),
+    /// whether the runtime is now present, and whether the failure was a
+    /// missing tarball (for coarse telemetry classification).
+    private struct InstallOutcome {
+        let failureMessage: String?
+        let installed: Bool
+        let tarballMissing: Bool
+    }
+
+    /// Runs the install and post-install verification off the main actor,
+    /// keeping the plist read off the main thread.
+    private static func performInstall(tarball: URL) async -> InstallOutcome {
         await Task.detached {
             do {
                 try WhiskyWineInstaller.install(from: tarball)
-                return (nil, WhiskyWineInstaller.isWhiskyWineInstalled())
+                return InstallOutcome(
+                    failureMessage: nil,
+                    installed: WhiskyWineInstaller.isWhiskyWineInstalled(),
+                    tarballMissing: false
+                )
             } catch {
-                return (error.localizedDescription, false)
+                return InstallOutcome(
+                    failureMessage: error.localizedDescription,
+                    installed: false,
+                    tarballMissing: (error as? WhiskyWineInstallError) == .tarballNotFound
+                )
             }
         }.value
     }

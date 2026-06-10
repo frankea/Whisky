@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Optional, **opt-in** anonymous usage telemetry. A checkbox during first-run
+  setup (off by default, changeable anytime in Settings → Privacy) enables five
+  anonymous events covering the first-run funnel — runtime install
+  started/succeeded/failed (with a coarse reason), first bottle created, first
+  program launched — so install failures in the field become visible. Nothing
+  is sent without explicit consent; no personal data, paths, or raw error text
+  is ever included. The full event list is documented in the README and
+  SECURITY.md.
+
 ## [3.2.0] - 2026-06-10 (App)
 
 ### Added

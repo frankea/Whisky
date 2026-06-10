@@ -145,6 +145,7 @@ final class BottleVM: ObservableObject {
 
             persistBottleCreation(request: request)
             loadBottles()
+            Telemetry.capture(.firstBottleCreated)
         } catch {
             handleBottleCreationFailure(error, request: request, bottle: bottle)
         }

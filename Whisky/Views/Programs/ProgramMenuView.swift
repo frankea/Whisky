@@ -26,6 +26,7 @@ struct ProgramMenuView: View {
 
     var body: some View {
         Button("button.run", systemImage: "play") {
+            Telemetry.capture(.firstProgramLaunched)
             program.run()
         }
         .labelStyle(.titleAndIcon)

@@ -57,4 +57,17 @@ extension WhiskyWineDownloadView {
         formatter.unitsStyle = .full
         return formatter
     }()
+
+    func formatBytes(bytes: Int64) -> String {
+        Self.byteCountFormatter.string(fromByteCount: bytes)
+    }
+
+    func formatRemainingTime(remainingBytes: Int64) -> String {
+        // Guard against invalid values that would produce meaningless time estimates.
+        guard remainingBytes > 0, downloadSpeed > 0 else {
+            return ""
+        }
+        let remainingTimeInSeconds = Double(remainingBytes) / downloadSpeed
+        return Self.remainingTimeFormatter.string(from: remainingTimeInSeconds) ?? ""
+    }
 }

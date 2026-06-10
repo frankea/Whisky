@@ -17064,6 +17064,16 @@
         }
       }
     },
+    "settings.privacy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy"
+          }
+        }
+      }
+    },
     "settings.terminal": {
       "localizations": {
         "en": {
@@ -17206,6 +17216,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Whisky 關閉時終止 Wine 進程"
+          }
+        }
+      }
+    },
+    "settings.toggle.telemetry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share anonymous usage data"
           }
         }
       }
@@ -19110,6 +19130,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "管理Whisky需要的相依性套件"
+          }
+        }
+      }
+    },
+    "setup.telemetry.consent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share anonymous usage data to help improve Whisky"
+          }
+        }
+      }
+    },
+    "setup.telemetry.consent.help": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional and off by default. When enabled, Whisky sends five anonymous events covering first-run setup: runtime install started, succeeded, or failed (with a coarse reason), first bottle created, and first program launched. No personal data, file names, or identifiers tied to you are ever sent. You can change this anytime in Settings."
           }
         }
       }

@@ -57,6 +57,7 @@ struct WhiskyApp: App {
             updaterDelegate: nil,
             userDriverDelegate: nil
         )
+        Telemetry.startIfConsented()
     }
 
     var body: some Scene {

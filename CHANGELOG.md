@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- The "Failed to Export Diagnostics Report" alert is now localizable instead of
+  English-only, matching the rest of the launcher diagnostics UI.
+
 ## [3.2.0] - 2026-06-10 (App)
 
 ### Added

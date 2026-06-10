@@ -126,7 +126,12 @@ enum PEBuilder {
         return Data(data.prefix(0xF0))
     }
 
-    static func createSectionHeader(name: String, virtualSize: UInt32, virtualAddress: UInt32) -> Data {
+    static func createSectionHeader(
+        name: String,
+        virtualSize: UInt32,
+        virtualAddress: UInt32,
+        pointerToRawData: UInt32 = 0x200
+    ) -> Data {
         var data = Data()
         var nameBytes = Array(name.utf8)
         while nameBytes.count < 8 {
@@ -136,7 +141,7 @@ enum PEBuilder {
         data.append(contentsOf: withUnsafeBytes(of: virtualSize.littleEndian) { Array($0) })
         data.append(contentsOf: withUnsafeBytes(of: virtualAddress.littleEndian) { Array($0) })
         data.append(contentsOf: withUnsafeBytes(of: UInt32(0x1000).littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: UInt32(0x200).littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: pointerToRawData.littleEndian) { Array($0) })
         data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) })
         data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) })
         data.append(contentsOf: withUnsafeBytes(of: UInt16(0).littleEndian) { Array($0) })

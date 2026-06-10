@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Opening a Windows executable with crafted or corrupt headers can no longer
+  crash Whisky (or the Finder thumbnail extension) during icon extraction:
+  resource offsets are now resolved with overflow-checked math, and circular
+  resource directories are detected instead of recursing forever.
+
 ## [3.2.0] - 2026-06-10 (App)
 
 ### Added

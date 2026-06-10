@@ -33,6 +33,10 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
     public let subtables: [ResourceDirectoryTable]
     public let entries: [ResourceDataEntry]
 
+    /// Resource trees are at most three levels deep by spec (type → name → language);
+    /// anything deeper is a malformed or hostile file.
+    private static let maxDepth = 3
+
     /// Read the Resource Directory Table
     ///
     /// - Parameters:
@@ -57,6 +61,28 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
         offset initialOffset: UInt64,
         types: [ResourceType]? = nil
     ) {
+        var visited: Set<UInt64> = [initialOffset]
+        self.init(
+            handle: handle,
+            pointerToRawData: pointerToRawData,
+            offset: initialOffset,
+            types: types,
+            depth: 0,
+            visited: &visited
+        )
+    }
+
+    /// Worker that carries the recursion guards: a depth cap and the set of
+    /// table offsets already visited, so a crafted file whose directory entries
+    /// point back at an ancestor (or fan out endlessly) can't recurse forever.
+    private init(
+        handle: FileHandle,
+        pointerToRawData: UInt64,
+        offset initialOffset: UInt64,
+        types: [ResourceType]?,
+        depth: Int,
+        visited: inout Set<UInt64>
+    ) {
         var offset = pointerToRawData + initialOffset
         self.characteristics = handle.extract(UInt32.self, offset: offset) ?? 0
         offset += 4
@@ -75,16 +101,36 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
         self.numberOfIdEntries = numberOfIdEntries
         offset += 2
 
+        // We don't care about named entries
+        // the entries we're looking for are ID'd
+        offset += 8 * UInt64(numberOfNameEntries)
+
+        (self.subtables, self.entries) = Self.readIDEntries(
+            handle: handle,
+            pointerToRawData: pointerToRawData,
+            firstEntryOffset: offset,
+            count: numberOfIdEntries,
+            types: types,
+            depth: depth,
+            visited: &visited
+        )
+    }
+
+    // swiftlint:disable:next function_parameter_count
+    private static func readIDEntries(
+        handle: FileHandle,
+        pointerToRawData: UInt64,
+        firstEntryOffset: UInt64,
+        count: UInt16,
+        types: [ResourceType]?,
+        depth: Int,
+        visited: inout Set<UInt64>
+    ) -> ([ResourceDirectoryTable], [ResourceDataEntry]) {
         var subtables: [ResourceDirectoryTable] = []
         var entries: [ResourceDataEntry] = []
+        var offset = firstEntryOffset
 
-        for _ in 0 ..< numberOfNameEntries {
-            // We don't care about named entries
-            // the entries we're looking for are ID'd
-            offset += 8
-        }
-
-        for _ in 0 ..< numberOfIdEntries {
+        for _ in 0 ..< count {
             let directoryEntry = ResourceDirectoryEntry.ID(handle: handle, offset: offset)
             offset += 8
 
@@ -96,10 +142,17 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
             }
 
             if directoryEntry.isDirectory {
+                let subtableOffset = UInt64(directoryEntry.offset)
+                guard depth < Self.maxDepth, visited.insert(subtableOffset).inserted else {
+                    continue
+                }
                 let subtable = ResourceDirectoryTable(
                     handle: handle,
                     pointerToRawData: pointerToRawData,
-                    offset: UInt64(directoryEntry.offset)
+                    offset: subtableOffset,
+                    types: nil,
+                    depth: depth + 1,
+                    visited: &visited
                 )
                 subtables.append(subtable)
             } else if let entry = ResourceDataEntry(
@@ -110,8 +163,7 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
             }
         }
 
-        self.subtables = subtables
-        self.entries = entries
+        return (subtables, entries)
     }
 
     /// Access all entries from this table and all its subtables

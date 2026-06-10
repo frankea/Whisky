@@ -20,6 +20,8 @@ import AppKit
 import Foundation
 import os.log
 
+private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "PortableExecutable")
+
 /// An error that occurred while parsing a PE file.
 public struct PEError: Error {
     /// A human-readable description of the error.
@@ -238,10 +240,12 @@ public struct PEFile: Hashable, Equatable, Sendable {
                             }
                         }
                     } catch {
-                        print("Failed to get icon")
+                        logger.error("Failed to read icon data: \(error.localizedDescription)")
                     }
                 } else if bitmapInfo.colorFormat != .unknown {
-                    return bitmapInfo.renderBitmap(handle: handle, offset: UInt64(offset + bitmapInfo.size))
+                    // Widen before adding: both values come from the file and
+                    // their 32-bit sum can overflow on a crafted PE.
+                    return bitmapInfo.renderBitmap(handle: handle, offset: UInt64(offset) + UInt64(bitmapInfo.size))
                 }
 
                 return nil

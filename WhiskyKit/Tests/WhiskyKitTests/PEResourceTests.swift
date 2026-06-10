@@ -374,3 +374,90 @@ final class ResourceDirectoryTableTests: XCTestCase {
         XCTAssertTrue(tableWithUnknown.entries.isEmpty)
     }
 }
+
+// MARK: - Malformed PE Hardening
+
+/// PE files are untrusted input (WhiskyThumbnail parses them automatically), so
+/// crafted headers must never trap or hang the parser.
+final class MalformedPEHardeningTests: XCTestCase {
+    var tempDir: URL!
+
+    override func setUp() {
+        super.setUp()
+        tempDir = FileManager.default.temporaryDirectory.appending(path: "pe_hardening_\(UUID().uuidString)")
+        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+    }
+
+    override func tearDown() {
+        try? FileManager.default.removeItem(at: tempDir)
+        super.tearDown()
+    }
+
+    private func makeSection(
+        virtualSize: UInt32,
+        virtualAddress: UInt32,
+        pointerToRawData: UInt32
+    ) throws -> PEFile.Section {
+        let data = PEBuilder.createSectionHeader(
+            name: ".rsrc",
+            virtualSize: virtualSize,
+            virtualAddress: virtualAddress,
+            pointerToRawData: pointerToRawData
+        )
+        let fileURL = tempDir.appending(path: "section_\(UUID().uuidString).bin")
+        try data.write(to: fileURL)
+        let handle = try FileHandle(forReadingFrom: fileURL)
+        defer { try? handle.close() }
+        return try XCTUnwrap(PEFile.Section(handle: handle, offset: 0))
+    }
+
+    private func makeDataEntry(dataRVA: UInt32, size: UInt32) throws -> ResourceDataEntry {
+        var data = Data()
+        data.append(contentsOf: withUnsafeBytes(of: dataRVA.littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: size.littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) }) // codePage
+        data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) }) // reserved
+        let fileURL = tempDir.appending(path: "entry_\(UUID().uuidString).bin")
+        try data.write(to: fileURL)
+        let handle = try FileHandle(forReadingFrom: fileURL)
+        defer { try? handle.close() }
+        return try XCTUnwrap(ResourceDataEntry(handle: handle, offset: 0))
+    }
+
+    func testResolveRVASectionBoundsOverflowDoesNotTrap() throws {
+        // virtualAddress + virtualSize exceeds UInt32.max in a crafted section header.
+        let section = try makeSection(virtualSize: 0x20, virtualAddress: 0xFFFF_FFF0, pointerToRawData: 0x200)
+        let entry = try makeDataEntry(dataRVA: 0xFFFF_FFF5, size: 16)
+        XCTAssertEqual(entry.resolveRVA(sections: [section]), 0x205)
+    }
+
+    func testResolveRVAFileOffsetOverflowReturnsNil() throws {
+        // pointerToRawData + (dataRVA - virtualAddress) exceeds UInt32.max.
+        let section = try makeSection(virtualSize: 0x100, virtualAddress: 0x1000, pointerToRawData: 0xFFFF_FFF0)
+        let entry = try makeDataEntry(dataRVA: 0x1080, size: 16)
+        XCTAssertNil(entry.resolveRVA(sections: [section]))
+    }
+
+    func testCyclicResourceDirectoryTerminates() throws {
+        // Root table whose single directory entry points back at the root (offset 0).
+        var data = Data()
+        data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) }) // characteristics
+        data.append(contentsOf: withUnsafeBytes(of: UInt32(0).littleEndian) { Array($0) }) // timestamp
+        data.append(contentsOf: withUnsafeBytes(of: UInt16(0).littleEndian) { Array($0) }) // major version
+        data.append(contentsOf: withUnsafeBytes(of: UInt16(0).littleEndian) { Array($0) }) // minor version
+        data.append(contentsOf: withUnsafeBytes(of: UInt16(0).littleEndian) { Array($0) }) // name entries
+        data.append(contentsOf: withUnsafeBytes(of: UInt16(1).littleEndian) { Array($0) }) // id entries: 1
+
+        // Directory entry (high bit set) whose subtable offset is 0 — the root itself.
+        data.append(contentsOf: withUnsafeBytes(of: UInt32(3).littleEndian) { Array($0) }) // type: icon
+        data.append(contentsOf: withUnsafeBytes(of: UInt32(0x8000_0000).littleEndian) { Array($0) })
+
+        let fileURL = tempDir.appending(path: "cyclic_table.bin")
+        try data.write(to: fileURL)
+        let handle = try FileHandle(forReadingFrom: fileURL)
+        defer { try? handle.close() }
+
+        let table = ResourceDirectoryTable(handle: handle, pointerToRawData: 0, types: nil)
+        XCTAssertTrue(table.allEntries.isEmpty)
+    }
+}

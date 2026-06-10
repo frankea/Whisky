@@ -123,6 +123,19 @@ gh release create app-vX.Y.Z \
 
 The push to `main` triggers `.github/workflows/Documentation.yml`, which redeploys Pages with the updated appcast within ~1–2 minutes. Sparkle clients pick up the update on next launch.
 
+### 7. Homebrew tap (automatic)
+
+Publishing the `app-vX.Y.Z` release fires `.github/workflows/UpdateHomebrewTap.yml`,
+which downloads the DMG, computes its sha256, and bumps the
+[frankea/homebrew-whisky](https://github.com/frankea/homebrew-whisky) cask so
+`brew install --cask frankea/whisky/whisky` tracks the new version. No manual edit needed.
+
+This requires a one-time repository secret **`BREW_TOKEN`** — a personal access token
+(classic `repo`, or fine-grained with **Contents: write**) for `frankea/homebrew-whisky`;
+the default `GITHUB_TOKEN` cannot push to another repository. If the secret is missing the
+workflow fails loudly so the drift is visible. You can also re-sync any tag manually via the
+workflow's `workflow_dispatch` input.
+
 ## Wine Libraries release
 
 The runtime (`Libraries.tar.gz`) is **assembled from upstream binaries, not built from source** — see

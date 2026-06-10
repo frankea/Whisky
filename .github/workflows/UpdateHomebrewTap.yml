@@ -1,0 +1,79 @@
+name: Update Homebrew Tap
+
+# When an app release (app-vX.Y.Z) is published, bump the frankea/homebrew-whisky
+# cask to the new version + DMG sha256 so `brew install --cask frankea/whisky/whisky`
+# always tracks the latest release without a manual edit.
+#
+# Requires a repository secret BREW_TOKEN: a personal access token (classic `repo`,
+# or fine-grained with Contents: write) for frankea/homebrew-whisky. The default
+# GITHUB_TOKEN cannot push to a different repository.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: App release tag to sync (e.g. app-v3.1.0)
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  update-tap:
+    # Only app releases; the Wine Libraries stream uses bare vX.Y.Z tags and has no cask.
+    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'app-v') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bump cask to the released version
+        env:
+          BREW_TOKEN: ${{ secrets.BREW_TOKEN }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BREW_TOKEN:-}" ]; then
+            echo "::error::BREW_TOKEN secret is not set. Add a PAT with Contents:write for frankea/homebrew-whisky."
+            exit 1
+          fi
+
+          version="${TAG#app-v}"
+          # Strictly validate the version before it flows into URLs and the sed
+          # expressions below — refuse anything that isn't a dotted numeric version.
+          if ! printf '%s' "$version" | grep -qE '^[0-9]+(\.[0-9]+)*$'; then
+            echo "::error::Refusing to sync: '${version}' (from tag '${TAG}') is not a dotted numeric version."
+            exit 1
+          fi
+          url="https://github.com/frankea/Whisky/releases/download/${TAG}/Whisky-${version}.dmg"
+          echo "Syncing tap to ${version} from ${url}"
+
+          curl -fSL "$url" -o whisky.dmg
+          sha="$(sha256sum whisky.dmg | awk '{print $1}')"
+          echo "sha256=${sha}"
+
+          git clone --depth 1 "https://x-access-token:${BREW_TOKEN}@github.com/frankea/homebrew-whisky.git" tap
+          cd tap
+          sed -i -E "s/version \"[^\"]+\"/version \"${version}\"/" Casks/whisky.rb
+          sed -i -E "s/sha256 \"[0-9a-f]{64}\"/sha256 \"${sha}\"/" Casks/whisky.rb
+
+          # `sed -i` exits 0 even when it matches nothing, so assert both edits
+          # actually landed. Otherwise a partial match (e.g. the existing sha256
+          # line not being 64-lowercase-hex) could push a cask carrying the new
+          # version with a stale hash — silently breaking `brew install` for
+          # every user while the workflow stays green.
+          grep -qF "version \"${version}\"" Casks/whisky.rb \
+            || { echo "::error::version line was not updated in Casks/whisky.rb"; exit 1; }
+          grep -qF "sha256 \"${sha}\"" Casks/whisky.rb \
+            || { echo "::error::sha256 line was not updated (existing line not 64-lowercase-hex?)"; exit 1; }
+
+          if git diff --quiet; then
+            echo "Cask already at ${version}; nothing to do."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "whisky ${version}"
+          git push
+          echo "Tap updated to whisky ${version}."

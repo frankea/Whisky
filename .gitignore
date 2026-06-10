@@ -101,3 +101,7 @@ CLAUDE.md
 plans/
 .claude/
 mise.toml
+
+# Never commit exported signing material (see docs/ReleaseWorkflow.md credential continuity)
+sparkle_ed25519_private.key*
+developer_id.p12*

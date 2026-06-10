@@ -87,10 +87,11 @@ A backup that has never been restored from is a hope, not a backup. `sign_update
 "$SPARKLE_BIN/sign_update" --ed-key-file sparkle_ed25519_private.key build/release/Whisky-X.Y.Z.dmg
 ```
 
-The printed `sparkle:edSignature` must exactly match that release's entry in `dist/pages/appcast.xml` — Ed25519 signatures are deterministic, so any difference means the exported key is wrong.
+The printed `sparkle:edSignature` must exactly match that release's entry in `dist/pages/appcast.xml` — Ed25519 signatures are deterministic, so a difference means either the exported key is wrong **or** the DMG you signed is not the exact published artifact (rebuilt locally, partially downloaded, wrong file). If in doubt, download the release asset from the appcast enclosure URL and sign that.
 
 ### Recovery on a new machine
 
+0. Build Whisky once first so the Sparkle tools exist in DerivedData (see [Sparkle EdDSA keys](#sparkle-eddsa-keys) under One-time setup) — `generate_keys` ships inside the Sparkle SPM artifact, not on `PATH`.
 1. Decrypt the backup, then import the Sparkle key: `generate_keys -f sparkle_ed25519_private.key`.
 2. Open the `.p12` to install the Developer ID identity into the login keychain.
 3. Re-create the notary profile with `xcrun notarytool store-credentials AC_PASSWORD …` (see One-time setup).

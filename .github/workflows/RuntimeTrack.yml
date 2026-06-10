@@ -23,7 +23,10 @@ env:
   # Gcenx also publishes development builds (e.g. 11.10) as non-prereleases, so the
   # bare /releases/latest would point at a devel build and flag false drift weekly.
   WINE_REPO: Gcenx/macOS_Wine_builds
-  WINE_PINNED: "11.0"
+  # "11.0_1" is the Gcenx repack of the Wine 11.0 stable (same Wine version; the
+  # bare "11.0" tag was retired). It must match an existing upstream tag exactly,
+  # or the equality check below reads "behind" forever and files a weekly issue.
+  WINE_PINNED: "11.0_1"
   DXVK_REPO: Gcenx/DXVK-macOS
   DXVK_PINNED: v1.10.3-20230507-repack
   # DXMT is not bundled yet (informational only until the DXMT runtime ships). When it

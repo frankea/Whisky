@@ -62,6 +62,16 @@ public enum GraphicsBackend: String, Codable, CaseIterable, Equatable, Sendable 
     }
 }
 
+extension KeyedDecodingContainer {
+    /// Decodes a ``GraphicsBackend`` leniently: an unknown or malformed value becomes
+    /// `nil` instead of failing the parent decode, so settings written by a newer
+    /// Whisky (with backends this build doesn't know) still load.
+    func decodeGraphicsBackendIfPresent(forKey key: Key) -> GraphicsBackend? {
+        ((try? decodeIfPresent(String.self, forKey: key)) ?? nil)
+            .flatMap(GraphicsBackend.init(rawValue:))
+    }
+}
+
 /// Stores the graphics backend choice for a bottle.
 ///
 /// This config is serialized alongside other bottle config groups in
@@ -76,6 +86,6 @@ public struct BottleGraphicsConfig: Codable, Equatable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.backend = try container.decodeIfPresent(GraphicsBackend.self, forKey: .backend) ?? .recommended
+        self.backend = container.decodeGraphicsBackendIfPresent(forKey: .backend) ?? .recommended
     }
 }

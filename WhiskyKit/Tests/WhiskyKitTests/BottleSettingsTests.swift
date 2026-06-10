@@ -336,4 +336,39 @@ final class BottleSettingsTests: XCTestCase {
         XCTAssertEqual(loadedSettings.name, "CustomBottle")
         XCTAssertTrue(loadedSettings.metalHud)
     }
+
+    // MARK: - Graphics Backend Forward Compatibility
+
+    func testUnknownGraphicsBackendDecodesToRecommended() throws {
+        let plist = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>backend</key>
+            <string>someFutureBackend</string>
+        </dict>
+        </plist>
+        """
+        let config = try PropertyListDecoder().decode(BottleGraphicsConfig.self, from: Data(plist.utf8))
+        XCTAssertEqual(config.backend, .recommended)
+    }
+
+    func testSettingsWithUnknownGraphicsBackendStillDecode() throws {
+        var settings = BottleSettings()
+        settings.name = "Forward Compat"
+        settings.graphicsBackend = .dxvk
+
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(settings)
+
+        // Simulate a Metadata.plist written by a newer Whisky with a backend this build doesn't know.
+        let xml = try XCTUnwrap(String(data: data, encoding: .utf8))
+            .replacingOccurrences(of: "<string>dxvk</string>", with: "<string>someFutureBackend</string>")
+        let decoded = try PropertyListDecoder().decode(BottleSettings.self, from: Data(xml.utf8))
+
+        XCTAssertEqual(decoded.name, "Forward Compat")
+        XCTAssertEqual(decoded.graphicsBackend, .recommended)
+    }
 }

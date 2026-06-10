@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Bottle settings are now written atomically, so a crash or power loss mid-save
+  can no longer leave a truncated `Metadata.plist` that wipes the bottle's
+  configuration.
+- A bottle or per-program override that names a graphics backend this build
+  doesn't recognize (for example, one written by a newer Whisky) now falls back
+  to the recommended backend instead of failing to load the bottle's settings
+  entirely. Game-database entries behave the same way.
+
 ## [3.2.0] - 2026-06-10 (App)
 
 ### Added

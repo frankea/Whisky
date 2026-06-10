@@ -81,4 +81,22 @@ final class ProgramOverridesTests: XCTestCase {
         let decoded = try PropertyListDecoder().decode(BottleSettings.self, from: data)
         XCTAssertTrue(decoded.dllOverrides.isEmpty)
     }
+
+    func testUnknownGraphicsBackendDecodesToNil() throws {
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = .dxvk
+        overrides.enhancedSync = .msync
+
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(overrides)
+
+        // Simulate overrides written by a newer Whisky with a backend this build doesn't know.
+        let xml = try XCTUnwrap(String(data: data, encoding: .utf8))
+            .replacingOccurrences(of: "<string>dxvk</string>", with: "<string>someFutureBackend</string>")
+        let decoded = try PropertyListDecoder().decode(ProgramOverrides.self, from: Data(xml.utf8))
+
+        XCTAssertNil(decoded.graphicsBackend)
+        XCTAssertEqual(decoded.enhancedSync, .msync)
+    }
 }

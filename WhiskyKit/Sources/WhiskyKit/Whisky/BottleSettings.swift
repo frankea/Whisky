@@ -716,7 +716,8 @@ public struct BottleSettings: Codable, Equatable {
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .xml
         let data = try encoder.encode(self)
-        try data.write(to: metadataUrl)
+        // Atomic so a crash mid-write can't leave a truncated Metadata.plist behind.
+        try data.write(to: metadataUrl, options: .atomic)
     }
 
     // MARK: - EnvironmentBuilder Layer Populators

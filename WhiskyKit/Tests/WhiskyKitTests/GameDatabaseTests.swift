@@ -482,6 +482,18 @@ final class GameDatabaseTests: XCTestCase {
         // Load returns nil
         XCTAssertNil(GameConfigSnapshot.load(from: tempDir))
     }
+
+    func testVariantSettingsUnknownGraphicsBackendDecodesToNil() throws {
+        let json = """
+        {
+          "graphicsBackend": "someFutureBackend",
+          "dxvk": true
+        }
+        """
+        let settings = try JSONDecoder().decode(GameConfigVariantSettings.self, from: Data(json.utf8))
+        XCTAssertNil(settings.graphicsBackend)
+        XCTAssertEqual(settings.dxvk, true)
+    }
 }
 
 // swiftlint:enable file_length

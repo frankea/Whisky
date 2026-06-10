@@ -129,7 +129,7 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.graphicsBackend = try container.decodeIfPresent(GraphicsBackend.self, forKey: .graphicsBackend)
+        self.graphicsBackend = container.decodeGraphicsBackendIfPresent(forKey: .graphicsBackend)
         self.dxvk = try container.decodeIfPresent(Bool.self, forKey: .dxvk)
         self.dxvkAsync = try container.decodeIfPresent(Bool.self, forKey: .dxvkAsync)
         self.dxvkHud = try container.decodeIfPresent(DXVKHUD.self, forKey: .dxvkHud)

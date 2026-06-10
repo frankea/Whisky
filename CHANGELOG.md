@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-06-10 (App)
+
 ### Added
 - The Wine runtime download is now verified against a published SHA-256 before
   installation. A corrupted or truncated download is caught and rejected with a

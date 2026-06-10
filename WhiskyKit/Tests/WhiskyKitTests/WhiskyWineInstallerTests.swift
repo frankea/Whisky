@@ -124,6 +124,55 @@ final class WhiskyWineInstallerTests: XCTestCase {
         XCTAssertNil(WhiskyWineInstaller.whiskyWineInfo(at: partialURL))
     }
 
+    // MARK: - isRuntimePresent (plist + wine64)
+
+    /// Builds a runtime tree under `folder` with an optional version plist and an
+    /// optional `wine64` binary, mirroring the layout the installer extracts.
+    private func makeRuntime(in folder: URL, plist: Bool, wine64: Bool) throws {
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        if plist {
+            let plistURL = folder.appending(path: "WhiskyWineVersion").appendingPathExtension("plist")
+            let contents: [String: Any] = ["version": ["major": 3, "minor": 0, "patch": 0]]
+            let data = try PropertyListSerialization.data(fromPropertyList: contents, format: .xml, options: 0)
+            try data.write(to: plistURL)
+        }
+        if wine64 {
+            let binDir = folder.appending(path: "Wine").appending(path: "bin")
+            try FileManager.default.createDirectory(at: binDir, withIntermediateDirectories: true)
+            try Data("#!/bin/sh\n".utf8).write(to: binDir.appending(path: "wine64"))
+        }
+    }
+
+    func testRuntimePresentWhenPlistAndBinaryExist() throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+        try makeRuntime(in: tempDir, plist: true, wine64: true)
+
+        XCTAssertTrue(WhiskyWineInstaller.isRuntimePresent(inLibraryFolder: tempDir))
+    }
+
+    func testRuntimeNotPresentWhenBinaryMissing() throws {
+        // The #63 case: a half-extracted runtime keeps the plist but loses wine64.
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+        try makeRuntime(in: tempDir, plist: true, wine64: false)
+
+        XCTAssertFalse(WhiskyWineInstaller.isRuntimePresent(inLibraryFolder: tempDir))
+    }
+
+    func testRuntimeNotPresentWhenPlistMissing() throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+        try makeRuntime(in: tempDir, plist: false, wine64: true)
+
+        XCTAssertFalse(WhiskyWineInstaller.isRuntimePresent(inLibraryFolder: tempDir))
+    }
+
+    func testRuntimeNotPresentWhenFolderEmpty() {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        XCTAssertFalse(WhiskyWineInstaller.isRuntimePresent(inLibraryFolder: tempDir))
+    }
+
     // MARK: - install(from:) error propagation
 
     func testInstallThrowsWhenTarballMissing() {

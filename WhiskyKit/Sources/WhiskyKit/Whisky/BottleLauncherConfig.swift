@@ -91,11 +91,11 @@ public struct BottleLauncherConfig: Codable, Equatable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.compatibilityMode = try container.decodeIfPresent(Bool.self, forKey: .compatibilityMode) ?? false
-        self.launcherMode = try container.decodeIfPresent(LauncherMode.self, forKey: .launcherMode) ?? .auto
-        self.detectedLauncher = try container.decodeIfPresent(LauncherType.self, forKey: .detectedLauncher)
-        self.launcherLocale = try container.decodeIfPresent(Locales.self, forKey: .launcherLocale) ?? .auto
+        self.launcherMode = container.decodeLenientIfPresent(LauncherMode.self, forKey: .launcherMode) ?? .auto
+        self.detectedLauncher = container.decodeLenientIfPresent(LauncherType.self, forKey: .detectedLauncher)
+        self.launcherLocale = container.decodeLenientIfPresent(Locales.self, forKey: .launcherLocale) ?? .auto
         self.gpuSpoofing = try container.decodeIfPresent(Bool.self, forKey: .gpuSpoofing) ?? true
-        self.gpuVendor = try container.decodeIfPresent(GPUVendor.self, forKey: .gpuVendor) ?? .nvidia
+        self.gpuVendor = container.decodeLenientIfPresent(GPUVendor.self, forKey: .gpuVendor) ?? .nvidia
         self.networkTimeout = try container.decodeIfPresent(Int.self, forKey: .networkTimeout) ?? 60_000
         self.autoEnableDXVK = try container.decodeIfPresent(Bool.self, forKey: .autoEnableDXVK) ?? true
     }

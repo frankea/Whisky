@@ -101,3 +101,8 @@ CLAUDE.md
 plans/
 .claude/
 mise.toml
+
+# Secrets — never stage signing keys or exported credentials
+sparkle_ed25519_private.key*
+developer_id.p12*
+*.age

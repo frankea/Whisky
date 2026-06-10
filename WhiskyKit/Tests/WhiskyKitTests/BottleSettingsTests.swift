@@ -20,6 +20,10 @@ import SemanticVersion
 @testable import WhiskyKit
 import XCTest
 
+// swiftlint:disable file_length
+// Exhaustive settings coverage (defaults, lenient decode, round-trips) requires many cases.
+
+// swiftlint:disable:next type_body_length
 final class BottleSettingsTests: XCTestCase {
     // MARK: - BottleSettings Default Values
 
@@ -410,5 +414,76 @@ final class BottleSettingsTests: XCTestCase {
         let reencoded = try encoder.encode(decoded)
         let reloaded = try PropertyListDecoder().decode(BottleGraphicsConfig.self, from: reencoded)
         XCTAssertEqual(reloaded.backend, .recommended)
+    }
+
+    // MARK: - Settings-Tree Forward Compatibility
+
+    /// Encodes `settings`, swaps `original` for `replacement` in the produced plist XML to
+    /// simulate a value written by a newer Whisky, and decodes the whole `BottleSettings`.
+    private func decodeSettingsSubstituting(
+        _ settings: BottleSettings,
+        original: String,
+        replacement: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws -> BottleSettings {
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(settings)
+        let xml = try XCTUnwrap(String(data: data, encoding: .utf8), file: file, line: line)
+        XCTAssertTrue(
+            xml.contains(original),
+            "encoding shape changed; test no longer substitutes `\(original)`",
+            file: file,
+            line: line
+        )
+        let mutated = xml.replacingOccurrences(of: original, with: replacement)
+        return try PropertyListDecoder().decode(BottleSettings.self, from: Data(mutated.utf8))
+    }
+
+    func testUnknownPerformancePresetDecodesToDefaultInWholeSettings() throws {
+        var settings = BottleSettings()
+        settings.name = "Perf Forward Compat"
+        settings.performancePreset = .performance
+
+        let decoded = try decodeSettingsSubstituting(
+            settings,
+            original: "<string>performance</string>",
+            replacement: "<string>someFuturePreset</string>"
+        )
+
+        // The unknown preset must degrade to the default without taking the rest of settings down.
+        XCTAssertEqual(decoded.name, "Perf Forward Compat")
+        XCTAssertEqual(decoded.performancePreset, .balanced)
+    }
+
+    func testUnknownResolutionPresetDecodesToDefaultInWholeSettings() throws {
+        var settings = BottleSettings()
+        settings.name = "Resolution Forward Compat"
+        settings.resolutionPreset = .r2560x1440
+
+        let decoded = try decodeSettingsSubstituting(
+            settings,
+            original: "<string>r2560x1440</string>",
+            replacement: "<string>r7680x4320</string>"
+        )
+
+        XCTAssertEqual(decoded.name, "Resolution Forward Compat")
+        XCTAssertEqual(decoded.resolutionPreset, .r1920x1080)
+    }
+
+    func testUnknownWindowsVersionDecodesToDefaultInWholeSettings() throws {
+        var settings = BottleSettings()
+        settings.name = "WinVersion Forward Compat"
+        settings.windowsVersion = .win11
+
+        let decoded = try decodeSettingsSubstituting(
+            settings,
+            original: "<string>win11</string>",
+            replacement: "<string>win12</string>"
+        )
+
+        XCTAssertEqual(decoded.name, "WinVersion Forward Compat")
+        XCTAssertEqual(decoded.windowsVersion, .win10)
     }
 }

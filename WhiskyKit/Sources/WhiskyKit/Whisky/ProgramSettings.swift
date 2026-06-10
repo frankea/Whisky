@@ -178,14 +178,14 @@ public struct ProgramSettings: Codable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.locale = try container.decodeIfPresent(Locales.self, forKey: .locale) ?? .auto
+        self.locale = container.decodeLenientIfPresent(Locales.self, forKey: .locale) ?? .auto
         self.environment = try container.decodeIfPresent(
             [String: String].self,
             forKey: .environment
         ) ?? [:]
         self.arguments = try container.decodeIfPresent(String.self, forKey: .arguments) ?? ""
         self.overrides = try container.decodeIfPresent(ProgramOverrides.self, forKey: .overrides)
-        self.activeWineDebugPreset = try container.decodeIfPresent(
+        self.activeWineDebugPreset = container.decodeLenientIfPresent(
             WineDebugPreset.self,
             forKey: .activeWineDebugPreset
         )

@@ -106,7 +106,7 @@ public struct BottleDisplayConfig: Codable, Equatable {
         self.virtualDesktopEnabled = try container.decodeIfPresent(
             Bool.self, forKey: .virtualDesktopEnabled
         ) ?? false
-        self.resolutionPreset = try container.decodeIfPresent(
+        self.resolutionPreset = container.decodeLenientIfPresent(
             ResolutionPreset.self, forKey: .resolutionPreset
         ) ?? .r1920x1080
         self.customWidth = try container.decodeIfPresent(

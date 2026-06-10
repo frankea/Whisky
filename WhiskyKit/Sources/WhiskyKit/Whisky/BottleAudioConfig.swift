@@ -141,13 +141,13 @@ public struct BottleAudioConfig: Codable, Equatable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.audioDriver = try container.decodeIfPresent(
+        self.audioDriver = container.decodeLenientIfPresent(
             AudioDriverMode.self, forKey: .audioDriver
         ) ?? .auto
-        self.latencyPreset = try container.decodeIfPresent(
+        self.latencyPreset = container.decodeLenientIfPresent(
             AudioLatencyPreset.self, forKey: .latencyPreset
         ) ?? .defaultPreset
-        self.outputDeviceMode = try container.decodeIfPresent(
+        self.outputDeviceMode = container.decodeLenientIfPresent(
             OutputDeviceMode.self, forKey: .outputDeviceMode
         ) ?? .followSystem
         self.pinnedDeviceName = try container.decodeIfPresent(

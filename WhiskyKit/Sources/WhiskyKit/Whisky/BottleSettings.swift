@@ -693,6 +693,9 @@ public struct BottleSettings: Codable, Equatable {
 
         guard settings.fileVersion == BottleSettings.defaultFileVersion else {
             Logger.wineKit.warning("Invalid file version `\(settings.fileVersion)`")
+            // Preserve the original before defaults overwrite it, so an unexpected file version
+            // (which may carry recoverable user data) is not silently destroyed.
+            quarantineCorruptedFile(at: metadataURL)
             settings = BottleSettings()
             try settings.encode(to: metadataURL)
             return settings
@@ -718,6 +721,47 @@ public struct BottleSettings: Codable, Equatable {
         let data = try encoder.encode(self)
         // Atomic so a crash mid-write can't leave a truncated Metadata.plist behind.
         try data.write(to: metadataUrl, options: .atomic)
+    }
+
+    /// Moves an unreadable settings file aside before defaults overwrite it, preserving the
+    /// original for diagnosis instead of destroying it (silent data loss).
+    ///
+    /// The file is renamed to a `Metadata.plist.corrupt-<timestamp>` sibling. The move is
+    /// best-effort: if the file does not exist there is nothing to preserve, and if the move
+    /// itself fails the error is logged and the caller proceeds to write defaults anyway.
+    ///
+    /// - Parameter metadataURL: The URL of the settings file to quarantine.
+    static func quarantineCorruptedFile(at metadataURL: URL) {
+        let fileManager = FileManager.default
+        // Only quarantine when there is actually a file to preserve.
+        guard fileManager.fileExists(atPath: metadataURL.path(percentEncoded: false)) else { return }
+
+        // Filename-safe timestamp (no colons/spaces): e.g. 2026-06-10T14-30-05Z.
+        let formatter = ISO8601DateFormatter()
+        formatter.timeZone = TimeZone(identifier: "UTC")
+        let rawTimestamp = formatter.string(from: Date())
+        let timestamp = rawTimestamp.replacingOccurrences(of: ":", with: "-")
+        let quarantineURL = metadataURL
+            .deletingLastPathComponent()
+            .appending(path: "\(metadataURL.lastPathComponent).corrupt-\(timestamp)")
+
+        do {
+            try fileManager.moveItem(at: metadataURL, to: quarantineURL)
+            Logger.wineKit.error(
+                """
+                Quarantined unreadable settings file `\(metadataURL.path(percentEncoded: false), privacy: .public)` \
+                to `\(quarantineURL.path(percentEncoded: false), privacy: .public)` before writing defaults
+                """
+            )
+        } catch {
+            Logger.wineKit.error(
+                """
+                Failed to quarantine unreadable settings file \
+                `\(metadataURL.path(percentEncoded: false), privacy: .public)`: \
+                \(String(describing: error), privacy: .public); proceeding to write defaults
+                """
+            )
+        }
     }
 
     // MARK: - EnvironmentBuilder Layer Populators

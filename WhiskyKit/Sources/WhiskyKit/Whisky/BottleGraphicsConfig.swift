@@ -76,19 +76,41 @@ extension KeyedDecodingContainer {
         _: T.Type,
         forKey key: Key
     ) -> T? where T.RawValue == String {
+        let typeName = String(describing: T.self)
+        let path = codingPath.map(\.stringValue).joined(separator: ".")
         let raw: String?
         do {
             raw = try decodeIfPresent(String.self, forKey: key)
+        } catch let error as DecodingError {
+            // A wrong-typed value (e.g. a number or object where a string was expected) is
+            // corruption — it cannot be produced by any real Whisky build — so log at .error.
+            Logger.wineKit.error(
+                """
+                Ignoring corrupt \(typeName, privacy: .public) at \
+                `\(key.stringValue, privacy: .public)` (path: \(path, privacy: .public)): \
+                \(String(describing: error), privacy: .public)
+                """
+            )
+            return nil
         } catch {
-            Logger.wineKit.warning(
-                "Ignoring malformed \(String(describing: T.self)) at `\(key.stringValue, privacy: .public)`: \(error)"
+            Logger.wineKit.error(
+                """
+                Ignoring malformed \(typeName, privacy: .public) at \
+                `\(key.stringValue, privacy: .public)` (path: \(path, privacy: .public)): \
+                \(String(describing: error), privacy: .public)
+                """
             )
             return nil
         }
         guard let raw else { return nil }
         guard let value = T(rawValue: raw) else {
+            // A well-formed string that this build doesn't recognize is legitimate
+            // forward-compat (a newer Whisky added an enum case) — log at .warning.
             Logger.wineKit.warning(
-                "Ignoring unknown \(String(describing: T.self)) value `\(raw, privacy: .public)`; using default"
+                """
+                Ignoring unknown \(typeName, privacy: .public) value `\(raw)` at \
+                `\(key.stringValue, privacy: .public)` (path: \(path, privacy: .public)); using default
+                """
             )
             return nil
         }

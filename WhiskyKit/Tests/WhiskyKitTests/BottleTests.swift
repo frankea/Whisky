@@ -20,6 +20,9 @@ import Foundation
 @testable import WhiskyKit
 import XCTest
 
+// swiftlint:disable file_length
+// Broad bottle coverage (core, settings recovery, quarantine) lives in one file.
+
 // MARK: - Bottle Core Tests
 
 final class BottleCoreTests: XCTestCase {
@@ -260,6 +263,58 @@ final class BottleCoreTests: XCTestCase {
         // Verify by reloading
         let reloadedBottle = Bottle(bottleUrl: bottleURL)
         XCTAssertEqual(reloadedBottle.settings.name, "Manual Save Test")
+    }
+
+    // MARK: - Corrupt Metadata Quarantine Tests
+
+    @MainActor
+    func testCorruptMetadataIsQuarantinedNotDestroyed() throws {
+        let metadataURL = bottleURL.appending(path: "Metadata.plist")
+
+        // Write a truncated/corrupt plist that cannot decode into BottleSettings.
+        let corruptContents = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><plist version=\"1.0\"><dict><key>name"
+        try Data(corruptContents.utf8).write(to: metadataURL)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: metadataURL.path(percentEncoded: false)))
+
+        // Loading the bottle runs the real decode/recovery path.
+        let bottle = Bottle(bottleUrl: bottleURL)
+
+        // (a) Settings come up as defaults rather than throwing out of the load.
+        XCTAssertEqual(bottle.settings.name, "Bottle")
+        XCTAssertEqual(bottle.settings.windowsVersion, .win10)
+
+        // A fresh default Metadata.plist was written in place.
+        XCTAssertTrue(FileManager.default.fileExists(atPath: metadataURL.path(percentEncoded: false)))
+
+        // (b) The original was preserved as a Metadata.plist.corrupt-* sibling, not destroyed.
+        let siblings = try FileManager.default.contentsOfDirectory(
+            at: bottleURL,
+            includingPropertiesForKeys: nil
+        )
+        let quarantined = siblings.filter { $0.lastPathComponent.hasPrefix("Metadata.plist.corrupt-") }
+        XCTAssertEqual(quarantined.count, 1, "expected exactly one quarantined copy of the unreadable settings")
+
+        // The quarantined file still holds the original unreadable bytes (data was preserved).
+        let preserved = try XCTUnwrap(quarantined.first)
+        let preservedContents = try String(contentsOf: preserved, encoding: .utf8)
+        XCTAssertEqual(preservedContents, corruptContents)
+    }
+
+    @MainActor
+    func testValidMetadataIsNotQuarantined() throws {
+        // A bottle that loads cleanly must never produce a quarantine sibling.
+        let bottle = Bottle(bottleUrl: bottleURL)
+        bottle.settings.name = "Healthy"
+        bottle.saveBottleSettings()
+
+        _ = Bottle(bottleUrl: bottleURL)
+
+        let siblings = try FileManager.default.contentsOfDirectory(
+            at: bottleURL,
+            includingPropertiesForKeys: nil
+        )
+        let quarantined = siblings.filter { $0.lastPathComponent.hasPrefix("Metadata.plist.corrupt-") }
+        XCTAssertTrue(quarantined.isEmpty, "a readable settings file must not be quarantined")
     }
 }
 

@@ -147,6 +147,9 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
             Logger.wineKit.error(
                 "Failed to load settings for bottle `\(metadataURL.path(percentEncoded: false))`: \(error)"
             )
+            // Preserve the unreadable file before defaults overwrite it, so a corrupt
+            // Metadata.plist is moved aside for diagnosis rather than silently destroyed.
+            BottleSettings.quarantineCorruptedFile(at: metadataURL)
             // Create default settings if decode fails
             self.settings = BottleSettings()
             // Try to create the metadata file with default settings

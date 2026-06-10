@@ -365,10 +365,50 @@ final class BottleSettingsTests: XCTestCase {
 
         // Simulate a Metadata.plist written by a newer Whisky with a backend this build doesn't know.
         let xml = try XCTUnwrap(String(data: data, encoding: .utf8))
-            .replacingOccurrences(of: "<string>dxvk</string>", with: "<string>someFutureBackend</string>")
-        let decoded = try PropertyListDecoder().decode(BottleSettings.self, from: Data(xml.utf8))
+        XCTAssertTrue(xml.contains("<string>dxvk</string>"), "encoding shape changed; test no longer substitutes")
+        let mutated = xml.replacingOccurrences(of: "<string>dxvk</string>", with: "<string>someFutureBackend</string>")
+        let decoded = try PropertyListDecoder().decode(BottleSettings.self, from: Data(mutated.utf8))
 
         XCTAssertEqual(decoded.name, "Forward Compat")
         XCTAssertEqual(decoded.graphicsBackend, .recommended)
+    }
+
+    func testMalformedGraphicsBackendTypeDecodesToRecommended() throws {
+        // A wrong-typed value (number instead of string) must not throw out of
+        // the parent decode — it degrades to the default, same as an unknown value.
+        let plist = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>backend</key>
+            <integer>2</integer>
+        </dict>
+        </plist>
+        """
+        let config = try PropertyListDecoder().decode(BottleGraphicsConfig.self, from: Data(plist.utf8))
+        XCTAssertEqual(config.backend, .recommended)
+    }
+
+    func testUnknownGraphicsBackendRoundTripsAsRecommended() throws {
+        // Decoding an unknown backend yields a persistable value: re-encoding and
+        // decoding again still loads. The future value is intentionally lost — saving
+        // under an older build is a one-way downgrade to .recommended.
+        let plist = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>backend</key>
+            <string>someFutureBackend</string>
+        </dict>
+        </plist>
+        """
+        let decoded = try PropertyListDecoder().decode(BottleGraphicsConfig.self, from: Data(plist.utf8))
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let reencoded = try encoder.encode(decoded)
+        let reloaded = try PropertyListDecoder().decode(BottleGraphicsConfig.self, from: reencoded)
+        XCTAssertEqual(reloaded.backend, .recommended)
     }
 }

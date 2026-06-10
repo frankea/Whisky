@@ -93,10 +93,34 @@ final class ProgramOverridesTests: XCTestCase {
 
         // Simulate overrides written by a newer Whisky with a backend this build doesn't know.
         let xml = try XCTUnwrap(String(data: data, encoding: .utf8))
-            .replacingOccurrences(of: "<string>dxvk</string>", with: "<string>someFutureBackend</string>")
-        let decoded = try PropertyListDecoder().decode(ProgramOverrides.self, from: Data(xml.utf8))
+        XCTAssertTrue(xml.contains("<string>dxvk</string>"), "encoding shape changed; test no longer substitutes")
+        let mutated = xml.replacingOccurrences(of: "<string>dxvk</string>", with: "<string>someFutureBackend</string>")
+        let decoded = try PropertyListDecoder().decode(ProgramOverrides.self, from: Data(mutated.utf8))
 
         XCTAssertNil(decoded.graphicsBackend)
+        XCTAssertEqual(decoded.enhancedSync, .msync)
+    }
+
+    func testUnknownPerformancePresetDecodesToNil() throws {
+        // Lenient decode covers all string-backed enums in the overrides, not just
+        // the graphics backend — an unknown performancePreset must not fail the decode.
+        var overrides = ProgramOverrides()
+        overrides.performancePreset = .balanced
+        overrides.enhancedSync = .msync
+
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(overrides)
+
+        let xml = try XCTUnwrap(String(data: data, encoding: .utf8))
+        XCTAssertTrue(xml.contains("<string>balanced</string>"), "encoding shape changed; test no longer substitutes")
+        let mutated = xml.replacingOccurrences(
+            of: "<string>balanced</string>",
+            with: "<string>someFuturePreset</string>"
+        )
+        let decoded = try PropertyListDecoder().decode(ProgramOverrides.self, from: Data(mutated.utf8))
+
+        XCTAssertNil(decoded.performancePreset)
         XCTAssertEqual(decoded.enhancedSync, .msync)
     }
 }

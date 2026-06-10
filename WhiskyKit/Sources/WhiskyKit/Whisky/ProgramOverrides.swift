@@ -129,13 +129,13 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.graphicsBackend = container.decodeGraphicsBackendIfPresent(forKey: .graphicsBackend)
+        self.graphicsBackend = container.decodeLenientIfPresent(GraphicsBackend.self, forKey: .graphicsBackend)
         self.dxvk = try container.decodeIfPresent(Bool.self, forKey: .dxvk)
         self.dxvkAsync = try container.decodeIfPresent(Bool.self, forKey: .dxvkAsync)
         self.dxvkHud = try container.decodeIfPresent(DXVKHUD.self, forKey: .dxvkHud)
         self.enhancedSync = try container.decodeIfPresent(EnhancedSync.self, forKey: .enhancedSync)
         self.forceD3D11 = try container.decodeIfPresent(Bool.self, forKey: .forceD3D11)
-        self.performancePreset = try container.decodeIfPresent(PerformancePreset.self, forKey: .performancePreset)
+        self.performancePreset = container.decodeLenientIfPresent(PerformancePreset.self, forKey: .performancePreset)
         self.shaderCacheEnabled = try container.decodeIfPresent(Bool.self, forKey: .shaderCacheEnabled)
         self.controllerCompatibilityMode = try container.decodeIfPresent(
             Bool.self, forKey: .controllerCompatibilityMode
@@ -145,7 +145,7 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
         self.disableControllerMapping = try container.decodeIfPresent(Bool.self, forKey: .disableControllerMapping)
         self.useButtonLabels = try container.decodeIfPresent(Bool.self, forKey: .useButtonLabels)
         self.virtualDesktopEnabled = try container.decodeIfPresent(Bool.self, forKey: .virtualDesktopEnabled)
-        self.resolutionPreset = try container.decodeIfPresent(ResolutionPreset.self, forKey: .resolutionPreset)
+        self.resolutionPreset = container.decodeLenientIfPresent(ResolutionPreset.self, forKey: .resolutionPreset)
         self.customResolutionWidth = try container.decodeIfPresent(Int.self, forKey: .customResolutionWidth)
         self.customResolutionHeight = try container.decodeIfPresent(Int.self, forKey: .customResolutionHeight)
         self.dllOverrides = try container.decodeIfPresent([DLLOverrideEntry].self, forKey: .dllOverrides)

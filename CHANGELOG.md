@@ -8,13 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- Bottle settings are now written atomically, so a crash or power loss mid-save
-  can no longer leave a truncated `Metadata.plist` that wipes the bottle's
-  configuration.
-- A bottle or per-program override that names a graphics backend this build
-  doesn't recognize (for example, one written by a newer Whisky) now falls back
-  to the recommended backend instead of failing to load the bottle's settings
-  entirely. Game-database entries behave the same way.
+- Bottle settings are now written atomically, so a crash mid-save can no longer
+  leave a truncated `Metadata.plist` that wipes the bottle's configuration.
+- A bottle, per-program override, or game-database entry that names a graphics
+  backend (or performance/resolution preset) this build doesn't recognize — for
+  example, one written by a newer Whisky — no longer fails to load the settings
+  entirely. The bottle's own backend falls back to the recommended backend;
+  per-program overrides and game-database entries fall back to inheriting the
+  bottle's choice.
 
 ## [3.2.0] - 2026-06-10 (App)
 

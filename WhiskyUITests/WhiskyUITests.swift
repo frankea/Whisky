@@ -27,6 +27,9 @@ final class WhiskyUITests: XCTestCase {
         app = XCUIApplication()
         app.launchArguments += ["-WhiskyUITestMode", "1"]
         app.launch()
+        // Frontmost before interacting: a non-key window makes toolbar elements
+        // unhittable — the usual source of "element missing" flakiness.
+        app.activate()
     }
 
     override func tearDownWithError() throws {
@@ -51,6 +54,28 @@ final class WhiskyUITests: XCTestCase {
             line: line
         )
         return element
+    }
+
+    /// Wait up to `timeout` for an element to become *hittable* (interactive),
+    /// not merely present — a click before a control is hittable silently no-ops.
+    @discardableResult
+    private func waitUntilHittable(
+        _ element: XCUIElement,
+        _ description: String,
+        timeout: TimeInterval = 5,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) -> Bool {
+        let predicate = NSPredicate(format: "isHittable == true")
+        let expectation = XCTNSPredicateExpectation(predicate: predicate, object: element)
+        let result = XCTWaiter().wait(for: [expectation], timeout: timeout)
+        XCTAssertEqual(
+            result, .completed,
+            "Element never became hittable: \(description)",
+            file: file,
+            line: line
+        )
+        return result == .completed
     }
 
     /// Walk every visible static text label and return any that look like raw localization keys.
@@ -327,22 +352,27 @@ final class WhiskyUITests: XCTestCase {
         // same identifier. Click the first match, which is the hittable wrapper.
         let createButton = require(
             app.buttons.matching(identifier: "toolbar.createBottle").firstMatch,
-            "+ toolbar button", timeout: 5
+            "+ toolbar button", timeout: 10
         )
-        createButton.click()
 
-        // Wait for the sheet to materialize before querying its inner controls.
-        // The sheet's Cancel toolbar button is the most reliable signal that the
-        // sheet has fully rendered; SwiftUI Form-rendered TextFields can lag the
-        // AX tree by a beat on slow CI runners, so probing for the name field
-        // first races the sheet animation.
-        require(app.buttons["create.cancelButton"], "create-bottle sheet", timeout: 5)
+        // Opening the sheet is the historically flaky step (a click before the
+        // button is hittable, or the Form sheet lagging the AX tree). Wait for
+        // hittable, click, wait generously, and retry the click once — guarded on
+        // the button still being hittable so we never click behind an open sheet.
+        waitUntilHittable(createButton, "+ toolbar button", timeout: 10)
+        let cancelButton = app.buttons["create.cancelButton"]
+        createButton.click()
+        if !cancelButton.waitForExistence(timeout: 15) {
+            if createButton.isHittable {
+                createButton.click()
+            }
+            require(cancelButton, "create-bottle sheet", timeout: 15)
+        }
 
         let nameField = require(
             app.textFields["create.nameField"],
             "create-bottle name field"
         )
-        XCTAssertTrue(app.buttons["create.cancelButton"].exists, "Cancel button missing")
         // Create button should start disabled (empty name)
         XCTAssertFalse(
             app.buttons["create.createButton"].isEnabled,

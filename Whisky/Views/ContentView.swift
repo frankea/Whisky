@@ -157,6 +157,11 @@ struct ContentView: View {
                 }
             }
 
+            // Skip the first-launch setup sheet and update check under UI testing:
+            // tests run without a runtime, so this would otherwise drop a modal
+            // sheet over the main window and race every toolbar interaction.
+            guard !WhiskyApp.isUITesting else { return }
+
             if !WhiskyWineInstaller.isWhiskyWineInstalled() {
                 showSetup = true
             }

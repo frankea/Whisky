@@ -27,6 +27,13 @@ private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.fran
 @main
 // swiftlint:disable:next type_body_length
 struct WhiskyApp: App {
+    /// True when launched by the UI test harness (the `-WhiskyUITestMode` launch
+    /// argument set in `WhiskyUITests`). UI tests run without a Wine runtime
+    /// installed, which would otherwise auto-present the first-launch setup sheet
+    /// over the main window and race every toolbar interaction; this lets that
+    /// auto-presentation (and the update check) be skipped in tests.
+    static let isUITesting = ProcessInfo.processInfo.arguments.contains("-WhiskyUITestMode")
+
     @State var showSetup: Bool = false
     @State private var showMigrate: Bool = false
     @State private var showDiagnosticsSheet: Bool = false

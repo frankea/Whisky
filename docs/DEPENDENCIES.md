@@ -13,7 +13,7 @@ flags when a bundled component falls behind upstream.
 
 | Component | Bundled version | Upstream source | Notes |
 |-----------|-----------------|-----------------|-------|
-| **Wine** | 11.0 (Gcenx stable) | [Gcenx/macOS_Wine_builds](https://github.com/Gcenx/macOS_Wine_builds/releases) | Wine ships a new stable each January; 11.0 = Jan 2026. |
+| **Wine** | 11.0 (Gcenx `11.0_1` repack) | [Gcenx/macOS_Wine_builds](https://github.com/Gcenx/macOS_Wine_builds/releases) | Wine ships a new stable each January; 11.0 = Jan 2026. The Gcenx tag is `11.0_1` (a repack of the same Wine 11.0; the bare `11.0` tag was retired) — `RuntimeTrack.yml` pins that exact tag. |
 | **DXVK (macOS)** | 1.10.3 | [Gcenx/DXVK-macOS](https://github.com/Gcenx/DXVK-macOS/releases) | Frozen at 1.10.x **by design** — the DXVK 2.x line needs Vulkan 1.3 features MoltenVK/macOS don't expose. Not stale; do not "upgrade" to upstream 2.x. |
 | **D3DMetal** | from Apple Game Porting Toolkit | [Apple GPTK](https://developer.apple.com/games/game-porting-toolkit/) | **Apple-proprietary. Extracted, never built.** Redistribution is governed by Apple's GPTK license — review terms before bumping. The default backend for most titles. |
 | **MoltenVK** | (confirm against published archive) | [KhronosGroup/MoltenVK](https://github.com/KhronosGroup/MoltenVK/releases) | Vulkan→Metal; underpins the DXVK path. |
@@ -21,6 +21,20 @@ flags when a bundled component falls behind upstream.
 
 > The exact MoltenVK/msync versions live inside the published `Libraries.tar.gz`, not this repo. When
 > you cut a runtime release, read them off the build and fill them in here so this table is authoritative.
+
+### Archive integrity
+
+| Artifact | SHA-256 |
+|----------|---------|
+| `Libraries.tar.gz` (`v3.0.0`) | `9c3d2a7d9bb682ae8398d8bae458e3cb52bb9f5a3345fb0830a64d9b6a1025f8` |
+
+The same digest is published in
+[`dist/pages/WhiskyWineVersion.plist`](../dist/pages/WhiskyWineVersion.plist) under the `sha256` key.
+The app verifies the downloaded archive against it before installing and **fails closed** on a
+mismatch (a corrupted or truncated download is the common cause). This is an integrity check, not a
+substitute for HTTPS transport trust. When cutting a runtime release, compute the digest of the exact
+published asset (`shasum -a 256 Libraries.tar.gz`) and update **both** this table and the plist — an
+incorrect value will block every fresh install.
 
 ## Planned additions
 

@@ -13,5 +13,7 @@
 	</dict>
 	<key>dxvkVersion</key>
 	<string>1.10.3</string>
+	<key>sha256</key>
+	<string>9c3d2a7d9bb682ae8398d8bae458e3cb52bb9f5a3345fb0830a64d9b6a1025f8</string>
 </dict>
 </plist>

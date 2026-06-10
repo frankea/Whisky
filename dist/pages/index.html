@@ -35,7 +35,7 @@
   "operatingSystem": "macOS 15.0+",
   "applicationCategory": "GameApplication",
   "applicationSubCategory": "Wine wrapper",
-  "softwareVersion": "3.0.1",
+  "softwareVersion": "3.1.0",
   "license": "https://www.gnu.org/licenses/gpl-3.0.html",
   "downloadUrl": "https://github.com/frankea/Whisky/releases/latest",
   "url": "https://github.com/frankea/Whisky",
@@ -147,6 +147,9 @@ img.screenshot {
   <a class="cta secondary" href="https://github.com/frankea/Whisky">View on GitHub</a>
 </p>
 
+<img class="screenshot" src="https://raw.githubusercontent.com/frankea/Whisky/main/images/new-bottle-screenshot.png" alt="Creating a new Wine bottle in Whisky" loading="lazy" width="1200">
+<img class="screenshot" src="https://raw.githubusercontent.com/frankea/Whisky/main/images/config-screenshot.png" alt="Whisky bottle configuration — graphics backend, Wine, and performance settings" loading="lazy" width="1200">
+
 <h2>Install via Homebrew</h2>
 <pre><code>brew install --cask frankea/whisky/whisky</code></pre>
 <p class="muted">Note: the default <code>brew install --cask whisky</code> still installs the archived original. Use the qualified <code>frankea/whisky/whisky</code> form for this fork.</p>
@@ -155,7 +158,7 @@ img.screenshot {
 <ul>
   <li>Apple Silicon Mac (M1, M2, M3, M4)</li>
   <li>macOS Sequoia 15.0 or later</li>
-  <li>~313 MB disk space for the bundled Wine runtime</li>
+  <li>~800 MB disk space for the bundled Wine runtime (a ~313 MB download)</li>
 </ul>
 
 <h2>What's included</h2>
@@ -168,13 +171,21 @@ img.screenshot {
   <li>Signed and notarized DMG; Sparkle delivers in-app updates</li>
 </ul>
 
+<h2>Graphics backends</h2>
+<p>Whisky translates Direct3D to the Mac GPU two ways, selectable per bottle:</p>
+<ul>
+  <li><strong>D3DMetal</strong> (default) — Apple's Direct3D-to-Metal layer from the Game Porting Toolkit. The fastest path for most modern Direct3D 11/12 titles.</li>
+  <li><strong>DXVK</strong> — Direct3D-to-Vulkan (via MoltenVK), a broad-compatibility fallback for titles D3DMetal doesn't handle. Pinned at the macOS-compatible 1.10.3 <em>by design</em>: the DXVK 2.x line needs Vulkan features macOS doesn't expose, so a higher version number wouldn't run here — a deliberate choice, not a stale dependency.</li>
+</ul>
+<p class="muted"><strong>Anti-cheat:</strong> games using kernel-level anti-cheat (EAC, BattlEye, and similar) generally do not run under any Wine-based wrapper on macOS, including Whisky. This is a Wine-wide limitation, not specific to this fork.</p>
+
 <h2>Documentation</h2>
 <ul>
   <li><a href="documentation/whiskykit/">WhiskyKit API documentation</a> — DocC-generated reference for the framework</li>
   <li><a href="https://github.com/frankea/Whisky/blob/main/docs/AUDIT.md">Upstream issue audit</a> — per-issue accounting against the archived upstream</li>
   <li><a href="https://github.com/frankea/Whisky/blob/main/docs/LauncherTroubleshooting.md">Launcher troubleshooting</a></li>
   <li><a href="https://github.com/frankea/Whisky/blob/main/docs/StabilityTroubleshooting.md">Stability troubleshooting</a></li>
-  <li><a href="https://github.com/frankea/Whisky/wiki/Game-Support">Game support wiki</a> (community-maintained)</li>
+  <li><a href="https://github.com/frankea/Whisky/blob/main/WhiskyKit/Sources/WhiskyKit/GameDatabase/Resources/GameDB.json">Bundled game configurations</a> — 80+ curated per-game setups, browsable in-app under Game Configurations</li>
 </ul>
 
 <hr>

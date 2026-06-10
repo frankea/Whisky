@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- The Wine runtime download is now verified against a published SHA-256 before
+  installation. A corrupted or truncated download is caught and rejected with a
+  clear error and a retry, instead of unpacking a broken runtime. Runtime
+  metadata that predates the published checksum still installs unchanged.
+
 ### Fixed
 - Bottle creation now validates the chosen location before doing any work: if
   the folder isn't writable or the disk is nearly full, you get a clear,
@@ -17,6 +23,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   propagates the underlying error (missing tarball, disk full, archive
   extraction failure) instead of swallowing it, so the setup screen shows the
   specific reason and the diagnostics report captures it.
+
+### Documentation
+- Landing page (`frankea.github.io/Whisky`) now shows app screenshots, adds an
+  honest "Graphics backends" section (D3DMetal default, why DXVK is pinned at
+  1.10.3 by design, and the Wine-wide anti-cheat limitation), and bumps the
+  advertised version to 3.1.0.
+- Replaced the dead "Game Support wiki" links (the wiki page bounced to the repo
+  root) across the README, landing page, and issue templates with the bundled
+  Game Configurations database.
 
 ## [3.1.0] - 2026-06-08 (App)
 

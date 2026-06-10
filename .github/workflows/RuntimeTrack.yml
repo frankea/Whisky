@@ -19,10 +19,18 @@ permissions:
 
 env:
   # repo (owner/name)         pinned upstream tag we currently bundle
+  # Wine is tracked against the latest STABLE tag only (see latest_stable_tag below):
+  # Gcenx also publishes development builds (e.g. 11.10) as non-prereleases, so the
+  # bare /releases/latest would point at a devel build and flag false drift weekly.
   WINE_REPO: Gcenx/macOS_Wine_builds
-  WINE_PINNED: SET_ME
+  # "11.0_1" is the Gcenx repack of the Wine 11.0 stable (same Wine version; the
+  # bare "11.0" tag was retired). It must match an existing upstream tag exactly,
+  # or the equality check below reads "behind" forever and files a weekly issue.
+  WINE_PINNED: "11.0_1"
   DXVK_REPO: Gcenx/DXVK-macOS
-  DXVK_PINNED: SET_ME
+  DXVK_PINNED: v1.10.3-20230507-repack
+  # DXMT is not bundled yet (informational only until the DXMT runtime ships). When it
+  # ships, set this to the bundled tag (e.g. v0.80) to start flagging drift.
   DXMT_REPO: 3Shain/dxmt
   DXMT_PINNED: SET_ME
 
@@ -50,13 +58,26 @@ jobs:
             fi
           }
 
+          latest_stable_tag() {
+            # Highest STABLE Wine tag (X.0 or X.0_N repack). Gcenx publishes development
+            # builds (e.g. 11.10) as non-prereleases, so /releases/latest would point at a
+            # devel build; we deliberately track only the annual stable line. Echoes "ERROR"
+            # on API failure or if no stable tag is found.
+            local out
+            if out="$(gh api "repos/$1/releases?per_page=100" --jq '.[].tag_name' 2>/dev/null \
+                      | grep -E '^[0-9]+\.0(_[0-9]+)?$' | sort -V | tail -1)"; then
+              echo "${out:-ERROR}"
+            else
+              echo "ERROR"
+            fi
+          }
+
           drift_body=""
           summary="| Component | Pinned | Latest upstream | Status |\n|---|---|---|---|\n"
 
           check() {
-            local name="$1" repo="$2" pinned="$3"
-            local latest status
-            latest="$(latest_tag "$repo")"
+            local name="$1" repo="$2" pinned="$3" latest="$4"
+            local status
             if [ "$latest" = "ERROR" ]; then
               status="⚠️ could not check (skipped)"
             elif [ "$pinned" = "SET_ME" ]; then
@@ -70,9 +91,10 @@ jobs:
             summary="${summary}| ${name} | ${pinned} | ${latest} | ${status} |\n"
           }
 
-          check "Wine"  "$WINE_REPO" "$WINE_PINNED"
-          check "DXVK"  "$DXVK_REPO" "$DXVK_PINNED"
-          check "DXMT"  "$DXMT_REPO" "$DXMT_PINNED"
+          # Wine: compare against the latest STABLE tag (not the devel /releases/latest).
+          check "Wine"  "$WINE_REPO" "$WINE_PINNED" "$(latest_stable_tag "$WINE_REPO")"
+          check "DXVK"  "$DXVK_REPO" "$DXVK_PINNED" "$(latest_tag "$DXVK_REPO")"
+          check "DXMT"  "$DXMT_REPO" "$DXMT_PINNED" "$(latest_tag "$DXMT_REPO")"
 
           printf "### Runtime dependency check\n\n%b\n" "$summary" >> "$GITHUB_STEP_SUMMARY"
 

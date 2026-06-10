@@ -10,7 +10,6 @@ body:
         For non-game bugs (Whisky UI, bottle creation, etc.), use the **Bug Report** template instead.
 
         **Before filing:**
-        - Check the [Game Support wiki](https://github.com/frankea/Whisky/wiki/Game-Support) for known status.
         - Open the **Game Configurations** browser inside Whisky — your game may already have a recommended config.
         - Search [existing issues](https://github.com/frankea/Whisky/issues?q=is%3Aissue+label%3Agame-compatibility).
   - type: input
@@ -124,7 +123,7 @@ body:
     attributes:
       label: Pre-flight checks
       options:
-        - label: I checked the Game Support wiki and Game Configurations browser for an existing config.
+        - label: I checked the in-app Game Configurations browser for an existing config.
           required: true
         - label: I searched existing issues for this game.
           required: true

@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   propagates the underlying error (missing tarball, disk full, archive
   extraction failure) instead of swallowing it, so the setup screen shows the
   specific reason and the diagnostics report captures it.
+- A half-installed Wine runtime is no longer mistaken for a working one. The
+  install check now requires the `wine64` binary on disk, not just the version
+  file, so a partial extraction or removal prompts a clean re-install instead of
+  leaving every bottle to fail with cryptic Wine errors.
 - Bottle-creation error messages are now localizable instead of English-only,
   so non-English users see translated text when creation fails.
 

@@ -225,10 +225,14 @@ public struct PEFile: Hashable, Equatable, Sendable {
         }
 
         guard let rsrc = rsrc(handle: handle, types: [.icon]) else { return nil }
+        // `url` is in scope here, so attach the file's display name to icon-parse
+        // logs for triage. Numeric offsets and the error description are marked
+        // `.public` (none are PII) so they aren't redacted in os_log output.
+        let fileName = url.lastPathComponent
         let icons = rsrc.allEntries
             .compactMap { entry -> NSImage? in
                 guard let offset = entry.resolveRVA(sections: sections) else {
-                    logger.notice("Skipping icon entry with unresolvable RVA")
+                    logger.notice("Skipping icon entry with unresolvable RVA in \(fileName, privacy: .public)")
                     return nil
                 }
                 let bitmapInfo = BitmapInfoHeader(handle: handle, offset: UInt64(offset))
@@ -243,7 +247,10 @@ public struct PEFile: Hashable, Equatable, Sendable {
                             }
                         }
                     } catch {
-                        logger.error("Failed to read icon data: \(error.localizedDescription)")
+                        let reason = error.localizedDescription
+                        logger.error(
+                            "Failed to read icon data in \(fileName, privacy: .public): \(reason, privacy: .public)"
+                        )
                     }
                 } else if bitmapInfo.colorFormat != .unknown {
                     // Widen before adding: `offset` is derived from file-controlled
@@ -258,7 +265,9 @@ public struct PEFile: Hashable, Equatable, Sendable {
         if !icons.isEmpty {
             return icons.max(by: { $0.size.height < $1.size.height })
         } else {
-            return NSImage()
+            // No renderable icon. Return nil (not a blank NSImage) so callers can
+            // fall back to a system icon instead of rendering an empty tile.
+            return nil
         }
     }
 }

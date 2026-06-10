@@ -35,6 +35,16 @@ public struct BitmapInfoHeader: Hashable {
     public let originDirection: BitmapOriginDirection
     public let colorFormat: ColorFormat
 
+    /// Largest icon edge we will render. Real Windows icons top out at 256px;
+    /// 1024 is a generous ceiling. width/height are file-controlled and can be
+    /// near Int32.max in a crafted file, which would otherwise drive an
+    /// effectively unbounded allocation and pixel loop (a denial-of-service).
+    private static let maxDimension: Int32 = 1_024
+
+    /// Upper bound on the color-table length we will read. A palette never
+    /// exceeds 256 entries; `clrUsed` is file-controlled and can claim billions.
+    private static let maxColorTableEntries: UInt32 = 256
+
     init(handle: FileHandle, offset: UInt64) {
         var offset = offset
         self.size = handle.extract(UInt32.self, offset: offset) ?? 0
@@ -66,6 +76,21 @@ public struct BitmapInfoHeader: Hashable {
 
     // swiftlint:disable:next cyclomatic_complexity function_body_length
     func renderBitmap(handle: FileHandle, offset: UInt64) -> NSImage? {
+        // Reject crafted dimensions before allocating or looping. width/height
+        // come straight from the file and can be non-positive or near Int32.max.
+        let actualHeight = abs(height)
+        guard width > 0, actualHeight > 0,
+              width <= Self.maxDimension, actualHeight <= Self.maxDimension
+        else {
+            return nil
+        }
+        // Total pixel budget guards against a wide-but-short (or tall-but-narrow)
+        // image still multiplying out to an enormous buffer.
+        let pixelBudget = Int(Self.maxDimension) * Int(Self.maxDimension)
+        guard Int(width) * Int(actualHeight) <= pixelBudget else {
+            return nil
+        }
+
         var offset = offset
         let colorTable = buildColorTable(offset: &offset, handle: handle)
 
@@ -73,7 +98,6 @@ public struct BitmapInfoHeader: Hashable {
 
         // Handle bitfields later if necessary
 
-        let actualHeight = abs(height)
         for _ in 0 ..< Int(actualHeight / 2) {
             var pixelRow: [ColorQuad] = []
 
@@ -157,7 +181,10 @@ public struct BitmapInfoHeader: Hashable {
     func buildColorTable(offset: inout UInt64, handle: FileHandle) -> [ColorQuad] {
         var colorTable: [ColorQuad] = []
 
-        for _ in 0 ..< clrUsed {
+        // Clamp the file-controlled palette length so a crafted clrUsed can't
+        // drive an unbounded read loop.
+        let entryCount = min(clrUsed, Self.maxColorTableEntries)
+        for _ in 0 ..< entryCount {
             let blue = handle.extract(UInt8.self, offset: offset) ?? 0
             offset += 1
             let green = handle.extract(UInt8.self, offset: offset) ?? 0

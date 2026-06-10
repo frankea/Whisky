@@ -22,6 +22,39 @@ import SemanticVersion
 
 private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ResourceDirectoryTable")
 
+/// A shared, reference-type budget for the total number of directory entries the
+/// resource walk may process across the whole tree.
+///
+/// Each directory entry is 8 bytes, so a crafted file can claim a huge
+/// per-table entry count and then have every sibling point at the same
+/// oversized subtable, amplifying a small file into millions of processed
+/// entries (a denial-of-service). A single budget shared across the entire
+/// recursion caps that total. One log line is emitted the first time the budget
+/// is exhausted so the truncation is visible without per-entry spam.
+private final class TraversalBudget {
+    private(set) var remaining: Int
+    private var didLogExhaustion = false
+
+    init(_ total: Int) {
+        self.remaining = total
+    }
+
+    /// Consume one unit of budget. Returns `false` once the budget is exhausted.
+    func consume() -> Bool {
+        guard remaining > 0 else {
+            if !didLogExhaustion {
+                didLogExhaustion = true
+                logger.error(
+                    "Resource directory traversal budget exhausted; truncating remaining entries"
+                )
+            }
+            return false
+        }
+        remaining -= 1
+        return true
+    }
+}
+
 /// This data structure should be considered the heading of a table,
 /// because the table actually consists of directory entries
 ///
@@ -42,6 +75,15 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
     /// recursion is capped at this depth to guard against hostile or circular
     /// directories. A directory entry found at this depth is not recursed into.
     private static let maxTableDepth = 2
+
+    /// The maximum number of directory entries the entire resource walk may
+    /// process. Real resource trees have at most a few thousand entries; this
+    /// generous cap stops sibling fan-out amplification from a crafted file
+    /// without truncating any legitimate input.
+    private static let maxTotalEntries = 100_000
+
+    /// Each resource directory entry is 8 bytes on disk.
+    private static let entrySize: UInt64 = 8
 
     /// Read the Resource Directory Table
     ///
@@ -68,13 +110,15 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
         types: [ResourceType]? = nil
     ) {
         var visited: Set<UInt64> = [initialOffset]
+        let budget = TraversalBudget(Self.maxTotalEntries)
         self.init(
             handle: handle,
             pointerToRawData: pointerToRawData,
             offset: initialOffset,
             types: types,
             depth: 0,
-            visited: &visited
+            visited: &visited,
+            budget: budget
         )
     }
 
@@ -90,7 +134,8 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
         offset initialOffset: UInt64,
         types: [ResourceType]?,
         depth: Int,
-        visited: inout Set<UInt64>
+        visited: inout Set<UInt64>,
+        budget: TraversalBudget
     ) {
         var offset = pointerToRawData + initialOffset
         self.characteristics = handle.extract(UInt32.self, offset: offset) ?? 0
@@ -121,8 +166,32 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
             count: numberOfIdEntries,
             types: types,
             depth: depth,
-            visited: &visited
+            visited: &visited,
+            budget: budget
         )
+    }
+
+    /// Clamp a claimed per-table entry count to what actually fits in the file.
+    ///
+    /// A crafted header can claim up to `UInt16.max` entries while the file holds
+    /// none of them; iterating the claimed count would read far past EOF (each
+    /// read returns zero-filled garbage) and waste time. Capping at the number of
+    /// 8-byte entries between `firstEntryOffset` and the end of the file bounds
+    /// the loop to real data.
+    private static func clampedEntryCount(
+        claimed: UInt16,
+        firstEntryOffset: UInt64,
+        handle: FileHandle
+    ) -> Int {
+        let claimedCount = Int(claimed)
+        guard let fileLength = try? handle.seekToEnd() else {
+            return claimedCount
+        }
+        guard fileLength > firstEntryOffset else {
+            return 0
+        }
+        let fittableEntries = Int((fileLength - firstEntryOffset) / Self.entrySize)
+        return max(0, min(claimedCount, fittableEntries))
     }
 
     // swiftlint:disable:next function_parameter_count
@@ -133,15 +202,26 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
         count: UInt16,
         types: [ResourceType]?,
         depth: Int,
-        visited: inout Set<UInt64>
+        visited: inout Set<UInt64>,
+        budget: TraversalBudget
     ) -> ([ResourceDirectoryTable], [ResourceDataEntry]) {
         var subtables: [ResourceDirectoryTable] = []
         var entries: [ResourceDataEntry] = []
         var offset = firstEntryOffset
 
-        for _ in 0 ..< count {
+        let entryCount = Self.clampedEntryCount(
+            claimed: count,
+            firstEntryOffset: firstEntryOffset,
+            handle: handle
+        )
+
+        for _ in 0 ..< entryCount {
+            // Global traversal budget: stop the whole walk once the total number of
+            // processed entries is exhausted, defeating sibling fan-out amplification.
+            guard budget.consume() else { break }
+
             let directoryEntry = ResourceDirectoryEntry.ID(handle: handle, offset: offset)
-            offset += 8
+            offset += Self.entrySize
 
             if let types {
                 // If we filter for specific types the directory entry type must be included
@@ -151,24 +231,16 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
             }
 
             if directoryEntry.isDirectory {
-                let subtableOffset = UInt64(directoryEntry.offset)
-                guard depth < Self.maxTableDepth, !visited.contains(subtableOffset) else {
-                    logger.notice(
-                        "Truncating resource directory: depth or cycle limit hit at offset \(subtableOffset)"
-                    )
-                    continue
-                }
-                visited.insert(subtableOffset)
-                let subtable = ResourceDirectoryTable(
+                if let subtable = Self.readSubtable(
                     handle: handle,
                     pointerToRawData: pointerToRawData,
-                    offset: subtableOffset,
-                    types: nil,
-                    depth: depth + 1,
-                    visited: &visited
-                )
-                visited.remove(subtableOffset)
-                subtables.append(subtable)
+                    subtableOffset: UInt64(directoryEntry.offset),
+                    depth: depth,
+                    visited: &visited,
+                    budget: budget
+                ) {
+                    subtables.append(subtable)
+                }
             } else if let entry = ResourceDataEntry(
                 handle: handle,
                 offset: pointerToRawData + UInt64(directoryEntry.offset)
@@ -178,6 +250,49 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
         }
 
         return (subtables, entries)
+    }
+
+    // swiftlint:disable function_parameter_count
+    /// Recurse into a directory entry's subtable, enforcing the cycle and depth
+    /// guards. Returns `nil` (and logs once) when the entry is skipped.
+    private static func readSubtable(
+        handle: FileHandle,
+        pointerToRawData: UInt64,
+        subtableOffset: UInt64,
+        depth: Int,
+        visited: inout Set<UInt64>,
+        budget: TraversalBudget
+    ) -> ResourceDirectoryTable? {
+        // swiftlint:enable function_parameter_count
+        // A genuine cycle (this offset is an ancestor on the current path) is a
+        // malformed-file signal: log it loudly so it is identifiable.
+        if visited.contains(subtableOffset) {
+            logger.fault(
+                "Cyclic resource directory: offset \(subtableOffset, privacy: .public) revisits its own path"
+            )
+            return nil
+        }
+
+        // Hitting the depth cap is a benign limit, not a malformed file.
+        guard depth < maxTableDepth else {
+            logger.notice(
+                "Resource directory depth limit reached at offset \(subtableOffset, privacy: .public)"
+            )
+            return nil
+        }
+
+        visited.insert(subtableOffset)
+        let subtable = ResourceDirectoryTable(
+            handle: handle,
+            pointerToRawData: pointerToRawData,
+            offset: subtableOffset,
+            types: nil,
+            depth: depth + 1,
+            visited: &visited,
+            budget: budget
+        )
+        visited.remove(subtableOffset)
+        return subtable
     }
 
     /// Access all entries from this table and all its subtables

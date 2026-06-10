@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   extension): overflow traps in resource-offset math, and unbounded recursion on
   circular or pathologically deep resource directories. Resource offsets are now
   resolved with overflow-checked math and the directory walk is depth-capped.
+- Hardened icon and thumbnail extraction against crafted executables that could
+  previously hang the parser: resource directory entry counts are clamped to the
+  file size, the whole resource walk shares a total-entry budget so fan-out can't
+  amplify, and icon bitmap dimensions are bounds-checked before allocation. An
+  executable with no usable icon now falls back to a generic system icon instead
+  of showing a blank tile.
 
 ## [3.2.0] - 2026-06-10 (App)
 

@@ -54,7 +54,7 @@ The macOS-gaming audience lives in a few places. Seeding them is the cheapest re
 ## 4. Lower the switching cost
 
 - One-click **File → Migrate from the Original Whisky** imports the original app's bottles in place
-  (landing in PR #84 — confirm it's merged to `main` before citing it as shipped in a launch post).
+  (shipped in 3.1.0).
 - Lead with that in any launch post — "keep your existing bottles, one click" is the message that
   converts archived-app users.
 

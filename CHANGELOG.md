@@ -13,10 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   anonymous events covering the first-run funnel — runtime install
   started/succeeded/failed (with a coarse reason), first bottle created, first
   program launch attempted — so install failures in the field become visible.
-  Nothing is sent without explicit consent; no person profile is created, and no
-  personal data, paths, or raw error text is ever included. The full event list,
-  the SDK context that accompanies it, and the IP/GeoIP handling are documented
-  in the README and SECURITY.md.
+  The first-program-launch event now fires from both the programs list and a
+  program's detail view, so no real launch path is missed. Nothing is sent
+  without explicit consent; no person profile is created, and no personal data,
+  paths, or raw error text is ever included. The full event list, the SDK context
+  that accompanies it, and the IP/GeoIP handling are documented in the README and
+  SECURITY.md.
+
+### Fixed
+- The first-run telemetry opt-in is now always reachable: when the Wine runtime
+  is missing, setup no longer skips straight past the welcome screen (the only
+  place the consent checkbox lives) before you can make a choice.
 
 ## [3.2.0] - 2026-06-10 (App)
 

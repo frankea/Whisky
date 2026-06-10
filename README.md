@@ -106,13 +106,15 @@ funnel, so the maintainer can see where new installs fail:
 `first_…` events are sent at most once per install.
 
 No personal data, file names, paths, raw error text, or identifiers tied to you
-are ever sent. Every event Whisky can send is the list above, and all of it is
-declared in one file, [`Whisky/Utils/Telemetry.swift`](Whisky/Utils/Telemetry.swift),
-with every automatic-capture feature of the analytics SDK disabled and no person
-profile ever created (`identify()` is never called). Each event does carry the
-SDK's standard context — app version, macOS version, device model, locale — and,
-like any HTTPS request, PostHog's ingestion sees the connecting IP (GeoIP
-enrichment is disabled); none of this is tied to your identity.
+are ever sent. Events carry a random per-install anonymous ID (reset if you opt
+out). Every event Whisky can send is the list above, and all of it is declared in
+one file, [`Whisky/Utils/Telemetry.swift`](Whisky/Utils/Telemetry.swift), with
+every automatic-capture feature of the analytics SDK disabled and no person
+profile ever created (`identify()` is never called). Each event also carries the
+SDK's standard context — app and macOS version, hardware model, locale, and more;
+see [SECURITY.md](SECURITY.md) for the full list. Like any HTTPS request,
+PostHog's ingestion sees the connecting IP (GeoIP enrichment is disabled); none
+of this is tied to your identity.
 
 ## Documentation
 

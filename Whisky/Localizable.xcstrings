@@ -19149,7 +19149,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Optional and off by default. When enabled, Whisky sends five anonymous events covering first-run setup: runtime install started, succeeded, or failed (with a coarse reason), first bottle created, and first program launch attempt. No personal data, file names, or identifiers tied to you are ever sent. You can change this anytime in Settings."
+            "value": "Optional and off by default. When enabled, Whisky sends five anonymous events covering the first-run funnel: runtime install started, succeeded, or failed (with a coarse reason), first bottle created, and first program launch attempt. No personal data, file names, or identifiers tied to you are ever sent. You can change this anytime in Settings."
           }
         }
       }

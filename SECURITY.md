@@ -71,8 +71,10 @@ events: `runtime_install_started`, `runtime_install_succeeded`,
 `runtime_install_failed` (with a coarse `reason` property:
 `download_failed` / `verify_failed` / `tarball_missing` / `extract_failed` /
 `runtime_incomplete`), `first_bottle_created`, and
-`first_program_launch_attempted`. The install events are per-attempt (retries
-are counted); the two `first_…` events fire at most once per install.
+`first_program_launch_attempted`. `runtime_install_started` fires once per setup
+pass; `runtime_install_succeeded` / `runtime_install_failed` are per install
+attempt (so retries are counted); the two `first_…` events fire at most once per
+install.
 
 Events carry a random per-install anonymous ID and never include personal data,
 file names, paths, or raw error text. Every event Whisky can send is the list
@@ -80,14 +82,21 @@ above, and all of it — plus the SDK configuration — lives in one file,
 [`Whisky/Utils/Telemetry.swift`](Whisky/Utils/Telemetry.swift): all automatic
 capture (lifecycle events, screen views, feature flags, swizzling) is disabled,
 `personProfiles` is `.never`, and `identify()` is never called, so no person
-profile is created. Each event does carry the SDK's standard context (app
-version, macOS version, device model, locale), and PostHog's ingestion sees the
-connecting IP like any HTTPS request, with GeoIP enrichment disabled
-(`$geoip_disable`) — none of it tied to your identity.
+profile is created.
+
+The PostHog SDK attaches its own standard context to every event. On macOS
+(posthog-ios 3.59.x) this comprises: app name, app version, and app build plus
+the bundle identifier; macOS version; hardware model and a derived hardware
+name; device type (`Desktop`); the device manufacturer (`Apple`); locale;
+timezone; screen width/height; network-type flags (Wi-Fi / cellular); the SDK
+name and version; a per-launch session id; and a few non-personal environment
+flags (install source such as TestFlight or sideloaded, and emulator/Catalyst
+indicators). None of this is tied to your identity. PostHog's ingestion also sees the connecting IP like any HTTPS
+request, with GeoIP enrichment disabled (`$geoip_disable`).
 
 Opting out stops all future capture and resets the anonymous ID. Events already
-queued at that moment may still be delivered (the SDK has no public queue-purge),
-but no new events are captured.
+queued at that moment may still be delivered (posthog-ios 3.59.x has no public
+queue-purge), but no new events are captured.
 
 ## Security Best Practices for Users
 

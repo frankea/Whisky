@@ -80,9 +80,9 @@ struct WelcomeView: View {
                 checkInstallStatus()
             }
             Spacer()
-            // Shown on the setup welcome (the first-run / runtime-install entry
-            // point) regardless of `firstTime`, which the only call site passes
-            // as false — gating on it would hide the opt-in entirely.
+            // Shown unconditionally on the welcome screen, which is reached on a
+            // genuine first run: SetupView only skips this screen once telemetry
+            // consent is decided, so a first-run user always sees this opt-in.
             Toggle(isOn: telemetryOptIn) {
                 Text("setup.telemetry.consent")
                     .font(.caption)

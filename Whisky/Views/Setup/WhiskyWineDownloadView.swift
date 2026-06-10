@@ -41,6 +41,9 @@ struct WhiskyWineDownloadView: View {
     /// Expected SHA-256 of the runtime archive, from the version plist. `nil`
     /// when no hash is advertised, in which case verification is skipped.
     @State private var expectedSHA256: String?
+    /// Guards the once-per-setup-attempt `runtime_install_started` capture against
+    /// repeated `onAppear` calls from NavigationStack (mirrors the install view).
+    @State private var hasStartedDownload: Bool = false
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
@@ -80,9 +83,14 @@ struct WhiskyWineDownloadView: View {
         }
         .frame(width: 400, height: 200)
         .onAppear {
+            // Guard against multiple onAppear calls from NavigationStack so the
+            // once-per-setup-attempt runtime_install_started capture holds.
+            guard !hasStartedDownload else { return }
+            hasStartedDownload = true
             Task {
                 diagnostics.reset()
                 diagnostics.record("Entered download stage")
+                diagnostics.record("Telemetry consent: \(Telemetry.consent.rawValue)")
                 Telemetry.capture(.runtimeInstallStarted)
                 await fetchVersionAndDownload()
             }

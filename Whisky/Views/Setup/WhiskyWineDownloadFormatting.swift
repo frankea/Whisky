@@ -77,8 +77,9 @@ extension WhiskyWineDownloadView {
         let reason: Telemetry.InstallFailureReason
     }
 
-    /// Sets the failure state and reports the funnel event atomically, so the
-    /// reported reason always matches the surfaced message.
+    /// Sets the failure state and reports the funnel event together (two
+    /// sequential main-actor statements), so the reported reason always matches
+    /// the surfaced message.
     @MainActor
     func setDownloadFailure(_ message: String, reason: Telemetry.InstallFailureReason = .downloadFailed) {
         downloadFailure = DownloadFailure(message: message, reason: reason)

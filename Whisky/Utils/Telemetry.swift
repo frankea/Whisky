@@ -19,27 +19,29 @@
 import Foundation
 import os.log
 import PostHog
+import WhiskyKit
 
 private extension Logger {
     static let telemetry = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.franke.Whisky",
+        subsystem: Bundle.whiskyBundleIdentifier,
         category: "Telemetry"
     )
 }
 
 /// Whisky's entire telemetry event surface: five anonymous, opt-in-only events
 /// covering the first-run funnel. Every event Whisky can send, and all SDK
-/// configuration, is declared in this file; the UI only calls ``capture(_:)``
+/// configuration, is declared in this file; the app only calls ``capture(_:)``
 /// with these declared events. Keep the event list in sync with the README
 /// table, SECURITY.md, and the `setup.telemetry.consent.help` string.
 ///
 /// Nothing is sent unless the user has explicitly opted in. Every automatic
 /// capture feature of the SDK is disabled, and `personProfiles` is `.never`, so
 /// no person profile is ever created and `identify()` is never called — events
-/// are anonymous. Note the SDK still attaches its standard context to each
-/// event (app version, macOS version, device model, locale) and PostHog's
-/// ingestion sees the connecting IP like any HTTPS request; GeoIP enrichment is
-/// disabled via `$geoip_disable`. None of this is tied to the user's identity.
+/// are anonymous. Note the SDK still attaches its standard context to each event
+/// (app/macOS version, hardware model, locale, and more); SECURITY.md enumerates
+/// the full list. PostHog's ingestion sees the connecting IP like any HTTPS
+/// request; GeoIP enrichment is disabled via `$geoip_disable`. None of this is
+/// tied to the user's identity.
 enum Telemetry {
     /// Coarse failure classification. Never send raw error text — underlying
     /// messages contain file paths, which are personal data.
@@ -73,7 +75,9 @@ enum Telemetry {
         }
 
         /// Exhaustive (no `default:`) on purpose: a new event case must declare
-        /// its properties and once-policy, and re-sync the docs, before it builds.
+        /// its properties and once-policy before this builds. The compiler can't
+        /// enforce doc re-sync, so re-sync the README, SECURITY.md, and the
+        /// `setup.telemetry.consent.help` string at the same time.
         var properties: [String: Any] {
             switch self {
             case let .runtimeInstallFailed(reason): ["reason": reason.rawValue]
@@ -117,8 +121,8 @@ enum Telemetry {
 
     /// Records the user's choice and starts or stops the SDK accordingly.
     /// Declining stops all future capture and resets the anonymous ID; any
-    /// events already queued at that moment may still be delivered (the SDK has
-    /// no public queue-purge), but no new ones are captured.
+    /// events already queued at that moment may still be delivered (posthog-ios
+    /// 3.59.x exposes no public queue-purge), but no new ones are captured.
     @MainActor
     static func setConsent(granted: Bool) {
         let state: ConsentState = granted ? .granted : .denied
@@ -158,6 +162,10 @@ enum Telemetry {
 
     /// Sets up the SDK with every automatic capture feature disabled: the
     /// explicit `capture(_:)` calls in this file are the only event source.
+    ///
+    /// The SDK-behavior claims below (no public queue-purge, surveys/session
+    /// replay being macOS-unavailable) were verified against posthog-ios 3.59.3;
+    /// re-check them on a package bump.
     @MainActor
     private static func start() {
         guard !started else { return }
@@ -167,15 +175,20 @@ enum Telemetry {
             }
             return
         }
-        let config = PostHogConfig(projectToken: projectToken, host: "https://us.i.posthog.com")
+        let host = "https://us.i.posthog.com"
+        let config = PostHogConfig(projectToken: projectToken, host: host)
         config.captureApplicationLifecycleEvents = false
         config.captureScreenViews = false
         config.enableSwizzling = false
         config.preloadFeatureFlags = false
         config.sendFeatureFlagEvent = false
+        #if DEBUG
+        config.debug = true
+        #endif
         // Explicit, not relying on SDK defaults: never build a person profile, so
         // events stay anonymous even though we never call identify(). (Surveys and
-        // session replay are macOS-unavailable in the SDK and cannot be enabled.)
+        // session replay are macOS-unavailable in posthog-ios 3.59.x and cannot be
+        // enabled.)
         config.personProfiles = .never
         // Disable server-side GeoIP enrichment on every event.
         config.setBeforeSend { event in
@@ -185,5 +198,10 @@ enum Telemetry {
         PostHogSDK.shared.setup(config)
         PostHogSDK.shared.optIn()
         started = true
+        // Success-path log so "telemetry is live" is observable, not just failure.
+        // Only a short token prefix is logged, never the full token.
+        Logger.telemetry.info(
+            "Telemetry started (host \(host, privacy: .public), token \(projectToken.prefix(8), privacy: .public)…)"
+        )
     }
 }

@@ -144,10 +144,9 @@ struct WhiskyWineInstallView: View {
             let capturedTarURL = tarLocation
             diagnostics.record("Invoking WhiskyWineInstaller.install(from:) in detached task")
             let outcome = await Self.performInstall(tarball: capturedTarURL)
-            let installFailureMessage = outcome.failureMessage
             let isInstalled = outcome.installed
-            if let installFailureMessage {
-                diagnostics.record("Install failed: \(installFailureMessage)")
+            if case let .failure(_, message?) = outcome {
+                diagnostics.record("Install failed: \(message)")
             }
             let installStatus = isInstalled ? "installed" : "not installed"
             diagnostics.record(
@@ -177,17 +176,16 @@ struct WhiskyWineInstallView: View {
     /// Reports the funnel event and sets the user-facing error state.
     @MainActor
     private func applyInstallOutcome(_ outcome: InstallOutcome) {
-        if outcome.installed {
+        switch outcome {
+        case .success:
             Telemetry.capture(.runtimeInstallSucceeded)
             installError = nil
-        } else {
-            Telemetry.capture(
-                .runtimeInstallFailed(reason: outcome.tarballMissing ? .tarballMissing : .extractFailed)
-            )
-            if let failureMessage = outcome.failureMessage {
+        case let .failure(reason, message):
+            Telemetry.capture(.runtimeInstallFailed(reason: reason))
+            if let message {
                 installError = String(
                     format: String(localized: "setup.whiskywine.error.installFailed.detail"),
-                    Self.shortened(failureMessage)
+                    Self.shortened(message)
                 )
             } else {
                 installError = String(localized: "setup.whiskywine.error.installFailed")
@@ -195,13 +193,17 @@ struct WhiskyWineInstallView: View {
         }
     }
 
-    /// Outcome of an install attempt: the failure message (`nil` on success),
-    /// whether the runtime is now present, and whether the failure was a
-    /// missing tarball (for coarse telemetry classification).
-    private struct InstallOutcome {
-        let failureMessage: String?
-        let installed: Bool
-        let tarballMissing: Bool
+    /// Outcome of an install attempt. The failure case carries the coarse
+    /// telemetry reason (decided where the error is known) and an optional
+    /// user-facing message; illegal combinations are unrepresentable.
+    private enum InstallOutcome {
+        case success
+        case failure(reason: Telemetry.InstallFailureReason, message: String?)
+
+        var installed: Bool {
+            if case .success = self { return true }
+            return false
+        }
     }
 
     /// Runs the install and post-install verification off the main actor,
@@ -210,17 +212,15 @@ struct WhiskyWineInstallView: View {
         await Task.detached {
             do {
                 try WhiskyWineInstaller.install(from: tarball)
-                return InstallOutcome(
-                    failureMessage: nil,
-                    installed: WhiskyWineInstaller.isWhiskyWineInstalled(),
-                    tarballMissing: false
-                )
+                guard WhiskyWineInstaller.isWhiskyWineInstalled() else {
+                    // Extraction reported success but the runtime isn't usable.
+                    return .failure(reason: .runtimeIncomplete, message: nil)
+                }
+                return .success
             } catch {
-                return InstallOutcome(
-                    failureMessage: error.localizedDescription,
-                    installed: false,
-                    tarballMissing: (error as? WhiskyWineInstallError) == .tarballNotFound
-                )
+                let reason: Telemetry.InstallFailureReason =
+                    (error as? WhiskyWineInstallError) == .tarballNotFound ? .tarballMissing : .extractFailed
+                return .failure(reason: reason, message: error.localizedDescription)
             }
         }.value
     }

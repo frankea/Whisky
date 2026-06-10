@@ -33,14 +33,14 @@ struct WhiskyWineDownloadView: View {
     @State private var downloadTask: URLSessionDownloadTask?
     @State private var observation: NSKeyValueObservation?
     @State private var startTime: Date?
-    @State private var downloadError: String?
+    /// The current failure, if any. Carries the user-facing message and the
+    /// telemetry reason together so the two can never drift apart.
+    /// Internal so the failure helper in WhiskyWineDownloadFormatting.swift can set it.
+    @State var downloadFailure: DownloadFailure?
     @State private var currentDownloadTaskID: UUID?
     /// Expected SHA-256 of the runtime archive, from the version plist. `nil`
     /// when no hash is advertised, in which case verification is skipped.
     @State private var expectedSHA256: String?
-    /// Set to a more specific reason (e.g. verification) before `downloadError`
-    /// so the failure event carries the right classification.
-    @State private var telemetryFailureReason: Telemetry.InstallFailureReason = .downloadFailed
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
@@ -68,8 +68,8 @@ struct WhiskyWineDownloadView: View {
                     .foregroundStyle(.secondary)
                 Spacer()
 
-                if let error = downloadError {
-                    errorView(error: error)
+                if let failure = downloadFailure {
+                    errorView(error: failure.message)
                 } else {
                     progressView
                 }
@@ -86,11 +86,6 @@ struct WhiskyWineDownloadView: View {
                 Telemetry.capture(.runtimeInstallStarted)
                 await fetchVersionAndDownload()
             }
-        }
-        .onChange(of: downloadError) { _, newValue in
-            guard newValue != nil else { return }
-            Telemetry.capture(.runtimeInstallFailed(reason: telemetryFailureReason))
-            telemetryFailureReason = .downloadFailed
         }
     }
 }
@@ -171,7 +166,7 @@ extension WhiskyWineDownloadView {
     }
 
     private func retryDownload() {
-        downloadError = nil
+        downloadFailure = nil
         fractionProgress = 0
         completedBytes = 0
         totalBytes = 0
@@ -200,7 +195,7 @@ extension WhiskyWineDownloadView {
     @MainActor
     private func fetchVersionAndDownload() async {
         guard let versionURL = URL(string: DistributionConfig.versionPlistURL) else {
-            downloadError = String(localized: "setup.whiskywine.error.invalidVersionURL")
+            setDownloadFailure(String(localized: "setup.whiskywine.error.invalidVersionURL"))
             return
         }
 
@@ -214,7 +209,7 @@ extension WhiskyWineDownloadView {
                !(200 ... 299).contains(httpResponse.statusCode) {
                 diagnostics.versionHTTPStatus = httpResponse.statusCode
                 diagnostics.record("Version plist HTTP \(httpResponse.statusCode)")
-                downloadError = formatHTTPError(statusCode: httpResponse.statusCode)
+                setDownloadFailure(formatHTTPError(statusCode: httpResponse.statusCode))
                 return
             }
 
@@ -227,7 +222,7 @@ extension WhiskyWineDownloadView {
             diagnostics.record("Resolved version \(versionString)")
 
             guard let downloadURL = URL(string: downloadURLString) else {
-                downloadError = String(localized: "setup.whiskywine.error.invalidDownloadURL")
+                setDownloadFailure(String(localized: "setup.whiskywine.error.invalidDownloadURL"))
                 return
             }
 
@@ -236,10 +231,10 @@ extension WhiskyWineDownloadView {
         } catch {
             let errorMessage = error.localizedDescription
             diagnostics.record("Version fetch failed: \(errorMessage)")
-            downloadError = String(
+            setDownloadFailure(String(
                 format: String(localized: "setup.whiskywine.error.fetchVersionFailed"),
                 errorMessage
-            )
+            ))
         }
     }
 
@@ -307,10 +302,10 @@ extension WhiskyWineDownloadView {
             if (error as NSError).code == NSURLErrorCancelled {
                 return
             }
-            downloadError = String(
+            setDownloadFailure(String(
                 format: String(localized: "setup.whiskywine.error.downloadFailed"),
                 error.localizedDescription
-            )
+            ))
             diagnostics.downloadFinishedAt = Date()
             diagnostics.record("Download failed: \(error.localizedDescription)")
             return
@@ -321,7 +316,7 @@ extension WhiskyWineDownloadView {
             diagnostics.downloadHTTPStatus = httpResponse.statusCode
             diagnostics.downloadFinishedAt = Date()
             diagnostics.record("Download HTTP \(httpResponse.statusCode)")
-            downloadError = formatHTTPError(statusCode: httpResponse.statusCode)
+            setDownloadFailure(formatHTTPError(statusCode: httpResponse.statusCode))
             return
         }
 
@@ -332,7 +327,7 @@ extension WhiskyWineDownloadView {
         } else {
             diagnostics.downloadFinishedAt = Date()
             diagnostics.record("Download completed but no file URL received")
-            downloadError = String(localized: "setup.whiskywine.error.noFileReceived")
+            setDownloadFailure(String(localized: "setup.whiskywine.error.noFileReceived"))
         }
     }
 
@@ -357,13 +352,15 @@ extension WhiskyWineDownloadView {
             if let failure {
                 diagnostics.record("Integrity check FAILED — \(failure)")
                 WhiskyWineInstaller.cleanupTarball(at: fileURL)
-                telemetryFailureReason = .verifyFailed
-                downloadError = String(
-                    localized: "setup.whiskywine.error.checksumMismatch",
-                    defaultValue: """
-                    The downloaded Wine runtime failed its integrity check and was not installed. \
-                    This usually means the download was corrupted. Please try again.
-                    """
+                setDownloadFailure(
+                    String(
+                        localized: "setup.whiskywine.error.checksumMismatch",
+                        defaultValue: """
+                        The downloaded Wine runtime failed its integrity check and was not installed. \
+                        This usually means the download was corrupted. Please try again.
+                        """
+                    ),
+                    reason: .verifyFailed
                 )
                 return
             }

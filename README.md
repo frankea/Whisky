@@ -97,15 +97,22 @@ funnel, so the maintainer can see where new installs fail:
 | --- | --- |
 | `runtime_install_started` | — |
 | `runtime_install_succeeded` | — |
-| `runtime_install_failed` | `reason`: one of `download_failed`, `verify_failed`, `tarball_missing`, `extract_failed` |
+| `runtime_install_failed` | `reason`: one of `download_failed`, `verify_failed`, `tarball_missing`, `extract_failed`, `runtime_incomplete` |
 | `first_bottle_created` | — |
-| `first_program_launched` | — |
+| `first_program_launch_attempted` | — |
 
-No personal data, file names, paths, or identifiers tied to you are ever sent —
-events carry only a random anonymous ID. The entire integration lives in
-[`Whisky/Utils/Telemetry.swift`](Whisky/Utils/Telemetry.swift), with every
-automatic capture feature of the analytics SDK disabled, so the table above is
-the complete list of what can leave the app.
+`runtime_install_started` is sent once per setup attempt; the `_succeeded` /
+`_failed` events are sent per install attempt (so retries are counted). The two
+`first_…` events are sent at most once per install.
+
+No personal data, file names, paths, raw error text, or identifiers tied to you
+are ever sent. Every event Whisky can send is the list above, and all of it is
+declared in one file, [`Whisky/Utils/Telemetry.swift`](Whisky/Utils/Telemetry.swift),
+with every automatic-capture feature of the analytics SDK disabled and no person
+profile ever created (`identify()` is never called). Each event does carry the
+SDK's standard context — app version, macOS version, device model, locale — and,
+like any HTTPS request, PostHog's ingestion sees the connecting IP (GeoIP
+enrichment is disabled); none of this is tied to your identity.
 
 ## Documentation
 

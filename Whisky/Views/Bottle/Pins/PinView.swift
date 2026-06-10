@@ -109,7 +109,7 @@ struct PinView: View {
 
         // Capture modifier flags synchronously before entering async context
         let useTerminal = NSEvent.modifierFlags.contains(.shift)
-        Telemetry.capture(.firstProgramLaunched)
+        Telemetry.capture(.firstProgramLaunchAttempted)
         Task {
             let result = await program.launchWithUserMode(useTerminal: useTerminal)
             withAnimation {

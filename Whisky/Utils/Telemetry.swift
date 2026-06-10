@@ -17,16 +17,29 @@
 //
 
 import Foundation
+import os.log
 import PostHog
 
-/// Whisky's entire telemetry surface: five anonymous, opt-in-only events
-/// covering the first-run funnel. SECURITY.md documents every event and
-/// property — keep that list in sync with ``Event``.
+private extension Logger {
+    static let telemetry = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.franke.Whisky",
+        category: "Telemetry"
+    )
+}
+
+/// Whisky's entire telemetry event surface: five anonymous, opt-in-only events
+/// covering the first-run funnel. Every event Whisky can send, and all SDK
+/// configuration, is declared in this file; the UI only calls ``capture(_:)``
+/// with these declared events. Keep the event list in sync with the README
+/// table, SECURITY.md, and the `setup.telemetry.consent.help` string.
 ///
-/// Nothing is sent unless the user has explicitly opted in, and the SDK is
-/// configured with every automatic capture feature disabled, so the events
-/// declared here are the only data that can ever leave the app. `identify()`
-/// is never called: events carry only a random anonymous ID.
+/// Nothing is sent unless the user has explicitly opted in. Every automatic
+/// capture feature of the SDK is disabled, and `personProfiles` is `.never`, so
+/// no person profile is ever created and `identify()` is never called — events
+/// are anonymous. Note the SDK still attaches its standard context to each
+/// event (app version, macOS version, device model, locale) and PostHog's
+/// ingestion sees the connecting IP like any HTTPS request; GeoIP enrichment is
+/// disabled via `$geoip_disable`. None of this is tied to the user's identity.
 enum Telemetry {
     /// Coarse failure classification. Never send raw error text — underlying
     /// messages contain file paths, which are personal data.
@@ -35,6 +48,9 @@ enum Telemetry {
         case extractFailed = "extract_failed"
         case verifyFailed = "verify_failed"
         case downloadFailed = "download_failed"
+        /// Extraction reported success but the runtime is not actually usable
+        /// afterwards (e.g. the `wine64` binary is missing).
+        case runtimeIncomplete = "runtime_incomplete"
     }
 
     enum Event {
@@ -42,7 +58,7 @@ enum Telemetry {
         case runtimeInstallSucceeded
         case runtimeInstallFailed(reason: InstallFailureReason)
         case firstBottleCreated
-        case firstProgramLaunched
+        case firstProgramLaunchAttempted
 
         var name: String {
             switch self {
@@ -50,22 +66,27 @@ enum Telemetry {
             case .runtimeInstallSucceeded: "runtime_install_succeeded"
             case .runtimeInstallFailed: "runtime_install_failed"
             case .firstBottleCreated: "first_bottle_created"
-            case .firstProgramLaunched: "first_program_launched"
+            // Captured when a launch is initiated, before its outcome is known —
+            // the name says "attempted" so the data isn't read as success.
+            case .firstProgramLaunchAttempted: "first_program_launch_attempted"
             }
         }
 
+        /// Exhaustive (no `default:`) on purpose: a new event case must declare
+        /// its properties and once-policy, and re-sync the docs, before it builds.
         var properties: [String: Any] {
             switch self {
             case let .runtimeInstallFailed(reason): ["reason": reason.rawValue]
-            default: [:]
+            case .runtimeInstallStarted, .runtimeInstallSucceeded,
+                 .firstBottleCreated, .firstProgramLaunchAttempted: [:]
             }
         }
 
         /// "First ever" funnel steps are only reported once per install.
         var oncePerInstall: Bool {
             switch self {
-            case .firstBottleCreated, .firstProgramLaunched: true
-            default: false
+            case .firstBottleCreated, .firstProgramLaunchAttempted: true
+            case .runtimeInstallStarted, .runtimeInstallSucceeded, .runtimeInstallFailed: false
             }
         }
     }
@@ -76,7 +97,9 @@ enum Telemetry {
         case denied
     }
 
-    /// Shared with the `@AppStorage` bindings in WelcomeView and SettingsView.
+    /// The UserDefaults key backing consent. Read it via `@AppStorage` if you
+    /// like, but **never write it directly** — route writes through
+    /// ``setConsent(granted:)`` so the SDK opt-in/opt-out state stays in sync.
     static let consentDefaultsKey = "telemetryConsent"
 
     static var consent: ConsentState {
@@ -93,7 +116,9 @@ enum Telemetry {
     @MainActor private static var started = false
 
     /// Records the user's choice and starts or stops the SDK accordingly.
-    /// Declining clears the queued events and the anonymous ID.
+    /// Declining stops all future capture and resets the anonymous ID; any
+    /// events already queued at that moment may still be delivered (the SDK has
+    /// no public queue-purge), but no new ones are captured.
     @MainActor
     static func setConsent(granted: Bool) {
         let state: ConsentState = granted ? .granted : .denied
@@ -135,16 +160,28 @@ enum Telemetry {
     /// explicit `capture(_:)` calls in this file are the only event source.
     @MainActor
     private static func start() {
-        guard !started, !projectToken.isEmpty else { return }
+        guard !started else { return }
+        guard !projectToken.isEmpty else {
+            if consent == .granted {
+                Logger.telemetry.warning("Telemetry consented but disabled: no PostHogProjectToken in Info.plist")
+            }
+            return
+        }
         let config = PostHogConfig(projectToken: projectToken, host: "https://us.i.posthog.com")
         config.captureApplicationLifecycleEvents = false
         config.captureScreenViews = false
         config.enableSwizzling = false
         config.preloadFeatureFlags = false
         config.sendFeatureFlagEvent = false
-        // Surveys and session replay are unavailable on macOS; personProfiles
-        // stays .identifiedOnly and identify() is never called, so all events
-        // remain anonymous.
+        // Explicit, not relying on SDK defaults: never build a person profile, so
+        // events stay anonymous even though we never call identify(). (Surveys and
+        // session replay are macOS-unavailable in the SDK and cannot be enabled.)
+        config.personProfiles = .never
+        // Disable server-side GeoIP enrichment on every event.
+        config.setBeforeSend { event in
+            event.properties["$geoip_disable"] = true
+            return event
+        }
         PostHogSDK.shared.setup(config)
         PostHogSDK.shared.optIn()
         started = true

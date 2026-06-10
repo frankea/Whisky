@@ -127,7 +127,7 @@ struct BottleView: View {
                                             // persisted before Wine.runProgram() reads them
                                             LauncherDetection.detectAndApplyLauncherFixes(from: url, for: bottle)
 
-                                            Telemetry.capture(.firstProgramLaunched)
+                                            Telemetry.capture(.firstProgramLaunchAttempted)
                                             if url.pathExtension == "bat" {
                                                 try await Wine.runBatchFile(url: url, bottle: bottle)
                                             } else {

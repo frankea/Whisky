@@ -84,7 +84,7 @@ struct FileOpenView: View {
                     // persisted before Wine.runProgram() reads them
                     await MainActor.run {
                         LauncherDetection.detectAndApplyLauncherFixes(from: fileURL, for: bottle)
-                        Telemetry.capture(.firstProgramLaunched)
+                        Telemetry.capture(.firstProgramLaunchAttempted)
                     }
 
                     if fileURL.pathExtension == "bat" {

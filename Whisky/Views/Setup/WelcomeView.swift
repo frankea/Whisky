@@ -80,15 +80,16 @@ struct WelcomeView: View {
                 checkInstallStatus()
             }
             Spacer()
-            if firstTime {
-                Toggle(isOn: telemetryOptIn) {
-                    Text("setup.telemetry.consent")
-                        .font(.caption)
-                }
-                .toggleStyle(.checkbox)
-                .help("setup.telemetry.consent.help")
-                .padding(.bottom, 4)
+            // Shown on the setup welcome (the first-run / runtime-install entry
+            // point) regardless of `firstTime`, which the only call site passes
+            // as false — gating on it would hide the opt-in entirely.
+            Toggle(isOn: telemetryOptIn) {
+                Text("setup.telemetry.consent")
+                    .font(.caption)
             }
+            .toggleStyle(.checkbox)
+            .help("setup.telemetry.consent.help")
+            .padding(.bottom, 4)
             HStack {
                 if let rosettaInstalled,
                    let whiskyWineInstalled {
@@ -116,7 +117,7 @@ struct WelcomeView: View {
                 }
             }
         }
-        .frame(width: 400, height: firstTime ? 230 : 200)
+        .frame(width: 400, height: 230)
     }
 
     func checkInstallStatus() {

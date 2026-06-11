@@ -25,6 +25,11 @@ coverage:
         # Require new code to have at least 60% coverage
         target: 60%
         threshold: 10%
+        # Same rationale as the project gate: only WhiskyKit has real unit-test
+        # coverage. A diff that is mostly app-target SwiftUI code would otherwise
+        # be judged against best-effort UI-test coverage and fail unavoidably.
+        flags:
+          - whiskykit
 
   # Precision of coverage percentage (2 decimal places)
   precision: 2

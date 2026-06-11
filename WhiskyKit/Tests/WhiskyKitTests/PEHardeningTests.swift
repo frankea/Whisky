@@ -243,8 +243,13 @@ final class MalformedPEHardeningTests: XCTestCase {
         let table = try parseTable(data, name: "fan_out")
         let elapsed = Date().timeIntervalSince(start)
 
-        // The walk completes (does not hang); the assertion of interest is the time.
-        _ = table.allEntries
+        // The walk completes (does not hang) and the budget bounds total work:
+        // an un-budgeted fan-out would process ~524M entries (8,000 × 65,535).
+        XCTAssertLessThanOrEqual(
+            table.allEntries.count,
+            100_000,
+            "Global budget must bound the total processed entries"
+        )
         XCTAssertLessThan(elapsed, 5.0, "Fan-out amplification must complete under the global budget")
     }
 }

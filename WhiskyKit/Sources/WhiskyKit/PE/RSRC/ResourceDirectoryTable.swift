@@ -33,10 +33,12 @@ private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: 
 /// is exhausted so the truncation is visible without per-entry spam.
 private final class TraversalBudget {
     private(set) var remaining: Int
+    private let fileName: String
     private var didLogExhaustion = false
 
-    init(_ total: Int) {
+    init(_ total: Int, fileName: String) {
         self.remaining = total
+        self.fileName = fileName
     }
 
     /// Consume one unit of budget. Returns `false` once the budget is exhausted.
@@ -45,7 +47,10 @@ private final class TraversalBudget {
             if !didLogExhaustion {
                 didLogExhaustion = true
                 logger.error(
-                    "Resource directory traversal budget exhausted; truncating remaining entries"
+                    """
+                    Resource directory traversal budget exhausted in \
+                    \(self.fileName, privacy: .public); truncating remaining entries
+                    """
                 )
             }
             return false
@@ -91,8 +96,9 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
     ///   - fileHandle: The file handle to read the data from.
     ///   - pointerToRawData: The offset to the Resource Directory Table in the file handle.
     ///   - types: Only read entrys of the given types. Only applies to the root table. Defaults to `nil`.
-    init(handle: FileHandle, pointerToRawData: UInt64, types: [ResourceType]?) {
-        self.init(handle: handle, pointerToRawData: pointerToRawData, offset: 0, types: types)
+    ///   - fileName: Display name of the file being parsed, for log attribution.
+    init(handle: FileHandle, pointerToRawData: UInt64, types: [ResourceType]?, fileName: String = "<unknown>") {
+        self.init(handle: handle, pointerToRawData: pointerToRawData, offset: 0, types: types, fileName: fileName)
     }
 
     /// Read the Resource Directory Table
@@ -107,15 +113,17 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
         handle: FileHandle,
         pointerToRawData: UInt64,
         offset initialOffset: UInt64,
-        types: [ResourceType]? = nil
+        types: [ResourceType]? = nil,
+        fileName: String = "<unknown>"
     ) {
         var visited: Set<UInt64> = [initialOffset]
-        let budget = TraversalBudget(Self.maxTotalEntries)
+        let budget = TraversalBudget(Self.maxTotalEntries, fileName: fileName)
         self.init(
             handle: handle,
             pointerToRawData: pointerToRawData,
             offset: initialOffset,
             types: types,
+            fileName: fileName,
             depth: 0,
             visited: &visited,
             budget: budget
@@ -133,6 +141,7 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
         pointerToRawData: UInt64,
         offset initialOffset: UInt64,
         types: [ResourceType]?,
+        fileName: String,
         depth: Int,
         visited: inout Set<UInt64>,
         budget: TraversalBudget
@@ -165,6 +174,7 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
             firstEntryOffset: offset,
             count: numberOfIdEntries,
             types: types,
+            fileName: fileName,
             depth: depth,
             visited: &visited,
             budget: budget
@@ -181,17 +191,30 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
     private static func clampedEntryCount(
         claimed: UInt16,
         firstEntryOffset: UInt64,
-        handle: FileHandle
+        handle: FileHandle,
+        fileName: String
     ) -> Int {
         let claimedCount = Int(claimed)
         guard let fileLength = try? handle.seekToEnd() else {
-            return claimedCount
-        }
-        guard fileLength > firstEntryOffset else {
+            // A length we can't determine can't bound anything; fail closed
+            // rather than iterating an unverifiable claimed count.
+            logger.error(
+                "Cannot determine length of \(fileName, privacy: .public); skipping resource directory entries"
+            )
             return 0
         }
-        let fittableEntries = Int((fileLength - firstEntryOffset) / Self.entrySize)
-        return max(0, min(claimedCount, fittableEntries))
+        let fittableEntries = fileLength > firstEntryOffset
+            ? Int((fileLength - firstEntryOffset) / Self.entrySize)
+            : 0
+        if claimedCount > fittableEntries {
+            logger.notice(
+                """
+                Resource table in \(fileName, privacy: .public) claims \(claimedCount) entries; \
+                only \(fittableEntries) fit in the file — truncating
+                """
+            )
+        }
+        return min(claimedCount, fittableEntries)
     }
 
     // swiftlint:disable:next function_parameter_count
@@ -201,6 +224,7 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
         firstEntryOffset: UInt64,
         count: UInt16,
         types: [ResourceType]?,
+        fileName: String,
         depth: Int,
         visited: inout Set<UInt64>,
         budget: TraversalBudget
@@ -212,7 +236,8 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
         let entryCount = Self.clampedEntryCount(
             claimed: count,
             firstEntryOffset: firstEntryOffset,
-            handle: handle
+            handle: handle,
+            fileName: fileName
         )
 
         for _ in 0 ..< entryCount {
@@ -235,6 +260,7 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
                     handle: handle,
                     pointerToRawData: pointerToRawData,
                     subtableOffset: UInt64(directoryEntry.offset),
+                    fileName: fileName,
                     depth: depth,
                     visited: &visited,
                     budget: budget
@@ -259,6 +285,7 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
         handle: FileHandle,
         pointerToRawData: UInt64,
         subtableOffset: UInt64,
+        fileName: String,
         depth: Int,
         visited: inout Set<UInt64>,
         budget: TraversalBudget
@@ -268,7 +295,10 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
         // malformed-file signal: log it loudly so it is identifiable.
         if visited.contains(subtableOffset) {
             logger.fault(
-                "Cyclic resource directory: offset \(subtableOffset, privacy: .public) revisits its own path"
+                """
+                Cyclic resource directory in \(fileName, privacy: .public): \
+                offset \(subtableOffset, privacy: .public) revisits its own path
+                """
             )
             return nil
         }
@@ -276,7 +306,10 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
         // Hitting the depth cap is a benign limit, not a malformed file.
         guard depth < maxTableDepth else {
             logger.notice(
-                "Resource directory depth limit reached at offset \(subtableOffset, privacy: .public)"
+                """
+                Resource directory depth limit reached in \(fileName, privacy: .public) \
+                at offset \(subtableOffset, privacy: .public)
+                """
             )
             return nil
         }
@@ -287,6 +320,7 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
             pointerToRawData: pointerToRawData,
             offset: subtableOffset,
             types: nil,
+            fileName: fileName,
             depth: depth + 1,
             visited: &visited,
             budget: budget

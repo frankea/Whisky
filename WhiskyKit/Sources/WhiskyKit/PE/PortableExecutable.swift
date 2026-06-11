@@ -195,7 +195,8 @@ public struct PEFile: Hashable, Equatable, Sendable {
             ResourceDirectoryTable(
                 handle: handle,
                 pointerToRawData: UInt64(resourceSection.pointerToRawData),
-                types: types
+                types: types,
+                fileName: url.lastPathComponent
             )
         } else {
             nil
@@ -245,6 +246,7 @@ public struct PEFile: Hashable, Equatable, Sendable {
                                 image.addRepresentation(rep)
                                 return image
                             }
+                            logger.notice("Skipping undecodable icon data in \(fileName, privacy: .public)")
                         }
                     } catch {
                         let reason = error.localizedDescription
@@ -255,7 +257,14 @@ public struct PEFile: Hashable, Equatable, Sendable {
                 } else if bitmapInfo.colorFormat != .unknown {
                     // Widen before adding: `offset` is derived from file-controlled
                     // fields and can be near UInt32.max, so a 32-bit sum can trap.
-                    return bitmapInfo.renderBitmap(handle: handle, offset: UInt64(offset) + UInt64(bitmapInfo.size))
+                    let image = bitmapInfo.renderBitmap(
+                        handle: handle,
+                        offset: UInt64(offset) + UInt64(bitmapInfo.size)
+                    )
+                    if image == nil {
+                        logger.notice("Rejecting icon bitmap with malformed header in \(fileName, privacy: .public)")
+                    }
+                    return image
                 }
 
                 return nil

@@ -84,10 +84,10 @@ public struct BitmapInfoHeader: Hashable {
         else {
             return nil
         }
-        // Total pixel budget guards against a wide-but-short (or tall-but-narrow)
-        // image still multiplying out to an enormous buffer.
-        let pixelBudget = Int(Self.maxDimension) * Int(Self.maxDimension)
-        guard Int(width) * Int(actualHeight) <= pixelBudget else {
+        // A bitmap palette never legitimately exceeds 256 entries. Clamping a
+        // larger clrUsed would leave the read cursor inside the palette when the
+        // pixel loop starts, silently rendering garbage — reject it as malformed.
+        guard clrUsed <= Self.maxColorTableEntries else {
             return nil
         }
 
@@ -181,8 +181,8 @@ public struct BitmapInfoHeader: Hashable {
     func buildColorTable(offset: inout UInt64, handle: FileHandle) -> [ColorQuad] {
         var colorTable: [ColorQuad] = []
 
-        // Clamp the file-controlled palette length so a crafted clrUsed can't
-        // drive an unbounded read loop.
+        // renderBitmap rejects clrUsed above the cap before calling this; the
+        // clamp is a backstop so a future caller can't loop unbounded either.
         let entryCount = min(clrUsed, Self.maxColorTableEntries)
         for _ in 0 ..< entryCount {
             let blue = handle.extract(UInt8.self, offset: offset) ?? 0

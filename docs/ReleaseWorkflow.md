@@ -83,6 +83,12 @@ Three secrets gate the release pipeline. Losing the Sparkle key is **unrecoverab
    security find-certificate -c "Developer ID Application" -p | openssl x509 -noout -enddate
    ```
 
+   This prints the first matching certificate only. During a renewal window, when the
+   old and new certificates coexist in the keychain, check every match with
+   `security find-certificate -a -c "Developer ID Application" -p` (each `-----BEGIN`
+   block is one certificate) — and re-run this step after the renewal so the reminder
+   tracks the new expiry, not the old one.
+
 ### Restore test (do this the day the backup is made)
 
 A backup that has never been restored from is a hope, not a backup. `sign_update` can sign directly from a key file, so the test never touches the keychain:
@@ -102,7 +108,7 @@ The printed `sparkle:edSignature` **and** the printed `length` must both exactly
    ```
 
    If several `Whisky-*` DerivedData directories exist this picks the most recently modified one.
-1. Decrypt the backup, then import the Sparkle key: `"$SPARKLE_BIN/generate_keys" -f sparkle_ed25519_private.key`. If an existing item named *Private key for signing Sparkle updates* is already in the login keychain, the import may fail until that item is removed via Keychain Access.
+1. Decrypt the backup (`age -d sparkle_ed25519_private.key.age > sparkle_ed25519_private.key`, entering the backup passphrase), then import the Sparkle key: `"$SPARKLE_BIN/generate_keys" -f sparkle_ed25519_private.key`. If an existing item named *Private key for signing Sparkle updates* is already in the login keychain, the import may fail until that item is removed via Keychain Access. Delete the decrypted plaintext key once the import succeeds.
 2. Open the `.p12` to install the Developer ID identity into the login keychain.
 3. Re-create the notary profile with `xcrun notarytool store-credentials AC_PASSWORD …` (see One-time setup).
 

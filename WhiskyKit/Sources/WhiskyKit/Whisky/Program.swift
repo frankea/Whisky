@@ -172,7 +172,11 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
 
             self.settings = try ProgramSettings.decode(from: settingsUrl)
         } catch {
-            Logger.wineKit.error("Failed to load settings for `\(name)`: \(error)")
+            Logger.wineKit.error(
+                "Failed to load settings for `\(name)`: \(String(describing: error), privacy: .public)"
+            )
+            // Preserve the unreadable file before the next save overwrites it with defaults.
+            BottleSettings.quarantineCorruptedFile(at: settingsUrl)
             self.settings = ProgramSettings()
         }
 
@@ -212,7 +216,11 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
 
             self.settings = try ProgramSettings.decode(from: settingsUrl)
         } catch {
-            Logger.wineKit.error("Failed to load settings for `\(displayName)`: \(error)")
+            Logger.wineKit.error(
+                "Failed to load settings for `\(displayName)`: \(String(describing: error), privacy: .public)"
+            )
+            // Preserve the unreadable file before the next save overwrites it with defaults.
+            BottleSettings.quarantineCorruptedFile(at: settingsUrl)
             self.settings = ProgramSettings()
         }
     }

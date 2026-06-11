@@ -88,7 +88,7 @@ public struct BottleCleanupConfig: Codable, Equatable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.clipboardPolicy = try container.decodeIfPresent(
+        self.clipboardPolicy = container.decodeLenientIfPresent(
             ClipboardPolicy.self,
             forKey: .clipboardPolicy
         ) ?? .auto
@@ -96,11 +96,11 @@ public struct BottleCleanupConfig: Codable, Equatable {
             Int.self,
             forKey: .clipboardThreshold
         ) ?? ClipboardManager.largeContentThreshold
-        self.killOnQuit = try container.decodeIfPresent(
+        self.killOnQuit = container.decodeLenientIfPresent(
             KillOnQuitPolicy.self,
             forKey: .killOnQuit
         ) ?? .inherit
-        self.closeWithProcessesPolicy = try container.decodeIfPresent(
+        self.closeWithProcessesPolicy = container.decodeLenientIfPresent(
             CloseWithProcessesPolicy.self,
             forKey: .closeWithProcessesPolicy
         ) ?? .ask

@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import os.log
 
 /// The graphics translation backend for a Wine bottle.
 ///
@@ -62,11 +63,68 @@ public enum GraphicsBackend: String, Codable, CaseIterable, Equatable, Sendable 
     }
 }
 
+extension KeyedDecodingContainer {
+    /// Decodes a string-backed enum leniently: an absent key yields `nil`, and an
+    /// unknown or wrong-typed value also yields `nil` (logged) instead of throwing
+    /// out of the parent decode. This keeps settings written by a newer Whisky —
+    /// one that added an enum case this build doesn't know — loadable, instead of
+    /// a single unrecognized value bricking the whole bottle's settings.
+    ///
+    /// Only applies to `String`-raw-value enums; keyed-`Codable` enums
+    /// (e.g. `EnhancedSync`, `DXVKHUD`) are not covered and still decode strictly.
+    func decodeLenientIfPresent<T: RawRepresentable>(
+        _: T.Type,
+        forKey key: Key
+    ) -> T? where T.RawValue == String {
+        let typeName = String(describing: T.self)
+        let path = codingPath.map(\.stringValue).joined(separator: ".")
+        let raw: String?
+        do {
+            raw = try decodeIfPresent(String.self, forKey: key)
+        } catch let error as DecodingError {
+            // A wrong-typed value (e.g. a number or object where a string was expected) is
+            // corruption — it cannot be produced by any real Whisky build — so log at .error.
+            Logger.wineKit.error(
+                """
+                Ignoring corrupt \(typeName, privacy: .public) at \
+                `\(key.stringValue, privacy: .public)` (path: \(path, privacy: .public)): \
+                \(String(describing: error), privacy: .public)
+                """
+            )
+            return nil
+        } catch {
+            Logger.wineKit.error(
+                """
+                Ignoring malformed \(typeName, privacy: .public) at \
+                `\(key.stringValue, privacy: .public)` (path: \(path, privacy: .public)): \
+                \(String(describing: error), privacy: .public)
+                """
+            )
+            return nil
+        }
+        guard let raw else { return nil }
+        guard let value = T(rawValue: raw) else {
+            // A well-formed string that this build doesn't recognize is legitimate
+            // forward-compat (a newer Whisky added an enum case) — log at .warning.
+            Logger.wineKit.warning(
+                """
+                Ignoring unknown \(typeName, privacy: .public) value `\(raw, privacy: .public)` at \
+                `\(key.stringValue, privacy: .public)` (path: \(path, privacy: .public)); using default
+                """
+            )
+            return nil
+        }
+        return value
+    }
+}
+
 /// Stores the graphics backend choice for a bottle.
 ///
 /// This config is serialized alongside other bottle config groups in
-/// ``BottleSettings``. The defensive `init(from:)` ensures unknown or
-/// corrupt values decode gracefully to `.recommended`.
+/// ``BottleSettings``. The defensive `init(from:)` decodes an unknown or
+/// malformed backend value gracefully to `.recommended` (via
+/// ``Swift/KeyedDecodingContainer/decodeLenientIfPresent(_:forKey:)``) rather
+/// than throwing out of the whole settings decode.
 public struct BottleGraphicsConfig: Codable, Equatable {
     /// The selected graphics backend. Defaults to `.recommended`.
     var backend: GraphicsBackend = .recommended
@@ -76,6 +134,6 @@ public struct BottleGraphicsConfig: Codable, Equatable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.backend = try container.decodeIfPresent(GraphicsBackend.self, forKey: .backend) ?? .recommended
+        self.backend = container.decodeLenientIfPresent(GraphicsBackend.self, forKey: .backend) ?? .recommended
     }
 }

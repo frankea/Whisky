@@ -20,6 +20,8 @@ import AppKit
 import Foundation
 import os.log
 
+private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "PortableExecutable")
+
 /// An error that occurred while parsing a PE file.
 public struct PEError: Error {
     /// A human-readable description of the error.
@@ -193,7 +195,8 @@ public struct PEFile: Hashable, Equatable, Sendable {
             ResourceDirectoryTable(
                 handle: handle,
                 pointerToRawData: UInt64(resourceSection.pointerToRawData),
-                types: types
+                types: types,
+                fileName: url.lastPathComponent
             )
         } else {
             nil
@@ -223,9 +226,16 @@ public struct PEFile: Hashable, Equatable, Sendable {
         }
 
         guard let rsrc = rsrc(handle: handle, types: [.icon]) else { return nil }
+        // `url` is in scope here, so attach the file's display name to icon-parse
+        // logs for triage. Numeric offsets and the error description are marked
+        // `.public` (none are PII) so they aren't redacted in os_log output.
+        let fileName = url.lastPathComponent
         let icons = rsrc.allEntries
             .compactMap { entry -> NSImage? in
-                guard let offset = entry.resolveRVA(sections: sections) else { return nil }
+                guard let offset = entry.resolveRVA(sections: sections) else {
+                    logger.notice("Skipping icon entry with unresolvable RVA in \(fileName, privacy: .public)")
+                    return nil
+                }
                 let bitmapInfo = BitmapInfoHeader(handle: handle, offset: UInt64(offset))
                 if bitmapInfo.size != 40 {
                     do {
@@ -236,12 +246,25 @@ public struct PEFile: Hashable, Equatable, Sendable {
                                 image.addRepresentation(rep)
                                 return image
                             }
+                            logger.notice("Skipping undecodable icon data in \(fileName, privacy: .public)")
                         }
                     } catch {
-                        print("Failed to get icon")
+                        let reason = error.localizedDescription
+                        logger.error(
+                            "Failed to read icon data in \(fileName, privacy: .public): \(reason, privacy: .public)"
+                        )
                     }
                 } else if bitmapInfo.colorFormat != .unknown {
-                    return bitmapInfo.renderBitmap(handle: handle, offset: UInt64(offset + bitmapInfo.size))
+                    // Widen before adding: `offset` is derived from file-controlled
+                    // fields and can be near UInt32.max, so a 32-bit sum can trap.
+                    let image = bitmapInfo.renderBitmap(
+                        handle: handle,
+                        offset: UInt64(offset) + UInt64(bitmapInfo.size)
+                    )
+                    if image == nil {
+                        logger.notice("Rejecting icon bitmap with malformed header in \(fileName, privacy: .public)")
+                    }
+                    return image
                 }
 
                 return nil
@@ -251,7 +274,9 @@ public struct PEFile: Hashable, Equatable, Sendable {
         if !icons.isEmpty {
             return icons.max(by: { $0.size.height < $1.size.height })
         } else {
-            return NSImage()
+            // No renderable icon. Return nil (not a blank NSImage) so callers can
+            // fall back to a system icon instead of rendering an empty tile.
+            return nil
         }
     }
 }

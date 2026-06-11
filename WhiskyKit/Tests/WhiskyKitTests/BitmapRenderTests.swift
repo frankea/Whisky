@@ -355,4 +355,41 @@ final class BitmapRenderingTests: XCTestCase {
         let image = header.renderBitmap(handle: handle, offset: 40)
         XCTAssertNotNil(image)
     }
+
+    func testRenderBitmapNegativeWidthReturnsNil() throws {
+        // A negative width is malformed (unlike height, which legitimately flips
+        // the origin) and pre-guard would trap when forming the pixel-loop range.
+        let data = createBitmapInfoHeaderWithColorTable(width: -4, height: 8, bitCount: 32, clrUsed: 0)
+
+        let fileURL = tempDir.appending(path: "negwidth.bin")
+        try data.write(to: fileURL)
+
+        let handle = try FileHandle(forReadingFrom: fileURL)
+        defer { try? handle.close() }
+
+        let header = BitmapInfoHeader(handle: handle, offset: 0)
+        XCTAssertEqual(header.width, -4)
+        XCTAssertNil(header.renderBitmap(handle: handle, offset: 40))
+    }
+
+    func testRenderBitmapHugeClrUsedReturnsNil() throws {
+        // A palette never legitimately exceeds 256 entries. A crafted huge clrUsed
+        // must reject the bitmap promptly — clamping it would desynchronize the
+        // pixel-data cursor and silently render garbage (and pre-clamp it drove a
+        // ~4-billion-iteration read loop).
+        let data = createBitmapInfoHeaderWithColorTable(width: 2, height: 4, bitCount: 8, clrUsed: .max)
+
+        let fileURL = tempDir.appending(path: "hugepalette.bin")
+        try data.write(to: fileURL)
+
+        let handle = try FileHandle(forReadingFrom: fileURL)
+        defer { try? handle.close() }
+
+        let header = BitmapInfoHeader(handle: handle, offset: 0)
+        XCTAssertEqual(header.clrUsed, UInt32.max)
+
+        let start = Date()
+        XCTAssertNil(header.renderBitmap(handle: handle, offset: 40))
+        XCTAssertLessThan(Date().timeIntervalSince(start), 1.0)
+    }
 }

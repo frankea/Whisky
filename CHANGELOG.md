@@ -24,6 +24,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The first-run telemetry opt-in is now always reachable: when the Wine runtime
   is missing, setup no longer skips straight past the welcome screen (the only
   place the consent checkbox lives) before you can make a choice.
+- Bottle and per-program settings are now written atomically, so a crash
+  mid-save can no longer leave a truncated settings file that wipes the
+  configuration.
+- Every persisted settings choice — graphics backend, performance and resolution
+  presets, Windows version, launcher mode/type/locale and spoofed GPU vendor,
+  audio driver/latency/output mode, clipboard and process-cleanup policies, and
+  the per-program equivalents — now tolerates an unknown value written by a newer
+  Whisky. A single unrecognized choice falls back to its default (per-program
+  overrides fall back to inheriting the bottle's choice) instead of failing to
+  load the entire bottle's settings.
+- An unreadable settings file is no longer silently overwritten. When a bottle's
+  `Metadata.plist` or a program's settings plist can't be decoded (corruption or
+  an unexpected file version), the original is moved aside to a
+  `.corrupt-<timestamp>` sibling before defaults are written, so the unreadable
+  data is preserved for recovery rather than destroyed.
+- Closed several crash vectors when opening a Windows executable with crafted or
+  corrupt headers during icon extraction (also reached by the Finder thumbnail
+  extension): overflow traps in resource-offset math, unbounded recursion on
+  circular or pathologically deep resource directories, and header reads
+  straddling the end of a truncated file. Resource offsets are now resolved with
+  overflow-checked math, the directory walk is depth-capped, and short reads are
+  rejected instead of loading past the buffer.
+- Hardened icon and thumbnail extraction against crafted executables that could
+  previously hang the parser or render garbage: resource directory entry counts
+  are clamped to the file size, the whole resource walk shares a total-entry
+  budget so fan-out can't amplify, and icon bitmap dimensions and palette lengths
+  are validated before reading pixels. An executable with no usable icon now
+  falls back to a generic system icon instead of showing a blank tile.
+- The "Failed to Export Diagnostics Report" alert is now localizable instead of
+  English-only, matching the rest of the launcher diagnostics UI.
 
 ## [3.2.0] - 2026-06-10 (App)
 

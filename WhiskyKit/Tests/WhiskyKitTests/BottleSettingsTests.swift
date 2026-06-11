@@ -20,6 +20,10 @@ import SemanticVersion
 @testable import WhiskyKit
 import XCTest
 
+// swiftlint:disable file_length
+// Exhaustive settings coverage (defaults, lenient decode, round-trips) requires many cases.
+
+// swiftlint:disable:next type_body_length
 final class BottleSettingsTests: XCTestCase {
     // MARK: - BottleSettings Default Values
 
@@ -335,5 +339,262 @@ final class BottleSettingsTests: XCTestCase {
 
         XCTAssertEqual(loadedSettings.name, "CustomBottle")
         XCTAssertTrue(loadedSettings.metalHud)
+    }
+
+    // MARK: - Graphics Backend Forward Compatibility
+
+    func testUnknownGraphicsBackendDecodesToRecommended() throws {
+        let plist = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>backend</key>
+            <string>someFutureBackend</string>
+        </dict>
+        </plist>
+        """
+        let config = try PropertyListDecoder().decode(BottleGraphicsConfig.self, from: Data(plist.utf8))
+        XCTAssertEqual(config.backend, .recommended)
+    }
+
+    func testSettingsWithUnknownGraphicsBackendStillDecode() throws {
+        var settings = BottleSettings()
+        settings.name = "Forward Compat"
+        settings.graphicsBackend = .dxvk
+
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(settings)
+
+        // Simulate a Metadata.plist written by a newer Whisky with a backend this build doesn't know.
+        let xml = try XCTUnwrap(String(data: data, encoding: .utf8))
+        XCTAssertTrue(xml.contains("<string>dxvk</string>"), "encoding shape changed; test no longer substitutes")
+        let mutated = xml.replacingOccurrences(of: "<string>dxvk</string>", with: "<string>someFutureBackend</string>")
+        let decoded = try PropertyListDecoder().decode(BottleSettings.self, from: Data(mutated.utf8))
+
+        XCTAssertEqual(decoded.name, "Forward Compat")
+        XCTAssertEqual(decoded.graphicsBackend, .recommended)
+    }
+
+    func testMalformedGraphicsBackendTypeDecodesToRecommended() throws {
+        // A wrong-typed value (number instead of string) must not throw out of
+        // the parent decode — it degrades to the default, same as an unknown value.
+        let plist = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>backend</key>
+            <integer>2</integer>
+        </dict>
+        </plist>
+        """
+        let config = try PropertyListDecoder().decode(BottleGraphicsConfig.self, from: Data(plist.utf8))
+        XCTAssertEqual(config.backend, .recommended)
+    }
+
+    func testUnknownGraphicsBackendRoundTripsAsRecommended() throws {
+        // Decoding an unknown backend yields a persistable value: re-encoding and
+        // decoding again still loads. The future value is intentionally lost — saving
+        // under an older build is a one-way downgrade to .recommended.
+        let plist = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>backend</key>
+            <string>someFutureBackend</string>
+        </dict>
+        </plist>
+        """
+        let decoded = try PropertyListDecoder().decode(BottleGraphicsConfig.self, from: Data(plist.utf8))
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let reencoded = try encoder.encode(decoded)
+        let reloaded = try PropertyListDecoder().decode(BottleGraphicsConfig.self, from: reencoded)
+        XCTAssertEqual(reloaded.backend, .recommended)
+    }
+
+    // MARK: - Settings-Tree Forward Compatibility
+
+    /// Encodes `settings`, swaps `original` for `replacement` in the produced plist XML to
+    /// simulate a value written by a newer Whisky, and decodes the whole `BottleSettings`.
+    private func decodeSettingsSubstituting(
+        _ settings: BottleSettings,
+        original: String,
+        replacement: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws -> BottleSettings {
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(settings)
+        let xml = try XCTUnwrap(String(data: data, encoding: .utf8), file: file, line: line)
+        XCTAssertTrue(
+            xml.contains(original),
+            "encoding shape changed; test no longer substitutes `\(original)`",
+            file: file,
+            line: line
+        )
+        let mutated = xml.replacingOccurrences(of: original, with: replacement)
+        return try PropertyListDecoder().decode(BottleSettings.self, from: Data(mutated.utf8))
+    }
+
+    func testUnknownPerformancePresetDecodesToDefaultInWholeSettings() throws {
+        var settings = BottleSettings()
+        settings.name = "Perf Forward Compat"
+        settings.performancePreset = .performance
+
+        let decoded = try decodeSettingsSubstituting(
+            settings,
+            original: "<string>performance</string>",
+            replacement: "<string>someFuturePreset</string>"
+        )
+
+        // The unknown preset must degrade to the default without taking the rest of settings down.
+        XCTAssertEqual(decoded.name, "Perf Forward Compat")
+        XCTAssertEqual(decoded.performancePreset, .balanced)
+    }
+
+    func testUnknownResolutionPresetDecodesToDefaultInWholeSettings() throws {
+        var settings = BottleSettings()
+        settings.name = "Resolution Forward Compat"
+        settings.resolutionPreset = .r2560x1440
+
+        let decoded = try decodeSettingsSubstituting(
+            settings,
+            original: "<string>r2560x1440</string>",
+            replacement: "<string>r7680x4320</string>"
+        )
+
+        XCTAssertEqual(decoded.name, "Resolution Forward Compat")
+        XCTAssertEqual(decoded.resolutionPreset, .r1920x1080)
+    }
+
+    func testUnknownWindowsVersionDecodesToDefaultInWholeSettings() throws {
+        var settings = BottleSettings()
+        settings.name = "WinVersion Forward Compat"
+        settings.windowsVersion = .win11
+
+        let decoded = try decodeSettingsSubstituting(
+            settings,
+            original: "<string>win11</string>",
+            replacement: "<string>win12</string>"
+        )
+
+        XCTAssertEqual(decoded.name, "WinVersion Forward Compat")
+        XCTAssertEqual(decoded.windowsVersion, .win10)
+    }
+
+    func testUnknownAudioDriverDecodesToDefaultInWholeSettings() throws {
+        var settings = BottleSettings()
+        settings.name = "Audio Forward Compat"
+        settings.audioDriver = .coreaudio
+
+        let decoded = try decodeSettingsSubstituting(
+            settings,
+            original: "<string>coreaudio</string>",
+            replacement: "<string>someFutureDriver</string>"
+        )
+
+        XCTAssertEqual(decoded.name, "Audio Forward Compat")
+        XCTAssertEqual(decoded.audioDriver, .auto)
+    }
+
+    func testUnknownKillOnQuitPolicyDecodesToDefaultInWholeSettings() throws {
+        var settings = BottleSettings()
+        settings.name = "Cleanup Forward Compat"
+        settings.killOnQuit = .neverKill
+
+        let decoded = try decodeSettingsSubstituting(
+            settings,
+            original: "<string>never</string>",
+            replacement: "<string>someFuturePolicy</string>"
+        )
+
+        XCTAssertEqual(decoded.name, "Cleanup Forward Compat")
+        XCTAssertEqual(decoded.killOnQuit, .inherit)
+    }
+
+    func testUnknownLauncherModeDecodesToDefaultInWholeSettings() throws {
+        var settings = BottleSettings()
+        settings.name = "Launcher Forward Compat"
+        settings.launcherMode = .manual
+
+        let decoded = try decodeSettingsSubstituting(
+            settings,
+            original: "<string>manual</string>",
+            replacement: "<string>someFutureMode</string>"
+        )
+
+        XCTAssertEqual(decoded.name, "Launcher Forward Compat")
+        XCTAssertEqual(decoded.launcherMode, .auto)
+    }
+
+    // MARK: - Decode Recovery
+
+    func testFileVersionMismatchQuarantinesAndResets() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let metadataURL = tempDir.appendingPathComponent("Metadata.plist")
+
+        // A successfully-decodable file whose fileVersion this build doesn't recognize.
+        var settings = BottleSettings()
+        settings.name = "From The Future"
+        settings.fileVersion = SemanticVersion(99, 0, 0)
+        try settings.encode(to: metadataURL)
+        let originalData = try Data(contentsOf: metadataURL)
+
+        let decoded = try BottleSettings.decode(from: metadataURL)
+
+        // The mismatched file must be preserved as a quarantine sibling, not destroyed.
+        let siblings = try FileManager.default.contentsOfDirectory(atPath: tempDir.path)
+        let quarantined = siblings.filter { $0.hasPrefix("Metadata.plist.corrupt-") }
+        XCTAssertEqual(quarantined.count, 1, "expected exactly one quarantined sibling, got \(siblings)")
+        let quarantineURL = try tempDir.appendingPathComponent(XCTUnwrap(quarantined.first))
+        XCTAssertEqual(try Data(contentsOf: quarantineURL), originalData)
+
+        // The caller gets fresh defaults, persisted in the file's place.
+        XCTAssertEqual(decoded.fileVersion, BottleSettings.defaultFileVersion)
+        XCTAssertEqual(decoded.name, BottleSettings().name)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: metadataURL.path))
+    }
+
+    func testWineVersionStampWriteFailureKeepsValidSettings() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let metadataURL = tempDir.appendingPathComponent("Metadata.plist")
+
+        // A healthy file stamped with an older wine version.
+        var settings = BottleSettings()
+        settings.name = "Healthy Bottle"
+        settings.wineVersion = SemanticVersion(1, 2, 3)
+        try settings.encode(to: metadataURL)
+        let originalData = try Data(contentsOf: metadataURL)
+
+        // Make the directory unwritable so the version-stamp rewrite fails.
+        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: tempDir.path)
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: tempDir.path)
+        }
+
+        // A failed stamp write must not demote a healthy file to quarantine or defaults.
+        let decoded = try BottleSettings.decode(from: metadataURL)
+
+        XCTAssertEqual(decoded.name, "Healthy Bottle")
+        XCTAssertEqual(decoded.wineVersion, BottleWineConfig.defaultWineVersion)
+        XCTAssertEqual(try Data(contentsOf: metadataURL), originalData)
+        let siblings = try FileManager.default.contentsOfDirectory(atPath: tempDir.path)
+        XCTAssertFalse(
+            siblings.contains { $0.contains(".corrupt-") },
+            "a healthy file must not be quarantined when only the stamp write fails"
+        )
     }
 }

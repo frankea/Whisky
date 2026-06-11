@@ -40,12 +40,16 @@ public struct ResourceDataEntry: Hashable, Equatable {
     }
 
     public func resolveRVA(sections: [PEFile.Section]) -> UInt32? {
+        // All operands come from the file, so do the math in 64-bit: crafted
+        // headers must produce nil, never an overflow trap.
         sections
             .first { section in
-                section.virtualAddress <= dataRVA && dataRVA < (section.virtualAddress + section.virtualSize)
+                let sectionEnd = UInt64(section.virtualAddress) + UInt64(section.virtualSize)
+                return section.virtualAddress <= dataRVA && UInt64(dataRVA) < sectionEnd
             }
-            .map { section in
-                section.pointerToRawData + (dataRVA - section.virtualAddress)
+            .flatMap { section in
+                let resolved = UInt64(section.pointerToRawData) + UInt64(dataRVA - section.virtualAddress)
+                return UInt32(exactly: resolved)
             }
     }
 }

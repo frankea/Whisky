@@ -226,7 +226,7 @@ public struct GameConfigVariantSettings: Codable, Sendable, Equatable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.graphicsBackend = try container.decodeIfPresent(GraphicsBackend.self, forKey: .graphicsBackend)
+        self.graphicsBackend = container.decodeLenientIfPresent(GraphicsBackend.self, forKey: .graphicsBackend)
         self.dxvk = try container.decodeIfPresent(Bool.self, forKey: .dxvk)
         self.dxvkAsync = try container.decodeIfPresent(Bool.self, forKey: .dxvkAsync)
         // EnhancedSync uses Swift's auto-synthesized Codable (keyed enum, not String raw value).

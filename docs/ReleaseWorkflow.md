@@ -45,6 +45,73 @@ A keypair is needed to sign appcast entries. Sparkle's `generate_keys` tool ship
 
 Run it once. The private key is stored automatically in your login keychain. The public key is printed to stdout — it is already committed in `Whisky/Info.plist` under `SUPublicEDKey`. If you regenerate keys you will invalidate the existing public key in the bundled app and need to re-release.
 
+## Credential continuity (backup & recovery)
+
+Three secrets gate the release pipeline. Losing the Sparkle key is **unrecoverable** for existing installs: `SUPublicEDKey` is baked into every shipped `Info.plist`, so a regenerated key permanently strands all installed copies off auto-update. Keep current, restore-tested backups of all three. (A fourth credential, the `BREW_TOKEN` repository secret used by the release step that publishes to [frankea/homebrew-whisky](https://github.com/frankea/homebrew-whisky), is regenerable and so needs no backup — the three-secrets focus here is on the non-regenerable ones.)
+
+| Secret | Where it lives | If lost |
+| --- | --- | --- |
+| Sparkle EdDSA private key | login keychain ("Private key for signing Sparkle updates") | Existing installs never see another auto-update |
+| Developer ID Application identity | login keychain | Re-issue from the Apple Developer portal; releases blocked until done |
+| notarytool app-specific password | appleid.apple.com; cached as keychain profile `AC_PASSWORD` | Regenerate at appleid.apple.com, re-run `store-credentials` |
+
+### Backup procedure
+
+1. Export the Sparkle private key (Keychain will prompt for access):
+
+   ```sh
+   SPARKLE_BIN=$(ls -dt ~/Library/Developer/Xcode/DerivedData/Whisky-*/SourcePackages/artifacts/sparkle/Sparkle/bin 2>/dev/null | head -1)
+   "$SPARKLE_BIN/generate_keys" -x sparkle_ed25519_private.key
+   ```
+
+   If several `Whisky-*` DerivedData directories exist this picks the most recently modified one.
+
+2. Export the Developer ID identity: **Keychain Access → My Certificates** → right-click *Developer ID Application: …* → **Export** as `.p12` with a strong password.
+3. Encrypt both files before they leave the machine:
+
+   ```sh
+   age -p sparkle_ed25519_private.key > sparkle_ed25519_private.key.age   # or: gpg -c <file>
+   age -p developer_id.p12 > developer_id.p12.age
+   ```
+
+   Neither `age` nor `gpg` ships with macOS; install `age` with `brew install age`.
+
+4. Store the encrypted files — plus the app-specific password itself — in **two** off-machine locations (e.g. a password-manager secure note and one offline medium). Delete the plaintext exports afterwards.
+5. Record the certificate expiry date and set reminders at T-60 and T-14 days:
+
+   ```sh
+   security find-certificate -c "Developer ID Application" -p | openssl x509 -noout -enddate
+   ```
+
+   This prints the first matching certificate only. During a renewal window, when the
+   old and new certificates coexist in the keychain, check every match with
+   `security find-certificate -a -c "Developer ID Application" -p` (each `-----BEGIN`
+   block is one certificate) — and re-run this step after the renewal so the reminder
+   tracks the new expiry, not the old one.
+
+### Restore test (do this the day the backup is made)
+
+A backup that has never been restored from is a hope, not a backup. `sign_update` can sign directly from a key file, so the test never touches the keychain:
+
+```sh
+"$SPARKLE_BIN/sign_update" --ed-key-file sparkle_ed25519_private.key build/release/Whisky-X.Y.Z.dmg
+```
+
+The printed `sparkle:edSignature` **and** the printed `length` must both exactly match that release's entry in `dist/pages/appcast.xml` — Ed25519 signatures are deterministic, so a mismatch in either means a wrong key or a non-canonical DMG: the exported key is wrong **or** the DMG you signed is not the exact published artifact (rebuilt locally, partially downloaded, wrong file). If in doubt, download the release asset from the appcast enclosure URL and sign that.
+
+### Recovery on a new machine
+
+0. Build Whisky once first so the Sparkle tools exist in DerivedData (see [Sparkle EdDSA keys](#sparkle-eddsa-keys) under One-time setup) — `generate_keys` ships inside the Sparkle SPM artifact, not on `PATH`. Re-declare `SPARKLE_BIN` in this fresh shell (it is only set earlier in the Backup section):
+
+   ```sh
+   SPARKLE_BIN=$(ls -dt ~/Library/Developer/Xcode/DerivedData/Whisky-*/SourcePackages/artifacts/sparkle/Sparkle/bin 2>/dev/null | head -1)
+   ```
+
+   If several `Whisky-*` DerivedData directories exist this picks the most recently modified one.
+1. Decrypt the backup (`age -d sparkle_ed25519_private.key.age > sparkle_ed25519_private.key`, entering the backup passphrase), then import the Sparkle key: `"$SPARKLE_BIN/generate_keys" -f sparkle_ed25519_private.key`. If an existing item named *Private key for signing Sparkle updates* is already in the login keychain, the import may fail until that item is removed via Keychain Access. Delete the decrypted plaintext key once the import succeeds.
+2. Open the `.p12` to install the Developer ID identity into the login keychain.
+3. Re-create the notary profile with `xcrun notarytool store-credentials AC_PASSWORD …` (see One-time setup).
+
 ## App release
 
 ### 1. Bump versions

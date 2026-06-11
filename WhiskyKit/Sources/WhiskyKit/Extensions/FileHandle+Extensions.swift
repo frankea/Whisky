@@ -159,7 +159,10 @@ extension FileHandle {
     func extract<T>(_ type: T.Type, offset: UInt64 = 0) -> T? {
         do {
             try self.seek(toOffset: offset)
-            if let data = try self.read(upToCount: MemoryLayout<T>.size) {
+            // A read straddling EOF returns fewer bytes than requested;
+            // loading T from the short buffer would read out of bounds.
+            if let data = try self.read(upToCount: MemoryLayout<T>.size),
+               data.count >= MemoryLayout<T>.size {
                 return data.withUnsafeBytes { $0.loadUnaligned(as: T.self) }
             } else {
                 return nil

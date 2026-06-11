@@ -52,8 +52,8 @@ public struct BottlePerformanceConfig: Codable, Equatable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.performancePreset = try container
-            .decodeIfPresent(PerformancePreset.self, forKey: .performancePreset) ?? .balanced
+        self.performancePreset = container
+            .decodeLenientIfPresent(PerformancePreset.self, forKey: .performancePreset) ?? .balanced
         self.shaderCacheEnabled = try container.decodeIfPresent(Bool.self, forKey: .shaderCacheEnabled) ?? true
         self.gpuMemoryLimit = try container.decodeIfPresent(Int.self, forKey: .gpuMemoryLimit)
         self.forceD3D11 = try container.decodeIfPresent(Bool.self, forKey: .forceD3D11) ?? false

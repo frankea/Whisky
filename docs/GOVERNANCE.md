@@ -34,7 +34,10 @@ out — this section will be updated if and when that happens.
 So that a lapse doesn't silently break things, the maintainer keeps these minimums:
 
 - **Off-machine backup** of the signing material — the Apple Developer ID Application certificate and
-  the Sparkle EdDSA private key — so a lost or dead machine doesn't mean a lost release identity.
+  the Sparkle EdDSA private key — so a lost or dead machine doesn't mean a lost release identity. The
+  export, encryption, and restore-test procedure is documented in
+  [`ReleaseWorkflow.md`](ReleaseWorkflow.md#credential-continuity-backup--recovery); the Sparkle key
+  backup is restore-tested against a published appcast signature when the backup is made.
 - A **certificate-expiry reminder**: the Developer ID cert and Apple account must not be allowed to
   lapse, or notarized releases stop building with no obvious cause.
 - The full release procedure is documented in [`ReleaseWorkflow.md`](ReleaseWorkflow.md) so it is

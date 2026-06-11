@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   budget so fan-out can't amplify, and icon bitmap dimensions and palette lengths
   are validated before reading pixels. An executable with no usable icon now
   falls back to a generic system icon instead of showing a blank tile.
+- The "Failed to Export Diagnostics Report" alert is now localizable instead of
+  English-only, matching the rest of the launcher diagnostics UI.
 
 ## [3.2.0] - 2026-06-10 (App)
 

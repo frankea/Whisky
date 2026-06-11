@@ -142,6 +142,21 @@ final class FileHandleExtractTests: XCTestCase {
         let value = handle.extract(UInt32.self, offset: 100)
         XCTAssertNil(value)
     }
+
+    func testExtractStraddlingEOFReturnsNil() throws {
+        let data = Data([0x01, 0x02])
+        try data.write(to: tempURL)
+
+        let handle = try FileHandle(forReadingFrom: tempURL)
+        defer { try? handle.close() }
+
+        // A read that starts in bounds but ends past EOF returns fewer bytes than
+        // the type needs; extract must return nil, not load past the short buffer.
+        XCTAssertNil(handle.extract(UInt32.self, offset: 0))
+        XCTAssertNil(handle.extract(UInt32.self, offset: 1))
+        XCTAssertNil(handle.extract(UInt16.self, offset: 1))
+        XCTAssertEqual(handle.extract(UInt16.self, offset: 0), 0x0201)
+    }
 }
 
 // MARK: - FileHandle.write(line:) Tests

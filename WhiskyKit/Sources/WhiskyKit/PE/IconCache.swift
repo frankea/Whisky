@@ -56,6 +56,9 @@ public actor IconCache {
         }
 
         let pefile = peFile ?? (try? PEFile(url: url))
+        // A nil result (no renderable icon, or a guarded/failed parse) is NOT
+        // cached as a blank image: returning nil here lets `iconOrFallback`
+        // reach the real system fallback icon on every call.
         guard let icon = pefile?.bestIcon() else { return nil }
 
         memoryCache.setObject(icon, forKey: url as NSURL)

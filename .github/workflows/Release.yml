@@ -9,19 +9,15 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
-      # Homebrew Cask update is disabled for this fork
-      # The `brew install --cask whisky` command installs the original Whisky project
-      # This fork does not control the Homebrew cask
-      #
-      # - name: Update Homebrew Cask
-      #   uses: macauley/action-homebrew-bump-cask@v1
-      #   with:
-      #     token: ${{secrets.BREW_TOKEN}}
-      #     org: frankea
-      #     cask: whisky
+      # The official Homebrew cask `whisky` tracks the original (archived) Whisky
+      # project and is not controlled by this fork, so it is not bumped here. This
+      # fork's Homebrew distribution is the frankea/homebrew-whisky tap, updated by
+      # the UpdateHomebrewTap workflow (see docs/ReleaseWorkflow.md for BREW_TOKEN).
 
       - name: Release Info
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
         run: |
-          echo "Release ${{ github.event.release.tag_name }} published"
-          echo "This fork is distributed via GitHub Releases only"
+          echo "Release $TAG_NAME published"
+          echo "Distribution: GitHub Releases and the frankea/homebrew-whisky tap"
           echo "Download: https://github.com/frankea/Whisky/releases"

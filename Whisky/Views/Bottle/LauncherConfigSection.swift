@@ -538,15 +538,12 @@ struct DiagnosticsReportView: View {
 
                 let alert = NSAlert()
                 alert.alertStyle = .warning
-                alert.messageText = "Failed to Export Diagnostics Report"
-                alert.informativeText = """
-                An error occurred while saving the diagnostics report:
-
-                \(error.localizedDescription)
-
-                Please try again or choose a different location.
-                """
-                alert.addButton(withTitle: "OK")
+                alert.messageText = String(localized: "launcher.diagnostics.export.error.title")
+                alert.informativeText = String(
+                    format: String(localized: "launcher.diagnostics.export.error.message"),
+                    error.localizedDescription
+                )
+                alert.addButton(withTitle: String(localized: "button.ok"))
                 alert.runModal()
             }
         }

@@ -102,7 +102,7 @@ plans/
 .claude/
 mise.toml
 
-# Secrets — never stage signing keys or exported credentials
+# Never commit exported signing material (see docs/ReleaseWorkflow.md credential continuity)
 sparkle_ed25519_private.key*
 developer_id.p12*
 *.age

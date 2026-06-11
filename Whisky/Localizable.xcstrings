@@ -11706,6 +11706,26 @@
         }
       }
     },
+    "launcher.diagnostics.export.error.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An error occurred while saving the diagnostics report:\n\n%@\n\nPlease try again or choose a different location."
+          }
+        }
+      }
+    },
+    "launcher.diagnostics.export.error.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to Export Diagnostics Report"
+          }
+        }
+      }
+    },
     "launcher.fixes.applied": {
       "localizations": {
         "en": {

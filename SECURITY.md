@@ -89,7 +89,8 @@ The PostHog SDK attaches its own standard context to every event. On macOS
 the bundle identifier; macOS version; hardware model and a derived hardware
 name; device type (`Desktop`); the device manufacturer (`Apple`); locale;
 timezone; screen width/height; network-type flags (Wi-Fi / cellular); the SDK
-name and version; a per-launch session id; and a few non-personal environment
+name and version; a session id created at launch (rotated after 30 minutes of
+inactivity, so a long-running session can span more than one); and a few non-personal environment
 flags (install source such as TestFlight or sideloaded, and emulator/Catalyst
 indicators). None of this is tied to your identity. PostHog's ingestion also sees the connecting IP like any HTTPS
 request, with GeoIP enrichment disabled (`$geoip_disable`).

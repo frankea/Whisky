@@ -104,6 +104,9 @@ enum Telemetry {
     /// The UserDefaults key backing consent. Read it via `@AppStorage` if you
     /// like, but **never write it directly** — route writes through
     /// ``setConsent(granted:)`` so the SDK opt-in/opt-out state stays in sync.
+    /// Note the SDK state is best-effort only (`reset()` clears the SDK's
+    /// persisted opt-out flag); what actually enforces a denial is the
+    /// app-level consent check in ``capture(_:)``, so that guard must stay.
     static let consentDefaultsKey = "telemetryConsent"
 
     static var consent: ConsentState {

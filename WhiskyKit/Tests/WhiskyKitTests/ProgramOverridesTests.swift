@@ -123,4 +123,30 @@ final class ProgramOverridesTests: XCTestCase {
         XCTAssertNil(decoded.performancePreset)
         XCTAssertEqual(decoded.enhancedSync, .msync)
     }
+
+    func testProgramSettingsUnknownLocaleDecodesToAuto() throws {
+        // ProgramSettings has no quarantine wrapper of its own, so a strict-decode
+        // regression here surfaces wherever programs load — pin the lenient path.
+        var settings = ProgramSettings()
+        settings.locale = .japanese
+        settings.arguments = "-windowed"
+
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(settings)
+
+        let xml = try XCTUnwrap(String(data: data, encoding: .utf8))
+        XCTAssertTrue(
+            xml.contains("<string>ja_JP.UTF-8</string>"),
+            "encoding shape changed; test no longer substitutes"
+        )
+        let mutated = xml.replacingOccurrences(
+            of: "<string>ja_JP.UTF-8</string>",
+            with: "<string>tlh_QO.UTF-8</string>"
+        )
+        let decoded = try PropertyListDecoder().decode(ProgramSettings.self, from: Data(mutated.utf8))
+
+        XCTAssertEqual(decoded.locale, .auto)
+        XCTAssertEqual(decoded.arguments, "-windowed")
+    }
 }

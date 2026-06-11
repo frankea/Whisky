@@ -108,7 +108,7 @@ extension KeyedDecodingContainer {
             // forward-compat (a newer Whisky added an enum case) — log at .warning.
             Logger.wineKit.warning(
                 """
-                Ignoring unknown \(typeName, privacy: .public) value `\(raw)` at \
+                Ignoring unknown \(typeName, privacy: .public) value `\(raw, privacy: .public)` at \
                 `\(key.stringValue, privacy: .public)` (path: \(path, privacy: .public)); using default
                 """
             )

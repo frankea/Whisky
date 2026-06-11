@@ -692,7 +692,7 @@ public struct BottleSettings: Codable, Equatable {
         var settings = try decoder.decode(BottleSettings.self, from: data)
 
         guard settings.fileVersion == BottleSettings.defaultFileVersion else {
-            Logger.wineKit.warning("Invalid file version `\(settings.fileVersion)`")
+            Logger.wineKit.warning("Invalid file version `\(settings.fileVersion, privacy: .public)`")
             // Preserve the original before defaults overwrite it, so an unexpected file version
             // (which may carry recoverable user data) is not silently destroyed.
             quarantineCorruptedFile(at: metadataURL)
@@ -702,9 +702,20 @@ public struct BottleSettings: Codable, Equatable {
         }
 
         if settings.wineConfig.wineVersion != BottleWineConfig().wineVersion {
-            Logger.wineKit.warning("Bottle has a different wine version `\(settings.wineConfig.wineVersion)`")
+            Logger.wineKit.warning(
+                "Bottle has a different wine version `\(settings.wineConfig.wineVersion, privacy: .public)`"
+            )
             settings.wineConfig.wineVersion = BottleWineConfig().wineVersion
-            try settings.encode(to: metadataURL)
+            do {
+                try settings.encode(to: metadataURL)
+            } catch {
+                // The file decoded fine; only the version-stamp rewrite failed. Propagating
+                // would make the caller quarantine a healthy file and reset it to defaults,
+                // so keep the valid settings and let the stamp retry on the next load.
+                Logger.wineKit.error(
+                    "Failed to update wine version stamp: \(String(describing: error), privacy: .public)"
+                )
+            }
             return settings
         }
 
@@ -726,7 +737,7 @@ public struct BottleSettings: Codable, Equatable {
     /// Moves an unreadable settings file aside before defaults overwrite it, preserving the
     /// original for diagnosis instead of destroying it (silent data loss).
     ///
-    /// The file is renamed to a `Metadata.plist.corrupt-<timestamp>` sibling. The move is
+    /// The file is renamed to a `<filename>.corrupt-<timestamp>-<nonce>` sibling. The move is
     /// best-effort: if the file does not exist there is nothing to preserve, and if the move
     /// itself fails the error is logged and the caller proceeds to write defaults anyway.
     ///
@@ -741,9 +752,12 @@ public struct BottleSettings: Codable, Equatable {
         formatter.timeZone = TimeZone(identifier: "UTC")
         let rawTimestamp = formatter.string(from: Date())
         let timestamp = rawTimestamp.replacingOccurrences(of: ":", with: "-")
+        // Short random suffix so two quarantines within the same second can't collide
+        // (moveItem refuses to overwrite an existing destination, losing the second file).
+        let nonce = UUID().uuidString.prefix(8)
         let quarantineURL = metadataURL
             .deletingLastPathComponent()
-            .appending(path: "\(metadataURL.lastPathComponent).corrupt-\(timestamp)")
+            .appending(path: "\(metadataURL.lastPathComponent).corrupt-\(timestamp)-\(nonce)")
 
         do {
             try fileManager.moveItem(at: metadataURL, to: quarantineURL)

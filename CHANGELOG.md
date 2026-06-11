@@ -8,8 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- Bottle settings are now written atomically, so a crash mid-save can no longer
-  leave a truncated `Metadata.plist` that wipes the bottle's configuration.
+- Bottle and per-program settings are now written atomically, so a crash
+  mid-save can no longer leave a truncated settings file that wipes the
+  configuration.
 - Every persisted settings choice — graphics backend, performance and resolution
   presets, Windows version, launcher mode/type/locale and spoofed GPU vendor,
   audio driver/latency/output mode, clipboard and process-cleanup policies, and
@@ -17,11 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Whisky. A single unrecognized choice falls back to its default (per-program
   overrides fall back to inheriting the bottle's choice) instead of failing to
   load the entire bottle's settings.
-- An unreadable settings file is no longer silently overwritten. When a
-  `Metadata.plist` can't be decoded (corruption or an unexpected file version),
-  the original is moved aside to a `Metadata.plist.corrupt-<timestamp>` sibling
-  before defaults are written, so the unreadable data is preserved for recovery
-  rather than destroyed.
+- An unreadable settings file is no longer silently overwritten. When a bottle's
+  `Metadata.plist` or a program's settings plist can't be decoded (corruption or
+  an unexpected file version), the original is moved aside to a
+  `.corrupt-<timestamp>` sibling before defaults are written, so the unreadable
+  data is preserved for recovery rather than destroyed.
 
 ## [3.2.0] - 2026-06-10 (App)
 

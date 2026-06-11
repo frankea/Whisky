@@ -486,4 +486,115 @@ final class BottleSettingsTests: XCTestCase {
         XCTAssertEqual(decoded.name, "WinVersion Forward Compat")
         XCTAssertEqual(decoded.windowsVersion, .win10)
     }
+
+    func testUnknownAudioDriverDecodesToDefaultInWholeSettings() throws {
+        var settings = BottleSettings()
+        settings.name = "Audio Forward Compat"
+        settings.audioDriver = .coreaudio
+
+        let decoded = try decodeSettingsSubstituting(
+            settings,
+            original: "<string>coreaudio</string>",
+            replacement: "<string>someFutureDriver</string>"
+        )
+
+        XCTAssertEqual(decoded.name, "Audio Forward Compat")
+        XCTAssertEqual(decoded.audioDriver, .auto)
+    }
+
+    func testUnknownKillOnQuitPolicyDecodesToDefaultInWholeSettings() throws {
+        var settings = BottleSettings()
+        settings.name = "Cleanup Forward Compat"
+        settings.killOnQuit = .neverKill
+
+        let decoded = try decodeSettingsSubstituting(
+            settings,
+            original: "<string>never</string>",
+            replacement: "<string>someFuturePolicy</string>"
+        )
+
+        XCTAssertEqual(decoded.name, "Cleanup Forward Compat")
+        XCTAssertEqual(decoded.killOnQuit, .inherit)
+    }
+
+    func testUnknownLauncherModeDecodesToDefaultInWholeSettings() throws {
+        var settings = BottleSettings()
+        settings.name = "Launcher Forward Compat"
+        settings.launcherMode = .manual
+
+        let decoded = try decodeSettingsSubstituting(
+            settings,
+            original: "<string>manual</string>",
+            replacement: "<string>someFutureMode</string>"
+        )
+
+        XCTAssertEqual(decoded.name, "Launcher Forward Compat")
+        XCTAssertEqual(decoded.launcherMode, .auto)
+    }
+
+    // MARK: - Decode Recovery
+
+    func testFileVersionMismatchQuarantinesAndResets() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let metadataURL = tempDir.appendingPathComponent("Metadata.plist")
+
+        // A successfully-decodable file whose fileVersion this build doesn't recognize.
+        var settings = BottleSettings()
+        settings.name = "From The Future"
+        settings.fileVersion = SemanticVersion(99, 0, 0)
+        try settings.encode(to: metadataURL)
+        let originalData = try Data(contentsOf: metadataURL)
+
+        let decoded = try BottleSettings.decode(from: metadataURL)
+
+        // The mismatched file must be preserved as a quarantine sibling, not destroyed.
+        let siblings = try FileManager.default.contentsOfDirectory(atPath: tempDir.path)
+        let quarantined = siblings.filter { $0.hasPrefix("Metadata.plist.corrupt-") }
+        XCTAssertEqual(quarantined.count, 1, "expected exactly one quarantined sibling, got \(siblings)")
+        let quarantineURL = try tempDir.appendingPathComponent(XCTUnwrap(quarantined.first))
+        XCTAssertEqual(try Data(contentsOf: quarantineURL), originalData)
+
+        // The caller gets fresh defaults, persisted in the file's place.
+        XCTAssertEqual(decoded.fileVersion, BottleSettings.defaultFileVersion)
+        XCTAssertEqual(decoded.name, BottleSettings().name)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: metadataURL.path))
+    }
+
+    func testWineVersionStampWriteFailureKeepsValidSettings() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let metadataURL = tempDir.appendingPathComponent("Metadata.plist")
+
+        // A healthy file stamped with an older wine version.
+        var settings = BottleSettings()
+        settings.name = "Healthy Bottle"
+        settings.wineVersion = SemanticVersion(1, 2, 3)
+        try settings.encode(to: metadataURL)
+        let originalData = try Data(contentsOf: metadataURL)
+
+        // Make the directory unwritable so the version-stamp rewrite fails.
+        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: tempDir.path)
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: tempDir.path)
+        }
+
+        // A failed stamp write must not demote a healthy file to quarantine or defaults.
+        let decoded = try BottleSettings.decode(from: metadataURL)
+
+        XCTAssertEqual(decoded.name, "Healthy Bottle")
+        XCTAssertEqual(decoded.wineVersion, BottleWineConfig.defaultWineVersion)
+        XCTAssertEqual(try Data(contentsOf: metadataURL), originalData)
+        let siblings = try FileManager.default.contentsOfDirectory(atPath: tempDir.path)
+        XCTAssertFalse(
+            siblings.contains { $0.contains(".corrupt-") },
+            "a healthy file must not be quarantined when only the stamp write fails"
+        )
+    }
 }

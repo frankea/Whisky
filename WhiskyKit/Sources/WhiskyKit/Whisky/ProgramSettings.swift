@@ -223,6 +223,7 @@ public struct ProgramSettings: Codable {
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .xml
         let data = try encoder.encode(self)
-        try data.write(to: settingsURL)
+        // Atomic so a crash mid-write can't leave a truncated settings plist behind.
+        try data.write(to: settingsURL, options: .atomic)
     }
 }

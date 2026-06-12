@@ -19,9 +19,7 @@
 
 Whisky provides a clean and easy-to-use graphical wrapper for Wine built in native SwiftUI. You can make and manage bottles, install and run Windows apps and games, and unlock the full potential of your Mac with no technical knowledge required.
 
-<!-- Drop the screencast at images/demo.gif (see images/README-DEMO.md for the
-     storyboard and recording recipe), then uncomment the line below to ship it. -->
-<!-- <img width="650" alt="Whisky in action" src="./images/demo.gif"> -->
+<img width="650" alt="Whisky in action" src="./images/demo.gif">
 
 <img width="650" alt="Config" src="./images/config-screenshot.png">
 

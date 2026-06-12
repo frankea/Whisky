@@ -9,12 +9,13 @@ See [`ReleaseWorkflow.md`](ReleaseWorkflow.md) for the assembly + publish proced
 [`.github/workflows/RuntimeTrack.yml`](../.github/workflows/RuntimeTrack.yml) for the automation that
 flags when a bundled component falls behind upstream.
 
-## Bundled in runtime `v3.0.0`
+## Bundled in runtime `v3.1.0`
 
 | Component | Bundled version | Upstream source | Notes |
 |-----------|-----------------|-----------------|-------|
 | **Wine** | 11.0 (Gcenx `11.0_1` repack) | [Gcenx/macOS_Wine_builds](https://github.com/Gcenx/macOS_Wine_builds/releases) | Wine ships a new stable each January; 11.0 = Jan 2026. The Gcenx tag is `11.0_1` (a repack of the same Wine 11.0; the bare `11.0` tag was retired) — `RuntimeTrack.yml` pins that exact tag. |
 | **DXVK (macOS)** | 1.10.3 | [Gcenx/DXVK-macOS](https://github.com/Gcenx/DXVK-macOS/releases) | Frozen at 1.10.x **by design** — the DXVK 2.x line needs Vulkan 1.3 features MoltenVK/macOS don't expose. Not stale; do not "upgrade" to upstream 2.x. |
+| **DXMT** | 0.80 | [3Shain/dxmt](https://github.com/3Shain/dxmt/releases) | Direct3D 11 → Metal. Bundled from the project's prebuilt v0.80 release — the **last MIT-licensed** build (v1.0+ is LGPL; bumping past 0.80 is a deliberate relicensing decision, not routine drift). Lives in `Libraries/DXMT/` (x64/x32 DLLs + LICENSE) with `winemetal.so` in Wine's unix lib tree; **inert until enabled per-bottle (app ≥ 3.4.0)**. Assembled via `scripts/assemble-runtime.sh` from the maintainer-held provenance archive. |
 | **D3DMetal** | from Apple Game Porting Toolkit | [Apple GPTK](https://developer.apple.com/games/game-porting-toolkit/) | **Apple-proprietary. Extracted, never built.** Redistribution is governed by Apple's GPTK license — review terms before bumping. The default backend for most titles. |
 | **MoltenVK** | (confirm against published archive) | [KhronosGroup/MoltenVK](https://github.com/KhronosGroup/MoltenVK/releases) | Vulkan→Metal; underpins the DXVK path. |
 | **msync** | (confirm against published archive) | [marzent/wine-msync](https://github.com/marzent/wine-msync) | Mach-based synchronization patch in the Gcenx build. |
@@ -26,6 +27,7 @@ flags when a bundled component falls behind upstream.
 
 | Artifact | SHA-256 |
 |----------|---------|
+| `Libraries.tar.gz` (`v3.1.0`) | `86e2d54a60736f27e6ce82cacf2a91e500c20f6d32ae959a16afd912e6b03096` |
 | `Libraries.tar.gz` (`v3.0.0`) | `9c3d2a7d9bb682ae8398d8bae458e3cb52bb9f5a3345fb0830a64d9b6a1025f8` |
 
 The same digest is published in
@@ -35,12 +37,6 @@ mismatch (a corrupted or truncated download is the common cause). This is an int
 substitute for HTTPS transport trust. When cutting a runtime release, compute the digest of the exact
 published asset (`shasum -a 256 Libraries.tar.gz`) and update **both** this table and the plist — an
 incorrect value will block every fresh install.
-
-## Planned additions
-
-| Component | Target version | Upstream source | Notes |
-|-----------|----------------|-----------------|-------|
-| **DXMT** | 0.80 | [3Shain/dxmt](https://github.com/3Shain/dxmt/releases) | Direct3D→Metal, production-stable as of Apr 2026 and shipping in CrossOver 26. Bundle the project's **prebuilt release** (no from-source build) and expose as a per-game graphics backend. Benchmark vs. DXVK 1.10.3 on lower-spec Macs before defaulting. |
 
 ## Tracking cadence
 

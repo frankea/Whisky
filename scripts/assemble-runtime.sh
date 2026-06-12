@@ -84,8 +84,12 @@ SHA-256:   $DIGEST
 
 Follow-ups (see docs/ReleaseWorkflow.md "Wine Libraries release"):
   1. Smoke test: install this archive locally, verify bottles + DXVK still work.
-  2. gh release create v$NEW_VERSION --repo $REPO --title "Wine Libraries v$NEW_VERSION" \\
-       --notes "Adds DXMT $DXMT_VERSION (inert until enabled per-bottle)." "$OUT#Libraries.tar.gz"
+  2. cp "$OUT" "$WORKDIR/Libraries.tar.gz" && \\
+     gh release create v$NEW_VERSION --repo $REPO --title "Wine Libraries v$NEW_VERSION" \\
+       --notes "..." "$WORKDIR/Libraries.tar.gz"
+     # The asset FILENAME must be exactly Libraries.tar.gz — the app downloads
+     # releases/download/vX.Y.Z/Libraries.tar.gz by name. gh's "path#label"
+     # syntax only sets a display label and keeps the wrong filename.
   3. Update dist/pages/WhiskyWineVersion.plist: version $NEW_VERSION, sha256 $DIGEST, dxmtVersion $DXMT_VERSION.
   4. Update docs/DEPENDENCIES.md (bundled table + integrity row) and RuntimeTrack DXMT_PINNED.
 SUMMARY

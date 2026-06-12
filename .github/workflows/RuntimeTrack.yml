@@ -29,10 +29,11 @@ env:
   WINE_PINNED: "11.0_1"
   DXVK_REPO: Gcenx/DXVK-macOS
   DXVK_PINNED: v1.10.3-20230507-repack
-  # DXMT is not bundled yet (informational only until the DXMT runtime ships). When it
-  # ships, set this to the bundled tag (e.g. v0.80) to start flagging drift.
+  # v0.80 is the last MIT-licensed DXMT release (v1.0+ is LGPL); bundled since
+  # runtime v3.1.0. Bumping past it is a deliberate relicensing decision — see
+  # docs/DEPENDENCIES.md — not a routine drift fix.
   DXMT_REPO: 3Shain/dxmt
-  DXMT_PINNED: SET_ME
+  DXMT_PINNED: v0.80
 
 jobs:
   track:

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Wine runtime updated to Libraries v3.1.0, which now bundles DXMT 0.80
+  (Direct3D 11 → Metal). The new backend is dormant in this release; per-bottle
+  selection arrives in 3.4.0. Wine 11.0 and DXVK 1.10.3 are unchanged.
+
 ## [3.3.0] - 2026-06-11 (App)
 
 ### Added

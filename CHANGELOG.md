@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Installing or updating the Wine runtime no longer erases the rest of
+  Whisky's Application Support folder. Previously the installer wiped the
+  whole folder instead of just the runtime, destroying unrelated app state —
+  including the telemetry queue and anonymous ID, which is why a completed
+  install could go missing from the opt-in funnel.
+
 ### Changed
 - Wine runtime updated to Libraries v3.1.0, which now bundles DXMT 0.80
   (Direct3D 11 → Metal). The new backend is dormant in this release; per-bottle

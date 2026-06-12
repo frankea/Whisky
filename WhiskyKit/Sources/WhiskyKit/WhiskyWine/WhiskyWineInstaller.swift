@@ -147,9 +147,15 @@ public class WhiskyWineInstaller {
     }
 
     /// Extracts a WhiskyWine tarball into `destination`, replacing any existing
-    /// contents. Factored out of ``install(from:)`` so extraction can be tested
-    /// against a temporary directory without touching the real application
-    /// support folder.
+    /// `Libraries/` runtime there. Factored out of ``install(from:)`` so
+    /// extraction can be tested against a temporary directory without touching
+    /// the real application support folder.
+    ///
+    /// Only the `Libraries` subfolder is removed before extraction. The
+    /// destination is the live Application Support folder, which also holds
+    /// unrelated app state (e.g. the analytics SDK's anonymous ID and queued
+    /// events) — wiping the whole folder destroyed that state on every runtime
+    /// install and update.
     static func install(tarball: URL, into destination: URL) throws {
         // Verify the tarball exists before modifying the destination, so a
         // purged temp file can't leave the destination half-rebuilt.
@@ -157,8 +163,9 @@ public class WhiskyWineInstaller {
             throw WhiskyWineInstallError.tarballNotFound
         }
 
-        if FileManager.default.fileExists(atPath: destination.path) {
-            try FileManager.default.removeItem(at: destination)
+        let existingRuntime = destination.appending(path: "Libraries")
+        if FileManager.default.fileExists(atPath: existingRuntime.path) {
+            try FileManager.default.removeItem(at: existingRuntime)
         }
         try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
 

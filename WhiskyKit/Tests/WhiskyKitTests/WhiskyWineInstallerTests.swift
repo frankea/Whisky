@@ -16,6 +16,7 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+// swiftlint:disable file_length
 import CryptoKit
 import SemanticVersion
 @testable import WhiskyKit
@@ -258,6 +259,57 @@ final class WhiskyWineInstallerTests: XCTestCase {
         try WhiskyWineInstaller.install(tarball: tarball, into: destination)
 
         XCTAssertFalse(FileManager.default.fileExists(atPath: stale.path), "Stale contents should be removed")
+        let extracted = destination.appendingPathComponent("Libraries/marker.txt")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: extracted.path))
+    }
+
+    func testInstallPreservesDestinationSiblingsOutsideLibraries() throws {
+        // The destination is the live Application Support folder: besides the
+        // runtime it holds unrelated app state (the analytics SDK's storage with
+        // its anonymous ID and queued events, and anything added later). A
+        // runtime install must replace only Libraries/, never its siblings —
+        // wiping the whole folder silently destroys that state on every
+        // install/update.
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let sourceDir = tempDir.appendingPathComponent("Libraries")
+        try FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
+        try Data("marker".utf8).write(to: sourceDir.appendingPathComponent("marker.txt"))
+
+        let tarball = tempDir.appendingPathComponent("archive").appendingPathExtension("tar.gz")
+        let tar = Process()
+        tar.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
+        tar.currentDirectoryURL = tempDir
+        tar.arguments = ["-czf", tarball.path, "Libraries"]
+        try tar.run()
+        tar.waitUntilExit()
+        try XCTSkipUnless(tar.terminationStatus == 0, "Could not build the tar fixture")
+
+        // A destination that already has a stale runtime AND an unrelated
+        // sibling directory with a file in it.
+        let destination = tempDir.appendingPathComponent("dest")
+        let stale = destination.appendingPathComponent("Libraries/stale.txt")
+        try FileManager.default.createDirectory(
+            at: stale.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try Data("stale".utf8).write(to: stale)
+        let sibling = destination.appendingPathComponent("analytics-store/queued-event.json")
+        try FileManager.default.createDirectory(
+            at: sibling.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try Data("{}".utf8).write(to: sibling)
+
+        try WhiskyWineInstaller.install(tarball: tarball, into: destination)
+
+        XCTAssertTrue(
+            FileManager.default.fileExists(atPath: sibling.path),
+            "Install must not delete unrelated state next to Libraries/ in the destination"
+        )
+        XCTAssertFalse(FileManager.default.fileExists(atPath: stale.path), "Stale runtime contents are replaced")
         let extracted = destination.appendingPathComponent("Libraries/marker.txt")
         XCTAssertTrue(FileManager.default.fileExists(atPath: extracted.path))
     }

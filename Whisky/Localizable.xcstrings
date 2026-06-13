@@ -12165,6 +12165,46 @@
         }
       }
     },
+    "menubar.bottle.noPins": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No pinned programs"
+          }
+        }
+      }
+    },
+    "menubar.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No bottles yet"
+          }
+        }
+      }
+    },
+    "menubar.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Whisky"
+          }
+        }
+      }
+    },
+    "menubar.quit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit Whisky"
+          }
+        }
+      }
+    },
     "open.bottle": {
       "localizations": {
         "ar": {
@@ -17236,6 +17276,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Whisky 關閉時終止 Wine 進程"
+          }
+        }
+      }
+    },
+    "settings.toggle.menubar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Whisky in the menu bar"
+          }
+        }
+      }
+    },
+    "settings.toggle.menubar.help": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a menu-bar item for launching pinned programs, and keep Whisky running after its window is closed."
           }
         }
       }

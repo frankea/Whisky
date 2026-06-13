@@ -1,0 +1,8 @@
+2026-06-13 17:47:36.824 INFO    whisky_c5e3 - strix.core.runner: Starting Strix scan whisky_c5e3 (image=ghcr.io/usestrix/strix-sandbox:1.0.0, max_turns=500, interactive=True, run_dir=/Users/afranke/Projects/Whisky/strix_runs/whisky_c5e3)
+2026-06-13 17:47:36.824 INFO    whisky_c5e3 - strix.core.runner: LLM model resolved: litellm/deepseek/deepseek-v4-pro
+2026-06-13 17:47:36.825 INFO    whisky_c5e3 - strix.core.runner: Bringing up sandbox session for scan whisky_c5e3
+2026-06-13 17:47:36.825 DEBUG   whisky_c5e3 - strix.runtime.backends: Selected sandbox backend: docker
+2026-06-13 17:47:36.825 INFO    whisky_c5e3 - strix.runtime.session_manager: Creating sandbox session for scan whisky_c5e3 (backend=docker, image=ghcr.io/usestrix/strix-sandbox:1.0.0)
+2026-06-13 17:47:36.897 DEBUG   whisky_c5e3 - strix.runtime.docker_client: Creating sandbox container: image=ghcr.io/usestrix/strix-sandbox:1.0.0 caps=['NET_ADMIN', 'NET_RAW'] exposed_ports=[48080]
+2026-06-13 17:47:36.986 INFO    whisky_c5e3 - strix.runtime.docker_client: Sandbox container created: id=cc1a1a967583 image=ghcr.io/usestrix/strix-sandbox:1.0.0
+2026-06-13 17:47:37.311 DEBUG   - - strix.runtime.session_manager: cleanup(whisky_c5e3): no cached session

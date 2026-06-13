@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Optional menu-bar extra (**Settings → General → "Show Whisky in the menu
+  bar"**, off by default). When enabled, a menu-bar item lets you launch a
+  bottle's pinned programs, reopen Whisky, or quit without the main window
+  focused — and Whisky keeps running after the window is closed, so it stays
+  reachable from the menu bar and running Wine processes aren't terminated.
+  When disabled, behaviour is unchanged (Closes whisky-app/whisky#571).
+
 ### Changed
 - Scanning a bottle for installed programs now runs off the main thread —
   walking the `Program Files` trees and parsing each executable's metadata no

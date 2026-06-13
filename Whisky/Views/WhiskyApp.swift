@@ -34,6 +34,12 @@ struct WhiskyApp: App {
     /// auto-presentation (and the update check) be skipped in tests.
     static let isUITesting = ProcessInfo.processInfo.arguments.contains("-WhiskyUITestMode")
 
+    /// Scene id for the main window, used to reopen it from the menu-bar extra.
+    static let mainWindowID = "main"
+
+    /// Opt-in: show a menu-bar extra and keep Whisky running after the main
+    /// window closes (see `AppDelegate.applicationShouldTerminateAfterLastWindowClosed`).
+    @AppStorage("showMenuBarExtra") private var showMenuBarExtra = false
     @State var showSetup: Bool = false
     @State private var showMigrate: Bool = false
     @State private var showDiagnosticsSheet: Bool = false
@@ -61,7 +67,7 @@ struct WhiskyApp: App {
     }
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: Self.mainWindowID) {
             ContentView(showSetup: $showSetup)
                 .frame(minWidth: ViewWidth.large, minHeight: 316)
                 .environmentObject(BottleVM.shared)
@@ -195,6 +201,10 @@ struct WhiskyApp: App {
         }
         Settings {
             SettingsView()
+        }
+        MenuBarExtra("Whisky", systemImage: "wineglass", isInserted: $showMenuBarExtra) {
+            WhiskyMenuBarView()
+                .environmentObject(BottleVM.shared)
         }
     }
 

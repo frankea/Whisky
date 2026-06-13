@@ -1,0 +1,52 @@
+{
+  "run_id": "whisky_c5e3",
+  "run_name": "whisky_c5e3",
+  "start_time": "2026-06-13T21:47:30.840897+00:00",
+  "end_time": null,
+  "status": "running",
+  "targets_info": [
+    {
+      "type": "local_code",
+      "details": {
+        "target_path": "/Users/afranke/Projects/Whisky",
+        "workspace_subdir": "Whisky"
+      },
+      "original": "/Users/afranke/Projects/Whisky"
+    }
+  ],
+  "llm_usage": {
+    "requests": 0,
+    "input_tokens": 0,
+    "input_tokens_details": [
+      {
+        "cached_tokens": 0
+      }
+    ],
+    "output_tokens": 0,
+    "output_tokens_details": [
+      {
+        "reasoning_tokens": 0
+      }
+    ],
+    "total_tokens": 0,
+    "request_usage_entries": [],
+    "cost": 0.0,
+    "cost_source": "litellm_estimate",
+    "agents": []
+  },
+  "scan_mode": "deep",
+  "instruction": "",
+  "non_interactive": false,
+  "local_sources": [
+    {
+      "source_path": "/Users/afranke/Projects/Whisky",
+      "workspace_subdir": "Whisky"
+    }
+  ],
+  "diff_scope": {
+    "active": false,
+    "mode": "full"
+  },
+  "scope_mode": "full",
+  "diff_base": null
+}

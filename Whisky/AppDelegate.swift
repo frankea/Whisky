@@ -91,7 +91,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        true
+        // When the user opts into the menu-bar extra, keep Whisky running after
+        // the window closes so it stays reachable from the menu bar (and Wine
+        // processes keep running). Otherwise quit on last window close, as usual.
+        !UserDefaults.standard.bool(forKey: "showMenuBarExtra")
     }
 
     private static var appUrl: URL? {

@@ -22,33 +22,43 @@ import XCTest
 final class WineDXMTTests: XCTestCase {
     private var tempDir: URL!
     private var payloadRoot: URL!
-    private var wineLibRoot: URL!
     private var prefixRoot: URL!
 
     private let trio = ["d3d11.dll", "dxgi.dll", "d3d10core.dll"]
+    /// Everything DXMT deploys into the prefix: the native trio + the
+    /// builtin-marked `winemetal.dll` redirect.
+    private var deployed: [String] {
+        trio + ["winemetal.dll"]
+    }
+
+    /// A markerless (native) PE stub whose bytes at 0x40 are *not* the builtin
+    /// signature — `Wine.isNativePE` must classify it as native.
+    private func nativeFake(_ tag: String) -> Data {
+        Data(count: 0x40) + Data(tag.utf8)
+    }
+
+    /// A PE stub carrying winebuild's "Wine builtin DLL" signature at 0x40.
+    private func builtinFake(_ tag: String) -> Data {
+        Data(count: 0x40) + Data("Wine builtin DLL".utf8) + Data(tag.utf8)
+    }
 
     override func setUpWithError() throws {
         tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         payloadRoot = tempDir.appending(path: "DXMT")
-        wineLibRoot = tempDir.appending(path: "Wine/lib/wine")
         prefixRoot = tempDir.appending(path: "bottle")
 
-        // DXMT payload as shipped in the runtime: trio + winemetal + NVIDIA
-        // extras in x64; trio + winemetal in x32.
+        // DXMT payload as shipped by the native-variant runtime: native trio +
+        // builtin-marked winemetal in both arches; NVIDIA extras in x64.
         for (arch, extras) in [("x64", ["nvapi64.dll", "nvngx.dll"]), ("x32", [])] {
             let dir = payloadRoot.appending(path: arch)
             try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-            for name in trio + ["winemetal.dll"] + extras {
-                try Data("dxmt-\(arch)-\(name)".utf8).write(to: dir.appending(path: name))
+            for name in trio + extras {
+                try nativeFake("dxmt-\(arch)-\(name)").write(to: dir.appending(path: name))
             }
+            try builtinFake("dxmt-\(arch)-winemetal.dll").write(to: dir.appending(path: "winemetal.dll"))
         }
 
-        // Wine builtin trees: x86_64 carries the stale Gcenx winemetal stub.
-        let x64Builtin = wineLibRoot.appending(path: "x86_64-windows")
-        try FileManager.default.createDirectory(at: x64Builtin, withIntermediateDirectories: true)
-        try Data("gcenx-stub".utf8).write(to: x64Builtin.appending(path: "winemetal.dll"))
-
-        // Prefix with fakedlls in system32 and an existing syswow64 tree.
+        // Prefix with fakedlls in system32 and an existing (empty) syswow64.
         let system32 = prefixRoot.appending(path: "drive_c/windows/system32")
         let syswow64 = prefixRoot.appending(path: "drive_c/windows/syswow64")
         try FileManager.default.createDirectory(at: system32, withIntermediateDirectories: true)
@@ -63,138 +73,130 @@ final class WineDXMTTests: XCTestCase {
         try? FileManager.default.removeItem(at: tempDir)
     }
 
-    private func contents(_ url: URL) throws -> String {
-        try String(contentsOf: url, encoding: .utf8)
+    private func system32(_ name: String) -> URL {
+        prefixRoot.appending(path: "drive_c/windows/system32").appending(path: name)
     }
 
-    func testTrioReplacedInSystem32AndCopiedIntoSyswow64() throws {
-        try Wine.enableDXMT(payloadRoot: payloadRoot, wineLibRoot: wineLibRoot, prefixRoot: prefixRoot)
+    private func syswow64(_ name: String) -> URL {
+        prefixRoot.appending(path: "drive_c/windows/syswow64").appending(path: name)
+    }
 
-        for name in trio {
-            let system32DLL = prefixRoot.appending(path: "drive_c/windows/system32").appending(path: name)
-            XCTAssertEqual(try contents(system32DLL), "dxmt-x64-\(name)", "\(name) should be replaced")
-            // syswow64 had no pre-existing DLLs: a skipped copy here would mean
-            // 32-bit programs silently fall back to the builtin path.
-            let syswow64DLL = prefixRoot.appending(path: "drive_c/windows/syswow64").appending(path: name)
-            XCTAssertEqual(try contents(syswow64DLL), "dxmt-x32-\(name)", "\(name) should be copied even if absent")
+    private func data(_ url: URL) throws -> Data {
+        try Data(contentsOf: url)
+    }
+
+    private func exists(_ url: URL) -> Bool {
+        FileManager.default.fileExists(atPath: url.path(percentEncoded: false))
+    }
+
+    func testTrioAndWinemetalDeployedNativeIntoBothArches() throws {
+        try Wine.enableDXMT(payloadRoot: payloadRoot, prefixRoot: prefixRoot)
+
+        for name in deployed {
+            // 64-bit: replaces the fakedll trio / copies winemetal in.
+            XCTAssertEqual(
+                try data(system32(name)), try data(payloadRoot.appending(path: "x64").appending(path: name)),
+                "\(name) should be deployed from the x64 payload into system32"
+            )
+            // 32-bit: syswow64 had no pre-existing DLLs — a skipped copy here
+            // would leave 32-bit programs falling back to the builtin path.
+            XCTAssertEqual(
+                try data(syswow64(name)), try data(payloadRoot.appending(path: "x32").appending(path: name)),
+                "\(name) should be copied into syswow64 even when absent"
+            )
         }
     }
 
-    func testQuarantinedPayloadDLLsNeverEnterThePrefix() throws {
-        try Wine.enableDXMT(payloadRoot: payloadRoot, wineLibRoot: wineLibRoot, prefixRoot: prefixRoot)
+    func testNvidiaExtrasNeverEnterThePrefix() throws {
+        try Wine.enableDXMT(payloadRoot: payloadRoot, prefixRoot: prefixRoot)
 
-        for dir in ["system32", "syswow64"] {
-            for name in ["winemetal.dll", "nvapi64.dll", "nvngx.dll"] {
-                let url = prefixRoot.appending(path: "drive_c/windows").appending(path: dir).appending(path: name)
-                XCTAssertFalse(
-                    FileManager.default.fileExists(atPath: url.path),
-                    "\(name) must not be installed into \(dir): winemetal only works as a builtin"
-                )
-            }
+        // winemetal IS deployed (it backs the trio's import); nvapi64/nvngx are
+        // deliberately quarantined — DXMT's NVIDIA spoofing is out of scope.
+        for name in ["nvapi64.dll", "nvngx.dll"] {
+            XCTAssertFalse(exists(system32(name)), "\(name) must not be installed into system32")
+            XCTAssertFalse(exists(syswow64(name)), "\(name) must not be installed into syswow64")
         }
     }
 
-    func testWinemetalBuiltinReplacedWhenContentDiffers() throws {
-        try Wine.enableDXMT(payloadRoot: payloadRoot, wineLibRoot: wineLibRoot, prefixRoot: prefixRoot)
+    func testWinemetalIsDeployedIntoThePrefix() throws {
+        // The trio imports winemetal.dll by name; the prefix needs the
+        // builtin-marked redirect so that import resolves to the lib/wine builtin.
+        try Wine.enableDXMT(payloadRoot: payloadRoot, prefixRoot: prefixRoot)
 
-        let builtin = wineLibRoot.appending(path: "x86_64-windows").appending(path: "winemetal.dll")
+        XCTAssertTrue(exists(system32("winemetal.dll")), "winemetal.dll must be present in system32")
         XCTAssertEqual(
-            try contents(builtin), "dxmt-x64-winemetal.dll",
-            "The stale Wine-build winemetal stub must be replaced with DXMT's matching PE"
+            try data(system32("winemetal.dll")),
+            try data(payloadRoot.appending(path: "x64").appending(path: "winemetal.dll"))
         )
-    }
-
-    func testWinemetalBuiltinLeftAloneWhenIdentical() throws {
-        // Pre-place DXMT's exact winemetal — a second enable must not rewrite it.
-        let builtin = wineLibRoot.appending(path: "x86_64-windows").appending(path: "winemetal.dll")
-        try Data("dxmt-x64-winemetal.dll".utf8).write(to: builtin)
-        let before = try FileManager.default.attributesOfItem(atPath: builtin.path)[.modificationDate] as? Date
-
-        try Wine.enableDXMT(payloadRoot: payloadRoot, wineLibRoot: wineLibRoot, prefixRoot: prefixRoot)
-
-        let after = try FileManager.default.attributesOfItem(atPath: builtin.path)[.modificationDate] as? Date
-        XCTAssertEqual(before, after, "Identical winemetal must not be rewritten (idempotence)")
-        XCTAssertEqual(try contents(builtin), "dxmt-x64-winemetal.dll")
-    }
-
-    func testI386BuiltinTreePopulatedWhenPresent() throws {
-        let i386 = wineLibRoot.appending(path: "i386-windows")
-        try FileManager.default.createDirectory(at: i386, withIntermediateDirectories: true)
-        try Data("gcenx-stub-32".utf8).write(to: i386.appending(path: "winemetal.dll"))
-
-        try Wine.enableDXMT(payloadRoot: payloadRoot, wineLibRoot: wineLibRoot, prefixRoot: prefixRoot)
-
-        XCTAssertEqual(try contents(i386.appending(path: "winemetal.dll")), "dxmt-x32-winemetal.dll")
-    }
-
-    func testI386BuiltinTreeSkippedWhenAbsent() throws {
-        // No i386-windows directory in this Wine layout: enable must not create
-        // it or fail.
-        try Wine.enableDXMT(payloadRoot: payloadRoot, wineLibRoot: wineLibRoot, prefixRoot: prefixRoot)
-
-        let i386 = wineLibRoot.appending(path: "i386-windows")
-        XCTAssertFalse(FileManager.default.fileExists(atPath: i386.path))
     }
 
     func testSyswow64SkippedWhenAbsent() throws {
         try FileManager.default.removeItem(at: prefixRoot.appending(path: "drive_c/windows/syswow64"))
 
-        try Wine.enableDXMT(payloadRoot: payloadRoot, wineLibRoot: wineLibRoot, prefixRoot: prefixRoot)
+        try Wine.enableDXMT(payloadRoot: payloadRoot, prefixRoot: prefixRoot)
 
-        let syswow64 = prefixRoot.appending(path: "drive_c/windows/syswow64")
-        XCTAssertFalse(FileManager.default.fileExists(atPath: syswow64.path))
+        // 64-bit half still deployed; the absent syswow64 must not be recreated.
+        XCTAssertEqual(try data(system32("d3d11.dll")), try data(payloadRoot.appending(path: "x64/d3d11.dll")))
+        XCTAssertFalse(exists(prefixRoot.appending(path: "drive_c/windows/syswow64")))
     }
 
-    func testMissingPayloadThrowsActionableError() throws {
-        try FileManager.default.removeItem(at: payloadRoot)
+    func testBuiltinMarkedTrioRejectedAndPrefixUntouched() throws {
+        // An older (builtin-variant) runtime: the trio carries the "Wine builtin
+        // DLL" marker. Deploying it would be silently ignored by the loader in
+        // favor of wined3d, so enable must refuse and leave the prefix untouched
+        // rather than launch a bottle that isn't really using DXMT.
+        try builtinFake("builtin-x64-d3d11.dll")
+            .write(to: payloadRoot.appending(path: "x64/d3d11.dll"))
 
         XCTAssertThrowsError(
-            try Wine.enableDXMT(payloadRoot: payloadRoot, wineLibRoot: wineLibRoot, prefixRoot: prefixRoot)
+            try Wine.enableDXMT(payloadRoot: payloadRoot, prefixRoot: prefixRoot)
+        ) { error in
+            XCTAssertEqual(error as? Wine.DXMTError, .payloadMissing)
+        }
+        XCTAssertEqual(try data(system32("d3d11.dll")), Data("fakedll-d3d11.dll".utf8), "Prefix must not be touched")
+    }
+
+    func testMissingPayloadThrowsActionableErrorAndPreservesPrefix() throws {
+        try FileManager.default.removeItem(at: payloadRoot.appending(path: "x64/dxgi.dll"))
+
+        XCTAssertThrowsError(
+            try Wine.enableDXMT(payloadRoot: payloadRoot, prefixRoot: prefixRoot)
         ) { error in
             XCTAssertEqual(error as? Wine.DXMTError, .payloadMissing)
             // Surfaces through the launch-failure toast via localizedDescription.
             XCTAssertFalse((error as? Wine.DXMTError)?.errorDescription?.isEmpty ?? true)
         }
-    }
-
-    func testSecondEnableIsIdempotent() throws {
-        try Wine.enableDXMT(payloadRoot: payloadRoot, wineLibRoot: wineLibRoot, prefixRoot: prefixRoot)
-        try Wine.enableDXMT(payloadRoot: payloadRoot, wineLibRoot: wineLibRoot, prefixRoot: prefixRoot)
-
-        let system32DLL = prefixRoot.appending(path: "drive_c/windows/system32").appending(path: "d3d11.dll")
-        XCTAssertEqual(try contents(system32DLL), "dxmt-x64-d3d11.dll")
-    }
-
-    func testMissingWinemetalInPayloadThrowsAndPreservesState() throws {
-        // A damaged runtime: the x64 trio is present but winemetal.dll is gone.
-        // The guard must catch this BEFORE any copy, so the existing builtin
-        // winemetal is preserved (its loss would degrade even non-DXMT launches)
-        // and the prefix trio is left untouched.
-        try FileManager.default.removeItem(at: payloadRoot.appending(path: "x64/winemetal.dll"))
-        let builtin = wineLibRoot.appending(path: "x86_64-windows").appending(path: "winemetal.dll")
-        let system32D3D11 = prefixRoot.appending(path: "drive_c/windows/system32").appending(path: "d3d11.dll")
-
-        XCTAssertThrowsError(
-            try Wine.enableDXMT(payloadRoot: payloadRoot, wineLibRoot: wineLibRoot, prefixRoot: prefixRoot)
-        ) { error in
-            XCTAssertEqual(error as? Wine.DXMTError, .payloadMissing)
-        }
-        XCTAssertEqual(try contents(builtin), "gcenx-stub", "Existing builtin winemetal must be preserved")
-        XCTAssertEqual(try contents(system32D3D11), "fakedll-d3d11.dll", "Prefix trio must not be half-deployed")
+        XCTAssertEqual(try data(system32("d3d11.dll")), Data("fakedll-d3d11.dll".utf8), "Prefix must not be touched")
     }
 
     func testIncompleteX32PayloadThrowsWhenSyswow64Present() throws {
-        // syswow64 exists (32-bit deployment will be attempted), but the x32 trio
+        // syswow64 exists (32-bit deploy will be attempted) but the x32 payload
         // is incomplete. The guard must throw before touching the prefix.
         try FileManager.default.removeItem(at: payloadRoot.appending(path: "x32/dxgi.dll"))
-        let system32D3D11 = prefixRoot.appending(path: "drive_c/windows/system32").appending(path: "d3d11.dll")
 
         XCTAssertThrowsError(
-            try Wine.enableDXMT(payloadRoot: payloadRoot, wineLibRoot: wineLibRoot, prefixRoot: prefixRoot)
+            try Wine.enableDXMT(payloadRoot: payloadRoot, prefixRoot: prefixRoot)
         ) { error in
             XCTAssertEqual(error as? Wine.DXMTError, .payloadMissing)
         }
-        XCTAssertEqual(try contents(system32D3D11), "fakedll-d3d11.dll", "Prefix must not be touched")
+        XCTAssertEqual(try data(system32("d3d11.dll")), Data("fakedll-d3d11.dll".utf8), "Prefix must not be touched")
+    }
+
+    func testSecondEnableIsIdempotent() throws {
+        try Wine.enableDXMT(payloadRoot: payloadRoot, prefixRoot: prefixRoot)
+        try Wine.enableDXMT(payloadRoot: payloadRoot, prefixRoot: prefixRoot)
+
+        XCTAssertEqual(try data(system32("d3d11.dll")), try data(payloadRoot.appending(path: "x64/d3d11.dll")))
+    }
+
+    func testIsNativePEDistinguishesBuiltinFromNative() throws {
+        let native = tempDir.appending(path: "native.dll")
+        let builtin = tempDir.appending(path: "builtin.dll")
+        try nativeFake("native").write(to: native)
+        try builtinFake("builtin").write(to: builtin)
+
+        XCTAssertTrue(try Wine.isNativePE(native))
+        XCTAssertFalse(try Wine.isNativePE(builtin))
     }
 
     func testInstallFilePreservesDestinationWhenSourceMissing() throws {
@@ -205,6 +207,6 @@ final class WineDXMTTests: XCTestCase {
         let missingSource = tempDir.appending(path: "does-not-exist.dll")
 
         XCTAssertThrowsError(try FileManager.default.installFile(at: dest, from: missingSource))
-        XCTAssertEqual(try contents(dest), "original", "Destination must survive a failed copy")
+        XCTAssertEqual(try String(contentsOf: dest, encoding: .utf8), "original", "Destination must survive failure")
     }
 }

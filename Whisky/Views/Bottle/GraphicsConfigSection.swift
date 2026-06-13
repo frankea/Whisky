@@ -47,7 +47,7 @@ struct GraphicsConfigSection: View {
                 selection: $bottle.settings.graphicsBackend,
                 resolvedBackend: resolvedBackend,
                 isBackendAvailable: { backend in
-                    backend.isAvailable(runtimeInfo: WhiskyWineInstaller.whiskyWineInfo())
+                    WhiskyWineInstaller.isBackendAvailable(backend)
                 }
             )
 

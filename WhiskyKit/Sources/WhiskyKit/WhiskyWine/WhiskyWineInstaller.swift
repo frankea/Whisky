@@ -370,6 +370,18 @@ public class WhiskyWineInstaller {
         whiskyWineInfo()?.dxmtVersion
     }
 
+    /// Whether `backend` can actually be selected against the currently
+    /// installed runtime. Extends the pure
+    /// ``GraphicsBackend/isAvailable(runtimeInfo:)`` version gate with DXMT's
+    /// payload-variant capability check: only the *native* DXMT payload is
+    /// usable per-bottle, so an older builtin-variant payload (present but it
+    /// would silently redirect to wined3d) must not appear selectable.
+    public static func isBackendAvailable(_ backend: GraphicsBackend) -> Bool {
+        let versionAvailable = backend.isAvailable(runtimeInfo: whiskyWineInfo())
+        guard backend == .dxmt else { return versionAvailable }
+        return versionAvailable && Wine.isDXMTRuntimeNative()
+    }
+
     /// Reads the full version record from the installed WhiskyWine runtime.
     ///
     /// - Returns: The decoded ``WhiskyWineVersion``, or `nil` if WhiskyWine is

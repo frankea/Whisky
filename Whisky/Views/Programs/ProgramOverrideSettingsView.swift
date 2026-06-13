@@ -267,7 +267,7 @@ struct ProgramOverrideSettingsView: View {
                     // the picker can still display the current selection.
                     let current = program.settings.overrides?.graphicsBackend
                     let offered = GraphicsBackend.allCases.filter { backend in
-                        backend.isAvailable(runtimeInfo: WhiskyWineInstaller.whiskyWineInfo()) || backend == current
+                        WhiskyWineInstaller.isBackendAvailable(backend) || backend == current
                     }
                     ForEach(offered, id: \.self) { backend in
                         Text(backend.displayName).tag(backend)

@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - DXMT (Direct3D 11 → Metal) as a selectable per-bottle and per-program
-  graphics backend, marked Experimental. Requires Wine runtime 3.1.0 or
-  newer (the backend card explains how to update when it's unavailable).
-  D3DMetal remains the recommended default.
+  graphics backend, marked Experimental. Deployed per-bottle like DXVK
+  (native DLLs in the prefix), so selecting it for one bottle never affects
+  others. Requires the matching Wine runtime that bundles the DXMT backend
+  (shipped alongside this release); the backend card explains how to update
+  when it's unavailable. D3DMetal remains the recommended default.
 
 ### Fixed
 - Per-program graphics overrides now reliably win over the bottle's

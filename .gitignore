@@ -96,6 +96,9 @@ iOSInjectionProject/
 __pycache__/
 .venv/
 
+# Local analysis/agent tool run artifacts (not part of the app)
+strix_runs/
+
 # Claude Code
 CLAUDE.md
 plans/

@@ -40,6 +40,25 @@ The in-app Game DB UI surfaces this with:
 When a recipe doesn't work for you, please file an issue against this
 fork (not the archived upstream) so we can refine the entry.
 
+## Open upstream PRs
+
+The issue classifier does **not** look at pull requests. The 9 PRs left open
+when upstream archived were reviewed by hand (2026-06) against this fork's
+current code. Every *bug-fix* PR is resolved — several more thoroughly than the
+upstream patch; the rest are features or docs, tracked individually.
+
+| Upstream PR | Intent | Status in this fork |
+|---|---|---|
+| [#1374](https://github.com/whisky-app/whisky/pull/1374) | Nil the pipe readability handler to stop a high-CPU spin (#917) | **Fixed**, bettered — the handler removes itself on EOF *and* at termination (`Process+Extensions.swift`; Closes #917) |
+| [#1305](https://github.com/whisky-app/whisky/pull/1305) | Stop the 100%-CPU spin in `nextLine` (#1010) | **Fixed** — `nextLine` replaced by a 3-way `nextOutput()` enum that disarms the read source on EOF (Closes #1010) |
+| [#1264](https://github.com/whisky-app/whisky/pull/1264) | Make `WhiskyCmd run` actually launch the program (#1088, #1140) | **Fixed** — the CLI was rearchitected onto awaited `Wine.runProgram`, so the AppleScript-exits-early race and the env-var quote-escaping bug can't occur |
+| [#1339](https://github.com/whisky-app/whisky/pull/1339) | In-app Wine process monitor | **Present**, bettered — a per-bottle Processes page (name / PID / memory + graceful and force quit), not a separate window |
+| [#574](https://github.com/whisky-app/whisky/pull/574) | Async bottle / program-list loading | **Gap** — `updateInstalledPrograms()` still runs synchronously on the `@MainActor`, so opening a large bottle can hitch the UI |
+| [#765](https://github.com/whisky-app/whisky/pull/765) | Custom SwiftUI update UI | **Not adopted** — the fork uses Sparkle's stock update dialog |
+| [#571](https://github.com/whisky-app/whisky/pull/571) | Menu-bar extra (survive window close) | **Not adopted** — no `MenuBarExtra`; the app quits when the last window closes |
+| [#1207](https://github.com/whisky-app/whisky/pull/1207) / [#1206](https://github.com/whisky-app/whisky/issues/1206) | Document a complete uninstall | **Done** — see *Uninstalling* in the [README](../README.md) |
+| [#1375](https://github.com/whisky-app/whisky/pull/1375) | Crowdin translation sync | **N/A** — this fork manages translations through its own Crowdin project, not via PRs |
+
 ## Running the tool
 
 The tool is a single Python 3.12 script that fetches the upstream issue
@@ -95,9 +114,11 @@ Going forward, the workflow is:
   demand.
 - **Label drift.** Upstream labels were inconsistent; categorization is
   best effort.
-- **No upstream-PR correlation.** The tool doesn't trace upstream PRs
-  that closed issues before archival — those are upstream-fixed,
-  separate from "did this fork address it."
+- **No automated upstream-PR correlation.** The tool doesn't trace
+  upstream PRs — neither those that closed issues before archival
+  (upstream-fixed, separate from "did this fork address it") nor the PRs
+  left open at archival. The latter are reviewed by hand in
+  [Open upstream PRs](#open-upstream-prs).
 
 The headline counts are honest about every status's confidence,
 including the size of the `unverified` bucket. That's the point.

@@ -238,7 +238,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   handler fired continuously on the permanently-readable EOF condition. The
   handler now removes itself on EOF (the final bytes are still drained when the
   process exits), so an idle Wine process no longer spins
-  (Closes whisky-app/whisky#917).
+  (Closes whisky-app/whisky#917, whisky-app/whisky#1010).
 - Moving a bottle no longer wipes its pinned-program list. The `move()` loop
   was shadowing the bottle's `url` with `pin.url`, causing
   `updateParentBottle` to compare a pin path against itself instead of the

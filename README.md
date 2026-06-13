@@ -84,6 +84,34 @@ To switch:
 
 The original app uses a different bundle identifier (`com.franke.Whisky` here vs. `com.isaacmarovitz.Whisky`), which is why bottles aren't shared automatically. The old **Bottle → Export** / **File → Import Bottle** route still works if you'd rather move bottles by hand or onto another Mac. With no critical bottles, you can skip migration entirely — the new app creates a fresh bottle on first launch.
 
+## Uninstalling
+
+Dragging **Whisky.app** to the Trash (or `brew uninstall --cask frankea/whisky/whisky`) removes the app but leaves the Wine runtime, your bottles, and app data behind — by design, so reinstalling doesn't re-download ~313 MB or lose your bottles.
+
+> ⚠️ **Back up your bottles first if you want to keep them.** Removing the container below deletes every bottle stored in its default location. Bottles you created in a custom folder live wherever you put them — check **Bottle → Reveal in Finder** before deleting anything.
+
+To remove Whisky **completely**, delete the app and then these paths (all under `~/Library`):
+
+```sh
+# 1. The app itself
+rm -rf "/Applications/Whisky.app"          # or: brew uninstall --cask frankea/whisky/whisky
+
+# 2. Bottles + bottle list (default bottle location is inside this container)
+rm -rf ~/Library/Containers/com.franke.Whisky
+rm -rf ~/Library/Containers/com.franke.Whisky.WhiskyThumbnail
+
+# 3. The Wine runtime (~313 MB) and other app support
+rm -rf ~/Library/Application\ Support/com.franke.Whisky
+
+# 4. Caches, logs, preferences, and saved state
+rm -rf ~/Library/Caches/com.franke.Whisky
+rm -rf ~/Library/Logs/com.franke.Whisky
+rm -rf ~/Library/HTTPStorages/com.franke.Whisky
+rm -f  ~/Library/Preferences/com.franke.Whisky.plist
+```
+
+If you also installed bottles in a **custom location**, delete those folders too. Migrated bottles that still belong to the original app live under `~/Library/Containers/com.isaacmarovitz.Whisky` and are left untouched by the steps above.
+
 ## Telemetry (opt-in)
 
 Whisky sends **no data by default**. During first-run setup you can opt in to

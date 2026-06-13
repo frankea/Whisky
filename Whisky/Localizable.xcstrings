@@ -3810,6 +3810,16 @@
         }
       }
     },
+    "check.updates.available": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install Update…"
+          }
+        }
+      }
+    },
     "cleanup.zombies.toast": {
       "localizations": {
         "en": {

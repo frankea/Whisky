@@ -21,6 +21,7 @@ import SwiftUI
 
 struct SparkleView: View {
     @ObservedObject private var checkForUpdatesViewModel: CheckForUpdatesViewModel
+    @ObservedObject private var updaterDelegate = SparkleUpdaterDelegate.shared
     private let updater: SPUUpdater
 
     init(updater: SPUUpdater) {
@@ -29,8 +30,13 @@ struct SparkleView: View {
     }
 
     var body: some View {
-        Button("check.updates", action: updater.checkForUpdates)
-            .disabled(!checkForUpdatesViewModel.canCheckForUpdates)
+        // When a scheduled check has gently flagged an update, relabel the menu
+        // item so the deferred update is easy to act on.
+        Button(
+            updaterDelegate.updateAvailable ? "check.updates.available" : "check.updates",
+            action: updater.checkForUpdates
+        )
+        .disabled(!checkForUpdatesViewModel.canCheckForUpdates)
     }
 }
 

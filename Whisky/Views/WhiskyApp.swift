@@ -61,7 +61,7 @@ struct WhiskyApp: App {
         updaterController = SPUStandardUpdaterController(
             startingUpdater: true,
             updaterDelegate: nil,
-            userDriverDelegate: nil
+            userDriverDelegate: SparkleUpdaterDelegate.shared
         )
         Telemetry.startIfConsented()
     }

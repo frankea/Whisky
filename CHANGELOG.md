@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   longer blocks the UI, so opening or switching to a bottle with many installed
   programs no longer hitches. The programs list shows a progress indicator while
   the scan runs (Closes whisky-app/whisky#574).
+- Update checks are now gentler: a scheduled background check that finds a new
+  version no longer interrupts you with a focus-stealing dialog. Instead a Dock
+  badge appears and the "Check for Updates" menu item reads "Install Update…",
+  so you can apply it when ready. User-initiated checks and the install itself
+  are unchanged (Closes whisky-app/whisky#765).
 
 ## [3.4.0] - 2026-06-13 (App)
 

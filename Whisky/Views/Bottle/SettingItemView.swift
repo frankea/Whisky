@@ -27,6 +27,9 @@ enum LoadingState: Equatable {
 
 struct SettingItemView<Content: View>: View {
     let title: String.LocalizationValue
+    /// Optional one-line explanation shown beneath the title, so users can make
+    /// an informed choice without external docs.
+    var description: String.LocalizationValue?
     let loadingState: LoadingState
     var onRetry: (() -> Void)?
     @ViewBuilder var content: () -> Content
@@ -36,9 +39,18 @@ struct SettingItemView<Content: View>: View {
 
     var body: some View {
         HStack {
-            Text(String(localized: title))
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(String(localized: title))
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if let description {
+                    Text(String(localized: description))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
 
             HStack {
                 switch loadingState {

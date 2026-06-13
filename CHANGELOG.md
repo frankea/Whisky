@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Bottle configuration options now carry inline descriptions explaining what
+  they do. The Wine section (Windows version, build, enhanced sync, DPI, Retina
+  mode) and the DXVK section (DXVK, async, HUD) previously had no explanation;
+  each now shows a one-line caption so you can make an informed choice without
+  hunting through docs (Closes whisky-app/whisky#807).
 - Optional menu-bar extra (**Settings → General → "Show Whisky in the menu
   bar"**, off by default). When enabled, a menu-bar item lets you launch a
   bottle's pinned programs, reopen Whisky, or quit without the main window

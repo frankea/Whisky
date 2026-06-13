@@ -4332,6 +4332,16 @@
         }
       }
     },
+    "config.buildVersion.info": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Windows build number Wine reports. Leave unset unless a program needs a specific build."
+          }
+        }
+      }
+    },
     "config.cleanup": {
       "localizations": {
         "en": {
@@ -4740,6 +4750,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "DPI 縮放"
+          }
+        }
+      }
+    },
+    "config.dpi.info": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set the bottle's screen DPI to scale Windows text and interface elements."
           }
         }
       }
@@ -5290,6 +5310,26 @@
         }
       }
     },
+    "config.dxvk.async.info": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compile shaders in the background to reduce stutter, with a small risk of brief visual glitches."
+          }
+        }
+      }
+    },
+    "config.dxvk.info": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translate Direct3D 9–11 to Vulkan via DXVK. Helps some games; D3DMetal is the default elsewhere."
+          }
+        }
+      }
+    },
     "config.dxvkHud": {
       "localizations": {
         "ar": {
@@ -5694,6 +5734,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "全開"
+          }
+        }
+      }
+    },
+    "config.dxvkHud.info": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overlay DXVK statistics (FPS, version, memory) on top of the running game."
           }
         }
       }
@@ -6238,6 +6288,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "ESync"
+          }
+        }
+      }
+    },
+    "config.enhancedSync.info": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In-process synchronization for Wine threads. MSync is fastest on macOS; ESync is a fallback; None is most compatible."
           }
         }
       }
@@ -7616,6 +7676,16 @@
         }
       }
     },
+    "config.retinaMode.info": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Render at full Retina resolution for sharper output. Disable if a game looks tiny or runs slowly."
+          }
+        }
+      }
+    },
     "config.retry": {
       "localizations": {
         "en": {
@@ -8227,6 +8297,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Windows 版本"
+          }
+        }
+      }
+    },
+    "config.winVersion.info": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Windows version Wine reports to programs. Windows 10 suits most apps."
           }
         }
       }

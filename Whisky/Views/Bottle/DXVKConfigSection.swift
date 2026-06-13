@@ -26,17 +26,33 @@ struct DXVKConfigSection: View {
     var body: some View {
         Section("config.title.dxvk", isExpanded: $isExpanded) {
             Toggle(isOn: $bottle.settings.dxvk) {
-                Text("config.dxvk")
+                VStack(alignment: .leading) {
+                    Text("config.dxvk")
+                    Text("config.dxvk.info")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
             Toggle(isOn: $bottle.settings.dxvkAsync) {
-                Text("config.dxvk.async")
+                VStack(alignment: .leading) {
+                    Text("config.dxvk.async")
+                    Text("config.dxvk.async.info")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
             .disabled(!bottle.settings.dxvk)
-            Picker("config.dxvkHud", selection: $bottle.settings.dxvkHud) {
-                Text("config.dxvkHud.full").tag(DXVKHUD.full)
-                Text("config.dxvkHud.partial").tag(DXVKHUD.partial)
-                Text("config.dxvkHud.fps").tag(DXVKHUD.fps)
-                Text("config.dxvkHud.off").tag(DXVKHUD.off)
+            VStack(alignment: .leading, spacing: 2) {
+                Picker("config.dxvkHud", selection: $bottle.settings.dxvkHud) {
+                    Text("config.dxvkHud.full").tag(DXVKHUD.full)
+                    Text("config.dxvkHud.partial").tag(DXVKHUD.partial)
+                    Text("config.dxvkHud.fps").tag(DXVKHUD.fps)
+                    Text("config.dxvkHud.off").tag(DXVKHUD.off)
+                }
+                Text("config.dxvkHud.info")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .disabled(!bottle.settings.dxvk)
         }

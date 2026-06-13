@@ -42,7 +42,11 @@ struct WineConfigSection: View {
 
     var body: some View {
         Section("config.title.wine", isExpanded: $isExpanded) {
-            SettingItemView(title: "config.winVersion", loadingState: winVersionLoadingState) {
+            SettingItemView(
+                title: "config.winVersion",
+                description: "config.winVersion.info",
+                loadingState: winVersionLoadingState
+            ) {
                 Picker("config.winVersion", selection: $bottle.settings.windowsVersion) {
                     ForEach(WinVersion.allCases.reversed(), id: \.self) {
                         Text($0.pretty())
@@ -51,6 +55,7 @@ struct WineConfigSection: View {
             }
             SettingItemView(
                 title: "config.buildVersion",
+                description: "config.buildVersion.info",
                 loadingState: buildVersionLoadingState,
                 onRetry: onRetryBuildVersion
             ) {
@@ -78,6 +83,7 @@ struct WineConfigSection: View {
             }
             SettingItemView(
                 title: "config.retinaMode",
+                description: "config.retinaMode.info",
                 loadingState: retinaModeLoadingState,
                 onRetry: onRetryRetinaMode
             ) {
@@ -113,13 +119,20 @@ struct WineConfigSection: View {
                     }
                 }
             }
-            Picker("config.enhancedSync", selection: $bottle.settings.enhancedSync) {
-                Text("config.enhancedSync.none").tag(EnhancedSync.none)
-                Text("config.enhancedSync.esync").tag(EnhancedSync.esync)
-                Text("config.enhancedSync.msync").tag(EnhancedSync.msync)
+            VStack(alignment: .leading, spacing: 2) {
+                Picker("config.enhancedSync", selection: $bottle.settings.enhancedSync) {
+                    Text("config.enhancedSync.none").tag(EnhancedSync.none)
+                    Text("config.enhancedSync.esync").tag(EnhancedSync.esync)
+                    Text("config.enhancedSync.msync").tag(EnhancedSync.msync)
+                }
+                Text("config.enhancedSync.info")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             SettingItemView(
                 title: "config.dpi",
+                description: "config.dpi.info",
                 loadingState: dpiConfigLoadingState,
                 onRetry: onRetryDpi
             ) {

@@ -185,6 +185,7 @@ struct GameConfigurationView: View {
         switch backend {
         case .d3dMetal: "D3DMetal"
         case .dxvk: "DXVK"
+        case .dxmt: "DXMT"
         case .wined3d: "WineD3D"
         case .recommended: nil
         }

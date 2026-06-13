@@ -416,6 +416,18 @@ final class BottleSettingsTests: XCTestCase {
         XCTAssertEqual(reloaded.backend, .recommended)
     }
 
+    func testDXMTBackendRoundTrips() throws {
+        XCTAssertEqual(GraphicsBackend.dxmt.rawValue, "dxmt")
+
+        var config = BottleGraphicsConfig()
+        config.backend = .dxmt
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(config)
+        let decoded = try PropertyListDecoder().decode(BottleGraphicsConfig.self, from: data)
+        XCTAssertEqual(decoded.backend, .dxmt)
+    }
+
     // MARK: - Settings-Tree Forward Compatibility
 
     /// Encodes `settings`, swaps `original` for `replacement` in the produced plist XML to

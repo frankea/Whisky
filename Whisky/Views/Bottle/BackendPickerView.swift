@@ -148,6 +148,8 @@ private struct BackendCard: View {
             "display"
         case .dxvk:
             "arrow.triangle.2.circlepath"
+        case .dxmt:
+            "cube.transparent"
         case .wined3d:
             "cup.and.saucer"
         }
@@ -163,6 +165,8 @@ private struct BackendCard: View {
             (String(localized: "config.graphics.tag.fast"), .green)
         case .dxvk:
             (String(localized: "config.graphics.tag.compatible"), .blue)
+        case .dxmt:
+            (String(localized: "config.graphics.tag.experimental"), .purple)
         case .wined3d:
             (String(localized: "config.graphics.tag.fallback"), .orange)
         }

@@ -826,6 +826,14 @@ public struct BottleSettings: Codable, Equatable {
                 builder.set("DXVK_ASYNC", "1", layer: .bottleManaged)
             }
 
+        case .dxmt:
+            // DXMT: native overrides for the D3D11 trio plus the builtin
+            // winemetal bridge. No env vars in v1; the file placement happens
+            // in `Wine.enableDXMT` at launch.
+            for entry in DLLOverrideResolver.dxmtPreset {
+                managedDLLOverrides.append((entry: entry, source: .dxmt))
+            }
+
         case .wined3d:
             // Disable D3DMetal, forcing Wine's OpenGL-based wined3d path
             builder.set("WINED3DMETAL", "0", layer: .bottleManaged)

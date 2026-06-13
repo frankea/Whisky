@@ -31,6 +31,9 @@ public enum GraphicsBackend: String, Codable, CaseIterable, Equatable, Sendable 
     case d3dMetal
     /// DXVK: Direct3D-to-Vulkan translation via MoltenVK.
     case dxvk
+    /// DXMT: Direct3D-11-to-Metal translation. Requires a runtime that bundles
+    /// the DXMT payload (Wine Libraries ≥ 3.1.0).
+    case dxmt
     /// Wine's built-in OpenGL-based Direct3D translation.
     case wined3d
 
@@ -43,6 +46,8 @@ public enum GraphicsBackend: String, Codable, CaseIterable, Equatable, Sendable 
             "D3DMetal"
         case .dxvk:
             "DXVK"
+        case .dxmt:
+            "DXMT"
         case .wined3d:
             "WineD3D"
         }
@@ -57,6 +62,8 @@ public enum GraphicsBackend: String, Codable, CaseIterable, Equatable, Sendable 
             String(localized: "config.graphics.backend.d3dMetal.summary")
         case .dxvk:
             String(localized: "config.graphics.backend.dxvk.summary")
+        case .dxmt:
+            String(localized: "config.graphics.backend.dxmt.summary")
         case .wined3d:
             String(localized: "config.graphics.backend.wined3d.summary")
         }

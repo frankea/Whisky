@@ -16,9 +16,11 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+// swiftlint:disable file_length
 @testable import WhiskyKit
 import XCTest
 
+// swiftlint:disable:next type_body_length
 final class EnvironmentVariablesTests: XCTestCase {
     // MARK: - DXVK Environment Variables
 
@@ -33,6 +35,38 @@ final class EnvironmentVariablesTests: XCTestCase {
         // DLL overrides are now composed per-DLL via DLLOverrideResolver (sorted alphabetically)
         XCTAssertEqual(env["WINEDLLOVERRIDES"], "d3d10core=n,b;d3d11=n,b;d3d9=n,b;dxgi=n,b")
         XCTAssertEqual(env["DXVK_HUD"], "full")
+    }
+
+    // MARK: - DXMT Environment Variables
+
+    func testEnvironmentVariablesWithDXMT() {
+        var settings = BottleSettings()
+        settings.graphicsBackend = .dxmt
+
+        var env: [String: String] = [:]
+        settings.environmentVariables(wineEnv: &env)
+
+        // The trio is native-then-builtin; winemetal pinned builtin for unixlib binding.
+        XCTAssertEqual(env["WINEDLLOVERRIDES"], "d3d10core=n,b;d3d11=n,b;dxgi=n,b;winemetal=b")
+        // DXMT is not DXVK and not wined3d: none of their env vars may leak.
+        XCTAssertNil(env["DXVK_HUD"])
+        XCTAssertNil(env["DXVK_ASYNC"])
+        XCTAssertNil(env["WINED3DMETAL"])
+    }
+
+    func testDXVKSettingsDoNotApplyUnderDXMT() {
+        // dxvkHud/dxvkAsync persist in dxvkConfig but only take effect when the
+        // backend is DXVK.
+        var settings = BottleSettings()
+        settings.graphicsBackend = .dxmt
+        settings.dxvkHud = .full
+        settings.dxvkAsync = true
+
+        var env: [String: String] = [:]
+        settings.environmentVariables(wineEnv: &env)
+
+        XCTAssertNil(env["DXVK_HUD"])
+        XCTAssertNil(env["DXVK_ASYNC"])
     }
 
     func testEnvironmentVariablesWithDXVKHUDPartial() {
@@ -300,7 +334,83 @@ final class EnvironmentVariablesTests: XCTestCase {
         XCTAssertNil(resolved["WINE_FORCE_HTTP11"])
     }
 
-    // MARK: - Program Override Tests
+    // MARK: - Program Override Tests (applyProgramOverrides, direct)
+
+    /// Runs the real `applyProgramOverrides` against a bottle-managed layer and
+    /// returns the resolved WINEDLLOVERRIDES string.
+    private func resolvedOverrides(
+        bottleSettings: BottleSettings,
+        programOverrides: ProgramOverrides
+    ) -> String {
+        var settings = bottleSettings
+        var builder = EnvironmentBuilder()
+        var dllResolver = DLLOverrideResolver(managed: [], bottleCustom: [], programCustom: [])
+        let managed = settings.populateBottleManagedLayer(builder: &builder)
+        dllResolver.managed.append(contentsOf: managed)
+
+        Wine.applyProgramOverrides(programOverrides, builder: &builder, dllResolver: &dllResolver)
+
+        let (overrideString, _) = dllResolver.resolve()
+        return overrideString
+    }
+
+    func testProgramBackendOverrideDXMTAppendsPreset() {
+        // A D3DMetal bottle with a per-program DXMT override gets DXMT's overrides.
+        var settings = BottleSettings()
+        settings.graphicsBackend = .d3dMetal
+
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = .dxmt
+
+        let resolved = resolvedOverrides(bottleSettings: settings, programOverrides: overrides)
+        XCTAssertEqual(resolved, "d3d10core=n,b;d3d11=n,b;dxgi=n,b;winemetal=b")
+    }
+
+    func testProgramBackendOverrideD3DMetalResetsDXMT() {
+        // A DXMT bottle with a per-program D3DMetal override must reset every
+        // translation DLL (the dxvk+dxmt union) back to builtin.
+        var settings = BottleSettings()
+        settings.graphicsBackend = .dxmt
+
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = .d3dMetal
+
+        let resolved = resolvedOverrides(bottleSettings: settings, programOverrides: overrides)
+        for dll in ["d3d10core", "d3d11", "dxgi"] {
+            XCTAssertTrue(resolved.contains("\(dll)=b"), "\(dll) should be reset to builtin, got: \(resolved)")
+            XCTAssertFalse(resolved.contains("\(dll)=n,b"), "\(dll) must not stay native, got: \(resolved)")
+        }
+    }
+
+    func testLegacyDXVKFlagIgnoredWhenBackendOverridePresent() {
+        // The program-override UI historically writes `dxvk` alongside
+        // `graphicsBackend`. The legacy flag must not clobber the explicit
+        // backend choice: dxvk=false with backend=.dxmt keeps DXMT active.
+        var settings = BottleSettings()
+        settings.graphicsBackend = .d3dMetal
+
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = .dxmt
+        overrides.dxvk = false
+
+        let resolved = resolvedOverrides(bottleSettings: settings, programOverrides: overrides)
+        XCTAssertEqual(resolved, "d3d10core=n,b;d3d11=n,b;dxgi=n,b;winemetal=b")
+    }
+
+    func testLegacyDXVKTrueDoesNotResurrectDXVKUnderD3DMetalOverride() {
+        // Regression for the pre-existing clobber: backend=.d3dMetal with the
+        // stale legacy dxvk=true must NOT re-enable DXVK's native overrides.
+        var settings = BottleSettings()
+        settings.dxvk = true
+
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = .d3dMetal
+        overrides.dxvk = true
+
+        let resolved = resolvedOverrides(bottleSettings: settings, programOverrides: overrides)
+        XCTAssertFalse(resolved.contains("d3d11=n,b"), "DXVK must stay disabled, got: \(resolved)")
+        XCTAssertTrue(resolved.contains("d3d11=b"))
+    }
 
     func testProgramOverrideDXVKFalseOverridesBottleDXVK() {
         var settings = BottleSettings()

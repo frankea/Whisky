@@ -115,6 +115,8 @@ struct GameEntryRowView: View {
             return "D3DMetal"
         case .dxvk:
             return "DXVK"
+        case .dxmt:
+            return "DXMT"
         case .wined3d:
             return "WineD3D"
         case .recommended:

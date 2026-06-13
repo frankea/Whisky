@@ -31,10 +31,13 @@ final class WineDXMTTests: XCTestCase {
         trio + ["winemetal.dll"]
     }
 
-    /// A markerless (native) PE stub whose bytes at 0x40 are *not* the builtin
-    /// signature — `Wine.isNativePE` must classify it as native.
+    /// A markerless (native) PE stub whose 16-byte window at 0x40 is *not* the
+    /// builtin signature — `Wine.isNativePE` must classify it as native. The
+    /// trailing zero padding guarantees a full 16 bytes past 0x40 (a real native
+    /// PE always has a DOS stub there), while the embedded tag keeps the content
+    /// unique so deploy assertions can match source to destination.
     private func nativeFake(_ tag: String) -> Data {
-        Data(count: 0x40) + Data(tag.utf8)
+        Data(count: 0x40) + Data(tag.utf8) + Data(count: 16)
     }
 
     /// A PE stub carrying winebuild's "Wine builtin DLL" signature at 0x40.
@@ -197,6 +200,41 @@ final class WineDXMTTests: XCTestCase {
 
         XCTAssertTrue(try Wine.isNativePE(native))
         XCTAssertFalse(try Wine.isNativePE(builtin))
+    }
+
+    func testShortFileIsTreatedAsNotNative() throws {
+        // A file too short to hold the 16-byte signature at 0x40 (a truncated or
+        // corrupt payload) must be classified not-native — fail-closed, so it is
+        // never deployed as if it were a working native DLL.
+        let short = tempDir.appending(path: "short.dll")
+        try Data("MZ".utf8).write(to: short)
+        XCTAssertFalse(try Wine.isNativePE(short))
+    }
+
+    func testIsDXMTRuntimeNativeReflectsPayloadVariant() throws {
+        // Native payload (setUp writes a markerless d3d11) → available.
+        XCTAssertTrue(Wine.isDXMTRuntimeNative(payloadRoot: payloadRoot))
+
+        // Builtin-variant payload (the older runtime) → not available.
+        try builtinFake("builtin-d3d11").write(to: payloadRoot.appending(path: "x64/d3d11.dll"))
+        XCTAssertFalse(Wine.isDXMTRuntimeNative(payloadRoot: payloadRoot))
+
+        // Absent payload → not available.
+        try FileManager.default.removeItem(at: payloadRoot.appending(path: "x64/d3d11.dll"))
+        XCTAssertFalse(Wine.isDXMTRuntimeNative(payloadRoot: payloadRoot))
+    }
+
+    func testBuiltinMarkedNonD3D11TrioMemberRejected() throws {
+        // The guard inspects the whole trio, not just d3d11: a builtin-marked dxgi
+        // must also be refused, with the prefix left untouched.
+        try builtinFake("builtin-dxgi").write(to: payloadRoot.appending(path: "x64/dxgi.dll"))
+
+        XCTAssertThrowsError(
+            try Wine.enableDXMT(payloadRoot: payloadRoot, prefixRoot: prefixRoot)
+        ) { error in
+            XCTAssertEqual(error as? Wine.DXMTError, .payloadMissing)
+        }
+        XCTAssertEqual(try data(system32("d3d11.dll")), Data("fakedll-d3d11.dll".utf8), "Prefix must not be touched")
     }
 
     func testInstallFilePreservesDestinationWhenSourceMissing() throws {

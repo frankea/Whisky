@@ -644,8 +644,9 @@ public class Wine {
     /// Errors thrown by ``enableDXMT(bottle:)``.
     public enum DXMTError: LocalizedError, Equatable {
         /// The installed runtime has no usable DXMT payload — either absent
-        /// (Wine Libraries < 3.1.0 / a damaged install) or the older
-        /// builtin-variant payload that cannot be activated per-bottle.
+        /// (a runtime predating the DXMT payload, or a damaged/truncated
+        /// install) or the older builtin-variant payload that cannot be
+        /// activated per-bottle.
         case payloadMissing
 
         public var errorDescription: String? {
@@ -656,35 +657,53 @@ public class Wine {
         }
     }
 
-    /// The DXMT files deployed into a bottle: the D3D translation trio plus
-    /// `winemetal.dll`. The trio are native PEs (loaded from the prefix under the
-    /// `n,b` override); `winemetal.dll` is the builtin-marked redirect whose
+    /// DXMT's D3D translation trio — native PEs loaded from the prefix under the
+    /// `n,b` override.
+    private static let dxmtNativeTrio = ["d3d11.dll", "dxgi.dll", "d3d10core.dll"]
+
+    /// The DXMT files deployed into a bottle: the native D3D trio plus
+    /// `winemetal.dll`. `winemetal.dll` is the builtin-marked redirect whose
     /// import resolves to the runtime's `winemetal.dll` builtin in `lib/wine`.
     /// The NVIDIA extras (nvapi64/nvngx) in the payload are deliberately not
     /// deployed — DXMT's vendor spoofing is out of scope.
-    private static let dxmtPrefixDLLs = ["d3d11.dll", "dxgi.dll", "d3d10core.dll", "winemetal.dll"]
+    private static let dxmtPrefixDLLs = dxmtNativeTrio + ["winemetal.dll"]
 
     /// Whether the installed runtime carries a DXMT payload that can actually be
     /// activated per-bottle: present **and** the *native* variant. A
     /// builtin-marked trio (the older runtime layout) is silently ignored by the
     /// loader in favor of wined3d, so it does not count as available. Used to
-    /// gate the DXMT backend in the pickers.
+    /// gate the DXMT backend in the pickers. The x64 `d3d11.dll` is sampled as
+    /// the trio's representative (the runtime assembles all three together); the
+    /// per-launch ``enableDXMT(payloadRoot:prefixRoot:)`` guard verifies the whole
+    /// trio.
     public static func isDXMTRuntimeNative() -> Bool {
-        let d3d11 = dxmtFolder.appending(path: "x64").appending(path: "d3d11.dll")
+        isDXMTRuntimeNative(payloadRoot: dxmtFolder)
+    }
+
+    /// Capability check against an explicit payload root. Factored out so the
+    /// gate can be tested against temporary fixtures (mirrors the
+    /// ``enableDXMT(payloadRoot:prefixRoot:)`` seam).
+    static func isDXMTRuntimeNative(payloadRoot: URL) -> Bool {
+        let d3d11 = payloadRoot.appending(path: "x64").appending(path: "d3d11.dll")
         guard FileManager.default.fileExists(atPath: d3d11.path(percentEncoded: false)) else { return false }
         return (try? isNativePE(d3d11)) ?? false
     }
 
-    /// Returns `true` when the PE at `url` is *not* a Wine builtin — i.e. its DOS
-    /// stub does not carry winebuild's "Wine builtin DLL" signature in the 16
-    /// bytes at offset 0x40. DXMT's D3D trio must be the native variant; a
-    /// builtin-marked copy placed in the prefix is ignored by the loader, which
-    /// redirects to the `lib/wine` builtin (wined3d) instead.
+    /// Returns `true` when the PE at `url` is a markerless *native* DLL — i.e. its
+    /// DOS stub does not carry winebuild's "Wine builtin DLL" signature in the 16
+    /// bytes at offset 0x40. A builtin-marked copy placed in the prefix is ignored
+    /// by the loader, which redirects to the `lib/wine` builtin (wined3d) instead.
+    /// A file too short to hold those 16 bytes is treated as **not** native
+    /// (fail-closed): a truncated or corrupt payload must not be deployed as if it
+    /// were a working native DLL — that would resurrect the silent wined3d
+    /// fallback this guard exists to prevent.
     static func isNativePE(_ url: URL) throws -> Bool {
         let handle = try FileHandle(forReadingFrom: url)
         defer { try? handle.close() }
         try handle.seek(toOffset: 0x40)
-        let marker = try handle.read(upToCount: 16) ?? Data()
+        guard let marker = try handle.read(upToCount: 16), marker.count == 16 else {
+            return false
+        }
         return marker != Data("Wine builtin DLL".utf8)
     }
 
@@ -723,17 +742,21 @@ public class Wine {
         let syswow64 = windowsDir.appending(path: "syswow64")
         let deploy32Bit = fileManager.fileExists(atPath: syswow64.path(percentEncoded: false))
 
-        // Validate every source BEFORE touching the prefix, and require the trio
-        // to be the native variant. A damaged runtime (a file missing) or the
-        // older builtin-variant payload (which the loader would ignore in favor
-        // of wined3d) must fail with the actionable payloadMissing error rather
-        // than half-deploy, or launch a bottle that silently isn't using DXMT.
+        // Validate every source BEFORE touching the prefix, and require the whole
+        // trio to be the native variant. A damaged runtime (a file missing or
+        // truncated) or the older builtin-variant payload (which the loader would
+        // ignore in favor of wined3d) must fail with the actionable payloadMissing
+        // error rather than half-deploy, or launch a bottle that silently isn't
+        // using DXMT.
         var sources = dxmtPrefixDLLs.map { x64Payload.appending(path: $0) }
         if deploy32Bit {
             sources += dxmtPrefixDLLs.map { x32Payload.appending(path: $0) }
         }
         let allPresent = sources.allSatisfy { fileManager.fileExists(atPath: $0.path(percentEncoded: false)) }
-        guard allPresent, (try? isNativePE(x64Payload.appending(path: "d3d11.dll"))) == true else {
+        let trioIsNative = dxmtNativeTrio.allSatisfy {
+            (try? isNativePE(x64Payload.appending(path: $0))) == true
+        }
+        guard allPresent, trioIsNative else {
             throw DXMTError.payloadMissing
         }
 

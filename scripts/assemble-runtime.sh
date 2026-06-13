@@ -49,6 +49,11 @@ LIB="$WORKDIR/Libraries"
 # 4. Place DXMT: Windows DLLs mirror the DXVK x64/x32 convention; the unix
 #    bridge is additive in Wine's own lib tree (no builtin collision, inert
 #    until the app activates the DXMT DLLs per-bottle).
+#    NOTE: the Gcenx Wine build ships its own (stale) winemetal.dll stub in
+#    lib/wine/{x86_64,i386}-windows that does NOT match the DXMT winemetal.so
+#    placed below. The app replaces the stub at DXMT enable time, so this is
+#    self-healing — but future runtime cuts should sync DXMT's winemetal.dll
+#    into both windows trees here as well, keeping the pair matched at rest.
 UNIXLIB="$LIB/Wine/lib/wine/x86_64-unix"
 [ -d "$UNIXLIB" ] || { echo "error: $UNIXLIB not found; Wine layout changed?" >&2; exit 1; }
 mkdir -p "$LIB/DXMT/x64" "$LIB/DXMT/x32"

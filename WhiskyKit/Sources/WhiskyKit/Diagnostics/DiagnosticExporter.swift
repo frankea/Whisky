@@ -160,6 +160,12 @@ public enum DiagnosticExporter {
             section += "- **WhiskyWine:** \(whiskyWineVersion.major).\(whiskyWineVersion.minor)"
             section += ".\(whiskyWineVersion.patch)\n"
         }
+        if let dxvkVersion = WhiskyWineInstaller.whiskyWineDXVKVersion() {
+            section += "- **DXVK:** \(dxvkVersion)\n"
+        }
+        if let dxmtVersion = WhiskyWineInstaller.whiskyWineDXMTVersion() {
+            section += "- **DXMT:** \(dxmtVersion)\n"
+        }
         section += "\n"
         return section
     }

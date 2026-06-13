@@ -7,7 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- DXMT (Direct3D 11 → Metal) as a selectable per-bottle and per-program
+  graphics backend, marked Experimental. Requires Wine runtime 3.1.0 or
+  newer (the backend card explains how to update when it's unavailable).
+  D3DMetal remains the recommended default.
+
 ### Fixed
+- Per-program graphics overrides now reliably win over the bottle's
+  setting: the override UI's legacy DXVK flag could silently re-enable or
+  disable the wrong translation layer when an explicit backend was chosen
+  for a program.
 - Installing or updating the Wine runtime no longer erases the rest of
   Whisky's Application Support folder. Previously the installer wiped the
   whole folder instead of just the runtime, destroying unrelated app state —

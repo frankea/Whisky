@@ -24744,6 +24744,28 @@
         }
       }
     },
+    "config.graphics.backend.dxmt.summary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct3D-11-to-Metal translation. Can outperform D3DMetal in some DX11 titles."
+          }
+        }
+      }
+    },
+    "config.graphics.backend.dxmt.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requires a Wine runtime update. Re-run setup to download the latest runtime."
+          }
+        }
+      }
+    },
     "config.graphics.backend.dxvk.summary": {
       "extractionState": "manual",
       "localizations": {
@@ -24784,6 +24806,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Compatible"
+          }
+        }
+      }
+    },
+    "config.graphics.tag.experimental": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Experimental"
           }
         }
       }
@@ -25521,6 +25554,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Advanced overrides are active. The simple picker is hidden until they are cleared."
+          }
+        }
+      }
+    },
+    "wine.dxmt.error.payloadMissing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DXMT is not included in the installed Wine runtime. Update the runtime from Whisky's setup and try again."
           }
         }
       }

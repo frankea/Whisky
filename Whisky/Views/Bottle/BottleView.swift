@@ -166,9 +166,7 @@ struct BottleView: View {
                                         programLoading = false
                                     }
                                 }
-                                await MainActor.run {
-                                    updateStartMenu()
-                                }
+                                await updateStartMenu()
                             }
                         }
                     }
@@ -183,8 +181,8 @@ struct BottleView: View {
                 }
                 .padding()
             }
-            .onAppear {
-                updateStartMenu()
+            .task {
+                await updateStartMenu()
             }
             .disabled(!bottle.isAvailable)
             .navigationTitle(bottle.settings.name)
@@ -271,8 +269,8 @@ struct BottleView: View {
         }
     }
 
-    private func updateStartMenu() {
-        bottle.updateInstalledPrograms()
+    private func updateStartMenu() async {
+        await bottle.updateInstalledPrograms()
 
         let startMenuPrograms = bottle.getStartMenuPrograms()
         for startMenuProgram in startMenuPrograms {

@@ -117,16 +117,23 @@ struct ProgramsView: View {
         .searchable(text: $searchText)
         .toolbar {
             ToolbarItem(placement: .automatic) {
-                Button {
-                    bottle.updateInstalledPrograms()
-                    loadData()
-                } label: {
-                    Label(
-                        String(localized: "program.clickonce.rescan"),
-                        systemImage: "arrow.clockwise"
-                    )
+                if bottle.programsLoading {
+                    ProgressView()
+                        .controlSize(.small)
+                } else {
+                    Button {
+                        Task {
+                            await bottle.updateInstalledPrograms()
+                            loadData()
+                        }
+                    } label: {
+                        Label(
+                            String(localized: "program.clickonce.rescan"),
+                            systemImage: "arrow.clockwise"
+                        )
+                    }
+                    .help("program.clickonce.rescan")
                 }
-                .help("program.clickonce.rescan")
             }
         }
         .toast($toast)
@@ -135,6 +142,9 @@ struct ProgramsView: View {
         }
         .onChange(of: resortPrograms) {
             loadPrograms()
+        }
+        .onChange(of: bottle.programs) {
+            loadData()
         }
         .onChange(of: bottle.settings) {
             loadData()

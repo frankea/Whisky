@@ -92,7 +92,7 @@ struct ContentView: View {
                 Button {
                     bottleVM.loadBottles()
                     if let bottle = bottleVM.bottles.first(where: { $0.url == selected }) {
-                        bottle.updateInstalledPrograms()
+                        Task { await bottle.updateInstalledPrograms() }
                     }
                     triggerRefresh.toggle()
                     withAnimation(.default) {

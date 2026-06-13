@@ -66,7 +66,7 @@ struct ProgramMenuView: View {
                     role: .destructive
                 ) {
                     try? FileManager.default.removeItem(at: program.url)
-                    program.bottle.updateInstalledPrograms()
+                    Task { await program.bottle.updateInstalledPrograms() }
                 }
                 .labelStyle(.titleAndIcon)
             }

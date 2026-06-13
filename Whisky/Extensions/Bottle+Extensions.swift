@@ -60,41 +60,6 @@ func nextDuplicateName(baseName: String, existingNames: [String]) -> String {
 private var wineUsernameCache: [URL: String] = [:]
 
 extension Bottle {
-    /// Lower-case basenames of known helper/crash-reporter executables that
-    /// pollute the installed-programs list. Filtered before the user's
-    /// `blocklist` so the visible list stays clean by default.
-    /// Conservative: only unambiguously-noise binaries (helpers, crash
-    /// reporters, redistributables). Generic `setup.exe`/`installer.exe`
-    /// are not included because users still need to launch installers.
-    fileprivate static let noiseExeNames: Set<String> = [
-        "steamerrorreporter.exe",
-        "steamerrorreporter64.exe",
-        "steamservice.exe",
-        "steamwebhelper.exe",
-        "steam_monitor.exe",
-        "steamsysinfo.exe",
-        "steamxboxutil.exe",
-        "crashreporter.exe",
-        "crashhandler.exe",
-        "crashpad_handler.exe",
-        "gameoverlayui.exe",
-        "gameoverlayui64.exe",
-        "fossilize-replay.exe",
-        "fossilize-replay64.exe",
-        "gldriverquery.exe",
-        "gldriverquery64.exe",
-        "hardwareupdater.exe",
-        "secure_desktop_capture.exe",
-        "writeminidump.exe",
-        "vc_redist.x86.exe",
-        "vc_redist.x64.exe",
-        "vcredist_x86.exe",
-        "vcredist_x64.exe",
-        "ueprereqsetup_x86.exe",
-        "ueprereqsetup_x64.exe",
-        "crossover html engine.exe"
-    ]
-
     /// The detected Wine username for this bottle.
     ///
     /// Wine creates user profile directories in `drive_c/users/`. This property
@@ -240,30 +205,38 @@ extension Bottle {
         return startMenuPrograms
     }
 
-    func updateInstalledPrograms() {
+    /// Rescans the bottle for installed programs and repopulates ``programs``.
+    ///
+    /// The expensive work — walking the `Program Files` trees and parsing each
+    /// executable's PE header — runs off the main actor so switching to or
+    /// opening a large bottle no longer hitches the UI. ``programsLoading`` is
+    /// set for the duration so views can show a progress indicator. A scan
+    /// already in flight is coalesced (a redundant concurrent call returns
+    /// early) — the in-flight scan publishes fresh results.
+    @MainActor
+    func updateInstalledPrograms() async {
+        guard !programsLoading else { return }
+        programsLoading = true
+        defer { programsLoading = false }
+
         let driveC = url.appending(path: "drive_c")
-        var programs: [Program] = []
+        // Snapshot main-actor state before crossing to the background task.
+        let blocklist = Set(settings.blocklist)
+
+        // Walk Program Files and parse each PE off the main actor (PEFile is Sendable).
+        let scanned: [(url: URL, peFile: PEFile?)] = await Task.detached(priority: .userInitiated) {
+            Bottle.discoverInstalledExecutables(driveC: driveC, blocklist: blocklist)
+                .map { (url: $0, peFile: try? PEFile(url: $0)) }
+        }.value
+
         var foundURLS: Set<URL> = []
-
-        for folderName in ["Program Files", "Program Files (x86)"] {
-            let folderURL = driveC.appending(path: folderName)
-            let enumerator = FileManager.default.enumerator(
-                at: folderURL, includingPropertiesForKeys: [.isExecutableKey], options: [.skipsHiddenFiles]
-            )
-
-            while let url = enumerator?.nextObject() as? URL {
-                guard !url.hasDirectoryPath, url.pathExtension == "exe" else { continue }
-                // Skip ClickOnce cache executables (noisy internal artifacts)
-                guard !url.path.contains("/Apps/2.0/") else { continue }
-                // Skip known launcher helpers and crash reporters that pollute the list
-                guard !Self.noiseExeNames.contains(url.lastPathComponent.lowercased()) else { continue }
-                guard !settings.blocklist.contains(url) else { continue }
-                foundURLS.insert(url)
-                programs.append(Program(url: url, bottle: self))
-            }
+        var programs: [Program] = []
+        for entry in scanned {
+            foundURLS.insert(entry.url)
+            programs.append(Program(url: entry.url, bottle: self, peFile: entry.peFile))
         }
 
-        // Detect ClickOnce applications
+        // Detect ClickOnce applications (small scan, kept on the main actor).
         let clickOnceApps = ClickOnceManager.shared.detectAppRefFile(in: self, wineUsername: wineUsername)
         for appRefURL in clickOnceApps {
             let displayName = ClickOnceManager.shared.displayName(for: appRefURL)

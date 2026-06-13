@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Scanning a bottle for installed programs now runs off the main thread —
+  walking the `Program Files` trees and parsing each executable's metadata no
+  longer blocks the UI, so opening or switching to a bottle with many installed
+  programs no longer hitches. The programs list shows a progress indicator while
+  the scan runs (Closes whisky-app/whisky#574).
+
 ## [3.4.0] - 2026-06-13 (App)
 
 ### Added

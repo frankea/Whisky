@@ -151,7 +151,22 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
     /// - Parameters:
     ///   - url: The URL to the Windows executable (.exe) file.
     ///   - bottle: The ``Bottle`` that contains this program.
-    public init(url: URL, bottle: Bottle) {
+    public convenience init(url: URL, bottle: Bottle) {
+        self.init(url: url, bottle: bottle, peFile: try? PEFile(url: url))
+    }
+
+    /// Creates a new program instance from an already-parsed PE file.
+    ///
+    /// Use this when the PE file was parsed off the main actor (e.g. during a
+    /// bulk installed-programs scan), so the executable isn't re-read on the main
+    /// thread. Settings are still loaded here; that's a small per-program plist
+    /// read. Pass `nil` for `peFile` when the file isn't a parseable PE.
+    ///
+    /// - Parameters:
+    ///   - url: The URL to the Windows executable (.exe) file.
+    ///   - bottle: The ``Bottle`` that contains this program.
+    ///   - peFile: The pre-parsed PE metadata, or `nil` if it couldn't be parsed.
+    public init(url: URL, bottle: Bottle, peFile: PEFile?) {
         let name = url.lastPathComponent
         self.bottle = bottle
         self.url = url
@@ -180,11 +195,7 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
             self.settings = ProgramSettings()
         }
 
-        do {
-            self.peFile = try PEFile(url: url)
-        } catch {
-            self.peFile = nil
-        }
+        self.peFile = peFile
     }
 
     /// Creates a new program instance for a ClickOnce application reference file.

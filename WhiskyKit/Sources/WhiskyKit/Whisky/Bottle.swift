@@ -93,6 +93,12 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
     @Published public var programs: [Program] = []
     /// Indicates whether the bottle is currently being created or modified.
     @Published public var inFlight: Bool = false
+    /// Indicates whether the installed-programs list is currently being scanned.
+    ///
+    /// Set while ``programs`` is being repopulated by an off-main-actor directory
+    /// walk, so the UI can show a loading indicator instead of hitching the main
+    /// thread on a large bottle.
+    @Published public var programsLoading: Bool = false
     /// Indicates whether the bottle's directory exists and is accessible.
     public var isAvailable: Bool = false
 
@@ -208,6 +214,80 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
                 "Failed to encode settings for bottle `\(self.metadataURL.path(percentEncoded: false))`: \(error)"
             )
         }
+    }
+
+    // MARK: - Program discovery
+
+    /// Lower-cased basenames of helper / crash-reporter / redistributable
+    /// executables that pollute the installed-programs list. Filtered before the
+    /// user's `blocklist` so the visible list stays clean by default.
+    ///
+    /// Conservative: only unambiguously-noise binaries (helpers, crash reporters,
+    /// redistributables). Generic `setup.exe`/`installer.exe` are intentionally
+    /// excluded because users still need to launch installers.
+    public nonisolated static let noiseExecutableNames: Set<String> = [
+        "steamerrorreporter.exe",
+        "steamerrorreporter64.exe",
+        "steamservice.exe",
+        "steamwebhelper.exe",
+        "steam_monitor.exe",
+        "steamsysinfo.exe",
+        "steamxboxutil.exe",
+        "crashreporter.exe",
+        "crashhandler.exe",
+        "crashpad_handler.exe",
+        "gameoverlayui.exe",
+        "gameoverlayui64.exe",
+        "fossilize-replay.exe",
+        "fossilize-replay64.exe",
+        "gldriverquery.exe",
+        "gldriverquery64.exe",
+        "hardwareupdater.exe",
+        "secure_desktop_capture.exe",
+        "writeminidump.exe",
+        "vc_redist.x86.exe",
+        "vc_redist.x64.exe",
+        "vcredist_x86.exe",
+        "vcredist_x64.exe",
+        "ueprereqsetup_x86.exe",
+        "ueprereqsetup_x64.exe",
+        "crossover html engine.exe"
+    ]
+
+    /// Walks the bottle's `Program Files` directories and returns the URLs of
+    /// installed `.exe` files, excluding ClickOnce cache artifacts, known noise
+    /// executables, and anything in `blocklist`.
+    ///
+    /// This is a pure filesystem read with no actor-isolated state, so callers
+    /// can run it off the main actor — it's the heavy part of repopulating
+    /// ``programs`` for a large bottle.
+    ///
+    /// - Parameters:
+    ///   - driveC: The bottle's `drive_c` directory.
+    ///   - blocklist: User-blocked program URLs to omit.
+    /// - Returns: Discovered executable URLs in filesystem-enumeration order.
+    public nonisolated static func discoverInstalledExecutables(
+        driveC: URL,
+        blocklist: Set<URL>
+    ) -> [URL] {
+        var found: [URL] = []
+        for folderName in ["Program Files", "Program Files (x86)"] {
+            let folderURL = driveC.appending(path: folderName)
+            let enumerator = FileManager.default.enumerator(
+                at: folderURL, includingPropertiesForKeys: [.isExecutableKey], options: [.skipsHiddenFiles]
+            )
+
+            while let url = enumerator?.nextObject() as? URL {
+                guard !url.hasDirectoryPath, url.pathExtension == "exe" else { continue }
+                // Skip ClickOnce cache executables (noisy internal artifacts)
+                guard !url.path.contains("/Apps/2.0/") else { continue }
+                // Skip known launcher helpers and crash reporters that pollute the list
+                guard !noiseExecutableNames.contains(url.lastPathComponent.lowercased()) else { continue }
+                guard !blocklist.contains(url) else { continue }
+                found.append(url)
+            }
+        }
+        return found
     }
 
     // MARK: - Equatable

@@ -117,7 +117,8 @@ struct ContentView: View {
             FileOpenView(
                 fileURL: url,
                 currentBottle: selected,
-                bottles: bottleVM.bottles
+                bottles: bottleVM.bottles,
+                toast: $toast
             )
         }
         .onChange(of: selected) { oldValue, newValue in

@@ -16,13 +16,17 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import os.log
 import SwiftUI
 import WhiskyKit
+
+private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "FileOpenView")
 
 struct FileOpenView: View {
     var fileURL: URL
     var currentBottle: URL?
     var bottles: [Bottle]
+    @Binding var toast: ToastData?
 
     @State private var selection: URL = .init(filePath: "")
     @Environment(\.dismiss) private var dismiss
@@ -96,7 +100,23 @@ struct FileOpenView: View {
                         try await Wine.runProgram(at: fileURL, bottle: bottle)
                     }
                 } catch {
-                    print(error)
+                    // Surface the failure on the presenting view's toast (the sheet
+                    // dismisses immediately, so a local toast wouldn't be seen) —
+                    // otherwise a launch error here, including DXMT's actionable
+                    // payloadMissing, vanishes silently.
+                    let errDesc = error.localizedDescription
+                    logger.error(
+                        "Failed to launch \(fileURL.lastPathComponent, privacy: .public): \(errDesc, privacy: .public)"
+                    )
+                    await MainActor.run {
+                        withAnimation {
+                            toast = ToastData(
+                                message: String(localized: "status.launchFailed \(errDesc)"),
+                                style: .error,
+                                autoDismiss: false
+                            )
+                        }
+                    }
                 }
             }
             dismiss()

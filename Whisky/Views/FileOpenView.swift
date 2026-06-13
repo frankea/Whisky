@@ -120,6 +120,11 @@ struct FileOpenView: View {
                 }
             }
             dismiss()
+        } else {
+            // onAppear seeds `selection` from `bottles`, so this should not
+            // happen — but never leave the sheet stuck open on a stale selection.
+            logger.error("Run requested but no bottle matched the selection")
+            dismiss()
         }
     }
 }

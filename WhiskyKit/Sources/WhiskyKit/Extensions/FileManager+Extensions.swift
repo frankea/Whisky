@@ -38,6 +38,33 @@ extension FileManager {
         }
     }
 
+    /// Installs `sourceURL` at `destinationURL`, replacing any existing file —
+    /// unlike ``replaceFile(at:with:makeOriginalCopy:)``, the copy also happens
+    /// when the destination does not exist yet. A silently skipped install
+    /// would leave a translation layer half-deployed with no error.
+    func installFile(at destinationURL: URL, from sourceURL: URL) throws {
+        if fileExists(atPath: destinationURL.path(percentEncoded: false)) {
+            try removeItem(at: destinationURL)
+        }
+        try copyItem(at: sourceURL, to: destinationURL)
+    }
+
+    /// Installs `sourceURL` at `destinationURL` only when the destination is
+    /// missing or its contents differ. Returns `true` when a copy happened.
+    /// Used for idempotent placement of runtime components that a runtime
+    /// update may revert (the installer replaces all of `Libraries/`).
+    @discardableResult
+    func installFileIfContentDiffers(at destinationURL: URL, from sourceURL: URL) throws -> Bool {
+        if fileExists(atPath: destinationURL.path(percentEncoded: false)),
+           let existing = try? Data(contentsOf: destinationURL),
+           let replacement = try? Data(contentsOf: sourceURL),
+           existing == replacement {
+            return false
+        }
+        try installFile(at: destinationURL, from: sourceURL)
+        return true
+    }
+
     func replaceFile(at originalURL: URL, with replacementURL: URL, makeOriginalCopy: Bool = true) throws {
         if fileExists(atPath: originalURL.path(percentEncoded: false)) {
             if makeOriginalCopy {

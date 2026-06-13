@@ -146,4 +146,45 @@ final class DLLOverrideTests: XCTestCase {
             XCTAssertEqual(entry.mode, .nativeThenBuiltin)
         }
     }
+
+    // MARK: - DXMT Preset
+
+    func testDXMTPresetReturnsCorrectEntries() {
+        // The D3D translation trio loads native from the prefix; winemetal must
+        // stay builtin because its unixlib half only binds for builtin loads.
+        let preset = DLLOverrideResolver.dxmtPreset
+        let modesByName = Dictionary(uniqueKeysWithValues: preset.map { ($0.dllName, $0.mode) })
+        XCTAssertEqual(modesByName, [
+            "dxgi": .nativeThenBuiltin,
+            "d3d10core": .nativeThenBuiltin,
+            "d3d11": .nativeThenBuiltin,
+            "winemetal": .builtin
+        ])
+    }
+
+    func testDXMTPresetResolvesToPinnedOverrideString() {
+        let resolver = DLLOverrideResolver(
+            managed: DLLOverrideResolver.dxmtPreset.map { (entry: $0, source: .dxmt) },
+            bottleCustom: [],
+            programCustom: []
+        )
+        let result = resolver.resolve()
+        XCTAssertEqual(result.overrides, "d3d10core=n,b;d3d11=n,b;dxgi=n,b;winemetal=b")
+    }
+
+    func testDXMTWarningWhenManagedOverridden() {
+        let resolver = DLLOverrideResolver(
+            managed: [
+                (entry: DLLOverrideEntry(dllName: "d3d11", mode: .nativeThenBuiltin), source: .dxmt)
+            ],
+            bottleCustom: [
+                DLLOverrideEntry(dllName: "d3d11", mode: .builtin)
+            ],
+            programCustom: []
+        )
+        let result = resolver.resolve()
+        XCTAssertEqual(result.warnings.count, 1)
+        XCTAssertEqual(result.warnings.first?.overriddenSource, .dxmt)
+        XCTAssertTrue(result.warnings.first?.message.contains("DXMT") == true)
+    }
 }

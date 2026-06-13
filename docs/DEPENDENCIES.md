@@ -9,7 +9,7 @@ See [`ReleaseWorkflow.md`](ReleaseWorkflow.md) for the assembly + publish proced
 [`.github/workflows/RuntimeTrack.yml`](../.github/workflows/RuntimeTrack.yml) for the automation that
 flags when a bundled component falls behind upstream.
 
-## Bundled in runtime `v3.1.0`
+## Bundled in runtime `v3.1.1`
 
 | Component | Bundled version | Upstream source | Notes |
 |-----------|-----------------|-----------------|-------|
@@ -27,6 +27,7 @@ flags when a bundled component falls behind upstream.
 
 | Artifact | SHA-256 |
 |----------|---------|
+| `Libraries.tar.gz` (`v3.1.1`) | `01f3a1b43b98065fe20c529c1023b61dd79a6d2ad93bba6040865f646481ccf3` |
 | `Libraries.tar.gz` (`v3.1.0`) | `86e2d54a60736f27e6ce82cacf2a91e500c20f6d32ae959a16afd912e6b03096` |
 | `Libraries.tar.gz` (`v3.0.0`) | `9c3d2a7d9bb682ae8398d8bae458e3cb52bb9f5a3345fb0830a64d9b6a1025f8` |
 

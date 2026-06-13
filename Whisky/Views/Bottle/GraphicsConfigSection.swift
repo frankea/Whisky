@@ -45,7 +45,10 @@ struct GraphicsConfigSection: View {
             // Backend picker -- always visible
             BackendPickerView(
                 selection: $bottle.settings.graphicsBackend,
-                resolvedBackend: resolvedBackend
+                resolvedBackend: resolvedBackend,
+                isBackendAvailable: { backend in
+                    backend.isAvailable(runtimeInfo: WhiskyWineInstaller.whiskyWineInfo())
+                }
             )
 
             // Running process warning banner

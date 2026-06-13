@@ -262,7 +262,14 @@ struct ProgramOverrideSettingsView: View {
             if hasGraphicsOverride {
                 // Backend picker
                 Picker("config.graphics.backend", selection: graphicsBackendBinding) {
-                    ForEach(GraphicsBackend.allCases, id: \.self) { backend in
+                    // Payload-gated backends (DXMT on an old runtime) are not
+                    // offered — except when this program already uses one, so
+                    // the picker can still display the current selection.
+                    let current = program.settings.overrides?.graphicsBackend
+                    let offered = GraphicsBackend.allCases.filter { backend in
+                        backend.isAvailable(runtimeInfo: WhiskyWineInstaller.whiskyWineInfo()) || backend == current
+                    }
+                    ForEach(offered, id: \.self) { backend in
                         Text(backend.displayName).tag(backend)
                     }
                 }

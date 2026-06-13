@@ -53,6 +53,21 @@ public enum GraphicsBackend: String, Codable, CaseIterable, Equatable, Sendable 
         }
     }
 
+    /// Whether this backend can actually be used with the given installed
+    /// runtime record. DXMT requires a runtime that bundles its payload
+    /// (Wine Libraries ≥ 3.1.0, signalled by `dxmtVersion` in the runtime
+    /// plist); every other backend ships with all runtimes. Pure so pickers
+    /// and tests can inject a record; production callers pass
+    /// `WhiskyWineInstaller.whiskyWineInfo()`.
+    public func isAvailable(runtimeInfo: WhiskyWineVersion?) -> Bool {
+        switch self {
+        case .dxmt:
+            runtimeInfo?.dxmtVersion != nil
+        case .recommended, .d3dMetal, .dxvk, .wined3d:
+            true
+        }
+    }
+
     /// A one-line summary suitable for selection cards or tooltips.
     public var summary: String {
         switch self {

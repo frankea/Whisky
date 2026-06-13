@@ -22,6 +22,10 @@ import WhiskyKit
 struct BackendPickerView: View {
     @Binding var selection: GraphicsBackend
     let resolvedBackend: GraphicsBackend
+    /// Whether a backend can be offered on this machine. Defaults to all-true;
+    /// production callers gate payload-dependent backends (DXMT) on the
+    /// installed runtime.
+    var isBackendAvailable: (GraphicsBackend) -> Bool = { _ in true }
 
     private let columns = [GridItem(.flexible()), GridItem(.flexible())]
 
@@ -32,6 +36,7 @@ struct BackendPickerView: View {
                     BackendCard(
                         backend: backend,
                         isSelected: selection == backend,
+                        isAvailable: isBackendAvailable(backend),
                         resolvedBackend: backend == .recommended ? resolvedBackend : nil
                     ) {
                         selection = backend
@@ -65,6 +70,7 @@ struct BackendPickerView: View {
 private struct BackendCard: View {
     let backend: GraphicsBackend
     let isSelected: Bool
+    let isAvailable: Bool
     let resolvedBackend: GraphicsBackend?
     let action: () -> Void
 
@@ -110,10 +116,17 @@ private struct BackendCard: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(isSelected ? .white : .primary)
 
-                Text(backend.summary)
-                    .font(.caption2)
-                    .foregroundStyle(isSelected ? .white.opacity(0.8) : .secondary)
-                    .lineLimit(2)
+                if isAvailable {
+                    Text(backend.summary)
+                        .font(.caption2)
+                        .foregroundStyle(isSelected ? .white.opacity(0.8) : .secondary)
+                        .lineLimit(2)
+                } else {
+                    Text("config.graphics.backend.dxmt.unavailable")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
 
                 if backend == .recommended, isSelected, let resolved = resolvedBackend {
                     Text("config.graphics.currentlyUsing \(resolved.displayName)")
@@ -136,6 +149,8 @@ private struct BackendCard: View {
             )
         }
         .buttonStyle(.plain)
+        .disabled(!isAvailable)
+        .opacity(isAvailable ? 1 : 0.5)
     }
 
     // MARK: - Icon

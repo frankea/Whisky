@@ -1,10 +1,27 @@
 name: CI
 
 on:
+  # Docs-only changes can't affect the Swift build or tests, so skip the whole
+  # workflow (the macOS build/test/UI jobs are billed at a 10x minute multiplier).
+  # paths-ignore skips a run only when *every* changed file matches, so a PR that
+  # also touches code still runs the full suite.
+  #
+  # NOTE: `main` has no required status checks today, so a skipped docs PR simply
+  # reports no checks and stays mergeable. If branch protection is ever added that
+  # *requires* these checks by name, switch from this workflow-level paths-ignore
+  # to a job-level gate (a cheap `changes` detection job + `if: needs.changes...`
+  # on the macOS jobs) — otherwise a skipped docs PR would sit stuck "waiting for
+  # status to be reported".
   push:
     branches: [main]
+    paths-ignore: &docs-paths
+      - '**.md'
+      - 'docs/**'
+      - 'images/**'
+      - 'LICENSE'
   pull_request:
     branches: [main]
+    paths-ignore: *docs-paths
   workflow_dispatch:
 
 # Shared environment variables for consistency across jobs

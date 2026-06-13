@@ -159,6 +159,9 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         if let dxvk = info?.dxvkVersion {
             lines.append("DXVK: \(dxvk)")
         }
+        if let dxmt = info?.dxmtVersion {
+            lines.append("DXMT: \(dxmt)")
+        }
         lines.append("")
         return lines
     }

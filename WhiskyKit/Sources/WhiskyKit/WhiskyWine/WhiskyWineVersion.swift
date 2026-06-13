@@ -40,6 +40,12 @@ public struct WhiskyWineVersion: Codable {
     /// existed still decode.
     public var dxvkVersion: String?
 
+    /// The bundled DXMT version recorded alongside the runtime version,
+    /// e.g. `"0.80"`. Optional so runtime plists from before v3.1.0 (which
+    /// introduced the DXMT payload) still decode; `nil` also signals to the
+    /// app that the installed runtime cannot offer the DXMT backend.
+    public var dxmtVersion: String?
+
     /// The expected SHA-256 of the `Libraries.tar.gz` archive for this runtime
     /// version, as a lowercase hex string. When present, the downloader verifies
     /// the fetched archive against it before installing. Optional so runtime
@@ -50,12 +56,19 @@ public struct WhiskyWineVersion: Codable {
     enum CodingKeys: String, CodingKey {
         case version
         case dxvkVersion
+        case dxmtVersion
         case sha256
     }
 
-    public init(version: SemanticVersion, dxvkVersion: String? = nil, sha256: String? = nil) {
+    public init(
+        version: SemanticVersion,
+        dxvkVersion: String? = nil,
+        dxmtVersion: String? = nil,
+        sha256: String? = nil
+    ) {
         self.version = version
         self.dxvkVersion = Self.normalized(dxvkVersion)
+        self.dxmtVersion = Self.normalized(dxmtVersion)
         self.sha256 = Self.normalizedDigest(sha256)
     }
 
@@ -67,6 +80,7 @@ public struct WhiskyWineVersion: Codable {
         let patch = try versionDict.decode(Int.self, forKey: .patch)
         version = SemanticVersion(major, minor, patch)
         dxvkVersion = try Self.normalized(container.decodeIfPresent(String.self, forKey: .dxvkVersion))
+        dxmtVersion = try Self.normalized(container.decodeIfPresent(String.self, forKey: .dxmtVersion))
         sha256 = try Self.normalizedDigest(container.decodeIfPresent(String.self, forKey: .sha256))
     }
 
@@ -103,6 +117,7 @@ public struct WhiskyWineVersion: Codable {
         try versionDict.encode(version.minor, forKey: .minor)
         try versionDict.encode(version.patch, forKey: .patch)
         try container.encodeIfPresent(dxvkVersion, forKey: .dxvkVersion)
+        try container.encodeIfPresent(dxmtVersion, forKey: .dxmtVersion)
         try container.encodeIfPresent(sha256, forKey: .sha256)
     }
 

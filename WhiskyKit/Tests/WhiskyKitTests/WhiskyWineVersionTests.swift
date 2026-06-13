@@ -313,6 +313,78 @@ final class WhiskyWineVersionDXVKTests: XCTestCase {
     }
 }
 
+// MARK: - DXMT Version Tests
+
+final class WhiskyWineVersionDXMTTests: XCTestCase {
+    func testDecodeWithDXMTVersion() throws {
+        let plist: [String: Any] = [
+            "version": ["major": 3, "minor": 1, "patch": 0],
+            "dxvkVersion": "1.10.3",
+            "dxmtVersion": "0.80"
+        ]
+
+        let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+        let versionInfo = try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)
+
+        XCTAssertEqual(versionInfo.version, SemanticVersion(3, 1, 0))
+        XCTAssertEqual(versionInfo.dxmtVersion, "0.80")
+    }
+
+    func testDecodeWithoutDXMTVersionIsNil() throws {
+        // Runtime plists before v3.1.0 predate the dxmtVersion key and must still decode.
+        let plist: [String: Any] = [
+            "version": ["major": 3, "minor": 0, "patch": 0],
+            "dxvkVersion": "1.10.3"
+        ]
+
+        let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+        let versionInfo = try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)
+
+        XCTAssertNil(versionInfo.dxmtVersion)
+    }
+
+    func testBlankDXMTVersionNormalizesToNil() throws {
+        // "Absent" and "blank" must map to the same state, like dxvkVersion.
+        let plist: [String: Any] = [
+            "version": ["major": 3, "minor": 1, "patch": 0],
+            "dxmtVersion": ""
+        ]
+
+        let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+        let versionInfo = try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)
+
+        XCTAssertNil(versionInfo.dxmtVersion)
+    }
+
+    func testRoundTripPreservesDXMTVersion() throws {
+        let original = WhiskyWineVersion(
+            version: SemanticVersion(3, 1, 0),
+            dxvkVersion: "1.10.3",
+            dxmtVersion: "0.80"
+        )
+
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(original)
+        let decoded = try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)
+
+        XCTAssertEqual(decoded.version, original.version)
+        XCTAssertEqual(decoded.dxmtVersion, "0.80")
+    }
+
+    func testNilDXMTVersionIsOmittedFromEncoding() throws {
+        let original = WhiskyWineVersion(version: SemanticVersion(3, 0, 0))
+
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(original)
+        let plist = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+
+        XCTAssertNotNil(plist)
+        XCTAssertNil(plist?["dxmtVersion"], "A nil DXMT version should not be written to the plist")
+    }
+}
+
 // MARK: - Test Helper Types
 
 private struct VersionComponents {

@@ -80,6 +80,27 @@ final class WhiskyWineSetupDiagnosticsTests: XCTestCase {
         XCTAssertFalse(lines.contains(where: { $0.hasPrefix("DXVK:") }))
     }
 
+    func testVersionSectionRendersDXMT() {
+        let info = WhiskyWineVersion(
+            version: SemanticVersion(3, 1, 0),
+            dxvkVersion: "1.10.3",
+            dxmtVersion: "0.80"
+        )
+
+        let lines = WhiskyWineSetupDiagnostics.versionSectionLines(for: info)
+
+        XCTAssertTrue(lines.contains("DXMT: 0.80"))
+    }
+
+    func testVersionSectionOmitsDXMTWhenAbsent() {
+        // Pre-v3.1.0 runtime records have no DXMT; no dangling "DXMT:" line.
+        let info = WhiskyWineVersion(version: SemanticVersion(3, 0, 0), dxvkVersion: "1.10.3")
+
+        let lines = WhiskyWineSetupDiagnostics.versionSectionLines(for: info)
+
+        XCTAssertFalse(lines.contains(where: { $0.hasPrefix("DXMT:") }))
+    }
+
     func testEventTruncationKeepsMostRecent() {
         var diagnostics = WhiskyWineSetupDiagnostics()
         let overflowEventCount = 5

@@ -361,6 +361,14 @@ public class WhiskyWineInstaller {
         whiskyWineInfo()?.dxvkVersion
     }
 
+    /// The bundled DXMT version recorded in the installed runtime's version
+    /// plist, or `nil` if WhiskyWine is not installed or the runtime predates
+    /// the DXMT payload (< v3.1.0). `nil` means the DXMT graphics backend is
+    /// unavailable.
+    public static func whiskyWineDXMTVersion() -> String? {
+        whiskyWineInfo()?.dxmtVersion
+    }
+
     /// Reads the full version record from the installed WhiskyWine runtime.
     ///
     /// - Returns: The decoded ``WhiskyWineVersion``, or `nil` if WhiskyWine is

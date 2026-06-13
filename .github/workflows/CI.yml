@@ -39,7 +39,7 @@ jobs:
     name: SwiftLint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: SwiftLint
         uses: norio-nomura/action-swiftlint@3.2.1
         with:
@@ -50,7 +50,7 @@ jobs:
     name: SwiftFormat
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install SwiftFormat
         run: |
           # Install SwiftFormat via pre-built binary
@@ -79,7 +79,7 @@ jobs:
     
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
@@ -89,7 +89,7 @@ jobs:
       # Cache includes WhiskyKit/.build for consistency with test job cache paths
       # (swift build creates artifacts there, xcodebuild uses DerivedData)
       - name: Cache SPM Dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData/*/SourcePackages
@@ -126,7 +126,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
@@ -134,7 +134,7 @@ jobs:
           xcode-version: ${{ env.XCODE_VERSION }}
 
       - name: Cache SPM Dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData/*/SourcePackages
@@ -184,7 +184,7 @@ jobs:
       - name: Upload app-target coverage to Codecov
         if: always()
         continue-on-error: true
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage-app.xml
@@ -194,7 +194,7 @@ jobs:
 
       - name: Upload xcresult bundle on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ui-test-xcresult
           path: TestResults.xcresult
@@ -208,7 +208,7 @@ jobs:
     
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
@@ -218,7 +218,7 @@ jobs:
       # Cache includes WhiskyKit/.build because swift build/test creates
       # build artifacts there (unlike xcodebuild which uses DerivedData)
       - name: Cache SPM Dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData/*/SourcePackages
@@ -316,7 +316,7 @@ jobs:
           fi
       
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: WhiskyKit/coverage.lcov
@@ -326,7 +326,7 @@ jobs:
       
       - name: Upload Coverage Report (Artifact)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: WhiskyKit/coverage.lcov

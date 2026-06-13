@@ -177,7 +177,12 @@ extension Wine {
                 builder.remove("WINED3DMETAL", layer: .programUser)
 
             case .dxmt:
-                // Enable DXMT DLLs at program level; DXVK/wined3d env must not leak
+                // Reset the full translation-DLL union to builtin first so a DXVK
+                // bottle's d3d9 (which DXMT's preset doesn't touch, and whose
+                // native copy enableDXVK left in the prefix) is neutralized, then
+                // layer DXMT's preset on top — last-append-wins restores n,b for
+                // the DXMT trio and b for winemetal. DXVK/wined3d env must not leak.
+                dllResolver.programCustom.append(contentsOf: Self.translationDLLResetEntries)
                 dllResolver.programCustom.append(contentsOf: DLLOverrideResolver.dxmtPreset)
                 builder.remove("DXVK_HUD", layer: .programUser)
                 builder.remove("DXVK_ASYNC", layer: .programUser)

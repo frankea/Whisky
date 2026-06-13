@@ -356,6 +356,8 @@ final class EnvironmentVariablesTests: XCTestCase {
 
     func testProgramBackendOverrideDXMTAppendsPreset() {
         // A D3DMetal bottle with a per-program DXMT override gets DXMT's overrides.
+        // The full translation-DLL union is reset to builtin first, so d3d9 (which
+        // DXMT's preset doesn't touch) is pinned to builtin.
         var settings = BottleSettings()
         settings.graphicsBackend = .d3dMetal
 
@@ -363,7 +365,23 @@ final class EnvironmentVariablesTests: XCTestCase {
         overrides.graphicsBackend = .dxmt
 
         let resolved = resolvedOverrides(bottleSettings: settings, programOverrides: overrides)
-        XCTAssertEqual(resolved, "d3d10core=n,b;d3d11=n,b;dxgi=n,b;winemetal=b")
+        XCTAssertEqual(resolved, "d3d10core=n,b;d3d11=n,b;d3d9=b;dxgi=n,b;winemetal=b")
+    }
+
+    func testProgramBackendOverrideDXMTNeutralizesLeakedDXVKd3d9() {
+        // Regression: a DXVK bottle (whose managed layer enables d3d9=n,b and
+        // whose prefix has a stale native DXVK d3d9.dll) with a per-program DXMT
+        // override must force d3d9 back to builtin — otherwise a D3D9 title runs
+        // under the leaked DXVK d3d9 instead of the DXMT selection.
+        var settings = BottleSettings()
+        settings.graphicsBackend = .dxvk
+
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = .dxmt
+
+        let resolved = resolvedOverrides(bottleSettings: settings, programOverrides: overrides)
+        XCTAssertEqual(resolved, "d3d10core=n,b;d3d11=n,b;d3d9=b;dxgi=n,b;winemetal=b")
+        XCTAssertFalse(resolved.contains("d3d9=n,b"), "Leaked DXVK d3d9 must be reset to builtin")
     }
 
     func testProgramBackendOverrideD3DMetalResetsDXMT() {
@@ -394,7 +412,7 @@ final class EnvironmentVariablesTests: XCTestCase {
         overrides.dxvk = false
 
         let resolved = resolvedOverrides(bottleSettings: settings, programOverrides: overrides)
-        XCTAssertEqual(resolved, "d3d10core=n,b;d3d11=n,b;dxgi=n,b;winemetal=b")
+        XCTAssertEqual(resolved, "d3d10core=n,b;d3d11=n,b;d3d9=b;dxgi=n,b;winemetal=b")
     }
 
     func testLegacyDXVKTrueDoesNotResurrectDXVKUnderD3DMetalOverride() {

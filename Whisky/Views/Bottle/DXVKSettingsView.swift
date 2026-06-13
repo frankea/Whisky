@@ -52,16 +52,27 @@ struct DXVKSettingsView: View {
 
             // DXVK Async toggle
             Toggle(isOn: $bottle.settings.dxvkAsync) {
-                Text("config.dxvk.async")
+                VStack(alignment: .leading) {
+                    Text("config.dxvk.async")
+                    Text("config.dxvk.async.info")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
             .disabled(!isDXVKActive)
 
             // DXVK HUD preset picker
-            Picker("config.dxvkHud", selection: $bottle.settings.dxvkHud) {
-                Text("config.dxvkHud.off").tag(DXVKHUD.off)
-                Text("config.dxvkHud.fps").tag(DXVKHUD.fps)
-                Text("config.dxvkHud.partial").tag(DXVKHUD.partial)
-                Text("config.dxvkHud.full").tag(DXVKHUD.full)
+            VStack(alignment: .leading, spacing: 2) {
+                Picker("config.dxvkHud", selection: $bottle.settings.dxvkHud) {
+                    Text("config.dxvkHud.off").tag(DXVKHUD.off)
+                    Text("config.dxvkHud.fps").tag(DXVKHUD.fps)
+                    Text("config.dxvkHud.partial").tag(DXVKHUD.partial)
+                    Text("config.dxvkHud.full").tag(DXVKHUD.full)
+                }
+                Text("config.dxvkHud.info")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .disabled(!isDXVKActive)
 

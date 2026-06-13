@@ -5320,16 +5320,6 @@
         }
       }
     },
-    "config.dxvk.info": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Translate Direct3D 9–11 to Vulkan via DXVK. Helps some games; D3DMetal is the default elsewhere."
-          }
-        }
-      }
-    },
     "config.dxvkHud": {
       "localizations": {
         "ar": {

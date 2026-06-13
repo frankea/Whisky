@@ -12,7 +12,6 @@
 		1A2B3C4D2E0107F000AABBCC /* TextTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4E2E0107F000AABBCC /* TextTable.swift */; };
 		1A8BB6C8C6FC24E0837A3C59 /* CleanupConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 407A01251379955919903C3F /* CleanupConfigSection.swift */; };
 		2E9E4AD3124BDF8D5238BE32 /* DPIConfigSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3735C5328F7A6ABD2D1248 /* DPIConfigSheetView.swift */; };
-		396CD6101FAF0380C459ACEE /* DXVKConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5770D2EE01AEF235634646 /* DXVKConfigSection.swift */; };
 		484A57DAD0A7634094236533 /* DiagnosticsPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8797408D60F55718DFC61664 /* DiagnosticsPickerSheet.swift */; };
 		C16DA5430762A5F33C8714AA /* MigrateBottlesSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB85C8A3D3900AA9A7DDCE72 /* MigrateBottlesSheet.swift */; };
 		52513FA35312809A9760BCB2 /* MetalConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2699006F97F862815633C9F /* MetalConfigSection.swift */; };
@@ -271,7 +270,6 @@
 		C1A2B3C4E5F60601A9B0C2D1 /* AudioTroubleshootingWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioTroubleshootingWizardView.swift; sourceTree = "<group>"; };
 		C1A2B3C4E5F60601A9B0C2D3 /* AudioDeviceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceListView.swift; sourceTree = "<group>"; };
 		C1A2B3C4E5F60601A9B0C2D5 /* AudioDeviceHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceHistoryView.swift; sourceTree = "<group>"; };
-		CA5770D2EE01AEF235634646 /* DXVKConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DXVKConfigSection.swift; sourceTree = "<group>"; };
 		D1A2B3C4E5F60504A9B0C1D0 /* DiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsView.swift; sourceTree = "<group>"; };
 		D1A2B3C4E5F60504A9B0C1D2 /* RemediationCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemediationCardView.swift; sourceTree = "<group>"; };
 		D1A2B3C4E5F60504A9B0C1D4 /* LogViewerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogViewerView.swift; sourceTree = "<group>"; };
@@ -431,7 +429,6 @@
 				A1B2C3D4E5F60718A9B0C1D3 /* DLLOverrideEditor.swift */,
 				A1B2C3D4E5F60718A9B0C1D5 /* DLLOverrideConfigSection.swift */,
 				H1A2B3C4E5F61101A9B0C1D1 /* DependencyConfigSection.swift */,
-				CA5770D2EE01AEF235634646 /* DXVKConfigSection.swift */,
 				E2699006F97F862815633C9F /* MetalConfigSection.swift */,
 				3724CE6DD2C1B22D80442DB6 /* PerformanceConfigSection.swift */,
 				6E182FC92B0BF64E00AADE81 /* WinetricksView.swift */,
@@ -940,7 +937,6 @@
 				744CFC7F2B2281370D39A466 /* WineConfigSection.swift in Sources */,
 				A1B2C3D4E5F60718A9B0C1D2 /* DLLOverrideEditor.swift in Sources */,
 				A1B2C3D4E5F60718A9B0C1D4 /* DLLOverrideConfigSection.swift in Sources */,
-				396CD6101FAF0380C459ACEE /* DXVKConfigSection.swift in Sources */,
 				52513FA35312809A9760BCB2 /* MetalConfigSection.swift in Sources */,
 				C08ECD035DDFEDB70ACA1D1B /* PerformanceConfigSection.swift in Sources */,
 				63FFDE862ADF0C7700178665 /* BottomBar.swift in Sources */,

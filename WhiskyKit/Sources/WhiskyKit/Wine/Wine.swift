@@ -695,15 +695,28 @@ public class Wine {
         // extras (nvapi64/nvngx) are deliberately not deployed.
         let translationTrio = ["d3d11.dll", "dxgi.dll", "d3d10core.dll"]
 
-        guard translationTrio.allSatisfy({ name in
-            fileManager.fileExists(atPath: x64Payload.appending(path: name).path(percentEncoded: false))
-        })
-        else {
+        let windowsDir = prefixRoot.appending(path: "drive_c").appending(path: "windows")
+        let system32 = windowsDir.appending(path: "system32")
+        let syswow64 = windowsDir.appending(path: "syswow64")
+        let i386Builtin = wineLibRoot.appending(path: "i386-windows")
+        let deploy32Bit = fileManager.fileExists(atPath: syswow64.path(percentEncoded: false))
+        let deployI386Builtin = fileManager.fileExists(atPath: i386Builtin.path(percentEncoded: false))
+
+        // Validate every source we are about to copy BEFORE touching any
+        // destination. A damaged runtime (e.g. the trio present but winemetal
+        // missing) must fail with the actionable payloadMissing error rather than
+        // half-deploying and deleting the existing builtin winemetal on the way.
+        var required: [URL] = (translationTrio + ["winemetal.dll"]).map { x64Payload.appending(path: $0) }
+        if deploy32Bit {
+            required += translationTrio.map { x32Payload.appending(path: $0) }
+        }
+        if deployI386Builtin {
+            required.append(x32Payload.appending(path: "winemetal.dll"))
+        }
+        guard required.allSatisfy({ fileManager.fileExists(atPath: $0.path(percentEncoded: false)) }) else {
             throw DXMTError.payloadMissing
         }
 
-        let windowsDir = prefixRoot.appending(path: "drive_c").appending(path: "windows")
-        let system32 = windowsDir.appending(path: "system32")
         for name in translationTrio {
             try fileManager.installFileIfContentDiffers(
                 at: system32.appending(path: name),
@@ -712,8 +725,7 @@ public class Wine {
         }
 
         // 32-bit half: only when the prefix actually has a syswow64 tree.
-        let syswow64 = windowsDir.appending(path: "syswow64")
-        if fileManager.fileExists(atPath: syswow64.path(percentEncoded: false)) {
+        if deploy32Bit {
             for name in translationTrio {
                 try fileManager.installFileIfContentDiffers(
                     at: syswow64.appending(path: name),
@@ -729,8 +741,7 @@ public class Wine {
             at: wineLibRoot.appending(path: "x86_64-windows").appending(path: "winemetal.dll"),
             from: x64Payload.appending(path: "winemetal.dll")
         )
-        let i386Builtin = wineLibRoot.appending(path: "i386-windows")
-        if fileManager.fileExists(atPath: i386Builtin.path(percentEncoded: false)) {
+        if deployI386Builtin {
             try fileManager.installFileIfContentDiffers(
                 at: i386Builtin.appending(path: "winemetal.dll"),
                 from: x32Payload.appending(path: "winemetal.dll")

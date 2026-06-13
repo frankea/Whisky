@@ -164,4 +164,47 @@ final class WineDXMTTests: XCTestCase {
         let system32DLL = prefixRoot.appending(path: "drive_c/windows/system32").appending(path: "d3d11.dll")
         XCTAssertEqual(try contents(system32DLL), "dxmt-x64-d3d11.dll")
     }
+
+    func testMissingWinemetalInPayloadThrowsAndPreservesState() throws {
+        // A damaged runtime: the x64 trio is present but winemetal.dll is gone.
+        // The guard must catch this BEFORE any copy, so the existing builtin
+        // winemetal is preserved (its loss would degrade even non-DXMT launches)
+        // and the prefix trio is left untouched.
+        try FileManager.default.removeItem(at: payloadRoot.appending(path: "x64/winemetal.dll"))
+        let builtin = wineLibRoot.appending(path: "x86_64-windows").appending(path: "winemetal.dll")
+        let system32D3D11 = prefixRoot.appending(path: "drive_c/windows/system32").appending(path: "d3d11.dll")
+
+        XCTAssertThrowsError(
+            try Wine.enableDXMT(payloadRoot: payloadRoot, wineLibRoot: wineLibRoot, prefixRoot: prefixRoot)
+        ) { error in
+            XCTAssertEqual(error as? Wine.DXMTError, .payloadMissing)
+        }
+        XCTAssertEqual(try contents(builtin), "gcenx-stub", "Existing builtin winemetal must be preserved")
+        XCTAssertEqual(try contents(system32D3D11), "fakedll-d3d11.dll", "Prefix trio must not be half-deployed")
+    }
+
+    func testIncompleteX32PayloadThrowsWhenSyswow64Present() throws {
+        // syswow64 exists (32-bit deployment will be attempted), but the x32 trio
+        // is incomplete. The guard must throw before touching the prefix.
+        try FileManager.default.removeItem(at: payloadRoot.appending(path: "x32/dxgi.dll"))
+        let system32D3D11 = prefixRoot.appending(path: "drive_c/windows/system32").appending(path: "d3d11.dll")
+
+        XCTAssertThrowsError(
+            try Wine.enableDXMT(payloadRoot: payloadRoot, wineLibRoot: wineLibRoot, prefixRoot: prefixRoot)
+        ) { error in
+            XCTAssertEqual(error as? Wine.DXMTError, .payloadMissing)
+        }
+        XCTAssertEqual(try contents(system32D3D11), "fakedll-d3d11.dll", "Prefix must not be touched")
+    }
+
+    func testInstallFilePreservesDestinationWhenSourceMissing() throws {
+        // installFile must not delete an existing destination until the new file
+        // is safely in hand — a failed copy can never leave the destination gone.
+        let dest = tempDir.appending(path: "existing.dll")
+        try Data("original".utf8).write(to: dest)
+        let missingSource = tempDir.appending(path: "does-not-exist.dll")
+
+        XCTAssertThrowsError(try FileManager.default.installFile(at: dest, from: missingSource))
+        XCTAssertEqual(try contents(dest), "original", "Destination must survive a failed copy")
+    }
 }

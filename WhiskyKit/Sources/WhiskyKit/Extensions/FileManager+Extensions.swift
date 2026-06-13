@@ -42,11 +42,23 @@ extension FileManager {
     /// unlike ``replaceFile(at:with:makeOriginalCopy:)``, the copy also happens
     /// when the destination does not exist yet. A silently skipped install
     /// would leave a translation layer half-deployed with no error.
+    ///
+    /// The replace is non-destructive on failure: the source is copied to a
+    /// sibling temp file first and only swapped into place once the copy
+    /// succeeds, so an unreadable source or an interrupted copy can never leave
+    /// the destination missing (which would degrade even unrelated launches
+    /// when the destination is a shared runtime file).
     func installFile(at destinationURL: URL, from sourceURL: URL) throws {
-        if fileExists(atPath: destinationURL.path(percentEncoded: false)) {
-            try removeItem(at: destinationURL)
+        guard fileExists(atPath: destinationURL.path(percentEncoded: false)) else {
+            try copyItem(at: sourceURL, to: destinationURL)
+            return
         }
-        try copyItem(at: sourceURL, to: destinationURL)
+        let tempURL = destinationURL.appendingPathExtension("whisky-tmp")
+        if fileExists(atPath: tempURL.path(percentEncoded: false)) {
+            try removeItem(at: tempURL)
+        }
+        try copyItem(at: sourceURL, to: tempURL)
+        _ = try replaceItemAt(destinationURL, withItemAt: tempURL)
     }
 
     /// Installs `sourceURL` at `destinationURL` only when the destination is

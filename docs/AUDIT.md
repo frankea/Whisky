@@ -53,9 +53,9 @@ upstream patch; the rest are features or docs, tracked individually.
 | [#1305](https://github.com/whisky-app/whisky/pull/1305) | Stop the 100%-CPU spin in `nextLine` (#1010) | **Fixed** — `nextLine` replaced by a 3-way `nextOutput()` enum that disarms the read source on EOF (Closes #1010) |
 | [#1264](https://github.com/whisky-app/whisky/pull/1264) | Make `WhiskyCmd run` actually launch the program (#1088, #1140) | **Fixed** — the CLI was rearchitected onto awaited `Wine.runProgram`, so the AppleScript-exits-early race and the env-var quote-escaping bug can't occur |
 | [#1339](https://github.com/whisky-app/whisky/pull/1339) | In-app Wine process monitor | **Present**, bettered — a per-bottle Processes page (name / PID / memory + graceful and force quit), not a separate window |
-| [#574](https://github.com/whisky-app/whisky/pull/574) | Async bottle / program-list loading | **Gap** — `updateInstalledPrograms()` still runs synchronously on the `@MainActor`, so opening a large bottle can hitch the UI |
-| [#765](https://github.com/whisky-app/whisky/pull/765) | Custom SwiftUI update UI | **Not adopted** — the fork uses Sparkle's stock update dialog |
-| [#571](https://github.com/whisky-app/whisky/pull/571) | Menu-bar extra (survive window close) | **Not adopted** — no `MenuBarExtra`; the app quits when the last window closes |
+| [#574](https://github.com/whisky-app/whisky/pull/574) | Async bottle / program-list loading | **Adopted** — `updateInstalledPrograms()` now walks `Program Files` and parses PE off the main actor, with a progress indicator while scanning |
+| [#765](https://github.com/whisky-app/whisky/pull/765) | Custom SwiftUI update UI | **Adopted (lighter-touch)** — gentle scheduled-update reminders via an `SPUStandardUserDriverDelegate` (Dock badge + "Install Update…" instead of a focus-stealing dialog); kept Sparkle's proven install flow |
+| [#571](https://github.com/whisky-app/whisky/pull/571) | Menu-bar extra (survive window close) | **Adopted** — opt-in menu-bar extra (Settings → General) that launches pinned programs and keeps the app alive after the window closes |
 | [#1207](https://github.com/whisky-app/whisky/pull/1207) / [#1206](https://github.com/whisky-app/whisky/issues/1206) | Document a complete uninstall | **Done** — see *Uninstalling* in the [README](../README.md) |
 | [#1375](https://github.com/whisky-app/whisky/pull/1375) | Crowdin translation sync | **N/A** — this fork manages translations through its own Crowdin project, not via PRs |
 

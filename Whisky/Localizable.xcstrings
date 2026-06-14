@@ -12265,6 +12265,17 @@
         }
       }
     },
+    "menubar.launchFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't launch %@"
+          }
+        }
+      }
+    },
     "menubar.open": {
       "localizations": {
         "en": {

@@ -210,48 +210,52 @@ extension Bottle {
     /// The expensive work — walking the `Program Files` trees and parsing each
     /// executable's PE header — runs off the main actor so switching to or
     /// opening a large bottle no longer hitches the UI. ``programsLoading`` is
-    /// set for the duration so views can show a progress indicator. A scan
-    /// already in flight is coalesced (a redundant concurrent call returns
-    /// early) — the in-flight scan publishes fresh results.
+    /// set for the duration so views can show a progress indicator.
+    ///
+    /// Concurrent callers are coalesced via ``Bottle/coalesceProgramScan(_:)``:
+    /// a redundant call awaits the in-flight scan rather than dropping, so a
+    /// caller that reads ``programs`` right after (e.g. the Start Menu auto-pin)
+    /// always sees the fresh list, never a stale one.
     @MainActor
     func updateInstalledPrograms() async {
-        guard !programsLoading else { return }
-        programsLoading = true
-        defer { programsLoading = false }
+        await coalesceProgramScan { [self] in
+            programsLoading = true
+            defer { programsLoading = false }
 
-        let driveC = url.appending(path: "drive_c")
-        // Snapshot main-actor state before crossing to the background task.
-        let blocklist = Set(settings.blocklist)
+            let driveC = url.appending(path: "drive_c")
+            // Snapshot main-actor state before crossing to the background task.
+            let blocklist = Set(settings.blocklist)
 
-        // Walk Program Files and parse each PE off the main actor (PEFile is Sendable).
-        let scanned: [(url: URL, peFile: PEFile?)] = await Task.detached(priority: .userInitiated) {
-            Bottle.discoverInstalledExecutables(driveC: driveC, blocklist: blocklist)
-                .map { (url: $0, peFile: try? PEFile(url: $0)) }
-        }.value
+            // Walk Program Files and parse each PE off the main actor (PEFile is Sendable).
+            let scanned: [(url: URL, peFile: PEFile?)] = await Task.detached(priority: .userInitiated) {
+                Bottle.discoverInstalledExecutables(driveC: driveC, blocklist: blocklist)
+                    .map { (url: $0, peFile: try? PEFile(url: $0)) }
+            }.value
 
-        var foundURLS: Set<URL> = []
-        var programs: [Program] = []
-        for entry in scanned {
-            foundURLS.insert(entry.url)
-            programs.append(Program(url: entry.url, bottle: self, peFile: entry.peFile))
+            var foundURLS: Set<URL> = []
+            var programs: [Program] = []
+            for entry in scanned {
+                foundURLS.insert(entry.url)
+                programs.append(Program(url: entry.url, bottle: self, peFile: entry.peFile))
+            }
+
+            // Detect ClickOnce applications (small scan, kept on the main actor).
+            let clickOnceApps = ClickOnceManager.shared.detectAppRefFile(in: self, wineUsername: wineUsername)
+            for appRefURL in clickOnceApps {
+                let displayName = ClickOnceManager.shared.displayName(for: appRefURL)
+                let program = Program(appRefURL: appRefURL, bottle: self, displayName: displayName)
+                programs.append(program)
+            }
+
+            // Add missing programs from pins
+            for pin in settings.pins {
+                guard let url = pin.url else { continue }
+                guard !foundURLS.contains(url) else { continue }
+                programs.append(Program(url: url, bottle: self))
+            }
+
+            self.programs = programs.sorted { $0.name.lowercased() < $1.name.lowercased() }
         }
-
-        // Detect ClickOnce applications (small scan, kept on the main actor).
-        let clickOnceApps = ClickOnceManager.shared.detectAppRefFile(in: self, wineUsername: wineUsername)
-        for appRefURL in clickOnceApps {
-            let displayName = ClickOnceManager.shared.displayName(for: appRefURL)
-            let program = Program(appRefURL: appRefURL, bottle: self, displayName: displayName)
-            programs.append(program)
-        }
-
-        // Add missing programs from pins
-        for pin in settings.pins {
-            guard let url = pin.url else { continue }
-            guard !foundURLS.contains(url) else { continue }
-            programs.append(Program(url: url, bottle: self))
-        }
-
-        self.programs = programs.sorted { $0.name.lowercased() < $1.name.lowercased() }
     }
 
     @MainActor

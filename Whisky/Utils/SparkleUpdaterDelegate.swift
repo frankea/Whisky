@@ -49,11 +49,15 @@ final class SparkleUpdaterDelegate: NSObject, ObservableObject, SPUStandardUserD
 
     func standardUserDriverShouldHandleShowingScheduledUpdate(
         _ update: SUAppcastItem,
-        andInState state: SPUUserUpdateState
+        andInImmediateFocus immediateFocus: Bool
     ) -> Bool {
-        // Let Sparkle show its standard alert immediately when the user is already
-        // looking at Whisky; otherwise defer to the gentle in-app reminder below.
-        MainActor.assumeIsolated { NSApp.isActive }
+        // Selector matters: Sparkle's real delegate method is
+        // `…ShouldHandleShowingScheduledUpdate:andInImmediateFocus:`. An earlier
+        // `…andInState:` signature didn't match, so it was never called and the
+        // deferral below was dead. Let Sparkle show its standard alert immediately
+        // when it would appear in focus (the app is active); otherwise defer to the
+        // gentle in-app reminder.
+        immediateFocus
     }
 
     func standardUserDriverWillHandleShowingUpdate(

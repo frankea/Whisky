@@ -213,9 +213,10 @@ extension Bottle {
     /// set for the duration so views can show a progress indicator.
     ///
     /// Concurrent callers are coalesced via ``Bottle/coalesceProgramScan(_:)``:
-    /// a redundant call awaits the in-flight scan rather than dropping, so a
+    /// a redundant call awaits the in-flight scan rather than dropping it, so a
     /// caller that reads ``programs`` right after (e.g. the Start Menu auto-pin)
-    /// always sees the fresh list, never a stale one.
+    /// sees that scan's completed results instead of a half-populated or empty
+    /// list.
     @MainActor
     func updateInstalledPrograms() async {
         await coalesceProgramScan { [self] in

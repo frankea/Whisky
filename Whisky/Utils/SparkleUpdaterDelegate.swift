@@ -23,12 +23,13 @@ import Sparkle
 /// driver (whisky-app/whisky#765, lighter-touch variant).
 ///
 /// Sparkle's default behaviour pops a focus-stealing update dialog the moment a
-/// scheduled background check finds a new version. With this delegate, when the
-/// app isn't already active the reminder is *deferred*: a Dock-tile badge appears
-/// and `updateAvailable` flips on so the in-app "Check for Updates" item reads
-/// "Install Update…", letting the user act when ready. User-initiated checks and
-/// the actual download / install / relaunch still use Sparkle's proven standard
-/// UI unchanged.
+/// scheduled background check finds a new version. With this delegate, when
+/// Sparkle wouldn't show the update in immediate focus — i.e. the user is mid-task
+/// rather than just having launched the app or left the system idle — the reminder
+/// is *deferred*: a Dock-tile badge appears and `updateAvailable` flips on so the
+/// in-app "Check for Updates" item reads "Install Update…", letting the user act
+/// when ready. User-initiated checks and the actual download / install / relaunch
+/// still use Sparkle's proven standard UI unchanged.
 ///
 /// `@unchecked Sendable` follows the project's singleton convention (see
 /// `ProcessRegistry`): the type carries mutable UI state but every access is on
@@ -54,9 +55,11 @@ final class SparkleUpdaterDelegate: NSObject, ObservableObject, SPUStandardUserD
         // Selector matters: Sparkle's real delegate method is
         // `…ShouldHandleShowingScheduledUpdate:andInImmediateFocus:`. An earlier
         // `…andInState:` signature didn't match, so it was never called and the
-        // deferral below was dead. Let Sparkle show its standard alert immediately
-        // when it would appear in focus (the app is active); otherwise defer to the
-        // gentle in-app reminder.
+        // deferral was dead. Returning `immediateFocus` is Sparkle's canonical
+        // gentle-reminder gate: it's true when Sparkle would show the update in
+        // immediate, utmost focus (the app was launched recently or the system has
+        // been idle a while) — let the standard alert show then; otherwise return
+        // false to defer to the gentle in-app reminder while the user is mid-task.
         immediateFocus
     }
 

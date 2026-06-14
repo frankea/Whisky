@@ -297,11 +297,16 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
     /// Runs a program rescan, coalescing concurrent callers onto one scan.
     ///
     /// If a scan is already in flight this awaits *that* scan instead of starting
-    /// a duplicate or returning early. The distinction matters: a caller that
-    /// returns early would read a stale ``programs`` afterward (e.g. the Start
-    /// Menu auto-pin pinning against an empty list), whereas awaiting the in-flight
-    /// scan guarantees the caller sees its fresh results. The owning call clears
-    /// the handle when its scan finishes, so a later call starts a fresh scan.
+    /// a duplicate or returning early. The distinction matters versus an
+    /// early-return guard: a caller that bailed out would then read whatever
+    /// ``programs`` happened to hold (e.g. the Start Menu auto-pin pinning against
+    /// an empty list), whereas awaiting means the caller observes the in-flight
+    /// scan's freshly published results before it proceeds. The owning call clears
+    /// the handle when its scan finishes, so the next call starts a fresh scan.
+    ///
+    /// The coalesced result reflects the in-flight scan, which began at the
+    /// *owning* call — so a caller that must observe a change it made after that
+    /// scan started should rescan once the current one completes.
     ///
     /// - Parameter scan: The rescan body; should publish into ``programs`` and
     ///   manage ``programsLoading``. Only the owning call runs it — coalesced

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-06-14 (App)
+
 ### Added
 - Bottle configuration options now carry inline descriptions explaining what
   they do. The Wine section (Windows version, build, enhanced sync, DPI, Retina

@@ -3,8 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Whisky — Run Windows games and apps on macOS via Wine</title>
-<meta name="description" content="Whisky is a native SwiftUI Wine wrapper for macOS with D3DMetal and DXVK graphics backends. Active community fork of the archived whisky-app/whisky. Apple Silicon, signed and notarized.">
+<title id="page-title" data-en="Whisky — Run Windows games and apps on macOS via Wine" data-es="Whisky — Ejecuta juegos y aplicaciones de Windows en macOS con Wine">Whisky — Run Windows games and apps on macOS via Wine</title>
 <meta name="author" content="Adam Franke">
 <meta name="theme-color" content="#1d1d1f" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
@@ -15,15 +14,15 @@
 <!-- Open Graph / Twitter Card -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://frankea.github.io/Whisky/">
-<meta property="og:title" content="Whisky — Run Windows games and apps on macOS via Wine">
-<meta property="og:description" content="Native SwiftUI Wine wrapper for macOS with D3DMetal and DXVK backends. Active community fork of the archived whisky-app/whisky.">
+<meta property="og:title" id="og-title" data-en="Whisky — Run Windows games and apps on macOS via Wine" data-es="Whisky — Ejecuta juegos y aplicaciones de Windows en macOS con Wine" content="Whisky — Run Windows games and apps on macOS via Wine">
+<meta property="og:description" id="og-desc" data-en="Native SwiftUI Wine wrapper for macOS with D3DMetal and DXVK backends. Active community fork of the archived whisky-app/whisky." data-es="Wrapper de Wine nativo en SwiftUI para macOS con backends D3DMetal y DXVK. Fork activo de la comunidad del archivado whisky-app/whisky." content="Native SwiftUI Wine wrapper for macOS with D3DMetal and DXVK backends. Active community fork of the archived whisky-app/whisky.">
 <meta property="og:image" content="https://raw.githubusercontent.com/frankea/Whisky/main/images/og-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Whisky — Run Windows games and apps on macOS, using Wine. Apple Silicon, macOS 15+, GPL v3.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Whisky — Run Windows games and apps on macOS via Wine">
-<meta name="twitter:description" content="Native SwiftUI Wine wrapper for macOS with D3DMetal and DXVK backends. Active community fork of the archived whisky-app/whisky.">
+<meta name="twitter:title" id="tw-title" data-en="Whisky — Run Windows games and apps on macOS via Wine" data-es="Whisky — Ejecuta juegos y aplicaciones de Windows en macOS con Wine" content="Whisky — Run Windows games and apps on macOS via Wine">
+<meta name="twitter:description" id="tw-desc" data-en="Native SwiftUI Wine wrapper for macOS with D3DMetal and DXVK backends. Active community fork of the archived whisky-app/whisky." data-es="Wrapper de Wine nativo en SwiftUI para macOS con backends D3DMetal y DXVK. Fork activo de la comunidad del archivado whisky-app/whisky." content="Native SwiftUI Wine wrapper for macOS with D3DMetal and DXVK backends. Active community fork of the archived whisky-app/whisky.">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/frankea/Whisky/main/images/og-card.png">
 
 <!-- JSON-LD -->
@@ -126,72 +125,170 @@ img.screenshot {
   border: 1px solid var(--rule);
   margin: 16px 0;
 }
+/* Language selector */
+.lang-bar {
+  text-align: right;
+  margin-bottom: 24px;
+}
+.lang-btn {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 13px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  margin-left: 4px;
+}
+.lang-btn:hover { color: var(--fg); border-color: var(--fg); }
+.lang-btn.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
 </style>
 </head>
 <body>
 <main>
 
+<div class="lang-bar">
+  <button class="lang-btn active" onclick="switchLang('en')" id="btn-en">EN</button>
+  <button class="lang-btn" onclick="switchLang('es')" id="btn-es">ES</button>
+</div>
+
 <header>
   <h1>Whisky</h1>
-  <p class="tagline">Run Windows games and applications on macOS, using Wine.</p>
+  <p class="tagline" data-en="Run Windows games and applications on macOS, using Wine." data-es="Ejecuta juegos y aplicaciones de Windows en macOS, usando Wine.">
+    Run Windows games and applications on macOS, using Wine.
+  </p>
 </header>
 
-<p>Whisky is a native macOS app that wraps Wine with a clean SwiftUI interface. It supports Apple's D3DMetal and the DXVK Direct3D-to-Vulkan translation layer for graphics, and includes built-in compatibility for Steam, Epic, EA App, Battle.net, and other launchers.</p>
+<p data-en="Whisky is a native macOS app that wraps Wine with a clean SwiftUI interface. It supports Apple's D3DMetal and the DXVK Direct3D-to-Vulkan translation layer for graphics, and includes built-in compatibility for Steam, Epic, EA App, Battle.net, and other launchers."
+   data-es="Whisky es una app nativa de macOS que envuelve Wine con una interfaz SwiftUI limpia. Soporta D3DMetal de Apple y la capa de traducción DXVK Direct3D-to-Vulkan para gráficos, e incluye compatibilidad integrada para Steam, Epic, EA App, Battle.net y otros lanzadores.">
+  Whisky is a native macOS app that wraps Wine with a clean SwiftUI interface. It supports Apple's D3DMetal and the DXVK Direct3D-to-Vulkan translation layer for graphics, and includes built-in compatibility for Steam, Epic, EA App, Battle.net, and other launchers.
+</p>
 
 <div class="notice">
-<strong>Active community fork.</strong> The original <a href="https://github.com/whisky-app/whisky">whisky-app/whisky</a> was archived in April 2025. This fork, maintained by <a href="https://github.com/frankea">@frankea</a>, continues development. Not affiliated with the original project or getwhisky.app.
+  <strong data-en="Active community fork." data-es="Fork activo de la comunidad.">Active community fork.</strong>
+  <span data-en="The original" data-es="El original">
+    The original
+  </span>
+  <a href="https://github.com/whisky-app/whisky">whisky-app/whisky</a>
+  <span data-en="was archived in April 2025. This fork, maintained by" data-es="se archivó en abril de 2025. Este fork, mantenido por">
+    was archived in April 2025. This fork, maintained by
+  </span>
+  <a href="https://github.com/frankea">@frankea</a>,
+  <span data-en="continues development. Not affiliated with the original project or getwhisky.app." data-es="continúa el desarrollo. No está afiliado al proyecto original ni a getwhisky.app.">
+    continues development. Not affiliated with the original project or getwhisky.app.
+  </span>
 </div>
 
 <p>
-  <a class="cta" href="https://github.com/frankea/Whisky/releases/latest">Download for macOS</a>
-  <a class="cta secondary" href="https://github.com/frankea/Whisky">View on GitHub</a>
+  <a class="cta" href="https://github.com/frankea/Whisky/releases/latest" data-en="Download for macOS" data-es="Descargar para macOS">Download for macOS</a>
+  <a class="cta secondary" href="https://github.com/frankea/Whisky" data-en="View on GitHub" data-es="Ver en GitHub">View on GitHub</a>
 </p>
 
-<img class="screenshot" src="https://raw.githubusercontent.com/frankea/Whisky/main/images/new-bottle-screenshot.png" alt="Creating a new Wine bottle in Whisky" loading="lazy" width="1200">
-<img class="screenshot" src="https://raw.githubusercontent.com/frankea/Whisky/main/images/config-screenshot.png" alt="Whisky bottle configuration — graphics backend, Wine, and performance settings" loading="lazy" width="1200">
+<img class="screenshot" src="https://raw.githubusercontent.com/frankea/Whisky/main/images/new-bottle-screenshot.png" data-en-alt="Creando un nuevo Wine bottle en Whisky" data-es-alt="Creando un nuevo Wine bottle en Whisky" alt="Creating a new Wine bottle in Whisky" loading="lazy" width="1200">
+<img class="screenshot" src="https://raw.githubusercontent.com/frankea/Whisky/main/images/config-screenshot.png" data-en-alt="Whisky bottle configuration — graphics backend, Wine, and performance settings" data-es-alt="Configuración de bottle en Whisky — backend gráfico, Wine y ajustes de rendimiento" alt="Whisky bottle configuration — graphics backend, Wine, and performance settings" loading="lazy" width="1200">
 
-<h2>Install via Homebrew</h2>
+<h2 data-en="Install via Homebrew" data-es="Instalar con Homebrew">Install via Homebrew</h2>
 <pre><code>brew install --cask frankea/whisky/whisky</code></pre>
-<p class="muted">Note: the default <code>brew install --cask whisky</code> still installs the archived original. Use the qualified <code>frankea/whisky/whisky</code> form for this fork.</p>
+<p class="muted" data-en='Note: the default <code>brew install --cask whisky</code> still installs the archived original. Use the qualified <code>frankea/whisky/whisky</code> form for this fork.'
+   data-es='Nota: el comando predeterminado <code>brew install --cask whisky</code> aún instala el original archivado. Usa la forma completa <code>frankea/whisky/whisky</code> para este fork.'>
+  Note: the default <code>brew install --cask whisky</code> still installs the archived original. Use the qualified <code>frankea/whisky/whisky</code> form for this fork.
+</p>
 
-<h2>Requirements</h2>
+<h2 data-en="Requirements" data-es="Requisitos">Requirements</h2>
 <ul>
-  <li>Apple Silicon Mac (M1, M2, M3, M4)</li>
-  <li>macOS Sequoia 15.0 or later</li>
-  <li>~800 MB disk space for the bundled Wine runtime (a ~313 MB download)</li>
+  <li><span data-en="Apple Silicon Mac (M1, M2, M3, M4)" data-es="Mac con Apple Silicon (M1, M2, M3, M4)">Apple Silicon Mac (M1, M2, M3, M4)</span></li>
+  <li><span data-en="macOS Sequoia 15.0 or later" data-es="macOS Sequoia 15.0 o posterior">macOS Sequoia 15.0 or later</span></li>
+  <li><span data-en="~800 MB disk space for the bundled Wine runtime (a ~313 MB download)" data-es="~800 MB de espacio en disco para el runtime de Wine incluido (descarga de ~313 MB)">~800 MB disk space for the bundled Wine runtime (a ~313 MB download)</span></li>
 </ul>
 
-<h2>What's included</h2>
+<h2 data-en="What's included" data-es="Qué incluye">What's included</h2>
 <ul>
-  <li>Wine 11 with macOS-specific patches</li>
-  <li>D3DMetal (Apple's Direct3D-to-Metal translation) and DXVK (Direct3D-to-Vulkan)</li>
-  <li>Launcher compatibility profiles for Steam, Epic, EA App, Battle.net, Rockstar, and more</li>
-  <li>Stability diagnostics with one-click crash report export</li>
-  <li>Game compatibility database with 80+ pre-configured entries</li>
-  <li>Signed and notarized DMG; Sparkle delivers in-app updates</li>
+  <li><span data-en="Wine 11 with macOS-specific patches" data-es="Wine 11 con parches específicos para macOS">Wine 11 with macOS-specific patches</span></li>
+  <li><span data-en="D3DMetal (Apple's Direct3D-to-Metal translation) and DXVK (Direct3D-to-Vulkan)" data-es="D3DMetal (traducción Direct3D-to-Metal de Apple) y DXVK (Direct3D-to-Vulkan)">D3DMetal (Apple's Direct3D-to-Metal translation) and DXVK (Direct3D-to-Vulkan)</span></li>
+  <li><span data-en="Launcher compatibility profiles for Steam, Epic, EA App, Battle.net, Rockstar, and more" data-es="Perfiles de compatibilidad para lanzadores: Steam, Epic, EA App, Battle.net, Rockstar y más">Launcher compatibility profiles for Steam, Epic, EA App, Battle.net, Rockstar, and more</span></li>
+  <li><span data-en="Stability diagnostics with one-click crash report export" data-es="Diagnóstico de estabilidad con exportación de informes de fallo con un clic">Stability diagnostics with one-click crash report export</span></li>
+  <li><span data-en="Game compatibility database with 80+ pre-configured entries" data-es="Base de datos de compatibilidad de juegos con más de 80 configuraciones predefinidas">Game compatibility database with 80+ pre-configured entries</span></li>
+  <li><span data-en="Signed and notarized DMG; Sparkle delivers in-app updates" data-es="DMG firmado y notarizado; Sparkle proporciona actualizaciones desde la app">Signed and notarized DMG; Sparkle delivers in-app updates</span></li>
 </ul>
 
-<h2>Graphics backends</h2>
-<p>Whisky translates Direct3D to the Mac GPU two ways, selectable per bottle:</p>
+<h2 data-en="Graphics backends" data-es="Backends gráficos">Graphics backends</h2>
+<p data-en="Whisky translates Direct3D to the Mac GPU two ways, selectable per bottle:"
+   data-es="Whisky traduce Direct3D a la GPU del Mac de dos formas, seleccionables por bottle:">
+  Whisky translates Direct3D to the Mac GPU two ways, selectable per bottle:
+</p>
 <ul>
-  <li><strong>D3DMetal</strong> (default) — Apple's Direct3D-to-Metal layer from the Game Porting Toolkit. The fastest path for most modern Direct3D 11/12 titles.</li>
-  <li><strong>DXVK</strong> — Direct3D-to-Vulkan (via MoltenVK), a broad-compatibility fallback for titles D3DMetal doesn't handle. Pinned at the macOS-compatible 1.10.3 <em>by design</em>: the DXVK 2.x line needs Vulkan features macOS doesn't expose, so a higher version number wouldn't run here — a deliberate choice, not a stale dependency.</li>
+  <li>
+    <strong data-en="D3DMetal" data-es="D3DMetal">D3DMetal</strong>
+    <span data-en=" (default) — Apple's Direct3D-to-Metal layer from the Game Porting Toolkit. The fastest path for most modern Direct3D 11/12 titles."
+          data-es=" (predeterminado) — La capa Direct3D-to-Metal de Apple del Game Porting Toolkit. La ruta más rápida para la mayoría de los títulos modernos Direct3D 11/12.">
+       (default) — Apple's Direct3D-to-Metal layer from the Game Porting Toolkit. The fastest path for most modern Direct3D 11/12 titles.
+    </span>
+  </li>
+  <li>
+    <strong data-en="DXVK" data-es="DXVK">DXVK</strong>
+    <span data-en=" — Direct3D-to-Vulkan (via MoltenVK), a broad-compatibility fallback for titles D3DMetal doesn't handle. Pinned at the macOS-compatible 1.10.3 by design: the DXVK 2.x line needs Vulkan features macOS doesn't expose, so a higher version number wouldn't run here — a deliberate choice, not a stale dependency."
+          data-es=" — Direct3D-to-Vulkan (via MoltenVK), un respaldo de amplia compatibilidad para títulos que D3DMetal no maneja. Fijado en la versión 1.10.3 compatible con macOS por diseño: la línea DXVK 2.x necesita características de Vulkan que macOS no expone, por lo que un número de versión más alto no funcionaría aquí — una elección deliberada, no una dependencia obsoleta.">
+       — Direct3D-to-Vulkan (via MoltenVK), a broad-compatibility fallback for titles D3DMetal doesn't handle. Pinned at the macOS-compatible 1.10.3 <em>by design</em>: the DXVK 2.x line needs Vulkan features macOS doesn't expose, so a higher version number wouldn't run here — a deliberate choice, not a stale dependency.
+    </span>
+  </li>
 </ul>
-<p class="muted"><strong>Anti-cheat:</strong> games using kernel-level anti-cheat (EAC, BattlEye, and similar) generally do not run under any Wine-based wrapper on macOS, including Whisky. This is a Wine-wide limitation, not specific to this fork.</p>
+<p class="muted">
+  <strong data-en="Anti-cheat:" data-es="Anti-trampas:">Anti-cheat:</strong>
+  <span data-en="games using kernel-level anti-cheat (EAC, BattlEye, and similar) generally do not run under any Wine-based wrapper on macOS, including Whisky. This is a Wine-wide limitation, not specific to this fork."
+        data-es="los juegos que usan anti-trampas a nivel de kernel (EAC, BattlEye y similares) generalmente no funcionan con ningún wrapper basado en Wine en macOS, incluyendo Whisky. Esta es una limitación general de Wine, no específica de este fork.">
+    games using kernel-level anti-cheat (EAC, BattlEye, and similar) generally do not run under any Wine-based wrapper on macOS, including Whisky. This is a Wine-wide limitation, not specific to this fork.
+  </span>
+</p>
 
-<h2>Documentation</h2>
+<h2 data-en="Documentation" data-es="Documentación">Documentation</h2>
 <ul>
-  <li><a href="documentation/whiskykit/">WhiskyKit API documentation</a> — DocC-generated reference for the framework</li>
-  <li><a href="https://github.com/frankea/Whisky/blob/main/docs/AUDIT.md">Upstream issue audit</a> — per-issue accounting against the archived upstream</li>
-  <li><a href="https://github.com/frankea/Whisky/blob/main/docs/LauncherTroubleshooting.md">Launcher troubleshooting</a></li>
-  <li><a href="https://github.com/frankea/Whisky/blob/main/docs/StabilityTroubleshooting.md">Stability troubleshooting</a></li>
-  <li><a href="https://github.com/frankea/Whisky/blob/main/WhiskyKit/Sources/WhiskyKit/GameDatabase/Resources/GameDB.json">Bundled game configurations</a> — 80+ curated per-game setups, browsable in-app under Game Configurations</li>
+  <li><a href="documentation/whiskykit/"><span data-en="WhiskyKit API documentation" data-es="Documentación de la API de WhiskyKit">WhiskyKit API documentation</span></a> — <span data-en="DocC-generated reference for the framework" data-es="Referencia generada con DocC para el framework">DocC-generated reference for the framework</span></li>
+  <li><a href="https://github.com/frankea/Whisky/blob/main/docs/AUDIT.md"><span data-en="Upstream issue audit" data-es="Auditoría de issues del upstream">Upstream issue audit</span></a> — <span data-en="per-issue accounting against the archived upstream" data-es="contabilidad por issue contra el upstream archivado">per-issue accounting against the archived upstream</span></li>
+  <li><a href="https://github.com/frankea/Whisky/blob/main/docs/LauncherTroubleshooting.md"><span data-en="Launcher troubleshooting" data-es="Solución de problemas de lanzadores">Launcher troubleshooting</span></a></li>
+  <li><a href="https://github.com/frankea/Whisky/blob/main/docs/StabilityTroubleshooting.md"><span data-en="Stability troubleshooting" data-es="Solución de problemas de estabilidad">Stability troubleshooting</span></a></li>
+  <li><a href="https://github.com/frankea/Whisky/blob/main/WhiskyKit/Sources/WhiskyKit/GameDatabase/Resources/GameDB.json"><span data-en="Bundled game configurations" data-es="Configuraciones de juegos incluidas">Bundled game configurations</span></a> — <span data-en="80+ curated per-game setups, browsable in-app under Game Configurations" data-es="más de 80 configuraciones seleccionadas por juego, navegables en la app bajo Configuraciones de Juego">80+ curated per-game setups, browsable in-app under Game Configurations</span></li>
 </ul>
 
 <hr>
 
-<p class="muted">Whisky is GPL v3 licensed. Source code, releases, and issue tracker on <a href="https://github.com/frankea/Whisky">GitHub</a>. Whisky is possible thanks to <a href="https://github.com/Gcenx/DXVK-macOS">DXVK-macOS</a>, <a href="https://github.com/marzent/wine-msync">msync</a>, <a href="https://github.com/KhronosGroup/MoltenVK">MoltenVK</a>, <a href="https://github.com/sparkle-project/Sparkle">Sparkle</a>, <a href="https://www.codeweavers.com/crossover">CrossOver</a>, and Apple's D3DMetal.</p>
+<p class="muted" data-en='Whisky is GPL v3 licensed. Source code, releases, and issue tracker on <a href="https://github.com/frankea/Whisky">GitHub</a>. Whisky is possible thanks to <a href="https://github.com/Gcenx/DXVK-macOS">DXVK-macOS</a>, <a href="https://github.com/marzent/wine-msync">msync</a>, <a href="https://github.com/KhronosGroup/MoltenVK">MoltenVK</a>, <a href="https://github.com/sparkle-project/Sparkle">Sparkle</a>, <a href="https://www.codeweavers.com/crossover">CrossOver</a>, and Apple D3DMetal.'
+   data-es='Whisky tiene licencia GPL v3. Código fuente, versiones y seguimiento de issues en <a href="https://github.com/frankea/Whisky">GitHub</a>. Whisky es posible gracias a <a href="https://github.com/Gcenx/DXVK-macOS">DXVK-macOS</a>, <a href="https://github.com/marzent/wine-msync">msync</a>, <a href="https://github.com/KhronosGroup/MoltenVK">MoltenVK</a>, <a href="https://github.com/sparkle-project/Sparkle">Sparkle</a>, <a href="https://www.codeweavers.com/crossover">CrossOver</a> y D3DMetal de Apple.'>
+  Whisky is GPL v3 licensed. Source code, releases, and issue tracker on <a href="https://github.com/frankea/Whisky">GitHub</a>. Whisky is possible thanks to <a href="https://github.com/Gcenx/DXVK-macOS">DXVK-macOS</a>, <a href="https://github.com/marzent/wine-msync">msync</a>, <a href="https://github.com/KhronosGroup/MoltenVK">MoltenVK</a>, <a href="https://github.com/sparkle-project/Sparkle">Sparkle</a>, <a href="https://www.codeweavers.com/crossover">CrossOver</a>, and Apple's D3DMetal.
+</p>
 
 </main>
+
+<script>
+var currentLang = localStorage.getItem('whisky-lang') || 'en';
+
+function switchLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('whisky-lang', lang);
+  document.querySelectorAll('[data-en]').forEach(function(el) {
+    var val = el.getAttribute('data-' + lang);
+    if (val !== null) {
+      if (el.hasAttribute('alt')) {
+        el.setAttribute('alt', val);
+      } else if (el.hasAttribute('content')) {
+        el.setAttribute('content', val);
+      } else {
+        el.innerHTML = val;
+      }
+    }
+  });
+  document.documentElement.lang = lang;
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  document.getElementById('btn-es').classList.toggle('active', lang === 'es');
+}
+
+switchLang(currentLang);
+</script>
+
 </body>
 </html>

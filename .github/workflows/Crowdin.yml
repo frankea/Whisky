@@ -1,0 +1,75 @@
+name: Crowdin
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Whisky/Localizable.xcstrings'
+      - 'crowdin.yml'
+      - '.github/workflows/Crowdin.yml'
+  schedule:
+    # Mondays at 06:00 UTC — pull any new translations into a PR
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: crowdin
+  cancel-in-progress: false
+
+jobs:
+  synchronize:
+    name: Sync with Crowdin
+    runs-on: ubuntu-latest
+    steps:
+      # Stays dormant until the maintainer adds the Crowdin secrets, so the
+      # workflow can live in the repo without failing on every push.
+      - name: Check Crowdin credentials
+        id: check
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+        run: |
+          if [ -n "$CROWDIN_PROJECT_ID" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::CROWDIN_PROJECT_ID secret is not set — skipping sync. See CONTRIBUTING.md for setup."
+          fi
+
+      - name: Checkout
+        if: steps.check.outputs.configured == 'true'
+        uses: actions/checkout@v6
+
+      # Push to main → push new English source strings up to Crowdin.
+      - name: Upload sources
+        if: steps.check.outputs.configured == 'true' && github.event_name == 'push'
+        uses: crowdin/github-action@52aa776766211d83d975df51f3b9c53c2f8ba35f # v2.16.3
+        with:
+          upload_sources: true
+          download_translations: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+
+      # Schedule / manual → refresh sources, pull translations, open a PR.
+      - name: Download translations
+        if: steps.check.outputs.configured == 'true' && github.event_name != 'push'
+        uses: crowdin/github-action@52aa776766211d83d975df51f3b9c53c2f8ba35f # v2.16.3
+        with:
+          upload_sources: true
+          download_translations: true
+          localization_branch_name: l10n/crowdin
+          create_pull_request: true
+          pull_request_title: 'New translations from Crowdin'
+          pull_request_body: >-
+            Automated translation sync. Crowdin is the source of truth for
+            translations — do not hand-edit non-English strings here.
+          pull_request_base_branch_name: main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

@@ -55,11 +55,20 @@ cp .github/hooks/pre-commit .git/hooks/pre-commit
 chmod +x .git/hooks/pre-commit
 ```
 
-## General Guidelines
+## Localization
 
-All added strings must be properly localised and added to the EN strings file. Do not add keys for other languages or translate within your PR.
+All user-facing strings must be localized. Add every new string to the
+English (source) entries in `Whisky/Localizable.xcstrings`. **Do not add
+other-language translations, and do not edit another language's entries, in a
+PR** — hand-editing the string catalog tends to re-serialize the whole file
+(producing huge, unreviewable diffs) and can silently drop existing
+translations.
 
-> **Note:** Translations are managed via Crowdin for the upstream project. This fork inherits existing translations but does not currently manage Crowdin directly. New strings will be in English only until a translation workflow is established.
+Translations are managed through Crowdin and synced automatically: the
+[`Crowdin`](.github/workflows/Crowdin.yml) workflow uploads new English strings
+to the project's Crowdin, and opens a `New translations from Crowdin` pull
+request when translators add or update strings. To help translate, contribute
+through the Crowdin project rather than opening a PR here.
 
 ## Changelog
 

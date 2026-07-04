@@ -57,7 +57,7 @@ upstream patch; the rest are features or docs, tracked individually.
 | [#765](https://github.com/whisky-app/whisky/pull/765) | Custom SwiftUI update UI | **Adopted (lighter-touch)** — gentle scheduled-update reminders via an `SPUStandardUserDriverDelegate` (Dock badge + "Install Update…" instead of a focus-stealing dialog); kept Sparkle's proven install flow |
 | [#571](https://github.com/whisky-app/whisky/pull/571) | Menu-bar extra (survive window close) | **Adopted** — opt-in menu-bar extra (Settings → General) that launches pinned programs and keeps the app alive after the window closes |
 | [#1207](https://github.com/whisky-app/whisky/pull/1207) / [#1206](https://github.com/whisky-app/whisky/issues/1206) | Document a complete uninstall | **Done** — see *Uninstalling* in the [README](../README.md) |
-| [#1375](https://github.com/whisky-app/whisky/pull/1375) | Crowdin translation sync | **N/A** — this fork manages translations through its own Crowdin project, not via PRs |
+| [#1375](https://github.com/whisky-app/whisky/pull/1375) | Crowdin translation sync | **N/A (own tooling)** — this fork syncs translations via its own Crowdin project and the [`Crowdin`](../.github/workflows/Crowdin.yml) workflow, not the upstream PR |
 
 ## Running the tool
 

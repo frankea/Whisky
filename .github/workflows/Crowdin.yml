@@ -62,6 +62,12 @@ jobs:
         with:
           upload_sources: true
           download_translations: true
+          # Untranslated strings must be omitted from the export — otherwise
+          # every language gets English source-copies for all 700+ keys and
+          # Xcode loses its untranslated-fallback signal. The action passes
+          # this to the CLI explicitly, which overrides the project-level
+          # skipUntranslatedStrings setting, so it has to be set here.
+          skip_untranslated_strings: true
           localization_branch_name: l10n/crowdin
           create_pull_request: true
           pull_request_title: 'New translations from Crowdin'

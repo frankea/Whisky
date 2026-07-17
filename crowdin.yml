@@ -1,3 +1,5 @@
+preserve_hierarchy: true
+
 files:
   - source: /Whisky/Localizable.xcstrings
     translation: /Whisky/Localizable.xcstrings

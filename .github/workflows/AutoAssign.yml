@@ -6,6 +6,10 @@ on:
   pull_request:
     types: [opened]
 
+permissions:
+  issues: write
+  pull-requests: write
+
 jobs:
   assign:
     name: Assign

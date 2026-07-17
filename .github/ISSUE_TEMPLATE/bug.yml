@@ -1,6 +1,5 @@
 name: 🐛 Bug Report
 description: App crash, broken feature, or unexpected behaviour.
-type: "Bug"
 labels: ["bug"]
 body:
   - type: markdown

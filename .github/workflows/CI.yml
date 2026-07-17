@@ -24,6 +24,9 @@ on:
     paths-ignore: *docs-paths
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 # Shared environment variables for consistency across jobs
 env:
   XCODE_VERSION: 'latest-stable'

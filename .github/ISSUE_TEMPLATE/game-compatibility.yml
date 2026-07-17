@@ -1,6 +1,5 @@
 name: 🎮 Game Compatibility Report
 description: A specific game won't run, crashes, or runs poorly.
-type: "Game compatibility"
 labels: ["game-compatibility"]
 body:
   - type: markdown
@@ -124,6 +123,8 @@ body:
       label: Pre-flight checks
       options:
         - label: I checked the in-app Game Configurations browser for an existing config.
+          required: true
+        - label: I'm running **this fork** (`frankea/Whisky`, confirmed via **Whisky → About**) — not the archived original that the default `brew install --cask whisky` installs.
           required: true
         - label: I searched existing issues for this game.
           required: true

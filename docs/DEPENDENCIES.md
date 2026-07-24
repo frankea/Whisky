@@ -39,6 +39,19 @@ substitute for HTTPS transport trust. When cutting a runtime release, compute th
 published asset (`shasum -a 256 Libraries.tar.gz`) and update **both** this table and the plist — an
 incorrect value will block every fresh install.
 
+## Bundled in the app
+
+These ship **inside the app bundle** (`Whisky.app/Contents/Resources/`), committed to this repo under
+[`Libraries/`](../Libraries) and copied in by the app target's "Embed WhiskyCmd" build phase. They are
+**not** part of the downloaded `Libraries.tar.gz` runtime — bundling them in the app means a fix reaches
+every install through a normal app update, with no runtime re-download.
+
+| Component | Pinned version | Upstream source | Notes |
+|-----------|----------------|-----------------|-------|
+| **winetricks** | `20260125` | [Winetricks/winetricks](https://github.com/Winetricks/winetricks/releases/tag/20260125) | Self-contained POSIX shell script (LGPL-2.1+). Drives dependency installs (VC++, .NET, DirectX, fonts) and verb queries. Invoked as `bash winetricks <verb>` with the bundled `cabextract` and the runtime's `Wine/bin` on `PATH`. Bump by re-fetching `src/winetricks` at a newer release tag and regenerating `verbs.txt`. |
+| **verbs.txt** | generated from winetricks `20260125` | produced by `winetricks list-all` | Verb catalog shown in the Winetricks browser. Regenerate whenever winetricks is bumped: `sh Libraries/winetricks list-all` (drop the leading platform-warning line so the file starts at the first `=====` category header). |
+| **cabextract** | prebuilt arm64 binary | [cabextract.org.uk](https://www.cabextract.org.uk/) | Extracts Microsoft `.cab` archives; a hard dependency of many winetricks verbs. Committed as a code-signed-on-copy Mach-O executable. |
+
 ## Tracking cadence
 
 - **Wine:** check each January for the new stable (next: **Wine 12, ~Jan 2027**). Test before bundling.
@@ -48,6 +61,8 @@ incorrect value will block every fresh install.
   it is **tracked manually** — check Apple's GPTK page when a new GPTK lands.
 - **Security:** a critical Wine/DXVK CVE should trigger an out-of-band runtime rebuild + app release.
   See `SECURITY.md`.
+- **winetricks:** releases roughly monthly; tracked manually (no feed in `RuntimeTrack.yml`). Bump when a
+  needed verb's download URL breaks or a new component is required — it rides an app release, not a runtime one.
 
 ## Why we consume rather than build
 

@@ -32,6 +32,8 @@
 		6E182FCA2B0BF64E00AADE81 /* WinetricksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E182FC92B0BF64E00AADE81 /* WinetricksView.swift */; };
 		6E2B25C12B0E20F50084A67A /* PinAddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E2B25C02B0E20F50084A67A /* PinAddView.swift */; };
 		6E2FB15E2B589A7800E344C6 /* cabextract in Embed WhiskyCmd */ = {isa = PBXBuildFile; fileRef = 6E2FB15D2B589A7800E344C6 /* cabextract */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		A1F2E3D4C5B6A70000000102 /* winetricks in Embed WhiskyCmd */ = {isa = PBXBuildFile; fileRef = A1F2E3D4C5B6A70000000101 /* winetricks */; };
+		A1F2E3D4C5B6A70000000104 /* verbs.txt in Embed WhiskyCmd */ = {isa = PBXBuildFile; fileRef = A1F2E3D4C5B6A70000000103 /* verbs.txt */; };
 		6E355E5829D78249002D83BE /* ConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E355E5729D78249002D83BE /* ConfigView.swift */; };
 		6E355E5A29D782B2002D83BE /* ProgramsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E355E5929D782B2002D83BE /* ProgramsView.swift */; };
 		6E355E5E29D7D85D002D83BE /* ProgramView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E355E5D29D7D85D002D83BE /* ProgramView.swift */; };
@@ -167,6 +169,8 @@
 			dstSubfolderSpec = 7;
 			files = (
 				6E2FB15E2B589A7800E344C6 /* cabextract in Embed WhiskyCmd */,
+				A1F2E3D4C5B6A70000000102 /* winetricks in Embed WhiskyCmd */,
+				A1F2E3D4C5B6A70000000104 /* verbs.txt in Embed WhiskyCmd */,
 				6E95F66D2AB3EF3A00D585D1 /* WhiskyCmd in Embed WhiskyCmd */,
 			);
 			name = "Embed WhiskyCmd";
@@ -210,6 +214,8 @@
 		6E182FC92B0BF64E00AADE81 /* WinetricksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WinetricksView.swift; sourceTree = "<group>"; };
 		6E2B25C02B0E20F50084A67A /* PinAddView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinAddView.swift; sourceTree = "<group>"; };
 		6E2FB15D2B589A7800E344C6 /* cabextract */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = cabextract; sourceTree = "<group>"; };
+		A1F2E3D4C5B6A70000000101 /* winetricks */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = winetricks; sourceTree = "<group>"; };
+		A1F2E3D4C5B6A70000000103 /* verbs.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = verbs.txt; sourceTree = "<group>"; };
 		6E355E5729D78249002D83BE /* ConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigView.swift; sourceTree = "<group>"; };
 		6E355E5929D782B2002D83BE /* ProgramsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramsView.swift; sourceTree = "<group>"; };
 		6E355E5D29D7D85D002D83BE /* ProgramView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramView.swift; sourceTree = "<group>"; };
@@ -411,6 +417,8 @@
 			isa = PBXGroup;
 			children = (
 				6E2FB15D2B589A7800E344C6 /* cabextract */,
+				A1F2E3D4C5B6A70000000101 /* winetricks */,
+				A1F2E3D4C5B6A70000000103 /* verbs.txt */,
 			);
 			path = Libraries;
 			sourceTree = "<group>";

@@ -100,7 +100,8 @@ extension Winetricks {
     ) -> Process {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        process.arguments = ["bash", winetricksURL.path(percentEncoded: false), verb]
+        let winetricksPath = resourcesURL.appending(path: "winetricks").path(percentEncoded: false)
+        process.arguments = ["bash", winetricksPath, verb]
         process.environment = [
             "WINEPREFIX": bottleURL.path(percentEncoded: false),
             "WINE": "wine64",

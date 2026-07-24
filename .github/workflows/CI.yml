@@ -113,6 +113,30 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
 
+      # Guards against the class of regression fixed in #134: a resource that the
+      # app expects at runtime silently not making it into the bundle. winetricks
+      # and its verb catalog are shipped in Contents/Resources (like cabextract);
+      # if the "Embed WhiskyCmd" copy phase drops them, dependency installs break
+      # at runtime but the build stays green — so assert on the built artifact.
+      - name: Verify bundled app resources
+        if: matrix.scheme == 'Whisky'
+        run: |
+          app=$(find ~/Library/Developer/Xcode/DerivedData -type d \
+            -path '*/Build/Products/Debug/Whisky.app' | head -1)
+          if [ -z "$app" ]; then
+            echo "::error::Whisky.app not found in DerivedData after build"
+            exit 1
+          fi
+          missing=0
+          for res in winetricks verbs.txt cabextract; do
+            if [ ! -f "$app/Contents/Resources/$res" ]; then
+              echo "::error::missing bundled resource: Contents/Resources/$res"
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ] || exit 1
+          echo "Bundled resources present: winetricks, verbs.txt, cabextract"
+
   # XCUITest job - runs WhiskyUITests against the Whisky app target.
   # Tests that need bottle fixtures call `try requireBottleFixture()` which
   # XCTSkips them when the user container is empty (always true on a fresh

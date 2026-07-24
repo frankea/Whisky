@@ -45,9 +45,6 @@ struct WinetricksCategory {
 }
 
 class Winetricks {
-    static let winetricksURL: URL = WhiskyWineInstaller.libraryFolder
-        .appending(path: "winetricks")
-
     @MainActor
     static func runCommand(command: String, bottle: Bottle) async {
         await runCommandInternal(command: command, bottle: bottle, isRetryAfterRepair: false)
@@ -82,8 +79,11 @@ class Winetricks {
         guard let resourcesURL = Bundle.main.url(forResource: "cabextract", withExtension: nil)?
             .deletingLastPathComponent()
         else { return }
+        // Winetricks ships in the app bundle Resources alongside cabextract. Invoke it via
+        // `bash` (matching the headless install paths) so no executable bit is relied upon.
+        let winetricksPath = resourcesURL.appending(path: "winetricks").path(percentEncoded: false)
         // swiftlint:disable:next line_length
-        let winetricksCmd = #"PATH=\"\#(WhiskyWineInstaller.binFolder.path):\#(resourcesURL.path(percentEncoded: false)):$PATH\" WINE=wine64 WINEPREFIX=\"\#(bottle.url.path)\" \"\#(winetricksURL.path(percentEncoded: false))\" \#(command)"#
+        let winetricksCmd = #"PATH=\"\#(WhiskyWineInstaller.binFolder.path):\#(resourcesURL.path(percentEncoded: false)):$PATH\" WINE=wine64 WINEPREFIX=\"\#(bottle.url.path)\" bash \"\#(winetricksPath)\" \#(command)"#
 
         let script = """
         tell application "Terminal"
@@ -182,16 +182,12 @@ class Winetricks {
     }
 
     static func parseVerbs() async -> [WinetricksCategory] {
-        // Grab the verbs file
-        let verbsURL = WhiskyWineInstaller.libraryFolder.appending(path: "verbs.txt")
-        let verbs: String = await { () async -> String in
-            do {
-                let (data, _) = try await URLSession.shared.data(from: verbsURL)
-                return String(data: data, encoding: .utf8) ?? String()
-            } catch {
-                return String()
-            }
-        }()
+        // Grab the verbs file bundled in the app Resources.
+        guard let verbsURL = Bundle.main.url(forResource: "verbs.txt", withExtension: nil) else {
+            logger.warning("Could not locate bundled verbs.txt resource")
+            return []
+        }
+        let verbs = (try? String(contentsOf: verbsURL, encoding: .utf8)) ?? String()
 
         // Read the file line by line
         let lines = verbs.components(separatedBy: "\n")

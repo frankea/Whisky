@@ -99,6 +99,23 @@ struct ContentView: View {
                 url.prettyPath()
             ))
         }
+        .alert(
+            "bottle.orphaned.title",
+            isPresented: Binding(
+                get: { !bottleVM.orphanedBottles.isEmpty },
+                set: { if !$0 { bottleVM.orphanedBottles = [] } }
+            )
+        ) {
+            Button("bottle.orphaned.reimport") {
+                bottleVM.reimportOrphanedBottles()
+            }
+            Button("button.cancel", role: .cancel) {}
+        } message: {
+            Text(String(
+                format: String(localized: "bottle.orphaned.message"),
+                bottleVM.orphanedBottles.map(\.name).joined(separator: ", ")
+            ))
+        }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -174,6 +191,11 @@ struct ContentView: View {
             // Surface a registry that couldn't be read and was moved aside at
             // startup, so the reset bottle list doesn't pass silently (#61).
             corruptRegistryBackupURL = bottleVM.bottlesList.corruptRegistryBackupURL
+
+            // Offer re-import for bottle folders the registry doesn't know
+            // about — pairs with the corrupt-registry backup above: after a
+            // registry reset the scan offers everything back (issue #145).
+            bottleVM.scanForOrphanedBottles()
 
             if !bottleVM.bottles.isEmpty || bottleVM.countActive() != 0 {
                 if let bottle = bottleVM.bottles.first(where: { $0.url == selectedBottleURL && $0.isAvailable }) {

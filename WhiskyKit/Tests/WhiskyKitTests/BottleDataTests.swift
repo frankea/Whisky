@@ -99,6 +99,100 @@ final class BottleDataTests: XCTestCase {
         XCTAssertNil(reloaded.corruptRegistryBackupURL)
     }
 
+    // MARK: - Orphaned bottle scan (issue #145)
+
+    /// Creates a bottle directory with a decodable Metadata.plist, mirroring
+    /// what a real creation leaves on disk.
+    @discardableResult
+    private func makeBottleDir(named name: String, in dir: URL) throws -> URL {
+        let bottleDir = dir.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: bottleDir, withIntermediateDirectories: true)
+        var settings = BottleSettings()
+        settings.name = name
+        try settings.encode(to: bottleDir.appendingPathComponent("Metadata.plist"))
+        return bottleDir
+    }
+
+    func testOrphanScanFindsUnregisteredBottle() throws {
+        let scanDir = tempDir.appendingPathComponent("Bottles")
+        let bottleDir = try makeBottleDir(named: "Steam Stuff", in: scanDir)
+
+        let data = BottleData(entriesFile: entriesFile)
+        let orphans = data.orphanedBottles(in: scanDir)
+
+        XCTAssertEqual(orphans.map(\.name), ["Steam Stuff"])
+        // Compare resolved paths: the listing yields /private/var-style URLs
+        // where the test constructed /var-style ones.
+        XCTAssertEqual(
+            orphans.map { $0.url.resolvingSymlinksInPath().path },
+            [bottleDir.resolvingSymlinksInPath().path]
+        )
+    }
+
+    func testOrphanScanSkipsRegisteredBottles() throws {
+        let scanDir = tempDir.appendingPathComponent("Bottles")
+        let bottleDir = try makeBottleDir(named: "Registered", in: scanDir)
+
+        var data = BottleData(entriesFile: entriesFile)
+        XCTAssertTrue(data.registerBottlePath(bottleDir))
+
+        XCTAssertTrue(data.orphanedBottles(in: scanDir).isEmpty)
+    }
+
+    func testOrphanScanMatchesRegistrationDespiteTrailingSlash() throws {
+        // contentsOfDirectory yields directory URLs with a trailing slash;
+        // registered paths are stored without one. The comparison must not
+        // report a registered bottle as orphaned over that difference.
+        let scanDir = tempDir.appendingPathComponent("Bottles")
+        let bottleDir = try makeBottleDir(named: "Slashed", in: scanDir)
+
+        var data = BottleData(entriesFile: entriesFile)
+        XCTAssertTrue(data.registerBottlePath(URL(fileURLWithPath: bottleDir.path + "/", isDirectory: true)))
+
+        XCTAssertTrue(data.orphanedBottles(in: scanDir).isEmpty)
+    }
+
+    func testOrphanScanSkipsDirsWithoutMetadataAndPlainFiles() throws {
+        let scanDir = tempDir.appendingPathComponent("Bottles")
+        try FileManager.default.createDirectory(
+            at: scanDir.appendingPathComponent("no-metadata"),
+            withIntermediateDirectories: true
+        )
+        try Data("not a bottle".utf8).write(to: scanDir.appendingPathComponent("stray-file"))
+
+        let data = BottleData(entriesFile: entriesFile)
+        XCTAssertTrue(data.orphanedBottles(in: scanDir).isEmpty)
+    }
+
+    func testOrphanScanSkipsCorruptMetadata() throws {
+        let scanDir = tempDir.appendingPathComponent("Bottles")
+        let bottleDir = scanDir.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: bottleDir, withIntermediateDirectories: true)
+        let metadataURL = bottleDir.appendingPathComponent("Metadata.plist")
+        let garbage = Data("garbage".utf8)
+        try garbage.write(to: metadataURL)
+
+        let data = BottleData(entriesFile: entriesFile)
+
+        XCTAssertTrue(data.orphanedBottles(in: scanDir).isEmpty)
+        // The probe must be side-effect free: no quarantine, no default rewrite.
+        XCTAssertEqual(try Data(contentsOf: metadataURL), garbage)
+    }
+
+    func testOrphanScanSortsByName() throws {
+        let scanDir = tempDir.appendingPathComponent("Bottles")
+        try makeBottleDir(named: "zeta", in: scanDir)
+        try makeBottleDir(named: "Alpha", in: scanDir)
+
+        let data = BottleData(entriesFile: entriesFile)
+        XCTAssertEqual(data.orphanedBottles(in: scanDir).map(\.name), ["Alpha", "zeta"])
+    }
+
+    func testOrphanScanMissingDirectoryReturnsEmpty() {
+        let data = BottleData(entriesFile: entriesFile)
+        XCTAssertTrue(data.orphanedBottles(in: tempDir.appendingPathComponent("nope")).isEmpty)
+    }
+
     // MARK: - Fallback-format salvage
 
     func testMinimalFallbackFormatIsSalvagedWithoutBackup() throws {

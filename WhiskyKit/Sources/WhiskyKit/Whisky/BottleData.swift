@@ -112,6 +112,63 @@ public struct BottleData: Codable {
         return bottles
     }
 
+    // MARK: - Orphaned Bottle Recovery
+
+    /// A bottle directory found on disk with no corresponding registry entry.
+    public struct OrphanedBottle: Equatable {
+        /// The bottle's root directory.
+        public let url: URL
+        /// The bottle name from its `Metadata.plist`.
+        public let name: String
+    }
+
+    /// Finds bottle directories on disk that aren't in the registry.
+    ///
+    /// Scans the immediate subdirectories of `directory` for a decodable
+    /// `Metadata.plist` with no matching registry entry, so bottles that fell
+    /// out of the registry (pre-#136 creations, a reset registry, a restored
+    /// `Bottles/` backup) can be offered for one-click re-import instead of
+    /// requiring hand edits to the entries plist (issue #145).
+    ///
+    /// The read is deliberately side-effect free: unlike
+    /// ``BottleSettings/decode(from:)`` it never creates, migrates, or
+    /// quarantines files in directories it merely probes. Only the default
+    /// bottles directory is scanned — custom-location bottles stay manual.
+    ///
+    /// - Parameter directory: The directory to scan. Defaults to
+    ///   ``defaultBottleDir``.
+    /// - Returns: Orphaned bottles sorted by name.
+    public func orphanedBottles(in directory: URL = BottleData.defaultBottleDir) -> [OrphanedBottle] {
+        let fileManager = FileManager.default
+        let registered = Set(paths.map(Self.comparablePath))
+        guard let entries = try? fileManager.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        )
+        else { return [] }
+
+        return entries
+            .filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true }
+            .filter { !registered.contains(Self.comparablePath($0)) }
+            .compactMap { url in
+                let metadataURL = url.appending(path: "Metadata").appendingPathExtension("plist")
+                guard let data = try? Data(contentsOf: metadataURL),
+                      let settings = try? PropertyListDecoder().decode(BottleSettings.self, from: data)
+                else { return nil }
+                return OrphanedBottle(url: url, name: settings.name)
+            }
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    /// Canonical path form for registry-membership comparison: trailing
+    /// slashes stripped and symlinks resolved, so directory-listing URLs
+    /// (trailing slash, `/private/var`) match registered paths (`/var`, no
+    /// slash) for the same directory.
+    private static func comparablePath(_ url: URL) -> String {
+        url.standardizedFileURL.resolvingSymlinksInPath().path(percentEncoded: false)
+    }
+
     /// Appends a bottle path to the registry and verifies the entries file on
     /// disk actually contains it afterwards, so a failed save can't silently
     /// drop the bottle on the next launch (issue #61).

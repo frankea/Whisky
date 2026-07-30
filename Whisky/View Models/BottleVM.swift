@@ -80,6 +80,28 @@ final class BottleVM: ObservableObject {
         bottles = bottlesList.loadBottles()
     }
 
+    /// Bottles found on disk with no registry entry, awaiting a re-import
+    /// decision from the user (issue #145). Non-empty drives the recovery
+    /// alert in ContentView.
+    @Published var orphanedBottles: [BottleData.OrphanedBottle] = []
+
+    /// Scans the default bottles directory for bottle folders the registry
+    /// doesn't know about — pre-#136 creations, a reset registry, or a
+    /// restored Bottles/ backup.
+    func scanForOrphanedBottles() {
+        orphanedBottles = bottlesList.orphanedBottles()
+    }
+
+    func reimportOrphanedBottles() {
+        for orphan in orphanedBottles where !bottlesList.registerBottlePath(orphan.url) {
+            bottleVMLogger.error(
+                "Failed to re-register orphaned bottle at \(orphan.url.path(percentEncoded: false), privacy: .public)"
+            )
+        }
+        orphanedBottles = []
+        loadBottles()
+    }
+
     func countActive() -> Int {
         bottles.filter { $0.isAvailable == true }.count
     }

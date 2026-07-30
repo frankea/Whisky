@@ -1101,6 +1101,36 @@
         }
       }
     },
+    "bottle.orphaned.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "These bottles exist on disk but aren't in your library: %@. Re-importing adds them back to the sidebar; nothing on disk is changed."
+          }
+        }
+      }
+    },
+    "bottle.orphaned.reimport" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Re-Import"
+          }
+        }
+      }
+    },
+    "bottle.orphaned.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bottles Found on Disk"
+          }
+        }
+      }
+    },
     "bottle.registry.corrupt.message" : {
       "localizations" : {
         "en" : {

@@ -51,6 +51,13 @@ struct GraphicsConfigSection: View {
                 }
             )
 
+            // A bottle explicitly set to D3DMetal without its payload silently
+            // degrades to WineD3D at launch — say so instead (issue #146).
+            if bottle.settings.graphicsBackend == .d3dMetal,
+               !WhiskyWineInstaller.isBackendAvailable(.d3dMetal) {
+                d3dMetalMissingWarning
+            }
+
             // Running process warning banner
             if hasRunningProcesses {
                 runningProcessWarning
@@ -129,6 +136,18 @@ struct GraphicsConfigSection: View {
         .animation(.default, value: advancedMode)
         .task {
             await checkRunningProcesses()
+        }
+    }
+
+    // MARK: - D3DMetal Missing Warning
+
+    private var d3dMetalMissingWarning: some View {
+        HStack {
+            Image(systemName: "exclamationmark.triangle")
+                .foregroundStyle(.orange)
+            Text("config.graphics.backend.d3dMetal.missingWarning")
+                .font(.caption)
+            Spacer()
         }
     }
 

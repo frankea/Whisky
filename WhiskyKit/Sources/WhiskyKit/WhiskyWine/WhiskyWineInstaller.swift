@@ -395,14 +395,39 @@ public class WhiskyWineInstaller {
 
     /// Whether `backend` can actually be selected against the currently
     /// installed runtime. Extends the pure
-    /// ``GraphicsBackend/isAvailable(runtimeInfo:)`` version gate with DXMT's
-    /// payload-variant capability check: only the *native* DXMT payload is
-    /// usable per-bottle, so an older builtin-variant payload (present but it
-    /// would silently redirect to wined3d) must not appear selectable.
+    /// ``GraphicsBackend/isAvailable(runtimeInfo:)`` version gate with the
+    /// payload checks version records can't express: DXMT needs the *native*
+    /// payload variant (an older builtin-variant payload would silently
+    /// redirect to wined3d), and D3DMetal needs the GPTK payload on disk —
+    /// without it a d3dMetal bottle silently degrades to wined3d at launch
+    /// (issue #146).
     public static func isBackendAvailable(_ backend: GraphicsBackend) -> Bool {
-        let versionAvailable = backend.isAvailable(runtimeInfo: whiskyWineInfo())
-        guard backend == .dxmt else { return versionAvailable }
-        return versionAvailable && Wine.isDXMTRuntimeNative()
+        backendAvailability(
+            backend,
+            runtimeInfo: whiskyWineInfo(),
+            d3dMetalInstalled: isD3DMetalInstalled(),
+            dxmtRuntimeNative: Wine.isDXMTRuntimeNative()
+        )
+    }
+
+    /// Pure availability logic behind ``isBackendAvailable(_:)``, with every
+    /// machine-dependent input injected so tests answer the same on every
+    /// machine.
+    static func backendAvailability(
+        _ backend: GraphicsBackend,
+        runtimeInfo: WhiskyWineVersion?,
+        d3dMetalInstalled: Bool,
+        dxmtRuntimeNative: Bool
+    ) -> Bool {
+        let versionAvailable = backend.isAvailable(runtimeInfo: runtimeInfo)
+        switch backend {
+        case .dxmt:
+            return versionAvailable && dxmtRuntimeNative
+        case .d3dMetal:
+            return versionAvailable && d3dMetalInstalled
+        case .recommended, .dxvk, .wined3d:
+            return versionAvailable
+        }
     }
 
     /// Reads the full version record from the installed WhiskyWine runtime.

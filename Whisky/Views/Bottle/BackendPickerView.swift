@@ -122,7 +122,7 @@ private struct BackendCard: View {
                         .foregroundStyle(isSelected ? .white.opacity(0.8) : .secondary)
                         .lineLimit(2)
                 } else {
-                    Text("config.graphics.backend.dxmt.unavailable")
+                    Text(unavailableReasonKey)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
@@ -151,6 +151,16 @@ private struct BackendCard: View {
         .buttonStyle(.plain)
         .disabled(!isAvailable)
         .opacity(isAvailable ? 1 : 0.5)
+    }
+
+    // MARK: - Unavailability
+
+    /// Only payload-dependent backends (DXMT, D3DMetal) can be unavailable;
+    /// each explains what the installed engine is missing (issue #146).
+    private var unavailableReasonKey: LocalizedStringKey {
+        backend == .d3dMetal
+            ? "config.graphics.backend.d3dMetal.unavailable"
+            : "config.graphics.backend.dxmt.unavailable"
     }
 
     // MARK: - Icon

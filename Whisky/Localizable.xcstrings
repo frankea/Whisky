@@ -22634,6 +22634,16 @@
         }
       }
     },
+    "config.graphics.backend.d3dMetal.missingWarning" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This bottle is set to D3DMetal, which the installed engine doesn't include. Games will fall back to WineD3D, which can't run DirectX 11 titles — switch to DXMT or DXVK."
+          }
+        }
+      }
+    },
     "config.graphics.backend.d3dMetal.summary" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -22641,6 +22651,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apple's Direct3D-to-Metal translation, fastest on Apple Silicon for D3D9–12."
+          }
+        }
+      }
+    },
+    "config.graphics.backend.d3dMetal.unavailable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not included in the installed engine — needs a Game Porting Toolkit runtime"
           }
         }
       }

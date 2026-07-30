@@ -22,6 +22,7 @@ import SemanticVersion
 @testable import WhiskyKit
 import XCTest
 
+// swiftlint:disable:next type_body_length
 final class WhiskyWineInstallerTests: XCTestCase {
     func testCleanupTarballRemovesExistingFile() throws {
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -195,6 +196,43 @@ final class WhiskyWineInstallerTests: XCTestCase {
         )
 
         XCTAssertFalse(WhiskyWineInstaller.isD3DMetalPresent(inLibraryFolder: tempDir))
+    }
+
+    // MARK: - backendAvailability (issue #146)
+
+    func testD3DMetalUnavailableWithoutPayload() {
+        let runtime = WhiskyWineVersion(version: SemanticVersion(3, 1, 1), dxmtVersion: "0.80")
+
+        XCTAssertFalse(WhiskyWineInstaller.backendAvailability(
+            .d3dMetal, runtimeInfo: runtime, d3dMetalInstalled: false, dxmtRuntimeNative: true
+        ))
+    }
+
+    func testD3DMetalAvailableWithPayload() {
+        let runtime = WhiskyWineVersion(version: SemanticVersion(3, 1, 1), dxmtVersion: "0.80")
+
+        XCTAssertTrue(WhiskyWineInstaller.backendAvailability(
+            .d3dMetal, runtimeInfo: runtime, d3dMetalInstalled: true, dxmtRuntimeNative: true
+        ))
+    }
+
+    func testDXMTRequiresNativePayloadVariant() {
+        let runtime = WhiskyWineVersion(version: SemanticVersion(3, 1, 1), dxmtVersion: "0.80")
+
+        XCTAssertFalse(WhiskyWineInstaller.backendAvailability(
+            .dxmt, runtimeInfo: runtime, d3dMetalInstalled: true, dxmtRuntimeNative: false
+        ))
+        XCTAssertTrue(WhiskyWineInstaller.backendAvailability(
+            .dxmt, runtimeInfo: runtime, d3dMetalInstalled: false, dxmtRuntimeNative: true
+        ))
+    }
+
+    func testUniversalBackendsUnaffectedByMissingPayloads() {
+        for backend in [GraphicsBackend.recommended, .dxvk, .wined3d] {
+            XCTAssertTrue(WhiskyWineInstaller.backendAvailability(
+                backend, runtimeInfo: nil, d3dMetalInstalled: false, dxmtRuntimeNative: false
+            ))
+        }
     }
 
     func testRuntimeNotPresentWhenFolderEmpty() {

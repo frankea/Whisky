@@ -16,44 +16,10 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-// swiftlint:disable file_length
 import AppKit
 import Foundation
 import os.log
 import WhiskyKit
-
-/// Phases reported during bottle duplication for progress feedback.
-enum DuplicationPhase: Equatable {
-    /// Calculating total size of the source bottle directory.
-    case calculatingSize
-    /// Copying files. `bytesCopied` and `totalBytes` track progress.
-    case copying(bytesCopied: Int64, totalBytes: Int64)
-    /// Rewriting metadata (pins, blocklist) for the new bottle.
-    case updatingMetadata
-    /// Registering the new bottle and reloading the bottle list.
-    case finalizing
-}
-
-/// Returns a duplicate name following the Finder convention.
-///
-/// - If no existing bottle is named "\(baseName) Copy", returns "\(baseName) Copy".
-/// - Otherwise tries "\(baseName) Copy 2", "Copy 3", etc.
-///
-/// - Parameters:
-///   - baseName: The original bottle's name.
-///   - existingNames: Names of all current bottles.
-/// - Returns: The next available duplicate name.
-func nextDuplicateName(baseName: String, existingNames: [String]) -> String {
-    let candidate = "\(baseName) Copy"
-    if !existingNames.contains(candidate) {
-        return candidate
-    }
-    var counter = 2
-    while existingNames.contains("\(baseName) Copy \(counter)") {
-        counter += 1
-    }
-    return "\(baseName) Copy \(counter)"
-}
 
 /// MainActor-isolated cache for Wine usernames to avoid repeated filesystem scans.
 @MainActor
@@ -259,95 +225,34 @@ extension Bottle {
         }
     }
 
+    /// Moves the bottle to a new location.
+    ///
+    /// Thin adapter over `BottleOperations.move`, which owns the
+    /// rewrite-before-move and rollback-on-failure semantics for pins and
+    /// blocklist URLs.
     @MainActor
     func move(destination: URL) {
-        let bottle = BottleVM.shared.bottles.first(where: { $0.url == url })
-        // The URL rewrite must happen before the move so the persisted settings
-        // travel with the bottle, so keep a snapshot to restore on failure.
-        let originalPins = bottle?.settings.pins
-        let originalBlocklist = bottle?.settings.blocklist
-
-        bottle?.inFlight = true
-        defer { bottle?.inFlight = false }
-
-        do {
-            if let bottle {
-                for index in 0 ..< bottle.settings.pins.count {
-                    let pin = bottle.settings.pins[index]
-                    if let pinURL = pin.url {
-                        bottle.settings.pins[index].url = pinURL.updateParentBottle(
-                            old: url,
-                            new: destination
-                        )
-                    }
-                }
-
-                for index in 0 ..< bottle.settings.blocklist.count {
-                    let blockedUrl = bottle.settings.blocklist[index]
-                    bottle.settings.blocklist[index] = blockedUrl.updateParentBottle(
-                        old: url,
-                        new: destination
-                    )
-                }
-            }
-            try FileManager.default.moveItem(at: url, to: destination)
-            if let path = BottleVM.shared.bottlesList.paths.firstIndex(of: url) {
-                BottleVM.shared.bottlesList.paths[path] = destination
-            }
-            BottleVM.shared.loadBottles()
-        } catch {
-            // A failed move must not leave settings pointing at a path that
-            // was never created.
-            if let bottle {
-                if let originalPins {
-                    bottle.settings.pins = originalPins
-                }
-                if let originalBlocklist {
-                    bottle.settings.blocklist = originalBlocklist
-                }
-            }
-            Logger.wineKit.error("Failed to move bottle: \(error.localizedDescription)")
-        }
+        BottleOperations.move(bottleAt: url, to: destination, registry: BottleVM.shared)
     }
 
     /// Exports the bottle as a gzip-compressed tar archive.
     ///
-    /// This operation runs on a background thread to avoid blocking the UI.
-    /// The bottle's `inFlight` property is set during the operation to show progress.
+    /// Thin adapter over `BottleOperations.export`.
     ///
     /// - Parameter destination: The URL where the archive should be saved.
     /// - Throws: `TarError` if the archive operation fails, or an error if the bottle is not found.
     @MainActor
     func exportAsArchive(destination: URL) async throws {
-        guard let bottle = BottleVM.shared.bottles.first(where: { $0.url == url }) else {
-            throw NSError(
-                domain: "com.franke.Whisky",
-                code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "Bottle not found"]
-            )
-        }
-        bottle.inFlight = true
-        defer { bottle.inFlight = false }
-
-        // Capture URL before entering detached task to satisfy actor isolation
-        let sourceURL = url
-        try await Task.detached(priority: .userInitiated) {
-            try Tar.tar(folder: sourceURL, toURL: destination)
-        }.value
+        try await BottleOperations.export(bottleAt: url, to: destination, registry: BottleVM.shared)
     }
 
     /// Duplicates the bottle to a new directory with the given name.
     ///
-    /// This operation runs on a background thread to avoid blocking the UI.
-    /// The bottle's `inFlight` property is set during the operation to show progress.
-    /// An optional progress callback reports duplication phases for UI feedback.
-    ///
-    /// On copy failure the partially created directory is removed before re-throwing.
-    /// Transient artifacts (old logs, diagnosis history) are excluded from the clone.
+    /// Thin adapter over `BottleOperations.duplicate`.
     ///
     /// - Parameters:
     ///   - newName: The name for the duplicated bottle.
-    ///   - progress: Optional callback reporting ``DuplicationPhase`` updates.
+    ///   - progress: Optional callback reporting `DuplicationPhase` updates.
     /// - Returns: The URL of the newly created bottle directory.
     /// - Throws: An error if the bottle is not found or the copy operation fails.
     @MainActor
@@ -355,130 +260,12 @@ extension Bottle {
         newName: String,
         progress: (@Sendable (DuplicationPhase) -> Void)? = nil
     ) async throws -> URL {
-        guard let bottle = BottleVM.shared.bottles.first(where: { $0.url == url }) else {
-            throw NSError(
-                domain: "com.franke.Whisky",
-                code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "Bottle not found"]
-            )
-        }
-        bottle.inFlight = true
-        defer { bottle.inFlight = false }
-
-        // Create new bottle directory in the same parent folder
-        let parentDir = url.deletingLastPathComponent()
-        let newBottleDir = parentDir.appendingPathComponent(UUID().uuidString)
-
-        // Capture URLs before entering detached task to satisfy actor isolation
-        let sourceURL = url
-        try await Task.detached(priority: .userInitiated) {
-            // Phase: calculate size
-            progress?(.calculatingSize)
-            let totalBytes = Self.calculateDirectorySize(at: sourceURL)
-
-            // Phase: copying
-            progress?(.copying(bytesCopied: 0, totalBytes: totalBytes))
-            do {
-                try FileManager.default.copyItem(at: sourceURL, to: newBottleDir)
-            } catch {
-                // Clean up partial clone on failure
-                try? FileManager.default.removeItem(at: newBottleDir)
-                throw error
-            }
-            progress?(.copying(bytesCopied: totalBytes, totalBytes: totalBytes))
-
-            // Remove transient artifacts from the clone
-            Self.removeTransientArtifacts(in: newBottleDir)
-        }.value
-
-        // Phase: updating metadata
-        progress?(.updatingMetadata)
-
-        // Update the new bottle's settings
-        let newBottle = Bottle(bottleUrl: newBottleDir)
-        newBottle.settings.name = newName
-
-        // Update pin URLs to point to the new bottle
-        for index in 0 ..< newBottle.settings.pins.count {
-            if let pinURL = newBottle.settings.pins[index].url {
-                newBottle.settings.pins[index].url = pinURL.updateParentBottle(
-                    old: sourceURL,
-                    new: newBottleDir
-                )
-            }
-        }
-
-        // Update blocklist URLs to point to the new bottle
-        for index in 0 ..< newBottle.settings.blocklist.count {
-            newBottle.settings.blocklist[index] = newBottle.settings.blocklist[index]
-                .updateParentBottle(old: sourceURL, new: newBottleDir)
-        }
-
-        // Explicitly save settings to ensure all modifications are persisted
-        // (modifying nested struct properties may not always trigger didSet)
-        newBottle.saveBottleSettings()
-
-        // Phase: finalizing
-        progress?(.finalizing)
-
-        // Register the new bottle
-        BottleVM.shared.bottlesList.paths.append(newBottleDir)
-        BottleVM.shared.loadBottles()
-
-        return newBottleDir
-    }
-
-    /// Calculates the total allocated size of a directory tree.
-    private nonisolated static func calculateDirectorySize(at url: URL) -> Int64 {
-        let fileManager = FileManager.default
-        guard let enumerator = fileManager.enumerator(
-            at: url,
-            includingPropertiesForKeys: [.totalFileAllocatedSizeKey],
-            options: [.skipsHiddenFiles]
+        try await BottleOperations.duplicate(
+            bottleAt: url,
+            newName: newName,
+            registry: BottleVM.shared,
+            progress: progress
         )
-        else {
-            return 0
-        }
-        var total: Int64 = 0
-        for case let fileURL as URL in enumerator {
-            if let values = try? fileURL.resourceValues(forKeys: [.totalFileAllocatedSizeKey]),
-               let size = values.totalFileAllocatedSize {
-                total += Int64(size)
-            }
-        }
-        return total
-    }
-
-    /// Removes transient artifacts from a cloned bottle directory.
-    ///
-    /// Deletes old log files, diagnosis history sidecars, and temp files so the
-    /// duplicate starts clean.
-    private nonisolated static func removeTransientArtifacts(in bottleDir: URL) {
-        let fileManager = FileManager.default
-
-        // Remove .log files from the logs directory
-        let logsDir = bottleDir.appending(path: "logs")
-        if let logEnumerator = fileManager.enumerator(
-            at: logsDir,
-            includingPropertiesForKeys: nil,
-            options: [.skipsSubdirectoryDescendants]
-        ) {
-            for case let fileURL as URL in logEnumerator where fileURL.pathExtension == "log" {
-                try? fileManager.removeItem(at: fileURL)
-            }
-        }
-
-        // Remove diagnosis history sidecar files
-        if let enumerator = fileManager.enumerator(
-            at: bottleDir,
-            includingPropertiesForKeys: nil,
-            options: []
-        ) {
-            for case let fileURL as URL in enumerator
-                where fileURL.lastPathComponent.hasSuffix(".diagnosis-history.plist") {
-                try? fileManager.removeItem(at: fileURL)
-            }
-        }
     }
 
     @MainActor
@@ -506,22 +293,7 @@ extension Bottle {
             ProcessRegistry.shared.clearRegistry(for: url)
         }
 
-        do {
-            if let bottle = BottleVM.shared.bottles.first(where: { $0.url == url }) {
-                bottle.inFlight = true
-            }
-
-            if delete {
-                try FileManager.default.removeItem(at: url)
-            }
-
-            if let path = BottleVM.shared.bottlesList.paths.firstIndex(of: url) {
-                BottleVM.shared.bottlesList.paths.remove(at: path)
-            }
-            BottleVM.shared.loadBottles()
-        } catch {
-            Logger.wineKit.error("Failed to remove bottle: \(error.localizedDescription)")
-        }
+        BottleOperations.remove(bottleAt: url, deleteFiles: delete, registry: BottleVM.shared)
     }
 
     @MainActor
@@ -538,5 +310,20 @@ extension Bottle {
         alert.alertStyle = .critical
         alert.addButton(withTitle: String(localized: "button.ok"))
         alert.runModal()
+    }
+}
+
+// MARK: - BottleRegistry Conformance
+
+/// Bridges `BottleOperations` to the app's bottle list. The `loadBottles()`
+/// requirement is satisfied by the existing method on `BottleVM`.
+extension BottleVM: BottleRegistry {
+    var bottlePaths: [URL] {
+        get { bottlesList.paths }
+        set { bottlesList.paths = newValue }
+    }
+
+    func bottle(for url: URL) -> Bottle? {
+        bottles.first(where: { $0.url == url })
     }
 }

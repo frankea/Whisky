@@ -85,7 +85,7 @@ struct BottleListEntry: View {
         .sheet(isPresented: $showBottleDuplicate) {
             RenameView(
                 "duplicate.bottle.title",
-                name: nextDuplicateName(
+                name: BottleOperations.nextDuplicateName(
                     baseName: name,
                     existingNames: BottleVM.shared.bottles.map(\.settings.name)
                 )

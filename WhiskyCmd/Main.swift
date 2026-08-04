@@ -22,10 +22,31 @@ import Foundation
 import SemanticVersion
 import WhiskyKit
 
+/// A well-formed invocation that names state the system does not have or an
+/// operation that failed: a missing bottle, an unknown game, a failed
+/// creation. Prints the message to stderr and exits 1. Exit 64 with the
+/// usage block stays reserved for malformed invocations.
+struct DomainError: LocalizedError {
+    private let message: String
+
+    init(_ message: String) {
+        self.message = message
+    }
+
+    var errorDescription: String? { message }
+}
+
 @main
 struct Whisky: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "A CLI interface for Whisky.",
+        discussion: """
+        Exit codes: 64 for a malformed invocation (unknown flags, missing or \
+        empty arguments; printed with usage), 1 for a well-formed command \
+        that fails (no such bottle, game not found, operation failed), and \
+        `run` and `launch` pass through the launched program's own nonzero \
+        exit code.
+        """,
         subcommands: [
             List.self,
             Create.self,
@@ -81,7 +102,7 @@ extension Whisky {
             var bottlesList = BottleData()
             let existing = bottlesList.loadBottles()
             if existing.contains(where: { $0.settings.name == trimmed }) {
-                throw ValidationError("A bottle named \"\(trimmed)\" already exists.")
+                throw DomainError("A bottle named \"\(trimmed)\" already exists.")
             }
 
             let bottleURL = BottleData.defaultBottleDir.appending(path: UUID().uuidString)
@@ -99,7 +120,7 @@ extension Whisky {
                 bottlesList.paths.append(bottleURL)
                 print("Created bottle \"\(trimmed)\". Open Whisky to bootstrap the Wine prefix.")
             } catch {
-                throw ValidationError("\(error)")
+                throw DomainError("\(error)")
             }
         }
     }
@@ -149,7 +170,7 @@ extension Whisky {
                     print(error)
                 }
             } else {
-                throw ValidationError("No bottle called \"\(name)\" found.")
+                throw DomainError("No bottle called \"\(name)\" found.")
             }
         }
     }
@@ -172,7 +193,7 @@ extension Whisky {
                 bottlesList.paths.removeAll(where: { $0 == bottleToRemove.url })
                 print("Removed \"\(name)\".")
             } else {
-                throw ValidationError("No bottle called \"\(name)\" found.")
+                throw DomainError("No bottle called \"\(name)\" found.")
             }
         }
     }
@@ -215,7 +236,7 @@ extension Whisky {
             let bottles = bottlesList.loadBottles()
 
             guard let bottle = bottles.first(where: { $0.settings.name == bottleName }) else {
-                throw ValidationError("A bottle with that name doesn't exist.")
+                throw DomainError("A bottle with that name doesn't exist.")
             }
 
             let url = URL(fileURLWithPath: Self.resolveExecutablePath(path, in: bottle))
@@ -381,7 +402,7 @@ extension Whisky {
             let bottles = bottlesList.loadBottles()
 
             guard let bottle = bottles.first(where: { $0.settings.name == bottleName }) else {
-                throw ValidationError("A bottle with that name doesn't exist.")
+                throw DomainError("A bottle with that name doesn't exist.")
             }
 
             let url = URL(fileURLWithPath: exePath)
@@ -410,7 +431,7 @@ extension Whisky {
                 if overwrite {
                     try FileManager.default.removeItem(at: appURL)
                 } else {
-                    throw ValidationError(
+                    throw DomainError(
                         "Shortcut already exists at \(appURL.path(percentEncoded: false)). "
                             + "Use --overwrite to replace it."
                     )
@@ -437,7 +458,7 @@ extension Whisky {
             let bottles = bottlesList.loadBottles()
 
             guard let bottle = bottles.first(where: { $0.settings.name == bottleName }) else {
-                throw ValidationError("A bottle with that name doesn't exist.")
+                throw DomainError("A bottle with that name doesn't exist.")
             }
 
             let envCmd = Wine.generateTerminalEnvironmentCommand(bottle: bottle)
@@ -478,7 +499,7 @@ extension Whisky {
             let bottles = bottlesList.loadBottles()
 
             guard let bottle = bottles.first(where: { $0.settings.name == bottleName }) else {
-                throw ValidationError("A bottle with that name doesn't exist.")
+                throw DomainError("A bottle with that name doesn't exist.")
             }
 
             let games = SteamLibrary.enumerate(bottleURL: bottle.url)
@@ -536,7 +557,7 @@ extension Whisky {
             let target: Bottle
             if let bottleName = bottle {
                 guard let named = bottles.first(where: { $0.settings.name == bottleName }) else {
-                    throw ValidationError("A bottle with that name doesn't exist.")
+                    throw DomainError("A bottle with that name doesn't exist.")
                 }
                 target = named
             } else {

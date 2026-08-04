@@ -75016,6 +75016,17 @@
         }
       }
     },
+    "setup.whiskywine.error.interrupted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The connection was interrupted and the download could not be completed. Please try again."
+          }
+        }
+      }
+    },
     "setup.whiskywine.error.invalidDownloadURL" : {
       "localizations" : {
         "ar" : {

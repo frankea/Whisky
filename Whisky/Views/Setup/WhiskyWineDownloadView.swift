@@ -17,12 +17,9 @@
 //
 
 import AppKit
-import os
 import SemanticVersion
 import SwiftUI
 import WhiskyKit
-
-private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "WhiskyWineDownloadView")
 
 struct WhiskyWineDownloadView: View {
     @State private var fractionProgress: Double = 0
@@ -30,14 +27,15 @@ struct WhiskyWineDownloadView: View {
     @State private var totalBytes: Int64 = 0
     // Internal so the formatting helpers in WhiskyWineDownloadFormatting.swift can read it.
     @State var downloadSpeed: Double = 0
-    @State private var downloadTask: URLSessionDownloadTask?
-    @State private var observation: NSKeyValueObservation?
+    @State private var downloadTask: Task<Void, Never>?
     @State private var startTime: Date?
+    /// Bytes already on disk when this UI session's download began (non-zero
+    /// when resuming a partial), so speed and ETA only count fresh bytes.
+    @State private var sessionBaselineBytes: Int64?
     /// The current failure, if any. Carries the user-facing message and the
     /// telemetry reason together so the two can never drift apart.
     /// Internal so the failure helper in WhiskyWineDownloadFormatting.swift can set it.
     @State var downloadFailure: DownloadFailure?
-    @State private var currentDownloadTaskID: UUID?
     /// Expected SHA-256 of the runtime archive, from the version plist. `nil`
     /// when no hash is advertised, in which case verification is skipped.
     @State private var expectedSHA256: String?
@@ -49,15 +47,26 @@ struct WhiskyWineDownloadView: View {
     @Binding var showSetup: Bool
     @Binding var diagnostics: WhiskyWineSetupDiagnostics
 
-    /// URLSession that survives transient connectivity loss (Wi-Fi/Ethernet
-    /// switches, VPN reconnects) and applies bounded request/resource timeouts
-    /// so a stalled download surfaces an error instead of hanging forever.
-    private static let resilientSession: URLSession = {
+    /// Stable on-disk home for the runtime archive. Living in Caches rather
+    /// than the ephemeral temp directory means a partially downloaded archive
+    /// survives an app relaunch, and the next attempt resumes it instead of
+    /// starting the full download over.
+    static let archiveDestination: URL = .cachesDirectory
+        .appending(path: Bundle.whiskyBundleIdentifier)
+        .appending(path: "RuntimeDownload")
+        .appending(path: "Libraries.tar.gz")
+
+    /// Downloader that resumes interrupted transfers and retries transient
+    /// failures with backoff. The session survives transient connectivity loss
+    /// (Wi-Fi/Ethernet switches, VPN reconnects) and applies bounded
+    /// request/resource timeouts so a stalled download surfaces an error
+    /// instead of hanging forever.
+    private static let downloader: ResumableDownloader = {
         let config = URLSessionConfiguration.ephemeral
         config.waitsForConnectivity = true
         config.timeoutIntervalForRequest = 60
         config.timeoutIntervalForResource = 600
-        return URLSession(configuration: config)
+        return ResumableDownloader(sessionConfiguration: config)
     }()
 
     var body: some View {
@@ -173,6 +182,8 @@ extension WhiskyWineDownloadView {
         .padding(.horizontal)
     }
 
+    /// Resets the UI and starts over. Partial download data stays on disk, so
+    /// the new attempt resumes from wherever the failed one stopped.
     private func retryDownload() {
         downloadFailure = nil
         fractionProgress = 0
@@ -180,11 +191,9 @@ extension WhiskyWineDownloadView {
         totalBytes = 0
         downloadSpeed = 0
         startTime = nil
+        sessionBaselineBytes = nil
         downloadTask?.cancel()
-        observation?.invalidate()
-        observation = nil
         downloadTask = nil
-        currentDownloadTaskID = nil
         diagnostics.resetDownloadState(reason: "Retry requested")
         Task {
             await fetchVersionAndDownload()
@@ -235,6 +244,9 @@ extension WhiskyWineDownloadView {
             }
 
             diagnostics.downloadURL = downloadURL.absoluteString
+            if await reuseExistingArchiveIfValid() {
+                return
+            }
             startDownload(from: downloadURL)
         } catch {
             let errorMessage = error.localizedDescription
@@ -246,97 +258,77 @@ extension WhiskyWineDownloadView {
         }
     }
 
+    /// A finished archive can be left behind when the app quits between the
+    /// download and install stages. If it matches the advertised hash, skip
+    /// straight to install; if not, discard it so the download starts clean.
+    /// - Returns: `true` when the setup flow already moved on to install.
     @MainActor
-    private func startDownload(from url: URL) {
-        let taskID = UUID()
-        currentDownloadTaskID = taskID
-
-        diagnostics.downloadStartedAt = Date()
-        diagnostics.record("Starting download")
-        downloadTask = Self.resilientSession.downloadTask(with: url) { fileURL, response, error in
-            // URLSession deletes the temporary file immediately after completion handler returns.
-            // We must move it to a safe location synchronously before the async Task executes.
-            var permanentURL: URL?
-            var moveError: Error?
-            if let tempURL = fileURL {
-                let destinationURL = FileManager.default.temporaryDirectory
-                    .appendingPathComponent(UUID().uuidString)
-                    .appendingPathExtension("tar.gz")
-                do {
-                    try FileManager.default.moveItem(at: tempURL, to: destinationURL)
-                    permanentURL = destinationURL
-                } catch {
-                    // Log and capture move error to provide better error messaging
-                    let errorDesc = error.localizedDescription
-                    logger.error("Failed to move file: \(errorDesc)")
-                    moveError = error
-                    permanentURL = nil
-                }
-            }
-
-            // Prioritize network error, then move error
-            let effectiveError = error ?? moveError
-            Task { @MainActor in
-                handleDownloadCompletion(
-                    taskID: taskID,
-                    fileURL: permanentURL,
-                    response: response,
-                    error: effectiveError
-                )
-            }
+    private func reuseExistingArchiveIfValid() async -> Bool {
+        let destination = Self.archiveDestination
+        guard let expected = expectedSHA256,
+              FileManager.default.fileExists(atPath: destination.path(percentEncoded: false))
+        else { return false }
+        diagnostics.record("Found previously downloaded archive; verifying")
+        let result = await Task.detached {
+            WhiskyWineInstaller.integrityResult(forFileAt: destination, expectedSHA256: expected)
+        }.value
+        guard result == .match else {
+            diagnostics.record("Previous archive failed verification; discarding")
+            ResumableDownloader.discardArtifacts(at: destination)
+            return false
         }
-
-        observation = downloadTask?.observe(\.countOfBytesReceived) { [taskID] task, _ in
-            Task { @MainActor in
-                handleProgressUpdate(taskID: taskID, task: task)
-            }
-        }
-
-        startTime = Date()
-        downloadTask?.resume()
+        diagnostics.record("Previous archive verified; skipping download")
+        tarLocation = destination
+        proceed()
+        return true
     }
 
     @MainActor
-    private func handleDownloadCompletion(
-        taskID: UUID,
-        fileURL: URL?,
-        response: URLResponse?,
-        error: Error?
-    ) {
-        guard currentDownloadTaskID == taskID else { return }
-
-        if let error {
-            // Don't show error when download was explicitly cancelled (e.g., during retry)
-            if (error as NSError).code == NSURLErrorCancelled {
-                return
+    private func startDownload(from url: URL) {
+        diagnostics.downloadStartedAt = Date()
+        diagnostics.record("Starting download")
+        startTime = Date()
+        sessionBaselineBytes = nil
+        let destination = Self.archiveDestination
+        downloadTask = Task { @MainActor in
+            do {
+                try await Self.downloader.download(
+                    from: url,
+                    to: destination,
+                    onEvent: { message in
+                        Task { @MainActor in diagnostics.record(message) }
+                    },
+                    progress: { progress in
+                        Task { @MainActor in handleProgressUpdate(progress) }
+                    }
+                )
+                diagnostics.downloadFinishedAt = Date()
+                diagnostics.record("Download completed")
+                await verifyThenProceed(fileURL: destination)
+            } catch is CancellationError {
+                // Cancelled by retry or quit; partial data stays for resume.
+            } catch let urlError as URLError where urlError.code == .cancelled {
+                // Same as above, surfaced through URLSession.
+            } catch {
+                handleDownloadError(error)
             }
-            setDownloadFailure(String(
-                format: String(localized: "setup.whiskywine.error.downloadFailed"),
-                error.localizedDescription
-            ))
-            diagnostics.downloadFinishedAt = Date()
-            diagnostics.record("Download failed: \(error.localizedDescription)")
+        }
+    }
+
+    @MainActor
+    private func handleDownloadError(_ error: Error) {
+        diagnostics.downloadFinishedAt = Date()
+        if case let ResumableDownloadError.httpStatus(statusCode) = error {
+            diagnostics.downloadHTTPStatus = statusCode
+            diagnostics.record("Download HTTP \(statusCode)")
+            setDownloadFailure(formatHTTPError(statusCode: statusCode))
             return
         }
-
-        if let httpResponse = response as? HTTPURLResponse,
-           !(200 ... 299).contains(httpResponse.statusCode) {
-            diagnostics.downloadHTTPStatus = httpResponse.statusCode
-            diagnostics.downloadFinishedAt = Date()
-            diagnostics.record("Download HTTP \(httpResponse.statusCode)")
-            setDownloadFailure(formatHTTPError(statusCode: httpResponse.statusCode))
-            return
-        }
-
-        if let url = fileURL {
-            diagnostics.downloadFinishedAt = Date()
-            diagnostics.record("Download completed: moved to temp")
-            Task { await verifyThenProceed(fileURL: url) }
-        } else {
-            diagnostics.downloadFinishedAt = Date()
-            diagnostics.record("Download completed but no file URL received")
-            setDownloadFailure(String(localized: "setup.whiskywine.error.noFileReceived"))
-        }
+        diagnostics.record("Download failed: \(error.localizedDescription)")
+        setDownloadFailure(String(
+            format: String(localized: "setup.whiskywine.error.downloadFailed"),
+            error.localizedDescription
+        ))
     }
 
     /// Verifies the downloaded archive against the advertised SHA-256, then
@@ -359,7 +351,9 @@ extension WhiskyWineDownloadView {
             }
             if let failure {
                 diagnostics.record("Integrity check FAILED — \(failure)")
-                WhiskyWineInstaller.cleanupTarball(at: fileURL)
+                // Discard the archive plus any resume artifacts so the next
+                // attempt restarts from a clean slate, never from bad bytes.
+                ResumableDownloader.discardArtifacts(at: fileURL)
                 setDownloadFailure(
                     String(
                         localized: "setup.whiskywine.error.checksumMismatch",
@@ -380,17 +374,22 @@ extension WhiskyWineDownloadView {
     }
 
     @MainActor
-    private func handleProgressUpdate(taskID: UUID, task: URLSessionDownloadTask) {
-        guard currentDownloadTaskID == taskID else { return }
-
+    private func handleProgressUpdate(_ progress: ResumableDownloadProgress) {
+        if sessionBaselineBytes == nil {
+            // First report of this session. When resuming, it already includes
+            // the carried-over prefix; baseline it so speed and ETA reflect
+            // only bytes actually transferred now.
+            sessionBaselineBytes = progress.bytesOnDisk
+            startTime = Date()
+        }
+        completedBytes = progress.bytesOnDisk
+        totalBytes = progress.expectedBytes ?? 0
         let currentTime = Date()
         let elapsedTime = currentTime.timeIntervalSince(startTime ?? currentTime)
-        let currentBytes = task.countOfBytesReceived
-        if currentBytes > 0 {
-            downloadSpeed = Double(currentBytes) / elapsedTime
+        let sessionBytes = completedBytes - (sessionBaselineBytes ?? 0)
+        if sessionBytes > 0, elapsedTime > 0 {
+            downloadSpeed = Double(sessionBytes) / elapsedTime
         }
-        totalBytes = task.countOfBytesExpectedToReceive
-        completedBytes = currentBytes
         if totalBytes > 0 {
             fractionProgress = Double(completedBytes) / Double(totalBytes)
         }

@@ -275,12 +275,25 @@ public enum BottleOperations {
     /// Callers are responsible for stopping any running processes first; this
     /// is only the delete-and-deregister step.
     ///
+    /// Deleting the files also forgets any Steam game routes pointing at the
+    /// bottle, since they can never resolve again. Removing the bottle from
+    /// the list while keeping its files leaves routes in place: the bottle can
+    /// come back through re-import, and resolution ignores routes to bottles
+    /// it doesn't know. A failed deletion keeps the routes, matching the kept
+    /// registry entry.
+    ///
     /// - Parameters:
     ///   - url: The bottle's directory.
     ///   - deleteFiles: Whether to delete the bottle directory from disk.
     ///   - registry: The registry that owns the bottle list.
+    ///   - routing: The Steam route store to prune. Defaults to the real one.
     @MainActor
-    public static func remove(bottleAt url: URL, deleteFiles: Bool, registry: BottleRegistry) {
+    public static func remove(
+        bottleAt url: URL,
+        deleteFiles: Bool,
+        registry: BottleRegistry,
+        routing: GameRouting = GameRouting()
+    ) {
         do {
             if let bottle = registry.bottle(for: url) {
                 bottle.inFlight = true
@@ -288,6 +301,7 @@ public enum BottleOperations {
 
             if deleteFiles {
                 try FileManager.default.removeItem(at: url)
+                routing.removeRoutes(toBottle: url)
             }
 
             if let path = registry.bottlePaths.firstIndex(of: url) {

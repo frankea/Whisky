@@ -65,11 +65,19 @@ public struct GameRouting {
         write(current)
     }
 
-    /// Forgets a route, e.g. when its bottle is deleted.
-    public func remove(appId: Int) {
-        var current = entries()
-        current.removeValue(forKey: String(appId))
-        write(current)
+    /// Forgets every route pointing at a bottle, e.g. when the bottle is
+    /// deleted.
+    ///
+    /// Paths are compared through `standardizedFileURL`, the same way
+    /// resolution matches a route against the bottle list, so exactly the
+    /// routes that would have named this bottle are the ones removed. When
+    /// nothing matches the store is left untouched (and never created).
+    public func removeRoutes(toBottle bottleURL: URL) {
+        let target = bottleURL.standardizedFileURL
+        let current = entries()
+        let remaining = current.filter { URL(fileURLWithPath: $0.value).standardizedFileURL != target }
+        guard remaining.count != current.count else { return }
+        write(remaining)
     }
 
     private func entries() -> [String: String] {

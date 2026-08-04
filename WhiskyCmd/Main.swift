@@ -143,6 +143,7 @@ extension Whisky {
                 bottlesList.paths.removeAll(where: { $0 == bottleToRemove.url })
                 do {
                     try FileManager.default.removeItem(at: bottleToRemove.url)
+                    GameRouting().removeRoutes(toBottle: bottleToRemove.url)
                     print("Deleted \"\(name)\".")
                 } catch {
                     print(error)

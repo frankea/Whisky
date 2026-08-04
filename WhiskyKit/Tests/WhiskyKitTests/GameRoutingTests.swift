@@ -61,15 +61,45 @@ struct GameRoutingTests {
         #expect(routing.routes().isEmpty)
     }
 
-    @Test("Removes a route")
-    func removesRoute() {
+    @Test("Removes every route pointing at a bottle, keeping the rest")
+    func removesRoutesToBottle() {
         let (routing, cleanup) = makeStore()
         defer { cleanup() }
 
-        routing.record(appId: 7, bottleURL: URL(fileURLWithPath: "/tmp/bottles/seven"))
-        routing.remove(appId: 7)
+        let doomed = URL(fileURLWithPath: "/tmp/bottles/doomed")
+        routing.record(appId: 1, bottleURL: doomed)
+        routing.record(appId: 2, bottleURL: URL(fileURLWithPath: "/tmp/bottles/kept"))
+        routing.record(appId: 3, bottleURL: doomed)
 
-        #expect(routing.bottleURL(forAppId: 7) == nil)
+        routing.removeRoutes(toBottle: doomed)
+
+        #expect(routing.bottleURL(forAppId: 1) == nil)
+        #expect(routing.bottleURL(forAppId: 3) == nil)
+        #expect(routing.bottleURL(forAppId: 2)?.lastPathComponent == "kept")
+        #expect(routing.routes().count == 1)
+    }
+
+    @Test("Bottle paths match the way resolution compares them")
+    func removesRoutesByStandardizedPath() {
+        let (routing, cleanup) = makeStore()
+        defer { cleanup() }
+
+        routing.record(appId: 1, bottleURL: URL(fileURLWithPath: "/tmp/bottles/one"))
+        routing.removeRoutes(toBottle: URL(fileURLWithPath: "/tmp/bottles/./one"))
+
+        #expect(routing.bottleURL(forAppId: 1) == nil)
+    }
+
+    @Test("Pruning without a match never creates the store")
+    func pruneWithoutMatchWritesNothing() {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let url = tempDir.appending(path: "GameRouting.plist")
+
+        let routing = GameRouting(url: url)
+        routing.removeRoutes(toBottle: URL(fileURLWithPath: "/tmp/bottles/none"))
+
+        #expect(!FileManager.default.fileExists(atPath: url.path(percentEncoded: false)))
     }
 
     @Test("Keeps other routes when one changes")

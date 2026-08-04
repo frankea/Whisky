@@ -16,6 +16,7 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+// swiftlint:disable file_length
 import Foundation
 @testable import WhiskyKit
 import XCTest
@@ -356,6 +357,55 @@ final class NextDuplicateNameTests: XCTestCase {
 // MARK: - Remove
 
 final class BottleOperationsRemoveTests: BottleOperationsTestCase {
+    /// A route store in the test's temp dir, pre-loaded with one route to the
+    /// fixture bottle and one to an unrelated bottle.
+    private func makeRouting() -> (routing: GameRouting, otherBottle: URL) {
+        let routing = GameRouting(url: tempDir.appending(path: "GameRouting.plist"))
+        let otherBottle = tempDir.appending(path: "Other")
+        routing.record(appId: 1_245_620, bottleURL: bottleURL)
+        routing.record(appId: 4_576_510, bottleURL: otherBottle)
+        return (routing, otherBottle)
+    }
+
+    @MainActor
+    func testRemoveDeletingFilesPrunesRoutesToTheBottle() {
+        let registry = RegistryFixture()
+        _ = makeRegisteredBottle(in: registry)
+        let (routing, otherBottle) = makeRouting()
+
+        BottleOperations.remove(bottleAt: bottleURL, deleteFiles: true, registry: registry, routing: routing)
+
+        XCTAssertNil(routing.bottleURL(forAppId: 1_245_620))
+        XCTAssertEqual(routing.bottleURL(forAppId: 4_576_510)?.lastPathComponent, otherBottle.lastPathComponent)
+    }
+
+    @MainActor
+    func testRemoveKeepingFilesKeepsRoutes() {
+        let registry = RegistryFixture()
+        _ = makeRegisteredBottle(in: registry)
+        let (routing, _) = makeRouting()
+
+        BottleOperations.remove(bottleAt: bottleURL, deleteFiles: false, registry: registry, routing: routing)
+
+        // The bottle is still on disk and can be re-imported; its routes wait
+        // for it, inert until then because resolution ignores routes to
+        // bottles it doesn't know.
+        XCTAssertEqual(routing.bottleURL(forAppId: 1_245_620)?.lastPathComponent, bottleURL.lastPathComponent)
+    }
+
+    @MainActor
+    func testRemoveFailureKeepsRoutes() throws {
+        let registry = RegistryFixture()
+        _ = makeRegisteredBottle(in: registry)
+        let (routing, _) = makeRouting()
+        // Deleting the directory up front makes the file removal throw.
+        try FileManager.default.removeItem(at: bottleURL)
+
+        BottleOperations.remove(bottleAt: bottleURL, deleteFiles: true, registry: registry, routing: routing)
+
+        XCTAssertEqual(routing.bottleURL(forAppId: 1_245_620)?.lastPathComponent, bottleURL.lastPathComponent)
+    }
+
     @MainActor
     func testRemoveDeletingFilesRemovesDirectoryAndRegistryEntry() {
         let registry = RegistryFixture()

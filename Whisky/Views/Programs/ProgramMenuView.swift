@@ -29,7 +29,7 @@ struct ProgramMenuView: View {
             Telemetry.capture(.firstProgramLaunchAttempted)
             // Program-list and pin launches historically skipped launcher
             // detection; only FileOpenView and the bottle Run button had it.
-            LauncherDetection.detectAndApplyLauncherFixes(from: program.url, for: program.bottle)
+            LauncherFixes.detectAndApply(from: program.url, for: program.bottle)
             program.run()
         }
         .labelStyle(.titleAndIcon)

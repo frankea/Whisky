@@ -241,9 +241,9 @@ public class Wine {
         programOverrides: ProgramOverrides? = nil, programSettings: ProgramSettings? = nil,
         gameProfileEnvironment: [String: String] = [:]
     ) async throws -> ProgramRunResult {
-        // Note: Launcher detection is handled at the app level (FileOpenView/BottleView)
-        // before calling this method. The detection logic uses LauncherDetection utility
-        // which is in the Whisky app target, not WhiskyKit framework.
+        // Note: Launcher detection and fix application happen before this method
+        // is called, via LauncherFixes.detectAndApply from the app's run paths
+        // (FileOpenView/BottleView/ProgramMenuView).
 
         // The effective backend for this launch: a program-level override wins
         // over the bottle setting, and `.recommended` resolves to its concrete

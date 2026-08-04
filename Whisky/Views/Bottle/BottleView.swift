@@ -133,7 +133,7 @@ struct BottleView: View {
                                             // Auto-detect launcher and apply fixes if compatibility mode enabled
                                             // This completes synchronously on MainActor, ensuring settings are
                                             // persisted before Wine.runProgram() reads them
-                                            LauncherDetection.detectAndApplyLauncherFixes(from: url, for: bottle)
+                                            LauncherFixes.detectAndApply(from: url, for: bottle)
 
                                             Telemetry.capture(.firstProgramLaunchAttempted)
                                             if url.pathExtension == "bat" {

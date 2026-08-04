@@ -182,7 +182,7 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             env["DXVK_ASYNC"] = "1"
 
             // Note: Network timeouts for Steam are configured via bottle.settings.networkTimeout
-            // which is set to 90000ms by LauncherDetection.applyLauncherFixes()
+            // which is set to 90000ms by LauncherFixes.apply()
             // This allows users to customize timeouts via the UI slider
 
         case .rockstar:
@@ -232,7 +232,7 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             env["DXVK_ASYNC"] = "1"
 
             // Note: Network timeouts for Ubisoft are configured via bottle.settings.networkTimeout
-            // which is set to 90000ms by LauncherDetection.applyLauncherFixes()
+            // which is set to 90000ms by LauncherFixes.apply()
 
         case .battleNet:
             // Blizzard Battle.net launcher

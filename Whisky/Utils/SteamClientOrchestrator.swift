@@ -226,7 +226,7 @@ final class SteamClientOrchestrator: ObservableObject {
         guard !(bottle.settings.launcherCompatibilityMode
             && bottle.settings.detectedLauncher == .steam)
         else { return }
-        LauncherDetection.applyLauncherFixes(for: bottle, launcher: .steam)
+        LauncherFixes.apply(to: bottle, launcher: .steam)
     }
 
     private func isClientRunning() async -> Bool {

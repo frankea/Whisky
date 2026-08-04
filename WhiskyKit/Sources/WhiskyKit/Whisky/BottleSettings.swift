@@ -992,7 +992,7 @@ public struct BottleSettings: Codable, Equatable {
         // Network timeout configuration
         // Applied if user customized timeout (including launcher-set values)
         // Launcher-specific timeouts are set via bottle.settings.networkTimeout by
-        // LauncherDetection.applyLauncherFixes(), giving users control via UI slider
+        // LauncherFixes.apply(), giving users control via UI slider
         if networkTimeout != 60_000 { // If not default (60s)
             builder.set("WINHTTP_CONNECT_TIMEOUT", String(networkTimeout), layer: .launcherManaged)
             builder.set("WINHTTP_RECEIVE_TIMEOUT", String(networkTimeout * 2), layer: .launcherManaged)

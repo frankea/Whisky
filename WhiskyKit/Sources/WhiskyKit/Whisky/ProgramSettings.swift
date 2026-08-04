@@ -205,10 +205,27 @@ public struct ProgramSettings: Codable {
     /// - Returns: The decoded settings or new default settings.
     /// - Throws: An error if the file exists but cannot be decoded.
     static func decode(from settingsURL: URL) throws -> ProgramSettings {
-        guard FileManager.default.fileExists(atPath: settingsURL.path(percentEncoded: false)) else {
+        guard let settings = try decodeIfPresent(from: settingsURL) else {
             let settings = ProgramSettings()
             try settings.encode(to: settingsURL)
             return settings
+        }
+        return settings
+    }
+
+    /// Loads program settings from a plist file without touching the disk
+    /// beyond the read.
+    ///
+    /// Unlike ``decode(from:)``, a missing file yields `nil` instead of a
+    /// default plist written to disk, so callers can inspect a program's
+    /// persisted settings without materializing them.
+    ///
+    /// - Parameter settingsURL: The URL to the settings plist file.
+    /// - Returns: The decoded settings, or `nil` if the file doesn't exist.
+    /// - Throws: An error if the file exists but cannot be decoded.
+    static func decodeIfPresent(from settingsURL: URL) throws -> ProgramSettings? {
+        guard FileManager.default.fileExists(atPath: settingsURL.path(percentEncoded: false)) else {
+            return nil
         }
 
         let data = try Data(contentsOf: settingsURL)

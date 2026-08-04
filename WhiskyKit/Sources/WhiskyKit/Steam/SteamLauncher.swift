@@ -85,6 +85,11 @@ public enum SteamLauncher {
 
     /// The user's persisted overrides for a game's executables, so settings
     /// tuned in the Programs tab survive a launch from the library or the cli.
+    ///
+    /// Resolution is read-only: no ``Program`` is materialized, so Play never
+    /// writes settings plists for the executables that don't win. Only an
+    /// executable with persisted overrides can win, so skipping the default
+    /// plists changes nothing for the winner.
     @MainActor
     static func userOverrides(forInstallURL installURL: URL, bottle: Bottle) -> ProgramOverrides? {
         let scanned = Dictionary(
@@ -94,10 +99,10 @@ public enum SteamLauncher {
             uniquingKeysWith: { first, _ in first }
         )
         let candidates = SteamLibrary.executableURLs(under: installURL).map { url in
-            // Falls back to a direct load for executables the bottle scan has
+            // Falls back to a plist read for executables the bottle scan has
             // not reached, so Play works before the Programs tab is opened.
             let overrides = scanned[url.standardizedFileURL]
-                ?? Program(url: url, bottle: bottle, peFile: nil).settings.overrides
+                ?? Program.persistedOverrides(for: url, bottleURL: bottle.url)
             return ProgramOverrideCandidate(url: url, overrides: overrides ?? ProgramOverrides())
         }
         return SteamLibrary.preferredOverrides(among: candidates)

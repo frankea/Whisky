@@ -165,25 +165,63 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
     /// the old plist to the identity-keyed name on first load, so downgrading
     /// loses nothing.
     static func settingsURL(for url: URL, in bottle: Bottle, legacyName: String) -> URL {
-        let settingsFolder = bottle.url.appending(path: "Program Settings")
-        try? FileManager.default.createDirectory(at: settingsFolder, withIntermediateDirectories: true)
-        let identityURL = settingsFolder
-            .appending(path: settingsIdentity(for: url, bottleURL: bottle.url))
-            .appendingPathExtension("plist")
-        let legacyURL = settingsFolder.appending(path: legacyName).appendingPathExtension("plist")
-
+        let locations = settingsLocations(for: url, bottleURL: bottle.url, legacyName: legacyName)
         let fileManager = FileManager.default
-        if !fileManager.fileExists(atPath: identityURL.path(percentEncoded: false)),
-           fileManager.fileExists(atPath: legacyURL.path(percentEncoded: false)) {
+        try? fileManager.createDirectory(
+            at: locations.identity.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+
+        if !fileManager.fileExists(atPath: locations.identity.path(percentEncoded: false)),
+           fileManager.fileExists(atPath: locations.legacy.path(percentEncoded: false)) {
             do {
-                try fileManager.copyItem(at: legacyURL, to: identityURL)
+                try fileManager.copyItem(at: locations.legacy, to: locations.identity)
             } catch {
                 Logger.wineKit.error(
                     "Failed to migrate settings for `\(legacyName)`: \(error.localizedDescription)"
                 )
             }
         }
-        return identityURL
+        return locations.identity
+    }
+
+    /// Where a program's settings live: the identity-keyed plist and the
+    /// legacy filename-keyed one it may have to be migrated from. Pure path
+    /// computation; nothing is created or copied.
+    nonisolated static func settingsLocations(
+        for url: URL, bottleURL: URL, legacyName: String
+    ) -> (identity: URL, legacy: URL) {
+        let settingsFolder = bottleURL.appending(path: "Program Settings")
+        let identityURL = settingsFolder
+            .appending(path: settingsIdentity(for: url, bottleURL: bottleURL))
+            .appendingPathExtension("plist")
+        let legacyURL = settingsFolder.appending(path: legacyName).appendingPathExtension("plist")
+        return (identityURL, legacyURL)
+    }
+
+    /// The overrides an executable's persisted settings carry, read without
+    /// materializing a ``Program``: a missing settings plist yields `nil`
+    /// where the initializer would write a default plist to disk.
+    ///
+    /// A legacy filename-keyed plist is read in place; migrating it to the
+    /// identity-keyed name stays with the initializer, as does quarantining
+    /// an unreadable plist (an unreadable plist reads as no overrides here).
+    nonisolated static func persistedOverrides(for url: URL, bottleURL: URL) -> ProgramOverrides? {
+        let locations = settingsLocations(for: url, bottleURL: bottleURL, legacyName: url.lastPathComponent)
+        let settingsURL = FileManager.default.fileExists(atPath: locations.identity.path(percentEncoded: false))
+            ? locations.identity
+            : locations.legacy
+
+        do {
+            return try ProgramSettings.decodeIfPresent(from: settingsURL)?.overrides
+        } catch {
+            Logger.wineKit.error(
+                """
+                Failed to read settings for `\(url.lastPathComponent, privacy: .public)`: \
+                \(String(describing: error), privacy: .public)
+                """
+            )
+            return nil
+        }
     }
 
     /// A stable identity for a program: the executable's stem plus a short

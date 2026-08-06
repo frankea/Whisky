@@ -77,6 +77,60 @@ final class BottleDataTests: XCTestCase {
         XCTAssertEqual(BottleData(entriesFile: entriesFile).paths, [bottle])
     }
 
+    // MARK: - Duplicate paths (trailing-slash variants)
+
+    func testRegisterBottlePathRejectsTrailingSlashDuplicate() {
+        var data = BottleData(entriesFile: entriesFile)
+        let bottle = tempDir.appendingPathComponent("Bottle")
+        let slashed = URL(fileURLWithPath: bottle.path + "/", isDirectory: true)
+
+        XCTAssertTrue(data.registerBottlePath(bottle))
+        // The slash variant is the same bottle: no new entry, but the
+        // registration must still report the bottle as durably persisted.
+        XCTAssertTrue(data.registerBottlePath(slashed))
+
+        XCTAssertEqual(data.paths, [bottle])
+        XCTAssertEqual(BottleData(entriesFile: entriesFile).paths, [bottle])
+    }
+
+    func testDirectPathsMutationCollapsesDuplicates() {
+        // Several call sites append to paths directly, bypassing
+        // registerBottlePath. The registry must hold its own invariant.
+        var data = BottleData(entriesFile: entriesFile)
+        let bottle = tempDir.appendingPathComponent("Bottle")
+
+        data.paths.append(bottle)
+        data.paths.append(URL(fileURLWithPath: bottle.path + "/", isDirectory: true))
+
+        XCTAssertEqual(data.paths, [bottle])
+    }
+
+    func testDecodeHealsRegistryDirtiedByOlderReleases() throws {
+        // Handcraft a registry containing the same bottle twice, with and
+        // without a trailing slash, as written by releases that compared
+        // URLs for exact equality.
+        let bottle = tempDir.appendingPathComponent("Bottle")
+        let plist: [String: Any] = [
+            "fileVersion": ["major": 1, "minor": 0, "patch": 0, "preRelease": "", "build": ""],
+            "paths": [
+                ["relative": bottle.absoluteString],
+                ["relative": bottle.absoluteString + "/"]
+            ]
+        ]
+        try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+            .write(to: entriesFile)
+
+        let data = BottleData(entriesFile: entriesFile)
+        XCTAssertEqual(data.paths, [bottle])
+
+        // The healed list must be persisted, not just deduplicated in memory.
+        let onDisk = try PropertyListSerialization.propertyList(
+            from: Data(contentsOf: entriesFile), format: nil
+        )
+        let paths = try XCTUnwrap((onDisk as? [String: Any])?["paths"] as? [Any])
+        XCTAssertEqual(paths.count, 1)
+    }
+
     // MARK: - Corrupt registry (issue #61)
 
     func testCorruptRegistryIsBackedUpNotOverwritten() throws {

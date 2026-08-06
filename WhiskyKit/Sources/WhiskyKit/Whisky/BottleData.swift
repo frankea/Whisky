@@ -61,6 +61,13 @@ public struct BottleData: Codable {
 
     public var paths: [URL] = [] {
         didSet {
+            // Callers append to paths directly, so the registry holds its own
+            // uniqueness invariant here rather than trusting every call site.
+            // Reassigning inside didSet does not re-trigger the observer.
+            let deduped = Self.dedupedPaths(paths)
+            if deduped.count != paths.count {
+                paths = deduped
+            }
             encode()
         }
     }
@@ -166,7 +173,22 @@ public struct BottleData: Codable {
     /// (trailing slash, `/private/var`) match registered paths (`/var`, no
     /// slash) for the same directory.
     private static func comparablePath(_ url: URL) -> String {
-        url.standardizedFileURL.resolvingSymlinksInPath().path(percentEncoded: false)
+        // resolvingSymlinksInPath() appends a trailing slash for existing
+        // directories, but only for URLs that have touched the filesystem;
+        // URLs decoded from the registry plist keep whatever form was stored.
+        // Strip the slash so the same directory compares equal in every form.
+        var path = url.standardizedFileURL.resolvingSymlinksInPath().path(percentEncoded: false)
+        if path.count > 1, path.hasSuffix("/") {
+            path.removeLast()
+        }
+        return path
+    }
+
+    /// Removes entries that name the same directory in a different URL form
+    /// (trailing slash, `/private/var` symlink), keeping the first occurrence.
+    private static func dedupedPaths(_ paths: [URL]) -> [URL] {
+        var seen = Set<String>()
+        return paths.filter { seen.insert(comparablePath($0)).inserted }
     }
 
     /// Appends a bottle path to the registry and verifies the entries file on
@@ -175,10 +197,13 @@ public struct BottleData: Codable {
     ///
     /// - Returns: `true` when the path is durably persisted.
     public mutating func registerBottlePath(_ url: URL) -> Bool {
-        if !paths.contains(url) {
+        let target = Self.comparablePath(url)
+        if !paths.contains(where: { Self.comparablePath($0) == target }) {
             paths.append(url) // didSet persists via encode()
         }
-        return persistedPaths()?.contains(url) ?? false
+        // Compare by canonical path: the bottle may already be registered
+        // under a different URL form (trailing slash) than the caller's.
+        return persistedPaths()?.contains { Self.comparablePath($0) == target } ?? false
     }
 
     /// Reads the bottle paths back from the entries file, accepting both the
@@ -226,10 +251,20 @@ public struct BottleData: Codable {
                 )
                 // Keep the registered paths; init() re-encodes them in the
                 // current format instead of discarding them.
-                self = replacement(paths: decoded.paths)
+                self = replacement(paths: Self.dedupedPaths(decoded.paths))
                 return false
             }
-            self = replacement(paths: decoded.paths)
+            let deduped = Self.dedupedPaths(decoded.paths)
+            self = replacement(paths: deduped)
+            if deduped.count != decoded.paths.count {
+                // Heal registries dirtied by releases that compared URLs for
+                // exact equality: persist the deduplicated list now, since
+                // assigning self here doesn't run the paths observer.
+                Logger.wineKit.warning(
+                    "Removed \(decoded.paths.count - deduped.count) duplicate bottle path(s) from registry"
+                )
+                encode()
+            }
             return true
         } catch {
             Logger.wineKit.error("Failed to decode BottleData: \(error)")
@@ -238,7 +273,7 @@ public struct BottleData: Codable {
         // shape written by encodeFallback() before treating it as corrupt.
         if let minimal = try? decoder.decode(BottleDataMinimal.self, from: data) {
             Logger.wineKit.warning("Recovered \(minimal.paths.count) bottle path(s) from minimal registry")
-            self = replacement(paths: minimal.paths)
+            self = replacement(paths: Self.dedupedPaths(minimal.paths))
             return false
         }
         // Truly unreadable: move the file aside so the fresh registry written

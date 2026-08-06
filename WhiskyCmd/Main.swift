@@ -33,7 +33,9 @@ struct DomainError: LocalizedError {
         self.message = message
     }
 
-    var errorDescription: String? { message }
+    var errorDescription: String? {
+        message
+    }
 }
 
 @main
@@ -205,6 +207,11 @@ extension Whisky {
             Runs a Windows program directly using Wine. Use --command to print \
             the command instead. Use --follow to stream program output to the \
             terminal in real time. Use --tail-log to follow the Wine log file.
+
+            Options the program itself takes (for example --disable-gpu) are \
+            passed through as written. If a program option has the same name \
+            as one of run's own options, put it after a bare -- separator: \
+            whisky run MyBottle app.exe -- --follow
             """
         )
 
@@ -218,7 +225,12 @@ extension Whisky {
         @Argument(help: "Path to the Windows executable")
         var path: String
 
-        @Argument(help: "Additional arguments to pass to the program")
+        /// .allUnrecognized keeps run's own flags working anywhere on the
+        /// command line while options the parser doesn't know (--disable-gpu)
+        /// flow through to the program instead of erroring. A program flag
+        /// that collides with one of run's flag names still needs the `--`
+        /// terminator to reach the program.
+        @Argument(parsing: .allUnrecognized, help: "Additional arguments to pass to the program")
         var args: [String] = []
 
         @Flag(name: .shortAndLong, help: "Print the Wine command instead of running it")
@@ -232,6 +244,14 @@ extension Whisky {
 
         @MainActor
         mutating func run() async throws {
+            // .allUnrecognized captures the -- terminator itself instead of
+            // consuming it the way default parsing does. Drop the first one
+            // so `run B app.exe -- --follow` hands the program --follow, not
+            // `-- --follow`; any later -- stays, as it always has.
+            if let terminator = args.firstIndex(of: "--") {
+                args.remove(at: terminator)
+            }
+
             var bottlesList = BottleData()
             let bottles = bottlesList.loadBottles()
 

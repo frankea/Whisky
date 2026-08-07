@@ -162,7 +162,13 @@ public enum BottleLocationValidation {
         guard let volume = try? url.resourceValues(forKeys: [.volumeURLKey]).volume,
               let values = try? volume.resourceValues(forKeys: [.volumeIsInternalKey, .volumeIsLocalKey])
         else { return false }
-        return values.volumeIsLocal == false || values.volumeIsInternal == false
+        // `volumeIsInternal` is nil, not false, on volumes macOS cannot place on a
+        // bus: disk images and some enclosures report that way. Comparing it to
+        // false therefore classified exactly the gated volumes as internal, so
+        // nothing was ever reported as a consent problem. Only a definite true
+        // rules a volume out.
+        if values.volumeIsLocal == false { return true }
+        return values.volumeIsInternal != true
     }
 
     /// Reads available capacity, preferring the "important usage" figure (which
@@ -172,7 +178,8 @@ public enum BottleLocationValidation {
     private static func availableCapacity(at directory: URL) -> Int64? {
         let isExternalOrCustom: Bool = {
             guard let values = try? directory.resourceValues(forKeys: [.volumeIsInternalKey]) else { return false }
-            return values.volumeIsInternal == false
+            // nil, not false, on the removable volumes this exists for.
+            return values.volumeIsInternal != true
         }()
 
         if isExternalOrCustom {

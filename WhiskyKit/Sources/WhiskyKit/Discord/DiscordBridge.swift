@@ -24,7 +24,7 @@ import os.log
 /// A game that publishes its own rich presence writes to the named pipe
 /// `\\.\pipe\discord-ipc-0`, which exists only inside the prefix and reaches
 /// nothing. The relay serves that pipe and forwards every byte to the socket
-/// Discord listens on, so a game's own presence arrives intact — cover art,
+/// Discord listens on, so a game's own presence arrives intact, cover art,
 /// party state, join buttons and all. Games that publish nothing are unaffected;
 /// those are what ``DiscordPresence`` is for.
 ///

@@ -15,8 +15,8 @@ make install
 
 ## How it works
 
-Both ends of the Discord RPC transport use the same framing — a little-endian
-opcode and length, then JSON — so the relay never parses a message. It serves
+Both ends of the Discord RPC transport use the same framing, a little-endian
+opcode and length then JSON, so the relay never parses a message. It serves
 `\\.\pipe\discord-ipc-0` inside the prefix and pumps bytes to whichever of
 `discord-ipc-0` … `discord-ipc-9` exists in the socket directory it is given.
 
@@ -25,7 +25,7 @@ Three things are worth knowing before changing it:
 - **It reaches the socket through raw xnu syscalls.** PE code shares an address
   space with the unix side of Wine, so a `syscall` instruction lands in the
   kernel directly. A PE module cannot link libSystem, and the supported
-  alternative — a PE plus a unixlib half — would have to be built against a
+  alternative, a PE plus a unixlib half, would have to be built against a
   specific Wine rather than plain MinGW. `sockaddr_un` here is xnu's layout (a
   length byte, then a family byte), not Linux's 16-bit family.
 - **The socket directory is passed in with `--dir`.** A PE process sees Wine's

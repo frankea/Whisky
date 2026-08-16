@@ -91,8 +91,8 @@ static void log_line(const char *format, ...)
 /*
  * PE code shares its address space with the unix side of Wine, so a `syscall`
  * instruction reaches xnu directly. Nothing else here can reach it: a PE module
- * cannot link libSystem, and the supported alternative — a PE plus a unixlib
- * half — would have to be built against the runtime's Wine instead of plain
+ * cannot link libSystem, and the supported alternative, a PE plus a unixlib
+ * half, would have to be built against the runtime's Wine instead of plain
  * MinGW, which would tie this binary to a Wine version.
  *
  * The stub is SysV because that is what xnu expects, while the compiler emits

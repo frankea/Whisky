@@ -23,7 +23,7 @@ import os.log
 ///
 /// Two independent features hang off this, both off by default and both per
 /// bottle: ``DiscordPresence`` publishes the program Whisky launched, and
-/// ``DiscordBridge`` lets a game publish its own. They are not alternatives —
+/// ``DiscordBridge`` lets a game publish its own. They are not alternatives:
 /// a bottle may run both, and Discord shows the game's own activity in
 /// preference to Whisky's when a game supplies one.
 @MainActor

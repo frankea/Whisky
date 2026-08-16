@@ -25,7 +25,7 @@ import os.log
 /// This is the half that does not involve Wine at all: Whisky already knows
 /// which program it launched, and Discord's socket is reachable from the host
 /// side, so the presence is written directly. It covers every program in a
-/// bottle, including the ones that have never heard of Discord — where
+/// bottle, including the ones that have never heard of Discord, where
 /// ``DiscordBridge`` only carries presence for games that publish their own.
 ///
 /// Discord attributes the activity to the application the `client_id` belongs
@@ -218,8 +218,8 @@ public actor DiscordPresence {
 
     /// Reads Discord's answer to the handshake.
     ///
-    /// A closed connection means the handshake was rejected — an unknown client
-    /// id, usually — and is worth failing on. A read timeout is not: the socket
+    /// A closed connection means the handshake was rejected, an unknown client
+    /// id usually, and is worth failing on. A read timeout is not: the socket
     /// is still open, and a presence that Discord has not acknowledged yet is
     /// better than no presence.
     private func readHandshakeReply() throws {

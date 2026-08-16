@@ -166,6 +166,8 @@ public struct BottleSettings: Codable, Equatable {
     private var displayConfig: BottleDisplayConfig
     /// Audio driver, latency, and device settings.
     private var audioConfig: BottleAudioConfig
+    /// Discord presence and rich presence bridging.
+    private var discordConfig: BottleDiscordConfig
     /// User-defined DLL overrides at the bottle level.
     private var customDLLOverrides: [DLLOverrideEntry] = []
 
@@ -182,6 +184,7 @@ public struct BottleSettings: Codable, Equatable {
         self.graphicsConfig = BottleGraphicsConfig()
         self.displayConfig = BottleDisplayConfig()
         self.audioConfig = BottleAudioConfig()
+        self.discordConfig = BottleDiscordConfig()
         self.customDLLOverrides = []
     }
 
@@ -229,6 +232,10 @@ public struct BottleSettings: Codable, Equatable {
             BottleAudioConfig.self,
             forKey: .audioConfig
         ) ?? BottleAudioConfig()
+        self.discordConfig = try container.decodeIfPresent(
+            BottleDiscordConfig.self,
+            forKey: .discordConfig
+        ) ?? BottleDiscordConfig()
         self.customDLLOverrides = try container.decodeIfPresent(
             [DLLOverrideEntry].self,
             forKey: .customDLLOverrides
@@ -339,6 +346,26 @@ public struct BottleSettings: Codable, Equatable {
     public var graphicsBackend: GraphicsBackend {
         get { graphicsConfig.backend }
         set { graphicsConfig.backend = newValue }
+    }
+
+    /// Whether Whisky publishes the program this bottle launched to Discord.
+    ///
+    /// Announces every program, including the ones with no Discord support of
+    /// their own, but announces them as Whisky. Independent of
+    /// ``discordBridge``, which carries a game's own presence instead.
+    public var discordPresence: Bool {
+        get { discordConfig.presence }
+        set { discordConfig.presence = newValue }
+    }
+
+    /// Whether games in this bottle may reach the host's Discord client.
+    ///
+    /// Serves the named pipe a Windows game expects and relays it to Discord,
+    /// so a game that publishes rich presence arrives with its own artwork and
+    /// state. A game that publishes nothing is unaffected.
+    public var discordBridge: Bool {
+        get { discordConfig.bridge }
+        set { discordConfig.bridge = newValue }
     }
 
     /// Whether DXVK is the active graphics backend.

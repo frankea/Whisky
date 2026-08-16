@@ -41,7 +41,11 @@ let package = Package(
             resources: [
                 .process("Diagnostics/Resources/"),
                 .process("GameDatabase/Resources/"),
-                .process("Troubleshooting/Resources/")
+                .process("Troubleshooting/Resources/"),
+                // Copied rather than processed: it is a PE binary built by
+                // scripts/discord-bridge, not something the resource pipeline
+                // should try to interpret.
+                .copy("Discord/Resources/WhiskyDiscordBridge.exe")
             ]
         ),
         .testTarget(

@@ -90,6 +90,7 @@ struct ConfigView: View {
             InputConfigSection(bottle: bottle, isExpanded: $inputSectionExpanded)
             GraphicsConfigSection(bottle: bottle)
             AudioConfigSection(bottle: bottle)
+            DiscordConfigSection(bottle: bottle)
             ResolutionConfigSection(bottle: bottle)
             PerformanceConfigSection(bottle: bottle, isExpanded: $performanceSectionExpanded)
             DLLOverrideConfigSection(bottle: bottle, isExpanded: $dllOverrideSectionExpanded)

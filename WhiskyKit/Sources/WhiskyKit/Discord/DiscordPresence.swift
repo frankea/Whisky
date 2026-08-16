@@ -36,21 +36,45 @@ public actor DiscordPresence {
 
     private static let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "DiscordPresence")
 
-    /// The Discord application this presence is published under.
+    /// The Discord application this presence is published under, when a build
+    /// carries no id of its own.
     ///
-    /// Registering it is the one step this cannot do for itself: the id belongs
-    /// to a Discord application owned by the project, and the name and artwork
-    /// shown in Discord come from that application rather than from anything
-    /// here. Until one exists the feature reports itself unavailable, and
-    /// `WHISKY_DISCORD_CLIENT_ID` overrides it for testing against your own.
+    /// Empty, and meant to stay that way. The id belongs to a Discord
+    /// application someone owns, and the name and artwork users see come from
+    /// that application rather than from anything here, so it is not the
+    /// repository's to carry. See ``clientID`` for how a build supplies one.
     public static let defaultClientID = ""
 
     /// The client id in effect, or `nil` when none has been configured.
+    ///
+    /// Three sources, first non-empty wins: `WHISKY_DISCORD_CLIENT_ID` in the
+    /// environment, for testing against your own application; `Local/client-id.txt`
+    /// beside this module's resources, which is how a build carries an id the
+    /// repository does not; and ``defaultClientID``.
     public static var clientID: String? {
-        if let override = ProcessInfo.processInfo.environment["WHISKY_DISCORD_CLIENT_ID"], !override.isEmpty {
-            return override
+        resolveClientID(
+            environment: ProcessInfo.processInfo.environment,
+            bundled: bundledClientID,
+            fallback: defaultClientID
+        )
+    }
+
+    static func resolveClientID(environment: [String: String], bundled: String?, fallback: String) -> String? {
+        for candidate in [environment["WHISKY_DISCORD_CLIENT_ID"], bundled, fallback] {
+            let trimmed = candidate?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if !trimmed.isEmpty { return trimmed }
         }
-        return defaultClientID.isEmpty ? nil : defaultClientID
+        return nil
+    }
+
+    /// The id a build was assembled with, if it was given one. The file is
+    /// ignored by git, so a checkout has none and presence stays dark.
+    private static var bundledClientID: String? {
+        guard let url = Bundle.module.url(
+            forResource: "client-id", withExtension: "txt", subdirectory: "Local"
+        )
+        else { return nil }
+        return try? String(contentsOf: url, encoding: .utf8)
     }
 
     /// Whether a presence can be published at all.

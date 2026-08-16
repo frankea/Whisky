@@ -109,3 +109,7 @@ mise.toml
 sparkle_ed25519_private.key*
 developer_id.p12*
 *.age
+
+# A build's Discord application id. The id belongs to whoever owns the
+# application users see, so it is supplied per build rather than committed.
+WhiskyKit/Sources/WhiskyKit/Discord/Local/client-id.txt

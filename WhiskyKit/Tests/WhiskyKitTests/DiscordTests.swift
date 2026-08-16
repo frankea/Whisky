@@ -124,6 +124,32 @@ struct DiscordPresenceTests {
     func availabilityFollowsClientID() {
         #expect(DiscordPresence.isAvailable == (DiscordPresence.clientID != nil))
     }
+
+    @Test("The environment wins, then the bundled id, then the constant")
+    func clientIDPrecedence() {
+        let environment = ["WHISKY_DISCORD_CLIENT_ID": "from-env"]
+
+        #expect(DiscordPresence.resolveClientID(
+            environment: environment, bundled: "from-bundle", fallback: "from-constant"
+        ) == "from-env")
+        #expect(DiscordPresence.resolveClientID(
+            environment: [:], bundled: "from-bundle", fallback: "from-constant"
+        ) == "from-bundle")
+        #expect(DiscordPresence.resolveClientID(
+            environment: [:], bundled: nil, fallback: "from-constant"
+        ) == "from-constant")
+    }
+
+    @Test("Empty and whitespace-only sources are skipped, not used")
+    func clientIDIgnoresBlanks() {
+        // The bundled id arrives from a file, so it carries a trailing newline.
+        #expect(DiscordPresence.resolveClientID(
+            environment: ["WHISKY_DISCORD_CLIENT_ID": ""], bundled: "  1234\n", fallback: ""
+        ) == "1234")
+        #expect(DiscordPresence.resolveClientID(
+            environment: [:], bundled: "\n", fallback: ""
+        ) == nil)
+    }
 }
 
 /// A stand-in for the Discord client: binds a unix socket, answers the

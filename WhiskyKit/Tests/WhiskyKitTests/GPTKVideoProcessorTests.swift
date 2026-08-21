@@ -125,6 +125,19 @@ struct GPTKVideoProcessorTests {
         #expect(try exportName(of: renamed) == "d3dmt.dll")
     }
 
+    @Test("A staging file left by an interrupted install is replaced, not tripped over")
+    func installReplacesStaleStagingFile() throws {
+        let (store, runtime) = try makeDeployableRuntime()
+        let staging = peDir(of: runtime).appending(path: "d3d12.dll.staging")
+        try Data("half-written".utf8).write(to: staging)
+
+        try GPTKImporter.deploy(fromStore: store, intoLibraryFolder: runtime)
+
+        #expect(GPTKImporter.isVideoProcessorInstalled(inLibraryFolder: runtime))
+        // the swap consumes the staged copy; nothing is left behind
+        #expect(!FileManager.default.fileExists(atPath: staging.path(percentEncoded: false)))
+    }
+
     @Test("A runtime that ships no interposer is left alone")
     func installSkipsRuntimeWithoutShim() throws {
         let store = try makeImportedStore(in: tempDir)

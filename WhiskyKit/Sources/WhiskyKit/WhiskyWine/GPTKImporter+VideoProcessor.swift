@@ -98,8 +98,13 @@ extension GPTKImporter {
             withDestinationPath: unixLinkDestination
         )
 
-        try fileManager.removeItem(at: slot)
-        try fileManager.copyItem(at: shim, to: slot)
+        // Stage the shim beside the slot and swap by rename. Removing the slot
+        // before copying left a window where a crash strands the tree with no
+        // d3d12.dll at all, a state the guard above then refuses to repair.
+        let staged = peDir.appending(path: videoProcessorSlotName + ".staging")
+        try? fileManager.removeItem(at: staged)
+        try fileManager.copyItem(at: shim, to: staged)
+        _ = try fileManager.replaceItemAt(slot, withItemAt: staged)
         logger.info("Installed the D3D12 video processor, Apple's D3D12 is now \(videoDeviceDLLName)")
     }
 

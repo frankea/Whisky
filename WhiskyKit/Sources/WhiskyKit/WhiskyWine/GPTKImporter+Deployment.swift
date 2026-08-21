@@ -170,6 +170,10 @@ extension GPTKImporter {
             try fileManager.removeItem(at: externalDest)
         }
         try fileManager.copyItem(at: storeLib.appending(path: "external"), to: externalDest)
+        // Apple's payload is in place now, which is the only moment the bridge
+        // can be installed: it forwards into the payload's own shared dylib and
+        // has nothing to bind to before this point.
+        try installMetalFXBridge(intoLibraryFolder: folder, usingStore: store)
         logger.info("Deployed GPTK payload into the runtime tree")
     }
 
@@ -202,6 +206,8 @@ extension GPTKImporter {
 
         let originalsAreCurrent = originalsRecord(inStore: store)?.runtimeVersion
             == runtimeVersionStamp(inLibraryFolder: folder)
+
+        removeMetalFXBridge(fromLibraryFolder: folder, usingStore: store)
 
         for name in forwarderDLLNames {
             let backup = originals.appending(path: name)
@@ -238,77 +244,5 @@ extension GPTKImporter {
             try fileManager.removeItem(at: external)
         }
         logger.info("Removed GPTK payload from the runtime tree")
-    }
-
-    // MARK: - DLSS-to-MetalFX bridge
-
-    /// Where a bottle keeps its 64-bit system DLLs.
-    private static func system32(ofBottle bottle: URL) -> URL {
-        bottle.appending(path: "drive_c").appending(path: "windows").appending(path: "system32")
-    }
-
-    /// Places Apple's NVIDIA bridge into a single bottle, enabling the DLSS-to-MetalFX path.
-    ///
-    /// Deliberately scoped to one bottle rather than the shared runtime tree. A stock runtime
-    /// ships no `nvapi64` at all, so putting Apple's where every bottle can see it makes any
-    /// process that probes for an NVIDIA GPU load D3DMetal — Chromium does exactly that, and it
-    /// takes Steam's helper process down with it. Per-bottle keeps that blast radius to the
-    /// bottle whose owner asked for upscaling.
-    ///
-    /// Pair with ``BottleSettings/metalFXEnabled``, which sets `D3DM_ENABLE_METALFX`. The bridge
-    /// without the variable does nothing; the variable without the bridge does nothing.
-    ///
-    /// - Parameter bottle: The bottle folder (the parent of `drive_c`).
-    /// - Throws: ``GPTKImportError/storeEmpty`` when no payload has been imported.
-    public static func deployNVIDIABridge(intoBottle bottle: URL) throws {
-        try deployNVIDIABridge(fromStore: storeFolder, intoBottle: bottle)
-    }
-
-    /// Testable seam for ``deployNVIDIABridge(intoBottle:)``.
-    static func deployNVIDIABridge(fromStore store: URL, intoBottle bottle: URL) throws {
-        guard storedRecord(inStore: store) != nil else {
-            throw GPTKImportError.storeEmpty
-        }
-        let fileManager = FileManager.default
-        let source = store.appending(path: "lib").appending(path: "wine")
-            .appending(path: "x86_64-windows")
-        let destination = system32(ofBottle: bottle)
-        try fileManager.createDirectory(at: destination, withIntermediateDirectories: true)
-
-        var missing: [String] = []
-        for name in nvidiaBridgeDLLNames {
-            let from = source.appending(path: name)
-            guard fileManager.fileExists(atPath: from.path(percentEncoded: false)) else {
-                missing.append("wine/x86_64-windows/\(name)")
-                continue
-            }
-            let target = destination.appending(path: name)
-            if fileManager.fileExists(atPath: target.path(percentEncoded: false)) {
-                try fileManager.removeItem(at: target)
-            }
-            try fileManager.copyItem(at: from, to: target)
-        }
-        guard missing.isEmpty else {
-            throw GPTKImportError.payloadIncomplete(missing: missing)
-        }
-        logger.info("Deployed the DLSS-to-MetalFX bridge into a bottle")
-    }
-
-    /// Removes the NVIDIA bridge from a bottle, leaving anything else in `system32` alone.
-    public static func removeNVIDIABridge(fromBottle bottle: URL) throws {
-        let destination = system32(ofBottle: bottle)
-        for name in nvidiaBridgeDLLNames {
-            try? FileManager.default.removeItem(at: destination.appending(path: name))
-        }
-        logger.info("Removed the DLSS-to-MetalFX bridge from a bottle")
-    }
-
-    /// Whether every bridge DLL is present in the bottle.
-    public static func isNVIDIABridgeDeployed(inBottle bottle: URL) -> Bool {
-        let destination = system32(ofBottle: bottle)
-        return nvidiaBridgeDLLNames.allSatisfy {
-            FileManager.default.fileExists(
-                atPath: destination.appending(path: $0).path(percentEncoded: false))
-        }
     }
 }

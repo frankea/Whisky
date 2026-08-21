@@ -88,11 +88,15 @@ public enum GPTKImporter {
     /// no d3d9 forwarder.
     static let forwarderDLLNames = ["d3d10.dll", "d3d11.dll", "d3d12.dll", "dxgi.dll"]
 
-    /// Apple's NVIDIA bridges, which back the experimental DLSS-to-MetalFX
-    /// path. Kept in the store but never deployed: a stock runtime ships no
-    /// `nvapi64` at all, so placing Apple's makes every process that probes for
-    /// an NVIDIA GPU load D3DMetal — Chromium does exactly that, which takes
-    /// Steam's helper process down with it. Opt-in territory, not a default.
+    /// Apple's NVIDIA bridges. `nvngx-on-metalfx` is deployed, under its export
+    /// name, because it is the only route to MetalFX, see
+    /// ``installMetalFXBridge(intoLibraryFolder:usingStore:)``.
+    ///
+    /// `nvapi64` is kept in the store and never deployed: a stock runtime ships
+    /// no `nvapi64` at all, so placing Apple's makes every process that probes
+    /// for an NVIDIA GPU load D3DMetal, and Chromium does exactly that, which takes
+    /// Steam's helper process down with it. NGX reports DLSS available without
+    /// it, so MetalFX does not pay for that risk.
     static let nvidiaBridgeDLLNames = ["nvapi64.dll", "nvngx-on-metalfx.dll"]
 
     /// Enough bytes to hold the winebuild marker at offset 0x40.

@@ -21,6 +21,9 @@ import SwiftUI
 import WhiskyKit
 
 struct GraphicsConfigSection: View {
+    /// Common display refresh rates and their usual half-rate caps.
+    private static let frameRateCaps = [30, 60, 90, 120, 144, 240]
+
     @ObservedObject var bottle: Bottle
     @AppStorage("graphicsAdvancedMode") private var advancedMode: Bool = false
     @State private var hasRunningProcesses: Bool = false
@@ -61,6 +64,19 @@ struct GraphicsConfigSection: View {
             // Running process warning banner
             if hasRunningProcesses {
                 runningProcessWarning
+            }
+
+            // MetalFX rides on D3DMetal's DLSS bridge, so it is meaningless
+            // under any other backend rather than merely inactive.
+            if resolvedBackend == .d3dMetal {
+                Toggle(isOn: $bottle.settings.metalFX) {
+                    VStack(alignment: .leading) {
+                        Text("config.metalFX")
+                        Text("config.metalFX.info")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
 
             // Force DX11 toggle -- always visible (Simple + Advanced)
@@ -124,6 +140,23 @@ struct GraphicsConfigSection: View {
                     }
                     Toggle(isOn: $bottle.settings.metalValidation) {
                         Text("config.metalValidation")
+                    }
+                    if resolvedBackend == .d3dMetal {
+                        if #available(macOS 27.0, *) {
+                            Toggle(isOn: $bottle.settings.metal4Backend) {
+                                Text("config.metal4")
+                                Text("config.metal4.info")
+                            }
+                        }
+                        Picker(selection: $bottle.settings.maxFPS) {
+                            Text("config.maxFPS.unlimited").tag(0)
+                            ForEach(Self.frameRateCaps, id: \.self) { cap in
+                                Text(verbatim: "\(cap) FPS").tag(cap)
+                            }
+                        } label: {
+                            Text("config.maxFPS")
+                            Text("config.maxFPS.info")
+                        }
                     }
                 }
 
@@ -193,6 +226,8 @@ struct GraphicsConfigSection: View {
             || bottle.settings.metalTrace
             || bottle.settings.metalValidation
             || bottle.settings.dxrEnabled
+            || !bottle.settings.metal4Backend
+            || bottle.settings.maxFPS > 0
     }
 
     private var advancedSettingsBadge: some View {

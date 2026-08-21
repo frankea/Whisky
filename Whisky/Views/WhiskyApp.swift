@@ -66,6 +66,19 @@ struct WhiskyApp: App {
         Telemetry.startIfConsented()
     }
 
+    /// Installs the MetalFX bridge into runtimes that already hold the GPTK
+    /// payload.
+    ///
+    /// Deploying does this too, but an install that was set up before the
+    /// bridge existed never deploys again, so without this MetalFX would stay
+    /// unreachable until it happened to reimport. Idempotent, and a no-op on
+    /// runtimes whose payload does not carry the bridge.
+    private func installMetalFXBridgeIfNeeded() {
+        Task.detached(priority: .background) {
+            GPTKImporter.ensureMetalFXBridgeInstalled()
+        }
+    }
+
     var body: some Scene {
         WindowGroup(id: Self.mainWindowID) {
             ContentView(showSetup: $showSetup)
@@ -76,6 +89,7 @@ struct WhiskyApp: App {
                     Task.detached {
                         await WhiskyApp.deleteOldLogs()
                     }
+                    installMetalFXBridgeIfNeeded()
                     startAudioDeviceListening()
                 }
                 .onReceive(

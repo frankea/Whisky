@@ -20,24 +20,15 @@
 import XCTest
 
 /// Covers the GPTK 4 settings Apple documents in the evaluation environment's Read Me:
-/// `D3DM_ENABLE_METALFX`, `D3DM_MTL4` and `D3DM_MAX_FPS`.
+/// `D3DM_MTL4` and `D3DM_MAX_FPS`. MetalFX has its own end-to-end bridge suite.
 final class GPTK4FeatureTests: XCTestCase {
     private func environment(_ configure: (inout BottleSettings) -> Void) -> [String: String] {
         var settings = BottleSettings()
+        settings.graphicsBackend = .d3dMetal
         configure(&settings)
         var env: [String: String] = [:]
         settings.environmentVariables(wineEnv: &env)
         return env
-    }
-
-    // MARK: - MetalFX
-
-    func testMetalFXIsOffByDefault() {
-        XCTAssertNil(environment { _ in }["D3DM_ENABLE_METALFX"])
-    }
-
-    func testMetalFXSetsAppleVariable() {
-        XCTAssertEqual(environment { $0.metalFXEnabled = true }["D3DM_ENABLE_METALFX"], "1")
     }
 
     // MARK: - Metal 4 backend
@@ -69,20 +60,29 @@ final class GPTK4FeatureTests: XCTestCase {
         XCTAssertNil(environment { $0.maxFPS = -1 }["D3DM_MAX_FPS"])
     }
 
+    func testD3DMetalSettingsDoNotLeakToDXVK() {
+        let env = environment {
+            $0.graphicsBackend = .dxvk
+            $0.metal4Backend = false
+            $0.maxFPS = 60
+        }
+
+        XCTAssertNil(env["D3DM_MTL4"])
+        XCTAssertNil(env["D3DM_MAX_FPS"])
+    }
+
     // MARK: - Round-tripping
 
     /// Settings live in a plist on disk, so a new field that doesn't decode is a field that
     /// silently resets every launch.
     func testNewSettingsSurviveEncodingRoundTrip() throws {
         var settings = BottleSettings()
-        settings.metalFXEnabled = true
         settings.metal4Backend = false
         settings.maxFPS = 120
 
         let encoded = try PropertyListEncoder().encode(settings)
         let decoded = try PropertyListDecoder().decode(BottleSettings.self, from: encoded)
 
-        XCTAssertTrue(decoded.metalFXEnabled)
         XCTAssertFalse(decoded.metal4Backend)
         XCTAssertEqual(decoded.maxFPS, 120)
     }
@@ -97,7 +97,6 @@ final class GPTK4FeatureTests: XCTestCase {
         let decoded = try JSONDecoder().decode(BottleMetalConfig.self, from: legacy)
 
         XCTAssertTrue(decoded.metal4Backend, "Metal 4 is Apple's default and must survive migration")
-        XCTAssertFalse(decoded.metalFXEnabled)
         XCTAssertEqual(decoded.maxFPS, 0)
     }
 }

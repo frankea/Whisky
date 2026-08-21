@@ -323,15 +323,6 @@ public struct BottleSettings: Codable, Equatable {
         set { metalConfig.metalValidation = newValue }
     }
 
-    /// Whether DLSS calls are converted to MetalFX upscaling.
-    ///
-    /// GPTK 4 feature (`D3DM_ENABLE_METALFX`), macOS 26 Tahoe or later. Needs Apple's NVIDIA
-    /// bridge DLLs present in the bottle, which are opt-in: see ``GPTKImporter``.
-    public var metalFXEnabled: Bool {
-        get { metalConfig.metalFXEnabled }
-        set { metalConfig.metalFXEnabled = newValue }
-    }
-
     /// Whether D3DMetal uses its Metal 4 backend for DirectX 12 translation.
     ///
     /// GPTK 4 feature (`D3DM_MTL4`). Apple enables this by default on macOS 27 and later; turning
@@ -367,6 +358,16 @@ public struct BottleSettings: Codable, Equatable {
     public var graphicsBackend: GraphicsBackend {
         get { graphicsConfig.backend }
         set { graphicsConfig.backend = newValue }
+    }
+
+    /// Whether this bottle opts in to D3DMetal's DLSS-to-MetalFX path.
+    ///
+    /// Takes effect only under D3DMetal, and only for a game that has DLSS
+    /// switched on in its own settings: the bridge implements the DLSS entry
+    /// points, so a game that never asks for DLSS never reaches MetalFX.
+    public var metalFX: Bool {
+        get { graphicsConfig.metalFX }
+        set { graphicsConfig.metalFX = newValue }
     }
 
     /// Whether DXVK is the active graphics backend.
@@ -839,8 +840,12 @@ public struct BottleSettings: Codable, Equatable {
         // Backend-conditional env vars and DLL overrides
         switch resolvedBackend {
         case .d3dMetal, .recommended:
-            // D3DMetal is Wine's default on macOS -- no special env vars needed
-            break
+            // D3DMetal is Wine's default on macOS -- no special env vars needed,
+            // beyond opting in to the DLSS-to-MetalFX path. The DLL placement
+            // that actually gates it happens in `Wine.applyMetalFX` at launch.
+            if metalFX {
+                builder.set("D3DM_ENABLE_METALFX", "1", layer: .bottleManaged)
+            }
 
         case .dxvk:
             // DXVK: DLL overrides + env vars
@@ -913,19 +918,18 @@ public struct BottleSettings: Codable, Equatable {
             builder.set("D3DM_SUPPORT_DXR", "1", layer: .bottleManaged)
         }
 
-        // GPTK 4 additions. Apple documents these in the evaluation environment's Read Me.
-        if metalFXEnabled {
-            builder.set("D3DM_ENABLE_METALFX", "1", layer: .bottleManaged)
-        }
+        // GPTK 4 additions. These only have meaning under D3DMetal; leaking them into a DXVK,
+        // DXMT or WineD3D launch would make the persisted controls claim an effect they cannot have.
+        if resolvedBackend == .d3dMetal {
+            // Metal 4 is Apple's default on macOS 27+, so only the opt-out is worth writing;
+            // setting it to 1 on an older OS would claim a backend that isn't there.
+            if !metal4Backend {
+                builder.set("D3DM_MTL4", "0", layer: .bottleManaged)
+            }
 
-        // Metal 4 is Apple's default on macOS 27+, so only the opt-out is worth writing; setting
-        // it to 1 on an older OS would claim a backend that isn't there.
-        if !metal4Backend {
-            builder.set("D3DM_MTL4", "0", layer: .bottleManaged)
-        }
-
-        if maxFPS > 0 {
-            builder.set("D3DM_MAX_FPS", String(maxFPS), layer: .bottleManaged)
+            if maxFPS > 0 {
+                builder.set("D3DM_MAX_FPS", String(maxFPS), layer: .bottleManaged)
+            }
         }
 
         // Metal validation - useful for debugging but can impact performance

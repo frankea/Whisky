@@ -152,6 +152,21 @@ func makePartialDeploy(store: URL, runtime: URL, runtimeVersion: String) throws 
     return peDir
 }
 
+/// Adds Apple's MetalFX bridge to a store's payload.
+///
+/// ``makePayload(at:version:builtinForwarders:omitting:unixEntriesAsFiles:)``
+/// leaves it out so a payload without one, which is what every GPTK before it
+/// shipped, stays the default the deployment tests see.
+@discardableResult
+func makeStoreMetalFXBridge(inStore store: URL, marker: String = "metalfx bridge") throws -> URL {
+    let dll = store.appending(path: "lib").appending(path: "wine")
+        .appending(path: "x86_64-windows").appending(path: GPTKImporter.metalFXBridgeSourceName)
+    var data = fakePE(builtin: true)
+    data.append(Data(marker.utf8))
+    try data.write(to: dll)
+    return dll
+}
+
 /// A store holding a freshly imported payload, under `tempDir`.
 func makeImportedStore(in tempDir: URL) throws -> URL {
     let lib = tempDir.appending(path: "payload")

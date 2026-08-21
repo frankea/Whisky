@@ -21,10 +21,6 @@ import SwiftUI
 import WhiskyKit
 
 struct MetalConfigSection: View {
-    /// Caps offered in the picker: the common display refresh rates, plus the halves that
-    /// games are usually locked to.
-    private static let frameRateCaps = [30, 60, 90, 120, 144, 240]
-
     @ObservedObject var bottle: Bottle
     @Binding var isExpanded: Bool
 
@@ -46,31 +42,6 @@ struct MetalConfigSection: View {
                     }
                 }
             }
-            // GPTK 4 features. Both are version-gated because Apple's payload only implements
-            // them on the OS that shipped alongside it; showing a toggle that silently does
-            // nothing is worse than not showing it.
-            if #available(macOS 26.0, *) {
-                Toggle(isOn: $bottle.settings.metalFXEnabled) {
-                    Text("config.metalFX")
-                    Text("config.metalFX.info")
-                }
-            }
-            if #available(macOS 27.0, *) {
-                Toggle(isOn: $bottle.settings.metal4Backend) {
-                    Text("config.metal4")
-                    Text("config.metal4.info")
-                }
-            }
-            Picker(selection: $bottle.settings.maxFPS) {
-                Text("config.maxFPS.unlimited").tag(0)
-                ForEach(Self.frameRateCaps, id: \.self) { cap in
-                    Text(verbatim: "\(cap) FPS").tag(cap)
-                }
-            } label: {
-                Text("config.maxFPS")
-                Text("config.maxFPS.info")
-            }
-
             // Sequoia compatibility mode - helps with macOS 15.x issues
             Toggle(isOn: $bottle.settings.sequoiaCompatMode) {
                 VStack(alignment: .leading) {

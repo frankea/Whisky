@@ -35263,6 +35263,26 @@
         }
       }
     },
+    "config.metalFX" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DLSS via MetalFX"
+          }
+        }
+      }
+    },
+    "config.metalFX.info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maps a game's DLSS to MetalFX upscaling. Only applies when DLSS is also turned on in the game's own settings."
+          }
+        }
+      }
+    },
     "config.metalHud" : {
       "localizations" : {
         "ar" : {
@@ -35598,28 +35618,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uses D3DMetal's Metal 4 path for DirectX 12. On by default on macOS 27. Turn it off to fall back to Metal 3 if a DirectX 12 game regressed."
-          }
-        }
-      }
-    },
-    "config.metalFX" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "MetalFX upscaling"
-          }
-        }
-      }
-    },
-    "config.metalFX.info" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Converts a game's DLSS calls to MetalFX where possible. Requires macOS 26 or later, and Apple's NVIDIA bridge in this bottle."
           }
         }
       }

@@ -151,11 +151,24 @@ public struct BottleGraphicsConfig: Codable, Equatable {
     /// The selected graphics backend. Defaults to `.recommended`.
     var backend: GraphicsBackend = .recommended
 
+    /// Whether this bottle opts in to D3DMetal's DLSS-to-MetalFX path.
+    ///
+    /// On by default. This started off opt-in on the theory that a game finding
+    /// the bridge takes its DLSS path instead of whatever it would otherwise
+    /// have used, which could regress as easily as help. Measured, it helps, so
+    /// the default flipped and the toggle stays for the titles it does not suit.
+    /// A tree with no bridge in it is unaffected either way: with nothing for
+    /// `DXGIAdapter::nvngxDLLLocation` to find, the variable is inert.
+    var metalFX: Bool = true
+
     /// Creates a new graphics config with the default `.recommended` backend.
     public init() {}
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.backend = container.decodeLenientIfPresent(GraphicsBackend.self, forKey: .backend) ?? .recommended
+        // Matches the property default, so a bottle written before this key
+        // existed adopts the new default instead of decoding as off.
+        self.metalFX = (try? container.decodeIfPresent(Bool.self, forKey: .metalFX)) ?? true
     }
 }

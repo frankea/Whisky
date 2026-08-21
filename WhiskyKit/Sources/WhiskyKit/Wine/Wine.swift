@@ -267,12 +267,7 @@ public class Wine {
             programOverrides = pinned
         }
 
-        // DXMT first: if launcher auto-DXVK also fires below (e.g. Rockstar),
-        // DXVK's file copy deterministically wins, matching the override-layer
-        // order where launcher-managed entries land after bottle-managed ones.
-        if effectiveBackend == .dxmt {
-            try enableDXMT(bottle: bottle)
-        }
+        try prepareBackendPrefix(effectiveBackend, bottle: bottle)
 
         // Enable DXVK if needed: effective backend, the legacy program-level
         // flag (honored only without a backend override, mirroring
@@ -725,6 +720,53 @@ public class Wine {
             return false
         }
         return marker != Data("Wine builtin DLL".utf8)
+    }
+
+    /// Places the per-bottle files a backend needs in the prefix before launch.
+    ///
+    /// DXMT goes first: if launcher auto-DXVK also fires in `runProgram`, DXVK's
+    /// file copy deterministically wins, matching the override-layer order where
+    /// launcher-managed entries land after bottle-managed ones.
+    @MainActor
+    private static func prepareBackendPrefix(_ backend: GraphicsBackend, bottle: Bottle) throws {
+        switch backend {
+        case .dxmt:
+            // A bottle may have used D3DMetal previously. Its placeholder must not make the
+            // shared D3DMetal bridge reachable after the effective backend changes.
+            GPTKImporter.clearMetalFXBridgePlaceholder(inBottle: bottle.url)
+            try enableDXMT(bottle: bottle)
+        case .d3dMetal:
+            // Applied in both directions, so clearing the setting takes effect
+            // on the next launch by itself.
+            applyMetalFX(bottle: bottle)
+        case .dxvk, .wined3d, .recommended:
+            GPTKImporter.clearMetalFXBridgePlaceholder(inBottle: bottle.url)
+        }
+    }
+
+    /// Opts a bottle in or out of D3DMetal's DLSS-to-MetalFX path, per
+    /// ``BottleSettings/metalFX``.
+    ///
+    /// The bridge itself is a builtin in the shared Wine tree, so it cannot be
+    /// installed per bottle. What can is the `system32` entry the loader needs
+    /// before it will look in the builtin directory at all: without one,
+    /// `LoadLibrary("nvngx.dll")` fails with `ERROR_MOD_NOT_FOUND` however
+    /// complete the tree is. So the placeholder is the switch: present means a
+    /// game can reach MetalFX, absent means the bridge is inert.
+    ///
+    /// - Parameter bottle: The ``Bottle`` whose opt-in state to apply.
+    ///
+    /// - Note: Called by `runProgram` whenever the effective backend is
+    ///   D3DMetal, in both directions, so turning the setting off takes effect
+    ///   on the next launch without the user having to repair anything.
+    @MainActor
+    public static func applyMetalFX(bottle: Bottle) {
+        let libraryFolder = WhiskyWineInstaller.libraryFolder
+        if bottle.settings.metalFX {
+            GPTKImporter.seedMetalFXBridgePlaceholder(inBottle: bottle.url, fromLibraryFolder: libraryFolder)
+        } else {
+            GPTKImporter.clearMetalFXBridgePlaceholder(inBottle: bottle.url)
+        }
     }
 
     /// Installs DXMT into a bottle so its Direct3D-11-to-Metal layer is used.

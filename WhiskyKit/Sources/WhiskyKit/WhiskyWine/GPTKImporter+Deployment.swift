@@ -282,11 +282,11 @@ extension GPTKImporter {
                 missing.append("wine/x86_64-windows/\(name)")
                 continue
             }
-            let to = destination.appending(path: name)
-            if fileManager.fileExists(atPath: to.path(percentEncoded: false)) {
-                try fileManager.removeItem(at: to)
+            let target = destination.appending(path: name)
+            if fileManager.fileExists(atPath: target.path(percentEncoded: false)) {
+                try fileManager.removeItem(at: target)
             }
-            try fileManager.copyItem(at: from, to: to)
+            try fileManager.copyItem(at: from, to: target)
         }
         guard missing.isEmpty else {
             throw GPTKImportError.payloadIncomplete(missing: missing)

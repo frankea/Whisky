@@ -39,7 +39,12 @@ public struct BottleMetalConfig: Codable, Equatable {
     /// Useful against the coil whine and thermal throttling that menu screens cause when they
     /// render at several hundred frames per second.
     var maxFPS: Int = 0
-    var sequoiaCompatMode: Bool = true // Enable Sequoia compatibility by default
+    /// Sequoia-era workarounds, on by default only on the OS they were written for.
+    ///
+    /// Previously defaulted on everywhere, which meant a machine on Tahoe or Golden Gate had
+    /// fsync and Metal validation disabled for 15.x bugs it never had. Still available as a
+    /// manual toggle on any OS for anyone who needs it back.
+    var sequoiaCompatMode: Bool = MacOSVersion.current.isSequoiaOrEarlier
 
     public init() {}
 
@@ -53,6 +58,7 @@ public struct BottleMetalConfig: Codable, Equatable {
         self.metalFXEnabled = try container.decodeIfPresent(Bool.self, forKey: .metalFXEnabled) ?? false
         self.metal4Backend = try container.decodeIfPresent(Bool.self, forKey: .metal4Backend) ?? true
         self.maxFPS = try container.decodeIfPresent(Int.self, forKey: .maxFPS) ?? 0
-        self.sequoiaCompatMode = try container.decodeIfPresent(Bool.self, forKey: .sequoiaCompatMode) ?? true
+        self.sequoiaCompatMode = try container.decodeIfPresent(Bool.self, forKey: .sequoiaCompatMode)
+            ?? MacOSVersion.current.isSequoiaOrEarlier
     }
 }

@@ -42,7 +42,11 @@ final class BottleSettingsTests: XCTestCase {
         XCTAssertFalse(settings.avxEnabled)
         XCTAssertFalse(settings.dxrEnabled)
         XCTAssertFalse(settings.metalValidation)
-        XCTAssertTrue(settings.sequoiaCompatMode)
+        XCTAssertEqual(
+            settings.sequoiaCompatMode,
+            MacOSVersion.current.isSequoiaOrEarlier,
+            "Sequoia compatibility now defaults on only for the OS it was written for; on Tahoe and later it is opt-in."
+        )
         XCTAssertEqual(settings.performancePreset, .balanced)
         XCTAssertTrue(settings.shaderCacheEnabled)
         XCTAssertFalse(settings.forceD3D11)
@@ -228,7 +232,11 @@ final class BottleSettingsTests: XCTestCase {
         XCTAssertFalse(config.dxrEnabled)
         XCTAssertFalse(config.metalValidation)
         XCTAssertNil(config.forceGPUFamily)
-        XCTAssertTrue(config.sequoiaCompatMode)
+        XCTAssertEqual(
+            config.sequoiaCompatMode,
+            MacOSVersion.current.isSequoiaOrEarlier,
+            "Sequoia compatibility now defaults on only for the OS it was written for; on Tahoe and later it is opt-in."
+        )
     }
 
     // MARK: - BottleDXVKConfig Tests

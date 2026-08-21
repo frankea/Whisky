@@ -41,6 +41,12 @@ public struct MacOSVersion: Comparable, Sendable {
     public static let sequoia15_4_1 = MacOSVersion(major: 15, minor: 4, patch: 1)
     // swiftlint:enable identifier_name
 
+    /// Whether this is macOS 15.x Sequoia or earlier.
+    ///
+    /// macOS jumped from 15 straight to 26, so a major version below 16 means Sequoia or older.
+    /// Used to scope Sequoia-era workarounds rather than carrying them forward forever.
+    public var isSequoiaOrEarlier: Bool { major < 16 }
+
     public static func < (lhs: MacOSVersion, rhs: MacOSVersion) -> Bool {
         if lhs.major != rhs.major { return lhs.major < rhs.major }
         if lhs.minor != rhs.minor { return lhs.minor < rhs.minor }
@@ -76,8 +82,40 @@ public struct MacOSFix: Sendable {
     public let reason: String
     /// The minimum macOS version where this fix activates.
     public let appliesFrom: MacOSVersion
+    /// The macOS version at which this fix stops applying, exclusive; `nil` means no upper bound.
+    ///
+    /// Workarounds written for one OS release were previously carried forward forever, because
+    /// only a lower bound existed. A fix for a Sequoia bug then kept firing on Tahoe and Golden
+    /// Gate — disabling fsync and Metal validation on systems that never had the bug, which costs
+    /// performance for nothing. An upper bound lets a fix be scoped to the releases it was
+    /// written for.
+    public let appliesUntil: MacOSVersion?
     /// The category of issue this fix addresses.
     public let category: FixCategory
+
+    public init(
+        key: String,
+        value: String,
+        reason: String,
+        appliesFrom: MacOSVersion,
+        appliesUntil: MacOSVersion? = nil,
+        category: FixCategory
+    ) {
+        self.key = key
+        self.value = value
+        self.reason = reason
+        self.appliesFrom = appliesFrom
+        self.appliesUntil = appliesUntil
+        self.category = category
+    }
+
+    /// Whether this fix applies to `version`: at or above ``appliesFrom``, and below
+    /// ``appliesUntil`` when one is set.
+    public func applies(to version: MacOSVersion) -> Bool {
+        guard version >= appliesFrom else { return false }
+        guard let appliesUntil else { return true }
+        return version < appliesUntil
+    }
 }
 
 /// Registry of macOS compatibility fixes for Wine.
@@ -96,6 +134,14 @@ public struct MacOSFix: Sendable {
 public enum MacOSCompatibilityFixes {
     /// The minimum macOS version (effectively "all versions") for universal fixes.
     private static let allVersions = MacOSVersion(major: 0, minor: 0, patch: 0)
+
+    /// Exclusive upper bound for fixes written against Sequoia's quirks.
+    ///
+    /// macOS jumped from 15 to 26, so anything at or above 16 is Tahoe or later. These
+    /// workarounds were written for specific 15.x bugs and should not be assumed to still be
+    /// needed — or still be harmless — on a release that never had them. Users who do need them
+    /// on a newer OS still have the ``BottleSettings/sequoiaCompatMode`` toggle.
+    private static let afterSequoia = MacOSVersion(major: 16, minor: 0, patch: 0)
 
     /// All known macOS compatibility fixes for Wine.
     ///
@@ -118,29 +164,29 @@ public enum MacOSCompatibilityFixes {
         MacOSFix(
             key: "MTL_DEBUG_LAYER", value: "0",
             reason: "Disables Metal validation that causes rendering issues on macOS 15.3+",
-            appliesFrom: .sequoia15_3, category: .graphics
+            appliesFrom: .sequoia15_3, appliesUntil: afterSequoia, category: .graphics
         ),
         MacOSFix(
             key: "D3DM_VALIDATION", value: "0",
             reason: "Improves D3DMetal stability on macOS 15.3+",
-            appliesFrom: .sequoia15_3, category: .graphics
+            appliesFrom: .sequoia15_3, appliesUntil: afterSequoia, category: .graphics
         ),
         MacOSFix(
             key: "WINE_DISABLE_NTDLL_THREAD_REGS", value: "1",
             reason: "Fixes Wine preloader issues on Sequoia 15.3+",
-            appliesFrom: .sequoia15_3, category: .threading
+            appliesFrom: .sequoia15_3, appliesUntil: afterSequoia, category: .threading
         ),
 
         // macOS 15.4+ fixes
         MacOSFix(
             key: "WINEFSYNC", value: "0",
             reason: "Disables fsync due to 15.4 security model changes",
-            appliesFrom: .sequoia15_4, category: .threading
+            appliesFrom: .sequoia15_4, appliesUntil: afterSequoia, category: .threading
         ),
         MacOSFix(
             key: "WINE_ENABLE_PIPE_SYNC_FOR_APP", value: "0",
             reason: "Disables pipe sync that conflicts with 15.4 security changes",
-            appliesFrom: .sequoia15_4, category: .threading
+            appliesFrom: .sequoia15_4, appliesUntil: afterSequoia, category: .threading
         ),
         MacOSFix(
             key: "STEAM_RUNTIME", value: "0",
@@ -198,7 +244,7 @@ public enum MacOSCompatibilityFixes {
     /// - Returns: Array of ``MacOSFix`` entries that apply to the running macOS version.
     public static func activeFixes() -> [MacOSFix] {
         let currentVersion = MacOSVersion.current
-        return allFixes.filter { currentVersion >= $0.appliesFrom }
+        return allFixes.filter { $0.applies(to: currentVersion) }
     }
 
     /// Returns fixes applicable to a specific macOS version.
@@ -206,7 +252,7 @@ public enum MacOSCompatibilityFixes {
     /// - Parameter version: The macOS version to filter against.
     /// - Returns: Array of ``MacOSFix`` entries that apply to the given version.
     public static func activeFixes(for version: MacOSVersion) -> [MacOSFix] {
-        allFixes.filter { version >= $0.appliesFrom }
+        allFixes.filter { $0.applies(to: version) }
     }
 }
 
@@ -228,7 +274,7 @@ extension Wine {
         Logger.wineKit.info("Running on macOS \(currentVersion.description)")
 
         // Apply all version-gated fixes from the registry
-        for fix in MacOSCompatibilityFixes.allFixes where currentVersion >= fix.appliesFrom {
+        for fix in MacOSCompatibilityFixes.allFixes where fix.applies(to: currentVersion) {
             environment[fix.key] = fix.value
         }
 

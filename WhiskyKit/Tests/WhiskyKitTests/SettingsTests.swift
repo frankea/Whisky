@@ -197,7 +197,11 @@ final class BottleMetalConfigTests: XCTestCase {
         XCTAssertFalse(config.metalTrace)
         XCTAssertFalse(config.dxrEnabled)
         XCTAssertFalse(config.metalValidation)
-        XCTAssertTrue(config.sequoiaCompatMode)
+        XCTAssertEqual(
+            config.sequoiaCompatMode,
+            MacOSVersion.current.isSequoiaOrEarlier,
+            "Sequoia compatibility now defaults on only for the OS it was written for; on Tahoe and later it is opt-in."
+        )
     }
 
     func testRoundTrip() throws {
@@ -231,7 +235,11 @@ final class BottleMetalConfigTests: XCTestCase {
         XCTAssertFalse(config.metalTrace)
         XCTAssertFalse(config.dxrEnabled)
         XCTAssertFalse(config.metalValidation)
-        XCTAssertTrue(config.sequoiaCompatMode)
+        XCTAssertEqual(
+            config.sequoiaCompatMode,
+            MacOSVersion.current.isSequoiaOrEarlier,
+            "Sequoia compatibility now defaults on only for the OS it was written for; on Tahoe and later it is opt-in."
+        )
     }
 }
 

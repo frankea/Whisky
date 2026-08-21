@@ -77,6 +77,7 @@ struct WhiskyApp: App {
     private func installMetalFXBridgeIfNeeded() {
         Task.detached(priority: .background) {
             GPTKImporter.ensureMetalFXBridgeInstalled()
+            GPTKImporter.ensureNVAPIBridgeInstalled()
         }
     }
 

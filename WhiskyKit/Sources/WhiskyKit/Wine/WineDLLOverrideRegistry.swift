@@ -95,14 +95,32 @@ public extension Wine {
             (scope: .bottle, overrides: constructWineEnvironment(for: bottle)["WINEDLLOVERRIDES"] ?? "")
         ]
 
+        // The helper entries are written either way. A launcher's helper is
+        // usually Chromium, which probes for an NVIDIA GPU on startup: answering
+        // makes it load D3DMetal and take the helper down, and a dead helper is a
+        // launcher that draws nothing. Games need nvapi64, because Streamline
+        // asks it about the GPU before it will consider DLSS at all, so it is
+        // disabled per helper rather than withheld from the bottle.
+        //
+        // Outside the `applyToDescendants` branch on purpose. A Steam game launch
+        // sets that flag, and this sync *replaces* each key it writes, so leaving
+        // the helpers out did not merely skip them, it cleared any entry they
+        // already had and handed Chromium nvapi64 again.
+        let helperOverrides = applyToDescendants
+            ? (constructWineEnvironment(for: bottle)["WINEDLLOVERRIDES"] ?? "")
+            : (wineEnvironment["WINEDLLOVERRIDES"] ?? "")
+        for executable in helperExecutables(for: url) {
+            scopes.append((
+                scope: .program(executable),
+                overrides: disablingNVAPI(in: helperOverrides)
+            ))
+        }
+
         if !applyToDescendants {
             let programOverrides = wineEnvironment.removeValue(forKey: "WINEDLLOVERRIDES") ?? ""
-            // Helpers need their own entry: AppDefaults is per executable and
-            // children do not inherit, so steamwebhelper.exe would otherwise fall
-            // back to the bottle default and draw nothing.
-            for executable in [url.lastPathComponent] + helperExecutables(for: url) {
-                scopes.append((scope: .program(executable), overrides: programOverrides))
-            }
+            // The launched executable needs its own entry too: AppDefaults is per
+            // executable and children do not inherit it.
+            scopes.append((scope: .program(url.lastPathComponent), overrides: programOverrides))
         }
 
         try await syncDLLOverrides(bottle: bottle, scopes: scopes)
@@ -152,6 +170,16 @@ public extension Wine {
     /// the user enabled launcher fixes.
     static func helperExecutables(for url: URL) -> [String] {
         LauncherType.detect(from: url)?.helperExecutables ?? []
+    }
+
+    /// Adds `nvapi64=` to an override string, keeping whatever else it holds.
+    ///
+    /// - Parameter overrides: A `WINEDLLOVERRIDES`-syntax string, possibly empty.
+    /// - Returns: The same string with nvapi64 disabled.
+    static func disablingNVAPI(in overrides: String) -> String {
+        var parsed = parseDLLOverrides(overrides)
+        parsed["nvapi64"] = ""
+        return parsed.keys.sorted().map { "\($0)=\(parsed[$0] ?? "")" }.joined(separator: ";")
     }
 
     /// Parses a `WINEDLLOVERRIDES` string into DLL name to load-order pairs.

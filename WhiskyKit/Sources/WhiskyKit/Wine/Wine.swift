@@ -772,9 +772,37 @@ public class Wine {
     ) {
         if backend == .d3dMetal, bottle.settings.metalFX {
             GPTKImporter.seedMetalFXBridgePlaceholder(inBottle: bottle.url, fromLibraryFolder: libraryFolder)
+            seedNGXModelConfig(inBottle: bottle.url)
         } else {
             GPTKImporter.clearMetalFXBridgePlaceholder(inBottle: bottle.url)
         }
+    }
+
+    /// Where NGX keeps the manifest its updater reads, which a real NVIDIA driver
+    /// would have written.
+    static let ngxModelConfigPath = ["drive_c", "ProgramData", "NVIDIA", "NGX", "models"]
+
+    /// Writes the NGX manifest a driver install would leave behind.
+    ///
+    /// Streamline opens this before it does anything else and logs a pair of
+    /// errors per launch when it is missing:
+    ///
+    ///     [streamline][error] File 'C:\ProgramData/NVIDIA/NGX/models/nvngx_config.txt' does not exist
+    ///     [streamline][error] readServerManifest: Failed to open manifest file
+    ///
+    /// Only the over-the-air updater reads what is inside, and that updater
+    /// (`nvngx_update.exe`) does not exist here either, so the contents matter
+    /// less than the file existing. Left alone once written, so a real one from a
+    /// driver install or a user's own edit survives.
+    ///
+    /// - Parameter bottle: The bottle whose prefix to seed.
+    static func seedNGXModelConfig(inBottle bottle: URL) {
+        let fileManager = FileManager.default
+        let folder = ngxModelConfigPath.reduce(bottle) { $0.appending(path: $1) }
+        let config = folder.appending(path: "nvngx_config.txt")
+        guard !fileManager.fileExists(atPath: config.path(percentEncoded: false)) else { return }
+        try? fileManager.createDirectory(at: folder, withIntermediateDirectories: true)
+        try? "[global]\nversion = 1\n".write(to: config, atomically: true, encoding: .utf8)
     }
 
     /// Installs DXMT into a bottle so its Direct3D-11-to-Metal layer is used.

@@ -184,6 +184,7 @@ extension GPTKImporter {
         // be made: the runtime ships the interposer but has nothing to forward
         // into until this point.
         try installVideoProcessor(intoLibraryFolder: folder)
+        try installNVAPIBridge(intoLibraryFolder: folder, usingStore: store)
         logger.info("Deployed GPTK payload into the runtime tree")
     }
 
@@ -223,6 +224,7 @@ extension GPTKImporter {
         // the store, and is skipped: the tree would keep a d3d12 that forwards
         // to a DLL this call is about to delete.
         removeVideoProcessor(fromLibraryFolder: folder, usingStore: store)
+        removeNVAPIBridge(fromLibraryFolder: folder, usingStore: store)
 
         for name in forwarderDLLNames {
             let backup = originals.appending(path: name)

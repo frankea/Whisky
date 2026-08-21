@@ -92,13 +92,21 @@ public enum GPTKImporter {
     /// name, because it is the only route to MetalFX, see
     /// ``installMetalFXBridge(intoLibraryFolder:usingStore:)``.
     ///
-    /// `nvapi64` is kept in the store and never deployed: a stock runtime ships
-    /// no `nvapi64` at all, so placing Apple's makes every process that probes
-    /// for an NVIDIA GPU load D3DMetal, and Chromium does exactly that, which takes
-    /// Steam's helper process down with it. The cost is that a Streamline title
-    /// asks NVAPI about the GPU before it will offer DLSS at all, so it never
-    /// reaches MetalFX, see ``installMetalFXBridge(intoLibraryFolder:usingStore:)``.
+    /// `nvapi64` is deployed too, and kept away from launcher helpers per
+    /// executable rather than withheld from everything. Chromium probes for an
+    /// NVIDIA GPU and answering makes it load D3DMetal, which takes Steam's
+    /// helper process down, so that risk is real; withholding the DLL is just
+    /// not the only way out of it, and it costs DLSS everywhere. See
+    /// ``installNVAPIBridge(intoLibraryFolder:usingStore:)`` for why the DLL has
+    /// to be there, and `Wine.disablingNVAPI(in:)` for the half that keeps
+    /// Chromium out of it.
     static let nvidiaBridgeDLLNames = ["nvapi64.dll", "nvngx-on-metalfx.dll"]
+
+    /// Apple's NVAPI, deployed under the name it ships as; wine's own `nvapi64`
+    /// is a placeholder that exports nothing, so this replaces it.
+    static let nvapiBridgeName = "nvapi64.dll"
+    /// Its unix half, sharing the payload's dylib like every other bridge.
+    static let nvapiBridgeUnixName = "nvapi64.so"
 
     /// Enough bytes to hold the winebuild marker at offset 0x40.
     static let builtinMarkerMinimumLength = 0x50

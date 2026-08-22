@@ -16,7 +16,6 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import os.log
 import SwiftUI
 import WhiskyKit
 
@@ -71,42 +70,10 @@ struct WhiskyMenuBarView: View {
                 Text("menubar.bottle.noPins")
             } else {
                 ForEach(pins, id: \.url) { pin in
-                    Button(pin.name) { launch(pin, in: bottle) }
+                    Button(pin.name) { QuickLaunch.launch(pin: pin, in: bottle) }
                 }
             }
         }
-    }
-
-    /// Launches a pinned program, surfacing failures the user would otherwise
-    /// never see.
-    ///
-    /// The `Program` is built from the pin so this doesn't depend on a prior
-    /// bottle scan. Failures are reported via an `NSAlert` rather than a view
-    /// toast because the menu-bar extra can be the app's only surface (the main
-    /// window may be closed), so there's no toast presenter to reach.
-    @MainActor
-    private func launch(_ pin: PinnedProgram, in bottle: Bottle) {
-        guard let url = pin.url else { return }
-        let program = Program(url: url, bottle: bottle)
-        Task {
-            let result = await program.launchWithUserMode(useTerminal: false)
-            guard case let .launchFailed(_, errorDescription) = result else { return }
-            Logger.wineKit.error(
-                "Menu-bar launch failed for \(pin.name, privacy: .public): \(errorDescription, privacy: .public)"
-            )
-            presentLaunchFailure(programName: pin.name, error: errorDescription)
-        }
-    }
-
-    @MainActor
-    private func presentLaunchFailure(programName: String, error: String) {
-        let alert = NSAlert()
-        alert.messageText = String(localized: "menubar.launchFailed \(programName)")
-        alert.informativeText = error
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: String(localized: "button.ok"))
-        NSApp.activate(ignoringOtherApps: true)
-        alert.runModal()
     }
 
     /// Brings an existing Whisky window forward, or opens a fresh one when the

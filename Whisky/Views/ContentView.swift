@@ -178,7 +178,17 @@ struct ContentView: View {
         }
         .handlesExternalEvents(preferring: [], allowing: ["*"])
         .onOpenURL { url in
+            if QuickLaunch.handle(url) { return }
             openedFileURL = url
+        }
+        .dropDestination(for: URL.self) { urls, _ in
+            // A Finder drop of anything the Run panel would accept opens the
+            // same run-this-file flow, wherever on the window it lands.
+            let runnable = ["exe", "msi", "bat", "msix", "appx", "url"]
+            guard let url = urls.first(where: { runnable.contains($0.pathExtension.lowercased()) })
+            else { return false }
+            openedFileURL = url
+            return true
         }
         .task {
             bottleVM.loadBottles()

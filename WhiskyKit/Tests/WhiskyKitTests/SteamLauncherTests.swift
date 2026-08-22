@@ -190,4 +190,29 @@ struct SteamLauncherTests {
 
         #expect(resolved.url == ready.url)
     }
+
+    @Test("Resolving a game hands back the library entry with the bottle")
+    @MainActor func resolveGameCarriesTheEntry() throws {
+        let bottle = try Bottle(bottleUrl: makeSteamBottle("library", appIds: [1_245_620]))
+
+        let hit = try SteamLauncher.resolveGame(
+            appId: 1_245_620, in: [bottle], routing: makeRouting()
+        )
+
+        #expect(hit.bottle.url == bottle.url)
+        #expect(hit.game.appId == 1_245_620)
+        #expect(hit.game.name == "Game 1245620")
+    }
+
+    @Test("Narrowing to one bottle still refuses an App ID it does not have")
+    @MainActor func namedBottleWithoutTheGameIsRefused() throws {
+        let named = try Bottle(bottleUrl: makeSteamBottle("named", appIds: [4_576_510]))
+        let holder = try Bottle(bottleUrl: makeSteamBottle("holder", appIds: [1_245_620]))
+        let routing = makeRouting()
+        routing.record(appId: 1_245_620, bottleURL: holder.url)
+
+        #expect(throws: SteamLaunchError.gameNotFound(appId: 1_245_620)) {
+            try SteamLauncher.resolveGame(appId: 1_245_620, in: [named], routing: routing)
+        }
+    }
 }

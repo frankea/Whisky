@@ -111,6 +111,32 @@ public enum SteamLauncher {
         return SteamLibrary.preferredOverrides(among: candidates)
     }
 
+    /// Finds the installed game an App ID names, and the bottle holding it.
+    ///
+    /// Narrowing `bottles` to a single bottle chooses where to look, never
+    /// whether to look: an App ID that arrives from outside the app may only
+    /// ever reach a game the user actually has. The library entry is also what
+    /// lets a caller name the game rather than echo the App ID back.
+    ///
+    /// - Parameters:
+    ///   - appId: The Steam App ID to locate.
+    ///   - bottles: The bottles to search.
+    ///   - routing: The route store to consult.
+    /// - Returns: The library entry and the bottle it was found in.
+    /// - Throws: ``SteamLaunchError/gameNotFound(appId:)`` when no bottle has it.
+    @MainActor
+    public static func resolveGame(
+        appId: Int, in bottles: [Bottle], routing: GameRouting = GameRouting()
+    ) throws -> (game: SteamGame, bottle: Bottle) {
+        let bottle = try resolveBottle(appId: appId, in: bottles, routing: routing)
+        guard let game = SteamLibrary.enumerate(bottleURL: bottle.url)
+            .first(where: { $0.appId == appId })
+        else {
+            throw SteamLaunchError.gameNotFound(appId: appId)
+        }
+        return (game, bottle)
+    }
+
     /// Finds the bottle to launch an App ID from: the remembered route when it
     /// still has the game installed, otherwise the first bottle that does.
     ///

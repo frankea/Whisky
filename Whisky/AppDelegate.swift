@@ -97,6 +97,50 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         !UserDefaults.standard.bool(forKey: "showMenuBarExtra")
     }
 
+    // MARK: - Dock Menu
+
+    /// The pin behind a Dock menu item.
+    private final class DockPin: NSObject {
+        let bottleURL: URL
+        let pinURL: URL
+
+        init(bottleURL: URL, pinURL: URL) {
+            self.bottleURL = bottleURL
+            self.pinURL = pinURL
+        }
+    }
+
+    /// Right-clicking Whisky in the Dock lists the pinned games, launchable
+    /// without the main window.
+    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+        let entries = QuickLaunch.availablePins()
+        guard !entries.isEmpty else { return nil }
+
+        let menu = NSMenu()
+        let bottleCount = Set(entries.map(\.bottle.url)).count
+        for entry in entries.prefix(10) {
+            guard let pinURL = entry.pin.url else { continue }
+            let title = bottleCount > 1
+                ? "\(entry.pin.name) (\(entry.bottle.settings.name))"
+                : entry.pin.name
+            let item = NSMenuItem(
+                title: title, action: #selector(launchDockPin(_:)), keyEquivalent: ""
+            )
+            item.target = self
+            item.representedObject = DockPin(bottleURL: entry.bottle.url, pinURL: pinURL)
+            menu.addItem(item)
+        }
+        return menu
+    }
+
+    @MainActor @objc private func launchDockPin(_ sender: NSMenuItem) {
+        guard let ref = sender.representedObject as? DockPin,
+              let bottle = BottleVM.shared.bottles.first(where: { $0.url == ref.bottleURL }),
+              let pin = bottle.settings.pins.first(where: { $0.url == ref.pinURL })
+        else { return }
+        QuickLaunch.launch(pin: pin, in: bottle)
+    }
+
     private static var appUrl: URL? {
         Bundle.main.resourceURL?.deletingLastPathComponent().deletingLastPathComponent()
     }

@@ -38,6 +38,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   either position (#216).
 
 ### Fixed
+- Games that check the graphics driver version can start. D3DMetal answers the
+  DXGI query with success and a version of -1, which reads back as
+  65535.65535.65535.65535 and fails every minimum-driver check: Helldivers 2 put
+  a modal "GPU drivers are out of date" box in front of the game. A runtime that
+  carries the DXGI interposer is now deployed with it, answering the same version
+  Wine already publishes for the adapter so the two agree. It has to be its own
+  module rather than part of the D3D12 one, because the check happens before a
+  game touches D3D12 at all. Runtimes without it are skipped as before.
 - Games that decode video themselves no longer fall back to a broken
   half-resolution path under D3DMetal: when the runtime ships the D3D12
   video processor interposer, it is installed automatically alongside the

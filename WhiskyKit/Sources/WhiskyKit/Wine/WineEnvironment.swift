@@ -202,7 +202,14 @@ extension Wine {
                 // Enable DXVK DLLs at program level
                 dllResolver.programCustom.append(contentsOf: DLLOverrideResolver.dxvkPreset)
                 builder.remove("WINED3DMETAL", layer: .programUser)
-                builder.remove("CX_ACTIVE_GRAPHICS_BACKEND", layer: .programUser)
+                // CX_ACTIVE_GRAPHICS_BACKEND deliberately survives. It selects no
+                // backend: win32u is the only thing in the runtime that reads it,
+                // and all it does is answer KMTQAITYPE_WDDM_2_7_CAPS. Stripping it
+                // here starved every child of a DXVK-steered launcher, because
+                // Steam runs its games on D3DMetal (DXVK has no d3d12) while they
+                // inherit Steam's environment, and Streamline then refuses DLSS
+                // frame generation. D3DM_ENABLE_METALFX and D3DM_MTL4 already
+                // survive this branch for the same reason.
 
             case .dxmt:
                 // Reset the full translation-DLL union to builtin first so a DXVK
@@ -215,11 +222,14 @@ extension Wine {
                 builder.remove("DXVK_HUD", layer: .programUser)
                 builder.remove("DXVK_ASYNC", layer: .programUser)
                 builder.remove("WINED3DMETAL", layer: .programUser)
-                builder.remove("CX_ACTIVE_GRAPHICS_BACKEND", layer: .programUser)
+                // Survives for the reason given under .dxvk: DXMT translates d3d11
+                // only, so d3d12 is still D3DMetal here.
 
             case .wined3d:
                 // Force wined3d: disable D3DMetal + undo DXVK/DXMT DLLs
                 builder.set("WINED3DMETAL", "0", layer: .programUser)
+                // The one branch that really has no D3DMetal behind it, so the
+                // capability claim would be a lie.
                 builder.remove("CX_ACTIVE_GRAPHICS_BACKEND", layer: .programUser)
                 dllResolver.programCustom.append(contentsOf: Self.translationDLLResetEntries)
             }

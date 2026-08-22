@@ -113595,6 +113595,108 @@
         }
       }
     },
+    "url.confirm.info" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This launch was requested by a link from outside Whisky. Whisky can only launch games and pins you already have, never an arbitrary program, but you should still recognise this one."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This launch was requested by a link from outside Whisky. Whisky can only launch games and pins you already have, never an arbitrary program, but you should still recognise this one."
+          }
+        }
+      }
+    },
+    "url.confirm.launch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch"
+          }
+        }
+      }
+    },
+    "url.confirm.msg %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch %@?"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch %@?"
+          }
+        }
+      }
+    },
+    "url.confirm.remember" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always allow this from links"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always allow this from links"
+          }
+        }
+      }
+    },
+    "url.error.noBottle %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No bottle named %@."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No bottle named %@."
+          }
+        }
+      }
+    },
+    "url.error.noPin" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing pinned under that name."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing pinned under that name."
+          }
+        }
+      }
+    },
     "wine.dxmt.error.payloadMissing" : {
       "extractionState" : "manual",
       "localizations" : {

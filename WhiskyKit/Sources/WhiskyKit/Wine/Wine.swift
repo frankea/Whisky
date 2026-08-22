@@ -348,6 +348,11 @@ public class Wine {
             launchArgs = ["start", "/unix", url.path(percentEncoded: false)] + args
         }
 
+        // As late as possible: the bridge holds the prefix open only for a short
+        // grace window before standing down, so it wants the smallest gap it can
+        // get between itself and the program it is bridging for.
+        DiscordIntegration.shared.programLaunching(url, bottle: bottle)
+
         var exitCode: Int32 = 0
         for await output in try runProcess(
             name: programName,

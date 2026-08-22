@@ -33493,6 +33493,102 @@
         }
       }
     },
+    "config.discord" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discord"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discord"
+          }
+        }
+      }
+    },
+    "config.discord.bridge" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let games publish their own presence"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let games publish their own presence"
+          }
+        }
+      }
+    },
+    "config.discord.bridge.info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relays the Discord pipe a Windows game expects to the Discord client on your Mac. Only affects games that publish rich presence themselves."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relays the Discord pipe a Windows game expects to the Discord client on your Mac. Only affects games that publish rich presence themselves."
+          }
+        }
+      }
+    },
+    "config.discord.presence" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show what you're playing"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show what you're playing"
+          }
+        }
+      }
+    },
+    "config.discord.presence.info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Publishes the program Whisky launches as your Discord activity, shown under Whisky's name."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Publishes the program Whisky launches as your Discord activity, shown under Whisky's name."
+          }
+        }
+      }
+    },
+    "config.discord.presence.unavailable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unavailable: this build has no Discord application configured."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unavailable: this build has no Discord application configured."
+          }
+        }
+      }
+    },
     "config.dpi" : {
       "localizations" : {
         "ar" : {

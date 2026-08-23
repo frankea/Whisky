@@ -573,4 +573,55 @@ final class EnvironmentVariablesTests: XCTestCase {
         settings.environmentVariables(wineEnv: &env)
         XCTAssertNil(env["CX_ACTIVE_GRAPHICS_BACKEND"])
     }
+
+    // MARK: - Metal 4 is per program, because D3DMetal only takes that path for D3D12
+
+    /// Resolves the environment a program gets from a D3DMetal bottle, which is
+    /// where `D3DM_MTL4` is set, with its own overrides layered on top.
+    private func resolvedEnvironment(_ overrides: ProgramOverrides) -> [String: String] {
+        var settings = BottleSettings()
+        settings.graphicsBackend = .d3dMetal
+        var builder = EnvironmentBuilder()
+        var dllResolver = DLLOverrideResolver(managed: [], bottleCustom: [], programCustom: [])
+
+        _ = settings.populateBottleManagedLayer(builder: &builder)
+        Wine.applyProgramOverrides(overrides, builder: &builder, dllResolver: &dllResolver)
+
+        return builder.resolve().environment
+    }
+
+    func testD3DMetalBottleEnablesMetal4() {
+        XCTAssertEqual(resolvedEnvironment(ProgramOverrides())["D3DM_MTL4"], "1")
+    }
+
+    func testProgramCanDisableMetal4WithoutTheBottleLosingIt() {
+        // A D3D12 title whose renderer wedges on a fence the Metal 4 submission
+        // path never signals has to be able to drop back on its own.
+        var overrides = ProgramOverrides()
+        overrides.metal4Enabled = false
+
+        XCTAssertNil(resolvedEnvironment(overrides)["D3DM_MTL4"])
+    }
+
+    func testProgramCanKeepMetal4Explicitly() {
+        var overrides = ProgramOverrides()
+        overrides.metal4Enabled = true
+
+        XCTAssertEqual(resolvedEnvironment(overrides)["D3DM_MTL4"], "1")
+    }
+
+    func testMetal4OverrideUnsetInheritsTheBottle() {
+        XCTAssertNil(ProgramOverrides().metal4Enabled)
+        XCTAssertTrue(ProgramOverrides().isEmpty)
+    }
+
+    func testMetal4OverrideSurvivesASettingsRoundTrip() throws {
+        var overrides = ProgramOverrides()
+        overrides.metal4Enabled = false
+
+        let data = try PropertyListEncoder().encode(overrides)
+        let decoded = try PropertyListDecoder().decode(ProgramOverrides.self, from: data)
+
+        XCTAssertEqual(decoded.metal4Enabled, false)
+    }
 }

@@ -283,6 +283,13 @@ struct ProgramOverrideSettingsView: View {
                     graphicsControls
                 }
 
+                // D3DMetal only takes the Metal 4 path for D3D12 devices, so
+                // this is the one graphics setting a single title needs to be
+                // able to turn off while the bottle keeps it.
+                if resolvedOverriddenBackend == .d3dMetal {
+                    Toggle("config.metal4", isOn: metal4Binding)
+                }
+
                 // "Takes effect next launch" note
                 Text("config.graphics.nextLaunch")
                     .font(.caption)
@@ -629,11 +636,13 @@ struct ProgramOverrideSettingsView: View {
                     // a backend override is set, and one is set right here.
                     program.settings.overrides?.dxvkAsync = bottle.settings.dxvkAsync
                     program.settings.overrides?.dxvkHud = bottle.settings.dxvkHud
+                    program.settings.overrides?.metal4Enabled = bottle.settings.metal4Enabled
                 } else {
                     program.settings.overrides?.graphicsBackend = nil
                     program.settings.overrides?.dxvk = nil
                     program.settings.overrides?.dxvkAsync = nil
                     program.settings.overrides?.dxvkHud = nil
+                    program.settings.overrides?.metal4Enabled = nil
                 }
             }
         )
@@ -741,6 +750,13 @@ struct ProgramOverrideSettingsView: View {
         Binding(
             get: { program.settings.overrides?.dxvkAsync ?? bottle.settings.dxvkAsync },
             set: { program.settings.overrides?.dxvkAsync = $0 }
+        )
+    }
+
+    private var metal4Binding: Binding<Bool> {
+        Binding(
+            get: { program.settings.overrides?.metal4Enabled ?? bottle.settings.metal4Enabled },
+            set: { program.settings.overrides?.metal4Enabled = $0 }
         )
     }
 

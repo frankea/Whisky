@@ -389,6 +389,17 @@ public struct BottleSettings: Codable, Equatable {
         set { discordConfig.bridge = newValue }
     }
 
+    /// Whether games in this bottle may turn on DLSS frame generation.
+    ///
+    /// Separate from ``metalFX`` because the two features fail differently.
+    /// Upscaling is measured good; frame generation took the whole login
+    /// session down on the machine it was tested on. See
+    /// ``BottleGraphicsConfig/frameGeneration``.
+    public var frameGeneration: Bool {
+        get { graphicsConfig.frameGeneration }
+        set { graphicsConfig.frameGeneration = newValue }
+    }
+
     /// Whether DXVK is the active graphics backend.
     ///
     /// This property now derives from ``graphicsBackend``. Setting it to `true`
@@ -861,11 +872,14 @@ public struct BottleSettings: Codable, Equatable {
         case .d3dMetal, .recommended:
             // Wine answers KMTQAITYPE_WDDM_2_7_CAPS, the query behind "hardware
             // accelerated GPU scheduling", only when this says d3dmetal, and
-            // returns STATUS_NOT_IMPLEMENTED otherwise. Nothing set it, so a
-            // game asking whether scheduling is available was told it is not.
-            // The only other reader wants the value "wined3d" alongside
-            // CX_LIBVULKAN, so this is inert for it.
-            builder.set("CX_ACTIVE_GRAPHICS_BACKEND", "d3dmetal", layer: .bottleManaged)
+            // returns STATUS_NOT_IMPLEMENTED otherwise. NVIDIA Streamline
+            // refuses DLSS frame generation on that answer, so this variable is
+            // the whole frame generation switch. The only other reader wants
+            // the value "wined3d" alongside CX_LIBVULKAN, so this is inert for
+            // it.
+            if frameGeneration {
+                builder.set("CX_ACTIVE_GRAPHICS_BACKEND", "d3dmetal", layer: .bottleManaged)
+            }
             // The DLL placement that actually gates the DLSS-to-MetalFX path
             // happens in `Wine.applyMetalFX` at launch; this is the opt-in.
             if metalFX {

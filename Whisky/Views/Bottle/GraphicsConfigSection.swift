@@ -83,6 +83,17 @@ struct GraphicsConfigSection: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                // Frame generation reaches MetalFX through the same DLSS bridge
+                // as upscaling, so it has nothing to switch on without it.
+                Toggle(isOn: $bottle.settings.frameGeneration) {
+                    VStack(alignment: .leading) {
+                        Text("config.frameGeneration")
+                        Text("config.frameGeneration.info")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .disabled(!bottle.settings.metalFX)
             }
 
             // Force DX11 toggle -- always visible (Simple + Advanced)

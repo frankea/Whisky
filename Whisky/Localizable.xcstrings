@@ -36522,6 +36522,38 @@
         }
       }
     },
+    "config.frameGeneration" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DLSS Frame Generation"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DLSS Frame Generation"
+          }
+        }
+      }
+    },
+    "config.frameGeneration.info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off by default. Frame generation reaches MetalFX frame interpolation, which on current macOS can leave the GPU driver unresponsive and end the login session. DLSS upscaling above is unaffected. Some NVIDIA Streamline titles will not start with it off, Deep Rock Galactic among them."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off by default. Frame generation reaches MetalFX frame interpolation, which on current macOS can leave the GPU driver unresponsive and end the login session. DLSS upscaling above is unaffected. Some NVIDIA Streamline titles will not start with it off, Deep Rock Galactic among them."
+          }
+        }
+      }
+    },
     "config.inspect" : {
       "localizations" : {
         "ar" : {

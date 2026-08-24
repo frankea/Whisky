@@ -555,15 +555,40 @@ final class EnvironmentVariablesTests: XCTestCase {
 
     // MARK: - hardware scheduling is claimed only where it applies
 
-    func testD3DMetalBottleClaimsHardwareScheduling() {
+    func testD3DMetalBottleClaimsHardwareSchedulingForFrameGeneration() {
         // Wine answers the WDDM 2.7 caps query only for a caller that says it is
-        // on D3DMetal; without it, a game asking about GPU scheduling is told
-        // the feature is not implemented.
+        // on D3DMetal, and NVIDIA Streamline refuses DLSS frame generation
+        // without that answer.
         var settings = BottleSettings()
         settings.graphicsBackend = .d3dMetal
+        settings.frameGeneration = true
         var env: [String: String] = [:]
         settings.environmentVariables(wineEnv: &env)
         XCTAssertEqual(env["CX_ACTIVE_GRAPHICS_BACKEND"], "d3dmetal")
+    }
+
+    /// Frame generation took a whole login session down: MetalFX interpolation
+    /// left the GPU driver unresponsive and WindowServer's watchdog killed it.
+    /// A bottle has to ask for that, and asking is what this variable is.
+    func testD3DMetalBottleWithholdsTheClaimByDefault() {
+        var settings = BottleSettings()
+        settings.graphicsBackend = .d3dMetal
+        XCTAssertFalse(settings.frameGeneration)
+        var env: [String: String] = [:]
+        settings.environmentVariables(wineEnv: &env)
+        XCTAssertNil(env["CX_ACTIVE_GRAPHICS_BACKEND"])
+    }
+
+    /// Upscaling and frame generation are separate features that fail
+    /// differently, so the upscaling switch must not drag the other one on.
+    func testMetalFXDoesNotImplyFrameGeneration() {
+        var settings = BottleSettings()
+        settings.graphicsBackend = .d3dMetal
+        settings.metalFX = true
+        var env: [String: String] = [:]
+        settings.environmentVariables(wineEnv: &env)
+        XCTAssertEqual(env["D3DM_ENABLE_METALFX"], "1")
+        XCTAssertNil(env["CX_ACTIVE_GRAPHICS_BACKEND"])
     }
 
     func testDXVKBottleDoesNotClaimHardwareScheduling() {
@@ -650,6 +675,7 @@ final class EnvironmentVariablesTests: XCTestCase {
         // turn on DLSS frame generation even though it ran on D3DMetal.
         var settings = BottleSettings()
         settings.graphicsBackend = .d3dMetal
+        settings.frameGeneration = true
 
         var overrides = ProgramOverrides()
         overrides.graphicsBackend = .dxvk
@@ -662,6 +688,7 @@ final class EnvironmentVariablesTests: XCTestCase {
         // DXMT translates d3d11 only, so d3d12 is still D3DMetal underneath.
         var settings = BottleSettings()
         settings.graphicsBackend = .d3dMetal
+        settings.frameGeneration = true
 
         var overrides = ProgramOverrides()
         overrides.graphicsBackend = .dxmt
@@ -675,11 +702,55 @@ final class EnvironmentVariablesTests: XCTestCase {
         // there is nothing behind the claim.
         var settings = BottleSettings()
         settings.graphicsBackend = .d3dMetal
+        settings.frameGeneration = true
 
         var overrides = ProgramOverrides()
         overrides.graphicsBackend = .wined3d
 
         let env = resolvedEnvironment(bottleSettings: settings, programOverrides: overrides)
         XCTAssertNil(env["CX_ACTIVE_GRAPHICS_BACKEND"])
+    }
+
+    /// The .d3dMetal program branch claims scheduling itself, because a bottle
+    /// on another backend never does. Ungated, that was a second way in.
+    func testD3DMetalProgramOverrideRespectsFrameGenerationOff() {
+        var settings = BottleSettings()
+        settings.graphicsBackend = .dxvk
+        var builder = EnvironmentBuilder()
+        var dllResolver = DLLOverrideResolver(managed: [], bottleCustom: [], programCustom: [])
+        dllResolver.managed.append(contentsOf: settings.populateBottleManagedLayer(builder: &builder))
+
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = .d3dMetal
+        Wine.applyProgramOverrides(
+            overrides,
+            frameGeneration: settings.frameGeneration,
+            builder: &builder,
+            dllResolver: &dllResolver
+        )
+
+        let (resolved, _) = builder.resolve()
+        XCTAssertNil(resolved["CX_ACTIVE_GRAPHICS_BACKEND"])
+    }
+
+    func testD3DMetalProgramOverrideClaimsWhenFrameGenerationIsOn() {
+        var settings = BottleSettings()
+        settings.graphicsBackend = .dxvk
+        settings.frameGeneration = true
+        var builder = EnvironmentBuilder()
+        var dllResolver = DLLOverrideResolver(managed: [], bottleCustom: [], programCustom: [])
+        dllResolver.managed.append(contentsOf: settings.populateBottleManagedLayer(builder: &builder))
+
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = .d3dMetal
+        Wine.applyProgramOverrides(
+            overrides,
+            frameGeneration: settings.frameGeneration,
+            builder: &builder,
+            dllResolver: &dllResolver
+        )
+
+        let (resolved, _) = builder.resolve()
+        XCTAssertEqual(resolved["CX_ACTIVE_GRAPHICS_BACKEND"], "d3dmetal")
     }
 }

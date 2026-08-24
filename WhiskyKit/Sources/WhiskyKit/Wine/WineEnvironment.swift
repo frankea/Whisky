@@ -131,7 +131,12 @@ extension Wine {
 
         // Apply per-program overrides to the programUser layer
         if let overrides = programOverrides {
-            applyProgramOverrides(overrides, builder: &builder, dllResolver: &dllResolver)
+            applyProgramOverrides(
+                overrides,
+                frameGeneration: bottle.settings.frameGeneration,
+                builder: &builder,
+                dllResolver: &dllResolver
+            )
         }
 
         // Layer 8: featureRuntime -- diagnostic WINEDEBUG preset override
@@ -178,6 +183,7 @@ extension Wine {
     /// bottleManaged and launcherManaged layers.
     static func applyProgramOverrides(
         _ overrides: ProgramOverrides,
+        frameGeneration: Bool = false,
         builder: inout EnvironmentBuilder,
         dllResolver: inout DLLOverrideResolver
     ) {
@@ -197,8 +203,12 @@ extension Wine {
                 builder.remove("DXVK_ASYNC", layer: .programUser)
                 builder.remove("WINED3DMETAL", layer: .programUser)
                 // One program on D3DMetal inside a bottle running something else
-                // still has to be told scheduling exists; see the bottle layer.
-                builder.set("CX_ACTIVE_GRAPHICS_BACKEND", "d3dmetal", layer: .programUser)
+                // still has to claim scheduling itself; see the bottle layer.
+                // Gated on the same setting, or turning frame generation off
+                // would leave this one route still open.
+                if frameGeneration {
+                    builder.set("CX_ACTIVE_GRAPHICS_BACKEND", "d3dmetal", layer: .programUser)
+                }
 
             case .dxvk:
                 // Enable DXVK DLLs at program level

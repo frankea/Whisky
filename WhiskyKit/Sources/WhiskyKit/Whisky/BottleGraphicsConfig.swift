@@ -161,6 +161,23 @@ public struct BottleGraphicsConfig: Codable, Equatable {
     /// `DXGIAdapter::nvngxDLLLocation` to find, the variable is inert.
     var metalFX: Bool = true
 
+    /// Whether games in this bottle may turn on DLSS frame generation.
+    ///
+    /// Off, and it should stay off until a title is known to survive it. The
+    /// only thing this controls is `CX_ACTIVE_GRAPHICS_BACKEND`, which makes
+    /// win32u answer `KMTQAITYPE_WDDM_2_7_CAPS`, and NVIDIA Streamline refuses
+    /// to enter its DLSS-G path without that answer. So leaving it unset is
+    /// what keeps frame generation off, and it costs nothing else: DLSS
+    /// upscaling reaches MetalFX through ``metalFX`` and does not read this.
+    ///
+    /// Measured on Ready or Not, macOS 27.0 on an M5, D3DMetal 4.0b2: with
+    /// frame generation on, every command buffer carrying MetalFX work fails
+    /// (542 in one 8 minute session against 8 with it off), and the session
+    /// ends when WindowServer blocks in `IOGPUFamily` and its watchdog kills
+    /// it. Two unrelated processes were parked in the same driver at the same
+    /// instant, so this is not something a bottle can be trusted to contain.
+    var frameGeneration: Bool = false
+
     /// Creates a new graphics config with the default `.recommended` backend.
     public init() {}
 
@@ -170,5 +187,8 @@ public struct BottleGraphicsConfig: Codable, Equatable {
         // Matches the property default, so a bottle written before this key
         // existed adopts the new default instead of decoding as off.
         self.metalFX = (try? container.decodeIfPresent(Bool.self, forKey: .metalFX)) ?? true
+        // Off for a bottle written before the key existed, which is the same
+        // answer the property default gives a new one.
+        self.frameGeneration = (try? container.decodeIfPresent(Bool.self, forKey: .frameGeneration)) ?? false
     }
 }

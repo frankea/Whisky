@@ -65,14 +65,32 @@ func fakePEWithExportName(_ name: String, builtin: Bool = true) -> Data {
 
 /// Gives a store's `d3d12.dll` a walkable export directory, so the swap under
 /// test has something shaped like Apple's DLL to rename.
-func makeStoreD3D12Renameable(inStore store: URL) throws {
-    try fakePEWithExportName("d3d12.dll").write(
+func makeStoreSlotRenameable(inStore store: URL, slotName: String) throws {
+    try fakePEWithExportName(slotName).write(
         to: store.appending(path: "lib").appending(path: "wine")
-            .appending(path: "x86_64-windows").appending(path: "d3d12.dll")
+            .appending(path: "x86_64-windows").appending(path: slotName)
     )
 }
 
+func makeStoreD3D12Renameable(inStore store: URL) throws {
+    try makeStoreSlotRenameable(inStore: store, slotName: "d3d12.dll")
+}
+
 /// Puts an interposer in the runtime where the build ships one.
+@discardableResult
+func makeInterposerShim(
+    _ interposer: GPTKInterposer, at libraryFolder: URL, marker: String = "interposer"
+) throws -> URL {
+    let shim = GPTKImporter.shim(for: interposer, inLibraryFolder: libraryFolder)
+    try FileManager.default.createDirectory(
+        at: shim.deletingLastPathComponent(), withIntermediateDirectories: true
+    )
+    var data = fakePE(builtin: true)
+    data.append(Data(marker.utf8))
+    try data.write(to: shim)
+    return shim
+}
+
 @discardableResult
 func makeVideoProcessorShim(at libraryFolder: URL, marker: String = "interposer") throws -> URL {
     let shim = GPTKImporter.videoProcessorShim(inLibraryFolder: libraryFolder)

@@ -180,10 +180,12 @@ extension GPTKImporter {
         // can be installed: it forwards into the payload's own shared dylib and
         // has nothing to bind to before this point.
         try installMetalFXBridge(intoLibraryFolder: folder, usingStore: store)
-        // Apple's D3D12 is in place now, which is the only moment the swap can
-        // be made: the runtime ships the interposer but has nothing to forward
+        // Apple's DLLs are in place now, which is the only moment the swaps can
+        // be made: the runtime ships the interposers but has nothing to forward
         // into until this point.
-        try installVideoProcessor(intoLibraryFolder: folder)
+        for interposer in interposers {
+            try install(interposer, intoLibraryFolder: folder)
+        }
         try installNVAPIBridge(intoLibraryFolder: folder, usingStore: store)
         logger.info("Deployed GPTK payload into the runtime tree")
     }

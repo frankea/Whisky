@@ -27426,6 +27426,7 @@
       }
     },
     "clipboard.clear" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -27722,6 +27723,7 @@
       }
     },
     "clipboard.keep" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -28018,6 +28020,7 @@
       }
     },
     "clipboard.large.message.image" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -28166,6 +28169,7 @@
       }
     },
     "clipboard.large.message.other" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -28314,6 +28318,7 @@
       }
     },
     "clipboard.large.message.text" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -28462,6 +28467,7 @@
       }
     },
     "clipboard.large.title" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -28758,6 +28764,7 @@
       }
     },
     "config.audio.device.followSystem" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -29054,6 +29061,7 @@
       }
     },
     "config.audio.device.pinned" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -29350,6 +29358,7 @@
       }
     },
     "config.audio.driver.auto" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -29498,6 +29507,7 @@
       }
     },
     "config.audio.driver.disabled" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -29794,6 +29804,7 @@
       }
     },
     "config.audio.latency.default" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -29942,6 +29953,7 @@
       }
     },
     "config.audio.latency.low" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -30090,6 +30102,7 @@
       }
     },
     "config.audio.latency.stable" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

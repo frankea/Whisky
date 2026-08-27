@@ -573,4 +573,62 @@ final class EnvironmentVariablesTests: XCTestCase {
         settings.environmentVariables(wineEnv: &env)
         XCTAssertNil(env["CX_ACTIVE_GRAPHICS_BACKEND"])
     }
+
+    /// Resolves the environment a program launch actually sees: the bottle-managed
+    /// layer with the program override applied on top.
+    private func resolvedEnvironment(
+        bottleSettings: BottleSettings,
+        programOverrides: ProgramOverrides
+    ) -> [String: String] {
+        var settings = bottleSettings
+        var builder = EnvironmentBuilder()
+        var dllResolver = DLLOverrideResolver(managed: [], bottleCustom: [], programCustom: [])
+        let managed = settings.populateBottleManagedLayer(builder: &builder)
+        dllResolver.managed.append(contentsOf: managed)
+
+        Wine.applyProgramOverrides(programOverrides, builder: &builder, dllResolver: &dllResolver)
+
+        let (resolved, _) = builder.resolve()
+        return resolved
+    }
+
+    func testDXVKProgramOverrideKeepsHardwareSchedulingClaim() {
+        // Steam is steered onto DXVK so Chromium paints, and its games inherit that
+        // environment. The variable answers a capability query rather than selecting
+        // a backend, so stripping it here left every Steam-launched game unable to
+        // turn on DLSS frame generation even though it ran on D3DMetal.
+        var settings = BottleSettings()
+        settings.graphicsBackend = .d3dMetal
+
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = .dxvk
+
+        let env = resolvedEnvironment(bottleSettings: settings, programOverrides: overrides)
+        XCTAssertEqual(env["CX_ACTIVE_GRAPHICS_BACKEND"], "d3dmetal")
+    }
+
+    func testDXMTProgramOverrideKeepsHardwareSchedulingClaim() {
+        // DXMT translates d3d11 only, so d3d12 is still D3DMetal underneath.
+        var settings = BottleSettings()
+        settings.graphicsBackend = .d3dMetal
+
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = .dxmt
+
+        let env = resolvedEnvironment(bottleSettings: settings, programOverrides: overrides)
+        XCTAssertEqual(env["CX_ACTIVE_GRAPHICS_BACKEND"], "d3dmetal")
+    }
+
+    func testWineD3DProgramOverrideDropsHardwareSchedulingClaim() {
+        // wined3d is the one override that switches D3DMetal off outright, so
+        // there is nothing behind the claim.
+        var settings = BottleSettings()
+        settings.graphicsBackend = .d3dMetal
+
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = .wined3d
+
+        let env = resolvedEnvironment(bottleSettings: settings, programOverrides: overrides)
+        XCTAssertNil(env["CX_ACTIVE_GRAPHICS_BACKEND"])
+    }
 }

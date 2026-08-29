@@ -33,9 +33,7 @@ struct ProgramOverrideSettingsView: View {
     @Binding var isExpanded: Bool
 
     @State private var showResetConfirmation = false
-    @State private var showDiagnosticsSheet = false
-    @State private var activeDiagnosis: CrashDiagnosis?
-    @State private var activeLogText: String = ""
+    @State private var diagnosisPresentation: DiagnosisPresentation?
     @State private var gameMatch: MatchResult?
     @State private var showGameConfigDetail: Bool = false
     @State private var recommendedDependencies: [DependencyDefinition] = []
@@ -66,18 +64,19 @@ struct ProgramOverrideSettingsView: View {
                         .frame(minWidth: 600, minHeight: 500)
                 }
             }
-            .sheet(isPresented: $showDiagnosticsSheet) {
-                if let diagnosis = activeDiagnosis {
-                    DiagnosticsView(
-                        diagnosis: diagnosis,
-                        logText: activeLogText,
-                        programName: program.name,
-                        bottleName: bottle.settings.name,
-                        timestamp: Date(),
-                        applyBottle: bottle
-                    )
-                    .frame(minWidth: 600, minHeight: 400)
-                }
+            // Item-based so the sheet is built from the value that presents it.
+            // With isPresented plus a separate optional, the content closure can
+            // evaluate before the diagnosis lands and presents an empty sheet.
+            .sheet(item: $diagnosisPresentation) { presentation in
+                DiagnosticsView(
+                    diagnosis: presentation.diagnosis,
+                    logText: presentation.logText,
+                    programName: program.name,
+                    bottleName: bottle.settings.name,
+                    timestamp: Date(),
+                    applyBottle: bottle
+                )
+                .frame(minWidth: 600, minHeight: 400)
             }
             .sheet(item: $dependencyToInstall) { definition in
                 DependencyInstallSheet(definition: definition, bottle: bottle)
@@ -122,9 +121,10 @@ struct ProgramOverrideSettingsView: View {
                 exitCode: 1
             )
             else { return }
-            activeLogText = (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
-            activeDiagnosis = diagnosis
-            showDiagnosticsSheet = true
+            diagnosisPresentation = DiagnosisPresentation(
+                diagnosis: diagnosis,
+                logText: (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
+            )
         }
     }
 
@@ -136,9 +136,10 @@ struct ProgramOverrideSettingsView: View {
                 exitCode: 1
             )
             else { return }
-            activeLogText = (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
-            activeDiagnosis = diagnosis
-            showDiagnosticsSheet = true
+            diagnosisPresentation = DiagnosisPresentation(
+                diagnosis: diagnosis,
+                logText: (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
+            )
         }
     }
 
@@ -913,3 +914,11 @@ struct ProgramOverrideSettingsView: View {
 }
 
 // swiftlint:enable type_body_length
+
+/// What a diagnostics sheet is showing; `Identifiable` so it can drive
+/// `.sheet(item:)` and the sheet is never presented without a diagnosis.
+struct DiagnosisPresentation: Identifiable {
+    let id = UUID()
+    let diagnosis: CrashDiagnosis
+    let logText: String
+}

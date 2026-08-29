@@ -60213,6 +60213,38 @@
         }
       }
     },
+    "config.graphics.currentlyUsing %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Currently using %@"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Currently using %@"
+          }
+        }
+      }
+    },
+    "config.graphics.helperCurrently %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended currently resolves to %@."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended currently resolves to %@."
+          }
+        }
+      }
+    },
     "config.graphics.nextLaunch" : {
       "localizations" : {
         "en" : {
@@ -60289,6 +60321,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete Run"
+          }
+        }
+      }
+    },
+    "console.exitCode %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exit code %lld"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exit code %lld"
+          }
+        }
+      }
+    },
+    "console.exited %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exited with code %lld"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exited with code %lld"
           }
         }
       }
@@ -104257,6 +104321,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自訂"
+          }
+        }
+      }
+    },
+    "config.virtualDesktop.matchDisplay %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detected display: %lld x %lld pixels"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detected display: %lld x %lld pixels"
           }
         }
       }

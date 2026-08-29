@@ -36,11 +36,8 @@ struct ConfigView: View {
     @State private var dpiSheetPresented: Bool = false
     @State private var showStabilityDiagnostics: Bool = false
     @State private var stabilityDiagnosticReport: String = ""
-    @State private var showDiagnosticExportSheet: Bool = false
-    @State private var showCrashDiagnosticsSheet: Bool = false
-    @State private var latestDiagnosis: CrashDiagnosis?
-    @State private var latestDiagnosisLogText: String = ""
-    @State private var latestDiagnosisProgram: Program?
+    @State private var exportPresentation: ExportPresentation?
+    @State private var crashPresentation: BottleDiagnosisPresentation?
     @State private var isRepairingPrefix: Bool = false
     @State private var prefixRepairResult: PrefixRepairResult?
     @State private var gameConfigSnapshot: GameConfigSnapshot?
@@ -118,7 +115,7 @@ struct ConfigView: View {
                 Button("Export Diagnostic Report\u{2026}") {
                     loadLatestDiagnosisAndExport()
                 }
-                .disabled(latestDiagnosis == nil && mostRecentlyDiagnosedProgram == nil)
+                .disabled(mostRecentlyDiagnosedProgram == nil)
 
                 Button("View Latest Diagnosis") {
                     loadLatestDiagnosisAndView()
@@ -197,28 +194,26 @@ struct ConfigView: View {
                 defaultFilenamePrefix: "whisky-stability-diagnostics"
             )
         }
-        .sheet(isPresented: $showDiagnosticExportSheet) {
-            if let diagnosis = latestDiagnosis, let program = latestDiagnosisProgram {
-                DiagnosticExportSheet(
-                    diagnosis: diagnosis,
-                    bottle: bottle,
-                    program: program,
-                    logFileURL: program.settings.lastLogFileURL
-                )
-            }
+        // Both item-based: presenting on a flag while the content reads a
+        // separate optional can build the sheet before the diagnosis lands.
+        .sheet(item: $exportPresentation) { presentation in
+            DiagnosticExportSheet(
+                diagnosis: presentation.diagnosis,
+                bottle: bottle,
+                program: presentation.program,
+                logFileURL: presentation.program.settings.lastLogFileURL
+            )
         }
-        .sheet(isPresented: $showCrashDiagnosticsSheet) {
-            if let diagnosis = latestDiagnosis, let program = latestDiagnosisProgram {
-                DiagnosticsView(
-                    diagnosis: diagnosis,
-                    logText: latestDiagnosisLogText,
-                    programName: program.name,
-                    bottleName: bottle.settings.name,
-                    timestamp: program.settings.lastDiagnosisDate ?? Date(),
-                    applyBottle: bottle
-                )
-                .frame(minWidth: 600, minHeight: 400)
-            }
+        .sheet(item: $crashPresentation) { presentation in
+            DiagnosticsView(
+                diagnosis: presentation.diagnosis,
+                logText: presentation.logText,
+                programName: presentation.program.name,
+                bottleName: bottle.settings.name,
+                timestamp: presentation.program.settings.lastDiagnosisDate ?? Date(),
+                applyBottle: bottle
+            )
+            .frame(minWidth: 600, minHeight: 400)
         }
         .alert(item: $prefixRepairResult) { result in
             switch result {
@@ -447,9 +442,7 @@ extension ConfigView {
         else { return }
         Task {
             guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else { return }
-            latestDiagnosis = diagnosis
-            latestDiagnosisProgram = program
-            showDiagnosticExportSheet = true
+            exportPresentation = ExportPresentation(diagnosis: diagnosis, program: program)
         }
     }
 
@@ -459,12 +452,29 @@ extension ConfigView {
         else { return }
         Task {
             guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else { return }
-            latestDiagnosis = diagnosis
-            latestDiagnosisProgram = program
-            latestDiagnosisLogText = (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
-            showCrashDiagnosticsSheet = true
+            crashPresentation = BottleDiagnosisPresentation(
+                diagnosis: diagnosis,
+                program: program,
+                logText: (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
+            )
         }
     }
+}
+
+/// What the export sheet is exporting; `Identifiable` so `.sheet(item:)`
+/// never presents without both a diagnosis and its program.
+struct ExportPresentation: Identifiable {
+    let id = UUID()
+    let diagnosis: CrashDiagnosis
+    let program: Program
+}
+
+/// What the bottle-level diagnostics sheet is showing.
+struct BottleDiagnosisPresentation: Identifiable {
+    let id = UUID()
+    let diagnosis: CrashDiagnosis
+    let program: Program
+    let logText: String
 }
 
 // swiftlint:enable file_length

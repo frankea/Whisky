@@ -149,7 +149,9 @@ public extension Program {
                 // Checked after the scan, so a crash written between the last
                 // scan and the wineserver going down still gets one look.
                 let running = await Wine.isWineserverRunning(for: bottle)
-                if !running { return }
+                if !running {
+                    return
+                }
             }
         }
     }
@@ -217,8 +219,10 @@ public extension Program {
             history.append(entry)
             try? history.save(to: historyURL)
 
-            // Update lastDiagnosisDate on the main actor
+            // Stamp the program so the bottle's diagnostics buttons know there
+            // is something to show; without it they never enable.
             await MainActor.run {
+                self.settings.lastDiagnosisDate = entry.timestamp
                 // Post notification for the UI to react
                 NotificationCenter.default.post(
                     name: .crashDiagnosisAvailable,

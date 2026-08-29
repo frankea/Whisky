@@ -81,6 +81,9 @@ extension DiagnosisHistoryView {
                     onAnalyzeLastRun()
                 }
                 .buttonStyle(.bordered)
+                // Analysis reads the last run's log; before the first run the
+                // button would otherwise click through to nothing.
+                .disabled(program.settings.lastLogFileURL == nil)
             }
         }
         .frame(maxWidth: .infinity)

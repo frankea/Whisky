@@ -105,6 +105,10 @@ extension TroubleshootingWizardView {
                     .disabled(engine.session.stepHistory.count <= 1)
                 Button("troubleshooting.wizard.skip") { engine.skipStep() }
                     .disabled(engine.currentNode == nil)
+                if engine.canContinue {
+                    Button("troubleshooting.wizard.continue") { engine.continueStep() }
+                        .keyboardShortcut(.defaultAction)
+                }
             }
         }
         .padding(.horizontal, 16)

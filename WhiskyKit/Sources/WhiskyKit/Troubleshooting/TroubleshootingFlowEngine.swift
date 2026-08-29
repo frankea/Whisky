@@ -348,10 +348,34 @@ public final class TroubleshootingFlowEngine: ObservableObject {
     /// Skips the current step, navigating to the "skipped" or "default" target.
     ///
     /// Per the locked "skip for now" decision, users can skip any step.
+    /// Whether the current node has a `continue` transition, which is how an
+    /// info node hands over to the next step.
+    public var canContinue: Bool {
+        currentNode?.on?["continue"] != nil
+    }
+
+    /// Follows the current node's `continue` transition.
+    ///
+    /// Info nodes (a findings card between a check and its fix) only carry
+    /// this transition. Nothing followed it, so every flow that reached one
+    /// stopped there with Skip and Back as the only controls.
+    public func continueStep() {
+        guard let node = currentNode else { return }
+
+        if let nextNodeId = node.on?["continue"] ?? node.on?["default"] {
+            logger.debug("Continuing from step \(node.id) -> \(nextNodeId)")
+            session.recordBranch(from: node.id, targetNodeId: nextNodeId, reason: "Continue")
+            navigateToNode(nextNodeId)
+        } else {
+            logger.warning("No continue target for node \(node.id)")
+        }
+    }
+
     public func skipStep() {
         guard let node = currentNode else { return }
 
-        if let nextNodeId = node.on?["skipped"] ?? node.on?["default"] {
+        // `continue` is the fallback: skipping an info node means moving on.
+        if let nextNodeId = node.on?["skipped"] ?? node.on?["default"] ?? node.on?["continue"] {
             logger.debug("Skipping step \(node.id) -> \(nextNodeId)")
             navigateToNode(nextNodeId)
         } else {

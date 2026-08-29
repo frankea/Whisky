@@ -95267,6 +95267,22 @@
         }
       }
     },
+    "troubleshooting.wizard.continue" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        }
+      }
+    },
     "troubleshooting.wizard.runningChecks" : {
       "localizations" : {
         "en" : {

@@ -100,6 +100,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "Audio Troubleshooting" no longer opens as a small empty sheet. Same cause
   as the diagnosis sheet: presented on a flag while the content read a
   separate optional; it is presented from the engine itself now.
+- The bottle's Terminal button works for bottles whose name contains a space.
+  The name was backslash-escaped inside double quotes, so the shell passed
+  the backslashes through and WhiskyCmd reported that no such bottle exists.
+- Guided troubleshooting no longer dead-ends on a findings card. Info steps
+  such as "Missing dependencies found" only carry a Continue transition, and
+  nothing followed it; the wizard now shows a Continue button there, and Skip
+  moves on as well.
 - Diagnostic exports with "Include sensitive details" off no longer carry
   credentials in plain sight. Launch arguments were written to the archive
   verbatim regardless of the toggle, and log redaction only rewrote the home

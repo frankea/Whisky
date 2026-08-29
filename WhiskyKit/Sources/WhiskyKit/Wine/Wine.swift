@@ -152,6 +152,7 @@ public class Wine {
         fileHandle.writeApplicationInfo()
         fileHandle.writeInfo(for: bottle)
 
+        WineUserProfile.reconcile(bottleURL: bottle.url)
         let wineEnvironment = constructWineEnvironment(for: bottle, environment: environment)
 
         return try runProcess(
@@ -266,6 +267,10 @@ public class Wine {
             pinned.graphicsBackend = effectiveBackend
             programOverrides = pinned
         }
+
+        // The profile has to resolve under whichever name this runtime uses
+        // before anything in the bottle starts, or the app boots into an empty one.
+        WineUserProfile.reconcile(bottleURL: bottle.url)
 
         try prepareBackendPrefix(effectiveBackend, bottle: bottle)
 
@@ -418,6 +423,7 @@ public class Wine {
         // Escape args and environment values to prevent shell injection from user-editable settings
         let escapedArgs = preEscaped ? args : args.esc
         var wineCmd = "\(wineBinary.esc) start /unix \(url.esc) \(escapedArgs)"
+        WineUserProfile.reconcile(bottleURL: bottle.url)
         let wineEnv = constructWineEnvironment(for: bottle, environment: environment)
         for envVar in wineEnv {
             if isValidEnvKey(envVar.key) {
@@ -535,6 +541,7 @@ public class Wine {
         let fileHandle = try makeFileHandle()
         fileHandle.writeApplicationInfo()
         fileHandle.writeInfo(for: bottle)
+        WineUserProfile.reconcile(bottleURL: bottle.url)
         let wineEnvironment = constructWineEnvironment(for: bottle, environment: environment)
 
         for await output in try runWineProcess(args: args, environment: wineEnvironment, fileHandle: fileHandle) {

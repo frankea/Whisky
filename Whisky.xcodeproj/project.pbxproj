@@ -134,7 +134,7 @@
 		H1A2B3C4E5F61101A9B0C1D0 /* DependencyConfigSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = H1A2B3C4E5F61101A9B0C1D1 /* DependencyConfigSection.swift */; };
 		H1A2B3C4E5F61101A9B0C1D2 /* DependencyInstallSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = H1A2B3C4E5F61101A9B0C1D3 /* DependencyInstallSheet.swift */; };
 		I1A2B3C4E5F61201A9B0C1D0 /* SteamDownloadMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = I1A2B3C4E5F61201A9B0C1D1 /* SteamDownloadMonitor.swift */; };
-		129146529D772EC1C559C0CB /* SteamClientOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B94A3D15B907CF55C906C9A /* SteamClientOrchestrator.swift */; };
+		129146529D772EC1C559C0CB /* AppSteamClientDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B94A3D15B907CF55C906C9A /* AppSteamClientDriver.swift */; };
 		J1A2B3C4E5F61301A9B0C1D0 /* TroubleshootingWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C1D1 /* TroubleshootingWizardView.swift */; };
 		J1A2B3C4E5F61301A9B0C1D2 /* ProgressRailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C1D3 /* ProgressRailView.swift */; };
 		J1A2B3C4E5F61301A9B0C1D4 /* SymptomPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J1A2B3C4E5F61301A9B0C1D5 /* SymptomPickerView.swift */; };
@@ -331,7 +331,7 @@
 		H1A2B3C4E5F61101A9B0C1D1 /* DependencyConfigSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyConfigSection.swift; sourceTree = "<group>"; };
 		H1A2B3C4E5F61101A9B0C1D3 /* DependencyInstallSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyInstallSheet.swift; sourceTree = "<group>"; };
 		I1A2B3C4E5F61201A9B0C1D1 /* SteamDownloadMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteamDownloadMonitor.swift; sourceTree = "<group>"; };
-		2B94A3D15B907CF55C906C9A /* SteamClientOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteamClientOrchestrator.swift; sourceTree = "<group>"; };
+		2B94A3D15B907CF55C906C9A /* AppSteamClientDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSteamClientDriver.swift; sourceTree = "<group>"; };
 		J1A2B3C4E5F61301A9B0C1D1 /* TroubleshootingWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TroubleshootingWizardView.swift; sourceTree = "<group>"; };
 		J1A2B3C4E5F61301A9B0C1D3 /* ProgressRailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressRailView.swift; sourceTree = "<group>"; };
 		J1A2B3C4E5F61301A9B0C1D5 /* SymptomPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymptomPickerView.swift; sourceTree = "<group>"; };
@@ -602,7 +602,7 @@
 				AB5DECAF20260818000000D1 /* QuickLaunch.swift */,
 				F1A2B3C4E5F60801A9B0C1D0 /* ControllerMonitor.swift */,
 				I1A2B3C4E5F61201A9B0C1D1 /* SteamDownloadMonitor.swift */,
-				2B94A3D15B907CF55C906C9A /* SteamClientOrchestrator.swift */,
+				2B94A3D15B907CF55C906C9A /* AppSteamClientDriver.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -1074,7 +1074,7 @@
 				H1A2B3C4E5F61101A9B0C1D0 /* DependencyConfigSection.swift in Sources */,
 				H1A2B3C4E5F61101A9B0C1D2 /* DependencyInstallSheet.swift in Sources */,
 				I1A2B3C4E5F61201A9B0C1D0 /* SteamDownloadMonitor.swift in Sources */,
-				129146529D772EC1C559C0CB /* SteamClientOrchestrator.swift in Sources */,
+				129146529D772EC1C559C0CB /* AppSteamClientDriver.swift in Sources */,
 				J1A2B3C4E5F61301A9B0C1D0 /* TroubleshootingWizardView.swift in Sources */,
 				J1A2B3C4E5F61301A9B0C1D2 /* ProgressRailView.swift in Sources */,
 				J1A2B3C4E5F61301A9B0C1D4 /* SymptomPickerView.swift in Sources */,

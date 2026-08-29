@@ -83126,6 +83126,7 @@
       }
     },
     "steam.client.missing" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -83274,6 +83275,7 @@
       }
     },
     "steam.client.timeout" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -83868,6 +83870,7 @@
       }
     },
     "steam.launch.timeout" : {
+      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

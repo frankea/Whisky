@@ -101,7 +101,8 @@ struct BottleListEntry: View {
                 name: BottleOperations.nextDuplicateName(
                     baseName: name,
                     existingNames: BottleVM.shared.bottles.map(\.settings.name)
-                )
+                ),
+                confirmTitle: "duplicate.bottle.confirm"
             ) { newName in
                 Task {
                     do {

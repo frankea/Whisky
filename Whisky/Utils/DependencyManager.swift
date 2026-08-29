@@ -56,6 +56,7 @@ enum DependencyManager {
     ) async -> [DependencyStatus] {
         let (installedVerbs, fromCache) = await Winetricks.loadInstalledVerbs(for: bottle)
         let confidence: DependencyConfidence = fromCache ? .cached : .authoritative
+        let bottleURL = await MainActor.run { bottle.url }
         let now = Date()
 
         return definitions.map { definition in
@@ -63,12 +64,27 @@ enum DependencyManager {
             let installed = requiredVerbs.filter { installedVerbs.contains($0) }
             let missing = requiredVerbs.filter { !installedVerbs.contains($0) }
 
-            let installStatus: DependencyInstallStatus = if missing.isEmpty {
+            var installStatus: DependencyInstallStatus = if missing.isEmpty {
                 .installed
             } else if installed.isEmpty {
                 .notInstalled
             } else {
                 .partiallyInstalled(installed: installed, missing: missing)
+            }
+            var statusConfidence = confidence
+
+            // The vc_redist installer can hang under wine after installing
+            // successfully, so the verb never reaches winetricks.log even
+            // though the runtime is in place. Fall back to winetricks' own
+            // installed-file marker, but only when the verbs are missing
+            // from the log.
+            if VCRuntimeFallback.detectsInstallation(
+                definition: definition,
+                missingVerbs: missing,
+                bottleURL: bottleURL
+            ) {
+                installStatus = .installed
+                statusConfidence = .heuristic
             }
 
             return DependencyStatus(
@@ -76,7 +92,7 @@ enum DependencyManager {
                 definition: definition,
                 status: installStatus,
                 lastChecked: now,
-                confidence: confidence
+                confidence: statusConfidence
             )
         }
     }

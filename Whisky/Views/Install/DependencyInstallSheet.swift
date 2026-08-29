@@ -464,12 +464,21 @@ extension DependencyInstallSheet {
             exitCode = nil
         }
 
+        // Keep a bounded tail of the winetricks output for failed attempts so
+        // the recorded exit code comes with the error text that explains it.
+        let outputTail: String? = if success {
+            nil
+        } else {
+            await MainActor.run { DependencyInstallAttempt.boundedTail(of: logLines) }
+        }
+
         let attempt = DependencyInstallAttempt(
             definitionId: definition.id,
             verbsAttempted: definition.winetricksVerbs,
             timestamp: Date(),
             success: success,
-            exitCode: exitCode
+            exitCode: exitCode,
+            outputTail: outputTail
         )
         history.append(attempt)
         try? history.save(to: bottleURL)

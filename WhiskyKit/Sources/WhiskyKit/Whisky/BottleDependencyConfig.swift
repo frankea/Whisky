@@ -206,19 +206,62 @@ public struct DependencyInstallAttempt: Codable, Sendable {
     public let success: Bool
     /// The process exit code, if available.
     public let exitCode: Int32?
+    /// The last few KB of winetricks output, recorded for failed attempts.
+    ///
+    /// `nil` for successful attempts and for entries written by earlier
+    /// versions that did not capture output.
+    public let outputTail: String?
 
     public init(
         definitionId: String,
         verbsAttempted: [String],
         timestamp: Date,
         success: Bool,
-        exitCode: Int32?
+        exitCode: Int32?,
+        outputTail: String? = nil
     ) {
         self.definitionId = definitionId
         self.verbsAttempted = verbsAttempted
         self.timestamp = timestamp
         self.success = success
         self.exitCode = exitCode
+        self.outputTail = outputTail
+    }
+
+    /// Maximum number of output bytes retained in ``outputTail``.
+    public static let maxOutputTailBytes = 4_096
+
+    /// Joins the newest output lines that fit within ``maxOutputTailBytes``.
+    ///
+    /// Lines are kept whole and in order; when even the newest line alone
+    /// exceeds the budget, its trailing bytes are kept. Returns `nil` for
+    /// empty input so entries without output stay compact.
+    ///
+    /// - Parameter lines: Process output lines, oldest first.
+    /// - Returns: The bounded tail joined with newlines, or `nil`.
+    public static func boundedTail(of lines: [String]) -> String? {
+        guard !lines.isEmpty else { return nil }
+
+        var kept: [String] = []
+        var bytes = 0
+        for line in lines.reversed() {
+            let lineBytes = line.utf8.count + (kept.isEmpty ? 0 : 1)
+            if bytes + lineBytes > maxOutputTailBytes { break }
+            kept.append(line)
+            bytes += lineBytes
+        }
+
+        if kept.isEmpty, let last = lines.last {
+            var data = Data(last.utf8).suffix(maxOutputTailBytes)
+            // The byte cut can land inside a multi-byte character; drop
+            // leading continuation bytes so the suffix decodes cleanly.
+            while let first = data.first, first & 0b1100_0000 == 0b1000_0000 {
+                data = data.dropFirst()
+            }
+            return String(bytes: data, encoding: .utf8)
+        }
+
+        return kept.reversed().joined(separator: "\n")
     }
 }
 

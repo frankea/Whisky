@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Failed dependency installs now record the last few KB of winetricks output
+  in dependency-history.plist alongside the exit code, so the reason for a
+  failure (such as a vc_redist checksum mismatch) is visible in diagnostics
+  without re-running winetricks by hand (#233).
 - Ways into a game from outside the window. A whisky:// URL scheme launches a
   Steam game (whisky://launch?steam=<appid>) or a pinned program
   (whisky://launch?pin=<name>), optionally scoped to a bottle. Only games

@@ -68,6 +68,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   either position (#216).
 
 ### Fixed
+- Running a winetricks verb from the bottle's Winetricks screen no longer
+  hands the bottle's path to the terminal as shell text. A bottle imported
+  from a directory whose name carried `$(...)` or backticks would have had
+  that executed in the user's terminal; the command now goes through a temp
+  script with every value quoted, the same route as the bottle's own Open
+  Terminal, which also means it follows the preferred terminal setting
+  (iTerm and Warp) instead of always opening Terminal.
+- A Windows executable whose icon declares a bitmap height of exactly
+  -2147483648 no longer crashes Whisky while the library renders its icon.
+  The parser took the absolute value of that height before checking its
+  range, and that value has no absolute value in 32 bits.
 - Installing the Visual C++ Runtime from the Dependencies panel no longer
   fails silently on a stale checksum. Microsoft rotates the vc_redist
   binaries in place, so the SHA256 sums pinned in the bundled winetricks go

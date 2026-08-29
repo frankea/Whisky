@@ -78,9 +78,11 @@ public struct BitmapInfoHeader: Hashable {
     func renderBitmap(handle: FileHandle, offset: UInt64) -> NSImage? {
         // Reject crafted dimensions before allocating or looping. width/height
         // come straight from the file and can be non-positive or near Int32.max.
-        let actualHeight = abs(height)
+        // magnitude rather than abs: abs(Int32.min) has no representable
+        // result and traps, and a crafted icon can carry exactly that value.
+        let actualHeight = height.magnitude
         guard width > 0, actualHeight > 0,
-              width <= Self.maxDimension, actualHeight <= Self.maxDimension
+              width <= Self.maxDimension, actualHeight <= UInt32(Self.maxDimension)
         else {
             return nil
         }

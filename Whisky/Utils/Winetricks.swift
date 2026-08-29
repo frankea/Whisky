@@ -79,16 +79,21 @@ class Winetricks {
         }
         // Winetricks ships in the app bundle Resources alongside cabextract. Invoke it via
         // `bash` (matching the headless install paths) so no executable bit is relied upon.
-        let winetricksPath = resourcesURL.appending(path: "winetricks").path(percentEncoded: false)
-        // swiftlint:disable:next line_length
-        let winetricksCmd = #"PATH=\"\#(WhiskyWineInstaller.binFolder.path):\#(resourcesURL.path(percentEncoded: false)):$PATH\" WINE=wine64 WINEPREFIX=\"\#(bottle.url.path)\" bash \"\#(winetricksPath)\" \#(command)"#
-
-        let script = """
-        tell application "Terminal"
-            activate
-            do script "\(winetricksCmd)"
-        end tell
-        """
+        //
+        // The command goes into a temp script that the terminal sources, the
+        // same route the bottle's "open terminal" uses, so no value reaches
+        // AppleScript as program text. Every value in the script is
+        // single-quoted: a bottle imported from a directory named with `$(...)`
+        // or backticks used to execute in the user's terminal here.
+        let scriptURL: URL
+        do {
+            scriptURL = try writeTerminalScript(command: command, bottle: bottle, resourcesURL: resourcesURL)
+        } catch {
+            logger.error("Failed to write winetricks script: \(error)")
+            showMissingResourcesAlert(command: command)
+            return
+        }
+        let script = TerminalApp.preferred.generateAppleScript(for: scriptURL.path)
 
         var error: NSDictionary?
         if let appleScript = NSAppleScript(source: script) {
@@ -110,6 +115,31 @@ class Winetricks {
                 }
             }
         }
+    }
+
+    /// Writes the winetricks invocation to a temp script the terminal sources.
+    ///
+    /// Every value is single-quoted so nothing in a path is read as shell
+    /// syntax; the script is tracked for cleanup like the bottle terminal's.
+    @MainActor
+    private static func writeTerminalScript(command: String, bottle: Bottle, resourcesURL: URL) throws -> URL {
+        let winetricksPath = resourcesURL.appending(path: "winetricks").path(percentEncoded: false)
+        let pathValue = "\(WhiskyWineInstaller.binFolder.path):\(resourcesURL.path(percentEncoded: false))"
+        let scriptContent = [
+            "#!/bin/bash",
+            "export PATH=\(ShellQuoting.quoted(pathValue)):\"$PATH\"",
+            "export WINE=wine64",
+            "export " + ShellQuoting.assignment("WINEPREFIX", bottle.url.path(percentEncoded: false)),
+            ShellQuoting.commandLine(["bash", winetricksPath, command]),
+            ""
+        ].joined(separator: "\n")
+
+        let scriptURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("whisky-winetricks-\(UUID().uuidString).sh")
+        try scriptContent.write(to: scriptURL, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptURL.path)
+        TempFileTracker.shared.register(file: scriptURL)
+        return scriptURL
     }
 
     /// Shown when the bundled winetricks resources can't be located. A missing

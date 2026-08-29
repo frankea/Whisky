@@ -64,6 +64,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   either position (#216).
 
 ### Fixed
+- Installing the Visual C++ Runtime from the Dependencies panel no longer
+  fails silently on a stale checksum. Microsoft rotates the vc_redist
+  binaries in place, so the SHA256 sums pinned in the bundled winetricks go
+  stale between releases and the unattended install aborted with exit 1,
+  leaving the panel on "Not Installed" with no hint why. The vcrun verbs now
+  run with --force; every other verb keeps checksum enforcement (#233).
 - A bottle opened on a runtime from the other Wine lineage no longer starts
   with an empty profile. Every Wine build names the profile after your Unix
   user, but CrossOver-lineage builds (the GPTK-capable v4 engines) hardcode

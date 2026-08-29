@@ -93,6 +93,11 @@ extension Winetricks {
     // MARK: - Private Helpers
 
     /// Configures and returns a Process for running a winetricks verb.
+    ///
+    /// The vcrun verbs are passed `--force`: Microsoft rotates the vc_redist
+    /// binaries in place, so the checksums pinned in the bundled winetricks go
+    /// stale between releases and the unattended install aborts with exit 1 on
+    /// the SHA256 mismatch (winetricks#2195).
     private static func configureInstallProcess(
         verb: String,
         bottleURL: URL,
@@ -101,7 +106,12 @@ extension Winetricks {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
         let winetricksPath = resourcesURL.appending(path: "winetricks").path(percentEncoded: false)
-        process.arguments = ["bash", winetricksPath, verb]
+        var arguments = ["bash", winetricksPath]
+        if verb.hasPrefix("vcrun") {
+            arguments.append("--force")
+        }
+        arguments.append(verb)
+        process.arguments = arguments
         process.environment = [
             "WINEPREFIX": bottleURL.path(percentEncoded: false),
             "WINE": "wine64",

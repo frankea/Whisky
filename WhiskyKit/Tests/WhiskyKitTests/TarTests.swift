@@ -207,6 +207,29 @@ final class TarIntegrationTests: XCTestCase {
         }
     }
 
+    func testTarEntriesAreRelativeToTheFolder() throws {
+        let sourceDir = tempDir.appendingPathComponent("relative-source")
+        try FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
+        try "x".write(to: sourceDir.appendingPathComponent("file.txt"), atomically: true, encoding: .utf8)
+        let tarURL = tempDir.appendingPathComponent("relative.tar.gz")
+
+        try Tar.tar(folder: sourceDir, toURL: tarURL)
+
+        let process = Process()
+        let pipe = Pipe()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
+        process.arguments = ["-tzf", tarURL.path]
+        process.standardOutput = pipe
+        try process.run()
+        let listing = try String(data: pipe.fileHandleForReading.readToEnd() ?? Data(), encoding: .utf8) ?? ""
+        process.waitUntilExit()
+
+        let entries = listing.split(separator: "\n").map(String.init)
+        XCTAssertTrue(entries.contains("relative-source/file.txt"), "entries: \(entries)")
+        XCTAssertFalse(entries.contains { $0.hasPrefix("/") || $0.hasPrefix("Users/") || $0.hasPrefix("private/") })
+        XCTAssertFalse(entries.contains { $0.contains("._") }, "no AppleDouble entries: \(entries)")
+    }
+
     func testTarWithMultipleFiles() throws {
         try Data("File 1 content".utf8).write(to: sourceDir.appending(path: "file1.txt"))
         try Data("File 2 content".utf8).write(to: sourceDir.appending(path: "file2.txt"))

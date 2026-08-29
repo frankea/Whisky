@@ -20,13 +20,20 @@ import SwiftUI
 
 struct RenameView: View {
     let title: Text
+    let confirmTitle: LocalizedStringKey
     var renameAction: (String) -> Void
 
     @State private var name: String = ""
     @Environment(\.dismiss) private var dismiss
 
-    init(_ title: LocalizedStringKey, name: String, renameAction: @escaping (String) -> Void) {
+    init(
+        _ title: LocalizedStringKey,
+        name: String,
+        confirmTitle: LocalizedStringKey = "rename.rename",
+        renameAction: @escaping (String) -> Void
+    ) {
         self.title = Text(title)
+        self.confirmTitle = confirmTitle
         self._name = State(initialValue: name)
         self.renameAction = renameAction
     }
@@ -46,7 +53,7 @@ struct RenameView: View {
                     .keyboardShortcut(.cancelAction)
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button("rename.rename") {
+                    Button(confirmTitle) {
                         submit()
                     }
                     .keyboardShortcut(.defaultAction)

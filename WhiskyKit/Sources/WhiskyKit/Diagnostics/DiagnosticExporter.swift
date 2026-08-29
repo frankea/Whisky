@@ -440,7 +440,7 @@ extension DiagnosticExporter {
         process.arguments = [
             "-c",
             "-k",
-            "--sequesterRsrc",
+            "--norsrc",
             contentDir.path(percentEncoded: false),
             zipURL.path(percentEncoded: false)
         ]

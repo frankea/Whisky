@@ -119,6 +119,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   phase with the resolved node, and the wizard drew both the same way; a node
   that hands off to the escalation fragment now shows the escalation screen
   with its export and retry options.
+- Applying a game configuration now sets the graphics backend it lists. The
+  entry's legacy DXVK flag was written after the backend and its "off" value
+  meant "back to Recommended", so every apply ended on Recommended while the
+  toast said it had applied. The preview also no longer lists Sequoia
+  Compatibility Mode, a setting that no longer exists.
+- Export as Archive writes the bottle as `<folder>/...` entries instead of
+  its absolute path, so the archive no longer carries the user's home
+  directory name and extracts where it is opened. Neither export carries
+  AppleDouble `._` files any more.
+- The Duplicate Bottle sheet's confirm button says Duplicate, not Rename.
+- Guided troubleshooting's install step names the verb it will install after
+  a resumed session, and its game-database check sees the program the wizard
+  was opened from.
+- Cancelling a dependency install stops it. Cancel only closed the sheet,
+  leaving winetricks and the installer it had spawned running in the bottle;
+  it now cancels the install and ends the bottle's Wine processes.
 - Diagnostic exports with "Include sensitive details" off no longer carry
   credentials in plain sight. Launch arguments were written to the archive
   verbatim regardless of the toggle, and log redaction only rewrote the home
@@ -139,7 +155,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   -2147483648 no longer crashes Whisky while the library renders its icon.
   The parser took the absolute value of that height before checking its
   range, and that value has no absolute value in 32 bits.
-||||||| parent of a96a2bb8 (fix(diagnostics): scrub credential shapes from exported arguments and logs)
 - Installing the Visual C++ Runtime from the Dependencies panel no longer
   fails silently on a stale checksum. Microsoft rotates the vc_redist
   binaries in place, so the SHA256 sums pinned in the bundled winetricks go

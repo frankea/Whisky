@@ -47,7 +47,16 @@ public class Tar {
         let pipe = Pipe()
 
         process.executableURL = tarBinary
-        process.arguments = ["-zcf", "\(toURL.path)", "\(folder.path)"]
+        // Archive the folder by name from its parent so the entries are
+        // `<folder>/...` rather than the absolute path it happened to live at
+        // (which also put the user's home directory name into every export).
+        // COPYFILE_DISABLE keeps bsdtar from adding `._` AppleDouble entries.
+        process.arguments = [
+            "-zcf", toURL.path, "-C", folder.deletingLastPathComponent().path, folder.lastPathComponent
+        ]
+        var environment = ProcessInfo.processInfo.environment
+        environment["COPYFILE_DISABLE"] = "1"
+        process.environment = environment
         process.standardOutput = pipe
         process.standardError = pipe
 

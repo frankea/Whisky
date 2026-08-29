@@ -228,7 +228,11 @@ public final class TroubleshootingFlowEngine: ObservableObject {
                 bottleURL: session.preflightSnapshot?.bottleURL ?? session.bottleURL ?? URL(filePath: "/"),
                 bottleName: session.preflightSnapshot?.bottleName ?? "Unknown",
                 programURL: session.preflightSnapshot?.programURL ?? session.programURL,
-                programName: session.preflightSnapshot?.programName,
+                // The name is what the game-database check matches on; a
+                // wizard opened from a program page has the URL but not always
+                // the name, so fall back to the executable's filename.
+                programName: session.preflightSnapshot?.programName
+                    ?? (session.preflightSnapshot?.programURL ?? session.programURL)?.lastPathComponent,
                 preflight: session.preflightSnapshot ?? PreflightData(
                     bottleURL: session.bottleURL ?? URL(filePath: "/"),
                     bottleName: "Unknown",

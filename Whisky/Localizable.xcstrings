@@ -47474,6 +47474,22 @@
         }
       }
     },
+    "duplicate.bottle.confirm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplicate"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplicate"
+          }
+        }
+      }
+    },
     "duplicate.bottle.title" : {
       "localizations" : {
         "ar" : {

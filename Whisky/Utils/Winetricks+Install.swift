@@ -58,9 +58,12 @@ extension Winetricks {
         timeout: TimeInterval = 600
     ) -> AsyncStream<WinetricksInstallProgress> {
         AsyncStream { continuation in
-            Task {
+            let task = Task {
                 await executeVerbInstall(verb, for: bottle, timeout: timeout, continuation: continuation)
             }
+            // A consumer that stops iterating (the install sheet's Cancel)
+            // cancels the install rather than leaving it running headless.
+            continuation.onTermination = { _ in task.cancel() }
         }
     }
 
@@ -79,14 +82,15 @@ extension Winetricks {
         for bottle: Bottle
     ) -> AsyncStream<(verb: String, progress: WinetricksInstallProgress)> {
         AsyncStream { continuation in
-            Task {
-                for verb in verbs {
+            let task = Task {
+                for verb in verbs where !Task.isCancelled {
                     for await progress in installVerb(verb, for: bottle) {
                         continuation.yield((verb: verb, progress: progress))
                     }
                 }
                 continuation.finish()
             }
+            continuation.onTermination = { _ in task.cancel() }
         }
     }
 
@@ -191,7 +195,14 @@ extension Winetricks {
             return
         }
 
-        await awaitProcessCompletion(process, verb: verb, timeout: timeout)
+        await withTaskCancellationHandler {
+            await awaitProcessCompletion(process, verb: verb, timeout: timeout)
+        } onCancel: {
+            if process.isRunning {
+                logger.info("winetricks install '\(verb)' cancelled, terminating")
+                process.terminate()
+            }
+        }
         stdoutPipe.fileHandleForReading.readabilityHandler = nil
         stderrPipe.fileHandleForReading.readabilityHandler = nil
 

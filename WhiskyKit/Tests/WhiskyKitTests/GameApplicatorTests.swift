@@ -114,6 +114,23 @@ final class GameApplicatorTests: XCTestCase {
         XCTAssertEqual(loaded?.appliedEntryId, "test-game")
     }
 
+    @MainActor
+    func testExplicitBackendSurvivesTheLegacyDXVKFlag() throws {
+        let bottle = try makeTestBottle()
+        defer { cleanupBottle(bottle) }
+
+        // Real entries pair an explicit backend with `dxvk: false`; the legacy
+        // setter maps that `false` to Recommended, which used to undo the backend.
+        let variant = makeTestVariant(graphicsBackend: .d3dMetal, dxvk: false)
+        let entry = makeTestEntry(variant: variant)
+
+        _ = try GameConfigApplicator.apply(entry: entry, variant: variant, to: bottle)
+
+        XCTAssertEqual(bottle.settings.graphicsBackend, .d3dMetal)
+        let changes = GameConfigApplicator.previewChanges(variant: variant, bottle: bottle)
+        XCTAssertFalse(changes.contains { $0.settingName == "DXVK" }, "no DXVK row when the backend is explicit")
+    }
+
     // MARK: - Test 2: Apply Mutates Bottle Settings
 
     @MainActor

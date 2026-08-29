@@ -227,7 +227,7 @@ public enum GameConfigApplicator {
             ))
         }
 
-        if let dxvk = settings.dxvk, dxvk != bottle.settings.dxvk {
+        if settings.graphicsBackend == nil, let dxvk = settings.dxvk, dxvk != bottle.settings.dxvk {
             changes.append(ConfigChange(
                 category: "Graphics",
                 settingName: "DXVK",
@@ -243,15 +243,6 @@ public enum GameConfigApplicator {
                 settingName: "DXVK Async",
                 currentValue: bottle.settings.dxvkAsync ? "Enabled" : "Disabled",
                 newValue: dxvkAsync ? "Enabled" : "Disabled"
-            ))
-        }
-
-        if let sequoiaCompat = settings.sequoiaCompatMode, sequoiaCompat != bottle.settings.sequoiaCompatMode {
-            changes.append(ConfigChange(
-                category: "Graphics",
-                settingName: "Sequoia Compatibility Mode",
-                currentValue: bottle.settings.sequoiaCompatMode ? "Enabled" : "Disabled",
-                newValue: sequoiaCompat ? "Enabled" : "Disabled"
             ))
         }
 
@@ -370,11 +361,13 @@ public enum GameConfigApplicator {
     /// Applies variant settings to the bottle's settings.
     @MainActor
     private static func applyVariantSettings(_ settings: GameConfigVariantSettings, to bottle: Bottle) {
+        // `dxvk` is the legacy backend switch: its setter maps `false` back to
+        // Recommended, so applying it after an explicit backend undid the
+        // backend. An explicit backend wins; `dxvk` only speaks when there is
+        // none.
         if let graphicsBackend = settings.graphicsBackend {
             bottle.settings.graphicsBackend = graphicsBackend
-        }
-
-        if let dxvk = settings.dxvk {
+        } else if let dxvk = settings.dxvk {
             bottle.settings.dxvk = dxvk
         }
 
@@ -401,10 +394,6 @@ public enum GameConfigApplicator {
 
         if let avxEnabled = settings.avxEnabled {
             bottle.settings.avxEnabled = avxEnabled
-        }
-
-        if let sequoiaCompatMode = settings.sequoiaCompatMode {
-            bottle.settings.sequoiaCompatMode = sequoiaCompatMode
         }
     }
 

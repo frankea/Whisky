@@ -126,7 +126,8 @@ struct BottleView: View {
                     name: BottleOperations.nextDuplicateName(
                         baseName: bottle.settings.name,
                         existingNames: BottleVM.shared.bottles.map(\.settings.name)
-                    )
+                    ),
+                    confirmTitle: "duplicate.bottle.confirm"
                 ) { newName in
                     Task {
                         do {

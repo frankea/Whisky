@@ -156,4 +156,16 @@ struct WineSteamClientDriverTests {
     func bareName() {
         #expect(WineSteamClientDriver.exeImageNames(inProcessListing: "explorer.exe") == ["explorer.exe"])
     }
+
+    @Test("The real driver reads the host process list without Wine")
+    @MainActor func readsHostProcessList() async throws {
+        let (bottle, _) = try SteamOrchestratorFixture.makeBottle()
+        let driver = WineSteamClientDriver(bottle: bottle)
+
+        let names = await driver.hostWineImageNames()
+
+        // Whatever Wine processes the host happens to have, the answer is
+        // only ever .exe image names; on a quiet machine it is empty.
+        #expect(names.allSatisfy { $0.hasSuffix(".exe") && $0 == $0.lowercased() })
+    }
 }

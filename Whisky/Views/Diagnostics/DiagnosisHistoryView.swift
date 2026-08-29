@@ -50,6 +50,11 @@ struct DiagnosisHistoryView: View {
             loadHistory()
             selectedPreset = program.settings.activeWineDebugPreset ?? .normal
         }
+        // A diagnosis recorded while this page is open (the crash banner's
+        // moment) would otherwise not show until the page is reopened.
+        .onReceive(NotificationCenter.default.publisher(for: .crashDiagnosisAvailable)) { _ in
+            loadHistory()
+        }
     }
 }
 

@@ -645,6 +645,33 @@ public class Wine {
         }
     }
 
+    /// Kills a bottle's wineserver and blocks until the kill command returns.
+    ///
+    /// For `applicationWillTerminate`: a `Task` queued there never runs
+    /// because the process exits as soon as the delegate returns, so the
+    /// asynchronous ``killBottle(bottle:)`` left every Wine process alive
+    /// on quit whatever the kill-on-quit setting said.
+    @MainActor
+    public static func killBottleAndWait(bottle: Bottle, timeout: TimeInterval = 5) {
+        let process = Process()
+        process.executableURL = wineserverBinary
+        process.arguments = ["-k"]
+        process.currentDirectoryURL = wineserverBinary.deletingLastPathComponent()
+        process.environment = constructWineEnvironment(for: bottle, environment: [:])
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+        } catch {
+            Logger.wineKit.error("Failed to kill bottle '\(bottle.settings.name)': \(error.localizedDescription)")
+            return
+        }
+        let deadline = Date().addingTimeInterval(timeout)
+        while process.isRunning, Date() < deadline {
+            Thread.sleep(forTimeInterval: 0.05)
+        }
+    }
+
     /// Installs DXVK libraries into a bottle's Windows system directories.
     ///
     /// DXVK translates DirectX 9/10/11 calls to Vulkan, often providing better

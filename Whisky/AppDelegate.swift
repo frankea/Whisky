@@ -59,8 +59,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// The "Terminate Wine processes when Whisky closes" setting.
+    ///
+    /// Read as an optional: the Settings toggle is an `@AppStorage` that
+    /// defaults to on without ever writing the key, and `bool(forKey:)`
+    /// reports an absent key as off, which silently disabled kill-on-quit
+    /// for anyone who never touched the toggle.
+    static var killOnTerminate: Bool {
+        UserDefaults.standard.object(forKey: "killOnTerminate") as? Bool ?? true
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
-        let globalKill = UserDefaults.standard.bool(forKey: "killOnTerminate")
+        let globalKill = Self.killOnTerminate
 
         // Per-bottle kill-on-quit with policy overrides
         for bottle in BottleVM.shared.bottles {
@@ -75,7 +85,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
 
             if shouldKill {
-                Wine.killBottle(bottle: bottle)
+                // Synchronous: the app exits when this delegate returns.
+                Wine.killBottleAndWait(bottle: bottle)
                 ProcessRegistry.shared.clearRegistry(for: bottle.url)
                 logger.info(
                     "Killing bottle '\(bottle.settings.name)' on quit (policy: \(String(describing: bottlePolicy)))"
@@ -164,7 +175,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             let bottleName = bottle.settings.name
             let policy = bottle.settings.killOnQuit
-            let globalKill = UserDefaults.standard.bool(forKey: "killOnTerminate")
+            let globalKill = Self.killOnTerminate
             let shouldAutoClean: Bool = switch policy {
             case .inherit: globalKill
             case .alwaysKill: true

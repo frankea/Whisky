@@ -191,8 +191,14 @@ final class BottleVM: ObservableObject {
             createdBottle.saveBottleSettings()
 
             try persistBottleCreation(request: request)
-            createdBottle.inFlight = false
+            // Reload while the bottle is still in flight so the reload keeps
+            // this instance. Reloading after clearing the flag replaced it,
+            // and the selected bottle page kept writing to the old one: its
+            // first pin never reached the library, the Dock menu, or the menu
+            // bar extra until the next reload.
             loadBottles()
+            createdBottle.isAvailable = true
+            createdBottle.inFlight = false
             Telemetry.capture(.firstBottleCreated)
         } catch {
             handleBottleCreationFailure(error, request: request, bottle: bottle)

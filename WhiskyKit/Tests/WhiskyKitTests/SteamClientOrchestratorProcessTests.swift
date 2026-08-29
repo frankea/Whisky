@@ -129,3 +129,31 @@ struct SteamClientOrchestratorProcessTests {
         orchestrator.stop()
     }
 }
+
+@Suite("Wine Steam client driver: process listing")
+struct WineSteamClientDriverTests {
+    @Test("Only .exe entries survive, lower-cased, by their last path component")
+    func exeNamesFromListing() {
+        let listing = """
+        /sbin/launchd
+        C:\\Program Files (x86)\\Steam\\steam.exe
+        C:\\Program Files (x86)\\Steam\\steamwebhelper.EXE
+        Z:\\Users\\me\\Games\\Deep Rock Galactic\\FSD\\Binaries\\Win64\\FSD-Win64-Shipping.exe
+        wineserver
+        /usr/bin/ps
+        """
+        let names = WineSteamClientDriver.exeImageNames(inProcessListing: listing)
+        #expect(names == ["steam.exe", "steamwebhelper.exe", "fsd-win64-shipping.exe"])
+    }
+
+    @Test("A listing without Wine processes yields nothing to check")
+    func emptyWhenNoExe() {
+        #expect(WineSteamClientDriver.exeImageNames(inProcessListing: "/sbin/launchd\nwineserver\n").isEmpty)
+        #expect(WineSteamClientDriver.exeImageNames(inProcessListing: "").isEmpty)
+    }
+
+    @Test("A bare image name without a path is kept as is")
+    func bareName() {
+        #expect(WineSteamClientDriver.exeImageNames(inProcessListing: "explorer.exe") == ["explorer.exe"])
+    }
+}

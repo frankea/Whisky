@@ -86,15 +86,24 @@ open class WineSteamClientDriver: SteamClientDriver {
             let data = pipe.fileHandleForReading.readDataToEndOfFile()
             process.waitUntilExit()
             guard let output = String(bytes: data, encoding: .utf8) else { return [] }
-            return Set(
-                output
-                    .split(whereSeparator: \.isNewline)
-                    .compactMap { line in
-                        let name = (line.split(separator: "\\").last ?? line).lowercased()
-                        return name.hasSuffix(".exe") ? String(name) : nil
-                    }
-            )
+            return Self.exeImageNames(inProcessListing: output)
         }.value
+    }
+
+    /// The lower-cased `.exe` names in a `ps -Ao comm=` listing.
+    ///
+    /// Wine's processes show their Windows image path as the command, often
+    /// with backslashes, so the last backslash-separated component is the
+    /// image name. Anything that is not a `.exe` is host noise and dropped.
+    public nonisolated static func exeImageNames(inProcessListing output: String) -> Set<String> {
+        Set(
+            output
+                .split(whereSeparator: \.isNewline)
+                .compactMap { line in
+                    let name = (line.split(separator: "\\").last ?? line).lowercased()
+                    return name.hasSuffix(".exe") ? String(name) : nil
+                }
+        )
     }
 
     open func processList() async -> [WineProcess] {

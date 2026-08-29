@@ -98,6 +98,12 @@ extension Winetricks {
     /// binaries in place, so the checksums pinned in the bundled winetricks go
     /// stale between releases and the unattended install aborts with exit 1 on
     /// the SHA256 mismatch (winetricks#2195).
+    ///
+    /// They also get `-q` (W_OPT_UNATTENDED, adds `/q` to the redist install):
+    /// without it the vc_redist installer shows its wizard and waits for a
+    /// click nothing in the panel prompts for, so the process never exits and
+    /// the winetricks.log entry is never written. Scoped to the vcrun verbs
+    /// until other verbs are checked for unattended behavior.
     private static func configureInstallProcess(
         verb: String,
         bottleURL: URL,
@@ -109,6 +115,7 @@ extension Winetricks {
         var arguments = ["bash", winetricksPath]
         if verb.hasPrefix("vcrun") {
             arguments.append("--force")
+            arguments.append("-q")
         }
         arguments.append(verb)
         process.arguments = arguments

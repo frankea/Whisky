@@ -68,6 +68,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   either position (#216).
 
 ### Fixed
+- Installing the Visual C++ Runtime no longer stalls on an invisible install
+  wizard. winetricks was run without -q, so the vc_redist installer showed
+  its setup dialog inside the prefix and waited for a click nothing in the
+  Dependencies panel prompts for -- the process never exited, the
+  winetricks.log entry was never written, and the panel stayed on "Not
+  Installed" even after a successful install. The vcrun verbs now run
+  unattended (#233).
 - Five labels showed their raw localization key instead of text: the
   "currently using" line on the Recommended graphics card and the helper
   under it, the detected display size next to Virtual Desktop, and the exit

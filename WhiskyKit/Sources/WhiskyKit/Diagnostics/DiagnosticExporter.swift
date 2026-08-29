@@ -270,13 +270,19 @@ public enum DiagnosticExporter {
     }
 
     /// Generates a JSON string with program settings summary.
+    ///
+    /// Launch arguments are free text the user typed and routinely carry
+    /// tokens and passwords, so they get the same scrubbing as a log line
+    /// unless sensitive details were asked for.
     @MainActor
-    static func programSettingsSummary(program: Program) -> String {
+    static func programSettingsSummary(program: Program, options: ExportOptions) -> String {
         var info: [String: String] = [:]
         info["name"] = program.name
         info["path"] = Redactor.redactHomePaths(program.url.path(percentEncoded: false))
         info["locale"] = "\(program.settings.locale)"
-        info["arguments"] = program.settings.arguments
+        info["arguments"] = options.includeSensitiveDetails
+            ? program.settings.arguments
+            : Redactor.redactLogText(program.settings.arguments)
         info["hasOverrides"] = "\(program.settings.overrides != nil)"
 
         return dictionaryToJSON(info)
@@ -345,7 +351,7 @@ extension DiagnosticExporter {
                 options: context.options
             ),
             bottleSummary: bottleSettingsSummary(bottle: context.bottle),
-            programSummary: programSettingsSummary(program: context.program),
+            programSummary: programSettingsSummary(program: context.program, options: context.options),
             systemInfo: generateSystemInfoJSON(),
             environmentJSON: generateEnvironmentJSON(bottle: context.bottle, options: context.options)
         )

@@ -29,6 +29,11 @@ import Foundation
 /// - Home paths (`/Users/<username>`) are replaced with `/Users/<redacted>`
 /// - Environment variable keys matching ``sensitiveKeyPatterns`` are removed
 ///   unless explicitly included
+/// - Free text (launch arguments, log lines) has common secret shapes scrubbed
+///   by ``redactSecrets(_:)``: `token=...` and `--password ...` forms,
+///   `Bearer`/`Basic` credentials, URL user info, sensitive query parameters,
+///   and JWTs. Best effort by nature; a secret with no recognizable shape
+///   passes through, which is why the export UI says so.
 public enum Redactor {
     /// Substrings that identify sensitive environment variable keys.
     ///
@@ -79,13 +84,59 @@ public enum Redactor {
         return result
     }
 
-    /// Redacts home directory paths throughout log text.
+    /// Redacts home directory paths and common secret shapes throughout free
+    /// text such as a log or a launch argument string.
     ///
-    /// - Parameter text: The log text to redact.
-    /// - Returns: The text with all home paths replaced.
+    /// - Parameter text: The text to redact.
+    /// - Returns: The text with home paths and recognizable secrets replaced.
     public static func redactLogText(_ text: String) -> String {
-        redactHomePaths(text)
+        redactSecrets(redactHomePaths(text))
     }
+
+    /// Replaces the value of anything that looks like a credential with
+    /// `<redacted>`, leaving the key or flag in place so the line still reads.
+    ///
+    /// Shapes covered, in order:
+    /// 1. `name=value` and `name: value` where the name ends in a sensitive
+    ///    word (token, secret, password, passwd, pwd, pass, auth, credential,
+    ///    api key, access key, private key, key)
+    /// 2. `--name value` and `-name value` flags with the same names
+    /// 3. `Bearer <token>` and `Basic <base64>`
+    /// 4. `scheme://user:pass@host` user info
+    /// 5. `?name=value` query parameters with the same names, plus `sig`
+    /// 6. JWTs (three base64url segments starting with `eyJ`)
+    ///
+    /// Prose is deliberately not matched: "auth failed" has no separator, so
+    /// it stays. A key whose name merely contains a sensitive word
+    /// ("keyboard") is not a match either; the word has to end the name.
+    public static func redactSecrets(_ text: String) -> String {
+        var result = text
+        for (pattern, template) in secretPatterns {
+            result = result.replacingOccurrences(
+                of: pattern, with: template, options: [.regularExpression, .caseInsensitive]
+            )
+        }
+        return result
+    }
+
+    private static let sensitiveWord =
+        "(?:token|secret|password|passwd|pwd|pass|auth|credential|api[_-]?key|access[_-]?key|private[_-]?key|key)"
+
+    /// Regex and replacement template pairs, applied in order.
+    private static let secretPatterns: [(String, String)] = [
+        // 1. name=value, name: value, name := value; the value runs to whitespace or a quote.
+        ("\\b([\\w.-]*" + sensitiveWord + ")(\\s*(?::=|[:=])\\s*)(\"[^\"]*\"|'[^']*'|[^\\s\"'&]+)", "$1$2<redacted>"),
+        // 2. --name value / -name value
+        ("(?<![\\w-])(--?[\\w-]*" + sensitiveWord + ")(\\s+)([^\\s\"'-][^\\s\"']*)", "$1$2<redacted>"),
+        // 3. HTTP authorization credentials
+        ("\\b(Bearer|Basic)(\\s+)[A-Za-z0-9._~+/=-]{8,}", "$1$2<redacted>"),
+        // 4. URL user info
+        ("([a-z][a-z0-9+.-]*://)[^/\\s:@]+(?::[^/\\s@]*)?@", "$1<redacted>@"),
+        // 5. sensitive query parameters
+        ("([?&][\\w-]*(?:" + sensitiveWord + "|sig|signature)=)([^&\\s\"']+)", "$1<redacted>"),
+        // 6. JWTs
+        ("\\beyJ[A-Za-z0-9_-]{8,}\\.[A-Za-z0-9_-]{8,}\\.[A-Za-z0-9_-]{8,}", "<redacted>")
+    ]
 
     // MARK: - Private
 

@@ -1007,6 +1007,22 @@
         }
       }
     },
+    "Arguments and logs have common secret shapes scrubbed unless sensitive details are included" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arguments and logs have common secret shapes scrubbed unless sensitive details are included"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arguments and logs have common secret shapes scrubbed unless sensitive details are included"
+          }
+        }
+      }
+    },
     "Auto-Enable DXVK for Launchers" : {
       "localizations" : {
         "ar" : {

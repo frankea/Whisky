@@ -101,7 +101,12 @@ extension DiagnosticExportSheet {
             }
 
             Toggle(isOn: $includeFullLog) {
-                Text("Include full log file")
+                VStack(alignment: .leading) {
+                    Text("Include full log file")
+                    Text("Arguments and logs have common secret shapes scrubbed unless sensitive details are included")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }

@@ -68,6 +68,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   either position (#216).
 
 ### Fixed
+- Diagnostic exports with "Include sensitive details" off no longer carry
+  credentials in plain sight. Launch arguments were written to the archive
+  verbatim regardless of the toggle, and log redaction only rewrote the home
+  path, so a `-token` argument or a bearer token a game logged went out in a
+  ZIP the sheet described as scrubbed. Arguments and both log members now
+  have common secret shapes removed (`name=value` and `--name value` forms
+  for token, password, secret and key style names, Bearer and Basic
+  credentials, URL user info, sensitive query parameters, JWTs), and the
+  sheet says so. It is best effort by nature; the toggle still exports raw.
 - Running a winetricks verb from the bottle's Winetricks screen no longer
   hands the bottle's path to the terminal as shell text. A bottle imported
   from a directory whose name carried `$(...)` or backticks would have had
@@ -79,6 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   -2147483648 no longer crashes Whisky while the library renders its icon.
   The parser took the absolute value of that height before checking its
   range, and that value has no absolute value in 32 bits.
+||||||| parent of a96a2bb8 (fix(diagnostics): scrub credential shapes from exported arguments and logs)
 - Installing the Visual C++ Runtime from the Dependencies panel no longer
   fails silently on a stale checksum. Microsoft rotates the vc_redist
   binaries in place, so the SHA256 sums pinned in the bundled winetricks go

@@ -107,6 +107,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   such as "Missing dependencies found" only carry a Continue transition, and
   nothing followed it; the wizard now shows a Continue button there, and Skip
   moves on as well.
+- Guided troubleshooting no longer reports "Problem resolved" when it has
+  run out of automated steps. The flows' escalation node shares the export
+  phase with the resolved node, and the wizard drew both the same way; a node
+  that hands off to the escalation fragment now shows the escalation screen
+  with its export and retry options.
 - Diagnostic exports with "Include sensitive details" off no longer carry
   credentials in plain sight. Launch arguments were written to the archive
   verbatim regardless of the toggle, and log redaction only rewrote the home

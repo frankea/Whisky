@@ -175,6 +175,16 @@ public final class TroubleshootingFlowEngine: ObservableObject {
             return
         }
 
+        // A flow's own hand-off to the escalation fragment. Every flow ends
+        // its unresolved branch on an info node that references it, tagged
+        // with the export phase like the resolved node, so without this the
+        // wizard showed "Problem resolved" to someone it had given up on.
+        if node.fragmentRef == "export-escalation" {
+            logger.debug("Node \(node.id) hands off to the escalation fragment")
+            escalate()
+            return
+        }
+
         // Cycle protection
         let isUserInteraction = node.type == .fix || node.type == .verify
         if isUserInteraction {
@@ -360,27 +370,24 @@ public final class TroubleshootingFlowEngine: ObservableObject {
     /// this transition. Nothing followed it, so every flow that reached one
     /// stopped there with Skip and Back as the only controls.
     public func continueStep() {
-        guard let node = currentNode else { return }
-
-        if let nextNodeId = node.on?["continue"] ?? node.on?["default"] {
-            logger.debug("Continuing from step \(node.id) -> \(nextNodeId)")
-            session.recordBranch(from: node.id, targetNodeId: nextNodeId, reason: "Continue")
-            navigateToNode(nextNodeId)
-        } else {
-            logger.warning("No continue target for node \(node.id)")
-        }
+        follow(["continue", "default"], reason: "Continue")
     }
 
+    /// Skips the current step. `continue` is the last fallback: skipping an
+    /// info node means moving on.
     public func skipStep() {
-        guard let node = currentNode else { return }
+        follow(["skipped", "default", "continue"], reason: "Skip")
+    }
 
-        // `continue` is the fallback: skipping an info node means moving on.
-        if let nextNodeId = node.on?["skipped"] ?? node.on?["default"] ?? node.on?["continue"] {
-            logger.debug("Skipping step \(node.id) -> \(nextNodeId)")
-            navigateToNode(nextNodeId)
-        } else {
-            logger.warning("No skip target for node \(node.id)")
+    private func follow(_ keys: [String], reason: String) {
+        guard let node = currentNode else { return }
+        guard let nextNodeId = keys.lazy.compactMap({ node.on?[$0] }).first else {
+            logger.warning("No \(reason) target for node \(node.id)")
+            return
         }
+        logger.debug("\(reason): step \(node.id) -> \(nextNodeId)")
+        session.recordBranch(from: node.id, targetNodeId: nextNodeId, reason: reason)
+        navigateToNode(nextNodeId)
     }
 
     /// Goes back to the previous step in the history.

@@ -694,6 +694,10 @@ public class Wine {
             withContentsIn: Wine.dxvkFolder.appending(path: "x32")
         )
         removeStaleNativeDXGI(prefixRoot: bottle.url)
+        // DXVK-macOS ships no dxgi.dll, but when D3DMetal is deployed, the builtin dxgi is Apple's.
+        // Deploy Wine's clean dxgi.dll from the store backup with the 0x40 builtin marker stripped
+        // so it loads as a true native PE when overridden.
+        deployCleanDXGIForDXVK(bottle: bottle)
     }
 
     /// Removes a stale native `dxgi.dll` that a DXMT deploy left in the prefix.
@@ -733,6 +737,39 @@ public class Wine {
                     "Could not remove stale native dxgi.dll: \(error.localizedDescription, privacy: .public)"
                 )
             }
+        }
+    }
+
+    /// Strips the "Wine builtin DLL" marker at offset 0x40 from a PE file.
+    private static func stripBuiltinMarker(at fileURL: URL) throws {
+        guard FileManager.default.fileExists(atPath: fileURL.path(percentEncoded: false)) else { return }
+        let handle = try FileHandle(forUpdating: fileURL)
+        defer { try? handle.close() }
+        let dosCode: [UInt8] = [
+            0x0E, 0x1F, 0xBA, 0x0E, 0x00, 0xB4, 0x09, 0xCD,
+            0x21, 0xB8, 0x01, 0x4C, 0xCD, 0x21, 0x90, 0x90
+        ]
+        try handle.seek(toOffset: 0x40)
+        try handle.write(contentsOf: Data(dosCode))
+    }
+
+    /// Deploys Wine's backed-up native dxgi.dll into the prefix for DXVK bottles.
+    @MainActor
+    static func deployCleanDXGIForDXVK(bottle: Bottle) {
+        let store = GPTKImporter.storeFolder
+        let originals = store.appending(path: "originals")
+        let origDXGI = originals.appending(path: "dxgi.dll")
+        guard FileManager.default.fileExists(atPath: origDXGI.path(percentEncoded: false)) else { return }
+
+        let sys32DXGI = bottle.url.appending(path: "drive_c").appending(path: "windows")
+            .appending(path: "system32").appending(path: "dxgi.dll")
+        do {
+            try FileManager.default.installFile(at: sys32DXGI, from: origDXGI)
+            try stripBuiltinMarker(at: sys32DXGI)
+        } catch {
+            Logger.wineKit.warning(
+                "Could not deploy clean dxgi.dll into prefix: \(error.localizedDescription, privacy: .public)"
+            )
         }
     }
 

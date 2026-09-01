@@ -13,11 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   without the D3DMetal payload resolved launchers to DXMT, whose Direct3D
   layer launcher UIs cannot render on, leaving the client running with no
   window (#163).
-- Enabling DXVK now removes a stale native dxgi.dll that a previous DXMT
-  launch left in the bottle's system directories. The leftover paired
-  DXVK's d3d11 with DXMT's dxgi, which cannot create window swapchains,
-  leaving Chromium-based launchers such as Steam running with no window
-  after a switch from DXMT to DXVK (#163).
+- Enabling DXVK now reconciles the bottle's dxgi.dll against the D3DMetal
+  payload. With the payload deployed, the builtin dxgi is Apple's forwarder,
+  which DXVK's d3d11 cannot pair with, so Wine's own backed-up dxgi is
+  installed into system32 with its builtin marker stripped and loads as a
+  true native PE. Without the payload, a stale native dxgi.dll a previous
+  DXMT launch left in the bottle's system directories is removed instead:
+  that leftover paired DXVK's d3d11 with DXMT's dxgi, which cannot create
+  window swapchains, leaving Chromium-based launchers such as Steam running
+  with no window after a switch from DXMT to DXVK (#163).
 - A Visual C++ Runtime whose installer hung under wine after installing
   successfully is now detected. The winetricks.log entry is only written once
   the installer exits, so the Dependencies panel kept saying "Not Installed"

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Enabling DXVK now removes a stale native dxgi.dll that a previous DXMT
+  launch left in the bottle's system directories. The leftover paired
+  DXVK's d3d11 with DXMT's dxgi, which cannot create window swapchains,
+  leaving Chromium-based launchers such as Steam running with no window
+  after a switch from DXMT to DXVK (#163).
+
 ## [3.7.0] - 2026-08-29 (App)
 
 ### Added

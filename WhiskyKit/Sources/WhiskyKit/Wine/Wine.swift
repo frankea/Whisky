@@ -693,6 +693,47 @@ public class Wine {
             in: bottle.url.appending(path: "drive_c").appending(path: "windows").appending(path: "syswow64"),
             withContentsIn: Wine.dxvkFolder.appending(path: "x32")
         )
+        removeStaleNativeDXGI(prefixRoot: bottle.url)
+    }
+
+    /// Removes a stale native `dxgi.dll` that a DXMT deploy left in the prefix.
+    ///
+    /// DXVK-macOS ships no `dxgi.dll`, so ``enableDXVK(bottle:)`` never
+    /// overwrites one. After a bottle has launched under DXMT, its system
+    /// directories hold DXMT's *native* dxgi, and a DXVK launch then pairs
+    /// DXVK's `d3d11` with DXMT's `dxgi` under the `n,b` override. That mix
+    /// cannot create window swapchains: Chromium clients fail with
+    /// `DXGI_ERROR_UNSUPPORTED` and run with no window at all. Removing the
+    /// leftover lets the `,b` half of the override load the builtin, which is
+    /// the pairing DXVK is written against.
+    ///
+    /// Only the GPTK-less case is handled here: when the importer's
+    /// `originals/` backup exists, the builtin behind `,b` is Apple's
+    /// forwarder and the prefix needs a clean native copy instead, which is
+    /// its own change. A builtin-marked file is never touched: that is wine's
+    /// own fake DLL, exactly what DXVK expects to defer to.
+    static func removeStaleNativeDXGI(
+        prefixRoot: URL,
+        gptkOriginalsDXGI: URL = GPTKImporter.storeFolder
+            .appending(path: "originals").appending(path: "dxgi.dll")
+    ) {
+        let fileManager = FileManager.default
+        guard !fileManager.fileExists(atPath: gptkOriginalsDXGI.path(percentEncoded: false)) else { return }
+        for dir in ["system32", "syswow64"] {
+            let dxgi = prefixRoot.appending(path: "drive_c").appending(path: "windows")
+                .appending(path: dir).appending(path: "dxgi.dll")
+            guard fileManager.fileExists(atPath: dxgi.path(percentEncoded: false)),
+                  (try? isNativePE(dxgi)) == true
+            else { continue }
+            do {
+                try fileManager.removeItem(at: dxgi)
+                Logger.wineKit.info("Removed stale native dxgi.dll from \(dir, privacy: .public)")
+            } catch {
+                Logger.wineKit.warning(
+                    "Could not remove stale native dxgi.dll: \(error.localizedDescription, privacy: .public)"
+                )
+            }
+        }
     }
 
     /// Errors thrown by ``enableDXMT(bottle:)``.

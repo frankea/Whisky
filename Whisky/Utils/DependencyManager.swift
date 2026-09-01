@@ -75,9 +75,9 @@ enum DependencyManager {
 
             // The vc_redist installer can hang under wine after installing
             // successfully, so the verb never reaches winetricks.log even
-            // though the runtime is in place. Fall back to winetricks' own
-            // installed-file marker, but only when the verbs are missing
-            // from the log.
+            // though the runtime is in place. Fall back to the mfc140.dll
+            // marker probe (see VCRuntimeFallback), but only when the verbs
+            // are missing from the log.
             if VCRuntimeFallback.detectsInstallation(
                 definition: definition,
                 missingVerbs: missing,

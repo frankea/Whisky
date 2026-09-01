@@ -123,7 +123,9 @@ final class VCRuntimeFallbackTests: XCTestCase {
         )
     }
 
-    /// The marker mirrors winetricks' installed_file1, which is system32 only.
+    /// mfc140.dll in syswow64 alone is the #233 partial install (the x86
+    /// half landed, the x64 half hung); it must stay not-installed so the
+    /// rerun remains offered as the repair path.
     func testMarkerInSyswow64AloneDoesNotCount() throws {
         try placeDLLs(["mfc140.dll"], in: "windows/syswow64")
 

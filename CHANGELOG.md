@@ -98,8 +98,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   successfully is now detected. The winetricks.log entry is only written once
   the installer exits, so the Dependencies panel kept saying "Not Installed"
   although the runtime was in place. When the log lacks the vcruntime verb,
-  the presence of mfc140.dll in system32 -- winetricks' own installed-file
-  marker for vcrun2019, which Wine does not ship as a builtin -- now counts
+  the presence of mfc140.dll in system32 -- the x64 redist's payload on the
+  default win64 bottles, which Wine does not ship as a builtin -- now counts
   as installed, reported with heuristic confidence; a bottle whose log
   already says installed is never probed (#233).
 - A bottle opened on a runtime from the other Wine lineage no longer starts

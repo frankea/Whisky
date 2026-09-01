@@ -26,19 +26,27 @@ import Foundation
 /// while the log (and thus verb-based detection) says it is not
 /// (frankea/Whisky#233).
 ///
-/// The probe keys on winetricks' own installed-file marker for the vcrun2019
-/// verb: `system32/mfc140.dll` (`installed_file1` in Libraries/winetricks).
-/// Wine ships msvcp140.dll and vcruntime140.dll as builtin DLLs in every
-/// fresh prefix, so those cannot distinguish an installed runtime from a
-/// clean bottle -- mfc140.dll is only ever placed by a real redist install.
+/// The probe keys on `system32/mfc140.dll`. Wine never ships mfc140.dll as
+/// a builtin, so it only appears after a real redist install; msvcp140.dll
+/// and vcruntime140.dll are builtins in every fresh prefix and cannot serve
+/// as a signal. On win64 bottles system32 holds the 64-bit DLLs, so the
+/// probe keys on the x64 redist's own payload -- deliberately not on
+/// winetricks' bookkeeping path: its `installed_file1` expands
+/// `W_SYSTEM32_DLLS_WIN`, which is `C:\windows\syswow64` on win64 and
+/// system32 only on win32, where the two coincide. mfc140.dll in syswow64
+/// alone is the partial install from #233 (the x86 half landed, the x64
+/// half hung) and must not count as installed, so the panel keeps offering
+/// the rerun that repairs it.
 ///
 /// This probe is a fallback, scoped to the `vcruntime` definition, and is
 /// only consulted when verb-based detection found the required verbs
 /// missing -- a bottle whose log already says installed is never probed.
 public enum VCRuntimeFallback {
-    /// winetricks' installed-file marker for vcrun2019, relative to drive_c.
+    /// The probe file, relative to drive_c: the x64 redist's mfc140.dll on
+    /// win64 bottles (where system32 is the 64-bit directory); on win32 the
+    /// same path is winetricks' own `installed_file1` marker.
     ///
-    /// Not a Wine builtin; present only after the x64 redist actually ran.
+    /// Not a Wine builtin; only a real redist install places it here.
     public static let markerFile = "windows/system32/mfc140.dll"
 
     /// Returns whether the Visual C++ Runtime should be considered installed

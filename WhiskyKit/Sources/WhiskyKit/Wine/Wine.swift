@@ -756,6 +756,19 @@ public class Wine {
     /// Deploys Wine's backed-up native dxgi.dll into the prefix for DXVK bottles.
     @MainActor
     static func deployCleanDXGIForDXVK(bottle: Bottle) {
+        // The store outlives an engine install but the deployed payload does not, so a stale
+        // originals/ can belong to a previous engine. Without the payload the builtin is already
+        // Wine's own and there is nothing to work around.
+        guard GPTKImporter.isDeployed() else {
+            // A previous deploy may have left a stripped copy in the prefix. Without the
+            // payload it matches the restored builtin today but will skew after the next
+            // runtime update, so drop it and let the `,b` half load the builtin.
+            let sys32DXGI = bottle.url.appending(path: "drive_c").appending(path: "windows")
+                .appending(path: "system32").appending(path: "dxgi.dll")
+            try? FileManager.default.removeItem(at: sys32DXGI)
+            return
+        }
+
         let store = GPTKImporter.storeFolder
         let originals = store.appending(path: "originals")
         let origDXGI = originals.appending(path: "dxgi.dll")
@@ -771,6 +784,18 @@ public class Wine {
                 "Could not deploy clean dxgi.dll into prefix: \(error.localizedDescription, privacy: .public)"
             )
         }
+    }
+
+    /// Removes a native dxgi.dll from the prefix when GPTK is no longer deployed.
+    /// The stripped copy in system32 is only meaningful while GPTK is active; if GPTK is
+    /// later un-deployed, a leftover native dxgi would keep loading and could diverge from
+    /// the restored builtin after a runtime update.
+    @MainActor
+    static func removeCleanDXGIForDXVK(bottle: Bottle) {
+        let sys32DXGI = bottle.url.appending(path: "drive_c").appending(path: "windows")
+            .appending(path: "system32").appending(path: "dxgi.dll")
+        guard FileManager.default.fileExists(atPath: sys32DXGI.path(percentEncoded: false)) else { return }
+        try? FileManager.default.removeItem(at: sys32DXGI)
     }
 
     /// Errors thrown by ``enableDXMT(bottle:)``.

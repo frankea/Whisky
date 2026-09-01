@@ -16,6 +16,7 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import SemanticVersion
 @testable import WhiskyKit
 import XCTest
 
@@ -39,11 +40,37 @@ final class BackendResolverLauncherTests: XCTestCase {
         }
     }
 
-    /// Without D3DMetal there is nothing to steer around, so a launcher
-    /// resolves exactly like anything else.
-    func testLauncherIsNotSpecialWithoutD3DMetal() {
-        let game = GraphicsBackendResolver.resolve(for: nil, d3dMetalInstalled: false)
-        let launcher = GraphicsBackendResolver.resolve(for: .steam, d3dMetalInstalled: false)
+    /// DXMT is just as unrenderable for Chromium as D3DMetal, so on a runtime
+    /// that would recommend DXMT a launcher still gets DXVK. This is the
+    /// payload-less default install: without the steer, the first Steam launch
+    /// deploys DXMT and the client never shows a window.
+    func testLauncherGetsDXVKWhenDXMTWouldBeRecommended() {
+        let runtime = WhiskyWineVersion(version: SemanticVersion(3, 1, 1), dxmtVersion: "0.80")
+        XCTAssertEqual(
+            GraphicsBackendResolver.resolve(
+                for: nil, runtimeInfo: runtime, d3dMetalInstalled: false, dxmtRuntimeNative: true
+            ),
+            .dxmt
+        )
+        XCTAssertEqual(
+            GraphicsBackendResolver.resolve(
+                for: .steam, runtimeInfo: runtime, d3dMetalInstalled: false, dxmtRuntimeNative: true
+            ),
+            .dxvk
+        )
+    }
+
+    /// With neither D3DMetal nor DXMT the answer is DXVK for everyone, so the
+    /// steer changes nothing there.
+    func testLauncherAndGameAgreeWhenOnlyDXVKExists() {
+        let runtime = WhiskyWineVersion(version: SemanticVersion(3, 0, 0))
+        let game = GraphicsBackendResolver.resolve(
+            for: nil, runtimeInfo: runtime, d3dMetalInstalled: false
+        )
+        let launcher = GraphicsBackendResolver.resolve(
+            for: .steam, runtimeInfo: runtime, d3dMetalInstalled: false
+        )
+        XCTAssertEqual(game, .dxvk)
         XCTAssertEqual(game, launcher)
     }
 

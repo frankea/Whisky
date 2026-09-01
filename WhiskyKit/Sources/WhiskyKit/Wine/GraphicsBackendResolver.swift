@@ -35,6 +35,8 @@ public enum GraphicsBackendResolver {
     /// the runtime bundles it, otherwise DXVK, which ships with every runtime.
     ///
     /// - Parameters:
+    ///   - launcher: The launcher this launch targets, if any. Launchers always
+    ///     resolve to DXVK: their Chromium UIs cannot render on D3DMetal or DXMT.
     ///   - macOSVersion: The macOS version to consider. Defaults to the running system.
     ///   - runtimeInfo: The runtime record to consider. Defaults to the installed
     ///     runtime's version plist.
@@ -50,13 +52,15 @@ public enum GraphicsBackendResolver {
         d3dMetalInstalled: Bool = WhiskyWineInstaller.isD3DMetalInstalled(),
         dxmtRuntimeNative: Bool = Wine.isDXMTRuntimeNative()
     ) -> GraphicsBackend {
+        // Launcher clients are Chromium and cannot render on D3DMetal or DXMT:
+        // the CEF gpu process fails to create its window swapchain and the
+        // client shows no window (or a black one). DXVK is the one backend
+        // their UIs render on, so a launcher gets it regardless of what else
+        // is installed. Games a launcher starts still resolve below.
+        if launcher != nil {
+            return .dxvk
+        }
         if d3dMetalInstalled {
-            // Launcher clients are Chromium and cannot render on D3DMetal:
-            // the window comes up and never paints. Games they start still get
-            // D3DMetal.
-            if launcher != nil {
-                return .dxvk
-            }
             return .d3dMetal
         }
         // The same gate the backend picker applies, not the version record

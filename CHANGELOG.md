@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- The Recommended graphics backend now resolves launchers (Steam and other
+  Chromium-based clients) to DXVK on every runtime. Previously a runtime
+  without the D3DMetal payload resolved launchers to DXMT, whose Direct3D
+  layer launcher UIs cannot render on, leaving the client running with no
+  window (#163).
 - Enabling DXVK now removes a stale native dxgi.dll that a previous DXMT
   launch left in the bottle's system directories. The leftover paired
   DXVK's d3d11 with DXMT's dxgi, which cannot create window swapchains,

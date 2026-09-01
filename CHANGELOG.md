@@ -19,6 +19,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   leaving Chromium-based launchers such as Steam running with no window
   after a switch from DXMT to DXVK (#163).
 
+### Removed
+- ClickOnce support. Games do not arrive as `.appref-ms` deployments, and
+  nobody spoke up for it during the window on #215. The manager, its
+  detection pass in the program scan, the badge, the context menu, the
+  .NET auto-recommendation and the `.appref-ms` file type in the run
+  panels are all gone. The ClickOnce cache filter in the executable scan
+  stays, since a prefix can still contain those artifacts.
+
+  This removes `ClickOnceManager` and the `Program(appRefURL:bottle:displayName:)`
+  initializer from WhiskyKit's public API, along with the `isClickOnce`
+  property, so the kit needs a major version bump (#215).
+
 ## [3.7.0] - 2026-08-29 (App)
 
 ### Added

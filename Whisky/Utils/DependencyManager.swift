@@ -86,9 +86,8 @@ enum DependencyManager {
     /// Suggests dependencies that a program likely needs based on evidence.
     ///
     /// Evidence sources (checked in order):
-    /// 1. ClickOnce programs always need .NET Framework
-    /// 2. Crash diagnosis history with ``CrashCategory/dependenciesLoading`` matches
-    /// 3. Game database entries with required winetricks verbs
+    /// 1. Crash diagnosis history with ``CrashCategory/dependenciesLoading`` matches
+    /// 2. Game database entries with required winetricks verbs
     ///
     /// Only returns recommendations backed by concrete evidence. Never
     /// recommends speculatively, per project decision.
@@ -103,7 +102,6 @@ enum DependencyManager {
     ) async -> [DependencyDefinition] {
         let programURL = await MainActor.run { program.url }
         let programName = await MainActor.run { program.name }
-        let isClickOnce = await MainActor.run { program.isClickOnce }
         let dismissed = await MainActor.run {
             program.settings.dismissedDependencyRecommendations ?? []
         }
@@ -111,14 +109,7 @@ enum DependencyManager {
         var recommended: [String: DependencyDefinition] = [:]
         let definitions = DependencyDefinition.standardDependencies
 
-        // 1. ClickOnce programs need .NET
-        if isClickOnce {
-            if let dotnet = definitions.first(where: { $0.id == "dotnet48" }) {
-                recommended[dotnet.id] = dotnet
-            }
-        }
-
-        // 2. Check crash diagnosis history for DLL-not-found patterns
+        // 1. Check crash diagnosis history for DLL-not-found patterns
         let bottleURL = await MainActor.run { bottle.url }
         let historyURL = bottleURL
             .appending(path: "Program Settings")
@@ -140,7 +131,7 @@ enum DependencyManager {
             }
         }
 
-        // 3. Check game database for required verbs
+        // 2. Check game database for required verbs
         addGameDBRecommendations(programURL: programURL, definitions: definitions, into: &recommended)
 
         // Filter out dismissed recommendations

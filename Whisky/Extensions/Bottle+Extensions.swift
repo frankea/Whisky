@@ -211,14 +211,6 @@ extension Bottle {
                 programs.append(Program(url: entry.url, bottle: self, peFile: entry.peFile))
             }
 
-            // Detect ClickOnce applications (small scan, kept on the main actor).
-            let clickOnceApps = ClickOnceManager.shared.detectAppRefFile(in: self, wineUsername: wineUsername)
-            for appRefURL in clickOnceApps {
-                let displayName = ClickOnceManager.shared.displayName(for: appRefURL)
-                let program = Program(appRefURL: appRefURL, bottle: self, displayName: displayName)
-                programs.append(program)
-            }
-
             // Add missing programs from pins
             for pin in settings.pins {
                 guard let url = pin.url else { continue }

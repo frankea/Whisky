@@ -64,14 +64,12 @@ import SwiftUI
 ///
 /// ### Creating Programs
 /// - ``init(url:bottle:)``
-/// - ``init(appRefURL:bottle:displayName:)``
 ///
 /// ### Program Information
 /// - ``name``
 /// - ``url``
 /// - ``bottle``
 /// - ``peFile``
-/// - ``isClickOnce``
 ///
 /// ### Configuration
 /// - ``settings``
@@ -87,18 +85,10 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
     public let url: URL
     /// The URL where this program's settings are stored.
     public let settingsURL: URL
-    /// Whether this program is a ClickOnce application (.appref-ms).
-    public let isClickOnce: Bool
 
-    /// Optional display name override for ClickOnce apps.
-    private let _displayName: String?
-
-    /// The display name of the program.
-    ///
-    /// For ClickOnce apps this returns the friendly name extracted from the manifest.
-    /// For regular programs it returns the executable filename.
+    /// The display name of the program: the executable filename.
     public var name: String {
-        _displayName ?? url.lastPathComponent
+        url.lastPathComponent
     }
 
     /// The program-specific configuration settings.
@@ -256,8 +246,6 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
         let name = url.lastPathComponent
         self.bottle = bottle
         self.url = url
-        self.isClickOnce = false
-        self._displayName = nil
         self.pinned = bottle.settings.pins.contains(where: { $0.url == url })
 
         let settingsUrl = Self.settingsURL(for: url, in: bottle, legacyName: name)
@@ -275,39 +263,6 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
         }
 
         self.peFile = peFile
-    }
-
-    /// Creates a new program instance for a ClickOnce application reference file.
-    ///
-    /// ClickOnce apps use `.appref-ms` files as their launch artifact. They do not
-    /// have PE file metadata and instead display a friendly name extracted from the
-    /// deployment manifest.
-    ///
-    /// - Parameters:
-    ///   - appRefURL: The URL to the `.appref-ms` file.
-    ///   - bottle: The ``Bottle`` that contains this program.
-    ///   - displayName: A friendly display name for the ClickOnce application.
-    public init(appRefURL: URL, bottle: Bottle, displayName: String) {
-        self.bottle = bottle
-        self.url = appRefURL
-        self.isClickOnce = true
-        self._displayName = displayName
-        self.pinned = bottle.settings.pins.contains(where: { $0.url == appRefURL })
-        self.peFile = nil
-
-        let settingsUrl = Self.settingsURL(for: appRefURL, in: bottle, legacyName: displayName)
-        self.settingsURL = settingsUrl
-
-        do {
-            self.settings = try ProgramSettings.decode(from: settingsUrl)
-        } catch {
-            Logger.wineKit.error(
-                "Failed to load settings for `\(displayName)`: \(String(describing: error), privacy: .public)"
-            )
-            // Preserve the unreadable file before the next save overwrites it with defaults.
-            BottleSettings.quarantineCorruptedFile(at: settingsUrl)
-            self.settings = ProgramSettings()
-        }
     }
 
     /// Generates the environment variables for running this program.

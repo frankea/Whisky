@@ -172,13 +172,15 @@ public extension Wine {
         LauncherType.detect(from: url)?.helperExecutables ?? []
     }
 
-    /// Adds `nvapi64=` to an override string, keeping whatever else it holds.
+    /// Adds `nvapi64=`, `nvapi=`, and `nvngx=` to an override string, keeping whatever else it holds.
     ///
     /// - Parameter overrides: A `WINEDLLOVERRIDES`-syntax string, possibly empty.
-    /// - Returns: The same string with nvapi64 disabled.
+    /// - Returns: The same string with NVIDIA bridges disabled.
     static func disablingNVAPI(in overrides: String) -> String {
         var parsed = parseDLLOverrides(overrides)
         parsed["nvapi64"] = ""
+        parsed["nvapi"] = ""
+        parsed["nvngx"] = ""
         return parsed.keys.sorted().map { "\($0)=\(parsed[$0] ?? "")" }.joined(separator: ";")
     }
 

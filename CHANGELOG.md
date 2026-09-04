@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Removing a stale native dxgi.dll from a bottle now puts Wine's own marked
+  builtin copy back in its place. Wine's loader only finds a builtin through
+  its system32 placeholder, so an empty slot made `dxgi.dll` unloadable and
+  Chromium's GPU process crash-looped into software rendering, which left
+  Steam's Store, Community and Profile pages black. It only surfaced on a
+  runtime whose wine.inf matched the bottle's update stamp, because every
+  other runtime triggers a prefix update that silently reinstalls the
+  placeholder. That is why it looked like a wine 11.16 regression (#163).
 - The Recommended graphics backend now resolves launchers (Steam and other
   Chromium-based clients) to DXVK on every runtime. Previously a runtime
   without the D3DMetal payload resolved launchers to DXMT, whose Direct3D

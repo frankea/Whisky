@@ -722,10 +722,11 @@ public class Wine {
         prefixRoot: URL,
         gptkOriginalsDXGI: URL = GPTKImporter.storeFolder
             .appending(path: "originals").appending(path: "dxgi.dll"),
-        gptkPayloadIsDeployed: Bool = GPTKImporter.isDeployed()
+        gptkPayloadIsDeployed: Bool = GPTKImporter.isDeployed(),
+        libraryFolder: URL = WhiskyWineInstaller.libraryFolder
     ) {
         guard gptkPayloadIsDeployed else {
-            removeStaleNativeDXGI(prefixRoot: prefixRoot)
+            removeStaleNativeDXGI(prefixRoot: prefixRoot, libraryFolder: libraryFolder)
             return
         }
         deployCleanDXGI(prefixRoot: prefixRoot, from: gptkOriginalsDXGI)
@@ -751,9 +752,13 @@ public class Wine {
     /// Whether removal is the right answer at all is decided by
     /// ``reconcileDXGIForDXVK(prefixRoot:gptkOriginalsDXGI:gptkPayloadIsDeployed:)``,
     /// which owns the payload predicate.
-    static func removeStaleNativeDXGI(prefixRoot: URL) {
+    static func removeStaleNativeDXGI(
+        prefixRoot: URL,
+        libraryFolder: URL = WhiskyWineInstaller.libraryFolder
+    ) {
         let fileManager = FileManager.default
-        for dir in ["system32", "syswow64"] {
+        let builtinDirs = ["system32": "x86_64-windows", "syswow64": "i386-windows"]
+        for (dir, arch) in builtinDirs {
             let dxgi = prefixRoot.appending(path: "drive_c").appending(path: "windows")
                 .appending(path: dir).appending(path: "dxgi.dll")
             guard fileManager.fileExists(atPath: dxgi.path(percentEncoded: false)),
@@ -765,6 +770,29 @@ public class Wine {
             } catch {
                 Logger.wineKit.warning(
                     "Could not remove stale native dxgi.dll: \(error.localizedDescription, privacy: .public)"
+                )
+                continue
+            }
+            // The removal must not leave the slot empty. Wine's loader only reaches a
+            // builtin through its system32 placeholder (ntdll/loader.c
+            // find_builtin_without_file refuses every non-16-bit DLL that has no
+            // file), so with nothing here `LoadLibrary("dxgi.dll")` fails outright
+            // and Chromium's GPU process cannot bring up D3D11. wineboot would
+            // reinstall the placeholder on the next prefix update, but a runtime
+            // whose wine.inf matches the prefix stamp never runs one. Put back the
+            // runtime's own marked copy, which is what wineboot installs.
+            let builtin = libraryFolder.appending(path: "Wine").appending(path: "lib")
+                .appending(path: "wine").appending(path: arch).appending(path: "dxgi.dll")
+            guard fileManager.fileExists(atPath: builtin.path(percentEncoded: false)) else {
+                Logger.wineKit.warning("No builtin dxgi.dll to restore into \(dir, privacy: .public)")
+                continue
+            }
+            do {
+                try fileManager.copyItem(at: builtin, to: dxgi)
+                Logger.wineKit.info("Restored builtin dxgi.dll placeholder into \(dir, privacy: .public)")
+            } catch {
+                Logger.wineKit.warning(
+                    "Could not restore builtin dxgi.dll: \(error.localizedDescription, privacy: .public)"
                 )
             }
         }

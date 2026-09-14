@@ -1020,6 +1020,12 @@
             "state" : "translated",
             "value" : "Arguments and logs have common secret shapes scrubbed unless sensitive details are included"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Argumenty i dzienniki są oczyszczane z potocznych sekretnych kształtów, dopóki wrażliwe dane nie są dołączane"
+          }
         }
       }
     },
@@ -1254,7 +1260,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Automatycznie"
+            "value" : "Automatyczny"
           }
         },
         "pt-BR" : {
@@ -1402,7 +1408,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Automatycznie: wykrywa launcher na podstawie ścieżki pliku\nRęcznie: używa wybranego typu launchera"
+            "value" : "Automatyczny: wykrywa launcher na podstawie ścieżki pliku\nRęczny: używa wybranego typu launchera"
           }
         },
         "pt-BR" : {
@@ -4478,7 +4484,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rozszerzone logi"
+            "value" : "Rozszerzone logowanie"
           }
         },
         "pt-BR" : {
@@ -6046,7 +6052,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tworzy duże logi"
+            "value" : "Tworzy duże dzienniki"
           }
         },
         "pt-BR" : {
@@ -6318,7 +6324,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dołącz pełny plik logu"
+            "value" : "Dołącz pełny plik dziennika"
           }
         },
         "pt-BR" : {
@@ -8911,7 +8917,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uruchom ponownie z pełnymi logami"
+            "value" : "Uruchom ponownie z rozszerzonych logowaniem"
           }
         },
         "pt-BR" : {
@@ -21761,6 +21767,12 @@
             "state" : "translated",
             "value" : "macOS is withholding access to %@. Grant Whisky access under System Settings > Privacy & Security > Files and Folders, then try again."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS odmawia dostępu do %@. Zezwól aplikacji Whisky w Ustawieniach systemowych > Prywatność i ochrona > Pliki i foldery, a następnie spróbuj ponownie."
+          }
         }
       }
     },
@@ -22072,6 +22084,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stop Bottle"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arresta la bottiglia"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zatrzymaj butelkę"
           }
         }
       }
@@ -28975,7 +28999,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Urządzenie wyjściowe"
+            "value" : "Wybór urządzenia"
           }
         },
         "pt-BR" : {
@@ -29124,7 +29148,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wybrane urządzenie"
+            "value" : "Przypięte urządzenie"
           }
         },
         "pt-BR" : {
@@ -29421,7 +29445,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Automatycznie"
+            "value" : "Automatyczny"
           }
         },
         "pt-BR" : {
@@ -33493,6 +33517,18 @@
             "state" : "translated",
             "value" : "Discord"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discord"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discord"
+          }
         }
       }
     },
@@ -33508,6 +33544,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Let games publish their own presence"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zezwól grom ogłaszać swą obecność"
           }
         }
       }
@@ -33525,6 +33567,12 @@
             "state" : "translated",
             "value" : "Relays the Discord pipe a Windows game expects to the Discord client on your Mac. Only affects games that publish rich presence themselves."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przekazuje tunel Discordowy oczekiwany przez grę Windosową klientowi Discorda na twoim Macu. Ma tylko wpływ, gdy gry ogłaszają swą obecność."
+          }
         }
       }
     },
@@ -33540,6 +33588,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show what you're playing"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra cosa stai giocando"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokaż w co grasz"
           }
         }
       }
@@ -33557,6 +33617,12 @@
             "state" : "translated",
             "value" : "Publishes the program Whisky launches as your Discord activity, shown under Whisky's name."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogłasza program uruchamiany za pomocą Whisky na Twojej aktywności na platformie Discord, pokazuje pod nazwą Whisky."
+          }
         }
       }
     },
@@ -33572,6 +33638,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unavailable: this build has no Discord application configured."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niedostępne: ten build nie ma skonfigurowanej aplikacji Discord."
           }
         }
       }
@@ -36551,6 +36623,18 @@
             "state" : "translated",
             "value" : "DLSS Frame Generation"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Generazione fotogrammi DLSS"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Generowanie klatek przez DLSS"
+          }
         }
       }
     },
@@ -36566,6 +36650,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Off by default. Frame generation reaches MetalFX frame interpolation, which on current macOS can leave the GPU driver unresponsive and end the login session. DLSS upscaling above is unaffected. Some NVIDIA Streamline titles will not start with it off, Deep Rock Galactic among them."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyłączone domyślnie. Generowanie klatek kontaktuje się z interpolacją klatek MetalFX, która na obecnej wersji macOS może sprawić, że sterownik karty GPU nie będzie odpowiadał, a nawet kończyć sesje logowania. Nie dotyczy powyższego upscalingu DLSS. Niektóre tytułu NVIDIA Streamline nie będą się uruchamiać z tą opcją wyłączona, m.in. Deep Rock Galactic."
           }
         }
       }
@@ -37027,6 +37117,18 @@
             "state" : "translated",
             "value" : "Metal 4 Backend"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backend Metal 4"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mechanizm Metal 4"
+          }
         }
       }
     },
@@ -37042,6 +37144,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uses Metal 4 command encoding for DirectX 12 titles. Ignored on macOS versions that predate it."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Używa wymuszania polecenia Metal 4 dla tytułów opartych o DirectX 12. Ignorowane na wersjach macOS wydanych przed nim."
           }
         }
       }
@@ -37059,6 +37167,18 @@
             "state" : "translated",
             "value" : "DLSS via MetalFX"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DLSS via MetalFX"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DLSS za pomocą MetalFX"
+          }
         }
       }
     },
@@ -37074,6 +37194,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Maps a game's DLSS to MetalFX upscaling. Only applies when DLSS is also turned on in the game's own settings."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mapuje DLSS gry do upscalingu MetalFX. Ma tylko wpływ, gdy DLSS jest również włączony w ustawieniach gry."
           }
         }
       }
@@ -44183,6 +44309,18 @@
             "state" : "translated",
             "value" : "Check Again"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controlla di nuovo"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdź ponownie"
+          }
         }
       }
     },
@@ -44199,6 +44337,18 @@
             "state" : "translated",
             "value" : "Open Privacy Settings…"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apri le Impostazioni della Privacy..."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwórz ustawienia prywatności…"
+          }
         }
       }
     },
@@ -44214,6 +44364,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This location can't be used"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To położenie nie może być użyte"
           }
         }
       }
@@ -47486,6 +47642,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Duplicate"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplica"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplikuj"
           }
         }
       }
@@ -59794,6 +59962,18 @@
             "state" : "translated",
             "value" : "Configure Bottle"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configura la bottiglia"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konfiguruj butelkę"
+          }
         }
       }
     },
@@ -59809,6 +59989,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Runs this program"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esegui questo programma"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uruchamia ten program"
           }
         }
       }
@@ -59826,6 +60018,12 @@
             "state" : "translated",
             "value" : "Never run"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nigdy nie uruchamiaj"
+          }
         }
       }
     },
@@ -59838,6 +60036,12 @@
           }
         },
         "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launcher"
+          }
+        },
+        "pl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Launcher"
@@ -59858,6 +60062,18 @@
             "state" : "translated",
             "value" : "Starting…"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avvio…"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uruchamianie…"
+          }
         }
       }
     },
@@ -59873,6 +60089,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Running"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In esecuzione"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uruchomione"
           }
         }
       }
@@ -59890,6 +60118,18 @@
             "state" : "translated",
             "value" : "Stop"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arresta"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zatrzymaj"
+          }
         }
       }
     },
@@ -59905,6 +60145,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remove Pin"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odepnij"
           }
         }
       }
@@ -59922,6 +60168,18 @@
             "state" : "translated",
             "value" : "Create a bottle to install Windows programs into."
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crea una bottiglia in cui installare programmi Windows."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stwórz butelkę, w której będą instalowane programy na Windowsa."
+          }
         }
       }
     },
@@ -59937,6 +60195,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Programs you install into a bottle show up here."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Programy zainstalowane w butelce będą się tu wyświetlać"
           }
         }
       }
@@ -59954,6 +60218,12 @@
             "state" : "translated",
             "value" : "Open a bottle and pin a program to see it here."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwórz butelkę i przypnij program, aby go zobaczyć tutaj."
+          }
         }
       }
     },
@@ -59969,6 +60239,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nothing installed yet"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jeszcze nic nie zainstalowano"
           }
         }
       }
@@ -59986,6 +60262,18 @@
             "state" : "translated",
             "value" : "Couldn't launch"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile avviare"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie można było uruchomić"
+          }
         }
       }
     },
@@ -60001,6 +60289,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Starting %@…"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uruchamianie %@…"
           }
         }
       }
@@ -60018,6 +60312,12 @@
             "state" : "translated",
             "value" : "Steam no longer lists this game as installed."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steam już nie wyświetla tej gry jako zainstalowanej."
+          }
         }
       }
     },
@@ -60034,6 +60334,12 @@
             "state" : "translated",
             "value" : "Search programs"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szukaj programów"
+          }
         }
       }
     },
@@ -60046,6 +60352,18 @@
           }
         },
         "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steam"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steam"
+          }
+        },
+        "pl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Steam"
@@ -60066,6 +60384,18 @@
             "state" : "translated",
             "value" : "Sort"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordina"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sortuj"
+          }
         }
       }
     },
@@ -60081,6 +60411,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bottle"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bottiglia"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "wg butelki"
           }
         }
       }
@@ -60098,6 +60440,18 @@
             "state" : "translated",
             "value" : "Name"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "wg nazwy"
+          }
         }
       }
     },
@@ -60113,6 +60467,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Recently Played"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giocati di recente"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "wg ostatnio granych"
           }
         }
       }
@@ -60130,6 +60496,24 @@
             "state" : "translated",
             "value" : "Library"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Libreria"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリ"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biblioteka"
+          }
         }
       }
     },
@@ -60145,6 +60529,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bottles"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bottiglie"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Butelki"
           }
         }
       }
@@ -60162,6 +60558,12 @@
             "state" : "translated",
             "value" : "Allow Background Events"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zezwól na zdarzenia w tle"
+          }
         }
       }
     },
@@ -60177,6 +60579,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Controller Compatibility Mode"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tryb zgodności kontrolerów"
           }
         }
       }
@@ -60194,6 +60602,12 @@
             "state" : "translated",
             "value" : "Disable Controller Mapping"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyłącz mapowanie kontrolerów"
+          }
         }
       }
     },
@@ -60209,6 +60623,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disable HIDAPI"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disabilita HIDAPI"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyłącz HIDAPI"
           }
         }
       }
@@ -60226,6 +60652,18 @@
             "state" : "translated",
             "value" : "Graphics Backend"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Motore grafico"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mechanizm grafiki"
+          }
         }
       }
     },
@@ -60241,6 +60679,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Currently using %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ jest obecnie używane"
           }
         }
       }
@@ -60258,6 +60702,12 @@
             "state" : "translated",
             "value" : "Recommended currently resolves to %@."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obecnie zalecane jest %@."
+          }
         }
       }
     },
@@ -60273,6 +60723,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Takes effect the next time this program launches."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Będzie miało wpływ po następnym uruchomieniu tego programu."
           }
         }
       }
@@ -60290,6 +60746,12 @@
             "state" : "translated",
             "value" : "Use Button Labels"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Używaj etykiet przycisków"
+          }
         }
       }
     },
@@ -60305,6 +60767,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Clear Console"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyczyść konsolę"
           }
         }
       }
@@ -60322,6 +60790,12 @@
             "state" : "translated",
             "value" : "Delete Old Logs"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń stare dzienniki"
+          }
         }
       }
     },
@@ -60337,6 +60811,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete Run"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń uruchomienie"
           }
         }
       }
@@ -60354,6 +60834,18 @@
             "state" : "translated",
             "value" : "Exit code %lld"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Codice di uscita %lld"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kod wyjścia %lld"
+          }
         }
       }
     },
@@ -60369,6 +60861,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Exited with code %lld"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zakończyło działanie kodem %lld"
           }
         }
       }
@@ -60386,6 +60884,18 @@
             "state" : "translated",
             "value" : "Last run"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ultima esecuzione"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostatnie uruchomienie"
+          }
         }
       }
     },
@@ -60401,6 +60911,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copy Log"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia i log"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiuj dziennik"
           }
         }
       }
@@ -60418,6 +60940,18 @@
             "state" : "translated",
             "value" : "Export Log"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esporta i logs"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyeksportuj dziennik"
+          }
         }
       }
     },
@@ -60433,6 +60967,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Live"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na żywo"
           }
         }
       }
@@ -60450,6 +60996,12 @@
             "state" : "translated",
             "value" : "No runs yet"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak uruchomień"
+          }
         }
       }
     },
@@ -60465,6 +61017,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Run this program and its output shows up here."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uruchom ten program i pokaż tego dane wyjściowe tutaj."
           }
         }
       }
@@ -60482,6 +61040,12 @@
             "state" : "translated",
             "value" : "Open Logs Folder"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwórz folder dzienników"
+          }
         }
       }
     },
@@ -60497,6 +61061,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Previous runs"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poprzednie uruchomienia"
           }
         }
       }
@@ -60514,6 +61084,18 @@
             "state" : "translated",
             "value" : "Running"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In esecuzione"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uruchomione"
+          }
         }
       }
     },
@@ -60529,6 +61111,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Console"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Console"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konsola"
           }
         }
       }
@@ -60546,6 +61140,12 @@
             "state" : "translated",
             "value" : "This program overrides the bottle's graphics backend."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten program uchyla mechanizm grafiki butelki."
+          }
         }
       }
     },
@@ -60561,6 +61161,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Display"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schermo"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyświetlanie"
           }
         }
       }
@@ -60578,6 +61190,12 @@
             "state" : "translated",
             "value" : "DLL Overrides"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uchylenia bibliotek DLL"
+          }
         }
       }
     },
@@ -60593,6 +61211,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Graphics"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grafica"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grafika"
           }
         }
       }
@@ -60610,6 +61240,12 @@
             "state" : "translated",
             "value" : "Inherited from the bottle"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dziedziczone z butelki"
+          }
         }
       }
     },
@@ -60625,6 +61261,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Input"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wejście"
           }
         }
       }
@@ -60642,6 +61284,18 @@
             "state" : "translated",
             "value" : "Performance"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prestazioni"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wydajność"
+          }
         }
       }
     },
@@ -60657,6 +61311,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reset Overrides"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zresetuj uchylenia"
           }
         }
       }
@@ -60674,6 +61334,12 @@
             "state" : "translated",
             "value" : "Reset this program's overrides so it follows the bottle again?"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zresetować uchylenia tego programu, tak aby używał ustawień butelki?"
+          }
         }
       }
     },
@@ -60689,6 +61355,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sync"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronizacja"
           }
         }
       }
@@ -60706,6 +61378,12 @@
             "state" : "translated",
             "value" : "Program Overrides"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uchylenia programu"
+          }
         }
       }
     },
@@ -60721,6 +61399,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No Winetricks verbs installed in this bottle."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "W tej butelce nie zainstalowano żadnych zleceń Winetricks."
           }
         }
       }
@@ -60738,6 +61422,12 @@
             "state" : "translated",
             "value" : "Verbs installed in the bottle this program runs in."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zlecenia zainstalowane w butelce, w której ten program się uruchamia."
+          }
         }
       }
     },
@@ -60750,6 +61440,12 @@
           }
         },
         "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Winetricks"
+          }
+        },
+        "pl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Winetricks"
@@ -60770,6 +61466,12 @@
             "state" : "translated",
             "value" : "Used by this program"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Używane przez ten program"
+          }
         }
       }
     },
@@ -60785,6 +61487,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Overrides the bottle's display settings for this program only."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uchyla butelkowe ustawienia wyświetlania tylko dla tego programu."
           }
         }
       }
@@ -61909,7 +62617,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Otwórz folder z logami"
+            "value" : "Otwórz folder dzienników"
           }
         },
         "pt-BR" : {
@@ -70868,6 +71576,12 @@
             "state" : "translated",
             "value" : "Applied: %@"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zastosowano: %@"
+          }
         }
       }
     },
@@ -70883,6 +71597,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ did not install. The log has the details."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ nie zostało zainstalowane. W dzienniku znajdują się szczegóły."
           }
         }
       }
@@ -70900,6 +71620,12 @@
             "state" : "translated",
             "value" : "%@ installed."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zainstalowano %@."
+          }
         }
       }
     },
@@ -70916,6 +71642,12 @@
             "state" : "translated",
             "value" : "Installing %@. This can take a few minutes."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalowanie %@. Może to zająć chwilkę."
+          }
         }
       }
     },
@@ -70931,6 +71663,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This suggestion cannot be applied automatically."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tej sugestii nie można automatycznie zaaplikować."
           }
         }
       }
@@ -78566,7 +79304,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instalacja WhiskyWine nie powiodła się. Skopiuj diagnostykę i dołącz logi."
+            "value" : "Instalacja WhiskyWine się nie powiodła. Skopiuj diagnostykę i dołącz dzienniki."
           }
         },
         "pt-BR" : {
@@ -85460,6 +86198,12 @@
             "state" : "translated",
             "value" : "The troubleshooting path has been updated based on the check results."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ścieżka rozwiązywania problemów została zaktualizowana na podstawie wyników testu."
+          }
         }
       }
     },
@@ -85475,6 +86219,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Path updated: %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaktualizowano ścieżkę: %@"
           }
         }
       }
@@ -86528,6 +87278,12 @@
             "state" : "translated",
             "value" : "Clipboard (ready to paste)"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schowek (gotów na wklejanie)"
+          }
         }
       }
     },
@@ -86543,6 +87299,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Automated troubleshooting was unable to resolve the issue. Here are some next steps."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatyczne rozwiązywanie problemów nie mogło rozwiązać tego problemu. Oto kilka kolejnych kroków."
           }
         }
       }
@@ -86708,6 +87470,12 @@
             "state" : "translated",
             "value" : "Enable verbose Wine logging (WINEDEBUG) for this program's next run. The detailed log helps diagnose the issue."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Włącz rozwlekłe logowanie WINE (WINEDEBUG) dla tego programu przy jego następnym uruchomienie. Szczegółowy dziennik pomaga w diagnozowaniu problemu."
+          }
         }
       }
     },
@@ -86872,6 +87640,12 @@
             "state" : "translated",
             "value" : "Copy a summary of findings, fix history, and environment details to the clipboard for sharing."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skopiuj do schowka podsumowanie znalezisk, historii napraw i szczegóły środowiska w celu ich udostępnienia."
+          }
         }
       }
     },
@@ -86888,6 +87662,12 @@
             "state" : "translated",
             "value" : "Exported to: %@"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyeksportowano do %@"
+          }
         }
       }
     },
@@ -86903,6 +87683,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No previous steps available"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak dostępnych poprzednich kroków"
           }
         }
       }
@@ -87068,6 +87854,12 @@
             "state" : "translated",
             "value" : "Go back to a previous step and try a different path."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cofnij do poprzedniego kroku i spróbuj innej ścieżki."
+          }
         }
       }
     },
@@ -87083,6 +87875,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Step %d:"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Krok %d:"
           }
         }
       }
@@ -87248,6 +88046,12 @@
             "state" : "translated",
             "value" : "Copy a pre-filled summary to the clipboard for pasting into a GitHub issue."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skopiuj do schowka uzupełnione podsumowanie w celu przekazania w problemie na platformie GitHub."
+          }
         }
       }
     },
@@ -87411,6 +88215,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "What was tried:"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czego spróbowano:"
           }
         }
       }
@@ -87724,6 +88534,12 @@
             "state" : "translated",
             "value" : "This will change %1$@ from \"%2$@\" to \"%3$@\"."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zmieni to %1$@ z „%2$@” na „%3$@”."
+          }
         }
       }
     },
@@ -87887,6 +88703,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Confirm Fix"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potwierdź naprawę"
           }
         }
       }
@@ -88495,6 +89317,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Scope: %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zakres: %@"
           }
         }
       }
@@ -89251,6 +90079,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fixes attempted:"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spróbowane naprawy:"
           }
         }
       }
@@ -90600,6 +91434,12 @@
             "state" : "translated",
             "value" : "Changes applied:"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zastosowane zmiany:"
+          }
         }
       }
     },
@@ -91207,6 +92047,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Last updated:"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostatnia aktualizacja:"
           }
         }
       }
@@ -92112,6 +92958,12 @@
             "state" : "translated",
             "value" : "No sound, crackling, popping, or wrong output device"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak lub trzaskający dźwięk albo złe urządzenie wyjściowe"
+          }
         }
       }
     },
@@ -92275,6 +93127,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Controller not detected or buttons mapped incorrectly"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie wykryto kontrolera lub źle przypisano przyciski"
           }
         }
       }
@@ -92440,6 +93298,12 @@
             "state" : "translated",
             "value" : "Black screen, flickering, visual artifacts, or low frame rate"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czarny ekran, migotanie, artefakty lub niska ilość klatek na sekundę"
+          }
         }
       }
     },
@@ -92603,6 +93467,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Missing .NET, VC++, DirectX, or Winetricks components"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brakujące komponenty .NET, VC++, DirectX albo Winetricks"
           }
         }
       }
@@ -92768,6 +93638,12 @@
             "state" : "translated",
             "value" : "Program fails to start or crashes within seconds"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Program nie może się uruchomić lub szybko ulega awarii"
+          }
         }
       }
     },
@@ -92931,6 +93807,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Steam, EA App, Epic Games, or Rockstar launcher problems"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Problemy z launcherami Steam EA App, Epic Games lub Rockstar"
           }
         }
       }
@@ -93096,6 +93978,12 @@
             "state" : "translated",
             "value" : "Download timeouts, Steam stalls, or connection failures"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upływanie limitu czasu pobierania, Steam się zawiesza lub problemy z połączeniem"
+          }
         }
       }
     },
@@ -93259,6 +94147,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Describe your issue and we will try to help"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opisz swój problem, a my postaramy się pomóc"
           }
         }
       }
@@ -93424,6 +94318,12 @@
             "state" : "translated",
             "value" : "Stuttering, frame drops, or hangs after playing for a while"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zacinanie, pomijanie klatek lub zawieszanie po krótkiej rozgrywce"
+          }
         }
       }
     },
@@ -93588,6 +94488,12 @@
             "state" : "translated",
             "value" : "Select a bottle and optionally a program to troubleshoot."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybierz butelkę oraz opcjonalnie program, w którym należy rozwiązać problemy."
+          }
         }
       }
     },
@@ -93604,6 +94510,12 @@
             "state" : "translated",
             "value" : "No specific program (bottle-level)"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak konkretnego programu (na poziomie butelki)"
+          }
         }
       }
     },
@@ -93619,6 +94531,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Select a bottle"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybierz butelkę"
           }
         }
       }
@@ -94376,6 +95294,12 @@
             "state" : "translated",
             "value" : "Undo last fix"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cofnij ostatnią naprawę"
+          }
         }
       }
     },
@@ -94391,6 +95315,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Close"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamknij"
           }
         }
       }
@@ -94408,6 +95338,12 @@
             "state" : "translated",
             "value" : "Continue"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontynuuj"
+          }
         }
       }
     },
@@ -94423,6 +95359,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Running checks…"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdzanie…"
           }
         }
       }
@@ -94440,6 +95382,12 @@
             "state" : "translated",
             "value" : "Skip"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pomiń"
+          }
         }
       }
     },
@@ -94455,6 +95403,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Step %d"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Krok %d."
           }
         }
       }
@@ -95064,6 +96018,12 @@
             "state" : "translated",
             "value" : "This launch was requested by a link from outside Whisky. Whisky can only launch games and pins you already have, never an arbitrary program, but you should still recognise this one."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Łącze spoza aplikacji Whisky poprosiło o uruchomienie. Whisky może tylko uruchamiać już zainstalowane gry i przypięte aplikacje, nigdy nie wykona przypadkowego programu, lecz nadal użytkownik powinien rozpoznawać ten."
+          }
         }
       }
     },
@@ -95079,6 +96039,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Launch"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uruchom"
           }
         }
       }
@@ -95096,6 +96062,12 @@
             "state" : "translated",
             "value" : "Launch %@?"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uruchomić %@?"
+          }
         }
       }
     },
@@ -95111,6 +96083,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Always allow this from links"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zawsze zezwalaj na to z łączy"
           }
         }
       }
@@ -95128,6 +96106,12 @@
             "state" : "translated",
             "value" : "No bottle named %@."
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak butelki nazwanej %@."
+          }
         }
       }
     },
@@ -95143,6 +96127,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nothing pinned under that name."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nic tak nazwanego nie przypięto."
           }
         }
       }
@@ -103482,6 +104472,12 @@
             "state" : "translated",
             "value" : "Detected display: %lld x %lld pixels"
           }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wykryty wyświetlacz: %lld x %lld pikseli"
+          }
         }
       }
     },
@@ -103867,7 +104863,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nie znaleziono pliku logu"
+            "value" : "Nie znaleziono pliku dziennika"
           }
         },
         "pt-BR" : {
@@ -104463,7 +105459,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nie udało się wczytać logu"
+            "value" : "Nie udało się wczytać dziennika"
           }
         },
         "pt-BR" : {

@@ -52,6 +52,7 @@ public enum EnhancedSync: Codable, Equatable, Sendable {
 public struct BottleWineConfig: Codable, Equatable {
     static let defaultWineVersion = SemanticVersion(7, 7, 0)
     var wineVersion: SemanticVersion = Self.defaultWineVersion
+    var runtimeIdentifier: String = WineRuntime.defaultIdentifier
     var windowsVersion: WinVersion = .win10
     var enhancedSync: EnhancedSync = .msync
     var avxEnabled: Bool = false
@@ -62,6 +63,10 @@ public struct BottleWineConfig: Codable, Equatable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.wineVersion = try container.decodeIfPresent(SemanticVersion.self, forKey: .wineVersion) ?? Self
             .defaultWineVersion
+        self.runtimeIdentifier = try container.decodeIfPresent(
+            String.self,
+            forKey: .runtimeIdentifier
+        ) ?? WineRuntime.defaultIdentifier
         self.windowsVersion = container.decodeLenientIfPresent(WinVersion.self, forKey: .windowsVersion) ?? .win10
         self.enhancedSync = try container.decodeIfPresent(EnhancedSync.self, forKey: .enhancedSync) ?? .msync
         self.avxEnabled = try container.decodeIfPresent(Bool.self, forKey: .avxEnabled) ?? false

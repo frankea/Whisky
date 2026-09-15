@@ -93,6 +93,21 @@ public class Wine {
     /// URL to the `wineserver` binary for Wine server management.
     private static let wineserverBinary: URL = WhiskyWineInstaller.binFolder.appending(path: "wineserver")
 
+    @MainActor
+    private static func runtime(for bottle: Bottle) -> WineRuntime {
+        WineRuntime.runtime(for: bottle.settings.wineRuntimeIdentifier)
+    }
+
+    @MainActor
+    private static func wineBinary(for bottle: Bottle) -> URL {
+        runtime(for: bottle).wineBinary
+    }
+
+    @MainActor
+    private static func wineserverBinary(for bottle: Bottle) -> URL {
+        runtime(for: bottle).wineserverBinary
+    }
+
     /// Run a process on a executable file given by the `executableURL`
     private static func runProcess(
         name: String? = nil, args: [String], environment: [String: String], executableURL: URL, directory: URL? = nil,
@@ -156,7 +171,7 @@ public class Wine {
         let wineEnvironment = constructWineEnvironment(for: bottle, environment: environment)
 
         return try runProcess(
-            name: name, args: args, environment: wineEnvironment, executableURL: wineBinary,
+            name: name, args: args, environment: wineEnvironment, executableURL: wineBinary(for: bottle),
             fileHandle: fileHandle
         )
     }
@@ -184,7 +199,7 @@ public class Wine {
         let wineserverEnvironment = constructWineEnvironment(for: bottle, environment: environment)
 
         return try runProcess(
-            name: name, args: args, environment: wineserverEnvironment, executableURL: wineserverBinary,
+            name: name, args: args, environment: wineserverEnvironment, executableURL: wineserverBinary(for: bottle),
             fileHandle: fileHandle
         )
     }
@@ -362,7 +377,7 @@ public class Wine {
         for await output in try runProcess(
             name: programName,
             args: launchArgs,
-            environment: wineEnvironment, executableURL: wineBinary,
+            environment: wineEnvironment, executableURL: wineBinary(for: bottle),
             fileHandle: fileHandle
         ) {
             if case let .terminated(code) = output {
@@ -422,7 +437,7 @@ public class Wine {
     ) -> String {
         // Escape args and environment values to prevent shell injection from user-editable settings
         let escapedArgs = preEscaped ? args : args.esc
-        var wineCmd = "\(wineBinary.esc) start /unix \(url.esc) \(escapedArgs)"
+        var wineCmd = "\(wineBinary(for: bottle).esc) start /unix \(url.esc) \(escapedArgs)"
         WineUserProfile.reconcile(bottleURL: bottle.url)
         let wineEnv = constructWineEnvironment(for: bottle, environment: environment)
         for envVar in wineEnv {
@@ -459,7 +474,7 @@ public class Wine {
     @MainActor
     public static func generateTerminalEnvironmentCommand(bottle: Bottle) -> String {
         var cmd = """
-        export PATH=\"\(WhiskyWineInstaller.binFolder.path.esc):$PATH\"
+        export PATH=\"\(runtime(for: bottle).binFolder.path.esc):$PATH\"
         export WINE=\"wine64\"
         alias wine=\"wine64\"
         alias winecfg=\"wine64 winecfg\"
@@ -544,7 +559,12 @@ public class Wine {
         WineUserProfile.reconcile(bottleURL: bottle.url)
         let wineEnvironment = constructWineEnvironment(for: bottle, environment: environment)
 
-        for await output in try runWineProcess(args: args, environment: wineEnvironment, fileHandle: fileHandle) {
+        for await output in try runProcess(
+            args: args,
+            environment: wineEnvironment,
+            executableURL: wineBinary(for: bottle),
+            fileHandle: fileHandle
+        ) {
             switch output {
             case .started, .terminated:
                 break
@@ -654,6 +674,7 @@ public class Wine {
     @MainActor
     public static func killBottleAndWait(bottle: Bottle, timeout: TimeInterval = 5) {
         let process = Process()
+        let wineserverBinary = wineserverBinary(for: bottle)
         process.executableURL = wineserverBinary
         process.arguments = ["-k"]
         process.currentDirectoryURL = wineserverBinary.deletingLastPathComponent()

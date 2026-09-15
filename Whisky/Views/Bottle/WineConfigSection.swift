@@ -39,9 +39,42 @@ struct WineConfigSection: View {
     var onRetryBuildVersion: (() -> Void)?
     var onRetryRetinaMode: (() -> Void)?
     var onRetryDpi: (() -> Void)?
+    @State private var availableRuntimes = WineRuntime.availableRuntimes
+    @State private var isWineserverRunning = false
+    @State private var showRuntimeSwitchWarning = false
 
     var body: some View {
         Section("config.title.wine", isExpanded: $isExpanded) {
+            SettingItemView(
+                title: "Wine Runtime",
+                description: "Choose which Wine runtime launches programs in this bottle.",
+                loadingState: .success
+            ) {
+                Picker(
+                    "Wine Runtime",
+                    selection: Binding(
+                        get: { bottle.settings.wineRuntimeIdentifier },
+                        set: { newValue in
+                            guard newValue != bottle.settings.wineRuntimeIdentifier else { return }
+                            if isWineserverRunning {
+                                showRuntimeSwitchWarning = true
+                            } else {
+                                bottle.settings.wineRuntimeIdentifier = newValue
+                            }
+                        }
+                    )
+                ) {
+                    ForEach(availableRuntimes) { runtime in
+                        Text(runtime.name).tag(runtime.id)
+                    }
+                }
+                .disabled(isWineserverRunning)
+                .alert("Stop this bottle before switching Wine runtime", isPresented: $showRuntimeSwitchWarning) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text("Changing Wine runtime while a bottle is running can modify the Wine prefix with an incompatible engine.")
+                }
+            }
             SettingItemView(
                 title: "config.winVersion",
                 description: "config.winVersion.info",
@@ -166,5 +199,10 @@ struct WineConfigSection: View {
                 }
             }
         }
+        .task {
+            availableRuntimes = WineRuntime.availableRuntimes
+            isWineserverRunning = await Wine.isWineserverRunning(for: bottle)
+        }
     }
+
 }

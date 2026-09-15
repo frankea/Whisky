@@ -24,6 +24,8 @@ struct BottleCreationView: View {
 
     @State private var newBottleName: String = ""
     @State private var newBottleVersion: WinVersion = .win10
+    @State private var selectedRuntimeIdentifier: String = WineRuntime.defaultIdentifier
+    @State private var availableRuntimes = WineRuntime.availableRuntimes
     @State private var newBottleURL: URL = UserDefaults.standard.url(forKey: "defaultBottleLocation")
         ?? BottleData.defaultBottleDir
     @State private var nameValid: Bool = false
@@ -44,6 +46,12 @@ struct BottleCreationView: View {
                 Picker("create.win", selection: $newBottleVersion) {
                     ForEach(WinVersion.allCases.reversed(), id: \.self) {
                         Text($0.pretty())
+                    }
+                }
+
+                Picker("Wine Runtime", selection: $selectedRuntimeIdentifier) {
+                    ForEach(availableRuntimes) { runtime in
+                        Text(runtime.name).tag(runtime.id)
                     }
                 }
 
@@ -97,6 +105,12 @@ struct BottleCreationView: View {
         }
         .fixedSize(horizontal: false, vertical: true)
         .frame(width: ViewWidth.small)
+        .onAppear {
+            availableRuntimes = WineRuntime.availableRuntimes
+            if !availableRuntimes.contains(where: { $0.id == selectedRuntimeIdentifier }) {
+                selectedRuntimeIdentifier = WineRuntime.defaultIdentifier
+            }
+        }
     }
 
     @ViewBuilder
@@ -137,13 +151,15 @@ struct BottleCreationView: View {
             newlyCreatedBottleURL = BottleVM.shared.createNewBottle(
                 bottleName: newBottleName,
                 winVersion: newBottleVersion,
-                bottleURL: newBottleURL
+                bottleURL: newBottleURL,
+                runtimeIdentifier: selectedRuntimeIdentifier
             )
             dismiss()
             return
         }
         locationIssue = issue
     }
+
 }
 
 #Preview {

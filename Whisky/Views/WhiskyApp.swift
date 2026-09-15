@@ -36,6 +36,7 @@ struct WhiskyApp: App {
 
     /// Scene id for the main window, used to reopen it from the menu-bar extra.
     static let mainWindowID = "main"
+    static let isMultiWineBuild = Bundle.main.bundleIdentifier == "com.franke.Whisky.MultiWine"
 
     /// Opt-in: show a menu-bar extra and keep Whisky running after the main
     /// window closes (see `AppDelegate.applicationShouldTerminateAfterLastWindowClosed`).
@@ -60,7 +61,7 @@ struct WhiskyApp: App {
 
     init() {
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: true,
+            startingUpdater: !Self.isMultiWineBuild,
             updaterDelegate: nil,
             userDriverDelegate: SparkleUpdaterDelegate.shared
         )

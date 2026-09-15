@@ -129,14 +129,20 @@ final class BottleVM: ObservableObject {
         bottles.filter { $0.isAvailable == true }.count
     }
 
-    func createNewBottle(bottleName: String, winVersion: WinVersion, bottleURL: URL) -> URL {
+    func createNewBottle(
+        bottleName: String,
+        winVersion: WinVersion,
+        bottleURL: URL,
+        runtimeIdentifier: String = WineRuntime.defaultIdentifier
+    ) -> URL {
         let newBottleDir = bottleURL.appending(path: UUID().uuidString)
 
         let request = BottleCreationRequest(
             bottleName: bottleName,
             winVersion: winVersion,
             bottleURL: bottleURL,
-            newBottleDir: newBottleDir
+            newBottleDir: newBottleDir,
+            runtimeIdentifier: runtimeIdentifier
         )
         Task {
             await self.createBottleTask(request: request)
@@ -149,6 +155,7 @@ final class BottleVM: ObservableObject {
         let winVersion: WinVersion
         let bottleURL: URL
         let newBottleDir: URL
+        let runtimeIdentifier: String
     }
 
     private func createBottleTask(request: BottleCreationRequest) async {
@@ -157,7 +164,8 @@ final class BottleVM: ObservableObject {
             // The Wine runtime is required to initialize the prefix; fail fast
             // with an actionable error instead of a low-level file-not-found
             // failure from the wine invocation (issue #61).
-            guard WhiskyWineInstaller.isWhiskyWineInstalled() else {
+            let selectedRuntime = WineRuntime.runtime(for: request.runtimeIdentifier)
+            guard selectedRuntime.isUsable else {
                 throw BottleCreationError.runtimeMissing
             }
 
@@ -176,12 +184,15 @@ final class BottleVM: ObservableObject {
             bottles.append(createdBottle)
 
             // Configure bottle settings (all on MainActor)
+            createdBottle.settings.wineRuntimeIdentifier = selectedRuntime.id
             createdBottle.settings.windowsVersion = request.winVersion
             createdBottle.settings.name = request.bottleName
 
             // Wine operations are async and can run on background threads
             try await Wine.changeWinVersion(bottle: createdBottle, win: request.winVersion)
-            let wineVer = try await Wine.wineVersion()
+            let wineVer = try await Wine.runWine(["--version"], bottle: createdBottle)
+                .replacingOccurrences(of: "wine-", with: "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
             createdBottle.settings.wineVersion = SemanticVersion(wineVer) ?? SemanticVersion(0, 0, 0)
 
             // Bootstrap host fonts so Unity titles render fallback glyphs correctly.

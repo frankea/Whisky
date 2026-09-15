@@ -257,6 +257,14 @@ public struct BottleSettings: Codable, Equatable {
         set { wineConfig.wineVersion = newValue }
     }
 
+    /// The Wine runtime selected for this bottle.
+    ///
+    /// Existing bottles omit this key and therefore keep using the bundled default runtime.
+    public var wineRuntimeIdentifier: String {
+        get { wineConfig.runtimeIdentifier }
+        set { wineConfig.runtimeIdentifier = newValue }
+    }
+
     /// The Windows version that Wine emulates for this bottle.
     ///
     /// Different Windows versions may provide better compatibility

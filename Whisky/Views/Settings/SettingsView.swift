@@ -28,6 +28,7 @@ struct SettingsView: View {
     @AppStorage("preferredTerminal") var preferredTerminal = "terminal"
     @AppStorage(Telemetry.consentDefaultsKey) private var telemetryConsentRaw: String = Telemetry.ConsentState
         .undecided.rawValue
+    @State private var registeredRuntimes = WineRuntime.registeredRuntimes
 
     /// Mirrors the setup-flow opt-in; writing records the explicit choice.
     private var telemetryOptIn: Binding<Bool> {
@@ -73,6 +74,42 @@ struct SettingsView: View {
                 Toggle("settings.toggle.whisky.updates", isOn: $whiskyUpdate)
                 Toggle("settings.toggle.whiskywine.updates", isOn: $checkWhiskyWineUpdates)
             }
+            Section("Wine Runtimes") {
+                ForEach(WineRuntime.availableRuntimes) { runtime in
+                    WineRuntimeRow(runtime: runtime) {
+                        WineRuntime.unregisterExternalRuntime(runtime)
+                        registeredRuntimes = WineRuntime.registeredRuntimes
+                    }
+                }
+                HStack {
+                    Button("Refresh") {
+                        registeredRuntimes = WineRuntime.registeredRuntimes
+                    }
+                    ActionView(
+                        text: "Register Runtime",
+                        subtitle: "Choose an external Wine runtime folder",
+                        actionName: "create.browse"
+                    ) {
+                        let panel = NSOpenPanel()
+                        panel.canChooseFiles = false
+                        panel.canChooseDirectories = true
+                        panel.allowsMultipleSelection = false
+                        panel.canCreateDirectories = false
+                        panel.directoryURL = FileManager.default.homeDirectoryForCurrentUser
+                            .appending(path: "Library")
+                            .appending(path: "Application Support")
+                        panel.begin { result in
+                            if result == .OK, let url = panel.urls.first {
+                                WineRuntime.registerExternalRuntime(
+                                    name: url.lastPathComponent,
+                                    root: url
+                                )
+                                registeredRuntimes = WineRuntime.registeredRuntimes
+                            }
+                        }
+                    }
+                }
+            }
             GPTKSettingsSection()
             Section("settings.privacy") {
                 Toggle("settings.toggle.telemetry", isOn: telemetryOptIn)
@@ -83,8 +120,35 @@ struct SettingsView: View {
         .fixedSize(horizontal: false, vertical: true)
         .frame(width: ViewWidth.medium)
     }
+
 }
 
 #Preview {
     SettingsView()
+}
+
+private struct WineRuntimeRow: View {
+    let runtime: WineRuntime
+    let onRemove: () -> Void
+    @State private var status = "Checking Wine version..."
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(runtime.name)
+                Text("\(status) - \(runtime.root.prettyPath())")
+                    .font(.caption)
+                    .foregroundStyle(runtime.isUsable ? Color.secondary : Color.red)
+            }
+            Spacer()
+            if WineRuntime.isRegisteredRuntime(runtime) {
+                Button("Remove", action: onRemove)
+            }
+        }
+        .task(id: runtime.id) {
+            status = await Task.detached {
+                runtime.statusDescription
+            }.value
+        }
+    }
 }

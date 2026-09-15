@@ -20,6 +20,10 @@ import Foundation
 
 public extension Bundle {
     static var whiskyBundleIdentifier: String {
-        Bundle.main.bundleIdentifier ?? "com.franke.Whisky"
+        let identifier = Bundle.main.bundleIdentifier ?? "com.franke.Whisky"
+        if identifier == "com.franke.Whisky.MultiWine" {
+            return "com.franke.Whisky"
+        }
+        return identifier
     }
 }

@@ -43,9 +43,13 @@ public extension Wine {
         // sidebar repeats this probe every 60 seconds for every visible bottle.
         let running: Bool = await withCheckedContinuation { continuation in
             let process = Process()
-            process.executableURL = WhiskyWineInstaller.binFolder.appending(path: "wineserver")
+            let runtime = WineRuntime.runtime(for: bottle.settings.wineRuntimeIdentifier)
+            process.executableURL = runtime.wineserverBinary
             process.arguments = ["-k0"]
-            process.environment = ["WINEPREFIX": bottle.url.path]
+            process.environment = [
+                "WINEPREFIX": bottle.url.path,
+                "DYLD_FALLBACK_LIBRARY_PATH": runtime.libFolder.path(percentEncoded: false)
+            ]
             process.standardOutput = FileHandle.nullDevice
             process.standardError = FileHandle.nullDevice
             process.terminationHandler = { probe in

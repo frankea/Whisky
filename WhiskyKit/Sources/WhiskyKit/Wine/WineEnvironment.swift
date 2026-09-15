@@ -54,9 +54,21 @@ extension Wine {
         var dllResolver = DLLOverrideResolver(managed: [], bottleCustom: [], programCustom: [])
 
         // Layer 1: Base -- WINEPREFIX, default WINEDEBUG, GST_DEBUG
+        let runtime = WineRuntime.runtime(for: bottle.settings.wineRuntimeIdentifier)
         builder.set("WINEPREFIX", bottle.url.path, layer: .base)
         builder.set("WINEDEBUG", "fixme-all", layer: .base)
         builder.set("GST_DEBUG", "1", layer: .base)
+        builder.set("WINE", runtime.wineBinary.path(percentEncoded: false), layer: .base)
+        builder.set(
+            "PATH",
+            "\(runtime.binFolder.path(percentEncoded: false)):\(ProcessInfo.processInfo.environment["PATH"] ?? "")",
+            layer: .base
+        )
+        builder.set(
+            "DYLD_FALLBACK_LIBRARY_PATH",
+            runtime.libFolder.path(percentEncoded: false),
+            layer: .base
+        )
 
         // Layer 2: Platform -- macOS compatibility fixes
         // Apply fixes from the MacOSCompatibilityFixes registry with reason strings.

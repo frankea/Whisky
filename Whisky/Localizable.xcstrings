@@ -57131,6 +57131,23 @@
         }
       }
     },
+    "gptk.error.notAppleSigned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is not a genuine Game Porting Toolkit payload, a file is not signed by Apple:"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is not a genuine Game Porting Toolkit payload, a file is not signed by Apple:"
+          }
+        }
+      }
+    },
     "gptk.error.payloadIncomplete" : {
       "extractionState" : "manual",
       "localizations" : {

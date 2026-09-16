@@ -110,11 +110,11 @@ final class NVAPIBridgeTests: XCTestCase {
 
     func testHelpersGetNVAPIDisabledWithoutLosingTheirOtherOverrides() {
         let result = Wine.disablingNVAPI(in: "dxgi=n,b;d3d11=n,b")
-        XCTAssertEqual(result, "d3d11=n,b;dxgi=n,b;nvapi64=")
+        XCTAssertEqual(result, "d3d11=n,b;dxgi=n,b;nvapi=;nvapi64=;nvngx=")
     }
 
     func testDisablingNVAPIOnAnEmptyStringStillDisablesIt() {
-        XCTAssertEqual(Wine.disablingNVAPI(in: ""), "nvapi64=")
+        XCTAssertEqual(Wine.disablingNVAPI(in: ""), "nvapi=;nvapi64=;nvngx=")
     }
 
     /// The regression: a Steam game launch sets `applyToDescendants`, and the

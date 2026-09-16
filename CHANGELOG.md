@@ -164,6 +164,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   unescaped. Backslashes and quotes now always sit outside the quoted
   text, which zsh, bash and fish all read the same way (#280).
 
+### Security
+- Importing a Game Porting Toolkit payload now verifies that the D3DMetal
+  framework and its shared library carry Apple's code signature before
+  anything is copied into the store. A payload assembled by hand or altered
+  after download is refused with the file named, instead of being deployed
+  into every bottle's Wine tree. The PE forwarders, which cannot be signed,
+  keep their builtin-marker check (#265).
+
 ### Removed
 - ClickOnce support. Games do not arrive as `.appref-ms` deployments, and
   nobody spoke up for it during the window on #215. The manager, its

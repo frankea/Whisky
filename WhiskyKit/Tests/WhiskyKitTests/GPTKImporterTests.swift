@@ -53,10 +53,66 @@ struct GPTKImporterTests {
         let lib = tempDir.appending(path: "lib")
         try makePayload(at: lib)
 
-        let payload = try GPTKImporter.validatePayload(at: lib)
+        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _ in true })
 
         #expect(payload.version == "4.0b2")
         #expect(payload.libRoot == lib)
+    }
+
+    @Test("An unsigned shared library is rejected by the real signature check")
+    func validateUnsignedPayload() throws {
+        let lib = tempDir.appending(path: "lib")
+        try makePayload(at: lib)
+
+        #expect(throws: GPTKImportError.notAppleSigned("external/libd3dshared.dylib")) {
+            try GPTKImporter.validatePayload(at: lib)
+        }
+    }
+
+    @Test("The signature check covers the shared library and the framework, in that order")
+    func validateChecksBothAppleBinaries() throws {
+        let lib = tempDir.appending(path: "lib")
+        try makePayload(at: lib)
+        var checked: [String] = []
+
+        _ = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { url in
+            checked.append(url.lastPathComponent)
+            return true
+        })
+
+        #expect(checked == ["libd3dshared.dylib", "D3DMetal.framework"])
+    }
+
+    @Test("A framework that fails the signature check is named")
+    func validateUnsignedFramework() throws {
+        let lib = tempDir.appending(path: "lib")
+        try makePayload(at: lib)
+
+        #expect(throws: GPTKImportError.notAppleSigned("external/D3DMetal.framework")) {
+            try GPTKImporter.validatePayload(at: lib, isAppleSigned: { url in
+                url.lastPathComponent != "D3DMetal.framework"
+            })
+        }
+    }
+
+    @Test("Completeness and variant errors take precedence over the signature check")
+    func validateSignatureCheckRunsLast() throws {
+        let lib = tempDir.appending(path: "lib")
+        try makePayload(at: lib, builtinForwarders: false)
+
+        #expect(throws: GPTKImportError.forwarderNotBuiltin("d3d10.dll")) {
+            try GPTKImporter.validatePayload(at: lib)
+        }
+    }
+
+    @Test("The Apple signature check accepts a system binary and refuses a plain file")
+    func appleSignatureCheck() throws {
+        let plain = tempDir.appending(path: "plain.dylib")
+        try Data("not a code object".utf8).write(to: plain)
+
+        #expect(GPTKImporter.isAppleSigned(URL(filePath: "/bin/ls")))
+        #expect(!GPTKImporter.isAppleSigned(plain))
+        #expect(!GPTKImporter.isAppleSigned(tempDir.appending(path: "missing.dylib")))
     }
 
     @Test("Missing forwarders are reported by name")
@@ -118,7 +174,7 @@ struct GPTKImporterTests {
         let lib = tempDir.appending(path: "lib")
         let store = tempDir.appending(path: "store")
         try makePayload(at: lib)
-        let payload = try GPTKImporter.validatePayload(at: lib)
+        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _ in true })
 
         let record = try GPTKImporter.importPayload(payload, intoStore: store)
 
@@ -138,7 +194,7 @@ struct GPTKImporterTests {
         let lib = tempDir.appending(path: "lib")
         let store = tempDir.appending(path: "store")
         try makePayload(at: lib, unixEntriesAsFiles: true)
-        let payload = try GPTKImporter.validatePayload(at: lib)
+        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _ in true })
 
         try GPTKImporter.importPayload(payload, intoStore: store)
 
@@ -157,7 +213,7 @@ struct GPTKImporterTests {
 
         let lib = tempDir.appending(path: "lib")
         try makePayload(at: lib)
-        let payload = try GPTKImporter.validatePayload(at: lib)
+        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _ in true })
         try GPTKImporter.importPayload(payload, intoStore: store)
         try FileManager.default.removeItem(
             at: store.appending(path: "lib").appending(path: "external")

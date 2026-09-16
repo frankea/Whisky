@@ -18,6 +18,7 @@
 
 import Foundation
 import os.log
+import Security
 
 /// Errors thrown while importing or deploying a GPTK payload.
 public enum GPTKImportError: LocalizedError, Equatable {
@@ -30,6 +31,10 @@ public enum GPTKImportError: LocalizedError, Equatable {
     case forwarderNotBuiltin(String)
     /// The D3DMetal framework's version could not be read.
     case versionUnreadable
+    /// An Apple binary in the payload (payload-relative path) does not carry a
+    /// valid Apple code signature, so this is not a genuine GPTK payload or it
+    /// was altered after download.
+    case notAppleSigned(String)
     /// No imported payload exists in the store to deploy or remove.
     case storeEmpty
 
@@ -43,6 +48,8 @@ public enum GPTKImportError: LocalizedError, Equatable {
             String(localized: "gptk.error.forwarderNotBuiltin") + " " + name
         case .versionUnreadable:
             String(localized: "gptk.error.versionUnreadable")
+        case let .notAppleSigned(name):
+            String(localized: "gptk.error.notAppleSigned") + " " + name
         case .storeEmpty:
             String(localized: "gptk.error.storeEmpty")
         }
@@ -170,12 +177,32 @@ public enum GPTKImporter {
 
     // MARK: - Validation
 
+    /// The Apple-built binaries whose code signature must chain to Apple's
+    /// root, payload-relative to `external/`. The unix bridge entries are
+    /// symlinks to the dylib, so checking it covers them.
+    static let appleSignedNames = ["libd3dshared.dylib", "D3DMetal.framework"]
+
     /// Validates completeness and authenticity of the payload at `libRoot` and
     /// reads its version.
     ///
+    /// Authenticity has two halves. The PE forwarders cannot be code-signed,
+    /// so they are checked for the winebuild builtin marker Apple's build
+    /// leaves in them. The Mach-O half (the shared library and the D3DMetal
+    /// framework) is signed by Apple's own software-signing chain, so it is
+    /// verified against an `anchor apple` requirement; a payload assembled by
+    /// hand or altered after download fails here with the file named. The
+    /// signature check runs last so that the cheaper, more common mistakes
+    /// (a wrong folder, a missing file) are reported first.
+    ///
+    /// - Parameter isAppleSigned: the signature verifier, injectable so tests
+    ///   can validate fixtures that are not real code objects.
     /// - Throws: ``GPTKImportError`` when files are missing, a forwarder is not
-    ///   the builtin variant, or the version is unreadable.
-    public static func validatePayload(at libRoot: URL) throws -> GPTKPayload {
+    ///   the builtin variant, the version is unreadable, or an Apple binary
+    ///   fails the signature check.
+    public static func validatePayload(
+        at libRoot: URL,
+        isAppleSigned: (URL) -> Bool = GPTKImporter.isAppleSigned
+    ) throws -> GPTKPayload {
         let fileManager = FileManager.default
         let peDir = libRoot.appending(path: "wine").appending(path: "x86_64-windows")
         let external = libRoot.appending(path: "external")
@@ -208,7 +235,37 @@ public enum GPTKImporter {
         guard let version = frameworkVersion(inExternal: external) else {
             throw GPTKImportError.versionUnreadable
         }
+
+        for name in appleSignedNames where !isAppleSigned(external.appending(path: name)) {
+            throw GPTKImportError.notAppleSigned("external/\(name)")
+        }
         return GPTKPayload(libRoot: libRoot, version: version)
+    }
+
+    /// Whether the code object at `url` (a Mach-O file or a bundle) carries a
+    /// valid signature that chains to Apple's root certificate.
+    ///
+    /// This is `codesign --verify -R="anchor apple"`: the static code must be
+    /// well-formed, every sealed resource must match, and the signing chain
+    /// must end at Apple. Anything unsigned, ad-hoc signed, or signed by a
+    /// third party fails, as does a path that is not a code object at all.
+    public static func isAppleSigned(_ url: URL) -> Bool {
+        var staticCode: SecStaticCode?
+        guard SecStaticCodeCreateWithPath(url as CFURL, [], &staticCode) == errSecSuccess,
+              let staticCode
+        else { return false }
+
+        var requirement: SecRequirement?
+        guard SecRequirementCreateWithString("anchor apple" as CFString, [], &requirement) == errSecSuccess,
+              let requirement
+        else { return false }
+
+        let status = SecStaticCodeCheckValidity(staticCode, [], requirement)
+        if status != errSecSuccess {
+            let name = url.lastPathComponent
+            logger.info("Apple signature check failed for \(name, privacy: .public): \(status, privacy: .public)")
+        }
+        return status == errSecSuccess
     }
 
     /// Reads `CFBundleShortVersionString` from the framework's Info.plist,

@@ -459,7 +459,7 @@ public class Wine {
     @MainActor
     public static func generateTerminalEnvironmentCommand(bottle: Bottle) -> String {
         var cmd = """
-        export PATH=\"\(WhiskyWineInstaller.binFolder.path.esc):$PATH\"
+        export PATH=\(ShellQuoting.quoted(WhiskyWineInstaller.binFolder.path)):\"$PATH\"
         export WINE=\"wine64\"
         alias wine=\"wine64\"
         alias winecfg=\"wine64 winecfg\"

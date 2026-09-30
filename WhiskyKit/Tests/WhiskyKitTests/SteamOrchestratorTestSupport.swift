@@ -101,6 +101,9 @@ final class FakeSteamClientDriver: SteamClientDriver {
 /// make the tests sit through production waits.
 @MainActor
 enum SteamOrchestratorFixture {
+    /// For tests that need a wait to run out: the client or the game never
+    /// appearing. Nothing else belongs on it, since a loaded CI runner can
+    /// hold the main actor for longer than these budgets.
     static let fast = SteamClientOrchestrator.Timing(
         clientReadyTimeout: 0.3,
         launchGrace: 0.3,
@@ -108,6 +111,18 @@ enum SteamOrchestratorFixture {
         trackingInterval: .milliseconds(10),
         // Shorter than the launch grace, or a poll answers from the snapshot
         // taken before the game appeared. The snapshot tests pin their own.
+        snapshotLifetime: 0.01
+    )
+
+    /// For tests whose waits succeed. Each wait returns as soon as the
+    /// process it watches for appears, so these budgets only bound a failure
+    /// and cost a passing test nothing.
+    static let patient = SteamClientOrchestrator.Timing(
+        clientReadyTimeout: 10,
+        launchGrace: 10,
+        pollInterval: .milliseconds(5),
+        trackingInterval: .milliseconds(10),
+        // Shorter than the launch grace, as in `fast`.
         snapshotLifetime: 0.01
     )
 
@@ -146,8 +161,12 @@ enum SteamOrchestratorFixture {
     }
 
     /// Waits for `condition` to hold, failing the test if it never does.
+    ///
+    /// The default outlasts a `patient` launch that runs both of its budgets
+    /// out, so a stuck launch fails on the orchestrator's own error rather
+    /// than on this wait. A passing test returns as soon as `condition` holds.
     static func eventually(
-        _ message: Comment, timeout: Duration = .seconds(3), _ condition: () -> Bool
+        _ message: Comment, timeout: Duration = .seconds(30), _ condition: () -> Bool
     ) async {
         let deadline = ContinuousClock.now + timeout
         while !condition(), ContinuousClock.now < deadline {

@@ -28,7 +28,7 @@ struct SteamClientOrchestratorProcessTests {
     @Test("Reads inside the snapshot lifetime share one process list")
     func snapshotIsShared() async throws {
         let (bottle, _) = try Fixture.makeBottle()
-        var timing = Fixture.fast
+        var timing = Fixture.patient
         timing.snapshotLifetime = 1
         let driver = FakeSteamClientDriver(script: [["steam.exe"]])
         let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: timing)
@@ -42,7 +42,7 @@ struct SteamClientOrchestratorProcessTests {
     func snapshotExpires() async throws {
         let (bottle, _) = try Fixture.makeBottle()
         let driver = FakeSteamClientDriver(script: [["steam.exe"]])
-        var timing = Fixture.fast
+        var timing = Fixture.patient
         timing.snapshotLifetime = 0.02
         let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: timing)
 
@@ -57,7 +57,7 @@ struct SteamClientOrchestratorProcessTests {
         let (bottle, _) = try Fixture.makeBottle()
         let driver = FakeSteamClientDriver(script: [["steam.exe"]])
         driver.listDelay = .milliseconds(30)
-        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.fast)
+        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.patient)
 
         async let first = orchestrator.runningProcesses()
         async let second = orchestrator.runningProcesses()
@@ -72,7 +72,7 @@ struct SteamClientOrchestratorProcessTests {
         let (bottle, _) = try Fixture.makeBottle()
         let driver = FakeSteamClientDriver(script: [["steam.exe"]])
         driver.hostOverride = []
-        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.fast)
+        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.patient)
 
         let names = await orchestrator.runningImageNames()
 
@@ -84,7 +84,7 @@ struct SteamClientOrchestratorProcessTests {
     @Test("Stopping a game kills only its processes and drops the snapshot")
     func stopGame() async throws {
         let (bottle, games) = try Fixture.makeBottle()
-        var timing = Fixture.fast
+        var timing = Fixture.patient
         timing.snapshotLifetime = 1
         let driver = FakeSteamClientDriver(script: [["steam.exe", "game1.exe"]])
         let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: timing)
@@ -101,8 +101,9 @@ struct SteamClientOrchestratorProcessTests {
     func stopAll() async throws {
         let (bottle, games) = try Fixture.makeBottle()
         let driver = FakeSteamClientDriver(script: [[]])
-        var timing = Fixture.fast
-        timing.clientReadyTimeout = 5
+        var timing = Fixture.patient
+        // Longer than `eventually` waits, so only the stop can clear the phase in time.
+        timing.clientReadyTimeout = 60
         let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: timing)
 
         orchestrator.launch(games[0])
@@ -118,7 +119,7 @@ struct SteamClientOrchestratorProcessTests {
     func trackingReflectsProcessList() async throws {
         let (bottle, games) = try Fixture.makeBottle(games: [1_086_940, 1_245_620])
         let driver = FakeSteamClientDriver(script: [["steam.exe", "game2.exe"]])
-        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.fast)
+        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.patient)
 
         orchestrator.startTracking(games: games)
         await Fixture.eventually("game 2 should show as running") { orchestrator.runningAppIds == [games[1].appId] }

@@ -29,7 +29,7 @@ struct SteamClientOrchestratorLaunchTests {
     func steamNotInstalled() async throws {
         let (bottle, games) = try Fixture.makeBottle(steamInstalled: false)
         let driver = FakeSteamClientDriver(script: [[]])
-        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.fast)
+        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.patient)
 
         orchestrator.launch(games[0])
         await Fixture.awaitIdle(orchestrator)
@@ -43,7 +43,7 @@ struct SteamClientOrchestratorLaunchTests {
     func coldStartHappyPath() async throws {
         let (bottle, games) = try Fixture.makeBottle()
         let driver = FakeSteamClientDriver(script: [[]])
-        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.fast)
+        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.patient)
         var phaseAtLaunch: SteamClientOrchestrator.Phase?
         driver.onStartClient = { driver.script = [["steam.exe"]] }
         driver.onLaunchGame = { game in
@@ -67,7 +67,7 @@ struct SteamClientOrchestratorLaunchTests {
     func singleFlightStartup() async throws {
         let (bottle, games) = try Fixture.makeBottle(games: [1_086_940, 1_245_620])
         let driver = FakeSteamClientDriver(script: [[]])
-        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.fast)
+        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.patient)
         driver.onStartClient = {
             Task { @MainActor in
                 try? await Task.sleep(for: .milliseconds(30))
@@ -89,7 +89,7 @@ struct SteamClientOrchestratorLaunchTests {
     func duplicateLaunchIgnored() async throws {
         let (bottle, games) = try Fixture.makeBottle()
         let driver = FakeSteamClientDriver(script: [["steam.exe", "game1.exe"]])
-        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.fast)
+        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.patient)
 
         orchestrator.launch(games[0])
         orchestrator.launch(games[0])
@@ -131,7 +131,7 @@ struct SteamClientOrchestratorLaunchTests {
         let (bottle, games) = try Fixture.makeBottle()
         let driver = FakeSteamClientDriver(script: [["steam.exe"]])
         driver.launchFailure = SteamLaunchError.gameNotFound(appId: games[0].appId)
-        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.fast)
+        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.patient)
 
         orchestrator.launch(games[0])
         await Fixture.awaitIdle(orchestrator)
@@ -143,7 +143,7 @@ struct SteamClientOrchestratorLaunchTests {
     func clientAlreadyRunning() async throws {
         let (bottle, games) = try Fixture.makeBottle()
         let driver = FakeSteamClientDriver(script: [["steam.exe", "game1.exe"]])
-        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.fast)
+        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.patient)
 
         orchestrator.launch(games[0])
         await Fixture.awaitIdle(orchestrator)
@@ -160,7 +160,7 @@ struct SteamClientOrchestratorLaunchTests {
         bottle.settings.launcherMode = .manual
         let driver = FakeSteamClientDriver(script: [[]])
         driver.onStartClient = { driver.script = [["steam.exe", "game1.exe"]] }
-        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.fast)
+        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.patient)
 
         orchestrator.launch(games[0])
         await Fixture.awaitIdle(orchestrator)

@@ -842,10 +842,14 @@ public struct BottleSettings: Codable, Equatable {
     ///     ``GraphicsBackendResolver`` and therefore depends on the machine's
     ///     installed runtime — tests pin an explicit value so the suite answers
     ///     the same everywhere.
+    ///   - builtinD3D12IsD3DMetal: Whether the runtime's builtin `d3d12` is
+    ///     D3DMetal's, which decides whether the DXVK and DXMT presets turn it
+    ///     off. Defaults to whether the GPTK payload is deployed.
     /// - Returns: Managed DLL override entries with their sources for the DLLOverrideResolver.
     public func populateBottleManagedLayer(
         builder: inout EnvironmentBuilder,
-        resolvedBackend: GraphicsBackend? = nil
+        resolvedBackend: GraphicsBackend? = nil,
+        builtinD3D12IsD3DMetal: Bool = GPTKImporter.isDeployed()
     ) -> [(entry: DLLOverrideEntry, source: DLLOverrideSource)] {
         var managedDLLOverrides: [(entry: DLLOverrideEntry, source: DLLOverrideSource)] = []
 
@@ -884,7 +888,7 @@ public struct BottleSettings: Codable, Equatable {
 
         case .dxvk:
             // DXVK: DLL overrides + env vars
-            for entry in DLLOverrideResolver.dxvkPreset {
+            for entry in DLLOverrideResolver.dxvkPreset(builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal) {
                 managedDLLOverrides.append((entry: entry, source: .dxvk))
             }
             switch dxvkHud {
@@ -905,7 +909,7 @@ public struct BottleSettings: Codable, Equatable {
             // DXMT: native overrides for the D3D11 trio plus the builtin
             // winemetal bridge. No env vars in v1; the file placement happens
             // in `Wine.enableDXMT` at launch.
-            for entry in DLLOverrideResolver.dxmtPreset {
+            for entry in DLLOverrideResolver.dxmtPreset(builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal) {
                 managedDLLOverrides.append((entry: entry, source: .dxmt))
             }
 
@@ -989,10 +993,15 @@ public struct BottleSettings: Codable, Equatable {
     /// - Configures GPU spoofing for launcher checks
     /// - Sets network timeouts for download reliability
     ///
-    /// - Parameter builder: The environment builder to populate.
+    /// - Parameters:
+    ///   - builder: The environment builder to populate.
+    ///   - builtinD3D12IsD3DMetal: Whether the runtime's builtin `d3d12` is
+    ///     D3DMetal's, passed on to the DXVK preset a launcher can require.
+    ///     Defaults to whether the GPTK payload is deployed.
     /// - Returns: Launcher-required DLL override entries with their sources.
     public func populateLauncherManagedLayer(
-        builder: inout EnvironmentBuilder
+        builder: inout EnvironmentBuilder,
+        builtinD3D12IsD3DMetal: Bool = GPTKImporter.isDeployed()
     ) -> [(entry: DLLOverrideEntry, source: DLLOverrideSource)] {
         var launcherDLLOverrides: [(entry: DLLOverrideEntry, source: DLLOverrideSource)] = []
 
@@ -1011,7 +1020,7 @@ public struct BottleSettings: Codable, Equatable {
 
             // Auto-enable DXVK DLL overrides if launcher requires it
             if autoEnableDXVK, launcher.requiresDXVK {
-                for entry in DLLOverrideResolver.dxvkPreset {
+                for entry in DLLOverrideResolver.dxvkPreset(builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal) {
                     launcherDLLOverrides.append((entry: entry, source: .launcher(launcher.displayName)))
                 }
             }

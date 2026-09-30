@@ -27,10 +27,17 @@ struct DLLOverrideConfigSection: View {
     @ObservedObject var bottle: Bottle
     @Binding var isExpanded: Bool
 
+    /// A managed override, what applies it, and the label shown beside it.
+    private struct ManagedOverride {
+        let entry: DLLOverrideEntry
+        let source: DLLOverrideSource
+        let label: String
+    }
+
     var body: some View {
         Section("config.title.dllOverrides", isExpanded: $isExpanded) {
             DLLOverrideEditor(
-                managedOverrides: computedManagedOverrides,
+                managedOverrides: computedManagedOverrides.map { (entry: $0.entry, source: $0.label) },
                 customOverrides: $bottle.settings.dllOverrides,
                 warnings: computedWarnings
             )
@@ -38,8 +45,11 @@ struct DLLOverrideConfigSection: View {
     }
 
     /// Computes managed overrides from bottle state (graphics backend, launcher presets).
-    private var computedManagedOverrides: [(entry: DLLOverrideEntry, source: String)] {
-        var managed: [(entry: DLLOverrideEntry, source: String)] = []
+    private var computedManagedOverrides: [ManagedOverride] {
+        var managed: [ManagedOverride] = []
+        // Read once for both presets, as the launch path does: whether DXVK and
+        // DXMT turn d3d12 off depends on what the runtime's builtin d3d12 is.
+        let builtinD3D12IsD3DMetal = GPTKImporter.isDeployed()
 
         // The backend, not the legacy `dxvk` flag: the launch path only honours
         // that flag when no backend is set, so reading it here listed
@@ -47,8 +57,14 @@ struct DLLOverrideConfigSection: View {
         let backend = bottle.settings.graphicsBackend == .recommended
             ? GraphicsBackendResolver.resolve()
             : bottle.settings.graphicsBackend
-        for entry in DLLOverrideResolver.managedPreset(for: backend) {
-            managed.append((entry: entry, source: backend.displayName))
+        let preset = DLLOverrideResolver.managedPreset(
+            for: backend, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
+        )
+        // Only DXVK and DXMT contribute a preset. Crediting the one that did is
+        // what keeps a conflict warning on a DXMT bottle from naming DXVK.
+        let backendSource: DLLOverrideSource = backend == .dxmt ? .dxmt : .dxvk
+        for entry in preset {
+            managed.append(ManagedOverride(entry: entry, source: backendSource, label: backend.displayName))
         }
 
         // Launcher managed entries (when launcher requires DXVK and autoEnableDXVK is on)
@@ -56,11 +72,12 @@ struct DLLOverrideConfigSection: View {
            bottle.settings.autoEnableDXVK,
            let launcher = bottle.settings.detectedLauncher,
            launcher.requiresDXVK {
-            for entry in DLLOverrideResolver.dxvkPreset
+            for entry in DLLOverrideResolver.dxvkPreset(builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal)
                 where !managed.contains(where: { $0.entry.dllName == entry.dllName }) {
-                managed.append((
+                managed.append(ManagedOverride(
                     entry: entry,
-                    source: String(localized: "config.dllOverrides.source.launcher")
+                    source: .launcher(launcher.displayName),
+                    label: String(localized: "config.dllOverrides.source.launcher")
                 ))
             }
         }
@@ -71,7 +88,7 @@ struct DLLOverrideConfigSection: View {
     /// Computes warnings using DLLOverrideResolver for custom overrides conflicting with managed ones.
     private var computedWarnings: [DLLOverrideWarning] {
         let managedEntries: [(entry: DLLOverrideEntry, source: DLLOverrideSource)] = computedManagedOverrides.map {
-            ($0.entry, .dxvk)
+            ($0.entry, $0.source)
         }
         let resolver = DLLOverrideResolver(
             managed: managedEntries,

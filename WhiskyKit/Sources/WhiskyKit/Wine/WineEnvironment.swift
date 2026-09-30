@@ -41,6 +41,10 @@ extension Wine {
     ///   - bottle: The bottle whose settings configure the environment.
     ///   - environment: Caller-provided environment variables (typically from `Program.generateEnvironment()`).
     ///   - programOverrides: Optional per-program setting overrides. `nil` fields inherit from bottle.
+    ///   - builtinD3D12IsD3DMetal: Whether the runtime's builtin `d3d12` is
+    ///     D3DMetal's, which decides whether the DXVK and DXMT presets turn it
+    ///     off. Defaults to whether the GPTK payload is deployed, read once so
+    ///     every layer of this launch agrees.
     /// - Returns: The fully resolved environment dictionary for passing to a Wine process.
     @MainActor
     public static func constructWineEnvironment(
@@ -48,7 +52,8 @@ extension Wine {
         environment: [String: String] = [:],
         programOverrides: ProgramOverrides? = nil,
         programSettings: ProgramSettings? = nil,
-        gameProfileEnvironment: [String: String] = [:]
+        gameProfileEnvironment: [String: String] = [:],
+        builtinD3D12IsD3DMetal: Bool = GPTKImporter.isDeployed()
     ) -> [String: String] {
         var builder = EnvironmentBuilder()
         var dllResolver = DLLOverrideResolver(managed: [], bottleCustom: [], programCustom: [])
@@ -83,7 +88,9 @@ extension Wine {
         }
 
         // Layer 3: Bottle managed -- settings-derived env vars (DXVK, sync, Metal, perf)
-        let managedOverrides = bottle.settings.populateBottleManagedLayer(builder: &builder)
+        let managedOverrides = bottle.settings.populateBottleManagedLayer(
+            builder: &builder, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
+        )
         dllResolver.managed.append(contentsOf: managedOverrides)
 
         // DXVK reads its config from DXVK_CONFIG_FILE or the process working
@@ -100,7 +107,9 @@ extension Wine {
         }
 
         // Layer 4: Launcher managed -- launcher compatibility overrides
-        let launcherOverrides = bottle.settings.populateLauncherManagedLayer(builder: &builder)
+        let launcherOverrides = bottle.settings.populateLauncherManagedLayer(
+            builder: &builder, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
+        )
         dllResolver.managed.append(contentsOf: launcherOverrides)
 
         // Input compatibility (bottleManaged layer -- input settings are bottle-managed toggles)
@@ -134,6 +143,7 @@ extension Wine {
             applyProgramOverrides(
                 overrides,
                 frameGeneration: bottle.settings.frameGeneration,
+                builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal,
                 builder: &builder,
                 dllResolver: &dllResolver
             )
@@ -169,11 +179,13 @@ extension Wine {
     /// overridden — the union of the DXVK and DXMT presets. Used when a
     /// program-level backend override selects a builtin-backed path
     /// (D3DMetal/wined3d) and must neutralize whatever the bottle enabled.
-    static var translationDLLResetEntries: [DLLOverrideEntry] {
-        let names = Set(
-            (DLLOverrideResolver.dxvkPreset + DLLOverrideResolver.dxmtPreset).map(\.dllName)
-        )
-        return names.sorted().map { DLLOverrideEntry(dllName: $0, mode: .builtin) }
+    ///
+    /// Built from the same runtime state as the presets it undoes, so `d3d12`
+    /// is only reset where a preset could have turned it off.
+    static func translationDLLResetEntries(builtinD3D12IsD3DMetal: Bool) -> [DLLOverrideEntry] {
+        let presets = DLLOverrideResolver.dxvkPreset(builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal)
+            + DLLOverrideResolver.dxmtPreset(builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal)
+        return Set(presets.map(\.dllName)).sorted().map { DLLOverrideEntry(dllName: $0, mode: .builtin) }
     }
 
     /// Applies per-program overrides to the programUser layer of the builder.
@@ -181,12 +193,22 @@ extension Wine {
     /// Each non-nil field in the overrides sets the corresponding environment variable(s)
     /// in the ``EnvironmentLayer/programUser`` layer, which has higher priority than
     /// bottleManaged and launcherManaged layers.
+    ///
+    /// `builtinD3D12IsD3DMetal` says whether the runtime's builtin `d3d12` is
+    /// D3DMetal's, which decides whether the DXVK and DXMT presets turn it off
+    /// and whether the reset union puts it back. Defaults to whether the GPTK
+    /// payload is deployed.
     static func applyProgramOverrides(
         _ overrides: ProgramOverrides,
         frameGeneration: Bool = false,
+        builtinD3D12IsD3DMetal: Bool = GPTKImporter.isDeployed(),
         builder: inout EnvironmentBuilder,
         dllResolver: inout DLLOverrideResolver
     ) {
+        let dxvkPreset = DLLOverrideResolver.dxvkPreset(builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal)
+        let dxmtPreset = DLLOverrideResolver.dxmtPreset(builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal)
+        let translationReset = translationDLLResetEntries(builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal)
+
         // Graphics backend override: replaces bottle-level backend entirely
         if let backend = overrides.graphicsBackend {
             let resolved = if backend == .recommended {
@@ -197,7 +219,7 @@ extension Wine {
             switch resolved {
             case .d3dMetal, .recommended:
                 // Undo any bottle-level DXVK/DXMT by overriding DLLs to builtin
-                dllResolver.programCustom.append(contentsOf: Self.translationDLLResetEntries)
+                dllResolver.programCustom.append(contentsOf: translationReset)
                 // Remove DXVK and wined3d env vars at program layer
                 builder.remove("DXVK_HUD", layer: .programUser)
                 builder.remove("DXVK_ASYNC", layer: .programUser)
@@ -212,7 +234,7 @@ extension Wine {
 
             case .dxvk:
                 // Enable DXVK DLLs at program level
-                dllResolver.programCustom.append(contentsOf: DLLOverrideResolver.dxvkPreset)
+                dllResolver.programCustom.append(contentsOf: dxvkPreset)
                 builder.remove("WINED3DMETAL", layer: .programUser)
                 // CX_ACTIVE_GRAPHICS_BACKEND deliberately survives. It selects no
                 // backend: win32u is the only thing in the runtime that reads it,
@@ -229,8 +251,8 @@ extension Wine {
                 // native copy enableDXVK left in the prefix) is neutralized, then
                 // layer DXMT's preset on top — last-append-wins restores n,b for
                 // the DXMT trio and b for winemetal. DXVK/wined3d env must not leak.
-                dllResolver.programCustom.append(contentsOf: Self.translationDLLResetEntries)
-                dllResolver.programCustom.append(contentsOf: DLLOverrideResolver.dxmtPreset)
+                dllResolver.programCustom.append(contentsOf: translationReset)
+                dllResolver.programCustom.append(contentsOf: dxmtPreset)
                 builder.remove("DXVK_HUD", layer: .programUser)
                 builder.remove("DXVK_ASYNC", layer: .programUser)
                 builder.remove("WINED3DMETAL", layer: .programUser)
@@ -243,7 +265,7 @@ extension Wine {
                 // The one branch that really has no D3DMetal behind it, so the
                 // capability claim would be a lie.
                 builder.remove("CX_ACTIVE_GRAPHICS_BACKEND", layer: .programUser)
-                dllResolver.programCustom.append(contentsOf: Self.translationDLLResetEntries)
+                dllResolver.programCustom.append(contentsOf: translationReset)
             }
         }
 
@@ -255,10 +277,10 @@ extension Wine {
         if let dxvk = overrides.dxvk, overrides.graphicsBackend == nil {
             if dxvk {
                 // Program forces DXVK on -- add DXVK preset to program custom DLLs
-                dllResolver.programCustom.append(contentsOf: DLLOverrideResolver.dxvkPreset)
+                dllResolver.programCustom.append(contentsOf: dxvkPreset)
             } else {
                 // Program forces DXVK off -- override each DXVK DLL to builtin
-                for entry in DLLOverrideResolver.dxvkPreset {
+                for entry in dxvkPreset {
                     dllResolver.programCustom.append(
                         DLLOverrideEntry(dllName: entry.dllName, mode: .builtin)
                     )

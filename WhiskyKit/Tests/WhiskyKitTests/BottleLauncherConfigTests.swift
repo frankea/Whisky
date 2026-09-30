@@ -158,8 +158,14 @@ final class BottleLauncherConfigTests: XCTestCase {
         settings.environmentVariables(wineEnv: &env)
 
         // Should still enable DXVK overrides because Rockstar requires it
-        // DLL overrides are now composed per-DLL via DLLOverrideResolver (sorted alphabetically)
-        XCTAssertEqual(env["WINEDLLOVERRIDES"], "d3d10core=n,b;d3d11=n,b;d3d12=;d3d9=n,b;dxgi=n,b")
+        // DLL overrides are now composed per-DLL via DLLOverrideResolver (sorted alphabetically).
+        // No runtime under test means no GPTK payload, so d3d12 is left alone.
+        XCTAssertEqual(env["WINEDLLOVERRIDES"], "d3d10core=n,b;d3d11=n,b;d3d9=n,b;dxgi=n,b")
+
+        // With the payload deployed the launcher's DXVK preset turns d3d12 off, as the bottle's does.
+        var builder = EnvironmentBuilder()
+        let launcherOverrides = settings.populateLauncherManagedLayer(builder: &builder, builtinD3D12IsD3DMetal: true)
+        XCTAssertEqual(launcherOverrides.first { $0.entry.dllName == "d3d12" }?.entry.mode, .disabled)
     }
 
     func testNoInventedNetworkVariables() {

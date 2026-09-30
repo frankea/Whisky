@@ -80,9 +80,12 @@ struct TerminalEnvironmentCommandTests {
         bottle.settings.graphicsBackend = .dxvk
         // Override names come from the bottle's Metadata.plist. The last one ran its
         // substitution in fish while backslashes were left inside the single quotes.
+        // The report's list had DXVK's `d3d12=`, which the preset now only sets over
+        // D3DMetal's builtin, so the empty value is set by hand to keep it under test.
         let marker = root.appending(path: "expanded")
         bottle.settings.dllOverrides = [
             DLLOverrideEntry(dllName: "d2d1", mode: .nativeThenBuiltin),
+            DLLOverrideEntry(dllName: "d3d12", mode: .disabled),
             DLLOverrideEntry(dllName: #"it's "odd" $HOME `id` back\slash"#, mode: .native),
             DLLOverrideEntry(dllName: #"x\'$(touch \#(marker.path))\'"#, mode: .native)
         ]

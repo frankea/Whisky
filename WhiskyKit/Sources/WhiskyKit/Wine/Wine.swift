@@ -297,6 +297,13 @@ public class Wine {
         onOutput: (@MainActor (ProcessOutput) -> Void)?,
         prepare: @MainActor () async throws -> PreparedLaunch
     ) async throws -> ProgramRunResult {
+        // Font aliases first, before any setting is read: their import can take
+        // a few seconds, and a setting changed during it would leave this launch
+        // with one backend's files and another's environment. It must finish
+        // before the program starts, since a process reads the aliases once, and
+        // like every Wine process it reconciles the user profile before starting.
+        await syncCJKFontReplacements(bottle: bottle)
+
         // Note: Launcher detection and fix application happen before this method
         // is called, via LauncherFixes.detectAndApply from the app's run paths
         // (FileOpenView/BottleView/ProgramMenuView).
@@ -777,7 +784,9 @@ public class Wine {
     @discardableResult
     @MainActor
     public static func runBatchFile(url: URL, bottle: Bottle) async throws -> String {
-        try await runWine(["cmd", "/c", url.path(percentEncoded: false)], bottle: bottle)
+        // A script can start a launcher too, so it gets the aliases a program launch gets.
+        await syncCJKFontReplacements(bottle: bottle)
+        return try await runWine(["cmd", "/c", url.path(percentEncoded: false)], bottle: bottle)
     }
 
     /// Terminates all Wine processes running in a bottle.

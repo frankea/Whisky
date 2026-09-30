@@ -48,11 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   unescaped. Backslashes and quotes now always sit outside the quoted
   text, which zsh, bash and fish all read the same way (#280).
 
-  This changes `SteamLauncher.launch` in WhiskyKit's public API: the task it
-  returns is now a `Task<Wine.ProgramRunResult, any Error>` instead of a
-  `Task<Void, Never>`, which breaks callers that await it. It ships in the
-  same major version bump as the ClickOnce removal.
-
 ### Removed
 - ClickOnce support. Games do not arrive as `.appref-ms` deployments, and
   nobody spoke up for it during the window on #215. The manager, its

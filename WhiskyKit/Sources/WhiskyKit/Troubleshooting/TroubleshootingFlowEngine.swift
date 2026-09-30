@@ -504,3 +504,29 @@ public final class TroubleshootingFlowEngine: ObservableObject {
         pathChangeReason = reason
     }
 }
+
+// MARK: - Entry
+
+extension TroubleshootingFlowEngine {
+    /// Starts a new session for the point the wizard was opened from.
+    ///
+    /// An entry point that knows the symptom (a launch failure) goes straight
+    /// into that category's flow. Every other one lands on symptom selection,
+    /// so the wizard always has a step or the symptom picker to show. Setting
+    /// the entry point's phase alone left bottle diagnostics in the checks
+    /// phase with no step, which the wizard drew as a spinner with no check
+    /// running.
+    ///
+    /// Call this on a fresh session, after setting its preflight snapshot,
+    /// which the first check reads. Symptom selection saves nothing, so a
+    /// wizard closed before a symptom is picked leaves no session to resume.
+    ///
+    /// - Parameter entryContext: Where the user opened the wizard from.
+    public func start(from entryContext: EntryContext) {
+        if let category = entryContext.initialCategory {
+            selectCategory(category)
+        } else {
+            session.phase = .symptom
+        }
+    }
+}

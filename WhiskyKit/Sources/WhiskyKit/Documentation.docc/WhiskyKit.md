@@ -47,7 +47,6 @@ WhiskyKit is designed as a reusable framework that can be integrated into other 
 - ``WinVersion``
 - ``EnhancedSync``
 - ``DXVKHUD``
-- ``PerformancePreset``
 
 ### PE File Parsing
 

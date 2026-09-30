@@ -63,7 +63,6 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
     // MARK: - Performance
 
     /// The performance optimization preset. `nil` inherits from bottle.
-    public var performancePreset: PerformancePreset?
     /// Whether shader caching is enabled. `nil` inherits from bottle.
     public var shaderCacheEnabled: Bool?
 
@@ -117,7 +116,6 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
             && enhancedSync == nil
             && forceD3D11 == nil
             && metal4Enabled == nil
-            && performancePreset == nil
             && shaderCacheEnabled == nil
             && controllerCompatibilityMode == nil
             && disableHIDAPI == nil
@@ -143,7 +141,6 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
         self.enhancedSync = try container.decodeIfPresent(EnhancedSync.self, forKey: .enhancedSync)
         self.forceD3D11 = try container.decodeIfPresent(Bool.self, forKey: .forceD3D11)
         self.metal4Enabled = try container.decodeIfPresent(Bool.self, forKey: .metal4Enabled)
-        self.performancePreset = container.decodeLenientIfPresent(PerformancePreset.self, forKey: .performancePreset)
         self.shaderCacheEnabled = try container.decodeIfPresent(Bool.self, forKey: .shaderCacheEnabled)
         self.controllerCompatibilityMode = try container.decodeIfPresent(
             Bool.self, forKey: .controllerCompatibilityMode

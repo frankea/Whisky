@@ -130,7 +130,6 @@ public enum StabilityDiagnostics {
 
         summary += "--- Sync/Performance ---\n"
         summary += "Enhanced Sync: \(bottle.settings.enhancedSync)\n"
-        summary += "Performance Preset: \(bottle.settings.performancePreset)\n"
         summary += "Shader Cache: \(bottle.settings.shaderCacheEnabled ? "✅ Enabled" : "❌ Disabled")\n"
         summary += "AVX Enabled: \(bottle.settings.avxEnabled ? "✅ Yes" : "❌ No")\n\n"
 

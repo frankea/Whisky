@@ -23,7 +23,7 @@ import Foundation
 /// Reads the setting named in `params["setting"]` from the bottle's
 /// ``BottleSettings`` and compares against `params["expected"]`.
 /// Supports common settings like `enhancedSync`, `graphicsBackend`,
-/// `windowsVersion`, `dxvk`, `metalHud`, and `performancePreset`.
+/// `windowsVersion`, `dxvk`, `metalHud`.
 public struct SettingValueCheck: TroubleshootingCheck {
     public let checkId = "setting.value_check"
 
@@ -123,8 +123,6 @@ public struct SettingValueCheck: TroubleshootingCheck {
             settings.metalValidation ? "true" : "false"
         case "sequoiaCompatMode":
             settings.sequoiaCompatMode ? "true" : "false"
-        case "performancePreset":
-            String(describing: settings.performancePreset)
         case "shaderCacheEnabled":
             settings.shaderCacheEnabled ? "true" : "false"
         case "forceD3D11":

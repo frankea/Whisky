@@ -166,7 +166,6 @@ enum LauncherDiagnostics {
 
         // Performance Settings
         config += "--- Performance Configuration ---\n"
-        config += "Performance Preset: \(bottle.settings.performancePreset)\n"
         config += "Enhanced Sync: \(bottle.settings.enhancedSync)\n"
         config += "Shader Cache: \(bottle.settings.shaderCacheEnabled ? "✅ Enabled" : "❌ Disabled")\n"
         config += "Force D3D11: \(bottle.settings.forceD3D11 ? "✅ Yes" : "❌ No")\n"

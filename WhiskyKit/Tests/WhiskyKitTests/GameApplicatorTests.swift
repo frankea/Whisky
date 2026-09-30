@@ -53,7 +53,6 @@ final class GameApplicatorTests: XCTestCase {
         dxvkAsync: Bool? = nil,
         enhancedSync: EnhancedSync? = nil,
         forceD3D11: Bool? = nil,
-        performancePreset: String? = nil,
         shaderCacheEnabled: Bool? = nil,
         avxEnabled: Bool? = nil,
         sequoiaCompatMode: Bool? = nil,
@@ -71,7 +70,6 @@ final class GameApplicatorTests: XCTestCase {
                 dxvkAsync: dxvkAsync,
                 enhancedSync: enhancedSync,
                 forceD3D11: forceD3D11,
-                performancePreset: performancePreset,
                 shaderCacheEnabled: shaderCacheEnabled,
                 avxEnabled: avxEnabled,
                 sequoiaCompatMode: sequoiaCompatMode
@@ -355,7 +353,6 @@ final class GameApplicatorTests: XCTestCase {
             dxvkAsync: false,
             enhancedSync: .esync,
             forceD3D11: true,
-            performancePreset: "performance",
             shaderCacheEnabled: false,
             avxEnabled: true,
             sequoiaCompatMode: true
@@ -368,7 +365,6 @@ final class GameApplicatorTests: XCTestCase {
         XCTAssertFalse(bottle.settings.dxvkAsync)
         XCTAssertEqual(bottle.settings.enhancedSync, .esync)
         XCTAssertTrue(bottle.settings.forceD3D11)
-        XCTAssertEqual(bottle.settings.performancePreset, .performance)
         XCTAssertFalse(bottle.settings.shaderCacheEnabled)
         XCTAssertTrue(bottle.settings.avxEnabled)
         XCTAssertTrue(bottle.settings.sequoiaCompatMode)

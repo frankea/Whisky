@@ -101,11 +101,8 @@ final class ProgramOverridesTests: XCTestCase {
         XCTAssertEqual(decoded.enhancedSync, .msync)
     }
 
-    func testUnknownPerformancePresetDecodesToNil() throws {
-        // Lenient decode covers all string-backed enums in the overrides, not just
-        // the graphics backend — an unknown performancePreset must not fail the decode.
+    func testLegacyPerformancePresetIgnoredInOverridesDecode() throws {
         var overrides = ProgramOverrides()
-        overrides.performancePreset = .balanced
         overrides.enhancedSync = .msync
 
         let encoder = PropertyListEncoder()
@@ -113,14 +110,12 @@ final class ProgramOverridesTests: XCTestCase {
         let data = try encoder.encode(overrides)
 
         let xml = try XCTUnwrap(String(data: data, encoding: .utf8))
-        XCTAssertTrue(xml.contains("<string>balanced</string>"), "encoding shape changed; test no longer substitutes")
         let mutated = xml.replacingOccurrences(
-            of: "<string>balanced</string>",
-            with: "<string>someFuturePreset</string>"
+            of: "<key>enhancedSync</key>",
+            with: "<key>performancePreset</key><string>performance</string><key>enhancedSync</key>"
         )
         let decoded = try PropertyListDecoder().decode(ProgramOverrides.self, from: Data(mutated.utf8))
 
-        XCTAssertNil(decoded.performancePreset)
         XCTAssertEqual(decoded.enhancedSync, .msync)
     }
 

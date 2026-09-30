@@ -265,18 +265,6 @@ public enum GameConfigApplicator {
             ))
         }
 
-        if let presetName = settings.performancePreset {
-            let currentPreset = bottle.settings.performancePreset.rawValue
-            if presetName != currentPreset {
-                changes.append(ConfigChange(
-                    category: "Performance",
-                    settingName: "Performance Preset",
-                    currentValue: bottle.settings.performancePreset.description(),
-                    newValue: presetName
-                ))
-            }
-        }
-
         if let shaderCache = settings.shaderCacheEnabled, shaderCache != bottle.settings.shaderCacheEnabled {
             changes.append(ConfigChange(
                 category: "Performance",
@@ -381,11 +369,6 @@ public enum GameConfigApplicator {
 
         if let forceD3D11 = settings.forceD3D11 {
             bottle.settings.forceD3D11 = forceD3D11
-        }
-
-        if let presetName = settings.performancePreset,
-           let preset = PerformancePreset(rawValue: presetName) {
-            bottle.settings.performancePreset = preset
         }
 
         if let shaderCacheEnabled = settings.shaderCacheEnabled {

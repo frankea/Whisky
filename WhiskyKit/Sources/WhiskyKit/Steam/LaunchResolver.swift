@@ -97,8 +97,6 @@ public enum LaunchResolver {
         merged.enhancedSync = merged.enhancedSync ?? variant.enhancedSync
         merged.forceD3D11 = merged.forceD3D11 ?? variant.forceD3D11
         merged.shaderCacheEnabled = merged.shaderCacheEnabled ?? variant.shaderCacheEnabled
-        merged.performancePreset = merged.performancePreset
-            ?? variant.performancePreset.flatMap(PerformancePreset.init(rawValue:))
         merged.dllOverrides = merged.dllOverrides ?? dllOverrides
 
         return merged

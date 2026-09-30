@@ -18,29 +18,7 @@
 
 import Foundation
 
-/// Performance optimization presets for games
-public enum PerformancePreset: String, Codable, CaseIterable, Sendable {
-    case balanced
-    case performance
-    case quality
-    case unity // Optimized for Unity games
-
-    public func description() -> String {
-        switch self {
-        case .balanced:
-            "Balanced (Default)"
-        case .performance:
-            "Performance Mode"
-        case .quality:
-            "Quality Mode"
-        case .unity:
-            "Unity Games Optimized"
-        }
-    }
-}
-
 public struct BottlePerformanceConfig: Codable, Equatable {
-    var performancePreset: PerformancePreset = .balanced
     var shaderCacheEnabled: Bool = true
     var gpuMemoryLimit: Int? // MB, nil means auto
     var forceD3D11: Bool = false // Force D3D11 instead of D3D12 for compatibility
@@ -52,8 +30,6 @@ public struct BottlePerformanceConfig: Codable, Equatable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.performancePreset = container
-            .decodeLenientIfPresent(PerformancePreset.self, forKey: .performancePreset) ?? .balanced
         self.shaderCacheEnabled = try container.decodeIfPresent(Bool.self, forKey: .shaderCacheEnabled) ?? true
         self.gpuMemoryLimit = try container.decodeIfPresent(Int.self, forKey: .gpuMemoryLimit)
         self.forceD3D11 = try container.decodeIfPresent(Bool.self, forKey: .forceD3D11) ?? false

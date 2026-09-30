@@ -349,8 +349,7 @@ struct ProgramOverrideSettingsView: View {
                 performanceControls
             } else {
                 inheritedSummary(
-                    "\(bottle.settings.performancePreset.description()), "
-                        + "Shader Cache \(bottle.settings.shaderCacheEnabled ? "On" : "Off"), "
+                    "Shader Cache \(bottle.settings.shaderCacheEnabled ? "On" : "Off"), "
                         + "Force D3D11 \(bottle.settings.forceD3D11 ? "On" : "Off")"
                 )
             }
@@ -359,11 +358,6 @@ struct ProgramOverrideSettingsView: View {
 
     @ViewBuilder
     private var performanceControls: some View {
-        Picker("config.performancePreset", selection: performancePresetBinding) {
-            ForEach(PerformancePreset.allCases, id: \.self) { preset in
-                Text(preset.description()).tag(preset)
-            }
-        }
         Toggle("config.shaderCache", isOn: shaderCacheBinding)
         Toggle("config.forceD3D11", isOn: forceD3D11Binding)
     }
@@ -578,7 +572,8 @@ struct ProgramOverrideSettingsView: View {
     }
 
     private var hasPerformanceOverride: Bool {
-        program.settings.overrides?.performancePreset != nil
+        program.settings.overrides?.shaderCacheEnabled != nil
+            || program.settings.overrides?.forceD3D11 != nil
     }
 
     private var hasInputOverride: Bool {
@@ -669,11 +664,9 @@ struct ProgramOverrideSettingsView: View {
             set: { isOn in
                 ensureOverrides()
                 if isOn {
-                    program.settings.overrides?.performancePreset = bottle.settings.performancePreset
                     program.settings.overrides?.shaderCacheEnabled = bottle.settings.shaderCacheEnabled
                     program.settings.overrides?.forceD3D11 = bottle.settings.forceD3D11
                 } else {
-                    program.settings.overrides?.performancePreset = nil
                     program.settings.overrides?.shaderCacheEnabled = nil
                     program.settings.overrides?.forceD3D11 = nil
                 }
@@ -772,13 +765,6 @@ struct ProgramOverrideSettingsView: View {
         Binding(
             get: { program.settings.overrides?.enhancedSync ?? bottle.settings.enhancedSync },
             set: { program.settings.overrides?.enhancedSync = $0 }
-        )
-    }
-
-    private var performancePresetBinding: Binding<PerformancePreset> {
-        Binding(
-            get: { program.settings.overrides?.performancePreset ?? bottle.settings.performancePreset },
-            set: { program.settings.overrides?.performancePreset = $0 }
         )
     }
 

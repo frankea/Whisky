@@ -144,11 +144,6 @@ func configurePerformance(bottle: Bottle) {
     // Enable Metal HUD for debugging
     bottle.settings.metalHud = true
     
-    // Use performance preset
-    bottle.settings.performancePreset = .performance
-    
-    // For Unity games
-    bottle.settings.performancePreset = .unity
 }
 ```
 

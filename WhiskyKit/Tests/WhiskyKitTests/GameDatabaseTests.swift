@@ -95,7 +95,6 @@ final class GameDatabaseTests: XCTestCase {
                 "dxvkAsync": false,
                 "enhancedSync": "esync",
                 "forceD3D11": false,
-                "performancePreset": "balanced",
                 "shaderCacheEnabled": true,
                 "avxEnabled": false,
                 "sequoiaCompatMode": false
@@ -153,7 +152,6 @@ final class GameDatabaseTests: XCTestCase {
         XCTAssertEqual(variant.settings.dxvk, false)
         XCTAssertEqual(variant.settings.enhancedSync, .esync)
         XCTAssertEqual(variant.settings.forceD3D11, false)
-        XCTAssertEqual(variant.settings.performancePreset, "balanced")
         XCTAssertEqual(variant.settings.shaderCacheEnabled, true)
         XCTAssertEqual(variant.environmentVariables?["D3DM_SUPPORT_DXR"], "0")
         XCTAssertEqual(variant.winetricksVerbs, ["vcrun2022"])
@@ -220,7 +218,6 @@ final class GameDatabaseTests: XCTestCase {
         XCTAssertNil(settings.dxvkAsync)
         XCTAssertNil(settings.enhancedSync)
         XCTAssertNil(settings.forceD3D11)
-        XCTAssertNil(settings.performancePreset)
         XCTAssertNil(settings.shaderCacheEnabled)
         XCTAssertNil(settings.avxEnabled)
         XCTAssertNil(settings.sequoiaCompatMode)

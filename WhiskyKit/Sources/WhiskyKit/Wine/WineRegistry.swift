@@ -136,25 +136,6 @@ enum WineRegistryFile {
     }
 }
 
-extension Wine {
-    /// Imports a `.reg` document into the bottle's registry in one Wine process.
-    ///
-    /// The file is written as UTF-16LE behind a BOM: Wine detects a Unicode
-    /// `.reg` by its BOM alone, and without one the file parses as ANSI,
-    /// matches no header, and imports nothing while exiting 0.
-    @MainActor
-    static func importRegistry(document: String, bottle: Bottle) async throws {
-        let url = FileManager.default.temporaryDirectory
-            .appending(path: "whisky-registry-\(UUID().uuidString).reg")
-        try ("\u{FEFF}" + document).write(to: url, atomically: true, encoding: .utf16LittleEndian)
-        defer { try? FileManager.default.removeItem(at: url) }
-
-        // `reg import`, not `regedit`: regedit has no silent switch, so it puts
-        // up the import confirmation and never exits.
-        try await runWine(["reg", "import", url.path(percentEncoded: false)], bottle: bottle)
-    }
-}
-
 public extension Wine {
     private enum RegistryKey: String {
         case currentVersion = #"HKLM\Software\Microsoft\Windows NT\CurrentVersion"#

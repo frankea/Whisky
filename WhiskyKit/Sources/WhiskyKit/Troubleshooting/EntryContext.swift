@@ -56,17 +56,25 @@ public enum EntryContext: Sendable {
         }
     }
 
+    /// The symptom category the wizard starts in without asking, if the
+    /// entry point already knows it.
+    ///
+    /// Only a launch failure does: the crash banner it comes from is the
+    /// symptom. Bottle diagnostics knows no more than a Help menu entry for
+    /// a bottle without a program, so it asks like the other entry points.
+    public var initialCategory: SymptomCategory? {
+        switch self {
+        case .launchFailure: .launchCrash
+        case .program, .bottleDiagnostics, .helpMenu: nil
+        }
+    }
+
     /// The initial wizard phase based on entry context.
     ///
-    /// Launch failures and bottle diagnostics start at the checks phase
-    /// (skipping symptom selection) since the context is already known.
-    /// Other entry points start at symptom selection.
+    /// An entry point that knows the symptom category starts at the checks
+    /// phase, skipping symptom selection. The others start at symptom
+    /// selection: without a category there is no flow, and so no check to run.
     public var initialPhase: TroubleshootingSession.SessionPhase {
-        switch self {
-        case .launchFailure: .checks
-        case .bottleDiagnostics: .checks
-        case .program: .symptom
-        case .helpMenu: .symptom
-        }
+        initialCategory == nil ? .symptom : .checks
     }
 }

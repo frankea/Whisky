@@ -156,8 +156,12 @@ extension TroubleshootingWizardView {
                     checkResult: engine.session.checkResults[node.id],
                     isRunning: engine.isRunningCheck
                 )
-            } else {
+            } else if engine.isRunningCheck {
                 checksPlaceholder
+            } else {
+                // No step and no check running: a spinner here would never
+                // finish, so let the user pick a symptom instead.
+                SymptomPickerView(engine: engine)
             }
         case .fix:
             if let node = engine.currentNode {
@@ -270,15 +274,7 @@ extension TroubleshootingWizardView {
             // Collect preflight and populate session
             let preflight = collectPreflight()
             engine.session.preflightSnapshot = preflight
-            engine.session.phase = entryContext.initialPhase
-
-            // If entry context provides evidence, start at checks phase
-            if case let .launchFailure(_, _, evidence) = entryContext {
-                engine.session.phase = .checks
-                // Pre-populate with launch crash category
-                engine.selectCategory(.launchCrash)
-                _ = evidence
-            }
+            engine.start(from: entryContext)
         }
     }
 

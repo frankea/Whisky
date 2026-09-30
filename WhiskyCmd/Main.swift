@@ -597,6 +597,9 @@ extension Whisky {
             let result = try await launch.value
 
             if result.exitCode != 0 {
+                // The confirmation is out already, so say why this still fails.
+                let log = result.logFileURL.path(percentEncoded: false)
+                FileHandle.standardError.write(Data("Steam exited with code \(result.exitCode). Log: \(log)\n".utf8))
                 throw ExitCode(result.exitCode)
             }
         }

@@ -115,7 +115,11 @@ extension Wine {
     /// launch.
     @MainActor
     static func syncCJKFontReplacements(bottle: Bottle) async {
-        let pending = CJKFontReplacements.pending(bottleURL: bottle.url)
+        // Off the main actor: the whole hive is read, and it grows with the prefix.
+        let bottleURL = bottle.url
+        let pending = await Task.detached(priority: .userInitiated) {
+            CJKFontReplacements.pending(bottleURL: bottleURL)
+        }.value
         guard !pending.isEmpty else {
             return
         }

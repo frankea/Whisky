@@ -204,9 +204,13 @@ extension Whisky {
         static let configuration = CommandConfiguration(
             abstract: "Run a program with Whisky.",
             discussion: """
-            Runs a Windows program directly using Wine. Use --command to print \
-            the command instead. Use --follow to stream program output to the \
-            terminal in real time. Use --tail-log to follow the Wine log file.
+            Runs a Windows program directly using Wine, with the same settings \
+            and preparation as a launch from Whisky. Use --command to print the \
+            command instead: the bottle is prepared first (DLL overrides written \
+            to its registry, graphics backend files deployed), so the printed \
+            command runs the program the same way. Use --follow to stream program \
+            output to the terminal in real time. Use --tail-log to follow the \
+            Wine log file.
 
             Options the program itself takes (for example --disable-gpu) are \
             passed through as written. If a program option has the same name \
@@ -233,7 +237,7 @@ extension Whisky {
         @Argument(parsing: .allUnrecognized, help: "Additional arguments to pass to the program")
         var args: [String] = []
 
-        @Flag(name: .shortAndLong, help: "Print the Wine command instead of running it")
+        @Flag(name: .shortAndLong, help: "Prepare the bottle and print the Wine command instead of running it")
         var command: Bool = false
 
         @Flag(name: .long, help: "Stream program output to terminal")
@@ -263,12 +267,15 @@ extension Whisky {
             let program = Program(url: url, bottle: bottle)
 
             if command {
-                // Print the command for manual execution or scripting
-                // Use array overload to properly escape each argument individually
-                print(program.generateTerminalCommand(args: args))
+                // Print the command for manual execution or scripting. The bottle
+                // is prepared the way a launch prepares it, since the registry and
+                // prefix state that preparation leaves behind is part of what makes
+                // the command behave like a launch from Whisky.
+                let terminalCommand = try await program.prepareTerminalCommand(args: args)
+                print(terminalCommand)
             } else if follow {
                 // Stream Wine output to the terminal in real time
-                try await runWithFollow(url: url, args: args, bottle: bottle, program: program)
+                try await runWithFollow(args: args, program: program)
             } else {
                 // Default mode: launch and print deterministic confirmation
                 try await runDefault(url: url, args: args, bottle: bottle, program: program)
@@ -296,12 +303,8 @@ extension Whisky {
         /// Default run mode: launches the program and prints a deterministic confirmation line.
         @MainActor
         private func runDefault(url: URL, args: [String], bottle: Bottle, program: Program) async throws {
-            let environment = program.generateEnvironment()
-
             do {
-                let result = try await Wine.runProgram(
-                    at: url, args: args, bottle: bottle, environment: environment
-                )
+                let result = try await program.launch(args: args)
 
                 let exeName = url.lastPathComponent
                 let bottleName = bottle.settings.name
@@ -331,35 +334,24 @@ extension Whisky {
 
         /// Follow mode: streams Wine process stdout/stderr to the terminal in real time.
         @MainActor
-        private func runWithFollow(
-            url: URL, args: [String], bottle: Bottle, program: Program
-        ) async throws {
-            let environment = program.generateEnvironment()
-            var exitCode: Int32 = 0
-
-            // Use the public runWineProcess streaming API for real-time output
-            let wineArgs = ["start", "/unix", url.path(percentEncoded: false)] + args
-            let stream = try Wine.runWineProcess(
-                name: url.lastPathComponent, args: wineArgs, bottle: bottle, environment: environment
-            )
-
-            for await output in stream {
+        private func runWithFollow(args: [String], program: Program) async throws {
+            // The same launch as the default mode, with its output streamed as it
+            // arrives, so following a program never changes how it runs.
+            let result = try await program.launch(args: args) { output in
                 switch output {
-                case .started:
+                case .started, .terminated:
                     break
                 case let .message(line):
                     FileHandle.standardOutput.write(Data(line.utf8))
                 case let .error(line):
                     FileHandle.standardError.write(Data(line.utf8))
-                case let .terminated(code):
-                    exitCode = code
                 }
             }
 
-            FileHandle.standardError.write(Data("Exited with code \(exitCode)\n".utf8))
+            FileHandle.standardError.write(Data("Exited with code \(result.exitCode)\n".utf8))
 
-            if exitCode != 0 {
-                throw ExitCode(exitCode)
+            if result.exitCode != 0 {
+                throw ExitCode(result.exitCode)
             }
         }
 
@@ -557,6 +549,12 @@ extension Whisky {
             discussion: """
             Without --bottle, the bottle a game was last launched from is used, \
             falling back to the first bottle that has it installed.
+
+            The game is launched through the bottle's Steam client, which starts \
+            first if it isn't running. The command confirms once Wine is running \
+            the client, then waits for that invocation to finish: a few seconds \
+            when the client was already running, the whole session when this \
+            launch started it.
             """
         )
 
@@ -584,21 +582,44 @@ extension Whisky {
                 target = try SteamLauncher.resolveBottle(appId: appId, in: bottles)
             }
 
-            try SteamLauncher.launch(appId: appId, bottle: target)
-
-            if json {
-                let payload = [
-                    "appId": String(appId),
-                    "bottle": target.settings.name,
-                    "status": "launched"
-                ]
-                let data = try JSONSerialization.data(
-                    withJSONObject: payload, options: [.prettyPrinted, .sortedKeys]
-                )
-                print(String(bytes: data, encoding: .utf8) ?? "")
-            } else {
-                print("Launched \(appId) in \(target.settings.name)")
+            // The launch happens inside the returned task. Returning before it
+            // finishes ended the process while the task was still preparing the
+            // bottle, so Steam never started. Confirm once Wine is running the
+            // client, then wait for that invocation the way `run` waits.
+            let appId = self.appId
+            let json = self.json
+            let bottleName = target.settings.name
+            let launch = try SteamLauncher.launch(appId: appId, bottle: target) { output in
+                if case .started = output {
+                    Self.printConfirmation(appId: appId, bottleName: bottleName, json: json)
+                }
             }
+            let result = try await launch.value
+
+            if result.exitCode != 0 {
+                // The confirmation is out already, so say why this still fails.
+                let log = result.logFileURL.path(percentEncoded: false)
+                FileHandle.standardError.write(Data("Steam exited with code \(result.exitCode). Log: \(log)\n".utf8))
+                throw ExitCode(result.exitCode)
+            }
+        }
+
+        /// Prints that the game was handed to the bottle's Steam client.
+        @MainActor
+        private static func printConfirmation(appId: Int, bottleName: String, json: Bool) {
+            guard json else {
+                print("Launched \(appId) in \(bottleName)")
+                return
+            }
+            let payload = [
+                "appId": String(appId),
+                "bottle": bottleName,
+                "status": "launched"
+            ]
+            let data = try? JSONSerialization.data(
+                withJSONObject: payload, options: [.prettyPrinted, .sortedKeys]
+            )
+            print(data.flatMap { String(bytes: $0, encoding: .utf8) } ?? "")
         }
     }
 }

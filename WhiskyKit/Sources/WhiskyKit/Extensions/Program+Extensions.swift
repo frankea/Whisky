@@ -96,16 +96,10 @@ public extension Program {
         }
 
         // Normal Wine launch with program-specific settings
-        await Wine.syncAudioRegistry(bottle: bottle)
-
         let arguments = settings.arguments.split { $0.isWhitespace }.map(String.init)
-        let environment = generateEnvironment()
 
         do {
-            let result = try await Wine.runProgram(
-                at: self.url, args: arguments, bottle: self.bottle, environment: environment,
-                programOverrides: settings.overrides, programSettings: settings
-            )
+            let result = try await launch(args: arguments)
 
             // Track the log file URL for diagnostics
             settings.lastLogFileURL = result.logFileURL
@@ -363,14 +357,10 @@ public extension Program {
 extension Program {
     func runInWine() {
         let arguments = settings.arguments.split { $0.isWhitespace }.map(String.init)
-        let environment = generateEnvironment()
 
         Task {
             do {
-                let result = try await Wine.runProgram(
-                    at: self.url, args: arguments, bottle: self.bottle, environment: environment,
-                    programOverrides: settings.overrides, programSettings: settings
-                )
+                let result = try await self.launch(args: arguments)
 
                 // Track the log file URL
                 settings.lastLogFileURL = result.logFileURL

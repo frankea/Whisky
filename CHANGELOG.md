@@ -34,6 +34,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   runtime by hand and a d3d12.dll slot someone replaced, and takes the
   interposers back out of an imported payload from another GPTK line that an
   earlier deploy put them in front of (#276).
+- Opening the app or Settings no longer writes over a GPTK payload copied
+  into the runtime by hand. When a payload had been imported as well, launch
+  installed the imported payload's NVAPI and MetalFX bridges into the
+  runtime, setting the hand-placed nvapi64.dll aside and deleting nvngx.dll,
+  and Settings deployed the imported payload over the whole runtime. Both
+  now only act on the payload the importer deployed; importing a payload
+  still replaces one copied in by hand (#276).
 - Launcher compatibility mode no longer turns DirectX Raytracing on for every
   game in the bottle. Its GPU spoof, which Play switches on when it sets a
   bottle up for Steam, carried `D3DM_SUPPORT_DXR=1`, which D3DMetal reads and

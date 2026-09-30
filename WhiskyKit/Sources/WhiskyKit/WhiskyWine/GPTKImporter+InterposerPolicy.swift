@@ -59,7 +59,9 @@ extension GPTKImporter {
     /// ``isDeployed(inLibraryFolder:)`` only looks for the files Apple's layout
     /// puts in the tree, so a payload someone copied in by hand passes it too.
     /// The forwarders no interposer takes over are only ever written by a
-    /// deploy, so they tell the two apart.
+    /// deploy, so they tell the two apart. A hand copy that is byte-identical
+    /// to the store's counts as the store's, which is harmless: it is the same
+    /// payload.
     static func isStorePayloadDeployed(inLibraryFolder folder: URL, usingStore store: URL) -> Bool {
         guard storedRecord(inStore: store) != nil else {
             return false
@@ -71,6 +73,13 @@ extension GPTKImporter {
         return forwarderDLLNames.filter { !interposed.contains($0) }.allSatisfy { name in
             isGPTKForwarder(peDir.appending(path: name), matching: storeLib)
         }
+    }
+
+    /// Whether `folder`'s runtime holds a payload `store` did not deploy: one
+    /// copied in by hand. Nothing the app runs on its own installs into it or
+    /// deploys over it; importing a payload is what replaces it.
+    static func holdsHandPlacedPayload(inLibraryFolder folder: URL, usingStore store: URL) -> Bool {
+        isDeployed(inLibraryFolder: folder) && !isStorePayloadDeployed(inLibraryFolder: folder, usingStore: store)
     }
 
     // MARK: - Launch

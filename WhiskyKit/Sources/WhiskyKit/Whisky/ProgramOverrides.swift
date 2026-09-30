@@ -62,7 +62,6 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
 
     // MARK: - Performance
 
-    /// The performance optimization preset. `nil` inherits from bottle.
     /// Whether shader caching is enabled. `nil` inherits from bottle.
     public var shaderCacheEnabled: Bool?
 

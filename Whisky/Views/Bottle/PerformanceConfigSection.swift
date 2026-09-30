@@ -76,5 +76,4 @@ struct PerformanceConfigSection: View {
             }
         }
     }
-
 }

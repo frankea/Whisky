@@ -110,6 +110,7 @@ final class ProgramOverridesTests: XCTestCase {
         let data = try encoder.encode(overrides)
 
         let xml = try XCTUnwrap(String(data: data, encoding: .utf8))
+        XCTAssertTrue(xml.contains("<key>enhancedSync</key>"), "encoding shape changed; test no longer substitutes")
         let mutated = xml.replacingOccurrences(
             of: "<key>enhancedSync</key>",
             with: "<key>performancePreset</key><string>performance</string><key>enhancedSync</key>"

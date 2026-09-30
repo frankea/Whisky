@@ -366,14 +366,11 @@ For specific games launched through Steam:
    - DXVK Async: ON
    - DXVK HUD: OFF (unless debugging)
 
-2. **Performance Preset:**
-   - Config → Performance → "Performance" preset
-
-3. **Force D3D11:**
+2. **Force D3D11:**
    - If game supports both DX11 and DX12
    - DX11 often more stable under Wine
 
-4. **Shader Cache:**
+3. **Shader Cache:**
    - Enable shader cache (after first run)
    - Reduces stuttering significantly
 
@@ -646,7 +643,6 @@ DXVK HUD: Off (or FPS for monitoring)
 
 **Performance:**
 ```
-Preset: Balanced or Performance
 Shader Cache: Enabled
 Force D3D11: Per-game basis
 ```

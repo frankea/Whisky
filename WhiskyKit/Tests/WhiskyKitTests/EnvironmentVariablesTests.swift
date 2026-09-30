@@ -248,7 +248,21 @@ final class EnvironmentVariablesTests: XCTestCase {
         XCTAssertEqual(env["WINEFSYNC"], "0")
     }
 
-    // MARK: - Performance Preset Environment Variables
+    @MainActor
+    func testMetalValidationOverridesThePlatformFix() throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let bottle = Bottle(bottleUrl: tempDir, inFlight: false, isAvailable: true)
+        bottle.settings.metalValidation = true
+
+        let env = Wine.constructWineEnvironment(for: bottle)
+
+        // The platform layer pins MTL_DEBUG_LAYER=0 on every supported macOS.
+        // The toggle's bottle layer outranks it, and nothing may write 0 back
+        // over the toggle the way the removed Performance preset did.
+        XCTAssertEqual(env["MTL_DEBUG_LAYER"], "1")
+    }
 
     // MARK: - D3D11 and Shader Cache
 

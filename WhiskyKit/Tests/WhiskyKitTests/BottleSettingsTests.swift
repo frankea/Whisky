@@ -453,15 +453,25 @@ final class BottleSettingsTests: XCTestCase {
     func testLegacyPerformancePresetDecodesCleanlyInWholeSettings() throws {
         var settings = BottleSettings()
         settings.name = "Legacy Perf Settings"
+        settings.metalHud = true
+        settings.shaderCacheEnabled = false
+        settings.forceD3D11 = true
+        settings.vcRedistInstalled = true
 
+        // Builds with the preset picker wrote the preset inside the performanceConfig
+        // dict, so that is where BottlePerformanceConfig's decoder has to meet it.
         let decoded = try decodeSettingsSubstituting(
             settings,
-            original: "<string>Legacy Perf Settings</string>",
-            replacement: "<string>Legacy Perf Settings</string><key>performancePreset</key><string>unity</string>"
+            original: "<key>performanceConfig</key>\n\t<dict>",
+            replacement: "<key>performanceConfig</key>\n\t<dict><key>performancePreset</key><string>unity</string>"
         )
 
-        // The legacy preset must be ignored without taking the rest of settings down.
+        // The legacy key is dropped without resetting its siblings or the rest of the bottle.
         XCTAssertEqual(decoded.name, "Legacy Perf Settings")
+        XCTAssertTrue(decoded.metalHud)
+        XCTAssertFalse(decoded.shaderCacheEnabled)
+        XCTAssertTrue(decoded.forceD3D11)
+        XCTAssertTrue(decoded.vcRedistInstalled)
     }
 
     func testUnknownResolutionPresetDecodesToDefaultInWholeSettings() throws {

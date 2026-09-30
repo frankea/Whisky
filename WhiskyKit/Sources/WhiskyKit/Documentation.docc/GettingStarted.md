@@ -143,7 +143,6 @@ func configurePerformance(bottle: Bottle) {
     
     // Enable Metal HUD for debugging
     bottle.settings.metalHud = true
-    
 }
 ```
 

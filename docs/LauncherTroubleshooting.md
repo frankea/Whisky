@@ -624,11 +624,7 @@ See [LauncherSecurityNotes.md](LauncherSecurityNotes.md) for detailed security a
    - Reduces shader compilation stuttering
    - Recommended for all launchers
 
-2. **Adjust Performance Preset:**
-   - Config → Performance
-   - Try "Performance" preset for FPS-sensitive games
-
-3. **Enable Shader Cache:**
+2. **Enable Shader Cache:**
    - Config → Performance
    - "Shader Cache" ON (reduces stuttering after first run)
 

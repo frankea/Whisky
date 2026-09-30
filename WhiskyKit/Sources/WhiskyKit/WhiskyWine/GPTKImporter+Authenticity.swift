@@ -27,9 +27,9 @@ struct GPTKAppleCode: Sendable {
     let identifier: String
 }
 
-/// The signature check on the Mach-O half of a payload: the shared library
-/// and the D3DMetal framework, which every process in a bottle loads once
-/// the payload is deployed.
+/// The checks on the Mach-O half of a payload: the shared library and the
+/// D3DMetal framework, which every process in a bottle loads once the payload
+/// is deployed.
 extension GPTKImporter {
     /// The payload's Apple-built code, in the order it is checked.
     ///
@@ -73,5 +73,86 @@ extension GPTKImporter {
             logger.info("Apple signature check failed for \(name, privacy: .public): \(status, privacy: .public)")
         }
         return status == errSecSuccess
+    }
+
+    /// The first item under `external/` that Apple's signatures do not cover,
+    /// as a payload-relative path, or `nil` when everything there is Apple's
+    /// layout.
+    ///
+    /// The framework's signature seals `Versions/A` and nothing around it,
+    /// and the signature check does not look around it either: a folder added
+    /// beside `A` passes even `codesign --verify --strict --deep`. The loader
+    /// does look there. D3DMetal's rpaths put `@loader_path/../Resources`
+    /// ahead of `@loader_path/Resources`. Opened through the framework's
+    /// top-level link, its loader path resolves to `Versions/A`, so a
+    /// `Versions/Resources` folder wins over the sealed `Versions/A/Resources`;
+    /// were the loader path the framework root, the first of those would be
+    /// `external/Resources`. Everything around the sealed version therefore
+    /// has to be exactly Apple's layout:
+    ///
+    /// - `external/` holds the shared library as a regular file and the
+    ///   framework as a real folder. A symlink in either place would be
+    ///   copied as a link and leave the deployed tree pointing outside it.
+    /// - The framework root holds `Versions` and symlinks to their namesakes
+    ///   in the current version (`D3DMetal` and `Resources`; GPTK 2.0 adds a
+    ///   `Headers` link with nothing behind it). This is the rule codesign's
+    ///   strict mode applies to a framework root.
+    /// - `Versions` holds `A` and the `Current` link to it. Strict mode
+    ///   accepts any number of version folders, which is how a
+    ///   `Versions/Resources` folder gets past it.
+    ///
+    /// Finder's `.DS_Store` is allowed at each level: nothing loads it, and
+    /// strict mode allows it in the framework root and in `Versions` too.
+    static func unsealedItem(inExternal external: URL) -> String? {
+        let framework = external.appending(path: "D3DMetal.framework")
+        let versions = framework.appending(path: "Versions")
+        return firstUnexpectedItem(in: external, at: "external") { name, type, _ in
+            switch name {
+            case "libd3dshared.dylib": type == .typeRegular
+            case "D3DMetal.framework": type == .typeDirectory
+            default: false
+            }
+        } ?? firstUnexpectedItem(in: framework, at: "external/D3DMetal.framework") { name, type, link in
+            if name == "Versions" {
+                return type == .typeDirectory
+            }
+            return link == "Versions/Current/\(name)" || link == "Versions/A/\(name)"
+        } ?? firstUnexpectedItem(in: versions, at: "external/D3DMetal.framework/Versions") { name, type, link in
+            switch name {
+            case "A": type == .typeDirectory
+            case "Current": link == "A"
+            default: false
+            }
+        }
+    }
+
+    /// The first entry of `folder`, in name order, that `isExpected` refuses,
+    /// as `path/name`. A folder that cannot be listed yields `path` itself,
+    /// since what it holds is unknown.
+    ///
+    /// `isExpected` gets each entry's name, its type (a symlink reports as a
+    /// symlink, not as what it points to) and, for a symlink, its destination.
+    /// Finder's `.DS_Store` always passes.
+    private static func firstUnexpectedItem(
+        in folder: URL,
+        at path: String,
+        isExpected: (_ name: String, _ type: FileAttributeType?, _ link: String?) -> Bool
+    ) -> String? {
+        let fileManager = FileManager.default
+        guard let names = try? fileManager.contentsOfDirectory(atPath: folder.path(percentEncoded: false)) else {
+            return path
+        }
+        for name in names.sorted() {
+            let item = folder.appending(path: name).path(percentEncoded: false)
+            let type = (try? fileManager.attributesOfItem(atPath: item))?[.type] as? FileAttributeType
+            if name == ".DS_Store", type == .typeRegular {
+                continue
+            }
+            let link = type == .typeSymbolicLink ? try? fileManager.destinationOfSymbolicLink(atPath: item) : nil
+            if !isExpected(name, type, link) {
+                return "\(path)/\(name)"
+            }
+        }
+        return nil
     }
 }

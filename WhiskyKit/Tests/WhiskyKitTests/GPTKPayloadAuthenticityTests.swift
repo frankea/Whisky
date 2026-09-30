@@ -67,6 +67,94 @@ private func makeHalfSignedUniversalBinary(in directory: URL) throws -> (univers
     return (URL(filePath: universal), URL(filePath: signed))
 }
 
+/// Points the symlink at `link` somewhere else.
+private func relink(_ link: URL, to destination: String) throws {
+    try FileManager.default.removeItem(at: link)
+    try FileManager.default.createSymbolicLink(
+        atPath: link.path(percentEncoded: false), withDestinationPath: destination
+    )
+}
+
+/// Moves `item` out of the payload, beside it, and leaves a link to it behind.
+private func replaceWithLink(_ item: URL, outside libRoot: URL) throws {
+    let elsewhere = libRoot.deletingLastPathComponent().appending(path: "elsewhere-\(item.lastPathComponent)")
+    try FileManager.default.moveItem(at: item, to: elsewhere)
+    try FileManager.default.createSymbolicLink(at: item, withDestinationURL: elsewhere)
+}
+
+/// A change around the sealed framework version that Apple's signature does
+/// not notice, and the item the layout check has to name for it.
+enum GPTKLayoutTamper: String, CaseIterable, Sendable {
+    /// A library beside `A`, which the loader searches before the sealed
+    /// `Versions/A/Resources`.
+    case plantedVersionsResources
+    /// A second version folder, which codesign's strict mode accepts.
+    case extraVersion
+    /// `Current` pointing at another version.
+    case redirectedCurrent
+    /// The top-level `D3DMetal` link resolved into a file, as `cp -RL` leaves it.
+    case resolvedTopLevelLink
+    /// A top-level link that does not point at its namesake.
+    case misdirectedTopLevelLink
+    /// A library in the framework root.
+    case plantedFrameworkRoot
+    /// A folder beside the framework, searched when the loader path is the
+    /// framework root.
+    case plantedExternalResources
+    /// The shared library as a link, which the import would copy as a link.
+    case linkedSharedLibrary
+    /// The framework as a link to a folder outside the payload.
+    case linkedFramework
+
+    var offendingItem: String {
+        switch self {
+        case .plantedVersionsResources: "external/D3DMetal.framework/Versions/Resources"
+        case .extraVersion: "external/D3DMetal.framework/Versions/B"
+        case .redirectedCurrent: "external/D3DMetal.framework/Versions/Current"
+        case .resolvedTopLevelLink: "external/D3DMetal.framework/D3DMetal"
+        case .misdirectedTopLevelLink: "external/D3DMetal.framework/Resources"
+        case .plantedFrameworkRoot: "external/D3DMetal.framework/libmetalirconverter.dylib"
+        case .plantedExternalResources: "external/Resources"
+        case .linkedSharedLibrary: "external/libd3dshared.dylib"
+        case .linkedFramework: "external/D3DMetal.framework"
+        }
+    }
+
+    func apply(toPayload libRoot: URL) throws {
+        let fileManager = FileManager.default
+        let external = libRoot.appending(path: "external")
+        let framework = external.appending(path: "D3DMetal.framework")
+        let versions = framework.appending(path: "Versions")
+        let library = Data("planted library".utf8)
+        let libraryName = "libmetalirconverter.dylib"
+        switch self {
+        case .plantedVersionsResources:
+            let folder = versions.appending(path: "Resources")
+            try fileManager.createDirectory(at: folder, withIntermediateDirectories: true)
+            try library.write(to: folder.appending(path: libraryName))
+        case .extraVersion:
+            try fileManager.copyItem(at: versions.appending(path: "A"), to: versions.appending(path: "B"))
+        case .redirectedCurrent:
+            try relink(versions.appending(path: "Current"), to: "B")
+        case .resolvedTopLevelLink:
+            try fileManager.removeItem(at: framework.appending(path: "D3DMetal"))
+            try library.write(to: framework.appending(path: "D3DMetal"))
+        case .misdirectedTopLevelLink:
+            try relink(framework.appending(path: "Resources"), to: "../Resources")
+        case .plantedFrameworkRoot:
+            try library.write(to: framework.appending(path: libraryName))
+        case .plantedExternalResources:
+            let folder = external.appending(path: "Resources")
+            try fileManager.createDirectory(at: folder, withIntermediateDirectories: true)
+            try library.write(to: folder.appending(path: libraryName))
+        case .linkedSharedLibrary:
+            try replaceWithLink(external.appending(path: "libd3dshared.dylib"), outside: libRoot)
+        case .linkedFramework:
+            try replaceWithLink(framework, outside: libRoot)
+        }
+    }
+}
+
 @Suite("GPTK payload authenticity")
 struct GPTKPayloadAuthenticityTests {
     private let tempDir: URL
@@ -87,6 +175,58 @@ struct GPTKPayloadAuthenticityTests {
         #expect(GPTKImporter.isAppleSigned(binary.signedSlice, identifier: "com.apple.ls"))
         #expect(!GPTKImporter.isAppleSigned(binary.universal, identifier: "com.apple.ls"))
     }
+
+    // MARK: - Layout
+
+    @Test("An item Apple's signature does not cover is refused by name", arguments: GPTKLayoutTamper.allCases)
+    func refusesUnsealedItem(_ tamper: GPTKLayoutTamper) throws {
+        let lib = tempDir.appending(path: "lib")
+        try makePayload(at: lib)
+        try tamper.apply(toPayload: lib)
+
+        #expect(throws: GPTKImportError.unsealedItem(tamper.offendingItem)) {
+            try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _, _ in true })
+        }
+    }
+
+    @Test("Apple's layouts pass: a link with nothing behind it, a link through Versions/A, and Finder metadata")
+    func acceptsAppleLayouts() throws {
+        let lib = tempDir.appending(path: "lib")
+        try makePayload(at: lib)
+        let external = lib.appending(path: "external")
+        let framework = external.appending(path: "D3DMetal.framework")
+        // GPTK 2.0 ships a Headers link with nothing behind it.
+        try FileManager.default.createSymbolicLink(
+            atPath: framework.appending(path: "Headers").path(percentEncoded: false),
+            withDestinationPath: "Versions/Current/Headers"
+        )
+        try relink(framework.appending(path: "Resources"), to: "Versions/A/Resources")
+        for folder in [external, framework, framework.appending(path: "Versions")] {
+            try Data().write(to: folder.appending(path: ".DS_Store"))
+        }
+
+        #expect(GPTKImporter.unsealedItem(inExternal: external) == nil)
+        #expect(try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _, _ in true }).version == "4.0b2")
+    }
+
+    @Test("A folder the check cannot list is refused, since the loader can still reach into it")
+    func refusesUnlistableFolder() throws {
+        let lib = tempDir.appending(path: "lib")
+        try makePayload(at: lib)
+        let external = lib.appending(path: "external")
+        let versions = external.appending(path: "D3DMetal.framework").appending(path: "Versions")
+            .path(percentEncoded: false)
+        // Search permission without read: items stay reachable by name, but
+        // the folder cannot be listed.
+        try FileManager.default.setAttributes([.posixPermissions: 0o311], ofItemAtPath: versions)
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: versions)
+        }
+
+        #expect(GPTKImporter.unsealedItem(inExternal: external) == "external/D3DMetal.framework/Versions")
+    }
+
+    // MARK: - Identity
 
     @Test("Another Apple-signed binary cannot stand in for the payload's code")
     func refusesOtherAppleIdentity() {

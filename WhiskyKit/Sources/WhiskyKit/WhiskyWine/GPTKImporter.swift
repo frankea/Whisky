@@ -34,6 +34,10 @@ public enum GPTKImportError: LocalizedError, Equatable {
     /// valid Apple code signature, so this is not a genuine GPTK payload or it
     /// was altered after download.
     case notAppleSigned(String)
+    /// The payload's `external/` folder holds an item (payload-relative path)
+    /// that Apple's signatures do not cover: something added around the
+    /// sealed framework version, or a link Apple ships replaced by a copy.
+    case unsealedItem(String)
     /// No imported payload exists in the store to deploy or remove.
     case storeEmpty
 
@@ -49,6 +53,8 @@ public enum GPTKImportError: LocalizedError, Equatable {
             String(localized: "gptk.error.versionUnreadable")
         case let .notAppleSigned(name):
             String(localized: "gptk.error.notAppleSigned") + " " + name
+        case let .unsealedItem(path):
+            String(localized: "gptk.error.unsealedItem") + " " + path
         case .storeEmpty:
             String(localized: "gptk.error.storeEmpty")
         }
@@ -192,8 +198,9 @@ public enum GPTKImporter {
     ///   and the identifier it must be signed as; injectable so tests can
     ///   validate fixtures that are not real code objects.
     /// - Throws: ``GPTKImportError`` when files are missing, a forwarder is not
-    ///   the builtin variant, the version is unreadable, or an Apple binary
-    ///   fails the signature check.
+    ///   the builtin variant, the version is unreadable, an Apple binary fails
+    ///   the signature check, or `external/` holds an item the signatures do
+    ///   not cover.
     public static func validatePayload(
         at libRoot: URL,
         isAppleSigned: (_ code: URL, _ identifier: String) -> Bool = GPTKImporter.isAppleSigned(_:identifier:)
@@ -233,6 +240,9 @@ public enum GPTKImporter {
 
         for code in appleSignedCode where !isAppleSigned(external.appending(path: code.name), code.identifier) {
             throw GPTKImportError.notAppleSigned("external/\(code.name)")
+        }
+        if let item = unsealedItem(inExternal: external) {
+            throw GPTKImportError.unsealedItem(item)
         }
         return GPTKPayload(libRoot: libRoot, version: version)
     }

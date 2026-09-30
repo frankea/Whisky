@@ -56855,6 +56855,23 @@
         }
       }
     },
+    "gptk.error.unsealedItem" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is not an unmodified Game Porting Toolkit payload, it contains an item Apple's signature does not cover:"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is not an unmodified Game Porting Toolkit payload, it contains an item Apple's signature does not cover:"
+          }
+        }
+      }
+    },
     "gptk.error.versionUnreadable" : {
       "extractionState" : "manual",
       "localizations" : {

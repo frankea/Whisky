@@ -31,7 +31,7 @@ struct SteamClientOrchestratorProcessTests {
         var timing = Fixture.fast
         timing.snapshotLifetime = 1
         let driver = FakeSteamClientDriver(script: [["steam.exe"]])
-        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.fast)
+        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: timing)
 
         _ = await orchestrator.runningProcesses()
         _ = await orchestrator.runningProcesses()

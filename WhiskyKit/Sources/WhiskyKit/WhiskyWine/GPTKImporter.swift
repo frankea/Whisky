@@ -30,9 +30,9 @@ public enum GPTKImportError: LocalizedError, Equatable {
     case forwarderNotBuiltin(String)
     /// The D3DMetal framework's version could not be read.
     case versionUnreadable
-    /// An Apple binary in the payload (payload-relative path) does not carry a
-    /// valid Apple code signature, so this is not a genuine GPTK payload or it
-    /// was altered after download.
+    /// An Apple binary in the payload (payload-relative path) does not carry
+    /// Apple's signature for the identifier Apple gives it, on every
+    /// architecture it contains, so it is not the binary Apple shipped.
     case notAppleSigned(String)
     /// The payload's `external/` folder holds an item (payload-relative path)
     /// that Apple's signatures do not cover: something added around the
@@ -185,14 +185,17 @@ public enum GPTKImporter {
     /// Validates completeness and authenticity of the payload at `libRoot` and
     /// reads its version.
     ///
-    /// Authenticity has two halves. The PE forwarders cannot be code-signed,
-    /// so they are checked for the winebuild builtin marker Apple's build
-    /// leaves in them. The Mach-O half (the shared library and the D3DMetal
-    /// framework) is signed by Apple's own software-signing chain, so it is
-    /// verified against an `anchor apple` requirement; a payload assembled by
-    /// hand or altered after download fails here with the file named. The
-    /// signature check runs last so that the cheaper, more common mistakes
-    /// (a wrong folder, a missing file) are reported first.
+    /// Only half the payload can carry a signature, so authenticity is checked
+    /// unevenly. The Windows DLLs cannot carry an Apple code signature: the PE
+    /// forwarders are only checked for the winebuild builtin marker Apple's
+    /// build leaves in them, which a hand-made file can carry too, and the
+    /// NVIDIA bridges are not checked. The Mach-O half is held to Apple's
+    /// signature: the shared library and the D3DMetal framework must each pass
+    /// ``isAppleSigned(_:identifier:)`` for the identifier Apple signs it
+    /// with, and nothing may sit beside them or around the framework's sealed
+    /// version (``unsealedItem(inExternal:)``). Those checks run last so that
+    /// the cheaper, more common mistakes (a wrong folder, a missing file) are
+    /// reported first.
     ///
     /// - Parameter isAppleSigned: the signature verifier, given a code object
     ///   and the identifier it must be signed as; injectable so tests can

@@ -43,12 +43,23 @@ extension GPTKImporter {
     ]
 
     /// Whether the code object at `url` (a Mach-O file or a bundle) carries a
-    /// valid signature that chains to Apple's root certificate.
+    /// valid Apple signature for `identifier`.
     ///
-    /// This is `codesign --verify -R="anchor apple"`: the static code must be
-    /// well-formed, every sealed resource must match, and the signing chain
-    /// must end at Apple. Anything unsigned, ad-hoc signed, or signed by a
-    /// third party fails, as does a path that is not a code object at all.
+    /// The code must satisfy `identifier "<identifier>" and anchor apple`, the
+    /// designated requirement Apple gives the payload's binaries: a signing
+    /// chain that ends at Apple's root, for that identifier. Every
+    /// architecture in a universal file must pass, not only the host's. In a
+    /// bundle, every file the seal lists must be present and unchanged, and a
+    /// file added inside the sealed version fails unless the seal's rules omit
+    /// its name (`.DS_Store`, for one). What lies around the sealed version is
+    /// not looked at, see ``unsealedItem(inExternal:)``. A path that is not a
+    /// code object fails.
+    ///
+    /// Strict validation is not requested. The layout rules it applies are
+    /// enforced by ``unsealedItem(inExternal:)``, more tightly. Beyond those
+    /// it only adds a check for bytes appended after the signed image, which
+    /// the loader never maps, and it refuses a genuine framework when Finder
+    /// has left a `.DS_Store` in its `_CodeSignature` folder.
     public static func isAppleSigned(_ url: URL, identifier: String) -> Bool {
         var staticCode: SecStaticCode?
         guard SecStaticCodeCreateWithPath(url as CFURL, [], &staticCode) == errSecSuccess,

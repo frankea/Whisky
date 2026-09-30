@@ -82,8 +82,9 @@ private func replaceWithLink(_ item: URL, outside libRoot: URL) throws {
     try FileManager.default.createSymbolicLink(at: item, withDestinationURL: elsewhere)
 }
 
-/// A change around the sealed framework version that Apple's signature does
-/// not notice, and the item the layout check has to name for it.
+/// A change in or around the sealed framework version, and the item the
+/// layout check has to name for it, whether or not Apple's signature check
+/// would notice it too.
 enum GPTKLayoutTamper: String, CaseIterable, Sendable {
     /// A library beside `A`, which the loader searches before the sealed
     /// `Versions/A/Resources`.
@@ -107,6 +108,15 @@ enum GPTKLayoutTamper: String, CaseIterable, Sendable {
     case linkedFramework
     /// `external/` itself as a link to a folder outside the payload.
     case linkedExternal
+    /// The main executable as a link to a copy outside the payload. The
+    /// signature check follows it, and the loader would resolve D3DMetal's
+    /// rpaths beside that copy.
+    case linkedMainExecutable
+    /// `_CodeSignature` as a link out, which even strict mode accepts.
+    case linkedCodeSignature
+    /// A sealed file deeper down as a link out. The seal notices this one,
+    /// but the layout check has to reach that far too.
+    case linkedSealedFile
 
     var offendingItem: String {
         switch self {
@@ -120,6 +130,9 @@ enum GPTKLayoutTamper: String, CaseIterable, Sendable {
         case .linkedSharedLibrary: "external/libd3dshared.dylib"
         case .linkedFramework: "external/D3DMetal.framework"
         case .linkedExternal: "external"
+        case .linkedMainExecutable: "external/D3DMetal.framework/Versions/A/D3DMetal"
+        case .linkedCodeSignature: "external/D3DMetal.framework/Versions/A/_CodeSignature"
+        case .linkedSealedFile: "external/D3DMetal.framework/Versions/A/Resources/Info.plist"
         }
     }
 
@@ -128,6 +141,7 @@ enum GPTKLayoutTamper: String, CaseIterable, Sendable {
         let external = libRoot.appending(path: "external")
         let framework = external.appending(path: "D3DMetal.framework")
         let versions = framework.appending(path: "Versions")
+        let sealed = versions.appending(path: "A")
         let library = Data("planted library".utf8)
         let libraryName = "libmetalirconverter.dylib"
         switch self {
@@ -136,7 +150,7 @@ enum GPTKLayoutTamper: String, CaseIterable, Sendable {
             try fileManager.createDirectory(at: folder, withIntermediateDirectories: true)
             try library.write(to: folder.appending(path: libraryName))
         case .extraVersion:
-            try fileManager.copyItem(at: versions.appending(path: "A"), to: versions.appending(path: "B"))
+            try fileManager.copyItem(at: sealed, to: versions.appending(path: "B"))
         case .redirectedCurrent:
             try relink(versions.appending(path: "Current"), to: "B")
         case .resolvedTopLevelLink:
@@ -150,12 +164,13 @@ enum GPTKLayoutTamper: String, CaseIterable, Sendable {
             let folder = external.appending(path: "Resources")
             try fileManager.createDirectory(at: folder, withIntermediateDirectories: true)
             try library.write(to: folder.appending(path: libraryName))
-        case .linkedSharedLibrary:
-            try replaceWithLink(external.appending(path: "libd3dshared.dylib"), outside: libRoot)
-        case .linkedFramework:
-            try replaceWithLink(framework, outside: libRoot)
-        case .linkedExternal:
-            try replaceWithLink(external, outside: libRoot)
+        case .linkedCodeSignature:
+            let signature = sealed.appending(path: "_CodeSignature")
+            try fileManager.createDirectory(at: signature, withIntermediateDirectories: true)
+            try replaceWithLink(signature, outside: libRoot)
+        case .linkedSharedLibrary, .linkedFramework, .linkedExternal, .linkedMainExecutable, .linkedSealedFile:
+            // The item to move out is the one the check has to name.
+            try replaceWithLink(libRoot.appending(path: offendingItem), outside: libRoot)
         }
     }
 }
@@ -206,7 +221,15 @@ struct GPTKPayloadAuthenticityTests {
             withDestinationPath: "Versions/Current/Headers"
         )
         try relink(framework.appending(path: "Resources"), to: "Versions/A/Resources")
-        for folder in [external, framework, framework.appending(path: "Versions")] {
+        // Inside the sealed version, real folders and files at any depth.
+        let sealed = framework.appending(path: "Versions").appending(path: "A")
+        let signature = sealed.appending(path: "_CodeSignature")
+        try FileManager.default.createDirectory(at: signature, withIntermediateDirectories: true)
+        try Data().write(to: signature.appending(path: "CodeResources"))
+        let folders = [
+            external, framework, framework.appending(path: "Versions"), sealed, sealed.appending(path: "Resources")
+        ]
+        for folder in folders {
             try Data().write(to: folder.appending(path: ".DS_Store"))
         }
 

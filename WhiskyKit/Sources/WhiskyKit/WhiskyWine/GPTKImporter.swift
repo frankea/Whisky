@@ -193,8 +193,9 @@ public enum GPTKImporter {
     /// NVIDIA bridges are not checked. The Mach-O half is held to Apple's
     /// signature: the shared library and the D3DMetal framework must each pass
     /// ``isAppleSigned(_:identifier:)`` for the identifier Apple signs it
-    /// with, and nothing may sit beside them or around the framework's sealed
-    /// version (``unsealedItem(inExternal:)``). Those checks run last so that
+    /// with, nothing may sit beside them or around the framework's sealed
+    /// version, and nothing in that version may be a link
+    /// (``unsealedItem(inExternal:)``). Those checks run last so that
     /// the cheaper, more common mistakes (a wrong folder, a missing file) are
     /// reported first.
     ///

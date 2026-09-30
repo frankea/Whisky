@@ -51,15 +51,20 @@ extension GPTKImporter {
     /// architecture in a universal file must pass, not only the host's. In a
     /// bundle, every file the seal lists must be present and unchanged, and a
     /// file added inside the sealed version fails unless the seal's rules omit
-    /// its name (`.DS_Store`, for one). What lies around the sealed version is
-    /// not looked at, see ``unsealedItem(inExternal:)``. A path that is not a
-    /// code object fails.
+    /// its name (`.DS_Store`, for one). A bundle's main executable and its
+    /// `_CodeSignature` folder are read through a link without complaint, and
+    /// what lies around the sealed version is not looked at;
+    /// ``unsealedItem(inExternal:)`` covers both. A path that is not a code
+    /// object fails.
     ///
-    /// Strict validation is not requested. The layout rules it applies are
-    /// enforced by ``unsealedItem(inExternal:)``, more tightly. Beyond those
-    /// it only adds a check for bytes appended after the signed image, which
-    /// the loader never maps, and it refuses a genuine framework when Finder
-    /// has left a `.DS_Store` in its `_CodeSignature` folder.
+    /// Strict validation is not requested, because it refuses a genuine
+    /// framework when Finder has left a `.DS_Store` in its `_CodeSignature`
+    /// folder. The rules it adds that bear on what the loader picks up are
+    /// enforced by ``unsealedItem(inExternal:)`` instead, more tightly:
+    /// Apple's layout around the sealed version, and only regular files and
+    /// real folders inside it, which refuses the linked main executable this
+    /// check follows. Among the rest is a check for bytes appended after the
+    /// signed image, which the loader never maps.
     public static func isAppleSigned(_ url: URL, identifier: String) -> Bool {
         var staticCode: SecStaticCode?
         guard SecStaticCodeCreateWithPath(url as CFURL, [], &staticCode) == errSecSuccess,
@@ -99,7 +104,8 @@ extension GPTKImporter {
     /// `Versions/Resources` folder wins over the sealed `Versions/A/Resources`;
     /// were the loader path the framework root, the first of those would be
     /// `external/Resources`. Everything around the sealed version therefore
-    /// has to be exactly Apple's layout:
+    /// has to be exactly Apple's layout, and nothing inside it may lead
+    /// elsewhere:
     ///
     /// - `external/` is a real folder holding the shared library as a regular
     ///   file and the framework as a real folder. A symlink in any of those
@@ -112,12 +118,19 @@ extension GPTKImporter {
     /// - `Versions` holds `A` and the `Current` link to it. Strict mode
     ///   accepts any number of version folders, which is how a
     ///   `Versions/Resources` folder gets past it.
+    /// - `Versions/A` holds only regular files and real folders, all the way
+    ///   down. The seal refuses a link in place of a sealed resource, but the
+    ///   signature check follows a linked main executable. So does the
+    ///   loader, which then resolves D3DMetal's `@loader_path` rpaths beside
+    ///   wherever the link leads rather than in the payload. A linked
+    ///   `_CodeSignature` gets past even strict mode.
     ///
     /// Finder's `.DS_Store` is allowed at each level: nothing loads it, and
     /// strict mode allows it in the framework root and in `Versions` too.
     static func unsealedItem(inExternal external: URL) -> String? {
         let framework = external.appending(path: "D3DMetal.framework")
         let versions = framework.appending(path: "Versions")
+        let sealed = versions.appending(path: "A")
         let attributes = try? FileManager.default.attributesOfItem(atPath: external.path(percentEncoded: false))
         guard attributes?[.type] as? FileAttributeType == .typeDirectory else {
             return "external"
@@ -139,7 +152,24 @@ extension GPTKImporter {
             case "Current": link == "A"
             default: false
             }
+        } ?? firstLinkOrSpecialFile(under: sealed, at: "external/D3DMetal.framework/Versions/A")
+    }
+
+    /// The first item in `folder` or anywhere below it that is neither a
+    /// regular file nor a real folder, such as a symlink, as `path/...`. A
+    /// folder's entries are checked in name order before any folder among
+    /// them is entered, and a folder that cannot be listed yields its path.
+    private static func firstLinkOrSpecialFile(under folder: URL, at path: String) -> String? {
+        var subfolders: [String] = []
+        let item = firstUnexpectedItem(in: folder, at: path) { name, type, _ in
+            if type == .typeDirectory {
+                subfolders.append(name)
+            }
+            return type == .typeRegular || type == .typeDirectory
         }
+        return item ?? subfolders.lazy.compactMap { name in
+            firstLinkOrSpecialFile(under: folder.appending(path: name), at: "\(path)/\(name)")
+        }.first
     }
 
     /// The first entry of `folder`, in name order, that `isExpected` refuses,

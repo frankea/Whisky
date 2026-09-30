@@ -648,7 +648,9 @@ public class Wine {
     @discardableResult
     @MainActor
     public static func runBatchFile(url: URL, bottle: Bottle) async throws -> String {
-        try await runWine(["cmd", "/c", url.path(percentEncoded: false)], bottle: bottle)
+        // A script can start a launcher too, so it gets the aliases a program launch gets.
+        await syncCJKFontReplacements(bottle: bottle)
+        return try await runWine(["cmd", "/c", url.path(percentEncoded: false)], bottle: bottle)
     }
 
     /// Terminates all Wine processes running in a bottle.

@@ -26,6 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   default win64 bottles, which Wine does not ship as a builtin -- now counts
   as installed, reported with heuristic confidence; a bottle whose log
   already says installed is never probed (#233).
+- The runtime's GPTK interposers, the D3D12 video processor and the DXGI
+  driver version fix, now only go in front of a GPTK 4 payload, the line
+  they were validated on. With GPTK 3.0 they crash Red Dead Redemption 2 at
+  startup, and opening the app put the D3D12 one back into the runtime every
+  time. The check at launch also leaves alone a payload copied into the
+  runtime by hand and a d3d12.dll slot someone replaced, and takes the
+  interposers back out of an imported payload from another GPTK line that an
+  earlier deploy put them in front of (#276).
 - The terminal environment (Open in Terminal and `WhiskyCmd shellenv`) now
   puts the real Wine bin directory on `PATH`. The path was backslash-escaped
   inside double quotes, so the entry kept a literal backslash before the

@@ -125,13 +125,20 @@ extension GPTKImporter {
 
     /// Puts the interposer in the `d3d12.dll` slot with Apple's DLL renamed
     /// beside it. Expects `d3d12.dll` to be Apple's, which is what deploy leaves
-    /// behind, and does nothing if the runtime ships no interposer or the swap
-    /// is already in place.
+    /// behind, and does nothing if the runtime ships no interposer, the swap
+    /// is already in place, or the payload is not from the GPTK line the
+    /// interposers were validated on (``interposersSupport(payloadVersion:)``).
     static func install(_ interposer: GPTKInterposer, intoLibraryFolder folder: URL) throws {
         let fileManager = FileManager.default
         let shim = shim(for: interposer, inLibraryFolder: folder)
         guard has(interposer, inLibraryFolder: folder) else { return }
         guard !isInstalled(interposer, inLibraryFolder: folder) else { return }
+        let version = deployedPayloadVersion(inLibraryFolder: folder)
+        guard interposersSupport(payloadVersion: version) else {
+            let skipped = "\(interposer.label) interposer for GPTK \(version ?? "an unreadable version")"
+            logger.info("Left out the \(skipped, privacy: .public)")
+            return
+        }
 
         let wineLib = folder.appending(path: "Wine").appending(path: "lib")
         let peDir = wineLib.appending(path: "wine").appending(path: "x86_64-windows")
@@ -232,30 +239,6 @@ extension GPTKImporter {
 
     static func seedVideoDevicePlaceholder(inBottle bottle: URL, fromLibraryFolder folder: URL) {
         seedPlaceholder(for: videoProcessorInterposer, inBottle: bottle, fromLibraryFolder: folder)
-    }
-
-    /// Installs the video processor if the payload is already deployed, and
-    /// seeds every bottle's placeholder.
-    ///
-    /// This is the path for installs that were already set up before the
-    /// interposer existed: they have the payload deployed and never run a deploy
-    /// again, so without this they would keep rendering video through the
-    /// engine's broken fallback until they happened to reimport. Idempotent and
-    /// cheap enough to run at launch.
-    public static func ensureVideoProcessorInstalled(bottles: [URL]) {
-        let folder = WhiskyWineInstaller.libraryFolder
-        guard isDeployed(inLibraryFolder: folder), hasVideoProcessor(inLibraryFolder: folder) else {
-            return
-        }
-        do {
-            try installVideoProcessor(intoLibraryFolder: folder)
-        } catch {
-            logger.error("Installing the D3D12 video processor failed: \(error.localizedDescription)")
-            return
-        }
-        for bottle in bottles {
-            seedVideoDevicePlaceholder(inBottle: bottle, fromLibraryFolder: folder)
-        }
     }
 
     // MARK: - The rename

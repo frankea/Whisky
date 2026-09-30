@@ -182,7 +182,8 @@ extension GPTKImporter {
         try installMetalFXBridge(intoLibraryFolder: folder, usingStore: store)
         // Apple's DLLs are in place now, which is the only moment the swaps can
         // be made: the runtime ships the interposers but has nothing to forward
-        // into until this point.
+        // into until this point. A payload from a GPTK line they were never
+        // validated on is deployed without them; install checks the version.
         for interposer in interposers {
             try install(interposer, intoLibraryFolder: folder)
         }
@@ -193,7 +194,7 @@ extension GPTKImporter {
     /// Whether `dll` is byte-identical to the store's forwarder of the same
     /// name, so deploy never mistakes an already-deployed Apple DLL for a Wine
     /// original worth backing up and remove only deletes what it put there.
-    private static func isGPTKForwarder(_ dll: URL, matching storeLib: URL) -> Bool {
+    static func isGPTKForwarder(_ dll: URL, matching storeLib: URL) -> Bool {
         let storeDLL = storeLib.appending(path: "wine").appending(path: "x86_64-windows")
             .appending(path: dll.lastPathComponent)
         return FileManager.default.contentsEqual(

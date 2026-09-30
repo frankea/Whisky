@@ -911,7 +911,7 @@ public class Wine {
     /// Copies the native D3D translation trio (`d3d11`, `dxgi`, `d3d10core`) and
     /// `winemetal.dll` from the runtime's DXMT payload into the bottle's system
     /// directories — the same per-bottle, prefix-local model as ``enableDXVK``,
-    /// selected by the `n,b` overrides from ``DLLOverrideResolver/dxmtPreset``.
+    /// selected by the `n,b` overrides from ``DLLOverrideResolver/dxmtPreset(builtinD3D12IsD3DMetal:)``.
     /// The runtime ships DXMT's `winemetal.dll` builtin (paired with its
     /// `winemetal.so` unixlib) in `lib/wine`, so this method never touches the
     /// shared Wine tree; the prefix `winemetal.dll` is the builtin-marked

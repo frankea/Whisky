@@ -596,7 +596,7 @@ struct ProgramOverrideSettingsView: View {
     private var computedManagedOverrides: [(entry: DLLOverrideEntry, source: String)] {
         var managed: [(entry: DLLOverrideEntry, source: String)] = []
         if bottle.settings.graphicsBackend == .dxvk {
-            for entry in DLLOverrideResolver.dxvkPreset {
+            for entry in DLLOverrideResolver.dxvkPreset(builtinD3D12IsD3DMetal: GPTKImporter.isDeployed()) {
                 managed.append((
                     entry: entry,
                     source: String(localized: "config.dllOverrides.source.dxvk")

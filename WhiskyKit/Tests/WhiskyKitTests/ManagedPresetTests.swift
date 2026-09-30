@@ -21,44 +21,56 @@ import XCTest
 
 final class ManagedPresetTests: XCTestCase {
     func testDXVKBackendContributesTheDXVKPreset() {
-        let preset = DLLOverrideResolver.managedPreset(for: .dxvk)
-        XCTAssertEqual(preset.map(\.dllName).sorted(), ["d3d10core", "d3d11", "d3d12", "d3d9", "dxgi"])
+        // d3d12 only where the builtin behind it is D3DMetal's; see DLLOverrideTests.
+        let stock = DLLOverrideResolver.managedPreset(for: .dxvk, builtinD3D12IsD3DMetal: false)
+        XCTAssertEqual(stock.map(\.dllName).sorted(), ["d3d10core", "d3d11", "d3d9", "dxgi"])
+        let gptk = DLLOverrideResolver.managedPreset(for: .dxvk, builtinD3D12IsD3DMetal: true)
+        XCTAssertEqual(gptk.map(\.dllName).sorted(), ["d3d10core", "d3d11", "d3d12", "d3d9", "dxgi"])
     }
 
     /// The case the config section used to miss entirely: a DXMT bottle applies
-    /// five overrides at launch and the UI listed none of them.
+    /// four overrides at launch (five over D3DMetal's d3d12) and the UI listed
+    /// none of them.
     func testDXMTBackendContributesTheDXMTPreset() {
-        let preset = DLLOverrideResolver.managedPreset(for: .dxmt)
-        XCTAssertEqual(preset.map(\.dllName).sorted(), ["d3d10core", "d3d11", "d3d12", "dxgi", "winemetal"])
+        let stock = DLLOverrideResolver.managedPreset(for: .dxmt, builtinD3D12IsD3DMetal: false)
+        XCTAssertEqual(stock.map(\.dllName).sorted(), ["d3d10core", "d3d11", "dxgi", "winemetal"])
+        let gptk = DLLOverrideResolver.managedPreset(for: .dxmt, builtinD3D12IsD3DMetal: true)
+        XCTAssertEqual(gptk.map(\.dllName).sorted(), ["d3d10core", "d3d11", "d3d12", "dxgi", "winemetal"])
     }
 
     /// D3DMetal and WineD3D both run on Wine's builtin D3D and pick between
     /// themselves with WINED3DMETAL, so neither overrides a DLL.
     func testBuiltinBackendsContributeNothing() {
-        XCTAssertTrue(DLLOverrideResolver.managedPreset(for: .d3dMetal).isEmpty)
-        XCTAssertTrue(DLLOverrideResolver.managedPreset(for: .wined3d).isEmpty)
+        // Not even d3d12 over D3DMetal's builtin, which is theirs to use.
+        XCTAssertTrue(DLLOverrideResolver.managedPreset(for: .d3dMetal, builtinD3D12IsD3DMetal: true).isEmpty)
+        XCTAssertTrue(DLLOverrideResolver.managedPreset(for: .wined3d, builtinD3D12IsD3DMetal: true).isEmpty)
     }
 
     /// `.recommended` is not a backend, it is a deferral. Callers resolve it
     /// first; answering with a preset here would attribute one bottle's
     /// overrides to another machine's heuristics.
     func testRecommendedContributesNothingUnresolved() {
-        XCTAssertTrue(DLLOverrideResolver.managedPreset(for: .recommended).isEmpty)
+        XCTAssertTrue(DLLOverrideResolver.managedPreset(for: .recommended, builtinD3D12IsD3DMetal: true).isEmpty)
     }
 
     func testPresetMatchesWhatTheResolverApplies() {
         for backend in [GraphicsBackend.dxvk, .dxmt] {
-            let resolver = DLLOverrideResolver(
-                managed: DLLOverrideResolver.managedPreset(for: backend).map { ($0, .dxvk) },
-                bottleCustom: [],
-                programCustom: []
-            )
-            let (overrides, _) = resolver.resolve()
-            for entry in DLLOverrideResolver.managedPreset(for: backend) {
-                XCTAssertTrue(
-                    overrides.contains("\(entry.dllName)=\(entry.mode.rawValue)"),
-                    "\(backend.displayName) preset lost \(entry.dllName) through the resolver"
+            for builtinD3D12IsD3DMetal in [false, true] {
+                let preset = DLLOverrideResolver.managedPreset(
+                    for: backend, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
                 )
+                let resolver = DLLOverrideResolver(
+                    managed: preset.map { ($0, .dxvk) },
+                    bottleCustom: [],
+                    programCustom: []
+                )
+                let (overrides, _) = resolver.resolve()
+                for entry in preset {
+                    XCTAssertTrue(
+                        overrides.contains("\(entry.dllName)=\(entry.mode.rawValue)"),
+                        "\(backend.displayName) preset lost \(entry.dllName) through the resolver"
+                    )
+                }
             }
         }
     }

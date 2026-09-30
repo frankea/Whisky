@@ -226,6 +226,61 @@ struct GPTKPayloadAuthenticityTests {
         #expect(GPTKImporter.unsealedItem(inExternal: external) == "external/D3DMetal.framework/Versions")
     }
 
+    // MARK: - Import
+
+    @Test("Import validates the copy it staged in the store, and records that copy's version")
+    func importRevalidatesStagedCopy() throws {
+        let lib = tempDir.appending(path: "lib")
+        let store = tempDir.appending(path: "store")
+        try makePayload(at: lib)
+        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _, _ in true })
+        // The source moves on after validation; the record has to describe
+        // what was copied, not what was validated.
+        let plist: [String: Any] = ["CFBundleShortVersionString": "4.0b3"]
+        try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0).write(
+            to: lib.appending(path: "external").appending(path: "D3DMetal.framework").appending(path: "Versions")
+                .appending(path: "A").appending(path: "Resources").appending(path: "Info.plist")
+        )
+        var checked: [String] = []
+
+        try GPTKImporter.importPayload(payload, intoStore: store, revalidatingWith: { url, _ in
+            checked.append(url.path(percentEncoded: false))
+            return true
+        })
+
+        let staging = store.appending(path: "lib.staging")
+        let stagedCode = GPTKImporter.appleSignedCode.map {
+            staging.appending(path: "external").appending(path: $0.name).path(percentEncoded: false)
+        }
+        #expect(checked == stagedCode)
+        #expect(!FileManager.default.fileExists(atPath: staging.path(percentEncoded: false)))
+        #expect(GPTKImporter.storedRecord(inStore: store)?.gptkVersion == "4.0b3")
+    }
+
+    @Test("A source changed after validation is refused at import, and the store keeps its payload")
+    func importRefusesSourceChangedAfterValidation() throws {
+        let store = tempDir.appending(path: "store")
+        let first = tempDir.appending(path: "first")
+        try makePayload(at: first, version: "4.0b1")
+        let firstPayload = try GPTKImporter.validatePayload(at: first, isAppleSigned: { _, _ in true })
+        try GPTKImporter.importPayload(firstPayload, intoStore: store, revalidatingWith: { _, _ in true })
+
+        let second = tempDir.appending(path: "second")
+        try makePayload(at: second)
+        let payload = try GPTKImporter.validatePayload(at: second, isAppleSigned: { _, _ in true })
+        let tamper = GPTKLayoutTamper.plantedVersionsResources
+        try tamper.apply(toPayload: second)
+
+        #expect(throws: GPTKImportError.unsealedItem(tamper.offendingItem)) {
+            try GPTKImporter.importPayload(payload, intoStore: store, revalidatingWith: { _, _ in true })
+        }
+        #expect(GPTKImporter.storedRecord(inStore: store)?.gptkVersion == "4.0b1")
+        for leftover in ["lib.staging", "lib/external/D3DMetal.framework/Versions/Resources"] {
+            let path = store.appending(path: leftover).path(percentEncoded: false)
+            #expect(!FileManager.default.fileExists(atPath: path))
+        }
+    }
+
     // MARK: - Identity
 
     @Test("Another Apple-signed binary cannot stand in for the payload's code")

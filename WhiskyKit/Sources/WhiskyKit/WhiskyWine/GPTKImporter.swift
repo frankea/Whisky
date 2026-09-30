@@ -273,6 +273,12 @@ public enum GPTKImporter {
 
     /// Copies a validated payload into the store and records its version.
     ///
+    /// The copy is staged beside the store's `lib` and validated again there
+    /// before it replaces the previous payload, so the checks cover exactly
+    /// what gets deployed, not a source that could have changed since
+    /// ``validatePayload(at:isAppleSigned:)`` read it. A copy that fails
+    /// leaves the previous payload in place.
+    ///
     /// Reimporting replaces the previous store contents. The six unix bridge
     /// names are recreated as symlinks regardless of what the source held: a
     /// copy pipeline that resolved them into file duplicates would break the
@@ -280,22 +286,56 @@ public enum GPTKImporter {
     /// the framework.
     @discardableResult
     public static func importPayload(_ payload: GPTKPayload) throws -> GPTKStoreRecord {
-        try importPayload(payload, intoStore: storeFolder)
+        try importPayload(payload, intoStore: storeFolder, revalidatingWith: isAppleSigned(_:identifier:))
     }
 
     /// Testable seam for ``importPayload(_:)``.
+    ///
+    /// - Parameter isAppleSigned: the verifier the staged copy is validated
+    ///   with. Tests leave it out to import fixtures that are not real code
+    ///   objects, which skips that second validation.
     @discardableResult
-    static func importPayload(_ payload: GPTKPayload, intoStore store: URL) throws -> GPTKStoreRecord {
+    static func importPayload(
+        _ payload: GPTKPayload,
+        intoStore store: URL,
+        revalidatingWith isAppleSigned: ((_ code: URL, _ identifier: String) -> Bool)? = nil
+    ) throws -> GPTKStoreRecord {
         let fileManager = FileManager.default
         let libDest = store.appending(path: "lib")
+        let staging = store.appending(path: "lib.staging")
 
         try fileManager.createDirectory(at: store, withIntermediateDirectories: true)
+        try? fileManager.removeItem(at: staging)
+        try fileManager.copyItem(at: payload.libRoot, to: staging)
+        var version = payload.version
+        do {
+            try linkUnixBridges(inPayload: staging)
+            if let isAppleSigned {
+                version = try validatePayload(at: staging, isAppleSigned: isAppleSigned).version
+            }
+        } catch {
+            try? fileManager.removeItem(at: staging)
+            throw error
+        }
+
         if fileManager.fileExists(atPath: libDest.path(percentEncoded: false)) {
             try fileManager.removeItem(at: libDest)
         }
-        try fileManager.copyItem(at: payload.libRoot, to: libDest)
+        try fileManager.moveItem(at: staging, to: libDest)
 
-        let unixDir = libDest.appending(path: "wine").appending(path: "x86_64-unix")
+        let record = GPTKStoreRecord(gptkVersion: version, importedAt: Date())
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        try encoder.encode(record).write(to: recordURL(inStore: store))
+        logger.info("Imported GPTK payload \(record.gptkVersion, privacy: .public) into store")
+        return record
+    }
+
+    /// Recreates the unix bridge names in the payload at `libRoot` as symlinks
+    /// to its shared library.
+    private static func linkUnixBridges(inPayload libRoot: URL) throws {
+        let fileManager = FileManager.default
+        let unixDir = libRoot.appending(path: "wine").appending(path: "x86_64-unix")
         try fileManager.createDirectory(at: unixDir, withIntermediateDirectories: true)
         for name in unixLibraryNames {
             let link = unixDir.appending(path: name)
@@ -305,13 +345,6 @@ public enum GPTKImporter {
                 withDestinationPath: unixLinkDestination
             )
         }
-
-        let record = GPTKStoreRecord(gptkVersion: payload.version, importedAt: Date())
-        let encoder = PropertyListEncoder()
-        encoder.outputFormat = .xml
-        try encoder.encode(record).write(to: recordURL(inStore: store))
-        logger.info("Imported GPTK payload \(record.gptkVersion, privacy: .public) into store")
-        return record
     }
 
     /// The stored payload's record, or `nil` when the store is absent or its

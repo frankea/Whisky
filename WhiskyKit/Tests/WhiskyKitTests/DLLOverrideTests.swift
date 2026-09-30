@@ -19,6 +19,7 @@
 @testable import WhiskyKit
 import XCTest
 
+// swiftlint:disable:next type_body_length
 final class DLLOverrideTests: XCTestCase {
     // MARK: - DLL Override Mode
 
@@ -282,6 +283,24 @@ final class DLLOverrideTests: XCTestCase {
     }
 
     // MARK: - What a launch gets
+
+    /// A game started straight from a DXMT bottle, which is where #255, #257
+    /// and #258 crashed: Recommended resolves games to DXMT on the stock
+    /// engine. Only the bottle's preset speaks about d3d12 here, and with the
+    /// payload deployed it still has to turn it off, or a DX12 game hands
+    /// DXMT's adapter to D3DMetal's d3d12 again (#219).
+    @MainActor
+    func testDXMTBottleDisablesD3D12OnlyOverD3DMetal() throws {
+        let bottle = try makeBottle()
+        defer { try? FileManager.default.removeItem(at: bottle.url) }
+        bottle.settings.graphicsBackend = .dxmt
+
+        let stock = Wine.constructWineEnvironment(for: bottle, builtinD3D12IsD3DMetal: false)
+        XCTAssertEqual(stock["WINEDLLOVERRIDES"], "d3d10core=n,b;d3d11=n,b;dxgi=n,b;winemetal=b")
+
+        let gptk = Wine.constructWineEnvironment(for: bottle, builtinD3D12IsD3DMetal: true)
+        XCTAssertEqual(gptk["WINEDLLOVERRIDES"], "d3d10core=n,b;d3d11=n,b;d3d12=;dxgi=n,b;winemetal=b")
+    }
 
     /// The launch composition `runProgram` uses. A bottle on DXMT, which is what
     /// Recommended resolves to on the stock engine, launching steam.exe, which

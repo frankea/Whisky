@@ -48,9 +48,12 @@ struct SteamProcessWatchTests {
 
     @Test("Reports true when the process appears before the timeout")
     func appearsBeforeTimeout() async {
+        // The wait returns on the third poll, so the timeout only bounds a failure.
+        // Keep it generous: a loaded CI runner can delay the 5 ms sleeps for
+        // over a second, which ran a 1 s deadline out before the third poll.
         let watch = makeWatch(responses: [[], [], ["steam.exe", "svchost.exe"]])
 
-        let found = await watch.waitForAny(of: ["steam.exe"], timeout: 1)
+        let found = await watch.waitForAny(of: ["steam.exe"], timeout: 30)
 
         #expect(found)
     }

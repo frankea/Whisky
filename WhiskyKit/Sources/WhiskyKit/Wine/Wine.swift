@@ -441,14 +441,16 @@ public class Wine {
     /// Generates shell commands to configure a terminal session for Wine development.
     ///
     /// The generated commands set up the PATH, create convenient aliases for Wine tools,
-    /// and export all necessary environment variables for the given bottle.
+    /// and export all necessary environment variables for the given bottle. This is the
+    /// text `WhiskyCmd shellenv` prints and Open in Terminal evaluates.
     ///
     /// ## Usage
     ///
-    /// Copy the output to your terminal to enable Wine commands:
+    /// Evaluate the output in zsh, bash or fish to enable Wine commands:
     ///
     /// ```bash
-    /// # After running the generated commands, you can use:
+    /// eval "$(WhiskyCmd shellenv MyBottle)"
+    /// # Afterwards you can use:
     /// wine myprogram.exe
     /// winecfg
     /// regedit
@@ -458,8 +460,25 @@ public class Wine {
     /// - Returns: A multi-line string of shell export commands and aliases.
     @MainActor
     public static func generateTerminalEnvironmentCommand(bottle: Bottle) -> String {
+        generateTerminalEnvironmentCommand(
+            binFolder: WhiskyWineInstaller.binFolder,
+            environment: constructWineEnvironment(for: bottle)
+        )
+    }
+
+    /// Renders the terminal environment for a Wine bin folder and a resolved environment.
+    ///
+    /// Every value, and the bin folder path, is quoted through ``ShellQuoting``, so nothing
+    /// in it expands and `eval` sets each variable to exactly the string given here,
+    /// control characters included. Apart from the constant `WINE` and alias lines,
+    /// only the existing `$PATH` is left in double quotes, because it has to expand.
+    /// Variables are emitted in key order so the output is stable from run to run.
+    ///
+    /// Split out of ``generateTerminalEnvironmentCommand(bottle:)`` so tests can point the
+    /// bin folder at a path the installer never uses.
+    static func generateTerminalEnvironmentCommand(binFolder: URL, environment: [String: String]) -> String {
         var cmd = """
-        export PATH=\(ShellQuoting.quoted(WhiskyWineInstaller.binFolder.path)):\"$PATH\"
+        export PATH=\(ShellQuoting.quoted(binFolder.path)):\"$PATH\"
         export WINE=\"wine64\"
         alias wine=\"wine64\"
         alias winecfg=\"wine64 winecfg\"
@@ -473,13 +492,15 @@ public class Wine {
         alias winepath=\"wine64 winepath\"
         """
 
-        let env = constructWineEnvironment(for: bottle)
-        for envVar in env {
-            if isValidEnvKey(envVar.key) {
-                // Keys are validated to be safe shell identifiers; values are escaped
-                cmd += "\nexport \(envVar.key)=\"\(envVar.value.esc)\""
+        for (key, value) in environment.sorted(by: { $0.key < $1.key }) {
+            if isValidEnvKey(key) {
+                // Keys are validated to be safe shell identifiers. Values are single-quoted,
+                // not `.esc`-escaped: `.esc` targets bare words, and inside double quotes the
+                // shell keeps most of its backslashes, so `d3d11=n,b;dxgi=n,b` came back as
+                // `d3d11\=n,b\;dxgi\=n,b`.
+                cmd += "\nexport \(ShellQuoting.assignment(key, value))"
             } else {
-                logger.debug("Skipping invalid environment key '\(envVar.key)' in generateTerminalEnvironmentCommand")
+                logger.debug("Skipping invalid environment key '\(key)' in generateTerminalEnvironmentCommand")
             }
         }
 
@@ -498,9 +519,9 @@ public class Wine {
         return result.compactMap { output -> String? in
             switch output {
             case .started, .terminated:
-                return nil
+                nil
             case let .message(message), let .error(message):
-                return message
+                message
             }
         }.joined()
     }

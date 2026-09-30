@@ -1,0 +1,179 @@
+//
+//  ProgramLaunchPreparationTests.swift
+//  WhiskyKitTests
+//
+//  This file is part of Whisky.
+//
+//  Whisky is free software: you can redistribute it and/or modify it under the terms
+//  of the GNU General Public License as published by the Free Software Foundation,
+//  either version 3 of the License, or (at your option) any later version.
+//
+//  Whisky is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+//  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+//  See the GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License along with Whisky.
+//  If not, see https://www.gnu.org/licenses/.
+//
+
+import Foundation
+import Testing
+@testable import WhiskyKit
+
+/// Captures what a launch would write to the prefix registry, in place of the
+/// `reg import` that needs Wine.
+@MainActor
+private final class RegistryRecorder {
+    private(set) var writes: [[(scope: Wine.DLLOverrideScope, overrides: String)]] = []
+
+    var writer: Wine.DLLOverrideWriter {
+        { _, scopes in self.writes.append(scopes) }
+    }
+
+    /// The overrides the only write gave `scope`, parsed; `nil` when there was
+    /// no single write or it left `scope` out.
+    func overrides(for scope: Wine.DLLOverrideScope) -> [String: String]? {
+        guard writes.count == 1, let entry = writes[0].first(where: { $0.scope == scope }) else {
+            return nil
+        }
+        return Wine.parseDLLOverrides(entry.overrides)
+    }
+}
+
+@Suite("Program launch preparation")
+@MainActor
+final class ProgramLaunchPreparationTests {
+    private let tempRoot: URL
+
+    init() throws {
+        tempRoot = FileManager.default.temporaryDirectory
+            .appending(path: "launch_prep_\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: tempRoot, withIntermediateDirectories: true)
+    }
+
+    deinit {
+        try? FileManager.default.removeItem(at: tempRoot)
+    }
+
+    /// A DXVK bottle with a custom `d2d1=n,b` override, the setup from #266.
+    private func makeBottle() throws -> Bottle {
+        let bottleURL = tempRoot.appending(path: "Bottle")
+        try FileManager.default.createDirectory(
+            at: bottleURL.appending(path: "drive_c"), withIntermediateDirectories: true
+        )
+        let bottle = Bottle(bottleUrl: bottleURL)
+        bottle.settings.graphicsBackend = .dxvk
+        bottle.settings.dllOverrides = [DLLOverrideEntry(dllName: "d2d1", mode: .nativeThenBuiltin)]
+        return bottle
+    }
+
+    private func makeExecutable(_ relativePath: String, in bottle: Bottle) throws -> URL {
+        let url = bottle.url.appending(path: "drive_c").appending(path: relativePath)
+        try FileManager.default.createDirectory(
+            at: url.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try Data("MZ".utf8).write(to: url)
+        return url
+    }
+
+    /// A program that disables the DLL its bottle loads natively: the
+    /// conflicting bottle and per-executable setting from #266.
+    private func makeConflictingProgram(in bottle: Bottle) throws -> Program {
+        let program = try Program(url: makeExecutable("Games/Aegis/Game.exe", in: bottle), bottle: bottle)
+        var overrides = ProgramOverrides()
+        overrides.dllOverrides = [DLLOverrideEntry(dllName: "d2d1", mode: .disabled)]
+        program.settings.overrides = overrides
+        program.settings.environment = ["PROGRAM_SETTING": "kept"]
+        return program
+    }
+
+    @Test("A printed command's DLL overrides are written to the registry first, not carried in it")
+    func printedCommandPreparesTheRegistry() async throws {
+        let bottle = try makeBottle()
+        let program = try makeConflictingProgram(in: bottle)
+        let recorder = RegistryRecorder()
+
+        let command = try await program.prepareTerminalCommand(
+            args: ["-windowed"], overrideWriter: recorder.writer
+        )
+
+        // In the command, the variable would shadow every per-executable
+        // registry entry for the launched program and everything it spawns.
+        #expect(!command.contains("WINEDLLOVERRIDES"))
+        #expect(command.contains("PROGRAM_SETTING=kept"))
+        #expect(command.hasSuffix("start /unix \(program.url.esc) -windowed"))
+
+        #expect(recorder.writes.count == 1)
+        #expect(recorder.overrides(for: .bottle)?["d2d1"] == "n,b")
+        #expect(recorder.overrides(for: .bottle)?["d3d11"] == "n,b")
+        // The program's own override wins in its AppDefaults entry, next to
+        // the bottle's DXVK set.
+        #expect(recorder.overrides(for: .program("Game.exe"))?["d2d1"] == "")
+        #expect(recorder.overrides(for: .program("Game.exe"))?["d3d11"] == "n,b")
+    }
+
+    @Test("A printed command carries the program's diagnostic WINEDEBUG preset")
+    func printedCommandCarriesProgramSettings() async throws {
+        let bottle = try makeBottle()
+        let program = try makeConflictingProgram(in: bottle)
+        program.settings.activeWineDebugPreset = .dllLoad
+
+        let command = try await program.prepareTerminalCommand(
+            args: [], overrideWriter: RegistryRecorder().writer
+        )
+
+        #expect(command.contains("WINEDEBUG=\(WineDebugPreset.dllLoad.winedebugValue.esc)"))
+    }
+
+    @Test("Overrides meant for a descendant stay in the environment and off the launcher's entry")
+    func descendantOverridesStayInTheEnvironment() async throws {
+        let bottle = try makeBottle()
+        let steam = try makeExecutable("Program Files (x86)/Steam/steam.exe", in: bottle)
+        let recorder = RegistryRecorder()
+
+        let launch = try await Wine.prepareProgramLaunch(
+            at: steam, args: ["-applaunch", "1174180"], bottle: bottle,
+            overridesApplyToDescendants: true, overrideWriter: recorder.writer
+        )
+
+        #expect(launch.environment["WINEDLLOVERRIDES"] != nil)
+        #expect(launch.arguments == ["start", "/unix", steam.path(percentEncoded: false), "-applaunch", "1174180"])
+        #expect(recorder.overrides(for: .program("steam.exe")) == nil)
+        #expect(recorder.overrides(for: .program("steamwebhelper.exe"))?["nvapi64"] == "")
+    }
+
+    @Test("A program set to a virtual desktop is prepared to run in one")
+    func virtualDesktopArguments() async throws {
+        let bottle = try makeBottle()
+        let program = try Program(url: makeExecutable("Games/My Game.exe", in: bottle), bottle: bottle)
+        var overrides = ProgramOverrides()
+        overrides.virtualDesktopEnabled = true
+        overrides.resolutionPreset = .r1280x720
+
+        let launch = try await Wine.prepareProgramLaunch(
+            at: program.url, args: ["-x"], bottle: bottle, programOverrides: overrides,
+            overrideWriter: RegistryRecorder().writer
+        )
+
+        #expect(launch.arguments == [
+            "explorer", "/desktop=My_Game.exe,1280x720", program.url.path(percentEncoded: false), "-x"
+        ])
+    }
+
+    @Test("A prepared launch prints exactly as prepared, without rebuilding its environment")
+    func preparedLaunchPrintsVerbatim() {
+        let launch = Wine.PreparedLaunch(
+            environment: ["WINEPREFIX": "/tmp/My Bottle", "DXVK_HUD": "fps"],
+            arguments: ["start", "/unix", "/tmp/My Bottle/drive_c/Game.exe", "--name", "Player One"]
+        )
+
+        let command = Wine.generateRunCommand(for: launch)
+
+        #expect(command.contains(#"WINEPREFIX=/tmp/My\ Bottle "#))
+        #expect(command.contains("DXVK_HUD=fps "))
+        #expect(!command.contains("WINEDLLOVERRIDES"))
+        #expect(command.hasSuffix(
+            #"\#(Wine.wineBinary.esc) start /unix /tmp/My\ Bottle/drive_c/Game.exe --name Player\ One"#
+        ))
+    }
+}

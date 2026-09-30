@@ -43,6 +43,12 @@ public extension Wine {
         subsystem: "com.isaacmarovitz.WhiskyKit", category: "dll-overrides"
     )
 
+    /// Writes each scope's `WINEDLLOVERRIDES`-syntax overrides into a bottle's
+    /// registry: ``syncDLLOverrides(bottle:scopes:)`` outside of tests.
+    typealias DLLOverrideWriter = @MainActor (
+        _ bottle: Bottle, _ scopes: [(scope: DLLOverrideScope, overrides: String)]
+    ) async throws -> Void
+
     /// Replaces the DLL overrides at each scope, in one import.
     ///
     /// One import rather than a `reg` call per value: each of those is a whole
@@ -84,12 +90,14 @@ public extension Wine {
     /// - Parameter applyToDescendants: When the overrides describe something this
     ///   process will *spawn*, `AppDefaults` cannot express it — that is keyed on
     ///   an executable whose name is not known here — so the variable stays.
+    /// - Parameter writer: What performs the registry write.
     @MainActor
     static func applyDLLOverrides(
         for url: URL,
         bottle: Bottle,
         wineEnvironment: inout [String: String],
-        applyToDescendants: Bool
+        applyToDescendants: Bool,
+        writer: DLLOverrideWriter = { try await syncDLLOverrides(bottle: $0, scopes: $1) }
     ) async throws {
         var scopes: [(scope: DLLOverrideScope, overrides: String)] = [
             (scope: .bottle, overrides: constructWineEnvironment(for: bottle)["WINEDLLOVERRIDES"] ?? "")
@@ -123,7 +131,7 @@ public extension Wine {
             scopes.append((scope: .program(url.lastPathComponent), overrides: programOverrides))
         }
 
-        try await syncDLLOverrides(bottle: bottle, scopes: scopes)
+        try await writer(bottle, scopes)
     }
 
     /// Renders a `.reg` leaving each key holding exactly `overrides`.

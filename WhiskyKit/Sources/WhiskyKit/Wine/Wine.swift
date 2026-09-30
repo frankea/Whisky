@@ -78,6 +78,7 @@ private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: 
 /// - ``killBottle(bottle:)``
 /// - ``enableDXVK(bottle:)``
 /// - ``generateRunCommand(at:bottle:args:environment:)``
+/// - ``generateRunCommand(for:)``
 /// - ``generateTerminalEnvironmentCommand(bottle:)``
 public class Wine {
     /// URL to the installed DXVK folder containing Direct3D-to-Vulkan translation libraries.
@@ -189,10 +190,41 @@ public class Wine {
         )
     }
 
+    /// Result of a Wine program run, providing the exit code and log file URL
+    /// for post-run diagnostics.
+    public struct ProgramRunResult: Sendable {
+        /// The exit code from the `wine start` process.
+        public let exitCode: Int32
+        /// URL to the log file created for this run.
+        public let logFileURL: URL
+        /// The UUID of the run log entry created for this run.
+        ///
+        /// Use this to correlate the run result with the run log history
+        /// entry, e.g., to open the correct log entry in the console UI.
+        public let runLogEntryId: UUID
+    }
+
+    /// What a program launch runs once its bottle has been prepared for it.
+    ///
+    /// Returned by `prepareProgramLaunch`, and turned into a shell command by
+    /// ``generateRunCommand(for:)``.
+    public struct PreparedLaunch: Equatable, Sendable {
+        /// The environment `wine64` runs with.
+        ///
+        /// Holds no `WINEDLLOVERRIDES` unless the overrides are meant for a
+        /// process this launch spawns: preparation moved the launch's own
+        /// overrides into the prefix registry, where no child inherits them.
+        public let environment: [String: String]
+        /// The arguments `wine64` runs with: `start /unix` and the program, or
+        /// `explorer /desktop=...` for a program that runs in a virtual desktop.
+        public let arguments: [String]
+    }
+
+    // swiftlint:disable function_body_length
     /// Runs a Windows executable within a Wine bottle.
     ///
-    /// This is the primary method for launching Windows applications. It handles DXVK setup
-    /// if enabled in the bottle settings and executes the program using `wine start /unix`.
+    /// This is the primary method for launching Windows applications. It prepares the bottle
+    /// with `prepareProgramLaunch` and then executes the program using `wine start /unix`.
     ///
     /// - Note: If DXVK is enabled in the bottle's settings (`bottle.settings.dxvk`),
     ///   the DXVK libraries will be automatically installed into the bottle before
@@ -219,34 +251,160 @@ public class Wine {
     ///   - bottle: The ``Bottle`` in which to run the program.
     ///   - environment: Additional environment variables for this execution.
     ///   - programOverrides: Optional per-program setting overrides. `nil` fields inherit from bottle.
+    ///   - programSettings: The program's settings, which carry its diagnostic `WINEDEBUG` preset.
+    ///   - gameProfileEnvironment: Environment variables from the game's GameDB profile.
+    ///   - overridesApplyToDescendants: Whether the DLL overrides belong to a process this
+    ///     one spawns rather than to `url` itself, as when `steam.exe` launches a game.
+    ///   - onOutput: Receives each output event of the `wine64` process as it arrives,
+    ///     starting with ``ProcessOutput/started`` once the process is running.
+    /// - Returns: The exit code and log file of the run.
     /// - Throws: An error if the program cannot be started or Wine encounters an error.
-    /// Result of a Wine program run, providing the exit code and log file URL
-    /// for post-run diagnostics.
-    public struct ProgramRunResult: Sendable {
-        /// The exit code from the `wine start` process.
-        public let exitCode: Int32
-        /// URL to the log file created for this run.
-        public let logFileURL: URL
-        /// The UUID of the run log entry created for this run.
-        ///
-        /// Use this to correlate the run result with the run log history
-        /// entry, e.g., to open the correct log entry in the console UI.
-        public let runLogEntryId: UUID
-    }
-
-    // swiftlint:disable function_body_length
     @discardableResult
     @MainActor
     public static func runProgram(
         at url: URL, args: [String] = [], bottle: Bottle, environment: [String: String] = [:],
         programOverrides: ProgramOverrides? = nil, programSettings: ProgramSettings? = nil,
         gameProfileEnvironment: [String: String] = [:],
-        overridesApplyToDescendants: Bool = false
+        overridesApplyToDescendants: Bool = false,
+        onOutput: (@MainActor (ProcessOutput) -> Void)? = nil
     ) async throws -> ProgramRunResult {
         // Note: Launcher detection and fix application happen before this method
         // is called, via LauncherFixes.detectAndApply from the app's run paths
         // (FileOpenView/BottleView/ProgramMenuView).
 
+        // Disable App Nap if requested to prevent macOS from throttling Wine processes.
+        // Note: This token is held while the `wine start` launcher process runs. The actual
+        // game process continues as a child of wineserver after the launcher exits. Full
+        // App Nap prevention for the entire game session would require tracking wineserver,
+        // but this provides protection during the critical startup/initialization phase.
+        let activityToken: NSObjectProtocol? = bottle.settings.disableAppNap
+            ? ProcessInfo.processInfo.beginActivity(
+                options: [.userInitiated, .idleSystemSleepDisabled],
+                reason: "Wine process running for \(bottle.settings.name)"
+            )
+            : nil
+        defer {
+            if let token = activityToken {
+                ProcessInfo.processInfo.endActivity(token)
+            }
+        }
+
+        let launch = try await prepareProgramLaunch(
+            at: url, args: args, bottle: bottle, environment: environment,
+            programOverrides: programOverrides, programSettings: programSettings,
+            gameProfileEnvironment: gameProfileEnvironment,
+            overridesApplyToDescendants: overridesApplyToDescendants
+        )
+
+        // Opened after preparation, not before: log files are named by the
+        // second, and the registry import during preparation opens one too.
+        // Opened first, this run's log shared the import's name, the import
+        // replaced it, and the program's output went to a file no longer on disk.
+        let (fileHandle, logFileURL) = try makeFileHandleWithURL()
+        fileHandle.writeApplicationInfo()
+        fileHandle.writeInfo(for: bottle)
+
+        // Create a run log entry to track this session
+        let programName = url.lastPathComponent
+        var runLogEntry = RunLogEntry(programName: programName, logFileName: logFileURL.lastPathComponent)
+
+        // Record the active WINEDEBUG preset if one is set
+        if launch.environment.keys.contains("WINEDEBUG") {
+            runLogEntry.activeWineDebugPreset = programSettings?.activeWineDebugPreset?.rawValue
+        }
+
+        // Persist the "running" state immediately
+        var runLogHistory = RunLogStore.load(for: programName, in: bottle.url)
+        let prunedEntries = runLogHistory.append(runLogEntry)
+        RunLogStore.save(runLogHistory, for: programName, in: bottle.url)
+
+        // Clean up log files for pruned entries
+        for pruned in prunedEntries {
+            let prunedLogURL = Self.logsFolder.appending(path: pruned.logFileName)
+            try? FileManager.default.removeItem(at: prunedLogURL)
+        }
+
+        // As late as possible: the bridge holds the prefix open only for a short
+        // grace window before standing down, so it wants the smallest gap it can
+        // get between itself and the program it is bridging for.
+        DiscordIntegration.shared.programLaunching(url, bottle: bottle)
+
+        var exitCode: Int32 = 0
+        for await output in try runProcess(
+            name: programName,
+            args: launch.arguments,
+            environment: launch.environment, executableURL: wineBinary,
+            fileHandle: fileHandle
+        ) {
+            onOutput?(output)
+            if case let .terminated(code) = output {
+                exitCode = code
+            }
+        }
+
+        // Update the run log entry with exit information
+        var updatedHistory = RunLogStore.load(for: programName, in: bottle.url)
+        updatedHistory.markCompleted(
+            id: runLogEntry.id,
+            exitCode: exitCode,
+            hasWineDebug: launch.environment.keys.contains("WINEDEBUG")
+        )
+        RunLogStore.save(updatedHistory, for: programName, in: bottle.url)
+
+        return ProgramRunResult(exitCode: exitCode, logFileURL: logFileURL, runLogEntryId: runLogEntry.id)
+    }
+
+    // swiftlint:enable function_body_length
+
+    /// Prepares a bottle to launch a program, without launching it.
+    ///
+    /// This is everything `runProgram` does before it starts the process: it
+    /// resolves the effective graphics backend, deploys that backend's files
+    /// into the prefix, builds the environment, and writes the launch's DLL
+    /// overrides into the prefix registry. What it writes stays in the prefix,
+    /// so running the returned arguments with the returned environment behaves
+    /// like a launch from Whisky, even when that happens later from a terminal.
+    ///
+    /// - Parameters:
+    ///   - url: The URL to the Windows executable (.exe) file.
+    ///   - args: Command-line arguments to pass to the program.
+    ///   - bottle: The ``Bottle`` in which the program will run.
+    ///   - environment: Additional environment variables for this execution.
+    ///   - programOverrides: Optional per-program setting overrides. `nil` fields inherit from bottle.
+    ///   - programSettings: The program's settings, which carry its diagnostic `WINEDEBUG` preset.
+    ///   - gameProfileEnvironment: Environment variables from the game's GameDB profile.
+    ///   - overridesApplyToDescendants: Whether the DLL overrides belong to a process this one
+    ///     spawns. They then stay in the environment: the registry can only scope overrides to
+    ///     an executable whose name is known.
+    /// - Returns: The environment and `wine64` arguments the launch runs with.
+    /// - Throws: An error if a backend's files cannot be deployed or the registry import cannot
+    ///   be started.
+    @MainActor
+    public static func prepareProgramLaunch(
+        at url: URL, args: [String] = [], bottle: Bottle, environment: [String: String] = [:],
+        programOverrides: ProgramOverrides? = nil, programSettings: ProgramSettings? = nil,
+        gameProfileEnvironment: [String: String] = [:],
+        overridesApplyToDescendants: Bool = false
+    ) async throws -> PreparedLaunch {
+        try await prepareProgramLaunch(
+            at: url, args: args, bottle: bottle, environment: environment,
+            programOverrides: programOverrides, programSettings: programSettings,
+            gameProfileEnvironment: gameProfileEnvironment,
+            overridesApplyToDescendants: overridesApplyToDescendants,
+            overrideWriter: { try await syncDLLOverrides(bottle: $0, scopes: $1) }
+        )
+    }
+
+    /// Prepares a launch with the registry write injected, so tests can see
+    /// what a launch writes without running Wine.
+    @MainActor
+    static func prepareProgramLaunch(
+        at url: URL, args: [String] = [], bottle: Bottle, environment: [String: String] = [:],
+        programOverrides: ProgramOverrides? = nil, programSettings: ProgramSettings? = nil,
+        gameProfileEnvironment: [String: String] = [:],
+        overridesApplyToDescendants: Bool = false,
+        overrideWriter: DLLOverrideWriter
+    ) async throws -> PreparedLaunch {
         // The effective backend for this launch: a program-level override wins
         // over the bottle setting, and `.recommended` resolves to its concrete
         // backend. This decides which translation layer's files are deployed;
@@ -286,28 +444,7 @@ public class Wine {
             try enableDXVK(bottle: bottle)
         }
 
-        // Disable App Nap if requested to prevent macOS from throttling Wine processes.
-        // Note: This token is held while the `wine start` launcher process runs. The actual
-        // game process continues as a child of wineserver after the launcher exits. Full
-        // App Nap prevention for the entire game session would require tracking wineserver,
-        // but this provides protection during the critical startup/initialization phase.
-        let activityToken: NSObjectProtocol? = bottle.settings.disableAppNap
-            ? ProcessInfo.processInfo.beginActivity(
-                options: [.userInitiated, .idleSystemSleepDisabled],
-                reason: "Wine process running for \(bottle.settings.name)"
-            )
-            : nil
-        defer {
-            if let token = activityToken {
-                ProcessInfo.processInfo.endActivity(token)
-            }
-        }
-
         // Build the Wine environment with program overrides flowing through the programUser layer
-        let (fileHandle, logFileURL) = try makeFileHandleWithURL()
-        fileHandle.writeApplicationInfo()
-        fileHandle.writeInfo(for: bottle)
-
         var wineEnvironment = constructWineEnvironment(
             for: bottle, environment: environment, programOverrides: programOverrides,
             programSettings: programSettings, gameProfileEnvironment: gameProfileEnvironment
@@ -316,73 +453,32 @@ public class Wine {
         try await applyDLLOverrides(
             for: url, bottle: bottle,
             wineEnvironment: &wineEnvironment,
-            applyToDescendants: overridesApplyToDescendants
+            applyToDescendants: overridesApplyToDescendants,
+            writer: overrideWriter
         )
 
-        // Create a run log entry to track this session
-        let programName = url.lastPathComponent
-        var runLogEntry = RunLogEntry(programName: programName, logFileName: logFileURL.lastPathComponent)
-
-        // Record the active WINEDEBUG preset if one is set
-        if wineEnvironment.keys.contains("WINEDEBUG") {
-            runLogEntry.activeWineDebugPreset = programSettings?.activeWineDebugPreset?.rawValue
-        }
-
-        // Persist the "running" state immediately
-        var runLogHistory = RunLogStore.load(for: programName, in: bottle.url)
-        let prunedEntries = runLogHistory.append(runLogEntry)
-        RunLogStore.save(runLogHistory, for: programName, in: bottle.url)
-
-        // Clean up log files for pruned entries
-        for pruned in prunedEntries {
-            let prunedLogURL = Self.logsFolder.appending(path: pruned.logFileName)
-            try? FileManager.default.removeItem(at: prunedLogURL)
-        }
-
-        // Build launch arguments with optional per-program virtual desktop
-        let launchArgs: [String]
-        if let overrides = programOverrides,
-           let vdEnabled = overrides.virtualDesktopEnabled, vdEnabled {
-            let resolution = Self.resolveVirtualDesktopResolution(from: overrides)
-            let desktopName = programName.replacingOccurrences(of: " ", with: "_")
-            launchArgs = [
-                "explorer", "/desktop=\(desktopName),\(resolution)",
-                url.path(percentEncoded: false)
-            ] + args
-        } else {
-            launchArgs = ["start", "/unix", url.path(percentEncoded: false)] + args
-        }
-
-        // As late as possible: the bridge holds the prefix open only for a short
-        // grace window before standing down, so it wants the smallest gap it can
-        // get between itself and the program it is bridging for.
-        DiscordIntegration.shared.programLaunching(url, bottle: bottle)
-
-        var exitCode: Int32 = 0
-        for await output in try runProcess(
-            name: programName,
-            args: launchArgs,
-            environment: wineEnvironment, executableURL: wineBinary,
-            fileHandle: fileHandle
-        ) {
-            if case let .terminated(code) = output {
-                exitCode = code
-            }
-        }
-
-        // Update the run log entry with exit information
-        var updatedHistory = RunLogStore.load(for: programName, in: bottle.url)
-        updatedHistory.markCompleted(
-            id: runLogEntry.id,
-            exitCode: exitCode,
-            hasWineDebug: wineEnvironment.keys.contains("WINEDEBUG")
+        return PreparedLaunch(
+            environment: wineEnvironment,
+            arguments: launchArguments(for: url, args: args, programOverrides: programOverrides)
         )
-        RunLogStore.save(updatedHistory, for: programName, in: bottle.url)
-
-        return ProgramRunResult(exitCode: exitCode, logFileURL: logFileURL, runLogEntryId: runLogEntry.id)
     }
 
-    // swiftlint:enable function_body_length
+    /// The `wine64` arguments for a launch, with an optional per-program virtual desktop.
+    private static func launchArguments(
+        for url: URL, args: [String], programOverrides: ProgramOverrides?
+    ) -> [String] {
+        guard let overrides = programOverrides,
+              let vdEnabled = overrides.virtualDesktopEnabled, vdEnabled
+        else {
+            return ["start", "/unix", url.path(percentEncoded: false)] + args
+        }
+        let resolution = Self.resolveVirtualDesktopResolution(from: overrides)
+        let desktopName = url.lastPathComponent.replacingOccurrences(of: " ", with: "_")
+        return [
+            "explorer", "/desktop=\(desktopName),\(resolution)",
+            url.path(percentEncoded: false)
+        ] + args
+    }
 
     /// Resolves the virtual desktop resolution string from per-program overrides.
     ///
@@ -422,10 +518,32 @@ public class Wine {
     ) -> String {
         // Escape args and environment values to prevent shell injection from user-editable settings
         let escapedArgs = preEscaped ? args : args.esc
-        var wineCmd = "\(wineBinary.esc) start /unix \(url.esc) \(escapedArgs)"
         WineUserProfile.reconcile(bottleURL: bottle.url)
         let wineEnv = constructWineEnvironment(for: bottle, environment: environment)
-        for envVar in wineEnv {
+        return shellCommand(
+            "\(wineBinary.esc) start /unix \(url.esc) \(escapedArgs)", environment: wineEnv
+        )
+    }
+
+    /// Generates the shell command for a launch that has already been prepared.
+    ///
+    /// Unlike ``generateRunCommand(at:bottle:args:environment:preEscaped:)``, which
+    /// builds the environment from the bottle again, this prints the launch's
+    /// environment and arguments exactly as they are, so the command runs the way
+    /// the launch would have: without the `WINEDLLOVERRIDES` that preparation moved
+    /// into the prefix registry.
+    ///
+    /// - Parameter launch: A launch from `prepareProgramLaunch`.
+    /// - Returns: A shell-safe command string ready for execution.
+    public static func generateRunCommand(for launch: PreparedLaunch) -> String {
+        let words = [wineBinary.path(percentEncoded: false)] + launch.arguments
+        return shellCommand(words.map(\.esc).joined(separator: " "), environment: launch.environment)
+    }
+
+    /// Prefixes `command` with an assignment for each environment variable.
+    private static func shellCommand(_ command: String, environment: [String: String]) -> String {
+        var wineCmd = command
+        for envVar in environment {
             if isValidEnvKey(envVar.key) {
                 // Keys are validated to be safe shell identifiers; values are escaped
                 // Note: No quotes needed - .esc handles all shell metacharacter escaping

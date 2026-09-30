@@ -204,9 +204,13 @@ extension Whisky {
         static let configuration = CommandConfiguration(
             abstract: "Run a program with Whisky.",
             discussion: """
-            Runs a Windows program directly using Wine. Use --command to print \
-            the command instead. Use --follow to stream program output to the \
-            terminal in real time. Use --tail-log to follow the Wine log file.
+            Runs a Windows program directly using Wine, with the same settings \
+            and preparation as a launch from Whisky. Use --command to print the \
+            command instead: the bottle is prepared first (DLL overrides written \
+            to its registry, graphics backend files deployed), so the printed \
+            command runs the program the same way. Use --follow to stream program \
+            output to the terminal in real time. Use --tail-log to follow the \
+            Wine log file.
 
             Options the program itself takes (for example --disable-gpu) are \
             passed through as written. If a program option has the same name \
@@ -263,12 +267,15 @@ extension Whisky {
             let program = Program(url: url, bottle: bottle)
 
             if command {
-                // Print the command for manual execution or scripting
-                // Use array overload to properly escape each argument individually
-                print(program.generateTerminalCommand(args: args))
+                // Print the command for manual execution or scripting. The bottle
+                // is prepared the way a launch prepares it, since the registry and
+                // prefix state that preparation leaves behind is part of what makes
+                // the command behave like a launch from Whisky.
+                let terminalCommand = try await program.prepareTerminalCommand(args: args)
+                print(terminalCommand)
             } else if follow {
                 // Stream Wine output to the terminal in real time
-                try await runWithFollow(url: url, args: args, bottle: bottle, program: program)
+                try await runWithFollow(args: args, program: program)
             } else {
                 // Default mode: launch and print deterministic confirmation
                 try await runDefault(url: url, args: args, bottle: bottle, program: program)
@@ -296,12 +303,8 @@ extension Whisky {
         /// Default run mode: launches the program and prints a deterministic confirmation line.
         @MainActor
         private func runDefault(url: URL, args: [String], bottle: Bottle, program: Program) async throws {
-            let environment = program.generateEnvironment()
-
             do {
-                let result = try await Wine.runProgram(
-                    at: url, args: args, bottle: bottle, environment: environment
-                )
+                let result = try await program.launch(args: args)
 
                 let exeName = url.lastPathComponent
                 let bottleName = bottle.settings.name
@@ -331,35 +334,24 @@ extension Whisky {
 
         /// Follow mode: streams Wine process stdout/stderr to the terminal in real time.
         @MainActor
-        private func runWithFollow(
-            url: URL, args: [String], bottle: Bottle, program: Program
-        ) async throws {
-            let environment = program.generateEnvironment()
-            var exitCode: Int32 = 0
-
-            // Use the public runWineProcess streaming API for real-time output
-            let wineArgs = ["start", "/unix", url.path(percentEncoded: false)] + args
-            let stream = try Wine.runWineProcess(
-                name: url.lastPathComponent, args: wineArgs, bottle: bottle, environment: environment
-            )
-
-            for await output in stream {
+        private func runWithFollow(args: [String], program: Program) async throws {
+            // The same launch as the default mode, with its output streamed as it
+            // arrives, so following a program never changes how it runs.
+            let result = try await program.launch(args: args) { output in
                 switch output {
-                case .started:
+                case .started, .terminated:
                     break
                 case let .message(line):
                     FileHandle.standardOutput.write(Data(line.utf8))
                 case let .error(line):
                     FileHandle.standardError.write(Data(line.utf8))
-                case let .terminated(code):
-                    exitCode = code
                 }
             }
 
-            FileHandle.standardError.write(Data("Exited with code \(exitCode)\n".utf8))
+            FileHandle.standardError.write(Data("Exited with code \(result.exitCode)\n".utf8))
 
-            if exitCode != 0 {
-                throw ExitCode(exitCode)
+            if result.exitCode != 0 {
+                throw ExitCode(result.exitCode)
             }
         }
 

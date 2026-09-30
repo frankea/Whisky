@@ -30,32 +30,12 @@ public enum RegistryType: String {
 /// current state.
 enum WineRegistryFile {
     static func readValue(bottleURL: URL, key: String, valueName: String) -> String? {
-        let regFileName: String
-        if key.hasPrefix("HKCU") || key.hasPrefix("HKEY_CURRENT_USER") {
-            regFileName = "user.reg"
-        } else if key.hasPrefix("HKLM") || key.hasPrefix("HKEY_LOCAL_MACHINE") {
-            regFileName = "system.reg"
-        } else {
+        guard let file = contents(for: key, bottleURL: bottleURL) else {
             return nil
         }
+        let sectionHeader = file.sectionHeader
 
-        let regFileURL = bottleURL.appending(path: regFileName)
-        guard let content = try? String(contentsOf: regFileURL, encoding: .utf8) else {
-            return nil
-        }
-
-        // Normalize the key path for .reg file format
-        // HKCU\Software\Wine\Drivers -> [Software\\Wine\\Drivers]
-        let normalizedKey = key
-            .replacingOccurrences(of: "HKCU\\", with: "")
-            .replacingOccurrences(of: "HKEY_CURRENT_USER\\", with: "")
-            .replacingOccurrences(of: "HKLM\\", with: "")
-            .replacingOccurrences(of: "HKEY_LOCAL_MACHINE\\", with: "")
-            .replacingOccurrences(of: "\\", with: "\\\\")
-
-        let sectionHeader = "[" + normalizedKey + "]"
-
-        let lines = content.components(separatedBy: "\n")
+        let lines = file.text.components(separatedBy: "\n")
         var inSection = false
 
         for line in lines {
@@ -81,6 +61,97 @@ enum WineRegistryFile {
         }
 
         return nil
+    }
+
+    /// The names of the values set directly under `key`, or `nil` when the
+    /// hive's `.reg` file is missing or unreadable.
+    ///
+    /// A name comes back as the file spells it. Wine writes one verbatim
+    /// unless it holds a quote, a backslash or a non-ASCII character, which
+    /// it escapes, so a plain ASCII name can be looked up as is.
+    static func valueNames(bottleURL: URL, key: String) -> Set<String>? {
+        guard let file = contents(for: key, bottleURL: bottleURL) else {
+            return nil
+        }
+
+        var names: Set<String> = []
+        var inSection = false
+        for line in file.text.components(separatedBy: "\n") {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.hasPrefix("[") {
+                inSection = trimmed.lowercased().hasPrefix(file.sectionHeader.lowercased())
+                continue
+            }
+            if inSection, let name = quotedName(in: trimmed) {
+                names.insert(name)
+            }
+        }
+        return names
+    }
+
+    /// The `.reg` file that holds `key`, and the section header `key` has in it.
+    private static func contents(for key: String, bottleURL: URL) -> (text: String, sectionHeader: String)? {
+        let regFileName: String
+        if key.hasPrefix("HKCU") || key.hasPrefix("HKEY_CURRENT_USER") {
+            regFileName = "user.reg"
+        } else if key.hasPrefix("HKLM") || key.hasPrefix("HKEY_LOCAL_MACHINE") {
+            regFileName = "system.reg"
+        } else {
+            return nil
+        }
+
+        let regFileURL = bottleURL.appending(path: regFileName)
+        guard let content = try? String(contentsOf: regFileURL, encoding: .utf8) else {
+            return nil
+        }
+
+        // Normalize the key path for .reg file format
+        // HKCU\Software\Wine\Drivers -> [Software\\Wine\\Drivers]
+        let normalizedKey = key
+            .replacingOccurrences(of: "HKCU\\", with: "")
+            .replacingOccurrences(of: "HKEY_CURRENT_USER\\", with: "")
+            .replacingOccurrences(of: "HKLM\\", with: "")
+            .replacingOccurrences(of: "HKEY_LOCAL_MACHINE\\", with: "")
+            .replacingOccurrences(of: "\\", with: "\\\\")
+
+        return (content, "[" + normalizedKey + "]")
+    }
+
+    /// The name a `"name"=...` line sets, spelled as in the file, or `nil`
+    /// for any other line. An escaped quote does not end the name.
+    private static func quotedName(in line: String) -> String? {
+        guard line.hasPrefix("\"") else {
+            return nil
+        }
+        var name = ""
+        var escaping = false
+        for character in line.dropFirst() {
+            if !escaping, character == "\"" {
+                return name
+            }
+            escaping = !escaping && character == "\\"
+            name.append(character)
+        }
+        return nil
+    }
+}
+
+extension Wine {
+    /// Imports a `.reg` document into the bottle's registry in one Wine process.
+    ///
+    /// The file is written as UTF-16LE behind a BOM: Wine detects a Unicode
+    /// `.reg` by its BOM alone, and without one the file parses as ANSI,
+    /// matches no header, and imports nothing while exiting 0.
+    @MainActor
+    static func importRegistry(document: String, bottle: Bottle) async throws {
+        let url = FileManager.default.temporaryDirectory
+            .appending(path: "whisky-registry-\(UUID().uuidString).reg")
+        try ("\u{FEFF}" + document).write(to: url, atomically: true, encoding: .utf16LittleEndian)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        // `reg import`, not `regedit`: regedit has no silent switch, so it puts
+        // up the import confirmation and never exits.
+        try await runWine(["reg", "import", url.path(percentEncoded: false)], bottle: bottle)
     }
 }
 

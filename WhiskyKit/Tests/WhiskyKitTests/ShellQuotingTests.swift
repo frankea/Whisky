@@ -95,7 +95,6 @@ struct ShellQuotingTests {
         #expect(path.hasPrefix(wineBin + ":"))
     }
 
-
     @Test("Command lines and assignments quote every value")
     func commandLineAndAssignment() {
         #expect(ShellQuoting.commandLine(["bash", "/p/w t", "vcrun2019"]) == "'bash' '/p/w t' 'vcrun2019'")

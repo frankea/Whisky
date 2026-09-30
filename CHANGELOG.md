@@ -163,6 +163,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   there, and in any shell a quote with a combining mark on it was left
   unescaped. Backslashes and quotes now always sit outside the quoted
   text, which zsh, bash and fish all read the same way (#280).
+- Importing a Game Porting Toolkit payload now verifies the code it puts in
+  every bottle's Wine tree, the D3DMetal framework and its shared library.
+  Each must carry Apple's signature for the identifier Apple gives it, on
+  every architecture it contains, and the folders around them must match
+  Apple's layout, so nothing the loader could pick up in place of Apple's
+  files sits outside the framework's sealed version. The checks run on the
+  source and again on the copy that goes into the store, and a payload that
+  fails is refused with the offending file named. The Windows DLLs cannot
+  carry an Apple signature: the D3D forwarders keep their builtin-marker
+  check, which a hand-made DLL can also pass, and the NVIDIA bridges are
+  not checked (#265).
 
 ### Removed
 - ClickOnce support. Games do not arrive as `.appref-ms` deployments, and

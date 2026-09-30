@@ -1060,15 +1060,26 @@ public struct BottleSettings: Codable, Equatable {
         return launcherDLLOverrides
     }
 
-    /// The GPU spoof environment with feature-level keys resolved against the
-    /// bottle's own settings.
+    /// The GPU spoof environment with feature-level and ray tracing keys
+    /// resolved against the bottle's own settings.
     ///
     /// Feature level is one resolved decision: force-D3D11 already pinned 12_0
     /// off in the bottle layer, and the spoof's layer wins, so leaving these
     /// keys in would silently undo the setting that sits beside the spoof in
     /// the same screen.
+    ///
+    /// Ray tracing is the same kind of decision, and it has its own toggle,
+    /// ``dxrEnabled``, whose bottle layer sets `D3DM_SUPPORT_DXR` when it is on.
+    /// Unlike the `GPU_*` keys beside it, that one is read by D3DMetal. It
+    /// only matters to games, since launcher UIs render on DXVK, and every game
+    /// a launcher starts inherits the launcher's environment. So the spoof
+    /// turned DXR on for every game in a bottle that Play had configured for
+    /// Steam, over the toggle (off by default, and not offered at all on Macs
+    /// without hardware ray tracing) and over the troubleshooter's "Disable Ray
+    /// Tracing" fix.
     private func spoofEnvironment() -> [String: String] {
         var gpuEnv = GPUDetection.spoofWithVendor(gpuVendor)
+        gpuEnv.removeValue(forKey: "D3DM_SUPPORT_DXR")
         if forceD3D11 {
             gpuEnv.removeValue(forKey: "D3DM_FEATURE_LEVEL_12_0")
             gpuEnv.removeValue(forKey: "D3DM_FEATURE_LEVEL_12_1")

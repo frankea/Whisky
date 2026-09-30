@@ -214,6 +214,25 @@ final class EnvironmentVariablesTests: XCTestCase {
         XCTAssertNil(env["D3DM_FEATURE_LEVEL_12_1"])
     }
 
+    func testSpoofDoesNotOutbidTheDXRToggle() {
+        var settings = BottleSettings()
+        settings.launcherCompatibilityMode = true
+        settings.detectedLauncher = .steam
+        settings.gpuSpoofing = true
+
+        for dxrEnabled in [false, true] {
+            settings.dxrEnabled = dxrEnabled
+            var builder = EnvironmentBuilder()
+            _ = settings.populateBottleManagedLayer(builder: &builder, resolvedBackend: .d3dMetal)
+            _ = settings.populateLauncherManagedLayer(builder: &builder)
+            let (env, _) = builder.resolve()
+
+            // Ray tracing is the bottle's decision; the spoof's launcher layer
+            // wins over the bottle layer, so it must not carry its own answer.
+            XCTAssertEqual(env["D3DM_SUPPORT_DXR"], dxrEnabled ? "1" : nil, "dxrEnabled = \(dxrEnabled)")
+        }
+    }
+
     // MARK: - Sequoia Compatibility Mode
 
     func testSequoiaToggleEmitsNothing() {

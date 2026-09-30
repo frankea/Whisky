@@ -34,6 +34,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   runtime by hand and a d3d12.dll slot someone replaced, and takes the
   interposers back out of an imported payload from another GPTK line that an
   earlier deploy put them in front of (#276).
+- Launcher compatibility mode no longer turns DirectX Raytracing on for every
+  game in the bottle. Its GPU spoof, which Play switches on when it sets a
+  bottle up for Steam, carried `D3DM_SUPPORT_DXR=1`, which D3DMetal reads and
+  every game inherits from the launcher. It overrode the bottle's own ray
+  tracing toggle (off by default, and not offered on Macs without hardware
+  ray tracing) and the troubleshooter's Disable Ray Tracing fix, which now
+  decide it alone (#276).
 - The terminal environment (Open in Terminal and `WhiskyCmd shellenv`) now
   puts the real Wine bin directory on `PATH`. The path was backslash-escaped
   inside double quotes, so the entry kept a literal backslash before the

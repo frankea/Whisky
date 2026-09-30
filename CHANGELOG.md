@@ -31,29 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   inside double quotes, so the entry kept a literal backslash before the
   space in "Application Support" and `wine64` was not found (#270, fixes
   #269).
-- Unity 6000.3 games start again in bottles on DXVK or DXMT, which on the
-  standard engine is every bottle left on Recommended. 3.7.0 turned d3d12
-  off under both backends so that a DirectX 12 game could not hand one
-  layer's adapter to D3DMetal, but D3DMetal only sits behind d3d12 once the
-  GPTK payload is deployed. On the standard engine it is Wine's own d3d12,
-  which turns such a game away cleanly and lets it fall back to DirectX 11.
-  Turned off, the DLL could not load at all, and Unity 6000.3 loads it at
-  startup, so those games crashed with exception 0xC06D007E. d3d12 is now
-  only turned off when the payload is deployed (fixes #255, #257, #258).
-
-  A game that was started directly from Whisky on 3.7.0 keeps d3d12 turned
-  off in a registry entry of its own until it is next started that way, so
-  if it still crashes when started through Steam, start its executable once
-  from the bottle. A disabled d3d12 entry in a bottle's DLL Overrides, which
-  Presets > DXVK (D3D9/10/11) added on 3.7.0, also keeps the DLL off until
-  it is removed.
-
-  In WhiskyKit, `DLLOverrideResolver.dxvkPreset`, `dxmtPreset` and
-  `managedPreset(for:)` now take whether the runtime's builtin d3d12 is
-  D3DMetal's, which changes their public signatures.
-- The conflict warning in a DXMT bottle's DLL Overrides section now names
-  DXMT. It said every managed entry overrode a DXVK setting, whichever
-  backend had applied it.
 - Open in Terminal and `WhiskyCmd shellenv` now export every variable with
   its real value. Each value was escaped for a bare shell word and then put
   inside double quotes, where most of those backslashes stay, so every `=`

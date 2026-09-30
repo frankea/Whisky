@@ -66,6 +66,25 @@ public extension Wine {
         return running
     }
 
+    /// Lists the bottle's Wine processes as `tasklist.exe` reports them.
+    ///
+    /// `tasklist.exe` is a Wine process in the bottle, so unlike the `-k0` probe
+    /// above it runs with the bottle's full environment, the way any other helper
+    /// does. What it skips is the log file. The Processes page polls this every
+    /// few seconds, as does the Steam client driver while it watches Steam, and a
+    /// log per call buried the launch logs people are asked to attach.
+    ///
+    /// - Parameter bottle: The bottle whose processes to list.
+    /// - Returns: The parsed process list.
+    /// - Throws: An error if `tasklist.exe` cannot be started.
+    @MainActor
+    static func listProcesses(for bottle: Bottle) async throws -> [WineProcess] {
+        let output = try await runWineWithBottle(
+            ["tasklist.exe", "/FO", "CSV"], bottle: bottle, createsLogFile: false
+        )
+        return parseTasklistOutput(output)
+    }
+
     /// Parses the CSV output of `tasklist.exe` into an array of ``WineProcess`` values.
     ///
     /// The expected format is quoted CSV with a header line:

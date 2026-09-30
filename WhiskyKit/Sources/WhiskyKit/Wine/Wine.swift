@@ -272,6 +272,9 @@ public class Wine {
         // before anything in the bottle starts, or the app boots into an empty one.
         WineUserProfile.reconcile(bottleURL: bottle.url)
 
+        // Also before the program starts: a process reads font aliases once.
+        await syncCJKFontReplacements(bottle: bottle)
+
         try prepareBackendPrefix(effectiveBackend, bottle: bottle)
 
         // Enable DXVK if needed: effective backend, the legacy program-level

@@ -31,6 +31,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   inside double quotes, so the entry kept a literal backslash before the
   space in "Application Support" and `wine64` was not found (#270, fixes
   #269).
+- Open in Terminal and `WhiskyCmd shellenv` now export every variable with
+  its real value. Each value was escaped for a bare shell word and then put
+  inside double quotes, where most of those backslashes stay, so every `=`
+  and `;` in `WINEDLLOVERRIDES` came out with a backslash in front
+  (`d3d11\=n,b\;...`) and `WINEPREFIX` kept one before each space in a
+  custom bottle location. Values are now single-quoted, which zsh, bash and
+  fish read back verbatim (#280, fixes #267).
+
+### Security
+- A bottle name, bottle path or DLL override name can no longer run
+  commands in the terminal that Open in Terminal or the Winetricks screen
+  opens. Under fish, a backslash before an apostrophe ended the quoting
+  early, because fish reads a backslash inside single quotes as an escape
+  there, and in any shell a quote with a combining mark on it was left
+  unescaped. Backslashes and quotes now always sit outside the quoted
+  text, which zsh, bash and fish all read the same way (#280).
 
 ### Removed
 - ClickOnce support. Games do not arrive as `.appref-ms` deployments, and

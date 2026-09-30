@@ -65,6 +65,7 @@ body:
         - "Sequoia (macOS 15.4)"
         - "Sequoia (macOS 15.5+)"
         - "Tahoe (macOS 26)"
+        - "macOS 27"
         - "Other (specify in description)"
     validations:
       required: true

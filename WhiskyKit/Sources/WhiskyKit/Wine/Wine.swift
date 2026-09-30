@@ -1153,8 +1153,14 @@ public extension Wine {
     /// - Returns: A tuple of the open `FileHandle` and its log file `URL`.
     /// - Throws: An error if the log directory or file cannot be created.
     static func makeFileHandleWithURL() throws -> (FileHandle, URL) {
-        try makeLogFile(in: logsFolder, date: .now)
+        try makeLogFile(in: logsFolderOverride ?? logsFolder, date: .now)
     }
+
+    /// The folder ``makeFileHandleWithURL()`` creates logs in, instead of ``logsFolder``,
+    /// for as long as a task binds it. Tests bind a temporary folder of their own, so the
+    /// helper runs they make never write under `~/Library/Logs`, and test processes
+    /// running in parallel never share a logs folder.
+    @TaskLocal internal static var logsFolderOverride: URL?
 
     /// Creates a new log file in `folder`, named for `date`, and opens it for writing.
     ///

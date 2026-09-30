@@ -42,87 +42,66 @@ final class WineProcessManagementTests: XCTestCase {
     /// run creates its log before it starts the process.
     @MainActor
     func testListingProcessesLeavesNoLogFile() async throws {
-        let bottle = try makeBottleWithoutRuntime()
+        let (bottle, logsFolder) = try makeBottleWithoutRuntime()
 
-        _ = try? await Wine.listProcesses(for: bottle)
+        await Wine.$logsFolderOverride.withValue(logsFolder) {
+            _ = try? await Wine.listProcesses(for: bottle)
+        }
 
-        XCTAssertEqual(logFiles(naming: bottle), [])
+        XCTAssertEqual(logFiles(in: logsFolder), [])
     }
 
     /// The Steam client driver polls the process list while it watches Steam.
     @MainActor
     func testSteamDriverProcessListLeavesNoLogFile() async throws {
-        let bottle = try makeBottleWithoutRuntime()
+        let (bottle, logsFolder) = try makeBottleWithoutRuntime()
 
-        _ = await WineSteamClientDriver(bottle: bottle).processList()
+        await Wine.$logsFolderOverride.withValue(logsFolder) {
+            _ = await WineSteamClientDriver(bottle: bottle).processList()
+        }
 
-        XCTAssertEqual(logFiles(naming: bottle), [])
+        XCTAssertEqual(logFiles(in: logsFolder), [])
     }
 
     /// Keeps the two tests above honest: any other helper run still gets a log
-    /// file, and it is found by the bottle it names.
+    /// file, and it lands in the logs folder the test binds.
     @MainActor
     func testOtherHelperRunsStillWriteALogFile() async throws {
-        let bottle = try makeBottleWithoutRuntime()
+        let (bottle, logsFolder) = try makeBottleWithoutRuntime()
 
-        _ = try? await Wine.runWine(["tasklist.exe", "/FO", "CSV"], bottle: bottle)
+        await Wine.$logsFolderOverride.withValue(logsFolder) {
+            _ = try? await Wine.runWine(["tasklist.exe", "/FO", "CSV"], bottle: bottle)
+        }
 
-        XCTAssertEqual(logFiles(naming: bottle).count, 1)
+        XCTAssertEqual(logFiles(in: logsFolder).count, 1)
     }
 
     // MARK: - Helpers
 
-    /// A bottle in a temporary folder. Skips the test where a Wine runtime is
-    /// installed for the test host, since tasklist.exe would really run there.
-    /// Afterwards it removes the logs that name the bottle, and the logs folder
-    /// itself if the test created it.
+    /// A bottle in a temporary folder, and a logs folder next to it for the test
+    /// to bind as `Wine.logsFolderOverride`. Nothing is written under
+    /// `~/Library/Logs`, and tests running in parallel processes never share a
+    /// logs folder. Skips the test where a Wine runtime is installed for the test
+    /// host, since tasklist.exe would really run there.
     @MainActor
-    private func makeBottleWithoutRuntime() throws -> Bottle {
+    private func makeBottleWithoutRuntime() throws -> (bottle: Bottle, logsFolder: URL) {
         try XCTSkipIf(
             FileManager.default.isExecutableFile(atPath: Wine.wineBinary.path(percentEncoded: false)),
             "A Wine runtime is installed for the test host"
         )
         let dir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let bottle = Bottle(bottleUrl: dir, inFlight: false, isAvailable: true)
-
-        let logsFolder = Wine.logsFolder
-        let logsFolderExisted = FileManager.default.fileExists(atPath: logsFolder.path(percentEncoded: false))
-        let header = Self.logHeader(naming: bottle)
+        let bottleURL = dir.appending(path: "bottle", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: bottleURL, withIntermediateDirectories: true)
         addTeardownBlock {
             try? FileManager.default.removeItem(at: dir)
-            if logsFolderExisted {
-                for log in Self.logFiles(in: logsFolder, containing: header) {
-                    try? FileManager.default.removeItem(at: log)
-                }
-            } else {
-                try? FileManager.default.removeItem(at: logsFolder)
-            }
         }
-        return bottle
+        let bottle = Bottle(bottleUrl: bottleURL, inFlight: false, isAvailable: true)
+        return (bottle, dir.appending(path: "logs", directoryHint: .isDirectory))
     }
 
-    /// The log files whose header names `bottle`.
-    @MainActor
-    private func logFiles(naming bottle: Bottle) -> [URL] {
-        Self.logFiles(in: Wine.logsFolder, containing: Self.logHeader(naming: bottle))
-    }
-
-    /// The line a helper run's log header uses to name its bottle.
-    @MainActor
-    private static func logHeader(naming bottle: Bottle) -> String {
-        "Bottle URL: \(bottle.url.path)\n"
-    }
-
-    private static func logFiles(in folder: URL, containing text: String) -> [URL] {
+    /// The log files in `folder`, which the test owns.
+    private func logFiles(in folder: URL) -> [URL] {
         let contents = try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)
-        return (contents ?? []).filter { url in
-            guard url.pathExtension == "log",
-                  let log = try? String(contentsOf: url, encoding: .utf8)
-            else {
-                return false
-            }
-            return log.contains(text)
-        }
+        return (contents ?? []).filter { $0.pathExtension == "log" }
     }
 }

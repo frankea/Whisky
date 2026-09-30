@@ -321,15 +321,16 @@ public enum GPTKImporter {
             if let isAppleSigned {
                 version = try validatePayload(at: staging, isAppleSigned: isAppleSigned).version
             }
+            // attributesOfItem does not follow a link, so a lib left behind as
+            // a dangling link is replaced too; fileExists would not see it.
+            if (try? fileManager.attributesOfItem(atPath: libDest.path(percentEncoded: false))) != nil {
+                try fileManager.removeItem(at: libDest)
+            }
+            try fileManager.moveItem(at: staging, to: libDest)
         } catch {
             try? fileManager.removeItem(at: staging)
             throw error
         }
-
-        if fileManager.fileExists(atPath: libDest.path(percentEncoded: false)) {
-            try fileManager.removeItem(at: libDest)
-        }
-        try fileManager.moveItem(at: staging, to: libDest)
 
         let record = GPTKStoreRecord(gptkVersion: version, importedAt: Date())
         let encoder = PropertyListEncoder()

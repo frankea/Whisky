@@ -209,6 +209,50 @@ struct GPTKImporterTests {
         #expect(destination == GPTKImporter.unixLinkDestination)
     }
 
+    @Test("Import replaces a store lib left behind as a dangling link")
+    func importReplacesDanglingStoreLink() throws {
+        let lib = tempDir.appending(path: "lib")
+        let store = tempDir.appending(path: "store")
+        try makePayload(at: lib)
+        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _, _ in true })
+        // What an import through a linked payload folder used to leave once
+        // the folder it pointed at was gone.
+        try FileManager.default.createDirectory(at: store, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(
+            at: store.appending(path: "lib"), withDestinationURL: tempDir.appending(path: "gone")
+        )
+
+        try GPTKImporter.importPayload(payload, intoStore: store, revalidatingWith: { _, _ in true })
+
+        let storeLib = store.appending(path: "lib").path(percentEncoded: false)
+        let type = try FileManager.default.attributesOfItem(atPath: storeLib)[.type] as? FileAttributeType
+        #expect(type == .typeDirectory)
+        #expect(GPTKImporter.storedRecord(inStore: store)?.gptkVersion == "4.0b2")
+    }
+
+    @Test("An import that cannot replace the stored payload leaves no staged copy behind")
+    func importCleansUpFailedReplacement() throws {
+        let lib = tempDir.appending(path: "lib")
+        let store = tempDir.appending(path: "store")
+        try makePayload(at: lib)
+        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _, _ in true })
+        // A file the store's lib cannot lose, so removing it fails.
+        let locked = store.appending(path: "lib").appending(path: "locked")
+        let lockedPath = locked.path(percentEncoded: false)
+        try FileManager.default.createDirectory(at: locked, withIntermediateDirectories: true)
+        try Data().write(to: locked.appending(path: "file"))
+        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: lockedPath)
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: lockedPath)
+        }
+
+        #expect(throws: (any Error).self) {
+            try GPTKImporter.importPayload(payload, intoStore: store, revalidatingWith: { _, _ in true })
+        }
+        let staging = store.appending(path: "lib.staging").path(percentEncoded: false)
+        #expect(!FileManager.default.fileExists(atPath: staging))
+    }
+
     @Test("Stored record is nil without a store or with a gutted payload")
     func storedRecordAbsent() throws {
         let store = tempDir.appending(path: "store")

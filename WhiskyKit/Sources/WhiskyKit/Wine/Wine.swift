@@ -297,13 +297,6 @@ public class Wine {
         onOutput: (@MainActor (ProcessOutput) -> Void)?,
         prepare: @MainActor () async throws -> PreparedLaunch
     ) async throws -> ProgramRunResult {
-        // Font aliases first, before any setting is read: their import can take
-        // a few seconds, and a setting changed during it would leave this launch
-        // with one backend's files and another's environment. It must finish
-        // before the program starts, since a process reads the aliases once, and
-        // like every Wine process it reconciles the user profile before starting.
-        await syncCJKFontReplacements(bottle: bottle)
-
         // Note: Launcher detection and fix application happen before this method
         // is called, via LauncherFixes.detectAndApply from the app's run paths
         // (FileOpenView/BottleView/ProgramMenuView).
@@ -388,11 +381,12 @@ public class Wine {
     /// Prepares a bottle to launch a program, without launching it.
     ///
     /// This is everything `runProgram` does before it starts the process: it
-    /// resolves the effective graphics backend, deploys that backend's files
-    /// into the prefix, builds the environment, and writes the launch's DLL
-    /// overrides into the prefix registry. What it writes stays in the prefix,
-    /// so running the returned arguments with the returned environment later,
-    /// from a terminal, starts the program with the DLLs and settings a launch
+    /// adds the Noto CJK aliases once Source Han Sans is installed, resolves
+    /// the effective graphics backend, deploys that backend's files into the
+    /// prefix, builds the environment, and writes the launch's DLL overrides
+    /// into the prefix registry. What it writes stays in the prefix, so running
+    /// the returned arguments with the returned environment later, from a
+    /// terminal, starts the program with the DLLs, fonts and settings a launch
     /// from Whisky gives it. What only happens while `runProgram` runs is not
     /// part of it: the log file and run log entry, the App Nap assertion, and
     /// the Discord bridge and presence.
@@ -410,6 +404,8 @@ public class Wine {
     ///     an executable whose name is known.
     ///   - overrideWriter: What writes the DLL overrides into the prefix registry. Tests pass a
     ///     recorder, so they can see what a launch writes without running Wine.
+    ///   - importer: What imports the CJK font aliases the prefix is missing. Tests pass a
+    ///     recorder here too.
     /// - Returns: The environment and `wine64` arguments the launch runs with.
     /// - Throws: An error if a backend's files cannot be deployed or the registry import cannot
     ///   be started.
@@ -419,8 +415,16 @@ public class Wine {
         programOverrides: ProgramOverrides? = nil, programSettings: ProgramSettings? = nil,
         gameProfileEnvironment: [String: String] = [:],
         overridesApplyToDescendants: Bool = false,
-        overrideWriter: DLLOverrideWriter = { try await syncDLLOverrides(bottle: $0, scopes: $1) }
+        overrideWriter: DLLOverrideWriter = { try await syncDLLOverrides(bottle: $0, scopes: $1) },
+        importer: RegistryImporter = { try await importRegistry(document: $0, bottle: $1) }
     ) async throws -> PreparedLaunch {
+        // Font aliases first, before any setting is read: their import can take
+        // a few seconds, and a setting changed during it would leave this launch
+        // with one backend's files and another's environment. It must finish
+        // before the program starts, since a process reads the aliases once, and
+        // like every Wine process it reconciles the user profile before starting.
+        await syncCJKFontReplacements(bottle: bottle, importer: importer)
+
         // The effective backend for this launch: a program-level override wins
         // over the bottle setting, and `.recommended` resolves to its concrete
         // backend. This decides which translation layer's files are deployed;

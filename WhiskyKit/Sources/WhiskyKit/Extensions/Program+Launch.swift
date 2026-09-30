@@ -44,11 +44,11 @@ public extension Program {
     ///
     /// Where `generateTerminalCommand(args:)` only describes a launch, this first
     /// prepares the bottle exactly as ``launch(args:onOutput:)`` does: the audio
-    /// settings and the launch's DLL overrides go into the prefix registry, and
-    /// the graphics backend's files into the prefix. The command then runs the
-    /// program with its own overrides and settings, and clears any
-    /// `WINEDLLOVERRIDES` the terminal exports, which would shadow the
-    /// per-executable registry entries.
+    /// settings, any missing CJK font aliases and the launch's DLL overrides go
+    /// into the prefix registry, and the graphics backend's files into the
+    /// prefix. The command then runs the program with its own overrides and
+    /// settings, and clears any `WINEDLLOVERRIDES` the terminal exports, which
+    /// would shadow the per-executable registry entries.
     ///
     /// - Parameter args: Arguments for the program, one word each.
     /// - Returns: The full Wine command string ready for terminal execution.
@@ -69,17 +69,20 @@ extension Program {
     ///   - args: Arguments for the program, one word each.
     ///   - overrideWriter: What writes the DLL overrides into the prefix registry. Tests
     ///     pass a recorder, so they can see what a launch writes without running Wine.
+    ///   - importer: What imports the CJK font aliases the prefix is missing. Tests pass
+    ///     a recorder here too.
     /// - Returns: The environment and `wine64` arguments of the launch.
     /// - Throws: An error if the bottle cannot be prepared.
     func prepareLaunch(
         args: [String],
-        overrideWriter: Wine.DLLOverrideWriter = { try await Wine.syncDLLOverrides(bottle: $0, scopes: $1) }
+        overrideWriter: Wine.DLLOverrideWriter = { try await Wine.syncDLLOverrides(bottle: $0, scopes: $1) },
+        importer: Wine.RegistryImporter = { try await Wine.importRegistry(document: $0, bottle: $1) }
     ) async throws -> Wine.PreparedLaunch {
         await Wine.syncAudioRegistry(bottle: bottle)
         return try await Wine.prepareProgramLaunch(
             at: url, args: args, bottle: bottle, environment: generateEnvironment(),
             programOverrides: settings.overrides, programSettings: settings,
-            overrideWriter: overrideWriter
+            overrideWriter: overrideWriter, importer: importer
         )
     }
 }

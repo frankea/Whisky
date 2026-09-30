@@ -201,7 +201,7 @@ extension GPTKImporter {
         try installMetalFXBridge(intoLibraryFolder: folder, usingStore: store)
         // Apple's DLLs are in place now, which is the only moment the swaps can
         // be made: the runtime ships the interposers but has nothing to forward
-        // into until this point. A payload from a GPTK line they were never
+        // into until this point. A payload from a build they were never
         // validated on is deployed without them; install checks the version.
         for interposer in interposers {
             try install(interposer, intoLibraryFolder: folder)

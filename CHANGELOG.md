@@ -27,13 +27,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   as installed, reported with heuristic confidence; a bottle whose log
   already says installed is never probed (#233).
 - The runtime's GPTK interposers, the D3D12 video processor and the DXGI
-  driver version fix, now only go in front of a GPTK 4 payload, the line
+  driver version fix, now only go in front of GPTK 4.0 beta 2, the build
   they were validated on. With GPTK 3.0 they crash Red Dead Redemption 2 at
   startup, and opening the app put the D3D12 one back into the runtime every
-  time. The check at launch also leaves alone a payload copied into the
-  runtime by hand and a d3d12.dll slot someone replaced, and takes the
-  interposers back out of an imported payload from another GPTK line that an
-  earlier deploy put them in front of (#276).
+  time. Other builds, later GPTK 4 releases included, go without them until
+  they have been checked. Opening the app also takes them back out of any
+  other build they are already in front of, imported or copied into the
+  runtime by hand, and puts Apple's d3d12.dll and dxgi.dll back exactly as
+  they were, so a runtime an earlier version swapped recovers on its own
+  (#276).
 - Opening the app or Settings no longer writes over a GPTK payload copied
   into the runtime by hand. When a payload had been imported as well, launch
   installed the imported payload's NVAPI and MetalFX bridges into the

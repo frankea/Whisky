@@ -549,6 +549,12 @@ extension Whisky {
             discussion: """
             Without --bottle, the bottle a game was last launched from is used, \
             falling back to the first bottle that has it installed.
+
+            The game is launched through the bottle's Steam client, which starts \
+            first if it isn't running. The command confirms once Wine is running \
+            the client, then waits for that invocation to finish: a few seconds \
+            when the client was already running, the whole session when this \
+            launch started it.
             """
         )
 
@@ -576,21 +582,41 @@ extension Whisky {
                 target = try SteamLauncher.resolveBottle(appId: appId, in: bottles)
             }
 
-            try SteamLauncher.launch(appId: appId, bottle: target)
-
-            if json {
-                let payload = [
-                    "appId": String(appId),
-                    "bottle": target.settings.name,
-                    "status": "launched"
-                ]
-                let data = try JSONSerialization.data(
-                    withJSONObject: payload, options: [.prettyPrinted, .sortedKeys]
-                )
-                print(String(bytes: data, encoding: .utf8) ?? "")
-            } else {
-                print("Launched \(appId) in \(target.settings.name)")
+            // The launch happens inside the returned task. Returning before it
+            // finishes ended the process while the task was still preparing the
+            // bottle, so Steam never started. Confirm once Wine is running the
+            // client, then wait for that invocation the way `run` waits.
+            let appId = self.appId
+            let json = self.json
+            let bottleName = target.settings.name
+            let launch = try SteamLauncher.launch(appId: appId, bottle: target) { output in
+                if case .started = output {
+                    Self.printConfirmation(appId: appId, bottleName: bottleName, json: json)
+                }
             }
+            let result = try await launch.value
+
+            if result.exitCode != 0 {
+                throw ExitCode(result.exitCode)
+            }
+        }
+
+        /// Prints that the game was handed to the bottle's Steam client.
+        @MainActor
+        private static func printConfirmation(appId: Int, bottleName: String, json: Bool) {
+            guard json else {
+                print("Launched \(appId) in \(bottleName)")
+                return
+            }
+            let payload = [
+                "appId": String(appId),
+                "bottle": bottleName,
+                "status": "launched"
+            ]
+            let data = try? JSONSerialization.data(
+                withJSONObject: payload, options: [.prettyPrinted, .sortedKeys]
+            )
+            print(data.flatMap { String(bytes: $0, encoding: .utf8) } ?? "")
         }
     }
 }

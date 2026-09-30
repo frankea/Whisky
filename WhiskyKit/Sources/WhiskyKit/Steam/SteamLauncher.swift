@@ -43,8 +43,10 @@ public enum SteamLauncher {
     ///
     /// Starts the client too when it isn't running, since `-applaunch` on a
     /// cold client brings it up first. The returned task is the client
-    /// invocation, which lives as long as the session, so callers should not
-    /// await it.
+    /// invocation, which lives as long as the session when it starts the
+    /// client, so the app never awaits it. A command-line caller has to: the
+    /// launch only happens inside the task, and a process that exits first
+    /// takes the task with it before Wine has started anything.
     ///
     /// - Parameters:
     ///   - appId: The Steam App ID to launch.
@@ -52,12 +54,16 @@ public enum SteamLauncher {
     ///   - installURL: The game's install folder, to save a library rescan when
     ///     the caller already knows it.
     ///   - record: Whether to remember this bottle for the App ID.
+    ///   - onOutput: Receives the client invocation's output events, starting
+    ///     with ``ProcessOutput/started`` once Wine is running it.
+    /// - Returns: The client invocation, which finishes with its run result.
     /// - Throws: ``SteamLaunchError/steamNotInstalled`` if the bottle has no client.
     @MainActor
     @discardableResult
     public static func launch(
-        appId: Int, bottle: Bottle, installURL: URL? = nil, record: Bool = true
-    ) throws -> Task<Void, Never> {
+        appId: Int, bottle: Bottle, installURL: URL? = nil, record: Bool = true,
+        onOutput: (@MainActor (ProcessOutput) -> Void)? = nil
+    ) throws -> Task<Wine.ProgramRunResult, any Error> {
         guard let steamRoot = SteamLibrary.detectInstall(bottleURL: bottle.url) else {
             throw SteamLaunchError.steamNotInstalled
         }
@@ -76,12 +82,13 @@ public enum SteamLauncher {
 
         return Task {
             await Wine.syncAudioRegistry(bottle: bottle)
-            _ = try? await Wine.runProgram(
+            return try await Wine.runProgram(
                 at: steamExe, args: ["-applaunch", String(appId)], bottle: bottle,
                 programOverrides: plan.overrides,
                 gameProfileEnvironment: plan.gameProfileEnvironment,
                 // the plan is the game's; steam.exe is only the vehicle
-                overridesApplyToDescendants: true
+                overridesApplyToDescendants: true,
+                onOutput: onOutput
             )
         }
     }

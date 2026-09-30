@@ -260,7 +260,11 @@ public enum GPTKImporter {
               let requirement
         else { return false }
 
-        let status = SecStaticCodeCheckValidity(staticCode, [], requirement)
+        // Every slice, not only the host's: the payload is x86_64 and runs
+        // under Rosetta, so on Apple silicon the default check would only look
+        // at a slice Wine never loads.
+        let flags = SecCSFlags(rawValue: UInt32(kSecCSCheckAllArchitectures))
+        let status = SecStaticCodeCheckValidity(staticCode, flags, requirement)
         if status != errSecSuccess {
             let name = url.lastPathComponent
             logger.info("Apple signature check failed for \(name, privacy: .public): \(status, privacy: .public)")

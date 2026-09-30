@@ -53,20 +53,20 @@ struct ShellQuotingTests {
     ]
 
     /// What `shell` prints for `printf %s <quoted value>`.
-    private func readBack(_ value: String, in shell: TestShell, home: URL) throws -> String {
-        try shell.run("printf %s " + ShellQuoting.quoted(value), home: home).output
+    private func readBack(_ value: String, in shell: TestShell, home: URL) async throws -> String {
+        try await shell.run("printf %s " + ShellQuoting.quoted(value), home: home).output
     }
 
     @Test("Every installed shell reads each quoted value back verbatim", arguments: TestShell.installed, hostile)
-    func roundTrips(shell: TestShell, value: String) throws {
+    func roundTrips(shell: TestShell, value: String) async throws {
         let home = try TestShell.makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: home) }
 
-        #expect(try readBack(value, in: shell, home: home) == value)
+        #expect(try await readBack(value, in: shell, home: home) == value)
     }
 
     @Test("Command substitution inside a quoted value never runs", arguments: TestShell.installed)
-    func substitutionIsInert(shell: TestShell) throws {
+    func substitutionIsInert(shell: TestShell) async throws {
         let home = try TestShell.makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: home) }
         let marker = home.appending(path: "expanded").path
@@ -83,7 +83,7 @@ struct ShellQuotingTests {
         ]
 
         for value in values {
-            #expect(try readBack(value, in: shell, home: home) == value)
+            #expect(try await readBack(value, in: shell, home: home) == value)
         }
         #expect(!FileManager.default.fileExists(atPath: marker))
     }

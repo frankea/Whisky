@@ -91,26 +91,33 @@ enum TestShell: String, CaseIterable, CustomTestStringConvertible {
     /// configuration directories under `HOME` even with `--no-config`, and those belong in
     /// the test's temporary directory, not the user's. Running in `home` also means that a
     /// payload which does run, and writes to a relative path, writes inside it.
-    func run(_ script: String, input: String = "", home: URL) throws -> Result {
+    ///
+    /// The pipe reads and the exit wait hold their thread until the shell exits, so they run
+    /// in a detached task, off whatever actor the caller is on. On the main actor they would
+    /// hold it for the whole run and starve the suites that need it to answer in time.
+    func run(_ script: String, input: String = "", home: URL) async throws -> Result {
         let executableURL = try #require(executable, "\(rawValue) is not installed")
-        let process = Process()
-        process.executableURL = executableURL
-        process.arguments = startupFlags + ["-c", script]
-        process.environment = ["PATH": Self.basePath, "HOME": home.path]
-        process.currentDirectoryURL = home
-        let stdin = Pipe()
-        let stdout = Pipe()
-        let stderr = Pipe()
-        process.standardInput = stdin
-        process.standardOutput = stdout
-        process.standardError = stderr
-        try process.run()
-        stdin.fileHandleForWriting.write(Data(input.utf8))
-        try stdin.fileHandleForWriting.close()
-        let out = stdout.fileHandleForReading.readDataToEndOfFile()
-        let err = stderr.fileHandleForReading.readDataToEndOfFile()
-        process.waitUntilExit()
-        return Result(status: process.terminationStatus, stdout: out, stderr: err)
+        let arguments = startupFlags + ["-c", script]
+        return try await Task.detached {
+            let process = Process()
+            process.executableURL = executableURL
+            process.arguments = arguments
+            process.environment = ["PATH": Self.basePath, "HOME": home.path]
+            process.currentDirectoryURL = home
+            let stdin = Pipe()
+            let stdout = Pipe()
+            let stderr = Pipe()
+            process.standardInput = stdin
+            process.standardOutput = stdout
+            process.standardError = stderr
+            try process.run()
+            stdin.fileHandleForWriting.write(Data(input.utf8))
+            try stdin.fileHandleForWriting.close()
+            let out = stdout.fileHandleForReading.readDataToEndOfFile()
+            let err = stderr.fileHandleForReading.readDataToEndOfFile()
+            process.waitUntilExit()
+            return Result(status: process.terminationStatus, stdout: out, stderr: err)
+        }.value
     }
 
     /// A fresh directory for one test to use as `home`; the caller removes it.

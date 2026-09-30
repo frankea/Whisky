@@ -59,6 +59,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   This removes `ClickOnceManager` and the `Program(appRefURL:bottle:displayName:)`
   initializer from WhiskyKit's public API, along with the `isClickOnce`
   property, so the kit needs a major version bump (#215).
+- The performance presets (Balanced, Performance, Quality and Unity). No
+  runtime Whisky ships reads most of what they set, and the Unity preset's
+  `MONO_THREADS_SUSPEND=1` is an invalid value that makes Mono abort at
+  startup, the likely cause of the Unity game crashes reported in #271. If
+  you used the Performance preset with DXVK Async turned off, async shader
+  compilation now follows the DXVK Async toggle, and Metal Validation now
+  takes effect in a bottle that also had the Performance preset, which used
+  to switch it off (#272, fixes #271).
+
+  This removes `PerformancePreset` and the `performancePreset` properties of
+  `BottleSettings`, `ProgramOverrides` and `GameConfigVariantSettings` from
+  WhiskyKit's public API (#272).
 
 ## [3.7.0] - 2026-08-29 (App)
 

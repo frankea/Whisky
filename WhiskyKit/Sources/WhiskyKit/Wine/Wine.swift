@@ -553,15 +553,19 @@ public class Wine {
     }
 
     /// Run a `wine` command with the given arguments and a bottle context
+    ///
+    /// - Parameter createsLogFile: `false` for polls whose output is parsed rather
+    ///   than read, such as `tasklist.exe`: a log file per poll buries the launch
+    ///   logs people are asked to attach.
     @discardableResult
     @MainActor
-    private static func runWineWithBottle(
-        _ args: [String], bottle: Bottle, environment: [String: String] = [:]
+    static func runWineWithBottle(
+        _ args: [String], bottle: Bottle, environment: [String: String] = [:], createsLogFile: Bool = true
     ) async throws -> String {
         var result: [String] = []
-        let fileHandle = try makeFileHandle()
-        fileHandle.writeApplicationInfo()
-        fileHandle.writeInfo(for: bottle)
+        let fileHandle = try createsLogFile ? makeFileHandle() : nil
+        fileHandle?.writeApplicationInfo()
+        fileHandle?.writeInfo(for: bottle)
         WineUserProfile.reconcile(bottleURL: bottle.url)
         let wineEnvironment = constructWineEnvironment(for: bottle, environment: environment)
 

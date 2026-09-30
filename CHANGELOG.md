@@ -49,6 +49,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   classification and the run history all read that log. Log names now go
   to the millisecond, and a log file is only ever created, never replaced
   (#256, #260, #261).
+- Listing a bottle's processes no longer writes a log file. The Running
+  Processes page lists them every few seconds, as does the Steam
+  integration while it watches Steam, so the logs folder filled up with
+  `tasklist.exe` logs and the newest file there was rarely the program's
+  (#256).
 
 ### Security
 - A bottle name, bottle path or DLL override name can no longer run

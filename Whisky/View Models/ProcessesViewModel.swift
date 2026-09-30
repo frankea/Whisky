@@ -110,11 +110,7 @@ class ProcessesViewModel: ObservableObject {
         guard shutdownState == .idle else { return }
 
         do {
-            let output = try await Wine.runWine(
-                ["tasklist.exe", "/FO", "CSV"],
-                bottle: bottle
-            )
-            var parsed = Wine.parseTasklistOutput(output)
+            var parsed = try await Wine.listProcesses(for: bottle)
 
             // Merge with registry data
             let registryProcesses = ProcessRegistry.shared.getProcesses(for: bottle)

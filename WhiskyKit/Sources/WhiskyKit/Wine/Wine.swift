@@ -206,7 +206,7 @@ public class Wine {
     /// What a program launch runs once its bottle has been prepared for it.
     ///
     /// Returned by `prepareProgramLaunch`, and turned into a shell command by
-    /// ``generateRunCommand(for:)``.
+    /// ``generateRunCommand(for:wineBinary:)``.
     struct PreparedLaunch: Equatable, Sendable {
         /// The environment `wine64` runs with.
         ///
@@ -540,12 +540,21 @@ public class Wine {
     /// builds the environment from the bottle again, this prints the launch's
     /// environment and arguments exactly as they are, so the command runs the way
     /// the launch would have: without the `WINEDLLOVERRIDES` that preparation moved
-    /// into the prefix registry.
+    /// into the prefix registry. Leaving the variable out is not enough for that,
+    /// since the command only adds to the environment of the shell it runs in, and
+    /// that shell may export the bottle's overrides already (`WhiskyCmd shellenv`
+    /// and Open in Terminal do). So unless the launch sets the variable itself,
+    /// `wine64` runs through `env -u WINEDLLOVERRIDES`.
     ///
-    /// - Parameter launch: A launch from `prepareProgramLaunch`.
+    /// - Parameters:
+    ///   - launch: A launch from `prepareProgramLaunch`.
+    ///   - wineBinary: The `wine64` the command runs. Tests substitute a stub.
     /// - Returns: A shell-safe command string ready for execution.
-    static func generateRunCommand(for launch: PreparedLaunch) -> String {
-        let words = [wineBinary.path(percentEncoded: false)] + launch.arguments
+    static func generateRunCommand(for launch: PreparedLaunch, wineBinary: URL = Wine.wineBinary) -> String {
+        var words = [wineBinary.path(percentEncoded: false)] + launch.arguments
+        if launch.environment["WINEDLLOVERRIDES"] == nil {
+            words = ["env", "-u", "WINEDLLOVERRIDES"] + words
+        }
         return shellCommand(words.map(\.esc).joined(separator: " "), environment: launch.environment)
     }
 

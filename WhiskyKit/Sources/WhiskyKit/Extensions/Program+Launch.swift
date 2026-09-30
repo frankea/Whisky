@@ -46,8 +46,9 @@ public extension Program {
     /// prepares the bottle exactly as ``launch(args:onOutput:)`` does: the audio
     /// settings and the launch's DLL overrides go into the prefix registry, and
     /// the graphics backend's files into the prefix. The command then runs the
-    /// program with its own overrides and settings, and carries no
-    /// `WINEDLLOVERRIDES` to shadow the per-executable registry entries.
+    /// program with its own overrides and settings, and clears any
+    /// `WINEDLLOVERRIDES` the terminal exports, which would shadow the
+    /// per-executable registry entries.
     ///
     /// - Parameter args: Arguments for the program, one word each.
     /// - Returns: The full Wine command string ready for terminal execution.

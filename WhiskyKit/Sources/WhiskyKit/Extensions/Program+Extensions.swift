@@ -357,14 +357,10 @@ public extension Program {
 extension Program {
     func runInWine() {
         let arguments = settings.arguments.split { $0.isWhitespace }.map(String.init)
-        let environment = generateEnvironment()
 
         Task {
             do {
-                let result = try await Wine.runProgram(
-                    at: self.url, args: arguments, bottle: self.bottle, environment: environment,
-                    programOverrides: settings.overrides, programSettings: settings
-                )
+                let result = try await self.launch(args: arguments)
 
                 // Track the log file URL
                 settings.lastLogFileURL = result.logFileURL

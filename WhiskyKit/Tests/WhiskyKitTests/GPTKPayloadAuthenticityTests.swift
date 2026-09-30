@@ -281,6 +281,26 @@ struct GPTKPayloadAuthenticityTests {
         }
     }
 
+    @Test("A copy that fails part way leaves no staged folder behind")
+    func importCleansUpFailedCopy() throws {
+        let lib = tempDir.appending(path: "lib")
+        let store = tempDir.appending(path: "store")
+        try makePayload(at: lib)
+        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _, _ in true })
+        let unreadable = lib.appending(path: "wine").appending(path: "x86_64-windows")
+            .appending(path: "dxgi.dll").path(percentEncoded: false)
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: unreadable)
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: unreadable)
+        }
+
+        #expect(throws: (any Error).self) {
+            try GPTKImporter.importPayload(payload, intoStore: store, revalidatingWith: { _, _ in true })
+        }
+        let staging = store.appending(path: "lib.staging").path(percentEncoded: false)
+        #expect(!FileManager.default.fileExists(atPath: staging))
+    }
+
     // MARK: - Identity
 
     @Test("Another Apple-signed binary cannot stand in for the payload's code")

@@ -77,6 +77,25 @@ struct ShellQuotingTests {
         #expect(ShellQuoting.quoted("") == "''")
     }
 
+    @Test("PATH assignment safely quotes paths containing spaces")
+    func pathWithSpaces() throws {
+        let wineBin = "/Users/test/Library/Application Support/com.franke.Whisky/Libraries/Wine/bin"
+        let command = "export PATH=\(ShellQuoting.quoted(wineBin)):\"$PATH\""
+
+        let process = Process()
+        process.executableURL = URL(filePath: "/bin/sh")
+        process.arguments = ["-c", command + "; printf %s \"$PATH\""]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        try process.run()
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+
+        let path = String(bytes: data, encoding: .utf8) ?? ""
+        #expect(path.hasPrefix(wineBin + ":"))
+    }
+
+
     @Test("Command lines and assignments quote every value")
     func commandLineAndAssignment() {
         #expect(ShellQuoting.commandLine(["bash", "/p/w t", "vcrun2019"]) == "'bash' '/p/w t' 'vcrun2019'")

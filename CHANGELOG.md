@@ -26,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   default win64 bottles, which Wine does not ship as a builtin -- now counts
   as installed, reported with heuristic confidence; a bottle whose log
   already says installed is never probed (#233).
+- The terminal environment (Open in Terminal and `WhiskyCmd shellenv`) now
+  puts the real Wine bin directory on `PATH`. The path was backslash-escaped
+  inside double quotes, so the entry kept a literal backslash before the
+  space in "Application Support" and `wine64` was not found (#270, fixes
+  #269).
 
 ### Removed
 - ClickOnce support. Games do not arrive as `.appref-ms` deployments, and

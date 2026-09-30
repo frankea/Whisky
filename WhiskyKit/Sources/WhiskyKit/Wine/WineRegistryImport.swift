@@ -19,6 +19,10 @@
 import Foundation
 
 extension Wine {
+    /// Imports a `.reg` document into a bottle's registry:
+    /// ``importRegistry(document:bottle:)`` outside of tests.
+    typealias RegistryImporter = @MainActor (_ document: String, _ bottle: Bottle) async throws -> Void
+
     /// A `reg import` that ran but did not succeed.
     struct RegistryImportError: LocalizedError {
         /// What the import exited with, or -1 when it never reported an exit.

@@ -113,8 +113,15 @@ extension Wine {
     /// check, one with it a read of `user.reg`, and a `reg import` of just the
     /// missing values happens only while one is missing. It never fails a
     /// launch.
+    ///
+    /// - Parameters:
+    ///   - bottle: The bottle a program is about to start in.
+    ///   - importer: What imports the missing aliases.
     @MainActor
-    static func syncCJKFontReplacements(bottle: Bottle) async {
+    static func syncCJKFontReplacements(
+        bottle: Bottle,
+        importer: RegistryImporter = { try await importRegistry(document: $0, bottle: $1) }
+    ) async {
         // Off the main actor: the whole hive is read, and it grows with the prefix.
         let bottleURL = bottle.url
         let pending = await Task.detached(priority: .userInitiated) {
@@ -125,7 +132,7 @@ extension Wine {
         }
 
         do {
-            try await importRegistry(document: CJKFontReplacements.registryDocument(for: pending), bottle: bottle)
+            try await importer(CJKFontReplacements.registryDocument(for: pending), bottle)
             logger.info("Added \(pending.count) CJK font aliases to '\(bottle.settings.name)'")
         } catch {
             logger.error(

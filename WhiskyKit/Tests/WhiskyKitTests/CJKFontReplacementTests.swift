@@ -20,9 +20,26 @@ import Foundation
 import Testing
 @testable import WhiskyKit
 
-/// Covers the decision behind ``Wine/syncCJKFontReplacements(bottle:)``.
-/// The `reg import` itself spawns wineserver and is deliberately not
-/// exercised, same policy as the audio registry sync.
+/// Stands in for the `reg import` a sync runs, and keeps what it was given.
+@MainActor
+private final class ImportRecorder {
+    struct Import: Equatable {
+        let document: String
+        let bottleURL: URL
+    }
+
+    private(set) var imports: [Import] = []
+
+    var importer: Wine.RegistryImporter {
+        { document, bottle in
+            self.imports.append(Import(document: document, bottleURL: bottle.url))
+        }
+    }
+}
+
+/// Covers ``Wine/syncCJKFontReplacements(bottle:importer:)`` and the decision
+/// behind it. The `reg import` itself spawns wineserver and is deliberately
+/// not exercised, same policy as the audio registry sync.
 @Suite("CJK Font Replacement Tests")
 struct CJKFontReplacementTests {
     private static let aliases = ["Noto Sans CJK SC", "Noto Sans CJK TC", "Noto Sans CJK JP", "Noto Sans CJK KR"]
@@ -208,5 +225,40 @@ struct CJKFontReplacementTests {
         let values = document.components(separatedBy: "\r\n").filter { $0.hasPrefix("\"") }
 
         #expect(values == [#""Noto Sans CJK TC"="Source Han Sans TC""#])
+    }
+
+    // MARK: - Sync
+
+    @Test("A sync imports the missing aliases into the bottle, in one document")
+    @MainActor
+    func syncImportsTheMissingAliases() async throws {
+        let userReg = Self.userReg(extra: #""Noto Sans CJK SC"="Microsoft YaHei""#)
+        let bottle = try Bottle(bottleUrl: makeBottle(collection: true, userReg: userReg))
+        defer { try? FileManager.default.removeItem(at: bottle.url) }
+        let recorder = ImportRecorder()
+
+        await Wine.syncCJKFontReplacements(bottle: bottle, importer: recorder.importer)
+
+        let missing = CJKFontReplacements.replacements.filter { $0.alias != "Noto Sans CJK SC" }
+        let document = CJKFontReplacements.registryDocument(for: missing)
+        #expect(recorder.imports == [ImportRecorder.Import(document: document, bottleURL: bottle.url)])
+    }
+
+    @Test("A sync imports nothing when no alias is needed")
+    @MainActor
+    func syncImportsNothingWhenNoneIsNeeded() async throws {
+        let allSet = Self.aliases.map { "\"\($0)\"=\"Source Han Sans\"" }.joined(separator: "\n")
+        let complete = try Bottle(bottleUrl: makeBottle(collection: true, userReg: Self.userReg(extra: allSet)))
+        let fontless = try Bottle(bottleUrl: makeBottle(collection: false, userReg: Self.userReg()))
+        defer {
+            try? FileManager.default.removeItem(at: complete.url)
+            try? FileManager.default.removeItem(at: fontless.url)
+        }
+        let recorder = ImportRecorder()
+
+        await Wine.syncCJKFontReplacements(bottle: complete, importer: recorder.importer)
+        await Wine.syncCJKFontReplacements(bottle: fontless, importer: recorder.importer)
+
+        #expect(recorder.imports.isEmpty)
     }
 }

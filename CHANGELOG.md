@@ -62,6 +62,98 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`d3d11\=n,b\;...`) and `WINEPREFIX` kept one before each space in a
   custom bottle location. Values are now single-quoted, which zsh, bash and
   fish read back verbatim (#280, fixes #267).
+- Every `WhiskyCmd run` mode now prepares the bottle and applies the
+  program's settings the way a launch from the app does. `run --command`
+  printed a command that still set `WINEDLLOVERRIDES`, which Wine reads
+  before the registry, so the per-executable overrides a launch writes were
+  shadowed for the program and everything it started. The bottle is now
+  prepared before the command is printed (DLL overrides and audio settings
+  written to its registry, graphics backend files deployed), and the command
+  clears the variable instead of setting it, so a terminal that exports the
+  bottle's overrides (after `WhiskyCmd shellenv` or Open in Terminal) cannot
+  bring the shadowing back. `run --follow` skipped the registry step
+  altogether, and every mode ignored the program's own overrides and its
+  WINEDEBUG preset. Like every launch from the app since #185,
+  `run --command` and `run --follow` now replace the bottle's DllOverrides
+  registry key with Whisky's set, which drops overrides added there with
+  winetricks or winecfg (#281, fixes #266).
+- Run in a program's context menu now applies the bottle's audio settings.
+  It skipped the audio registry sync every other launch runs, so a changed
+  driver or latency setting never reached programs started that way (#281).
+- `WhiskyCmd launch` now starts the game. It printed its confirmation and
+  exited while the launch was still preparing the bottle, which ended the
+  process after the registry import and before Steam was started. Shortcuts
+  to Steam games run the same command and failed the same way. The command
+  now confirms once Wine is running the Steam client, waits for that
+  invocation the way `run` waits for its program, and passes a failing exit
+  code through along with the path of its log (#281, part of #276).
+
+  This changes `SteamLauncher.launch` in WhiskyKit's public API: the task it
+  returns is now a `Task<Wine.ProgramRunResult, any Error>` instead of a
+  `Task<Void, Never>`, which breaks callers that await it. It ships in the
+  same major version bump as the ClickOnce removal.
+- Chinese, Japanese and Korean text in Chromium-based launchers such as
+  Steam no longer renders as boxes in a bottle where winetricks' `cjkfonts`
+  (or `fakechinese`, `fakejapanese`, `fakekorean`) installed Source Han
+  Sans. Wine's DirectWrite falls back to Noto Sans CJK for characters a font
+  lacks, and those verbs alias only the Microsoft font names, so the
+  fallback found no font. Launches now alias Noto Sans CJK SC, TC, JP and KR
+  to the matching Source Han Sans faces when the fonts are present, also in
+  bottles set up before this release, and leave any value already set alone.
+  A launcher that is already running sees the aliases only after a full
+  restart (#283, fixes #278).
+- Unity 6000.3 games start again in bottles on DXVK or DXMT, which on the
+  standard engine is every bottle left on Recommended. 3.7.0 turned d3d12
+  off under both backends so that a DirectX 12 game could not hand one
+  layer's adapter to D3DMetal, but D3DMetal only sits behind d3d12 once the
+  GPTK payload is deployed. On the standard engine it is Wine's own d3d12,
+  which turns such a game away cleanly and lets it fall back to DirectX 11.
+  Turned off, the DLL could not load at all, and Unity 6000.3 loads it at
+  startup, so those games crashed with exception 0xC06D007E. d3d12 is now
+  only turned off when the payload is deployed (#285, fixes #255 and #257, part of
+  #258).
+
+  A game that was started directly from Whisky on 3.7.0 keeps d3d12 turned
+  off in a registry entry of its own until it is next started that way, so
+  if it still crashes when started through Steam, start its executable once
+  from the bottle. A disabled d3d12 entry in a bottle's DLL Overrides, which
+  Presets > DXVK (D3D9/10/11) added on 3.7.0, also keeps the DLL off until
+  it is removed.
+
+  In WhiskyKit, `DLLOverrideResolver.dxvkPreset`, `dxmtPreset` and
+  `managedPreset(for:)` now take whether the runtime's builtin d3d12 is
+  D3DMetal's, which changes their public signatures.
+- The conflict warning in a DXMT bottle's DLL Overrides section now names
+  DXMT. It said every managed entry overrode a DXVK setting, whichever
+  backend had applied it (#285).
+- A launch's log holds the program's output again. Since 3.6.1 every launch
+  first imports the bottle's DLL overrides into the registry, and the import
+  opens a log of its own a few milliseconds after the launch's. Log names
+  stopped at the second and the file was written atomically, so whenever
+  the two fell in the same second, which was nearly always, the import's
+  log replaced the launch's: the program went on writing to a file no
+  longer on disk, and the log recorded for the run held only the import's
+  output. Export Diagnostic Report, View Latest Diagnosis, crash
+  classification and the run history all read that log. Log names now go
+  to the millisecond, and a log file is only ever created, never replaced
+  (#281, #286, part of #256, #260 and #261).
+- Listing a bottle's processes no longer writes a log file. The Running
+  Processes page lists them every few seconds, as does the Steam
+  integration while it watches Steam, so the logs folder filled up with
+  `tasklist.exe` logs and the newest file there was rarely the program's
+  (#286).
+- Start Guided Troubleshooting in Bottle Configuration now opens on the
+  symptom picker. It opened on a "Running checks…" spinner with nothing
+  behind it: that entry point never picked a symptom or started a check,
+  and with Skip and Back disabled, Close was the only way out. The wizard
+  now shows that spinner only while a check is running (#287, part of #261).
+- Loading a bottle no longer rewrites its Metadata.plist when nothing has
+  changed. `WhiskyCmd list` and `shellenv` (which Open in Terminal runs)
+  load every registered bottle, so each run rewrote all of their settings
+  files, and opening a terminal while the app was saving a bottle's
+  settings could overwrite that change. Apart from repairs such as
+  replacing a missing or damaged file, loading now saves only when it
+  removes a stale or duplicate pin (#288).
 
 ### Security
 - A bottle name, bottle path or DLL override name can no longer run

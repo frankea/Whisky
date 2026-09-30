@@ -41,6 +41,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   startup, so those games crashed with exception 0xC06D007E. d3d12 is now
   only turned off when the payload is deployed (fixes #255, #257, #258).
 
+  A game that was started directly from Whisky on 3.7.0 keeps d3d12 turned
+  off in a registry entry of its own until it is next started that way, so
+  if it still crashes when started through Steam, start its executable once
+  from the bottle. A disabled d3d12 entry in a bottle's DLL Overrides, which
+  Presets > DXVK (D3D9/10/11) added on 3.7.0, also keeps the DLL off until
+  it is removed.
+
   In WhiskyKit, `DLLOverrideResolver.dxvkPreset`, `dxmtPreset` and
   `managedPreset(for:)` now take whether the runtime's builtin d3d12 is
   D3DMetal's, which changes their public signatures.

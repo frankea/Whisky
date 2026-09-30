@@ -320,10 +320,9 @@ public class Wine {
 
         let launch = try await prepare()
 
-        // Opened after preparation, not before: log files are named by the
-        // second, and the registry import during preparation opens one too.
-        // Opened first, this run's log shared the import's name, the import
-        // replaced it, and the program's output went to a file no longer on disk.
+        // Opened after preparation, not before: the registry imports during
+        // preparation open logs of their own, and this way the program's log
+        // stays the newest in the folder, the one people are asked to attach.
         let (fileHandle, logFileURL) = try makeFileHandleWithURL()
         fileHandle.writeApplicationInfo()
         fileHandle.writeInfo(for: bottle)

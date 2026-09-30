@@ -110,7 +110,7 @@ struct GPTKDeploymentTests {
         let store = GPTKImporter.storeFolder(inApplicationFolder: appSupport)
         let lib = tempDir.appending(path: "payload")
         try makePayload(at: lib)
-        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _ in true })
+        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _, _ in true })
         try GPTKImporter.importPayload(payload, intoStore: store)
 
         let runtime = appSupport.appending(path: "Libraries")

@@ -84,7 +84,17 @@ struct GPTKPayloadAuthenticityTests {
     func refusesUnsignedSlice() throws {
         let binary = try makeHalfSignedUniversalBinary(in: tempDir)
 
-        #expect(GPTKImporter.isAppleSigned(binary.signedSlice))
-        #expect(!GPTKImporter.isAppleSigned(binary.universal))
+        #expect(GPTKImporter.isAppleSigned(binary.signedSlice, identifier: "com.apple.ls"))
+        #expect(!GPTKImporter.isAppleSigned(binary.universal, identifier: "com.apple.ls"))
+    }
+
+    @Test("Another Apple-signed binary cannot stand in for the payload's code")
+    func refusesOtherAppleIdentity() {
+        let appleBinary = URL(filePath: "/bin/ls")
+
+        #expect(GPTKImporter.isAppleSigned(appleBinary, identifier: "com.apple.ls"))
+        for code in GPTKImporter.appleSignedCode {
+            #expect(!GPTKImporter.isAppleSigned(appleBinary, identifier: code.identifier))
+        }
     }
 }

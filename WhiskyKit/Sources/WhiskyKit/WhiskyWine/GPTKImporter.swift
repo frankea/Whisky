@@ -64,6 +64,14 @@ public struct GPTKPayload: Equatable, Sendable {
     public let version: String
 }
 
+/// An Apple-built code object in a payload's `external/` folder.
+struct GPTKAppleCode: Sendable {
+    /// Its name in `external/`.
+    let name: String
+    /// The identifier Apple signs it as.
+    let identifier: String
+}
+
 /// What the store holds after a successful import.
 public struct GPTKStoreRecord: Codable, Equatable, Sendable {
     /// The imported D3DMetal framework version, e.g. `"4.0b2"`.
@@ -177,10 +185,16 @@ public enum GPTKImporter {
 
     // MARK: - Validation
 
-    /// The Apple-built binaries whose code signature must chain to Apple's
-    /// root, payload-relative to `external/`. The unix bridge entries are
-    /// symlinks to the dylib, so checking it covers them.
-    static let appleSignedNames = ["libd3dshared.dylib", "D3DMetal.framework"]
+    /// The payload's Apple-built code, in the order it is checked.
+    ///
+    /// Apple gives each a designated requirement of `identifier "<id>" and
+    /// anchor apple`, with the same identifiers on GPTK 2.0 and 4.0b2. The
+    /// unix bridge entries are symlinks to the shared library, so checking it
+    /// covers them.
+    static let appleSignedCode = [
+        GPTKAppleCode(name: "libd3dshared.dylib", identifier: "com.apple.libd3dshared"),
+        GPTKAppleCode(name: "D3DMetal.framework", identifier: "com.apple.D3DMetal")
+    ]
 
     /// Validates completeness and authenticity of the payload at `libRoot` and
     /// reads its version.
@@ -194,14 +208,15 @@ public enum GPTKImporter {
     /// signature check runs last so that the cheaper, more common mistakes
     /// (a wrong folder, a missing file) are reported first.
     ///
-    /// - Parameter isAppleSigned: the signature verifier, injectable so tests
-    ///   can validate fixtures that are not real code objects.
+    /// - Parameter isAppleSigned: the signature verifier, given a code object
+    ///   and the identifier it must be signed as; injectable so tests can
+    ///   validate fixtures that are not real code objects.
     /// - Throws: ``GPTKImportError`` when files are missing, a forwarder is not
     ///   the builtin variant, the version is unreadable, or an Apple binary
     ///   fails the signature check.
     public static func validatePayload(
         at libRoot: URL,
-        isAppleSigned: (URL) -> Bool = GPTKImporter.isAppleSigned
+        isAppleSigned: (_ code: URL, _ identifier: String) -> Bool = GPTKImporter.isAppleSigned(_:identifier:)
     ) throws -> GPTKPayload {
         let fileManager = FileManager.default
         let peDir = libRoot.appending(path: "wine").appending(path: "x86_64-windows")
@@ -236,8 +251,8 @@ public enum GPTKImporter {
             throw GPTKImportError.versionUnreadable
         }
 
-        for name in appleSignedNames where !isAppleSigned(external.appending(path: name)) {
-            throw GPTKImportError.notAppleSigned("external/\(name)")
+        for code in appleSignedCode where !isAppleSigned(external.appending(path: code.name), code.identifier) {
+            throw GPTKImportError.notAppleSigned("external/\(code.name)")
         }
         return GPTKPayload(libRoot: libRoot, version: version)
     }
@@ -249,14 +264,17 @@ public enum GPTKImporter {
     /// well-formed, every sealed resource must match, and the signing chain
     /// must end at Apple. Anything unsigned, ad-hoc signed, or signed by a
     /// third party fails, as does a path that is not a code object at all.
-    public static func isAppleSigned(_ url: URL) -> Bool {
+    public static func isAppleSigned(_ url: URL, identifier: String) -> Bool {
         var staticCode: SecStaticCode?
         guard SecStaticCodeCreateWithPath(url as CFURL, [], &staticCode) == errSecSuccess,
               let staticCode
         else { return false }
 
+        // Pinned to the identifier, not just the anchor, so no other
+        // Apple-signed binary can fill the slot.
         var requirement: SecRequirement?
-        guard SecRequirementCreateWithString("anchor apple" as CFString, [], &requirement) == errSecSuccess,
+        let requirementText = "identifier \"\(identifier)\" and anchor apple"
+        guard SecRequirementCreateWithString(requirementText as CFString, [], &requirement) == errSecSuccess,
               let requirement
         else { return false }
 

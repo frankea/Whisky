@@ -247,7 +247,7 @@ func makeImportedStore(in tempDir: URL) throws -> URL {
     let lib = tempDir.appending(path: "payload")
     let store = tempDir.appending(path: "store")
     try makePayload(at: lib)
-    let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _ in true })
+    let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _, _ in true })
     try GPTKImporter.importPayload(payload, intoStore: store)
     return store
 }

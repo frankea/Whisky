@@ -56397,13 +56397,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This is not a genuine Game Porting Toolkit payload, a file is not signed by Apple:"
+            "value" : "This is not a genuine Game Porting Toolkit payload, a file is not the one Apple shipped:"
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This is not a genuine Game Porting Toolkit payload, a file is not signed by Apple:"
+            "value" : "This is not a genuine Game Porting Toolkit payload, a file is not the one Apple shipped:"
           }
         }
       }
@@ -56861,13 +56861,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This is not an unmodified Game Porting Toolkit payload, it contains an item Apple's signature does not cover:"
+            "value" : "This Game Porting Toolkit payload has been changed, or copied in a way that did not keep it intact. Import Apple's evaluation environment disk image instead. Apple's signature does not cover this item:"
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This is not an unmodified Game Porting Toolkit payload, it contains an item Apple's signature does not cover:"
+            "value" : "This Game Porting Toolkit payload has been changed, or copied in a way that did not keep it intact. Import Apple's evaluation environment disk image instead. Apple's signature does not cover this item:"
           }
         }
       }

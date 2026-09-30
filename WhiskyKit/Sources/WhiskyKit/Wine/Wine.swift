@@ -78,7 +78,6 @@ private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: 
 /// - ``killBottle(bottle:)``
 /// - ``enableDXVK(bottle:)``
 /// - ``generateRunCommand(at:bottle:args:environment:)``
-/// - ``generateRunCommand(for:)``
 /// - ``generateTerminalEnvironmentCommand(bottle:)``
 public class Wine {
     /// URL to the installed DXVK folder containing Direct3D-to-Vulkan translation libraries.
@@ -208,19 +207,18 @@ public class Wine {
     ///
     /// Returned by `prepareProgramLaunch`, and turned into a shell command by
     /// ``generateRunCommand(for:)``.
-    public struct PreparedLaunch: Equatable, Sendable {
+    struct PreparedLaunch: Equatable, Sendable {
         /// The environment `wine64` runs with.
         ///
         /// Holds no `WINEDLLOVERRIDES` unless the overrides are meant for a
         /// process this launch spawns: preparation moved the launch's own
         /// overrides into the prefix registry, where no child inherits them.
-        public let environment: [String: String]
+        let environment: [String: String]
         /// The arguments `wine64` runs with: `start /unix` and the program, or
         /// `explorer /desktop=...` for a program that runs in a virtual desktop.
-        public let arguments: [String]
+        let arguments: [String]
     }
 
-    // swiftlint:disable function_body_length
     /// Runs a Windows executable within a Wine bottle.
     ///
     /// This is the primary method for launching Windows applications. It prepares the bottle
@@ -268,6 +266,37 @@ public class Wine {
         overridesApplyToDescendants: Bool = false,
         onOutput: (@MainActor (ProcessOutput) -> Void)? = nil
     ) async throws -> ProgramRunResult {
+        try await runProgram(at: url, bottle: bottle, programSettings: programSettings, onOutput: onOutput) {
+            try await prepareProgramLaunch(
+                at: url, args: args, bottle: bottle, environment: environment,
+                programOverrides: programOverrides, programSettings: programSettings,
+                gameProfileEnvironment: gameProfileEnvironment,
+                overridesApplyToDescendants: overridesApplyToDescendants
+            )
+        }
+    }
+
+    /// Runs a program once `prepare` has prepared the bottle for it.
+    ///
+    /// The public entry point prepares from its parameters. ``Program`` passes
+    /// its own preparation instead, the one whose result `WhiskyCmd run --command`
+    /// prints, so a program's launches and its printed command apply the same
+    /// settings.
+    ///
+    /// - Parameters:
+    ///   - url: The URL to the Windows executable (.exe) file.
+    ///   - bottle: The ``Bottle`` in which to run the program.
+    ///   - programSettings: The program's settings, whose `WINEDEBUG` preset the run log records.
+    ///   - onOutput: Receives each output event of the `wine64` process as it arrives.
+    ///   - prepare: Prepares the bottle for the launch and returns what the launch runs.
+    /// - Returns: The exit code and log file of the run.
+    /// - Throws: An error if the bottle cannot be prepared or the program cannot be started.
+    @MainActor
+    static func runProgram(
+        at url: URL, bottle: Bottle, programSettings: ProgramSettings?,
+        onOutput: (@MainActor (ProcessOutput) -> Void)?,
+        prepare: @MainActor () async throws -> PreparedLaunch
+    ) async throws -> ProgramRunResult {
         // Note: Launcher detection and fix application happen before this method
         // is called, via LauncherFixes.detectAndApply from the app's run paths
         // (FileOpenView/BottleView/ProgramMenuView).
@@ -289,12 +318,7 @@ public class Wine {
             }
         }
 
-        let launch = try await prepareProgramLaunch(
-            at: url, args: args, bottle: bottle, environment: environment,
-            programOverrides: programOverrides, programSettings: programSettings,
-            gameProfileEnvironment: gameProfileEnvironment,
-            overridesApplyToDescendants: overridesApplyToDescendants
-        )
+        let launch = try await prepare()
 
         // Opened after preparation, not before: log files are named by the
         // second, and the registry import during preparation opens one too.
@@ -354,16 +378,17 @@ public class Wine {
         return ProgramRunResult(exitCode: exitCode, logFileURL: logFileURL, runLogEntryId: runLogEntry.id)
     }
 
-    // swiftlint:enable function_body_length
-
     /// Prepares a bottle to launch a program, without launching it.
     ///
     /// This is everything `runProgram` does before it starts the process: it
     /// resolves the effective graphics backend, deploys that backend's files
     /// into the prefix, builds the environment, and writes the launch's DLL
     /// overrides into the prefix registry. What it writes stays in the prefix,
-    /// so running the returned arguments with the returned environment behaves
-    /// like a launch from Whisky, even when that happens later from a terminal.
+    /// so running the returned arguments with the returned environment later,
+    /// from a terminal, starts the program with the DLLs and settings a launch
+    /// from Whisky gives it. What only happens while `runProgram` runs is not
+    /// part of it: the log file and run log entry, the App Nap assertion, and
+    /// the Discord bridge and presence.
     ///
     /// - Parameters:
     ///   - url: The URL to the Windows executable (.exe) file.
@@ -376,34 +401,18 @@ public class Wine {
     ///   - overridesApplyToDescendants: Whether the DLL overrides belong to a process this one
     ///     spawns. They then stay in the environment: the registry can only scope overrides to
     ///     an executable whose name is known.
+    ///   - overrideWriter: What writes the DLL overrides into the prefix registry. Tests pass a
+    ///     recorder, so they can see what a launch writes without running Wine.
     /// - Returns: The environment and `wine64` arguments the launch runs with.
     /// - Throws: An error if a backend's files cannot be deployed or the registry import cannot
     ///   be started.
-    @MainActor
-    public static func prepareProgramLaunch(
-        at url: URL, args: [String] = [], bottle: Bottle, environment: [String: String] = [:],
-        programOverrides: ProgramOverrides? = nil, programSettings: ProgramSettings? = nil,
-        gameProfileEnvironment: [String: String] = [:],
-        overridesApplyToDescendants: Bool = false
-    ) async throws -> PreparedLaunch {
-        try await prepareProgramLaunch(
-            at: url, args: args, bottle: bottle, environment: environment,
-            programOverrides: programOverrides, programSettings: programSettings,
-            gameProfileEnvironment: gameProfileEnvironment,
-            overridesApplyToDescendants: overridesApplyToDescendants,
-            overrideWriter: { try await syncDLLOverrides(bottle: $0, scopes: $1) }
-        )
-    }
-
-    /// Prepares a launch with the registry write injected, so tests can see
-    /// what a launch writes without running Wine.
     @MainActor
     static func prepareProgramLaunch(
         at url: URL, args: [String] = [], bottle: Bottle, environment: [String: String] = [:],
         programOverrides: ProgramOverrides? = nil, programSettings: ProgramSettings? = nil,
         gameProfileEnvironment: [String: String] = [:],
         overridesApplyToDescendants: Bool = false,
-        overrideWriter: DLLOverrideWriter
+        overrideWriter: DLLOverrideWriter = { try await syncDLLOverrides(bottle: $0, scopes: $1) }
     ) async throws -> PreparedLaunch {
         // The effective backend for this launch: a program-level override wins
         // over the bottle setting, and `.recommended` resolves to its concrete
@@ -535,7 +544,7 @@ public class Wine {
     ///
     /// - Parameter launch: A launch from `prepareProgramLaunch`.
     /// - Returns: A shell-safe command string ready for execution.
-    public static func generateRunCommand(for launch: PreparedLaunch) -> String {
+    static func generateRunCommand(for launch: PreparedLaunch) -> String {
         let words = [wineBinary.path(percentEncoded: false)] + launch.arguments
         return shellCommand(words.map(\.esc).joined(separator: " "), environment: launch.environment)
     }

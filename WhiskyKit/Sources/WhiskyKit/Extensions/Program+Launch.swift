@@ -21,10 +21,10 @@ import Foundation
 public extension Program {
     /// Launches this program the way Whisky does.
     ///
-    /// Brings the bottle's audio registry in line with its settings, then runs
-    /// the program with its own environment, overrides and settings. The app's
-    /// launches and `WhiskyCmd run` go through here, so a program behaves the
-    /// same whichever of them started it.
+    /// Prepares the bottle for the program with its own environment, overrides
+    /// and settings, the audio registry included, then runs it. Every launch of
+    /// a ``Program`` in Wine goes through here, the app's and `WhiskyCmd run`'s
+    /// alike, so a program behaves the same whichever of them started it.
     ///
     /// - Parameters:
     ///   - args: Arguments for the program, one word each.
@@ -35,45 +35,50 @@ public extension Program {
     func launch(
         args: [String], onOutput: (@MainActor (ProcessOutput) -> Void)? = nil
     ) async throws -> Wine.ProgramRunResult {
-        await Wine.syncAudioRegistry(bottle: bottle)
-        return try await Wine.runProgram(
-            at: url, args: args, bottle: bottle, environment: generateEnvironment(),
-            programOverrides: settings.overrides, programSettings: settings,
-            onOutput: onOutput
-        )
+        try await Wine.runProgram(at: url, bottle: bottle, programSettings: settings, onOutput: onOutput) {
+            try await prepareLaunch(args: args)
+        }
     }
 
     /// Prepares the bottle to run this program, then returns the command that runs it.
     ///
     /// Where `generateTerminalCommand(args:)` only describes a launch, this first
-    /// prepares the bottle the way ``launch(args:onOutput:)`` does: the audio
+    /// prepares the bottle exactly as ``launch(args:onOutput:)`` does: the audio
     /// settings and the launch's DLL overrides go into the prefix registry, and
-    /// the graphics backend's files into the prefix. The command then carries no
-    /// `WINEDLLOVERRIDES` to shadow per-executable registry entries, and runs the
-    /// program the way Whisky would, with its own overrides and settings.
+    /// the graphics backend's files into the prefix. The command then runs the
+    /// program with its own overrides and settings, and carries no
+    /// `WINEDLLOVERRIDES` to shadow the per-executable registry entries.
     ///
     /// - Parameter args: Arguments for the program, one word each.
     /// - Returns: The full Wine command string ready for terminal execution.
     /// - Throws: An error if the bottle cannot be prepared.
     func prepareTerminalCommand(args: [String]) async throws -> String {
-        try await prepareTerminalCommand(
-            args: args, overrideWriter: { try await Wine.syncDLLOverrides(bottle: $0, scopes: $1) }
-        )
+        try await Wine.generateRunCommand(for: prepareLaunch(args: args))
     }
 }
 
 extension Program {
-    /// Prepares the terminal command with the registry write injected, so tests
-    /// can see what preparing the bottle writes without running Wine.
-    func prepareTerminalCommand(
-        args: [String], overrideWriter: Wine.DLLOverrideWriter
-    ) async throws -> String {
+    /// Prepares the bottle for a launch of this program and returns what the launch runs.
+    ///
+    /// The one place a program's settings become a launch: ``launch(args:onOutput:)``
+    /// runs what this returns and ``prepareTerminalCommand(args:)`` prints it, so
+    /// every run mode applies the same settings.
+    ///
+    /// - Parameters:
+    ///   - args: Arguments for the program, one word each.
+    ///   - overrideWriter: What writes the DLL overrides into the prefix registry. Tests
+    ///     pass a recorder, so they can see what a launch writes without running Wine.
+    /// - Returns: The environment and `wine64` arguments of the launch.
+    /// - Throws: An error if the bottle cannot be prepared.
+    func prepareLaunch(
+        args: [String],
+        overrideWriter: Wine.DLLOverrideWriter = { try await Wine.syncDLLOverrides(bottle: $0, scopes: $1) }
+    ) async throws -> Wine.PreparedLaunch {
         await Wine.syncAudioRegistry(bottle: bottle)
-        let launch = try await Wine.prepareProgramLaunch(
+        return try await Wine.prepareProgramLaunch(
             at: url, args: args, bottle: bottle, environment: generateEnvironment(),
             programOverrides: settings.overrides, programSettings: settings,
             overrideWriter: overrideWriter
         )
-        return Wine.generateRunCommand(for: launch)
     }
 }

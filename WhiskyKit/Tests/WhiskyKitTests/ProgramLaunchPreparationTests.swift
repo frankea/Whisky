@@ -87,21 +87,23 @@ final class ProgramLaunchPreparationTests {
         return program
     }
 
-    @Test("A printed command's DLL overrides are written to the registry first, not carried in it")
-    func printedCommandPreparesTheRegistry() async throws {
+    @Test("Every run mode gets the program's DLL overrides from the registry, not the environment")
+    func launchWritesOverridesToTheRegistry() async throws {
         let bottle = try makeBottle()
         let program = try makeConflictingProgram(in: bottle)
         let recorder = RegistryRecorder()
+        #expect(AudioRegistryState.load(from: bottle.url) == nil)
 
-        let command = try await program.prepareTerminalCommand(
-            args: ["-windowed"], overrideWriter: recorder.writer
-        )
+        let launch = try await program.prepareLaunch(args: ["-windowed"], overrideWriter: recorder.writer)
 
-        // In the command, the variable would shadow every per-executable
+        // The audio settings are synced too. Factory settings only stamp the
+        // marker, so no Wine runs here.
+        #expect(AudioRegistryState.load(from: bottle.url) == .factoryDefault)
+        // In the environment, the variable would shadow every per-executable
         // registry entry for the launched program and everything it spawns.
-        #expect(!command.contains("WINEDLLOVERRIDES"))
-        #expect(command.contains("PROGRAM_SETTING=kept"))
-        #expect(command.hasSuffix("start /unix \(program.url.esc) -windowed"))
+        #expect(launch.environment["WINEDLLOVERRIDES"] == nil)
+        #expect(launch.environment["PROGRAM_SETTING"] == "kept")
+        #expect(launch.arguments == ["start", "/unix", program.url.path(percentEncoded: false), "-windowed"])
 
         #expect(recorder.writes.count == 1)
         #expect(recorder.overrides(for: .bottle)?["d2d1"] == "n,b")
@@ -112,17 +114,31 @@ final class ProgramLaunchPreparationTests {
         #expect(recorder.overrides(for: .program("Game.exe"))?["d3d11"] == "n,b")
     }
 
-    @Test("A printed command carries the program's diagnostic WINEDEBUG preset")
-    func printedCommandCarriesProgramSettings() async throws {
+    @Test("Every run mode carries the program's diagnostic WINEDEBUG preset")
+    func launchCarriesProgramSettings() async throws {
         let bottle = try makeBottle()
         let program = try makeConflictingProgram(in: bottle)
         program.settings.activeWineDebugPreset = .dllLoad
 
-        let command = try await program.prepareTerminalCommand(
-            args: [], overrideWriter: RegistryRecorder().writer
+        let launch = try await program.prepareLaunch(args: [], overrideWriter: RegistryRecorder().writer)
+
+        #expect(launch.environment["WINEDEBUG"] == WineDebugPreset.dllLoad.winedebugValue)
+    }
+
+    @Test("A printed command runs the prepared launch")
+    func printedCommandRunsThePreparedLaunch() async throws {
+        let bottle = try makeBottle()
+        let program = try makeConflictingProgram(in: bottle)
+        program.settings.activeWineDebugPreset = .dllLoad
+
+        let command = try await Wine.generateRunCommand(
+            for: program.prepareLaunch(args: ["-windowed"], overrideWriter: RegistryRecorder().writer)
         )
 
+        #expect(!command.contains("WINEDLLOVERRIDES"))
+        #expect(command.contains("PROGRAM_SETTING=kept"))
         #expect(command.contains("WINEDEBUG=\(WineDebugPreset.dllLoad.winedebugValue.esc)"))
+        #expect(command.hasSuffix("\(Wine.wineBinary.esc) start /unix \(program.url.esc) -windowed"))
     }
 
     @Test("Overrides meant for a descendant stay in the environment and off the launcher's entry")

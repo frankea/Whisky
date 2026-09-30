@@ -38,6 +38,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`d3d11\=n,b\;...`) and `WINEPREFIX` kept one before each space in a
   custom bottle location. Values are now single-quoted, which zsh, bash and
   fish read back verbatim (#280, fixes #267).
+- A launch's log holds the program's output again. Since 3.6.1 every launch
+  first imports the bottle's DLL overrides into the registry, and the import
+  opens a log of its own a few milliseconds after the launch's. Log names
+  stopped at the second and the file was written atomically, so whenever
+  the two fell in the same second, which was nearly always, the import's
+  log replaced the launch's: the program went on writing to a file no
+  longer on disk, and the log recorded for the run held only the import's
+  output. Export Diagnostic Report, View Latest Diagnosis, crash
+  classification and the run history all read that log. Log names now go
+  to the millisecond, and a log file is only ever created, never replaced
+  (#256, #260, #261).
 
 ### Security
 - A bottle name, bottle path or DLL override name can no longer run

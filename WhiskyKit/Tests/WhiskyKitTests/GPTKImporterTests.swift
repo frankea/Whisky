@@ -42,7 +42,7 @@ struct GPTKImporterTests {
     }
 
     @Test("Locate returns nil when nothing payload-shaped exists")
-    func locateNothing() throws {
+    func locateNothing() {
         #expect(GPTKImporter.locatePayload(under: tempDir) == nil)
     }
 
@@ -53,10 +53,69 @@ struct GPTKImporterTests {
         let lib = tempDir.appending(path: "lib")
         try makePayload(at: lib)
 
-        let payload = try GPTKImporter.validatePayload(at: lib)
+        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _, _ in true })
 
         #expect(payload.version == "4.0b2")
         #expect(payload.libRoot == lib)
+    }
+
+    @Test("An unsigned shared library is rejected by the real signature check")
+    func validateUnsignedPayload() throws {
+        let lib = tempDir.appending(path: "lib")
+        try makePayload(at: lib)
+
+        #expect(throws: GPTKImportError.notAppleSigned("external/libd3dshared.dylib")) {
+            try GPTKImporter.validatePayload(at: lib)
+        }
+    }
+
+    @Test("The signature check covers the shared library and the framework, in that order, each as its identifier")
+    func validateChecksBothAppleBinaries() throws {
+        let lib = tempDir.appending(path: "lib")
+        try makePayload(at: lib)
+        var checked: [String] = []
+
+        _ = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { url, identifier in
+            checked.append("\(url.lastPathComponent) as \(identifier)")
+            return true
+        })
+
+        #expect(checked == [
+            "libd3dshared.dylib as com.apple.libd3dshared",
+            "D3DMetal.framework as com.apple.D3DMetal"
+        ])
+    }
+
+    @Test("A framework that fails the signature check is named")
+    func validateUnsignedFramework() throws {
+        let lib = tempDir.appending(path: "lib")
+        try makePayload(at: lib)
+
+        #expect(throws: GPTKImportError.notAppleSigned("external/D3DMetal.framework")) {
+            try GPTKImporter.validatePayload(at: lib, isAppleSigned: { url, _ in
+                url.lastPathComponent != "D3DMetal.framework"
+            })
+        }
+    }
+
+    @Test("Completeness and variant errors take precedence over the signature check")
+    func validateSignatureCheckRunsLast() throws {
+        let lib = tempDir.appending(path: "lib")
+        try makePayload(at: lib, builtinForwarders: false)
+
+        #expect(throws: GPTKImportError.forwarderNotBuiltin("d3d10.dll")) {
+            try GPTKImporter.validatePayload(at: lib)
+        }
+    }
+
+    @Test("The Apple signature check accepts a system binary and refuses a plain file")
+    func appleSignatureCheck() throws {
+        let plain = tempDir.appending(path: "plain.dylib")
+        try Data("not a code object".utf8).write(to: plain)
+
+        #expect(GPTKImporter.isAppleSigned(URL(filePath: "/bin/ls"), identifier: "com.apple.ls"))
+        #expect(!GPTKImporter.isAppleSigned(plain, identifier: "com.apple.ls"))
+        #expect(!GPTKImporter.isAppleSigned(tempDir.appending(path: "missing.dylib"), identifier: "com.apple.ls"))
     }
 
     @Test("Missing forwarders are reported by name")
@@ -118,7 +177,7 @@ struct GPTKImporterTests {
         let lib = tempDir.appending(path: "lib")
         let store = tempDir.appending(path: "store")
         try makePayload(at: lib)
-        let payload = try GPTKImporter.validatePayload(at: lib)
+        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _, _ in true })
 
         let record = try GPTKImporter.importPayload(payload, intoStore: store)
 
@@ -138,7 +197,7 @@ struct GPTKImporterTests {
         let lib = tempDir.appending(path: "lib")
         let store = tempDir.appending(path: "store")
         try makePayload(at: lib, unixEntriesAsFiles: true)
-        let payload = try GPTKImporter.validatePayload(at: lib)
+        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _, _ in true })
 
         try GPTKImporter.importPayload(payload, intoStore: store)
 
@@ -150,6 +209,50 @@ struct GPTKImporterTests {
         #expect(destination == GPTKImporter.unixLinkDestination)
     }
 
+    @Test("Import replaces a store lib left behind as a dangling link")
+    func importReplacesDanglingStoreLink() throws {
+        let lib = tempDir.appending(path: "lib")
+        let store = tempDir.appending(path: "store")
+        try makePayload(at: lib)
+        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _, _ in true })
+        // What an import through a linked payload folder used to leave once
+        // the folder it pointed at was gone.
+        try FileManager.default.createDirectory(at: store, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(
+            at: store.appending(path: "lib"), withDestinationURL: tempDir.appending(path: "gone")
+        )
+
+        try GPTKImporter.importPayload(payload, intoStore: store, revalidatingWith: { _, _ in true })
+
+        let storeLib = store.appending(path: "lib").path(percentEncoded: false)
+        let type = try FileManager.default.attributesOfItem(atPath: storeLib)[.type] as? FileAttributeType
+        #expect(type == .typeDirectory)
+        #expect(GPTKImporter.storedRecord(inStore: store)?.gptkVersion == "4.0b2")
+    }
+
+    @Test("An import that cannot replace the stored payload leaves no staged copy behind")
+    func importCleansUpFailedReplacement() throws {
+        let lib = tempDir.appending(path: "lib")
+        let store = tempDir.appending(path: "store")
+        try makePayload(at: lib)
+        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _, _ in true })
+        // A file the store's lib cannot lose, so removing it fails.
+        let locked = store.appending(path: "lib").appending(path: "locked")
+        let lockedPath = locked.path(percentEncoded: false)
+        try FileManager.default.createDirectory(at: locked, withIntermediateDirectories: true)
+        try Data().write(to: locked.appending(path: "file"))
+        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: lockedPath)
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: lockedPath)
+        }
+
+        #expect(throws: (any Error).self) {
+            try GPTKImporter.importPayload(payload, intoStore: store, revalidatingWith: { _, _ in true })
+        }
+        let staging = store.appending(path: "lib.staging").path(percentEncoded: false)
+        #expect(!FileManager.default.fileExists(atPath: staging))
+    }
+
     @Test("Stored record is nil without a store or with a gutted payload")
     func storedRecordAbsent() throws {
         let store = tempDir.appending(path: "store")
@@ -157,7 +260,7 @@ struct GPTKImporterTests {
 
         let lib = tempDir.appending(path: "lib")
         try makePayload(at: lib)
-        let payload = try GPTKImporter.validatePayload(at: lib)
+        let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _, _ in true })
         try GPTKImporter.importPayload(payload, intoStore: store)
         try FileManager.default.removeItem(
             at: store.appending(path: "lib").appending(path: "external")

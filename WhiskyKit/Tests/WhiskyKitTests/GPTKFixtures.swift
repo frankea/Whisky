@@ -128,9 +128,24 @@ func makePayload(
     }
 
     if !omitting.contains("D3DMetal.framework") {
-        let resources = external.appending(path: "D3DMetal.framework")
-            .appending(path: "Versions").appending(path: "A").appending(path: "Resources")
+        let framework = external.appending(path: "D3DMetal.framework")
+        let resources = framework.appending(path: "Versions").appending(path: "A").appending(path: "Resources")
         try fileManager.createDirectory(at: resources, withIntermediateDirectories: true)
+        try Data("fake framework binary".utf8).write(
+            to: framework.appending(path: "Versions").appending(path: "A").appending(path: "D3DMetal")
+        )
+        // Apple's versioned layout, which the validation's layout check expects.
+        let links = [
+            "Versions/Current": "A",
+            "D3DMetal": "Versions/Current/D3DMetal",
+            "Resources": "Versions/Current/Resources"
+        ]
+        for (link, destination) in links {
+            try fileManager.createSymbolicLink(
+                atPath: framework.appending(path: link).path(percentEncoded: false),
+                withDestinationPath: destination
+            )
+        }
         if let version {
             let plist: [String: Any] = ["CFBundleShortVersionString": version]
             let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
@@ -247,6 +262,7 @@ func makeImportedStore(in tempDir: URL) throws -> URL {
     let lib = tempDir.appending(path: "payload")
     let store = tempDir.appending(path: "store")
     try makePayload(at: lib)
-    try GPTKImporter.importPayload(GPTKImporter.validatePayload(at: lib), intoStore: store)
+    let payload = try GPTKImporter.validatePayload(at: lib, isAppleSigned: { _, _ in true })
+    try GPTKImporter.importPayload(payload, intoStore: store)
     return store
 }

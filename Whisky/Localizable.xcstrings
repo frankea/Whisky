@@ -56391,6 +56391,23 @@
         }
       }
     },
+    "gptk.error.notAppleSigned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is not a genuine Game Porting Toolkit payload, a file is not the one Apple shipped:"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is not a genuine Game Porting Toolkit payload, a file is not the one Apple shipped:"
+          }
+        }
+      }
+    },
     "gptk.error.payloadIncomplete" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -56834,6 +56851,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "沒有可部署的已匯入 Game Porting Toolkit 酬載。"
+          }
+        }
+      }
+    },
+    "gptk.error.unsealedItem" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Game Porting Toolkit payload has been changed, or copied in a way that did not keep it intact. Import Apple's evaluation environment disk image instead. Apple's signature does not cover this item:"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Game Porting Toolkit payload has been changed, or copied in a way that did not keep it intact. Import Apple's evaluation environment disk image instead. Apple's signature does not cover this item:"
           }
         }
       }

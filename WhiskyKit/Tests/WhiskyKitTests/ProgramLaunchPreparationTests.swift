@@ -89,23 +89,30 @@ final class ProgramLaunchPreparationTests {
 
     /// Runs `launch`'s printed command through `sh` in a terminal that exports
     /// `inherited`, with a stub standing in for `wine64` that prints the
-    /// environment it was started with.
+    /// environment it was started with. The shell is waited on off the main
+    /// actor: blocking it here would stall every other main-actor test for the
+    /// duration, and the Steam orchestrator tests run on sub-second budgets.
     private func environmentOfPrintedCommand(
         for launch: Wine.PreparedLaunch, inherited: [String: String]
-    ) throws -> [String: String] {
+    ) async throws -> [String: String] {
         let stub = tempRoot.appending(path: "wine64")
         try "#!/bin/sh\nexec /usr/bin/env\n".write(to: stub, atomically: true, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: stub.path)
+        let command = Wine.generateRunCommand(for: launch, wineBinary: stub)
+        let terminalEnvironment = inherited.merging(["PATH": "/usr/bin:/bin"]) { _, path in path }
 
-        let process = Process()
-        process.executableURL = URL(filePath: "/bin/sh")
-        process.arguments = ["-c", Wine.generateRunCommand(for: launch, wineBinary: stub)]
-        process.environment = inherited.merging(["PATH": "/usr/bin:/bin"]) { _, path in path }
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        try process.run()
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        process.waitUntilExit()
+        let data = try await Task.detached {
+            let process = Process()
+            process.executableURL = URL(filePath: "/bin/sh")
+            process.arguments = ["-c", command]
+            process.environment = terminalEnvironment
+            let pipe = Pipe()
+            process.standardOutput = pipe
+            try process.run()
+            let output = pipe.fileHandleForReading.readDataToEndOfFile()
+            process.waitUntilExit()
+            return output
+        }.value
 
         var environment: [String: String] = [:]
         for line in (String(bytes: data, encoding: .utf8) ?? "").split(separator: "\n") {
@@ -227,7 +234,7 @@ final class ProgramLaunchPreparationTests {
     }
 
     @Test("A printed command runs Wine without the WINEDLLOVERRIDES its terminal exports")
-    func printedCommandClearsInheritedOverrides() throws {
+    func printedCommandClearsInheritedOverrides() async throws {
         let launch = Wine.PreparedLaunch(
             environment: ["WINEPREFIX": "/tmp/My Bottle"],
             arguments: ["start", "/unix", "/tmp/My Bottle/drive_c/Game.exe"]
@@ -235,7 +242,7 @@ final class ProgramLaunchPreparationTests {
 
         // What `WhiskyCmd shellenv` and Open in Terminal export: the bottle's
         // set, which would shadow the entries preparation wrote for the program.
-        let environment = try environmentOfPrintedCommand(
+        let environment = try await environmentOfPrintedCommand(
             for: launch, inherited: ["WINEDLLOVERRIDES": "d2d1=n,b;d3d11=n,b", "KEPT": "yes"]
         )
 
@@ -245,14 +252,14 @@ final class ProgramLaunchPreparationTests {
     }
 
     @Test("A printed command sets the overrides a launch keeps for a descendant over the terminal's")
-    func printedCommandSetsDescendantOverrides() throws {
+    func printedCommandSetsDescendantOverrides() async throws {
         let launch = Wine.PreparedLaunch(
             environment: ["WINEPREFIX": "/tmp/My Bottle", "WINEDLLOVERRIDES": "d3d11=n,b;nvapi64="],
             arguments: ["start", "/unix", "/tmp/My Bottle/drive_c/steam.exe", "-applaunch", "1174180"]
         )
 
         let command = Wine.generateRunCommand(for: launch)
-        let environment = try environmentOfPrintedCommand(
+        let environment = try await environmentOfPrintedCommand(
             for: launch, inherited: ["WINEDLLOVERRIDES": "d2d1=n,b"]
         )
 

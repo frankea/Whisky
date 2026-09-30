@@ -138,7 +138,8 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
     ///
     /// This initializer loads existing settings from the metadata file if present,
     /// or creates default settings if the file doesn't exist or is corrupted.
-    /// Invalid pins (referencing deleted programs) are automatically cleaned up.
+    /// Invalid pins (referencing deleted programs) are automatically cleaned up;
+    /// the cleanup is saved to disk only when it actually removed a pin.
     ///
     /// - Parameters:
     ///   - bottleUrl: The URL to the bottle's root directory.
@@ -180,7 +181,7 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
 
         // Get rid of duplicates and pins that reference removed files
         var found: Set<URL> = []
-        self.settings.pins = self.settings.pins.filter { pin in
+        let validPins = self.settings.pins.filter { pin in
             guard let url = pin.url else { return false }
             guard !found.contains(url) else { return false }
             found.insert(url)
@@ -193,6 +194,12 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
             }
             let legallyRemoved = pin.removable && volume == nil
             return FileManager.default.fileExists(atPath: urlPath) || legallyRemoved
+        }
+        // Assigning settings saves Metadata.plist (didSet), so only do it when a pin was
+        // actually dropped. WhiskyCmd loads every registered bottle, and a save on every
+        // load can overwrite a settings change the app wrote in the meantime.
+        if validPins != self.settings.pins {
+            self.settings.pins = validPins
         }
     }
 

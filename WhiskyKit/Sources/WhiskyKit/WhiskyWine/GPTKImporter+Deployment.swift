@@ -73,11 +73,30 @@ extension GPTKImporter {
     ///
     /// The store survives a runtime install but the deployed copy does not, so
     /// every install has to re-evaluate. Idempotent and safe to call anywhere.
+    ///
+    /// A runtime holding a payload copied in by hand is left as it is. This
+    /// runs without anyone asking, every time Settings opens, and deploying
+    /// would replace that payload, deleting its forwarders or filing them away
+    /// as Wine's own. Importing is what replaces it.
     @discardableResult
     public static func deployStoredPayloadIfCapable() -> Bool {
-        guard storedRecord() != nil, isRuntimeGPTKCapable() else { return false }
+        guard isRuntimeGPTKCapable() else { return false }
+        return deployStoredPayloadIfPresent(
+            fromStore: storeFolder, intoLibraryFolder: WhiskyWineInstaller.libraryFolder
+        )
+    }
+
+    /// Testable seam for ``deployStoredPayloadIfCapable()``, past the runtime
+    /// capability check.
+    @discardableResult
+    static func deployStoredPayloadIfPresent(fromStore store: URL, intoLibraryFolder folder: URL) -> Bool {
+        guard storedRecord(inStore: store) != nil else { return false }
+        guard !holdsHandPlacedPayload(inLibraryFolder: folder, usingStore: store) else {
+            logger.info("Left the GPTK payload copied into the runtime by hand in place of the stored one")
+            return false
+        }
         do {
-            try deployStoredPayload()
+            try deploy(fromStore: store, intoLibraryFolder: folder)
             return true
         } catch {
             logger.error("Deploying the stored GPTK payload failed: \(error.localizedDescription)")
@@ -182,7 +201,8 @@ extension GPTKImporter {
         try installMetalFXBridge(intoLibraryFolder: folder, usingStore: store)
         // Apple's DLLs are in place now, which is the only moment the swaps can
         // be made: the runtime ships the interposers but has nothing to forward
-        // into until this point.
+        // into until this point. A payload from a build they were never
+        // validated on is deployed without them; install checks the version.
         for interposer in interposers {
             try install(interposer, intoLibraryFolder: folder)
         }
@@ -193,7 +213,7 @@ extension GPTKImporter {
     /// Whether `dll` is byte-identical to the store's forwarder of the same
     /// name, so deploy never mistakes an already-deployed Apple DLL for a Wine
     /// original worth backing up and remove only deletes what it put there.
-    private static func isGPTKForwarder(_ dll: URL, matching storeLib: URL) -> Bool {
+    static func isGPTKForwarder(_ dll: URL, matching storeLib: URL) -> Bool {
         let storeDLL = storeLib.appending(path: "wine").appending(path: "x86_64-windows")
             .appending(path: dll.lastPathComponent)
         return FileManager.default.contentsEqual(

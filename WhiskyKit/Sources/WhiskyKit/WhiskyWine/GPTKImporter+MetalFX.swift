@@ -192,12 +192,25 @@ extension GPTKImporter {
     /// Deliberately seeds no prefixes. The tree-side bridge is inert on its own,
     /// and which bottles can reach it is ``Wine/applyMetalFX(bottle:backend:)``'s
     /// decision at launch, from the per-bottle setting.
+    ///
+    /// Only a payload the store deployed gets it. One copied in by hand is its
+    /// owner's, and install replaces whatever `nvngx.dll` is there without a
+    /// backup, which would also put the store's bridge in front of another
+    /// build's dylib.
     public static func ensureMetalFXBridgeInstalled() {
-        let folder = WhiskyWineInstaller.libraryFolder
-        guard isDeployed(inLibraryFolder: folder) else { return }
+        ensureMetalFXBridgeInstalled(inLibraryFolder: WhiskyWineInstaller.libraryFolder, usingStore: storeFolder)
+    }
+
+    /// Testable seam for ``ensureMetalFXBridgeInstalled()``.
+    static func ensureMetalFXBridgeInstalled(inLibraryFolder folder: URL, usingStore store: URL) {
+        guard isDeployed(inLibraryFolder: folder),
+              isStorePayloadDeployed(inLibraryFolder: folder, usingStore: store)
+        else {
+            return
+        }
 
         do {
-            try installMetalFXBridge(intoLibraryFolder: folder, usingStore: storeFolder)
+            try installMetalFXBridge(intoLibraryFolder: folder, usingStore: store)
         } catch {
             logger.error("Installing the MetalFX bridge failed: \(error.localizedDescription)")
         }

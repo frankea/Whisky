@@ -200,4 +200,21 @@ final class LauncherFixesApplyTests: LauncherFixesTestCase {
         XCTAssertTrue(bottle.settings.dxvk)
         XCTAssertTrue(bottle.settings.dxvkAsync)
     }
+
+    @MainActor
+    func testSteamProfileDoesNotTurnRayTracingOnForTheBottle() {
+        // Play applies this profile, and every game Steam starts inherits the
+        // environment the bottle builds (#276). DXR is off by default and has
+        // its own toggle; the GPU spoof the profile enables must not flip it.
+        let bottle = makeBottle()
+        XCTAssertFalse(bottle.settings.dxrEnabled)
+
+        LauncherFixes.apply(to: bottle, launcher: .steam)
+
+        XCTAssertTrue(bottle.settings.gpuSpoofing)
+        XCTAssertNil(Wine.constructWineEnvironment(for: bottle)["D3DM_SUPPORT_DXR"])
+
+        bottle.settings.dxrEnabled = true
+        XCTAssertEqual(Wine.constructWineEnvironment(for: bottle)["D3DM_SUPPORT_DXR"], "1")
+    }
 }

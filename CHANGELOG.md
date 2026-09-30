@@ -26,6 +26,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   default win64 bottles, which Wine does not ship as a builtin -- now counts
   as installed, reported with heuristic confidence; a bottle whose log
   already says installed is never probed (#233).
+- The runtime's GPTK interposers, the D3D12 video processor and the DXGI
+  driver version fix, now only go in front of GPTK 4.0 beta 2, the build
+  they were validated on. With GPTK 3.0 they crash Red Dead Redemption 2 at
+  startup, and opening the app put the D3D12 one back into the runtime every
+  time. Other builds, later GPTK 4 releases included, go without them until
+  they have been checked. Opening the app also takes them back out of any
+  other build they are already in front of, imported or copied into the
+  runtime by hand, and puts Apple's d3d12.dll and dxgi.dll back exactly as
+  they were, so a runtime an earlier version swapped recovers on its own
+  (#276).
+- Opening the app or Settings no longer writes over a GPTK payload copied
+  into the runtime by hand. When a payload had been imported as well, launch
+  installed the imported payload's NVAPI and MetalFX bridges into the
+  runtime, setting the hand-placed nvapi64.dll aside and deleting nvngx.dll,
+  and Settings deployed the imported payload over the whole runtime. Both
+  now only act on the payload the importer deployed; importing a payload
+  still replaces one copied in by hand (#276).
+- Launcher compatibility mode no longer turns DirectX Raytracing on for every
+  game in the bottle. Its GPU spoof, which Play switches on when it sets a
+  bottle up for Steam, carried `D3DM_SUPPORT_DXR=1`, which D3DMetal reads and
+  every game inherits from the launcher. It overrode the bottle's own ray
+  tracing toggle (off by default, and not offered on Macs without hardware
+  ray tracing) and the troubleshooter's Disable Ray Tracing fix, which now
+  decide it alone (#276).
 - The terminal environment (Open in Terminal and `WhiskyCmd shellenv`) now
   puts the real Wine bin directory on `PATH`. The path was backslash-escaped
   inside double quotes, so the entry kept a literal backslash before the

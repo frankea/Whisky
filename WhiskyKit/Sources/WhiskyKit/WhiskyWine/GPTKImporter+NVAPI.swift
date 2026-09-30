@@ -129,12 +129,24 @@ extension GPTKImporter {
     /// Installs the bridge into a tree that already holds the payload, so an
     /// install set up before this existed picks it up without reimporting.
     /// Idempotent and cheap enough to run at launch, like the MetalFX half.
+    ///
+    /// Only a payload the store deployed gets it. One copied in by hand is its
+    /// owner's: install would set the owner's `nvapi64.dll` aside as if it were
+    /// Wine's placeholder and put the store's in front of another build's dylib.
     public static func ensureNVAPIBridgeInstalled() {
-        let folder = WhiskyWineInstaller.libraryFolder
-        guard isDeployed(inLibraryFolder: folder) else { return }
+        ensureNVAPIBridgeInstalled(inLibraryFolder: WhiskyWineInstaller.libraryFolder, usingStore: storeFolder)
+    }
+
+    /// Testable seam for ``ensureNVAPIBridgeInstalled()``.
+    static func ensureNVAPIBridgeInstalled(inLibraryFolder folder: URL, usingStore store: URL) {
+        guard isDeployed(inLibraryFolder: folder),
+              isStorePayloadDeployed(inLibraryFolder: folder, usingStore: store)
+        else {
+            return
+        }
 
         do {
-            try installNVAPIBridge(intoLibraryFolder: folder, usingStore: storeFolder)
+            try installNVAPIBridge(intoLibraryFolder: folder, usingStore: store)
         } catch {
             logger.error("Installing Apple's NVAPI failed: \(error.localizedDescription)")
         }

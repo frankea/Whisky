@@ -446,7 +446,7 @@ public class Wine {
     ///
     /// ## Usage
     ///
-    /// Evaluate the output in a POSIX shell (zsh, bash) to enable Wine commands:
+    /// Evaluate the output in zsh, bash or fish to enable Wine commands:
     ///
     /// ```bash
     /// eval "$(WhiskyCmd shellenv MyBottle)"
@@ -468,11 +468,11 @@ public class Wine {
 
     /// Renders the terminal environment for a Wine bin folder and a resolved environment.
     ///
-    /// Every value, and the bin folder path, is single-quoted through ``ShellQuoting``:
-    /// the one quoting form in which nothing expands, so `eval` sets each variable to
-    /// exactly the string given here, control characters included. Only the existing
-    /// `$PATH` is left in double quotes, because it has to expand. Variables are emitted
-    /// in key order so the output is stable from run to run.
+    /// Every value, and the bin folder path, is quoted through ``ShellQuoting``, so nothing
+    /// in it expands and `eval` sets each variable to exactly the string given here,
+    /// control characters included. Apart from the constant `WINE` and alias lines,
+    /// only the existing `$PATH` is left in double quotes, because it has to expand.
+    /// Variables are emitted in key order so the output is stable from run to run.
     ///
     /// Split out of ``generateTerminalEnvironmentCommand(bottle:)`` so tests can point the
     /// bin folder at a path the installer never uses.

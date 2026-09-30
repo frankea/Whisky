@@ -31,13 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   inside double quotes, so the entry kept a literal backslash before the
   space in "Application Support" and `wine64` was not found (#270, fixes
   #269).
-- Open in Terminal and `WhiskyCmd shellenv` now export every variable with
-  its real value. Each value was escaped for a bare shell word and then put
-  inside double quotes, where most of those backslashes stay, so every `=`
-  and `;` in `WINEDLLOVERRIDES` came out with a backslash in front
-  (`d3d11\=n,b\;...`) and `WINEPREFIX` kept one before each space in a
-  custom bottle location. Values are now single-quoted, which zsh and bash
-  read back verbatim (fixes #267).
 
 ### Removed
 - ClickOnce support. Games do not arrive as `.appref-ms` deployments, and

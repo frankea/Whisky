@@ -20,7 +20,9 @@ import Foundation
 import Testing
 @testable import WhiskyKit
 
-@Suite("Shell quoting")
+// Serialized: every case blocks a thread on a real shell process, and running them
+// all at once starves the cooperative pool that timing-sensitive suites rely on.
+@Suite("Shell quoting", .serialized)
 struct ShellQuotingTests {
     /// The values an attacker-named bottle directory could carry into a
     /// terminal command, plus the ordinary ones.

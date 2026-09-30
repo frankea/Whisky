@@ -26,7 +26,9 @@ import Testing
 /// set the wrong values. So these tests evaluate the real output in each installed login
 /// shell (zsh and bash ship with macOS, fish is tested where Homebrew put it) and compare
 /// what it exports with the environment it was generated from.
-@Suite("Terminal environment command")
+///
+/// Serialized for the same reason as ``ShellQuotingTests``: each case waits on a real shell.
+@Suite("Terminal environment command", .serialized)
 struct TerminalEnvironmentCommandTests {
     /// Characters a custom bottle path can carry. The old quoting kept the backslash `.esc`
     /// puts before a space, `=`, `;` or `'`, and stripped it before `"`, `$`, a backtick or

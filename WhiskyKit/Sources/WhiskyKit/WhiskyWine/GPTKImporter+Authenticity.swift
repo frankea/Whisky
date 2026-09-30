@@ -101,9 +101,10 @@ extension GPTKImporter {
     /// `external/Resources`. Everything around the sealed version therefore
     /// has to be exactly Apple's layout:
     ///
-    /// - `external/` holds the shared library as a regular file and the
-    ///   framework as a real folder. A symlink in either place would be
-    ///   copied as a link and leave the deployed tree pointing outside it.
+    /// - `external/` is a real folder holding the shared library as a regular
+    ///   file and the framework as a real folder. A symlink in any of those
+    ///   places would be copied as a link and leave the deployed tree
+    ///   pointing outside it.
     /// - The framework root holds `Versions` and symlinks to their namesakes
     ///   in the current version (`D3DMetal` and `Resources`; GPTK 2.0 adds a
     ///   `Headers` link with nothing behind it). This is the rule codesign's
@@ -117,6 +118,10 @@ extension GPTKImporter {
     static func unsealedItem(inExternal external: URL) -> String? {
         let framework = external.appending(path: "D3DMetal.framework")
         let versions = framework.appending(path: "Versions")
+        let attributes = try? FileManager.default.attributesOfItem(atPath: external.path(percentEncoded: false))
+        guard attributes?[.type] as? FileAttributeType == .typeDirectory else {
+            return "external"
+        }
         return firstUnexpectedItem(in: external, at: "external") { name, type, _ in
             switch name {
             case "libd3dshared.dylib": type == .typeRegular

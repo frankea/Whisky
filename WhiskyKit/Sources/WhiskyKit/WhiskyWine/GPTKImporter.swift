@@ -36,8 +36,8 @@ public enum GPTKImportError: LocalizedError, Equatable {
     case notAppleSigned(String)
     /// The payload's `external/` folder holds an item (payload-relative path)
     /// that Apple's signatures do not cover: something added beside Apple's
-    /// code or around the framework's sealed version, or a link Apple ships
-    /// replaced by a copy or pointed elsewhere.
+    /// code or around the framework's sealed version, or a folder or link
+    /// that is not what Apple ships there, such as a link out of the payload.
     case unsealedItem(String)
     /// No imported payload exists in the store to deploy or remove.
     case storeEmpty
@@ -312,7 +312,10 @@ public enum GPTKImporter {
         try? fileManager.removeItem(at: staging)
         var version = payload.version
         do {
-            try fileManager.copyItem(at: payload.libRoot, to: staging)
+            // The folder a link points to, not the link: a staged link would
+            // leave the store pointing at the source, and every later deploy
+            // would copy whatever the source holds by then.
+            try fileManager.copyItem(at: payload.libRoot.resolvingSymlinksInPath(), to: staging)
             try linkUnixBridges(inPayload: staging)
             if let isAppleSigned {
                 version = try validatePayload(at: staging, isAppleSigned: isAppleSigned).version

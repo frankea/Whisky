@@ -105,6 +105,8 @@ enum GPTKLayoutTamper: String, CaseIterable, Sendable {
     case linkedSharedLibrary
     /// The framework as a link to a folder outside the payload.
     case linkedFramework
+    /// `external/` itself as a link to a folder outside the payload.
+    case linkedExternal
 
     var offendingItem: String {
         switch self {
@@ -117,6 +119,7 @@ enum GPTKLayoutTamper: String, CaseIterable, Sendable {
         case .plantedExternalResources: "external/Resources"
         case .linkedSharedLibrary: "external/libd3dshared.dylib"
         case .linkedFramework: "external/D3DMetal.framework"
+        case .linkedExternal: "external"
         }
     }
 
@@ -151,6 +154,8 @@ enum GPTKLayoutTamper: String, CaseIterable, Sendable {
             try replaceWithLink(external.appending(path: "libd3dshared.dylib"), outside: libRoot)
         case .linkedFramework:
             try replaceWithLink(framework, outside: libRoot)
+        case .linkedExternal:
+            try replaceWithLink(external, outside: libRoot)
         }
     }
 }
@@ -279,6 +284,23 @@ struct GPTKPayloadAuthenticityTests {
             let path = store.appending(path: leftover).path(percentEncoded: false)
             #expect(!FileManager.default.fileExists(atPath: path))
         }
+    }
+
+    @Test("Importing through a link copies the folder it points to, so the store keeps no link to the source")
+    func importResolvesLinkedPayload() throws {
+        let lib = tempDir.appending(path: "lib")
+        let link = tempDir.appending(path: "linked-lib")
+        let store = tempDir.appending(path: "store")
+        try makePayload(at: lib)
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: lib)
+        let payload = try GPTKImporter.validatePayload(at: link, isAppleSigned: { _, _ in true })
+
+        try GPTKImporter.importPayload(payload, intoStore: store, revalidatingWith: { _, _ in true })
+
+        let storeLib = store.appending(path: "lib").path(percentEncoded: false)
+        let type = try FileManager.default.attributesOfItem(atPath: storeLib)[.type] as? FileAttributeType
+        #expect(type == .typeDirectory)
+        #expect(GPTKImporter.storedRecord(inStore: store)?.gptkVersion == "4.0b2")
     }
 
     @Test("A copy that fails part way leaves no staged folder behind")

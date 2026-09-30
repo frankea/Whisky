@@ -237,7 +237,7 @@ extension Whisky {
         @Argument(parsing: .allUnrecognized, help: "Additional arguments to pass to the program")
         var args: [String] = []
 
-        @Flag(name: .shortAndLong, help: "Print the Wine command instead of running it")
+        @Flag(name: .shortAndLong, help: "Prepare the bottle and print the Wine command instead of running it")
         var command: Bool = false
 
         @Flag(name: .long, help: "Stream program output to terminal")

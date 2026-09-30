@@ -243,6 +243,13 @@ public class Wine {
         gameProfileEnvironment: [String: String] = [:],
         overridesApplyToDescendants: Bool = false
     ) async throws -> ProgramRunResult {
+        // Font aliases first, before any setting is read: their import can take
+        // a few seconds, and a setting changed during it would leave this launch
+        // with one backend's files and another's environment. It must finish
+        // before the program starts, since a process reads the aliases once, and
+        // like every Wine process it reconciles the user profile before starting.
+        await syncCJKFontReplacements(bottle: bottle)
+
         // Note: Launcher detection and fix application happen before this method
         // is called, via LauncherFixes.detectAndApply from the app's run paths
         // (FileOpenView/BottleView/ProgramMenuView).
@@ -271,9 +278,6 @@ public class Wine {
         // The profile has to resolve under whichever name this runtime uses
         // before anything in the bottle starts, or the app boots into an empty one.
         WineUserProfile.reconcile(bottleURL: bottle.url)
-
-        // Also before the program starts: a process reads font aliases once.
-        await syncCJKFontReplacements(bottle: bottle)
 
         try prepareBackendPrefix(effectiveBackend, bottle: bottle)
 

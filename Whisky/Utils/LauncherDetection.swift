@@ -44,9 +44,8 @@ enum LauncherDetection {
 
         switch launcher {
         case .steam:
-            if !bottle.settings.dxvk {
-                warnings.append("⚠️ DXVK should be enabled for best Steam performance")
-            }
+            // No DXVK check: Steam's own processes get DXVK through their own
+            // overrides, so a bottle on D3DMetal is the intended setup (#276).
             if bottle.settings.launcherLocale != .english, bottle.settings.launcherLocale != .auto {
                 warnings.append("⚠️ Steam may crash without en_US locale (steamwebhelper issue)")
             }

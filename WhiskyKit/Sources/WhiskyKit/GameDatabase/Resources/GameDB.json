@@ -163,17 +163,17 @@
       "variants": [
         {
           "id": "dxvk-(avoids-haziness)",
-          "label": "DXVK (avoids haziness)",
+          "label": "Recommended backend",
           "isDefault": true,
-          "whenToUse": "Recommended community-tested configuration",
+          "whenToUse": "Default configuration; Whisky picks the backend for the installed runtime",
           "rationale": [
-            "FNA-based renderer hits a documented haziness bug on D3DMetal",
-            "DXVK eliminates the artifact and runs cleanly"
+            "DirectX 12 only (PCGamingWiki); DXVK has no Direct3D 12 path and its preset turns d3d12 off, so the game uses the recommended backend (D3DMetal with the GPTK payload)",
+            "An earlier note reported haziness on D3DMetal (\"FNA-based renderer hits a documented haziness bug on D3DMetal\"); PCGamingWiki lists no FNA engine and that report is unverified, and DXVK cannot run the game either way"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "msync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -810,7 +810,8 @@
           "rationale": [
             "DXVK provides better rendering for the Northlight engine",
             "DX11 executable is more stable than DX12",
-            "Ray tracing must be disabled for performance"
+            "Ray tracing must be disabled for performance",
+            "Control ships DirectX 11 and 12 as separate executables (PCGamingWiki); DXVK is for Control_DX11.exe, and Control_DX12.exe cannot start on DXVK because its preset turns d3d12 off"
           ],
           "settings": {
             "graphicsBackend": "dxvk",
@@ -991,18 +992,17 @@
         },
         {
           "id": "dxvk-fallback",
-          "label": "DXVK (Fallback)",
+          "label": "Recommended backend (fallback)",
           "isDefault": false,
-          "whenToUse": "Use if D3DMetal causes graphical glitches or crashes",
+          "whenToUse": "Use if the default variant's forced D3DMetal settings cause glitches or crashes",
           "rationale": [
-            "DXVK provides an alternative rendering path via Vulkan/MoltenVK",
-            "Async shader compilation reduces stuttering",
-            "May work better on certain GPU configurations"
+            "Cyberpunk 2077 is DirectX 12 only (PCGamingWiki); DXVK has no Direct3D 12 path and its preset turns d3d12 off, so a DXVK fallback cannot start the game",
+            "Leaves the backend to Whisky's recommendation for the installed runtime and drops the default variant's DXR override"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "esync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -2543,17 +2543,17 @@
       "variants": [
         {
           "id": "dxvk-(decima-engine)",
-          "label": "DXVK (Decima engine)",
+          "label": "Recommended (Decima engine)",
           "isDefault": true,
-          "whenToUse": "Recommended community-tested configuration",
+          "whenToUse": "Default configuration; Whisky picks the backend for the installed runtime",
           "rationale": [
-            "Same Decima engine config as Horizon Zero Dawn \u2014 DXVK is the known good path",
-            "vcrun2022 + esync match the HZD recipe"
+            "DirectX 12 only (PCGamingWiki); DXVK has no Direct3D 12 path and its preset turns d3d12 off, so the game uses the recommended backend (D3DMetal with the GPTK payload)",
+            "vcrun2022 + esync match the Horizon Zero Dawn recipe"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "msync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -2609,18 +2609,18 @@
       "variants": [
         {
           "id": "recommended-dxvk",
-          "label": "Recommended (DXVK)",
+          "label": "Recommended",
           "isDefault": true,
-          "whenToUse": "DXVK provides better compatibility for this Vulkan-capable title",
+          "whenToUse": "Recommended backend for this DirectX 12 only title",
           "rationale": [
-            "DXVK with async shaders reduces stuttering significantly",
+            "DirectX 12 only (PCGamingWiki); DXVK has no Direct3D 12 path and its preset turns d3d12 off, so the game uses the recommended backend (D3DMetal with the GPTK payload)",
             "Esync is needed for proper thread synchronization",
             "Shader cache prevents repeated compilation"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "esync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -2641,7 +2641,7 @@
         }
       ],
       "notes": [
-        "DXVK is preferred over D3DMetal for this title due to better shader handling",
+        "DirectX 12 only; DXVK cannot run it, so it uses the recommended backend",
         "Lower settings to Medium for M1/M2; High works on M3 Pro and above",
         "Save files are compatible with Steam Cloud"
       ],
@@ -2827,13 +2827,13 @@
           "isDefault": true,
           "whenToUse": "Community-tested configuration",
           "rationale": [
-            "UE4 title with Don't Nod-typical DX11 startup error without vcrun2022",
-            "DXVK + async addresses initial Direct3D init pattern"
+            "UE4 title with the Don't Nod-typical Direct3D startup error without vcrun2022",
+            "DirectX 12 only (PCGamingWiki); DXVK has no Direct3D 12 path and its preset turns d3d12 off, so the game uses the recommended backend (D3DMetal with the GPTK payload)"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "msync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -2964,17 +2964,17 @@
       "variants": [
         {
           "id": "dxvk-(re-engine)",
-          "label": "DXVK (RE Engine)",
+          "label": "Recommended (RE Engine)",
           "isDefault": true,
-          "whenToUse": "Recommended community-tested configuration",
+          "whenToUse": "Default configuration; Whisky picks the backend for the installed runtime",
           "rationale": [
-            "RE Engine title; mirrors the SF6/MH Rise DXVK config",
-            "Beta build exits immediately when launched directly via Steam without DXVK"
+            "RE Engine title; vcrun2022 supplies the runtime",
+            "DirectX 12 only (PCGamingWiki); DXVK has no Direct3D 12 path and its preset turns d3d12 off, so the game uses the recommended backend (D3DMetal with the GPTK payload)"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "msync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -3033,13 +3033,14 @@
           "isDefault": true,
           "whenToUse": "Community-tested configuration",
           "rationale": [
-            "MT Framework engine \u2014 cutscene freezes from missing Media Foundation",
-            "mf winetrick + DXVK addresses Iceborne ending cutscene hang"
+            "MT Framework engine; cutscene freezes come from missing Media Foundation",
+            "The mf winetrick addresses the Iceborne ending cutscene hang",
+            "DirectX 11 and 12 (PCGamingWiki); the earlier DXVK recommendation was about the cutscene fix, not a DirectX 11 path, so the game uses the recommended backend and d3d12 stays loadable"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "msync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -3314,13 +3315,13 @@
           "isDefault": true,
           "whenToUse": "Community-tested configuration",
           "rationale": [
-            "UE4.27 Atlus port crashes in DXVK init without vcrun + d3dcompiler",
-            "Pattern matches other UE4 JRPG ports we've shipped"
+            "UE4.27 Atlus port that needs vcrun + d3dcompiler at startup",
+            "DirectX 12 only (PCGamingWiki); DXVK has no Direct3D 12 path and its preset turns d3d12 off, so the game uses the recommended backend (D3DMetal with the GPTK payload)"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "msync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -3515,13 +3516,14 @@
           "isDefault": true,
           "whenToUse": "Community-tested configuration",
           "rationale": [
-            "UE4 title where Win10 mode regression in newer Wine builds \u2014 Win11 + DXVK is stable path",
-            "Performance regression is upstream Wine bug; recommended settings sidestep it"
+            "UE4 title with a Windows 10 mode regression in newer Wine builds; Windows 11 mode is the stable path",
+            "Performance regression is an upstream Wine bug; recommended settings sidestep it",
+            "DirectX 11 and 12 (PCGamingWiki); the earlier DXVK recommendation was about the Wine version regression, not a DirectX 11 path, so the game uses the recommended backend and d3d12 stays loadable"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "msync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -3581,13 +3583,14 @@
           "isDefault": true,
           "whenToUse": "Community-tested configuration",
           "rationale": [
-            "UE4 shooter where pink/black artifacts indicate shader cache invalidation",
-            "DXVK with async cache + persistent shader cache resolves intermittent corruption"
+            "UE shooter where pink/black artifacts indicate shader cache invalidation",
+            "Persistent shader cache resolves the intermittent corruption",
+            "DirectX 11 and 12 (PCGamingWiki); the earlier DXVK recommendation was about shader cache corruption, not a DirectX 11 path, so the game uses the recommended backend and d3d12 stays loadable"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "msync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -3807,13 +3810,14 @@
           "isDefault": true,
           "whenToUse": "Community-tested configuration",
           "rationale": [
-            "UE4 voxel-destruction shooter that broke on Sequoia \u2014 compat mode + DXVK restores",
-            "Worked previously, regressed on macOS 15 beta \u2014 fits Sequoia compat fix pattern"
+            "UE4 voxel-destruction shooter that broke on Sequoia; compat mode restores it",
+            "Worked previously and regressed on the macOS 15 beta, which fits the Sequoia compat fix pattern",
+            "DirectX 11 and 12 (PCGamingWiki); the earlier DXVK recommendation was about the Sequoia regression, not a DirectX 11 path, so the game uses the recommended backend and d3d12 stays loadable"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "msync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -4079,18 +4083,17 @@
       "variants": [
         {
           "id": "experimental-dxvk",
-          "label": "Experimental (DXVK)",
+          "label": "Experimental (recommended backend)",
           "isDefault": true,
-          "whenToUse": "Unverified; DXVK may handle DX12 better for this title",
+          "whenToUse": "Unverified; DirectX 12 only, so it uses the recommended backend",
           "rationale": [
-            "DX12 game that may benefit from DXVK translation path",
-            "Async shader compilation could help with stuttering",
+            "DirectX 12 only (PCGamingWiki); DXVK has no Direct3D 12 path and its preset turns d3d12 off, so the game uses the recommended backend (D3DMetal with the GPTK payload)",
             "Very demanding title; expect poor performance"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "esync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -4156,17 +4159,18 @@
       "variants": [
         {
           "id": "dxvk-(re-engine)",
-          "label": "DXVK (RE Engine)",
+          "label": "Recommended (RE Engine)",
           "isDefault": true,
-          "whenToUse": "Recommended community-tested configuration",
+          "whenToUse": "Default configuration; Whisky picks the backend for the installed runtime",
           "rationale": [
-            "'Fatal d3d error(3)' is a confirmed D3DMetal crash for the RE Engine",
-            "DXVK avoids the fatal path; vcrun2022 supplies the runtime"
+            "'Fatal d3d error(3)' has been reported as a D3DMetal crash for the RE Engine; DXVK cannot avoid it because it cannot run the game at all",
+            "DirectX 12 only (PCGamingWiki); DXVK has no Direct3D 12 path and its preset turns d3d12 off, so the game uses the recommended backend (D3DMetal with the GPTK payload)",
+            "vcrun2022 supplies the runtime"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "msync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -4733,17 +4737,17 @@
       "variants": [
         {
           "id": "dxvk-(ue5-fallback)",
-          "label": "DXVK (UE5 fallback)",
+          "label": "Recommended (UE5)",
           "isDefault": true,
-          "whenToUse": "Recommended community-tested configuration",
+          "whenToUse": "Default configuration; Whisky picks the backend for the installed runtime",
           "rationale": [
-            "UE5 Nanite/Lumen exposes D3DMetal incompatibility with missing/untextured models",
-            "DXVK shader compilation gives correct rendering at the cost of compile-stutter on first run"
+            "UE5 Nanite/Lumen has been reported to show missing or untextured models on D3DMetal",
+            "DirectX 12 only (PCGamingWiki); DXVK has no Direct3D 12 path and its preset turns d3d12 off, so the game uses the recommended backend (D3DMetal with the GPTK payload)"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "msync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -5684,18 +5688,18 @@
       "variants": [
         {
           "id": "dxvk-+-corefonts",
-          "label": "DXVK + corefonts",
+          "label": "Recommended + corefonts",
           "isDefault": true,
-          "whenToUse": "Recommended community-tested configuration",
+          "whenToUse": "Default configuration; Whisky picks the backend for the installed runtime",
           "rationale": [
             "White CEF launcher pane is a known IE/font fallback issue with the Evolution Engine launcher",
-            "DXVK avoids the D3DMetal CEF rendering bug",
-            "corefonts supplies Times/Arial that the launcher's HTML expects"
+            "corefonts supplies Times/Arial that the launcher's HTML expects",
+            "DirectX 11 and 12, selectable in the launcher (PCGamingWiki); the earlier DXVK recommendation was about the launcher's CEF rendering, not a DirectX 11 path, so the game uses the recommended backend and d3d12 stays loadable"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "msync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,
@@ -5837,7 +5841,8 @@
           "whenToUse": "Community-tested configuration",
           "rationale": [
             "Falcom DX11 JRPG with the immediate-crash-on-launch pattern",
-            "vcrun2022 + d3dcompiler_47 unblocks DX11 device creation"
+            "vcrun2022 + d3dcompiler_47 unblocks DX11 device creation",
+            "The Western release is DirectX 11 only; DirectX 12 exists only in the Asian 2.0 release (PCGamingWiki), where DXVK's preset would turn d3d12 off"
           ],
           "settings": {
             "graphicsBackend": "dxvk",

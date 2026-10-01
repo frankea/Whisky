@@ -21,8 +21,9 @@ import Foundation
 public extension Program {
     /// Launches this program the way Whisky does.
     ///
-    /// Prepares the bottle for the program with its own environment, overrides
-    /// and settings, the audio registry included, then runs it. Every launch of
+    /// Creates the bottle's Wine prefix if it doesn't have one yet, prepares the
+    /// bottle for the program with its own environment, overrides and settings,
+    /// the audio registry included, then runs it. Every launch of
     /// a ``Program`` in Wine goes through here, the app's and `WhiskyCmd run`'s
     /// alike, so a program behaves the same whichever of them started it.
     ///
@@ -43,7 +44,8 @@ public extension Program {
     /// Prepares the bottle to run this program, then returns the command that runs it.
     ///
     /// Where `generateTerminalCommand(args:)` only describes a launch, this first
-    /// prepares the bottle exactly as ``launch(args:onOutput:)`` does: the audio
+    /// prepares the bottle exactly as ``launch(args:onOutput:)`` does: a missing
+    /// Wine prefix is created, the audio
     /// settings, any missing CJK font aliases and the launch's DLL overrides go
     /// into the prefix registry, and the graphics backend's files into the
     /// prefix. The command then runs the program with its own overrides and
@@ -71,13 +73,17 @@ extension Program {
     ///     pass a recorder, so they can see what a launch writes without running Wine.
     ///   - importer: What imports the CJK font aliases the prefix is missing. Tests pass
     ///     a recorder here too.
+    ///   - bootstrapper: What creates the Wine prefix when the bottle has none yet, as
+    ///     after `WhiskyCmd create`. Tests pass a recorder here as well.
     /// - Returns: The environment and `wine64` arguments of the launch.
     /// - Throws: An error if the bottle cannot be prepared.
     func prepareLaunch(
         args: [String],
         overrideWriter: Wine.DLLOverrideWriter = { try await Wine.syncDLLOverrides(bottle: $0, scopes: $1) },
-        importer: Wine.RegistryImporter = { try await Wine.importRegistry(document: $0, bottle: $1) }
+        importer: Wine.RegistryImporter = { try await Wine.importRegistry(document: $0, bottle: $1) },
+        bootstrapper: Wine.PrefixBootstrapper = { try await Wine.bootstrapPrefix(bottle: $0) }
     ) async throws -> Wine.PreparedLaunch {
+        try await Wine.prepareBottlePrefix(bottle: bottle, bootstrapper: bootstrapper)
         await Wine.syncAudioRegistry(bottle: bottle)
         return try await Wine.prepareProgramLaunch(
             at: url, args: args, bottle: bottle, environment: generateEnvironment(),

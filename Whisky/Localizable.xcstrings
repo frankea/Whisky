@@ -70413,6 +70413,23 @@
         }
       }
     },
+    "program.terminal.error.scriptInvalid" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The command to open the terminal couldn't be prepared."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The command to open the terminal couldn't be prepared."
+          }
+        }
+      }
+    },
     "program.title" : {
       "localizations" : {
         "ar" : {
@@ -95279,6 +95296,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "清除著色器快取"
+          }
+        }
+      }
+    },
+    "wine.prefix.bootstrap.incomplete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This bottle's Wine prefix couldn't be set up, so nothing can run in it yet. The latest Wine log has the details."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This bottle's Wine prefix couldn't be set up, so nothing can run in it yet. The latest Wine log has the details."
+          }
+        }
+      }
+    },
+    "wine.prefix.bootstrap.runtimeMissing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This bottle's Wine prefix can't be set up because the Wine runtime isn't installed. Open Whisky to install it, then try again."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This bottle's Wine prefix can't be set up because the Wine runtime isn't installed. Open Whisky to install it, then try again."
           }
         }
       }

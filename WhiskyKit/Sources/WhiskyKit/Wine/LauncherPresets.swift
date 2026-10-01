@@ -251,14 +251,15 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     /// client in `steamwebhelper.exe`, so an override on `steam.exe` alone
     /// leaves the window blank. Games a launcher starts are deliberately absent.
     ///
-    /// Steam's `GameOverlayUI.exe` is on the list because it draws the in-game
+    /// Steam's overlay process is on the list because it draws the in-game
     /// overlay with Direct3D in a process of its own, beside a game that may be
-    /// on D3DMetal. Helpers that draw nothing (`steamerrorreporter.exe`,
+    /// on D3DMetal. Current clients ship it as `gameoverlayui64.exe` only;
+    /// `GameOverlayUI.exe` is the name older ones used. Helpers that draw nothing (`steamerrorreporter.exe`,
     /// `steam_monitor.exe`) run on the bottle's backend unharmed.
     public var helperExecutables: [String] {
         switch self {
         case .steam:
-            ["steamwebhelper.exe", "steamservice.exe", "GameOverlayUI.exe"]
+            ["steamwebhelper.exe", "steamservice.exe", "gameoverlayui64.exe", "GameOverlayUI.exe"]
         case .epicGames:
             ["EpicWebHelper.exe"]
         case .eaApp:

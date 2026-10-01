@@ -93,7 +93,7 @@ final class SteamGameLaunchScopingTests {
     /// Steam's own processes all on DXVK, the helpers without the NVIDIA bridge.
     private func expectSteamOnDXVK(_ recorder: ScopeRecorder) {
         expectDXVK(recorder.overrides(for: .program("steam.exe")), "steam.exe")
-        for helper in ["steamwebhelper.exe", "steamservice.exe", "GameOverlayUI.exe"] {
+        for helper in ["steamwebhelper.exe", "steamservice.exe", "gameoverlayui64.exe", "GameOverlayUI.exe"] {
             expectDXVK(recorder.overrides(for: .program(helper)), helper)
             #expect(recorder.overrides(for: .program(helper))?["nvapi64"] == "", "\(helper): nvapi64")
         }

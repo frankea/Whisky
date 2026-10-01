@@ -59,7 +59,11 @@ struct DiagnosticsView: View {
     private var resolvedRemediations: [RemediationAction] {
         guard let diagnosis else { return [] }
         let (_, remediations) = PatternLoader.loadDefaults()
-        return diagnosis.remediations(from: remediations)
+        // A card whose change is already in place (a reset to Recommended on
+        // a Recommended bottle) would apply as a silent no-op.
+        return diagnosis.remediations(from: remediations).filter { action in
+            applyBottle.map { action.wouldChange($0.settings) } ?? true
+        }
     }
 
     private var primaryRemediations: [RemediationAction] {

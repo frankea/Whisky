@@ -190,15 +190,7 @@ public enum FlowValidator {
                 }
             }
 
-            // Check fix nodes reference an implemented fix
-            if let fixId = node.fixId, !FixApplicator.knownFixIds.contains(fixId) {
-                issues.append(ValidationIssue(
-                    flowId: flowId,
-                    nodeId: nodeId,
-                    message: "Fix ID '\(fixId)' has no implementation in FixApplicator",
-                    severity: .error
-                ))
-            }
+            issues += fixIssues(node: node, nodeId: nodeId, flowId: flowId)
 
             // Check fragment references resolve
             if let fragmentRef = node.fragmentRef {
@@ -239,6 +231,34 @@ public enum FlowValidator {
         }
 
         return issues
+    }
+
+    /// Problems with a fix node's fix reference.
+    private static func fixIssues(node: FlowStepNode, nodeId: String, flowId: String) -> [ValidationIssue] {
+        guard let fixId = node.fixId else {
+            return []
+        }
+        // A fix card must never render with a dead Apply button
+        guard FixApplicator.knownFixIds.contains(fixId) else {
+            return [ValidationIssue(
+                flowId: flowId,
+                nodeId: nodeId,
+                message: "Fix ID '\(fixId)' has no implementation in FixApplicator",
+                severity: .error
+            )]
+        }
+        // A backend switch must name its target, or FixApplicator falls back
+        // to Recommended and a card promising DXVK changes nothing
+        if fixId == "switch-backend",
+           node.params?["backend"].flatMap(GraphicsBackend.init(rawValue:)) == nil {
+            return [ValidationIssue(
+                flowId: flowId,
+                nodeId: nodeId,
+                message: "switch-backend needs a 'backend' param naming a graphics backend",
+                severity: .error
+            )]
+        }
+        return []
     }
 
     /// Finds all nodes reachable from a starting node via BFS.

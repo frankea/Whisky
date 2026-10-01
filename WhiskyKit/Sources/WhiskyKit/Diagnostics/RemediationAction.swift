@@ -90,3 +90,29 @@ public struct RemediationAction: Codable, Sendable, Identifiable {
         }
     }
 }
+
+// MARK: - Graphics Backend Target
+
+extension RemediationAction {
+    /// The backend a ``ActionType/switchBackend`` action moves the bottle to.
+    ///
+    /// Named by ``settingValue``; an action that names none resets to
+    /// ``GraphicsBackend/recommended``, the resolver's choice for the runtime.
+    /// `nil` for every other action type.
+    public var targetBackend: GraphicsBackend? {
+        guard actionType == .switchBackend else {
+            return nil
+        }
+        return settingValue.flatMap(GraphicsBackend.init(rawValue:)) ?? .recommended
+    }
+
+    /// Whether applying this action to a bottle with `settings` would change
+    /// anything. A backend switch to the backend the bottle already uses is a
+    /// no-op and should not be offered.
+    public func wouldChange(_ settings: BottleSettings) -> Bool {
+        guard let targetBackend else {
+            return true
+        }
+        return settings.graphicsBackend != targetBackend
+    }
+}

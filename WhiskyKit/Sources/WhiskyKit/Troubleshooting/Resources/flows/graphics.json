@@ -33,6 +33,9 @@
       "title": "Switch to DXVK",
       "description": "DXVK provides better compatibility for many graphics issues. Switching the graphics backend to DXVK.",
       "fixId": "switch-backend",
+      "params": {
+        "backend": "dxvk"
+      },
       "fixPreview": {
         "settingName": "Graphics Backend",
         "currentValueKey": "current",

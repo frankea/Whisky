@@ -51,9 +51,12 @@
       "id": "fix_switch_backend",
       "type": "fix",
       "phase": "fix",
-      "title": "Switch graphics backend",
-      "description": "Switching to a different graphics translation layer may resolve the GPU-related crash.",
+      "title": "Switch to DXVK",
+      "description": "DXVK is the most broadly compatible graphics backend. Switching the graphics backend to DXVK may resolve the GPU-related crash.",
       "fixId": "switch-backend",
+      "params": {
+        "backend": "dxvk"
+      },
       "fixPreview": {
         "settingName": "Graphics Backend",
         "currentValueKey": "current",

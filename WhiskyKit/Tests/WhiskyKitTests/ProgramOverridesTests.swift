@@ -57,7 +57,6 @@ final class ProgramOverridesTests: XCTestCase {
         XCTAssertEqual(decoded.dxvk, true)
         XCTAssertEqual(decoded.enhancedSync, .msync)
         XCTAssertNil(decoded.dxvkAsync)
-        XCTAssertNil(decoded.forceD3D11)
     }
 
     // MARK: - Backward Compatibility
@@ -118,6 +117,36 @@ final class ProgramOverridesTests: XCTestCase {
         let decoded = try PropertyListDecoder().decode(ProgramOverrides.self, from: Data(mutated.utf8))
 
         XCTAssertEqual(decoded.enhancedSync, .msync)
+    }
+
+    func testLegacyForceD3D11IgnoredInOverridesDecode() throws {
+        var overrides = ProgramOverrides()
+        overrides.enhancedSync = .msync
+        overrides.shaderCacheEnabled = false
+
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let data = try encoder.encode(overrides)
+
+        let xml = try XCTUnwrap(String(data: data, encoding: .utf8))
+        XCTAssertTrue(xml.contains("<key>enhancedSync</key>"), "encoding shape changed; test no longer substitutes")
+        let mutated = xml.replacingOccurrences(
+            of: "<key>enhancedSync</key>",
+            with: "<key>forceD3D11</key><true/><key>enhancedSync</key>"
+        )
+        let decoded = try PropertyListDecoder().decode(ProgramOverrides.self, from: Data(mutated.utf8))
+
+        XCTAssertEqual(decoded, overrides)
+        XCTAssertFalse(decoded.isEmpty)
+
+        // An override that only ever set the removed key now reads as no override.
+        let onlyLegacy = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0"><dict><key>forceD3D11</key><true/></dict></plist>
+        """
+        let legacyOnly = try PropertyListDecoder().decode(ProgramOverrides.self, from: Data(onlyLegacy.utf8))
+        XCTAssertTrue(legacyOnly.isEmpty)
     }
 
     func testProgramSettingsUnknownLocaleDecodesToAuto() throws {

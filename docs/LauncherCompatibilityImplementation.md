@@ -84,10 +84,9 @@ Steam:
 
 Rockstar:
 - DXVK_REQUIRED=1 (logo rendering)
-- D3DM_FORCE_D3D11=1 (game compatibility)
 
 EA App:
-- D3DM_FEATURE_LEVEL_12_1=1 (GPU checks)
+- LC_ALL=en_US.UTF-8 (launcher UI locale)
 - CEF_DISABLE_SANDBOX=1 (launcher UI)
 ```
 
@@ -96,7 +95,6 @@ EA App:
 
 **Key Features:**
 - Three vendor profiles (NVIDIA, AMD, Intel)
-- DirectX 12.1 feature level reporting
 - OpenGL 4.6 capability reporting
 - 8GB VRAM reporting
 - Ray tracing (DXR) support indication
@@ -371,7 +369,7 @@ if bottle.settings.launcherCompatibilityMode &&
 ✅ `testAMDVendorID`
 ✅ `testIntelVendorID`
 ✅ `testGPUSpoofingIncludesVendorID`
-✅ `testGPUSpoofingIncludesFeatureLevels`
+✅ `testGPUSpoofingOmitsUnreadFeatureLevelKeys`
 ✅ `testGPUSpoofingIncludesOpenGLVersion`
 ✅ `testGPUSpoofingIncludesVRAM`
 ✅ `testGPUSpoofingIncludesRayTracing`

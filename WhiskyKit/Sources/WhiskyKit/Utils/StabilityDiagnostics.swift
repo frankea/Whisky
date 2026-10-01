@@ -122,7 +122,6 @@ public enum StabilityDiagnostics {
         summary += "--- Graphics/Metal ---\n"
         summary += "DXVK: \(bottle.settings.dxvk ? "✅ Enabled" : "❌ Disabled")\n"
         summary += "DXVK Async: \(bottle.settings.dxvkAsync ? "✅ Enabled" : "❌ Disabled")\n"
-        summary += "Force D3D11: \(bottle.settings.forceD3D11 ? "✅ Yes" : "❌ No")\n"
         summary += "DXR Enabled: \(bottle.settings.dxrEnabled ? "✅ Yes" : "❌ No")\n"
         summary += "Metal HUD: \(bottle.settings.metalHud ? "✅ Yes" : "❌ No")\n"
         summary += "Metal Validation: \(bottle.settings.metalValidation ? "✅ Yes" : "❌ No")\n"

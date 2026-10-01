@@ -41,13 +41,14 @@ final class GPUDetectionTests: XCTestCase {
         XCTAssertNotNil(env["GPU_DEVICE_ID"])
     }
 
-    func testGPUSpoofingIncludesFeatureLevels() {
+    func testGPUSpoofingOmitsUnreadFeatureLevelKeys() {
         let env = GPUDetection.spoofGPU(vendor: .nvidia)
 
-        // Should report DirectX 12.1 support
-        XCTAssertEqual(env["D3DM_FEATURE_LEVEL_12_1"], "1")
-        XCTAssertEqual(env["D3DM_FEATURE_LEVEL_12_0"], "1")
-        XCTAssertEqual(env["D3DM_FEATURE_LEVEL_11_1"], "1")
+        // D3DMetal, Wine, DXVK and DXMT read none of these, so the spoof
+        // doesn't set them.
+        XCTAssertNil(env["D3DM_FEATURE_LEVEL_12_1"])
+        XCTAssertNil(env["D3DM_FEATURE_LEVEL_12_0"])
+        XCTAssertNil(env["D3DM_FEATURE_LEVEL_11_1"])
     }
 
     func testGPUSpoofingIncludesOpenGLVersion() {

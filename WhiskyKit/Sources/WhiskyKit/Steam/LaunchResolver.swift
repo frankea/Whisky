@@ -95,7 +95,6 @@ public enum LaunchResolver {
         merged.dxvk = merged.dxvk ?? variant.dxvk
         merged.dxvkAsync = merged.dxvkAsync ?? variant.dxvkAsync
         merged.enhancedSync = merged.enhancedSync ?? variant.enhancedSync
-        merged.forceD3D11 = merged.forceD3D11 ?? variant.forceD3D11
         merged.shaderCacheEnabled = merged.shaderCacheEnabled ?? variant.shaderCacheEnabled
         merged.dllOverrides = merged.dllOverrides ?? dllOverrides
 

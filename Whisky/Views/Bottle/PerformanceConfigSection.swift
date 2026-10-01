@@ -33,14 +33,6 @@ struct PerformanceConfigSection: View {
                         .foregroundColor(.secondary)
                 }
             }
-            Toggle(isOn: $bottle.settings.forceD3D11) {
-                VStack(alignment: .leading) {
-                    Text("config.forceD3D11")
-                    Text("config.forceD3D11.info")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
             Toggle(isOn: $bottle.settings.disableAppNap) {
                 VStack(alignment: .leading) {
                     Text("config.disableAppNap")

@@ -96,11 +96,6 @@ struct GraphicsConfigSection: View {
                 .disabled(!bottle.settings.metalFX)
             }
 
-            // Force DX11 toggle -- always visible (Simple + Advanced)
-            Toggle(isOn: $bottle.settings.forceD3D11) {
-                Text("config.forceD3D11")
-            }
-
             // The Sequoia compatibility toggle is gone: everything it set is a
             // platform-layer fix applied on every supported macOS, so the
             // switch changed nothing in either position.

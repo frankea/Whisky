@@ -120,11 +120,6 @@ public enum GPUDetection {
         env["MESA_GL_VERSION_OVERRIDE"] = "4.6"
         env["MESA_GLSL_VERSION_OVERRIDE"] = "460"
 
-        // DirectX feature levels
-        env["D3DM_FEATURE_LEVEL_12_1"] = "1" // DirectX 12.1 support
-        env["D3DM_FEATURE_LEVEL_12_0"] = "1" // DirectX 12.0 support
-        env["D3DM_FEATURE_LEVEL_11_1"] = "1" // DirectX 11.1 support
-
         // PCI vendor and device IDs
         env["GPU_VENDOR_ID"] = vendor.vendorID
         env["GPU_DEVICE_ID"] = vendor.deviceID
@@ -185,8 +180,7 @@ public enum GPUDetection {
     public static func validateSpoofingEnvironment(_ environment: [String: String]) -> Bool {
         let requiredKeys = [
             "GPU_VENDOR_ID",
-            "GPU_DEVICE_ID",
-            "D3DM_FEATURE_LEVEL_12_1"
+            "GPU_DEVICE_ID"
         ]
 
         return requiredKeys.allSatisfy { environment[$0] != nil }

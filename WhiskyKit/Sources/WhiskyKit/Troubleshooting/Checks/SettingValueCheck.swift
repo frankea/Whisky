@@ -125,8 +125,6 @@ public struct SettingValueCheck: TroubleshootingCheck {
             settings.sequoiaCompatMode ? "true" : "false"
         case "shaderCacheEnabled":
             settings.shaderCacheEnabled ? "true" : "false"
-        case "forceD3D11":
-            settings.forceD3D11 ? "true" : "false"
         case "avxEnabled":
             settings.avxEnabled ? "true" : "false"
         case "launcherCompatibilityMode":

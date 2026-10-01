@@ -44,7 +44,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -111,7 +110,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -177,7 +175,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -240,7 +237,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "esync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -312,7 +308,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -385,7 +380,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "esync",
-            "forceD3D11": true,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -470,7 +464,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "none",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -549,7 +542,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": true
@@ -617,7 +609,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -689,7 +680,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -760,7 +750,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -828,7 +817,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "esync",
-            "forceD3D11": true,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -912,7 +900,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -983,7 +970,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "esync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -1018,7 +1004,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "esync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -1102,7 +1087,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -1176,7 +1160,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "esync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -1253,7 +1236,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "esync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -1331,7 +1313,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "none",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -1408,7 +1389,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -1493,7 +1473,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -1566,7 +1545,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -1643,7 +1621,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "esync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -1719,7 +1696,7 @@
           "whenToUse": "Recommended community-tested configuration",
           "rationale": [
             "Creation Engine queries display modes via legacy DDraw which trips up macOS Retina detection",
-            "DXVK + force D3D11 + sequoiaCompatMode gives consistent display detection",
+            "DXVK + sequoiaCompatMode gives consistent display detection",
             "xact installs MS audio runtime expected by Creation Engine"
           ],
           "settings": {
@@ -1727,7 +1704,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": true,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": true
@@ -1796,7 +1772,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -1866,7 +1841,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -1925,7 +1899,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "none",
-            "forceD3D11": false,
             "shaderCacheEnabled": false,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -1998,7 +1971,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -2068,7 +2040,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "esync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -2148,7 +2119,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -2218,7 +2188,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -2296,7 +2265,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -2364,7 +2332,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "esync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -2440,7 +2407,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "esync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -2520,7 +2486,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -2590,7 +2555,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -2658,7 +2622,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "esync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -2740,7 +2703,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -2807,7 +2769,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -2874,7 +2835,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -2943,7 +2903,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -3017,7 +2976,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -3083,7 +3041,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -3150,7 +3107,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -3221,7 +3177,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -3293,7 +3248,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "none",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -3368,7 +3322,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -3437,7 +3390,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -3505,7 +3457,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -3572,7 +3523,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -3639,7 +3589,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -3707,14 +3656,12 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "esync",
-            "forceD3D11": true,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
           },
           "environmentVariables": {
             "DXVK_REQUIRED": "1",
-            "D3DM_FORCE_D3D11": "1",
             "WINE_LARGE_ADDRESS_AWARE": "1"
           },
           "dllOverrides": [],
@@ -3794,7 +3741,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "esync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -3869,7 +3815,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": true
@@ -3936,7 +3881,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": true
@@ -4004,7 +3948,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -4074,7 +4017,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -4150,7 +4092,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "esync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -4227,7 +4168,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -4294,7 +4234,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -4360,7 +4299,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -4429,7 +4367,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -4500,7 +4437,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -4568,7 +4504,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -4637,7 +4572,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -4706,7 +4640,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -4736,7 +4669,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -4813,7 +4745,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -4881,7 +4812,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -4912,7 +4842,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -4991,7 +4920,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "esync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -5069,7 +4997,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -5138,7 +5065,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -5209,7 +5135,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "esync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -5293,7 +5218,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -5368,7 +5292,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -5433,7 +5356,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -5505,7 +5427,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "esync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -5571,7 +5492,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -5639,7 +5559,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -5703,7 +5622,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "none",
-            "forceD3D11": false,
             "shaderCacheEnabled": false,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -5779,7 +5697,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -5850,7 +5767,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -5928,7 +5844,6 @@
             "dxvk": true,
             "dxvkAsync": true,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -5994,7 +5909,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false
@@ -6057,7 +5971,6 @@
             "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
-            "forceD3D11": false,
             "shaderCacheEnabled": true,
             "avxEnabled": false,
             "sequoiaCompatMode": false

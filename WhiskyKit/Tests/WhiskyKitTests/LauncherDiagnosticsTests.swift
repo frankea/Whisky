@@ -184,7 +184,7 @@ final class LauncherDiagnosticsTests: XCTestCase {
 
             // Verify GPU spoofing is applied for each vendor
             XCTAssertEqual(env["GPU_VENDOR_ID"], vendor.vendorID, "Vendor ID should match for \(vendor.rawValue)")
-            XCTAssertNotNil(env["D3DM_FEATURE_LEVEL_12_1"])
+            XCTAssertNotNil(env["GPU_DEVICE_ID"])
         }
     }
 

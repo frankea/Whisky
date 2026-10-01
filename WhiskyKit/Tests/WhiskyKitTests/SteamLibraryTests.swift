@@ -284,7 +284,7 @@ struct SteamLibraryTests {
         var deep = ProgramOverrides()
         deep.dxvk = true
         var shallow = ProgramOverrides()
-        shallow.forceD3D11 = true
+        shallow.shaderCacheEnabled = false
 
         let candidates = [
             ProgramOverrideCandidate(url: URL(fileURLWithPath: "/g/bin/Helper.exe"), overrides: deep),

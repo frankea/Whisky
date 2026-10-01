@@ -83,8 +83,7 @@ struct LaunchResolverTests {
                             "isDefault": true,
                             "settings": {
                                 "graphicsBackend": "dxvk",
-                                "dxvkAsync": true,
-                                "forceD3D11": false
+                                "dxvkAsync": true
                             },
                             "environmentVariables": {
                                 "DXVK_FRAME_RATE": "120"
@@ -111,7 +110,6 @@ struct LaunchResolverTests {
 
         #expect(plan.overrides.graphicsBackend == .dxvk)
         #expect(plan.overrides.dxvkAsync == true)
-        #expect(plan.overrides.forceD3D11 == false)
         #expect(plan.gameProfileEnvironment["DXVK_FRAME_RATE"] == "120")
         #expect(plan.provenance.count == 1)
         #expect(plan.provenance[0].contains("Casualties: Unknown Demo"))

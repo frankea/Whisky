@@ -62,10 +62,11 @@ final class ProgramLaunchPreparationTests {
     }
 
     /// A DXVK bottle with a custom `d2d1=n,b` override, the setup from #266.
+    /// Its prefix counts as created, so launches don't try to bootstrap it.
     private func makeBottle() throws -> Bottle {
         let bottleURL = tempRoot.appending(path: "Bottle")
         try FileManager.default.createDirectory(
-            at: bottleURL.appending(path: "drive_c"), withIntermediateDirectories: true
+            at: bottleURL.appending(path: "drive_c/windows/system32"), withIntermediateDirectories: true
         )
         let bottle = Bottle(bottleUrl: bottleURL)
         bottle.settings.graphicsBackend = .dxvk

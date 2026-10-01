@@ -120,7 +120,7 @@ extension Whisky {
                 bottle.settings.wineVersion = SemanticVersion(0, 0, 0)
 
                 bottlesList.paths.append(bottleURL)
-                print("Created bottle \"\(trimmed)\". Open Whisky to bootstrap the Wine prefix.")
+                print("Created bottle \"\(trimmed)\". Its Wine prefix is set up when a program first runs in it.")
             } catch {
                 throw DomainError("\(error)")
             }

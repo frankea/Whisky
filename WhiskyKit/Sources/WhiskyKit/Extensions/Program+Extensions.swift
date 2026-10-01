@@ -91,8 +91,12 @@ public extension Program {
     func launchWithUserMode(useTerminal: Bool) async -> LaunchResult {
         // Check for terminal mode (typically shift-click)
         if useTerminal {
-            self.runInTerminal()
-            return .launchedInTerminal(programName: self.name)
+            do {
+                try await openInTerminal()
+                return .launchedInTerminal(programName: self.name)
+            } catch {
+                return .launchFailed(programName: self.name, errorDescription: error.localizedDescription)
+            }
         }
 
         // Normal Wine launch with program-specific settings
@@ -254,51 +258,7 @@ public extension Program {
         )
     }
 
-    func runInTerminal() {
-        // Write command to a temp script file to avoid AppleScript string length limits
-        // and complex escaping issues with very long Wine commands
-        let command = generateTerminalCommand()
-        let scriptContent = "#!/bin/bash\n\(command)\n"
-
-        let tempDir = FileManager.default.temporaryDirectory
-        let scriptURL = tempDir.appendingPathComponent("whisky-run-\(UUID().uuidString).sh")
-
-        do {
-            try scriptContent.write(to: scriptURL, atomically: true, encoding: .utf8)
-            try FileManager.default.setAttributes(
-                [.posixPermissions: 0o755],
-                ofItemAtPath: scriptURL.path
-            )
-        } catch {
-            Logger.wineKit.error("Failed to write terminal script: \(error)")
-            return
-        }
-
-        // Register temp script for tracking and cleanup
-        TempFileTracker.shared.register(file: scriptURL)
-
-        // Use the user's preferred terminal application
-        let terminal = TerminalApp.preferred
-        let appleScript = terminal.generateAppleScript(for: scriptURL.path)
-
-        Task {
-            var error: NSDictionary?
-            guard let script = NSAppleScript(source: appleScript) else { return }
-            script.executeAndReturnError(&error)
-
-            if let error {
-                Logger.wineKit.error("Failed to run terminal script \(error)")
-                guard let description = error["NSAppleScriptErrorMessage"] as? String else { return }
-                self.showRunError(message: String(describing: description))
-            }
-
-            // Clean up temp script after a delay to ensure the terminal has read it
-            try? await Task.sleep(for: .seconds(5))
-            await TempFileTracker.shared.cleanupWithRetry(file: scriptURL)
-        }
-    }
-
-    @MainActor private func showRunError(message: String) {
+    @MainActor internal func showRunError(message: String) {
         let alert = NSAlert()
         alert.messageText = String(localized: "alert.message")
         alert.informativeText = String(localized: "alert.info")

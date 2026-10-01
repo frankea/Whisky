@@ -81,6 +81,7 @@ public enum SteamLauncher {
         let steamExe = steamRoot.appending(path: "steam.exe")
 
         return Task {
+            try await Wine.prepareBottlePrefix(bottle: bottle)
             await Wine.syncAudioRegistry(bottle: bottle)
             return try await Wine.runProgram(
                 at: steamExe, args: ["-applaunch", String(appId)], bottle: bottle,

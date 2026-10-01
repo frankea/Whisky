@@ -41,6 +41,9 @@ public enum GPTKImportError: LocalizedError, Equatable {
     case unsealedItem(String)
     /// No imported payload exists in the store to deploy or remove.
     case storeEmpty
+    /// The stored payload fails the checks an import applies (the reason is
+    /// the failing check's message), so it is not deployed.
+    case storeNotVerified(String)
 
     public var errorDescription: String? {
         switch self {
@@ -58,6 +61,8 @@ public enum GPTKImportError: LocalizedError, Equatable {
             String(localized: "gptk.error.unsealedItem") + " " + path
         case .storeEmpty:
             String(localized: "gptk.error.storeEmpty")
+        case let .storeNotVerified(reason):
+            String(localized: "gptk.error.storeNotVerified") + " " + reason
         }
     }
 }
@@ -336,6 +341,11 @@ public enum GPTKImporter {
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .xml
         try encoder.encode(record).write(to: recordURL(inStore: store))
+        // Validated above, as it sits in the store now, so the first deploy
+        // does not check it again.
+        if isAppleSigned != nil {
+            stampStoreVerified(inStore: store)
+        }
         logger.info("Imported GPTK payload \(record.gptkVersion, privacy: .public) into store")
         return record
     }
@@ -378,7 +388,7 @@ public enum GPTKImporter {
         try FileManager.default.removeItem(at: store)
     }
 
-    private static func recordURL(inStore store: URL) -> URL {
+    static func recordURL(inStore store: URL) -> URL {
         store.appending(path: "D3DMetalVersion.plist")
     }
 }

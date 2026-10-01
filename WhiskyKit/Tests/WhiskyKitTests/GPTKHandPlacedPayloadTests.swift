@@ -88,7 +88,9 @@ struct GPTKHandPlacedPayloadTests {
             before[name] = try Data(contentsOf: fixture.peDir(of: runtime).appending(path: name))
         }
 
-        let deployed = GPTKImporter.deployStoredPayloadIfPresent(fromStore: store, intoLibraryFolder: runtime)
+        let deployed = GPTKImporter.deployStoredPayloadIfPresent(
+            fromStore: store, intoLibraryFolder: runtime, isAppleSigned: { _, _ in true }
+        )
 
         #expect(!deployed)
         for name in GPTKImporter.forwarderDLLNames {
@@ -103,9 +105,13 @@ struct GPTKHandPlacedPayloadTests {
         let store = try fixture.makeStore(version: GPTKInterposerFixture.validatedVersion)
         let runtime = try fixture.makeRuntimeTree()
 
-        #expect(GPTKImporter.deployStoredPayloadIfPresent(fromStore: store, intoLibraryFolder: runtime))
+        #expect(GPTKImporter.deployStoredPayloadIfPresent(
+            fromStore: store, intoLibraryFolder: runtime, isAppleSigned: { _, _ in true }
+        ))
         #expect(GPTKImporter.isStorePayloadDeployed(inLibraryFolder: runtime, usingStore: store))
-        #expect(GPTKImporter.deployStoredPayloadIfPresent(fromStore: store, intoLibraryFolder: runtime))
+        #expect(GPTKImporter.deployStoredPayloadIfPresent(
+            fromStore: store, intoLibraryFolder: runtime, isAppleSigned: { _, _ in true }
+        ))
         #expect(GPTKImporter.isDeployed(inLibraryFolder: runtime))
     }
 
@@ -114,7 +120,9 @@ struct GPTKHandPlacedPayloadTests {
         let runtime = try fixture.makeRuntimeTree()
 
         let deployed = GPTKImporter.deployStoredPayloadIfPresent(
-            fromStore: fixture.tempDir.appending(path: "empty-store"), intoLibraryFolder: runtime
+            fromStore: fixture.tempDir.appending(path: "empty-store"),
+            intoLibraryFolder: runtime,
+            isAppleSigned: { _, _ in true }
         )
 
         #expect(!deployed)

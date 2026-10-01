@@ -29,11 +29,23 @@ struct GPTKSettingsSection: View {
     @State private var importing = false
     @State private var showImporter = false
     @State private var importError: String?
+    /// Why the stored payload failed the checks it was given before its first
+    /// deploy, which keeps it out of the runtime until it is imported again.
+    @State private var storeFailure: String?
 
     var body: some View {
         Section {
             if let storedRecord {
                 LabeledContent("settings.gptk.version", value: storedRecord.gptkVersion)
+                if let storeFailure {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Label("settings.gptk.unverified", systemImage: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                        Text(storeFailure)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             } else {
                 Text("settings.gptk.status.none")
                     .foregroundStyle(.secondary)
@@ -65,8 +77,13 @@ struct GPTKSettingsSection: View {
                 .foregroundStyle(.secondary)
         }
         .task {
-            await Task.detached(priority: .utility) {
+            // Checked whether or not the engine can run the payload, so a store
+            // that fails is reported before anything would deploy it.
+            storeFailure = await Task.detached(priority: .utility) {
+                let verdict = GPTKImporter.verifyStoredPayload()
                 GPTKImporter.deployStoredPayloadIfCapable()
+                guard case let .failed(reason) = verdict else { return nil }
+                return reason
             }.value
             refresh()
         }
@@ -81,7 +98,11 @@ struct GPTKSettingsSection: View {
             "settings.gptk.import.failed",
             isPresented: .init(
                 get: { importError != nil },
-                set: { if !$0 { importError = nil } }
+                set: { isPresented in
+                    if !isPresented {
+                        importError = nil
+                    }
+                }
             )
         ) {
             Button("button.ok", role: .cancel) {}
@@ -122,6 +143,7 @@ struct GPTKSettingsSection: View {
                 }
                 await MainActor.run {
                     importing = false
+                    storeFailure = nil
                     refresh()
                 }
             } catch {
@@ -145,6 +167,7 @@ struct GPTKSettingsSection: View {
             // the store. The removal is idempotent per file.
             try GPTKImporter.removeDeployedPayload()
             try GPTKImporter.removeStore()
+            storeFailure = nil
         } catch {
             importError = error.localizedDescription
         }

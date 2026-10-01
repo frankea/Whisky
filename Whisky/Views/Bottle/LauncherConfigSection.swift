@@ -292,7 +292,7 @@ extension LauncherConfigSection {
                         .fontWeight(.medium)
 
                     ForEach(warnings, id: \.self) { warning in
-                        Text(warning)
+                        Text(warning.localizedMessage)
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .padding(.leading, 24)

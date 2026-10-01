@@ -295,11 +295,11 @@
       "variants": [
         {
           "id": "dxvk-d3d9-+-vcredist",
-          "label": "DXVK D3D9 + vcredist",
+          "label": "DXVK + vcredist",
           "isDefault": true,
           "whenToUse": "Recommended community-tested configuration",
           "rationale": [
-            "DX9 sim racer \u2014 DXVK D3D9 gives best perf",
+            "DirectX 11 sim racer (PCGamingWiki); DXVK gives the best performance",
             "Specific vcredist + d3dx9_43 dependencies",
             "Launch AssettoCorsa.exe (the launcher), not acs.exe directly"
           ],
@@ -3100,8 +3100,9 @@
           "isDefault": true,
           "whenToUse": "Community-tested configuration",
           "rationale": [
-            "2013-era DX11 fighter, requires legacy vcrun2013 + d3dcompiler",
-            "Splash-then-exit is classic D3D11 device init failure pattern"
+            "2013-era DirectX 9 fighter (PCGamingWiki); Whisky's DXVK covers Direct3D 10 and 11 only, so Direct3D 9 goes to the runtime's own d3d9",
+            "Requires legacy vcrun2013 + d3dcompiler",
+            "Splash-then-exit is the classic device init failure pattern"
           ],
           "settings": {
             "graphicsBackend": "dxvk",
@@ -4295,8 +4296,8 @@
           "isDefault": true,
           "whenToUse": "Community-tested configuration",
           "rationale": [
-            "DX11 Bandai Namco JRPG with the silent-exit-on-launch pattern",
-            "vcrun2019 + d3dcompiler_47 unblocks DX11 device creation"
+            "DirectX 9 Bandai Namco JRPG with the silent-exit-on-launch pattern (PCGamingWiki); Whisky's DXVK covers Direct3D 10 and 11 only, so Direct3D 9 goes to the runtime's own d3d9",
+            "vcrun2019 + d3dcompiler_47 unblock its device creation"
           ],
           "settings": {
             "graphicsBackend": "dxvk",
@@ -4993,8 +4994,8 @@
           "isDefault": true,
           "whenToUse": "Recommended community-tested configuration",
           "rationale": [
-            "DX11 RTS title; DXVK reliably handles the rendering",
-            "vcrun2022 + d3dcompiler_47 cover the DX11 shader-init dependencies"
+            "DirectX 9 RTS title (PCGamingWiki); Whisky's DXVK covers Direct3D 10 and 11 only, so Direct3D 9 goes to the runtime's own d3d9",
+            "vcrun2022 + d3dcompiler_47 cover the shader-init dependencies"
           ],
           "settings": {
             "graphicsBackend": "dxvk",
@@ -5397,7 +5398,7 @@
       "aliases": [],
       "subtitle": "Dovetail Games",
       "store": "steam",
-      "steamAppId": 2467730,
+      "steamAppId": 2967990,
       "rating": "unverified",
       "exeNames": [
         "TS5Game.exe",
@@ -5424,7 +5425,7 @@
           "whenToUse": "Community-tested configuration",
           "rationale": [
             "UE4.27 sim \u2014 msync regression in 2.3.2+ causes audio-only freeze; esync stable",
-            "DXVK on for DX12 \u2192 DX11 fallback path stability"
+            "DirectX 11 title (PCGamingWiki); DXVK runs it"
           ],
           "settings": {
             "graphicsBackend": "dxvk",
@@ -5688,18 +5689,19 @@
       "variants": [
         {
           "id": "dxvk-+-corefonts",
-          "label": "Recommended + corefonts",
+          "label": "DXVK + corefonts",
           "isDefault": true,
-          "whenToUse": "Default configuration; Whisky picks the backend for the installed runtime",
+          "whenToUse": "Recommended community-tested configuration",
           "rationale": [
             "White CEF launcher pane is a known IE/font fallback issue with the Evolution Engine launcher",
-            "corefonts supplies Times/Arial that the launcher's HTML expects",
-            "DirectX 11 and 12, selectable in the launcher (PCGamingWiki); the earlier DXVK recommendation was about the launcher's CEF rendering, not a DirectX 11 path, so the game uses the recommended backend and d3d12 stays loadable"
+            "DXVK avoids the D3DMetal CEF rendering bug; these settings also reach Launcher.exe, so the launcher draws on DXVK",
+            "DirectX 11 and 12, selectable in the launcher (PCGamingWiki); on DXVK, play in DirectX 11 mode",
+            "corefonts supplies Times/Arial that the launcher's HTML expects"
           ],
           "settings": {
-            "graphicsBackend": "recommended",
-            "dxvk": false,
-            "dxvkAsync": false,
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
             "enhancedSync": "msync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,

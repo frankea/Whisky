@@ -58403,6 +58403,134 @@
         }
       }
     },
+    "launcher.warning.battleNetLocale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "en_US locale recommended for Battle.net"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "en_US locale recommended for Battle.net"
+          }
+        }
+      }
+    },
+    "launcher.warning.compatibilityModeOff" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launcher Compatibility Mode is disabled. Enable it for automatic fixes."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launcher Compatibility Mode is disabled. Enable it for automatic fixes."
+          }
+        }
+      }
+    },
+    "launcher.warning.eaGPUSpoofing" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GPU spoofing REQUIRED for EA App (will show 'GPU not supported')"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GPU spoofing REQUIRED for EA App (will show 'GPU not supported')"
+          }
+        }
+      }
+    },
+    "launcher.warning.eaLocale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "en_US locale recommended for EA App launcher UI"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "en_US locale recommended for EA App launcher UI"
+          }
+        }
+      }
+    },
+    "launcher.warning.epicLocale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "en_US locale recommended for Epic Games launcher"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "en_US locale recommended for Epic Games launcher"
+          }
+        }
+      }
+    },
+    "launcher.warning.rockstarDXVK" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DXVK REQUIRED for Rockstar Launcher (logo won't display without it)"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DXVK REQUIRED for Rockstar Launcher (logo won't display without it)"
+          }
+        }
+      }
+    },
+    "launcher.warning.steamGPUSpoofing" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GPU spoofing helps with game compatibility checks"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GPU spoofing helps with game compatibility checks"
+          }
+        }
+      }
+    },
+    "launcher.warning.steamLocale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steam may crash without en_US locale (steamwebhelper issue)"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steam may crash without en_US locale (steamwebhelper issue)"
+          }
+        }
+      }
+    },
     "locale.auto" : {
       "extractionState" : "manual",
       "localizations" : {

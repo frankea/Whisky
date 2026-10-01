@@ -21,13 +21,19 @@ import Testing
 @testable import WhiskyKit
 
 /// Captures what a launch would write to the prefix registry, in place of the
-/// `reg import` that needs Wine.
+/// `reg import`s that need Wine.
 @MainActor
 private final class RegistryRecorder {
     private(set) var writes: [[(scope: Wine.DLLOverrideScope, overrides: String)]] = []
+    /// The `.reg` documents imported besides the DLL overrides, such as the font aliases.
+    private(set) var imports: [String] = []
 
     var writer: Wine.DLLOverrideWriter {
         { _, scopes in self.writes.append(scopes) }
+    }
+
+    var importer: Wine.RegistryImporter {
+        { document, _ in self.imports.append(document) }
     }
 
     /// The overrides the only write gave `scope`, parsed; `nil` when there was
@@ -85,6 +91,26 @@ final class ProgramLaunchPreparationTests {
         program.settings.overrides = overrides
         program.settings.environment = ["PROGRAM_SETTING": "kept"]
         return program
+    }
+
+    /// Gives `bottle` the user hive `cjkfonts` leaves: the Microsoft aliases
+    /// its fake verbs write, and none of the Noto ones. With `collection`, the
+    /// Source Han Sans collection they point at is installed too.
+    private func addCJKFonts(to bottle: Bottle, collection: Bool) throws {
+        let fonts = bottle.url.appending(path: "drive_c/windows/Fonts")
+        try FileManager.default.createDirectory(at: fonts, withIntermediateDirectories: true)
+        if collection {
+            try Data().write(to: fonts.appending(path: CJKFontReplacements.collectionFile))
+        }
+        let userReg = #"""
+        WINE REGISTRY Version 2
+
+        [Software\\Wine\\Fonts\\Replacements] 1788028200
+        "Meiryo"="Source Han Sans"
+        "SimSun"="Source Han Sans SC"
+
+        """#
+        try userReg.write(to: bottle.url.appending(path: "user.reg"), atomically: true, encoding: .utf8)
     }
 
     /// Runs `launch`'s printed command through `sh` in a terminal that exports
@@ -160,6 +186,56 @@ final class ProgramLaunchPreparationTests {
         let launch = try await program.prepareLaunch(args: [], overrideWriter: RegistryRecorder().writer)
 
         #expect(launch.environment["WINEDEBUG"] == WineDebugPreset.dllLoad.winedebugValue)
+    }
+
+    @Test("Every run mode adds the CJK font aliases a bottle with Source Han Sans is missing")
+    func launchAddsCJKFontAliases() async throws {
+        let bottle = try makeBottle()
+        try addCJKFonts(to: bottle, collection: true)
+        let program = try Program(url: makeExecutable("Games/Game.exe", in: bottle), bottle: bottle)
+        let recorder = RegistryRecorder()
+
+        // The preparation `WhiskyCmd run --command` prints, not only the one a launch runs.
+        _ = try await program.prepareLaunch(args: [], overrideWriter: recorder.writer, importer: recorder.importer)
+
+        // One import, holding all four Noto aliases: the hive has only the Microsoft ones.
+        #expect(recorder.imports == [CJKFontReplacements.registryDocument(for: CJKFontReplacements.replacements)])
+    }
+
+    @Test("No run mode imports font aliases into a bottle without Source Han Sans")
+    func launchWithoutSourceHanSansImportsNoAliases() async throws {
+        let bottle = try makeBottle()
+        try addCJKFonts(to: bottle, collection: false)
+        let program = try Program(url: makeExecutable("Games/Game.exe", in: bottle), bottle: bottle)
+        let recorder = RegistryRecorder()
+
+        _ = try await program.prepareLaunch(args: [], overrideWriter: recorder.writer, importer: recorder.importer)
+
+        #expect(recorder.imports.isEmpty)
+    }
+
+    @Test("A launch without a Program adds the font aliases before it reads a bottle setting")
+    func launchAddsCJKFontAliasesBeforeReadingSettings() async throws {
+        let bottle = try makeBottle()
+        try addCJKFonts(to: bottle, collection: true)
+        let game = try makeExecutable("Games/Game.exe", in: bottle)
+        let recorder = RegistryRecorder()
+        // The real import runs Wine for seconds, time enough to switch the bottle's backend.
+        let importer: Wine.RegistryImporter = { document, target in
+            try await recorder.importer(document, target)
+            target.settings.graphicsBackend = .wined3d
+        }
+
+        // What the public `runProgram` prepares, for the Run button, the library and Steam.
+        let launch = try await Wine.prepareProgramLaunch(
+            at: game, bottle: bottle, overrideWriter: recorder.writer, importer: importer
+        )
+
+        #expect(recorder.imports == [CJKFontReplacements.registryDocument(for: CJKFontReplacements.replacements)])
+        // The whole launch is wined3d's: none of it is the DXVK the bottle had before the import.
+        #expect(launch.environment["WINED3DMETAL"] == "0")
+        #expect(recorder.overrides(for: .bottle)?["d2d1"] == "n,b")
+        #expect(recorder.overrides(for: .bottle)?["d3d11"] == nil)
     }
 
     @Test("A printed command runs the prepared launch")

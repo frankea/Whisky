@@ -420,6 +420,42 @@ final class BottleLoadPersistenceTests: XCTestCase {
         XCTAssertNotEqual(try metadataStamp(), before, "pruned pins must be saved")
         XCTAssertEqual(try persistedSettings().pins, [validPin])
     }
+
+    @MainActor
+    func testDuplicatePinsArePrunedOnceAndRepinningStaysQuiet() throws {
+        let programURL = bottleURL.appending(path: "drive_c/game.exe")
+        try Data("fake".utf8).write(to: programURL)
+        let pin = PinnedProgram(name: "game", url: programURL)
+        var settings = BottleSettings()
+        settings.pins = [pin, pin]
+        try writeMetadata(settings)
+        let original = try metadataStamp()
+
+        // First load repairs the duplicate and saves it.
+        let bottle = Bottle(bottleUrl: bottleURL)
+        XCTAssertEqual(bottle.settings.pins, [pin])
+        XCTAssertNotEqual(try metadataStamp(), original, "the pruned duplicate must be saved")
+        XCTAssertEqual(try persistedSettings().pins, [pin])
+
+        // From here on, nothing should write: re-pin (as the start menu scan does),
+        // then reload.
+        try FileManager.default.setAttributes(
+            [.modificationDate: sentinelDate],
+            ofItemAtPath: metadataURL.path(percentEncoded: false)
+        )
+        let repaired = try metadataStamp()
+
+        let program = Program(url: programURL, bottle: bottle)
+        XCTAssertTrue(program.pinned)
+        program.pinned = true
+        XCTAssertEqual(bottle.settings.pins, [pin])
+        XCTAssertEqual(try metadataStamp(), repaired, "re-pinning a pinned program must not rewrite Metadata.plist")
+
+        let reloaded = Bottle(bottleUrl: bottleURL)
+        XCTAssertEqual(reloaded.settings.pins, [pin])
+        XCTAssertEqual(try metadataStamp(), repaired, "a repaired bottle must load without a rewrite")
+        XCTAssertEqual(try persistedSettings().pins, [pin])
+    }
 }
 
 // MARK: - Program Sequence Extension Tests

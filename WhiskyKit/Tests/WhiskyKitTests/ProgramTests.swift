@@ -188,6 +188,44 @@ final class ProgramCoreTests: XCTestCase {
     }
 
     @MainActor
+    func testRepinningPinnedProgramKeepsOnePin() {
+        let bottle = Bottle(bottleUrl: bottleURL)
+        let program = Program(url: programURL, bottle: bottle)
+
+        program.pinned = true
+        program.pinned = true
+
+        XCTAssertEqual(bottle.settings.pins.filter { $0.url == programURL }.count, 1)
+    }
+
+    @MainActor
+    func testRepinningProgramPinnedOnLoadKeepsOnePin() {
+        let bottle = Bottle(bottleUrl: bottleURL)
+        Program(url: programURL, bottle: bottle).pinned = true
+
+        // A fresh instance reads its pin state from the bottle, as after a reload.
+        let reloaded = Program(url: programURL, bottle: bottle)
+        XCTAssertTrue(reloaded.pinned)
+        reloaded.pinned = true
+
+        XCTAssertEqual(bottle.settings.pins.filter { $0.url == programURL }.count, 1)
+    }
+
+    @MainActor
+    func testSettingsSaveAfterRepinPersistsOnePin() throws {
+        let bottle = Bottle(bottleUrl: bottleURL)
+        let program = Program(url: programURL, bottle: bottle)
+        program.pinned = true
+        program.pinned = true
+
+        // Any later settings change saves the whole pin list.
+        bottle.settings.windowsVersion = .win7
+
+        let persisted = try BottleSettings.decode(from: bottleURL.appending(path: "Metadata.plist"))
+        XCTAssertEqual(persisted.pins.filter { $0.url == programURL }.count, 1)
+    }
+
+    @MainActor
     func testProgramPinnedNameRemovesExeExtension() {
         let bottle = Bottle(bottleUrl: bottleURL)
         let program = Program(url: programURL, bottle: bottle)

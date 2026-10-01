@@ -86,7 +86,7 @@ final class StaleD3D12OverrideTests {
             at: steam(in: bottle), args: ["-applaunch", "1174180"], bottle: bottle,
             programOverrides: plan, overridesApplyToDescendants: true,
             descendantExecutables: ["PlayRDR2.exe", "RDR2.exe"],
-            recommendedBackend: payload ? .d3dMetal : .dxmt, builtinD3D12IsD3DMetal: payload,
+            recommendedBackend: payload ? .d3dMetal : .dxvk, builtinD3D12IsD3DMetal: payload,
             overrideWriter: recorder.writer, importer: recorder.importer
         )
     }

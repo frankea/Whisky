@@ -191,8 +191,11 @@ final class LauncherScopingTests {
 
     // MARK: - Matrix row 6: any bottle backend on -applaunch
 
+    /// No `.dxmt`: a DXMT bottle's launch deploys DXMT's files from the installed
+    /// runtime, which a machine without that payload refuses, and the helper
+    /// entries never depend on the bottle's backend.
     @Test("Helpers keep DXVK on a game launch whatever the bottle's own backend", arguments: [
-        GraphicsBackend.recommended, .d3dMetal, .dxmt, .wined3d, .dxvk
+        GraphicsBackend.recommended, .d3dMetal, .wined3d, .dxvk
     ])
     func helpersKeepDXVKOnAnyBackend(_ backend: GraphicsBackend) async throws {
         let bottle = try makeBottle(backend)

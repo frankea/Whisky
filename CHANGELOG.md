@@ -21,6 +21,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   without the D3DMetal payload resolved launchers to DXMT, whose Direct3D
   layer launcher UIs cannot render on, leaving the client running with no
   window (#163).
+- Starting Steam no longer turns d3d12 off for every game in the bottle.
+  Play's Steam profile switched the whole bottle to DXVK so the client could
+  draw, which wrote DXVK's overrides, d3d12 disabled included, into the
+  bottle-wide DLL overrides every game Steam starts reads, so a DirectX 12
+  game with no DirectX 11 path, such as Red Dead Redemption 2, never came up.
+  A bottle on Recommended with the D3DMetal payload now keeps its backend,
+  and Steam's own processes (the client, its web helper, its service and the
+  in-game overlay) get DXVK through overrides of their own. Those are written
+  on every launch in a bottle with Steam, so the client draws on DXVK however
+  it starts, including from its installer, Windows autostart or a game
+  launch, and they keep your own overrides for steam.exe. Apply Launcher
+  Fixes in guided troubleshooting now does the same instead of switching the
+  bottle, and the launcher settings no longer warn that a Steam bottle needs
+  DXVK. The Rockstar Games Launcher and Social Club, which a Rockstar title
+  bought on Steam starts inside the Steam session, get DXVK with d3d12 off
+  ahead of time, from the first launch of the title. Starting Steam no longer
+  removes the MetalFX placeholder its games need. Without the payload, Play
+  still switches the bottle to DXVK, and so did earlier versions; such a
+  bottle goes back to Recommended once D3DMetal is installed, on the next
+  launch of the app or right after importing GPTK, and its graphics settings
+  say so. A DXVK you picked yourself is left alone. Bottles set to another
+  backend explicitly, Ubisoft Connect, Battle.net and the standalone Rockstar
+  Games Launcher still switch the bottle to DXVK as before (#302, fixes #276).
+
+  In WhiskyKit, `SteamLauncher.launch` gains a `clientIsRunning` parameter
+  and starts the client with `-silent` when it is not running, and
+  `Wine.runProgram` gains `descendantExecutables` and `descendantLaunchers`.
+  All default, so existing callers still compile.
+- A game started from Whisky's library, `whisky launch` or a whisky:// link
+  gets its own settings again: the game database's recommendation and what
+  you set for its executables in the Programs tab. They only reached the game
+  when the launch also started the Steam client, and then the client and its
+  helpers inherited them too. They now go into overrides of the game's own
+  executables, which also replaces a d3d12 that 3.7.0 turned off there when
+  the game was started directly. The game database no longer recommends DXVK
+  for Red Dead Redemption 2, a DirectX 12 game; that was meant for the
+  Rockstar launcher, which gets it on its own (#302).
+- Game database entries for DirectX 12 only games (including Cyberpunk
+  2077's fallback, both Horizon games, Monster Hunter Wilds, Street
+  Fighter 6 and Starfield) no longer recommend DXVK, which cannot run them
+  and kept them from starting once a game's settings applied on every Steam
+  launch. Several DirectX 11/12 games whose DXVK advice was unrelated to
+  DirectX 11 now use the recommended backend too (#302).
 - Enabling DXVK now reconciles the bottle's dxgi.dll against the D3DMetal
   payload. With the payload deployed, the builtin dxgi is Apple's forwarder,
   which DXVK's d3d11 cannot pair with, so Wine's own backed-up dxgi is
@@ -129,12 +172,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   only turned off when the payload is deployed (#285, fixes #255 and #257, part of
   #258).
 
-  A game that was started directly from Whisky on 3.7.0 keeps d3d12 turned
-  off in a registry entry of its own until it is next started that way, so
-  if it still crashes when started through Steam, start its executable once
-  from the bottle. A disabled d3d12 entry in a bottle's DLL Overrides, which
-  Presets > DXVK (D3D9/10/11) added on 3.7.0, also keeps the DLL off until
-  it is removed.
+  The disabled d3d12 that 3.7.0 wrote into the registry entry of a game
+  started directly is cleared the next time the game is started from
+  Whisky, directly or with Play (#302). A disabled d3d12 entry in a bottle's
+  DLL Overrides, which Presets > DXVK (D3D9/10/11) added on 3.7.0, still
+  keeps the DLL off until it is removed.
 
   In WhiskyKit, `DLLOverrideResolver.dxvkPreset`, `dxmtPreset` and
   `managedPreset(for:)` now take whether the runtime's builtin d3d12 is

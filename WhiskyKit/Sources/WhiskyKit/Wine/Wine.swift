@@ -406,8 +406,8 @@ public class Wine {
     ///   - importer: What imports the CJK font aliases the prefix is missing. Tests pass a
     ///     recorder here too.
     /// - Returns: The environment and `wine64` arguments the launch runs with.
-    /// - Throws: An error if a backend's files cannot be deployed or the registry import cannot
-    ///   be started.
+    /// - Throws: An error if a backend's files cannot be deployed or the DLL override import
+    ///   cannot be started. A failed font alias import is only logged.
     @MainActor
     static func prepareProgramLaunch(
         at url: URL, args: [String] = [], bottle: Bottle, environment: [String: String] = [:],

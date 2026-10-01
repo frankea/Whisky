@@ -514,10 +514,11 @@ public class Wine {
             writer: overrideWriter
         )
 
-        if overridesApplyToDescendants, !descendantExecutables.isEmpty {
-            let plan = wineEnvironment["WINEDLLOVERRIDES"] ?? ""
-            await removeStaleD3D12(for: descendantExecutables, plan: plan, bottle: bottle, importer: importer)
-        }
+        await removeStaleD3D12(
+            for: overridesApplyToDescendants ? descendantExecutables : [],
+            plan: wineEnvironment["WINEDLLOVERRIDES"] ?? "", bottle: bottle,
+            builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal, importer: importer
+        )
 
         return PreparedLaunch(
             environment: wineEnvironment,
@@ -525,17 +526,22 @@ public class Wine {
         )
     }
 
-    /// Imports ``staleD3D12Removal(for:plan:bottleURL:)`` when there is anything
-    /// to remove. Never fails a launch: a value left in place costs what it cost
-    /// before.
+    /// Imports ``staleD3D12Removal(for:plan:bottleURL:builtinD3D12IsD3DMetal:)``
+    /// when there is anything to remove, which needs the executables a Steam
+    /// launch starts. Never fails a launch: a value left in place costs what it
+    /// cost before.
     @MainActor
     private static func removeStaleD3D12(
-        for executables: [String], plan: String, bottle: Bottle, importer: RegistryImporter
+        for executables: [String], plan: String, bottle: Bottle, builtinD3D12IsD3DMetal: Bool,
+        importer: RegistryImporter
     ) async {
+        guard !executables.isEmpty else { return }
         // Off the main actor: the whole hive is read, and it grows with the prefix.
         let bottleURL = bottle.url
         let document = await Task.detached(priority: .userInitiated) {
-            staleD3D12Removal(for: executables, plan: plan, bottleURL: bottleURL)
+            staleD3D12Removal(
+                for: executables, plan: plan, bottleURL: bottleURL, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
+            )
         }.value
         guard let document else { return }
         do {

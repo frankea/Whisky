@@ -62,12 +62,13 @@ final class StaleD3D12OverrideTests {
 
     /// Gives the bottle the user hive 3.7.0 leaves after starting RDR2.exe
     /// directly on DXVK: `d3d12` off in that executable's own entry.
-    private func addStaleD3D12(to bottle: Bottle) throws {
+    private func addStaleD3D12(to bottle: Bottle, rdr2Native: Bool = true) throws {
+        let rdr2D3D11 = rdr2Native ? #""d3d11"="n,b""# : ""
         let userReg = #"""
         WINE REGISTRY Version 2
 
         [Software\\Wine\\AppDefaults\\RDR2.exe\\DllOverrides] 1788028200
-        "d3d11"="n,b"
+        \#(rdr2D3D11)
         "d3d12"=""
 
         [Software\\Wine\\AppDefaults\\PlayRDR2.exe\\DllOverrides] 1788028200
@@ -78,13 +79,13 @@ final class StaleD3D12OverrideTests {
     }
 
     private func prepareGameLaunch(
-        _ bottle: Bottle, plan: ProgramOverrides? = nil, recorder: ScopeRecorder
+        _ bottle: Bottle, plan: ProgramOverrides? = nil, payload: Bool = false, recorder: ScopeRecorder
     ) async throws {
         _ = try await Wine.prepareProgramLaunch(
             at: steam(in: bottle), args: ["-applaunch", "1174180"], bottle: bottle,
             programOverrides: plan, overridesApplyToDescendants: true,
             descendantExecutables: ["PlayRDR2.exe", "RDR2.exe"],
-            recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: true,
+            recommendedBackend: payload ? .d3dMetal : .dxmt, builtinD3D12IsD3DMetal: payload,
             overrideWriter: recorder.writer, importer: recorder.importer
         )
     }
@@ -107,15 +108,40 @@ final class StaleD3D12OverrideTests {
         #expect(!document.contains("PlayRDR2.exe"))
     }
 
+    @Test("With D3DMetal behind d3d12, an entry loading DXVK natively keeps d3d12 off")
+    func steamGameLaunchKeepsD3D12BesideANativeLayerOverD3DMetal() async throws {
+        let bottle = try makeBottle(.recommended)
+        try addStaleD3D12(to: bottle)
+        let recorder = ScopeRecorder()
+
+        try await prepareGameLaunch(bottle, payload: true, recorder: recorder)
+
+        // Taking it out would leave DXVK's dxgi in front of D3DMetal's d3d12.
+        #expect(recorder.imports.isEmpty)
+    }
+
+    @Test("With D3DMetal behind d3d12, a bare disabled d3d12 still goes")
+    func steamGameLaunchRemovesABareD3D12OverD3DMetal() async throws {
+        let bottle = try makeBottle(.recommended)
+        try addStaleD3D12(to: bottle, rdr2Native: false)
+        let recorder = ScopeRecorder()
+
+        try await prepareGameLaunch(bottle, payload: true, recorder: recorder)
+
+        #expect(recorder.imports.count == 1)
+        let document = recorder.imports.first ?? ""
+        #expect(document.contains(#"[HKCU\Software\Wine\AppDefaults\RDR2.exe\DllOverrides]"#))
+    }
+
     @Test("A game whose own plan still turns d3d12 off keeps the value")
     func steamGameLaunchKeepsD3D12TheGameStillDisables() async throws {
         let bottle = try makeBottle(.recommended)
-        try addStaleD3D12(to: bottle)
+        try addStaleD3D12(to: bottle, rdr2Native: false)
         let recorder = ScopeRecorder()
         var plan = ProgramOverrides()
         plan.graphicsBackend = .dxvk
 
-        try await prepareGameLaunch(bottle, plan: plan, recorder: recorder)
+        try await prepareGameLaunch(bottle, plan: plan, payload: true, recorder: recorder)
 
         #expect(recorder.imports.isEmpty)
     }

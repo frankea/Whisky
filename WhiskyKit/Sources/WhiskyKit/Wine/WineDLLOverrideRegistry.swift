@@ -227,15 +227,31 @@ public extension Wine {
     /// `d3d12` is removed, the rest of the entry stays, and nothing is removed
     /// while the game's own plan still turns `d3d12` off.
     ///
+    /// With D3DMetal's `d3d12` behind the name, an entry that also loads a
+    /// translation layer's `dxgi`, `d3d11` or `d3d10core` natively keeps its
+    /// value: that pairing is what the DXVK and DXMT presets write there, and
+    /// without it a DX12 game hands DXVK's adapter to D3DMetal's
+    /// `D3D12CreateDevice` and crashes (see
+    /// ``DLLOverrideResolver/dxvkPreset(builtinD3D12IsD3DMetal:)``).
+    ///
     /// - Parameters:
     ///   - executables: The game's executable names.
     ///   - plan: The game's `WINEDLLOVERRIDES`-syntax overrides for this launch.
     ///   - bottleURL: The bottle whose `user.reg` to read.
-    static func staleD3D12Removal(for executables: [String], plan: String, bottleURL: URL) -> String? {
+    ///   - builtinD3D12IsD3DMetal: Whether the runtime's builtin `d3d12` is D3DMetal's.
+    static func staleD3D12Removal(
+        for executables: [String], plan: String, bottleURL: URL, builtinD3D12IsD3DMetal: Bool
+    ) -> String? {
         guard parseDLLOverrides(plan)["d3d12"] != "" else { return nil }
         let keys = executables
             .map { DLLOverrideScope.program($0).registryKey }
             .filter { WineRegistryFile.readValue(bottleURL: bottleURL, key: $0, valueName: "d3d12") == "" }
+            .filter { key in
+                !builtinD3D12IsD3DMetal || !["dxgi", "d3d11", "d3d10core"].contains { dll in
+                    WineRegistryFile.readValue(bottleURL: bottleURL, key: key, valueName: dll)?
+                        .lowercased().hasPrefix("n") == true
+                }
+            }
         guard !keys.isEmpty else { return nil }
         var lines = ["Windows Registry Editor Version 5.00", ""]
         for key in keys {

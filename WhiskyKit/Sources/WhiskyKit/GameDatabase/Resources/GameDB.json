@@ -3649,12 +3649,13 @@
           "rationale": [
             "Rockstar Games Launcher is required and has compatibility problems",
             "DXVK is required for the launcher but the game itself fails to start",
-            "DRM verification frequently times out or fails"
+            "DRM verification frequently times out or fails",
+            "The launcher gets DXVK through its own per-executable overrides; the game is DirectX 12 or Vulkan only and stays on the recommended backend (D3DMetal with the GPTK payload), since DXVK's preset turns d3d12 off beside it"
           ],
           "settings": {
-            "graphicsBackend": "dxvk",
-            "dxvk": true,
-            "dxvkAsync": true,
+            "graphicsBackend": "recommended",
+            "dxvk": false,
+            "dxvkAsync": false,
             "enhancedSync": "esync",
             "shaderCacheEnabled": true,
             "avxEnabled": false,

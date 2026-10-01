@@ -154,6 +154,30 @@ final class SteamGameLaunchScopingTests {
         #expect(recorder.overrides(for: .program("steamwebhelper.exe"))?["xinput1_3"] == nil)
     }
 
+    @Test("Red Dead Redemption 2's own plan leaves it on D3DMetal with d3d12 loadable")
+    func rdr2PlanKeepsTheGameOnD3DMetal() async throws {
+        // Its GameDB entry said DXVK, meant for the Rockstar launcher. Now that
+        // the plan reaches the game, DXVK would turn d3d12 off for a DX12 title.
+        let bottle = try makeBottle()
+        let recorder = ScopeRecorder()
+        let plan = LaunchResolver.plan(steamAppId: 1_174_180)
+
+        _ = try await prepareGameLaunch(
+            bottle,
+            plan: plan.overrides,
+            launchers: plan.startsLaunchers,
+            recorder: recorder
+        )
+
+        // Builtin is D3DMetal's: nothing disabled, nothing native in front of it.
+        let entry = recorder.overrides(for: .program("RDR2.exe"))
+        #expect(entry != nil)
+        #expect(entry?["d3d12"] != "")
+        #expect(entry?["dxgi"]?.hasPrefix("n") != true)
+        #expect(entry?["d3d11"]?.hasPrefix("n") != true)
+        expectDXVK(recorder.overrides(for: .program("Launcher.exe")), "Launcher.exe")
+    }
+
     @Test("A game executable never displaces Steam's own entry")
     func steamWinsOverAGameExecutableOfTheSameName() async throws {
         let bottle = try makeBottle()

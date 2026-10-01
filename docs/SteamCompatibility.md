@@ -627,7 +627,7 @@ Detection: Automatic
 Locale: English (en_US.UTF-8)
 GPU Spoofing: Enabled (NVIDIA)
 Network Timeout: 90 seconds
-Auto-Enable DXVK: Enabled
+DXVK for Rockstar: Yes
 ```
 
 **DXVK:**

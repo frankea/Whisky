@@ -192,7 +192,7 @@ extension RemediationCardView {
             .controlSize(.small)
 
         case .switchBackend:
-            let backendName = action.settingValue ?? "backend"
+            let backendName = (action.targetBackend ?? .recommended).displayName
             Button("Switch to \(backendName)\u{2026}") {
                 showConfirmation = true
             }

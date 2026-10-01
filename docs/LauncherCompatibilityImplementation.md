@@ -117,7 +117,7 @@ EA App:
 - `gpuSpoofing: Bool` - GPU spoofing enable
 - `gpuVendor: GPUVendor` - Vendor selection
 - `networkTimeout: Int` - Connection timeout
-- `autoEnableDXVK: Bool` - Auto-enable for requirements
+- `autoEnableDXVK: Bool` - Force DXVK in a bottle whose launcher requires it (Rockstar only)
 
 **Serialization:** Fully Codable with PropertyListEncoder
 
@@ -284,9 +284,8 @@ Epic Games:
    - Current value display
    - Download fix explanation
 
-8. **Auto-Enable DXVK**
-   - Toggle for automatic DXVK
-   - Rockstar requirement note
+8. **Use DXVK for Rockstar Games Launcher**
+   - Rockstar is the only launcher with `requiresDXVK`; other launchers get DXVK from the Recommended backend
 
 9. **Diagnostics Button**
    - One-click report generation

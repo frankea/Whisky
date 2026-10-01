@@ -45,11 +45,12 @@ enum RemediationExecutor {
             onUpdate(applySetting(action, to: bottle))
 
         case .switchBackend:
-            // Back to the resolver's choice rather than to a named backend:
-            // the card fires because the current one is implicated in a
+            // The bundled card resets to Recommended rather than to a named
+            // backend: it fires because the current one is implicated in a
             // crash, and the resolver is the thing that knows what this
-            // runtime can actually deliver.
-            bottle.settings.graphicsBackend = .recommended
+            // runtime can actually deliver. DiagnosticsView hides it on a
+            // bottle that is already there.
+            bottle.settings.graphicsBackend = action.targetBackend ?? .recommended
             onUpdate(String(format: String(localized: "remediation.applied"), action.title))
 
         case .installVerb:

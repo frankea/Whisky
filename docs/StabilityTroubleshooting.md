@@ -19,7 +19,6 @@ Use this guide for reports like:
 
 - **Enable Sequoia Compatibility Mode** (Bottle → Config → Metal → “Sequoia Compatibility Mode”): helps with macOS 15.x quirks.
 - **Disable DXR**: ray tracing can stress graphics paths on some systems.
-- **Force D3D11**: can avoid D3D12/D3DMetal paths that trigger instability in some titles.
 - **Kill All Bottles** (menu item): terminates Wine processes for all bottles; use when those processes are stuck or the UI is unresponsive.
 
 ## Collect Diagnostics (Required for Actionable Triage)
@@ -58,7 +57,7 @@ Please include:
 - **macOS version** (e.g., 15.2 / 15.4.1)
 - **Whisky version** and **WhiskyWine version**
 - **Game/app** and distribution (Steam/GOG/etc.)
-- **Bottle settings toggles**: Sequoia compat, DXVK, Force D3D11, DXR, Enhanced Sync
+- **Bottle settings toggles**: Sequoia compat, DXVK, DXR, Enhanced Sync
 - **Steps to reproduce** (smallest possible)
 - **Expected vs actual**
 - Attach **Stability Diagnostics report** (if available) and any relevant logs
@@ -66,6 +65,6 @@ Please include:
 ## Triage Guidance (Maintainers)
 
 - If the report indicates a **UI freeze** correlated with Wine commands, prioritize investigating main-thread starvation or long-running Wine command aggregation.
-- If it’s a **kernel panic**, treat it as likely **driver-level**. Focus on mitigations (D3D11 / DXR off) and collecting high-quality repro data.
+- If it’s a **kernel panic**, treat it as likely **driver-level**. Focus on mitigations (DXR off, a different graphics backend) and collecting high-quality repro data.
 - If it’s a **WhiskyWine install failure**, collect the exact error message, validate tarball structure/version plist, and attach relevant logs.
 

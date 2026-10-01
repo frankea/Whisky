@@ -202,21 +202,6 @@ final class EnvironmentVariablesTests: XCTestCase {
         XCTAssertEqual(env["D3DM_SUPPORT_DXR"], "1")
     }
 
-    func testSpoofDoesNotOutbidForceD3D11() {
-        var settings = BottleSettings()
-        settings.launcherCompatibilityMode = true
-        settings.gpuSpoofing = true
-        settings.forceD3D11 = true
-
-        var env: [String: String] = [:]
-        settings.environmentVariables(wineEnv: &env)
-
-        // Feature level is one resolved decision: the spoof's launcher layer
-        // must not undo the force-D3D11 pin from the bottle layer.
-        XCTAssertEqual(env["D3DM_FEATURE_LEVEL_12_0"], "0")
-        XCTAssertNil(env["D3DM_FEATURE_LEVEL_12_1"])
-    }
-
     func testSpoofDoesNotOutbidTheDXRToggle() {
         var settings = BottleSettings()
         settings.launcherCompatibilityMode = true
@@ -286,18 +271,7 @@ final class EnvironmentVariablesTests: XCTestCase {
         XCTAssertEqual(env["MTL_DEBUG_LAYER"], "1")
     }
 
-    // MARK: - D3D11 and Shader Cache
-
-    func testEnvironmentVariablesWithForceD3D11() {
-        var settings = BottleSettings()
-        settings.forceD3D11 = true
-
-        var env: [String: String] = [:]
-        settings.environmentVariables(wineEnv: &env)
-
-        XCTAssertEqual(env["D3DM_FORCE_D3D11"], "1")
-        XCTAssertEqual(env["D3DM_FEATURE_LEVEL_12_0"], "0")
-    }
+    // MARK: - Shader Cache
 
     func testEnvironmentVariablesWithDisabledShaderCache() {
         var settings = BottleSettings()

@@ -89,8 +89,6 @@ enum RemediationExecutor {
     /// this build does not know reports honestly instead of claiming success.
     private static func applySetting(_ action: RemediationAction, to bottle: Bottle) -> String {
         switch action.settingKeyPath {
-        case "metalConfig.forceD3D11":
-            bottle.settings.forceD3D11 = action.settingValue == "true"
         case "metalConfig.dxrEnabled":
             bottle.settings.dxrEnabled = action.settingValue == "true"
         case "networkTimeout":

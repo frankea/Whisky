@@ -58,20 +58,6 @@
       "appliesNextLaunch": true
     },
     {
-      "id": "force-d3d11",
-      "title": "Force DirectX 11 Mode",
-      "description": "Force the game to use DirectX 11 instead of DirectX 12, which has better compatibility on macOS.",
-      "category": "graphics",
-      "actionType": "changeSetting",
-      "risk": "low",
-      "settingKeyPath": "metalConfig.forceD3D11",
-      "settingValue": "true",
-      "winetricksVerb": null,
-      "whatWillChange": "Forces the game to use D3D11 instead of D3D12",
-      "undoPath": "Uncheck 'Force D3D11' in Graphics settings",
-      "appliesNextLaunch": true
-    },
-    {
       "id": "disable-dxr",
       "title": "Disable Ray Tracing",
       "description": "Disable DXR (DirectX Raytracing) to improve stability on macOS.",

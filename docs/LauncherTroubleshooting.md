@@ -112,11 +112,7 @@ Wine's HTTP/2 implementation has issues. Forcing HTTP/1.1 and increasing timeout
    - Enable Launcher Compatibility Mode
    - Set Detection Mode to Automatic or manually select "Rockstar Games Launcher"
 
-3. **Force D3D11 Mode:**
-   - Config → Performance
-   - Toggle "Force D3D11 Mode" ON
-
-4. **Verify Configuration:**
+3. **Verify Configuration:**
    - Generate diagnostics report
    - Verify `DXVK: Enabled`
    - Verify `WINEDLLOVERRIDES=dxgi,d3d9,d3d10core,d3d11=n,b`
@@ -150,9 +146,8 @@ Rockstar's logo screen uses DirectX rendering that requires DXVK translation. Wi
    - Toggle "GPU Spoofing" ON
    - Select "NVIDIA" vendor (recommended)
 
-2. **Verify DirectX Feature Levels:**
+2. **Verify GPU Spoofing:**
    - Generate diagnostics report
-   - Check `D3DM_FEATURE_LEVEL_12_1=1`
    - Check `GPU_VENDOR_ID=0x10DE`
 
 3. **Check Locale:**
@@ -182,16 +177,12 @@ EA App performs GPU capability checks via DirectX. Wine's incomplete driver repo
    - Config → Launcher Compatibility → Enable
    - Locale Override → **English**
 
-2. **Enable D3D11 Mode:**
-   - Config → Performance
-   - Toggle "Force D3D11 Mode" ON
-
-3. **Verify CEF Sandbox:**
+2. **Verify CEF Sandbox:**
    - Generate diagnostics
    - Check `CEF_DISABLE_SANDBOX=1`
 
 **Why This Happens:**
-Epic's Chromium Embedded Framework conflicts with Wine's threading model. Disabling CEF sandbox and forcing D3D11 resolves the conflicts.
+Epic's Chromium Embedded Framework conflicts with Wine's threading model. Disabling the CEF sandbox resolves the conflicts.
 
 ---
 
@@ -205,21 +196,17 @@ Epic's Chromium Embedded Framework conflicts with Wine's threading model. Disabl
 
 **Solution:**
 
-1. **Force D3D11 Mode (REQUIRED):**
-   - Config → Performance
-   - Toggle "Force D3D11 Mode" ON
-
-2. **Enable DXVK Async:**
+1. **Enable DXVK Async:**
    - Config → DXVK
    - Enable DXVK
    - Toggle "DXVK Async" ON
 
-3. **Increase Network Timeout:**
+2. **Increase Network Timeout:**
    - Config → Launcher Compatibility
    - Adjust timeout to **90 seconds**
 
 **Why This Happens:**
-Ubisoft Connect requires D3D11 mode for stability. Ubisoft's servers can be slow, requiring higher timeouts.
+Ubisoft's servers can be slow, requiring higher timeouts.
 
 **Related Upstream Issues:**
 - whisky-app/whisky#1004 (Beta update issues)
@@ -264,9 +251,6 @@ Battle.net's web-based authentication requires proper Chromium rendering and thr
 2. **Verify Fast Path Disabled:**
    - Generate diagnostics
    - Check `WINE_DISABLE_FAST_PATH=1`
-
-3. **Enable D3D11:**
-   - Config → Performance → Force D3D11 Mode
 
 **Related Upstream Issues:**
 - whisky-app/whisky#1091 (Resource lookup bug)
@@ -370,10 +354,6 @@ Look for:
 **Impact:** Black screen, "GPU not supported"  
 **Solution:** Enable GPU Spoofing (critical)
 
-### ⚠️ "D3D11 mode recommended"
-**Impact:** Reduced stability, potential crashes  
-**Solution:** Enable Force D3D11 Mode
-
 ---
 
 ## Advanced Troubleshooting
@@ -465,12 +445,10 @@ Isolate launcher issues:
 - ✅ Launcher Compatibility Mode
 
 **Recommended:**
-- ✅ Force D3D11 Mode
 - ✅ Locale: English
 
 **Critical Settings:**
 - DXVK cannot be disabled
-- `D3DM_FORCE_D3D11=1` for game compatibility
 
 **Alternative:**
 Use `LauncherPatcher.exe` instead of `Launcher.exe`
@@ -488,7 +466,6 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 
 **Critical Settings:**
 - `GPU_VENDOR_ID=0x10DE` (passes GPU check)
-- `D3DM_FEATURE_LEVEL_12_1=1` (DirectX capability)
 
 ---
 
@@ -498,7 +475,6 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 - ✅ Locale: English
 
 **Recommended:**
-- ✅ Force D3D11 Mode
 - ✅ GPU Spoofing
 
 **Critical Settings:**
@@ -509,7 +485,6 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 
 ### Ubisoft Connect
 **Must Have:**
-- ✅ Force D3D11 Mode (stability)
 - ✅ Launcher Compatibility Mode
 
 **Recommended:**
@@ -517,7 +492,6 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 - ✅ Network timeout: 90s
 
 **Critical Settings:**
-- `D3DM_FORCE_D3D11=1` (required for stability)
 - `DXVK_ASYNC=1` (game compatibility)
 
 ---
@@ -538,12 +512,10 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 
 ### Paradox Launcher
 **Must Have:**
-- ✅ Force D3D11 Mode
 - ✅ Launcher Compatibility Mode
 
 **Critical Settings:**
 - `WINE_DISABLE_FAST_PATH=1` (resource lookup fix)
-- `D3DM_FORCE_D3D11=1` (stability)
 
 ---
 

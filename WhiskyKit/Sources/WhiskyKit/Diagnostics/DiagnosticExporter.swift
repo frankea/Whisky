@@ -258,7 +258,6 @@ public enum DiagnosticExporter {
         info["metalHud"] = "\(bottle.settings.metalHud)"
         info["metalValidation"] = "\(bottle.settings.metalValidation)"
         info["dxrEnabled"] = "\(bottle.settings.dxrEnabled)"
-        info["forceD3D11"] = "\(bottle.settings.forceD3D11)"
         info["shaderCacheEnabled"] = "\(bottle.settings.shaderCacheEnabled)"
         info["avxEnabled"] = "\(bottle.settings.avxEnabled)"
         info["sequoiaCompatMode"] = "\(bottle.settings.sequoiaCompatMode)"

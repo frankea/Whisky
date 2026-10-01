@@ -328,17 +328,6 @@ extension Wine {
             }
         }
 
-        // Force D3D11 override
-        if let forceD3D11 = overrides.forceD3D11 {
-            if forceD3D11 {
-                builder.set("D3DM_FORCE_D3D11", "1", layer: .programUser)
-                builder.set("D3DM_FEATURE_LEVEL_12_0", "0", layer: .programUser)
-            } else {
-                builder.remove("D3DM_FORCE_D3D11", layer: .programUser)
-                builder.remove("D3DM_FEATURE_LEVEL_12_0", layer: .programUser)
-            }
-        }
-
         // Metal 4 override. `D3DMDevice::MTL4OptionEnabled` only takes that path
         // for D3D12 devices, so a D3D12 title whose renderer wedges on a fence
         // the Metal 4 submission path never signals has to be able to drop back
@@ -417,7 +406,7 @@ extension Wine {
         // Non-sensitive keys allowed in the launch summary
         let allowedKeys = [
             "DXVK_ASYNC", "DXVK_HUD", "WINEESYNC", "WINEMSYNC",
-            "D3DM_FORCE_D3D11", "D3DM_MTL4", "MTL_HUD_ENABLED", "WINED3DMETAL"
+            "D3DM_MTL4", "MTL_HUD_ENABLED", "WINED3DMETAL"
         ]
         let safeEntries = allowedKeys.compactMap { key -> String? in
             guard let value = environment[key] else { return nil }

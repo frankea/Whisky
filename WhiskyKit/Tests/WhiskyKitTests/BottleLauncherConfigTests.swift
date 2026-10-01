@@ -119,7 +119,7 @@ final class BottleLauncherConfigTests: XCTestCase {
 
         // Should include GPU spoofing
         XCTAssertNotNil(env["GPU_VENDOR_ID"])
-        XCTAssertNotNil(env["D3DM_FEATURE_LEVEL_12_1"])
+        XCTAssertNotNil(env["GPU_DEVICE_ID"])
     }
 
     func testEnvironmentVariablesWithoutLauncherCompatibility() {

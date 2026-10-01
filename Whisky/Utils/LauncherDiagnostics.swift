@@ -168,7 +168,6 @@ enum LauncherDiagnostics {
         config += "--- Performance Configuration ---\n"
         config += "Enhanced Sync: \(bottle.settings.enhancedSync)\n"
         config += "Shader Cache: \(bottle.settings.shaderCacheEnabled ? "✅ Enabled" : "❌ Disabled")\n"
-        config += "Force D3D11: \(bottle.settings.forceD3D11 ? "✅ Yes" : "❌ No")\n"
         config += "AVX Enabled: \(bottle.settings.avxEnabled ? "✅ Yes" : "❌ No")\n\n"
 
         return config

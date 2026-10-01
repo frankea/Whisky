@@ -151,7 +151,7 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     /// - **Steam**: Fixes steamwebhelper crashes (whisky-app/whisky#946, #1224, #1241) via locale and CEF sandbox
     /// - **Rockstar**: Requires DXVK for logo rendering (whisky-app/whisky#1335, #835)
     /// - **EA App/Epic**: Chromium-based, need sandbox and locale fixes
-    /// - **Ubisoft**: Requires D3D11 mode for stability (whisky-app/whisky#1004)
+    /// - **Ubisoft**: DXVK async for Anno 1800 and other Ubisoft games (whisky-app/whisky#1004)
     ///
     /// - Note: For richer metadata including human-readable reasons and categories,
     ///   use ``fixDetails()`` instead.
@@ -192,9 +192,6 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
 
             // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
 
-            // Force D3D11 mode for better compatibility
-            env["D3DM_FORCE_D3D11"] = "1"
-
             // Launcher initialization improvements
             env["WINE_LARGE_ADDRESS_AWARE"] = "1"
 
@@ -207,9 +204,6 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             env["LC_ALL"] = "en_US.UTF-8"
             env["LANG"] = "en_US.UTF-8"
 
-            // GPU detection fixes for "GPU not supported" errors
-            env["D3DM_FEATURE_LEVEL_12_1"] = "1"
-
             // Note: Network timeouts configured via bottle.settings.networkTimeout (default 60s)
 
         case .epicGames:
@@ -217,17 +211,11 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
             env["LC_ALL"] = "en_US.UTF-8"
 
-            // Epic launcher stability improvements
-            env["D3DM_FORCE_D3D11"] = "1"
-
             // Thread safety for Epic's web views
             env["WINE_DISABLE_NTDLL_THREAD_REGS"] = "1"
 
         case .ubisoft:
             // Ubisoft Connect fixes (whisky-app/whisky#1004)
-            // Requires D3D11 mode
-            env["D3DM_FORCE_D3D11"] = "1"
-
             // Anno 1800 and other Ubisoft games compatibility
             env["DXVK_ASYNC"] = "1"
 
@@ -246,9 +234,6 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             // Paradox Launcher fixes (whisky-app/whisky#1091)
             // Resource lookup bug workaround
             env["WINE_DISABLE_FAST_PATH"] = "1"
-
-            // Launcher initialization
-            env["D3DM_FORCE_D3D11"] = "1"
         }
 
         return env

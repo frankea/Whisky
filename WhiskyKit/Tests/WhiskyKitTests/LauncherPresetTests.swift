@@ -69,14 +69,17 @@ final class LauncherPresetTests: XCTestCase {
 
         let env = launcher.environmentOverrides()
         XCTAssertEqual(env["DXVK_REQUIRED"], "1")
-        XCTAssertEqual(env["D3DM_FORCE_D3D11"], "1")
+        XCTAssertNil(env["D3DM_FORCE_D3D11"], "No shipped runtime reads D3DM_FORCE_D3D11")
     }
 
-    func testEAAppRequiresGPUDetection() {
+    func testEAAppPreset() {
         let env = LauncherType.eaApp.environmentOverrides()
 
-        // EA App needs D3D feature level reporting
-        XCTAssertEqual(env["D3DM_FEATURE_LEVEL_12_1"], "1")
+        XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8")
+        XCTAssertEqual(env["LANG"], "en_US.UTF-8")
+        // GPU detection is the spoof's job (LauncherFixes turns it on); no
+        // shipped runtime reads the D3DMetal feature-level keys.
+        XCTAssertNil(env["D3DM_FEATURE_LEVEL_12_1"])
 
         // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
         XCTAssertNil(env["CEF_DISABLE_SANDBOX"], "Should be set globally, not in preset")
@@ -91,15 +94,14 @@ final class LauncherPresetTests: XCTestCase {
         // Epic-specific settings
         XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8")
         XCTAssertEqual(env["WINE_DISABLE_NTDLL_THREAD_REGS"], "1")
-        XCTAssertEqual(env["D3DM_FORCE_D3D11"], "1")
+        XCTAssertNil(env["D3DM_FORCE_D3D11"])
     }
 
     func testUbisoftPreset() {
         let env = LauncherType.ubisoft.environmentOverrides()
 
-        // Ubisoft Connect requires D3D11 mode
-        XCTAssertEqual(env["D3DM_FORCE_D3D11"], "1")
         XCTAssertEqual(env["DXVK_ASYNC"], "1")
+        XCTAssertNil(env["D3DM_FORCE_D3D11"])
     }
 
     func testBattleNetPreset() {
@@ -118,7 +120,7 @@ final class LauncherPresetTests: XCTestCase {
 
         // Paradox Launcher resource lookup workaround
         XCTAssertEqual(env["WINE_DISABLE_FAST_PATH"], "1")
-        XCTAssertEqual(env["D3DM_FORCE_D3D11"], "1")
+        XCTAssertNil(env["D3DM_FORCE_D3D11"])
     }
 
     func testRecommendedLocales() {

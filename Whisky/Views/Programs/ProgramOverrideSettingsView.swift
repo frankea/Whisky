@@ -348,18 +348,13 @@ struct ProgramOverrideSettingsView: View {
             if hasPerformanceOverride {
                 performanceControls
             } else {
-                inheritedSummary(
-                    "Shader Cache \(bottle.settings.shaderCacheEnabled ? "On" : "Off"), "
-                        + "Force D3D11 \(bottle.settings.forceD3D11 ? "On" : "Off")"
-                )
+                inheritedSummary("Shader Cache \(bottle.settings.shaderCacheEnabled ? "On" : "Off")")
             }
         }
     }
 
-    @ViewBuilder
     private var performanceControls: some View {
         Toggle("config.shaderCache", isOn: shaderCacheBinding)
-        Toggle("config.forceD3D11", isOn: forceD3D11Binding)
     }
 
     // MARK: - Input Group
@@ -573,7 +568,6 @@ struct ProgramOverrideSettingsView: View {
 
     private var hasPerformanceOverride: Bool {
         program.settings.overrides?.shaderCacheEnabled != nil
-            || program.settings.overrides?.forceD3D11 != nil
     }
 
     private var hasInputOverride: Bool {
@@ -665,10 +659,8 @@ struct ProgramOverrideSettingsView: View {
                 ensureOverrides()
                 if isOn {
                     program.settings.overrides?.shaderCacheEnabled = bottle.settings.shaderCacheEnabled
-                    program.settings.overrides?.forceD3D11 = bottle.settings.forceD3D11
                 } else {
                     program.settings.overrides?.shaderCacheEnabled = nil
-                    program.settings.overrides?.forceD3D11 = nil
                 }
             }
         )
@@ -772,13 +764,6 @@ struct ProgramOverrideSettingsView: View {
         Binding(
             get: { program.settings.overrides?.shaderCacheEnabled ?? bottle.settings.shaderCacheEnabled },
             set: { program.settings.overrides?.shaderCacheEnabled = $0 }
-        )
-    }
-
-    private var forceD3D11Binding: Binding<Bool> {
-        Binding(
-            get: { program.settings.overrides?.forceD3D11 ?? bottle.settings.forceD3D11 },
-            set: { program.settings.overrides?.forceD3D11 = $0 }
         )
     }
 

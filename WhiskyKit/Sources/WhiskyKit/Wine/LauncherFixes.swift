@@ -141,9 +141,6 @@ public enum LauncherFixes {
                 bottle.settings.dxvk = true
             }
 
-            // Force D3D11 mode for better compatibility
-            bottle.settings.forceD3D11 = true
-
             // English locale recommended
             bottle.settings.launcherLocale = .english
 
@@ -160,15 +157,7 @@ public enum LauncherFixes {
             bottle.settings.launcherLocale = .english
             bottle.settings.gpuSpoofing = true
 
-            // D3D11 mode for stability
-            if force {
-                bottle.settings.forceD3D11 = true
-            }
-
         case .ubisoft:
-            // Ubisoft Connect requires D3D11
-            bottle.settings.forceD3D11 = true
-
             // Enable DXVK async for Anno 1800 and other games
             if force || !bottle.settings.dxvk {
                 bottle.settings.dxvk = true
@@ -189,8 +178,8 @@ public enum LauncherFixes {
             }
 
         case .paradox:
-            // Paradox Launcher requires D3D11 mode
-            bottle.settings.forceD3D11 = true
+            // Paradox's fix is environment-only (see LauncherPresets)
+            break
         }
 
         // Save settings synchronously to disk

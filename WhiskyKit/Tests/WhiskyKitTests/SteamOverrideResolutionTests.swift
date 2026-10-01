@@ -86,7 +86,7 @@ struct SteamOverrideResolutionTests {
         let winner = fixture.installURL.appending(path: "Game.exe")
 
         var tuned = ProgramOverrides()
-        tuned.forceD3D11 = true
+        tuned.shaderCacheEnabled = false
         let program = Program(url: winner, bottle: bottle, peFile: nil)
         program.settings.overrides = tuned
 
@@ -153,7 +153,7 @@ struct SteamOverrideResolutionTests {
         var deep = ProgramOverrides()
         deep.dxvk = true
         var shallow = ProgramOverrides()
-        shallow.forceD3D11 = true
+        shallow.shaderCacheEnabled = false
         let helper = Program(
             url: fixture.installURL.appending(path: "bin").appending(path: "Helper.exe"),
             bottle: bottle, peFile: nil

@@ -97,7 +97,7 @@ public struct BottleInfo: Codable, Equatable {
 /// - **Wine Config**: Windows version, AVX, enhanced sync
 /// - **Metal Config**: Metal HUD, DXR, validation
 /// - **DXVK Config**: DXVK enable, async, HUD
-/// - **Performance Config**: Shader cache, D3D11 mode
+/// - **Performance Config**: Shader cache, App Nap, VC++ runtime tracking
 ///
 /// ## Example
 ///
@@ -136,7 +136,6 @@ public struct BottleInfo: Codable, Equatable {
 ///
 /// ### Performance
 /// - ``shaderCacheEnabled``
-/// - ``forceD3D11``
 /// - ``vcRedistInstalled``
 public struct BottleSettings: Codable, Equatable {
     /// The current file format version for settings serialization.
@@ -511,15 +510,6 @@ public struct BottleSettings: Codable, Equatable {
     public var shaderCacheEnabled: Bool {
         get { performanceConfig.shaderCacheEnabled }
         set { performanceConfig.shaderCacheEnabled = newValue }
-    }
-
-    /// Whether to force DirectX 11 mode instead of DirectX 12.
-    ///
-    /// Some games have better compatibility with D3D11. Enable
-    /// this if experiencing issues with graphics or crashes.
-    public var forceD3D11: Bool {
-        get { performanceConfig.forceD3D11 }
-        set { performanceConfig.forceD3D11 = newValue }
     }
 
     /// Whether Visual C++ Redistributable is installed in this bottle.
@@ -974,12 +964,6 @@ public struct BottleSettings: Codable, Equatable {
             builder.set("DXVK_STATE_CACHE", "0", layer: .bottleManaged)
         }
 
-        // Force D3D11 mode - helps with compatibility (whisky-app/whisky#1361)
-        if forceD3D11 {
-            builder.set("D3DM_FORCE_D3D11", "1", layer: .bottleManaged)
-            builder.set("D3DM_FEATURE_LEVEL_12_0", "0", layer: .bottleManaged)
-        }
-
         return managedDLLOverrides
     }
 
@@ -1069,16 +1053,10 @@ public struct BottleSettings: Codable, Equatable {
         return launcherDLLOverrides
     }
 
-    /// The GPU spoof environment with feature-level and ray tracing keys
-    /// resolved against the bottle's own settings.
+    /// The GPU spoof environment with the ray tracing key resolved against
+    /// the bottle's own settings.
     ///
-    /// Feature level is one resolved decision: force-D3D11 already pinned 12_0
-    /// off in the bottle layer, and the spoof's layer wins, so leaving these
-    /// keys in would silently undo the setting that sits beside the spoof in
-    /// the same screen.
-    ///
-    /// Ray tracing is the same kind of decision, and it has its own toggle,
-    /// ``dxrEnabled``, whose bottle layer sets `D3DM_SUPPORT_DXR` when it is on.
+    /// Ray tracing has its own toggle, ``dxrEnabled``, whose bottle layer sets `D3DM_SUPPORT_DXR` when it is on.
     /// Unlike the `GPU_*` keys beside it, that one is read by D3DMetal. It
     /// only matters to games, since launcher UIs render on DXVK, and every game
     /// a launcher starts inherits the launcher's environment. So the spoof
@@ -1089,10 +1067,6 @@ public struct BottleSettings: Codable, Equatable {
     private func spoofEnvironment() -> [String: String] {
         var gpuEnv = GPUDetection.spoofWithVendor(gpuVendor)
         gpuEnv.removeValue(forKey: "D3DM_SUPPORT_DXR")
-        if forceD3D11 {
-            gpuEnv.removeValue(forKey: "D3DM_FEATURE_LEVEL_12_0")
-            gpuEnv.removeValue(forKey: "D3DM_FEATURE_LEVEL_12_1")
-        }
         return gpuEnv
     }
 

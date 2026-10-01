@@ -72765,13 +72765,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This payload did not pass Apple's signature check, so Whisky is not using it. Remove it, then import Apple's evaluation environment disk image again."
+            "value" : "This payload did not pass Apple's signature check, so Whisky will not deploy it again. Remove it, then import Apple's evaluation environment disk image again."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This payload did not pass Apple's signature check, so Whisky is not using it. Remove it, then import Apple's evaluation environment disk image again."
+            "value" : "This payload did not pass Apple's signature check, so Whisky will not deploy it again. Remove it, then import Apple's evaluation environment disk image again."
           }
         }
       }

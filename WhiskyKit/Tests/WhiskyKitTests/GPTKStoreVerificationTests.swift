@@ -81,21 +81,17 @@ struct GPTKStoreVerificationTests {
         #expect(verdict == .failed(reason: expected))
     }
 
-    @Test("A failing store's earlier deployment is taken back out")
-    func failingStoreDeploymentIsWithdrawn() throws {
+    @Test("A failing store's earlier deployment is left in place")
+    func failingStoreDeploymentStays() throws {
         let (store, runtime) = try makeUncheckedStoreAndRuntime()
         try GPTKImporter.deploy(fromStore: store, intoLibraryFolder: runtime)
-        let peDir = runtime.appending(path: "Wine").appending(path: "lib").appending(path: "wine")
-            .appending(path: "x86_64-windows")
 
         let verdict = GPTKImporter.verifyStoredPayload(
             inStore: store, libraryFolder: runtime, isAppleSigned: { _, _ in false }
         )
 
         #expect(verdict != .verified)
-        #expect(!GPTKImporter.isDeployed(inLibraryFolder: runtime))
-        let restored = try Data(contentsOf: peDir.appending(path: "d3d11.dll"))
-        #expect(restored.suffix(13) == Data("wine original".utf8))
+        #expect(GPTKImporter.isDeployed(inLibraryFolder: runtime))
     }
 
     @Test("A payload copied in by hand stays when the store fails")

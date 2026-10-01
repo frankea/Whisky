@@ -41,8 +41,8 @@ public enum GPTKStoreVerdict: Equatable, Sendable {
 /// copies whatever the store holds. So before the store is deployed, it goes
 /// through ``validatePayload(at:isAppleSigned:)`` once, and the result is
 /// recorded against a fingerprint of the store: the check runs again only when
-/// the store changes. A store that fails is not deployed, and a copy of it
-/// that an earlier deploy left in the runtime is taken back out.
+/// the store changes. A store that fails is not deployed again; a copy an
+/// earlier deploy left in the runtime stays until the payload is re-imported.
 ///
 /// The stamp only saves repeating the work. Anyone who can change the store
 /// can change the stamp too, so it is not what keeps a payload out; the
@@ -66,8 +66,11 @@ extension GPTKImporter {
 
     /// Testable seam for ``verifyStoredPayload()``.
     ///
-    /// Only a deployment of this store is taken out. A payload copied into the
-    /// runtime by hand is not the importer's, and is left as it is.
+    /// A failing store is only kept from being deployed again; a deployment
+    /// already in the runtime stays until the user re-imports or removes the
+    /// payload. Its identifiers are confirmed for GPTK 2.0 and 4.0b2 only, and
+    /// a store that wrongly failed would otherwise switch D3DMetal off for
+    /// every bottle without the user doing anything.
     @discardableResult
     static func verifyStoredPayload(
         inStore store: URL,
@@ -75,14 +78,8 @@ extension GPTKImporter {
         isAppleSigned: (_ code: URL, _ identifier: String) -> Bool
     ) -> GPTKStoreVerdict? {
         let verdict = storeVerdict(inStore: store, isAppleSigned: isAppleSigned)
-        guard case .failed = verdict, isStorePayloadDeployed(inLibraryFolder: folder, usingStore: store) else {
-            return verdict
-        }
-        do {
-            try remove(fromLibraryFolder: folder, usingStore: store)
-            logger.info("Took the stored GPTK payload, which failed its checks, out of the runtime")
-        } catch {
-            logger.error("Taking the unverified GPTK payload out failed: \(error.localizedDescription)")
+        if case .failed = verdict, isStorePayloadDeployed(inLibraryFolder: folder, usingStore: store) {
+            logger.warning("The stored GPTK payload failed its checks; it stays deployed until it is re-imported")
         }
         return verdict
     }

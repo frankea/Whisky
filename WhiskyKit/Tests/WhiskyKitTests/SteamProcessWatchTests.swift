@@ -84,14 +84,18 @@ struct SteamProcessWatchTests {
     @Test("Cancellation ends the wait instead of running the timeout out")
     func cancellationEndsTheWait() async {
         let watch = makeWatch(responses: [["svchost.exe"]], pollInterval: .milliseconds(20))
+        let timeout: TimeInterval = 60
 
         let started = Date()
-        let task = Task { await watch.waitForAny(of: ["game.exe"], timeout: 30) }
+        let task = Task { await watch.waitForAny(of: ["game.exe"], timeout: timeout) }
         try? await Task.sleep(for: .milliseconds(50))
         task.cancel()
 
         #expect(await task.value == false)
-        #expect(Date().timeIntervalSince(started) < 5)
+        // A wait that ignored the cancel would run to the timeout, so any bound short
+        // of it proves the cancel ended the wait. Half of it leaves room for a loaded
+        // runner, which can hold this test's continuation for several seconds.
+        #expect(Date().timeIntervalSince(started) < timeout / 2)
     }
 
     @Test("Maps running processes back to their keys")

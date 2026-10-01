@@ -42,9 +42,9 @@ struct TerminalEnvironmentCommandTests {
         in shell: TestShell,
         home: URL,
         then probe: String
-    ) throws -> TestShell.Result {
+    ) async throws -> TestShell.Result {
         // WhiskyCmd prints the output with a trailing newline; feed it the same way.
-        try shell.run("eval \"$(/bin/cat)\" || exit 97\n\(probe)", input: output + "\n", home: home)
+        try await shell.run("eval \"$(/bin/cat)\" || exit 97\n\(probe)", input: output + "\n", home: home)
     }
 
     /// What `shell` exports after evaluating `output`, read back with `env -0` so values
@@ -53,8 +53,8 @@ struct TerminalEnvironmentCommandTests {
         evaluating output: String,
         in shell: TestShell,
         home: URL
-    ) throws -> [String: String] {
-        let result = try evaluate(output, in: shell, home: home, then: "/usr/bin/env -0")
+    ) async throws -> [String: String] {
+        let result = try await evaluate(output, in: shell, home: home, then: "/usr/bin/env -0")
         try #require(result.status == 0, "\(shell.rawValue) exited \(result.status): \(result.errors)")
         var environment: [String: String] = [:]
         for entry in result.stdout.split(separator: 0) {
@@ -67,7 +67,7 @@ struct TerminalEnvironmentCommandTests {
     }
 
     @Test("Evaluating the output exports the bottle's environment verbatim", arguments: TestShell.loginShells)
-    @MainActor func bottleEnvironmentSurvivesEval(shell: TestShell) throws {
+    @MainActor func bottleEnvironmentSurvivesEval(shell: TestShell) async throws {
         let root = try TestShell.makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
 
@@ -105,7 +105,7 @@ struct TerminalEnvironmentCommandTests {
             #expect(overrides.contains(character), "WINEDLLOVERRIDES lacks \(character)")
         }
 
-        let exported = try Self.exportedEnvironment(evaluating: output, in: shell, home: root)
+        let exported = try await Self.exportedEnvironment(evaluating: output, in: shell, home: root)
         for (key, value) in expected where Wine.isValidEnvKey(key) {
             #expect(exported[key] == value, "\(key)")
         }
@@ -118,7 +118,7 @@ struct TerminalEnvironmentCommandTests {
         "A bin folder with spaces and quotes goes first on PATH and wine64 resolves",
         arguments: TestShell.loginShells
     )
-    func binFolderSurvivesEval(shell: TestShell) throws {
+    func binFolderSurvivesEval(shell: TestShell) async throws {
         let root = try TestShell.makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
 
@@ -132,18 +132,18 @@ struct TerminalEnvironmentCommandTests {
 
         let output = Wine.generateTerminalEnvironmentCommand(binFolder: binFolder, environment: [:])
 
-        let exported = try Self.exportedEnvironment(evaluating: output, in: shell, home: root)
+        let exported = try await Self.exportedEnvironment(evaluating: output, in: shell, home: root)
         #expect(exported["PATH"] == "\(binFolder.path):\(TestShell.basePath)")
 
         // The reported symptom: with a literal backslash left in the PATH entry, the
         // lookup missed and `wine64` exited 127.
-        let lookup = try Self.evaluate(output, in: shell, home: root, then: "command -v wine64 && wine64")
+        let lookup = try await Self.evaluate(output, in: shell, home: root, then: "command -v wine64 && wine64")
         #expect(lookup.status == 0, "\(lookup.errors)")
         #expect(lookup.output == "\(wine64.path)\nwine-stub\n")
     }
 
     @Test("Values a shell would expand, split or unescape come back verbatim", arguments: TestShell.loginShells)
-    func shellSyntaxInValuesSurvivesEval(shell: TestShell) throws {
+    func shellSyntaxInValuesSurvivesEval(shell: TestShell) async throws {
         let root = try TestShell.makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
 
@@ -165,7 +165,7 @@ struct TerminalEnvironmentCommandTests {
         ]
 
         let output = Wine.generateTerminalEnvironmentCommand(binFolder: root, environment: environment)
-        let exported = try Self.exportedEnvironment(evaluating: output, in: shell, home: root)
+        let exported = try await Self.exportedEnvironment(evaluating: output, in: shell, home: root)
 
         for (key, value) in environment where Wine.isValidEnvKey(key) {
             #expect(exported[key] == value, "\(key)")

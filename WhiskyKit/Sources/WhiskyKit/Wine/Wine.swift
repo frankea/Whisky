@@ -253,6 +253,8 @@ public class Wine {
     ///   - gameProfileEnvironment: Environment variables from the game's GameDB profile.
     ///   - overridesApplyToDescendants: Whether the DLL overrides belong to a process this
     ///     one spawns rather than to `url` itself, as when `steam.exe` launches a game.
+    ///   - descendantExecutables: The executable names of what this launch starts, when the
+    ///     overrides apply to descendants.
     ///   - onOutput: Receives each output event of the `wine64` process as it arrives,
     ///     starting with ``ProcessOutput/started`` once the process is running.
     /// - Returns: The exit code and log file of the run.
@@ -264,6 +266,7 @@ public class Wine {
         programOverrides: ProgramOverrides? = nil, programSettings: ProgramSettings? = nil,
         gameProfileEnvironment: [String: String] = [:],
         overridesApplyToDescendants: Bool = false,
+        descendantExecutables: [String] = [],
         onOutput: (@MainActor (ProcessOutput) -> Void)? = nil
     ) async throws -> ProgramRunResult {
         try await runProgram(at: url, bottle: bottle, programSettings: programSettings, onOutput: onOutput) {
@@ -271,7 +274,8 @@ public class Wine {
                 at: url, args: args, bottle: bottle, environment: environment,
                 programOverrides: programOverrides, programSettings: programSettings,
                 gameProfileEnvironment: gameProfileEnvironment,
-                overridesApplyToDescendants: overridesApplyToDescendants
+                overridesApplyToDescendants: overridesApplyToDescendants,
+                descendantExecutables: descendantExecutables
             )
         }
     }
@@ -401,6 +405,9 @@ public class Wine {
     ///   - overridesApplyToDescendants: Whether the DLL overrides belong to a process this one
     ///     spawns. They then stay in the environment: the registry can only scope overrides to
     ///     an executable whose name is known.
+    ///   - descendantExecutables: The executable names of what this launch starts, when the
+    ///     overrides apply to descendants. An earlier version's disabled `d3d12` is taken out
+    ///     of their `AppDefaults` entries.
     ///   - recommendedBackend: What `.recommended` resolves to for the bottle's games.
     ///     Defaults to the resolver's answer for the installed runtime; tests pin it.
     ///   - builtinD3D12IsD3DMetal: Whether the runtime's builtin `d3d12` is D3DMetal's.
@@ -418,6 +425,7 @@ public class Wine {
         programOverrides: ProgramOverrides? = nil, programSettings: ProgramSettings? = nil,
         gameProfileEnvironment: [String: String] = [:],
         overridesApplyToDescendants: Bool = false,
+        descendantExecutables: [String] = [],
         recommendedBackend: GraphicsBackend = GraphicsBackendResolver.resolve(),
         builtinD3D12IsD3DMetal: Bool = GPTKImporter.isDeployed(),
         overrideWriter: DLLOverrideWriter = { try await syncDLLOverrides(bottle: $0, scopes: $1) },
@@ -506,10 +514,36 @@ public class Wine {
             writer: overrideWriter
         )
 
+        if overridesApplyToDescendants, !descendantExecutables.isEmpty {
+            let plan = wineEnvironment["WINEDLLOVERRIDES"] ?? ""
+            await removeStaleD3D12(for: descendantExecutables, plan: plan, bottle: bottle, importer: importer)
+        }
+
         return PreparedLaunch(
             environment: wineEnvironment,
             arguments: launchArguments(for: url, args: args, programOverrides: programOverrides)
         )
+    }
+
+    /// Imports ``staleD3D12Removal(for:plan:bottleURL:)`` when there is anything
+    /// to remove. Never fails a launch: a value left in place costs what it cost
+    /// before.
+    @MainActor
+    private static func removeStaleD3D12(
+        for executables: [String], plan: String, bottle: Bottle, importer: RegistryImporter
+    ) async {
+        // Off the main actor: the whole hive is read, and it grows with the prefix.
+        let bottleURL = bottle.url
+        let document = await Task.detached(priority: .userInitiated) {
+            staleD3D12Removal(for: executables, plan: plan, bottleURL: bottleURL)
+        }.value
+        guard let document else { return }
+        do {
+            try await importer(document, bottle)
+            logger.info("Removed a disabled d3d12 left in a game's AppDefaults entry")
+        } catch {
+            logger.error("Could not remove a stale d3d12 override: \(error.localizedDescription)")
+        }
     }
 
     /// The `wine64` arguments for a launch, with an optional per-program virtual desktop.

@@ -22,7 +22,7 @@ import Testing
 
 /// Captures the scopes a launch writes, in place of the `reg import` that needs Wine.
 @MainActor
-private final class ScopeRecorder {
+final class ScopeRecorder {
     private(set) var writes: [[(scope: Wine.DLLOverrideScope, overrides: String)]] = []
     private(set) var imports: [String] = []
 

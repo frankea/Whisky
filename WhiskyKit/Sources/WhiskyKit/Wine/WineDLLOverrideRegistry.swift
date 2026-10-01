@@ -215,6 +215,35 @@ public extension Wine {
         }
     }
 
+    /// A `.reg` that takes a `d3d12` an earlier version turned off out of the
+    /// `AppDefaults` entries of a game Steam is about to start, or `nil` when
+    /// there is none to take out.
+    ///
+    /// 3.7.0 turned `d3d12` off under DXVK and DXMT whatever the runtime, and a
+    /// direct launch wrote that into the game's own entry. A direct launch
+    /// replaces that entry every time, but a game Steam starts never gets one
+    /// written, so the value outlived the fix: a Unity 6000.3 game kept
+    /// crashing for want of a DLL it cannot run without (#285). Only an empty
+    /// `d3d12` is removed, the rest of the entry stays, and nothing is removed
+    /// while the game's own plan still turns `d3d12` off.
+    ///
+    /// - Parameters:
+    ///   - executables: The game's executable names.
+    ///   - plan: The game's `WINEDLLOVERRIDES`-syntax overrides for this launch.
+    ///   - bottleURL: The bottle whose `user.reg` to read.
+    static func staleD3D12Removal(for executables: [String], plan: String, bottleURL: URL) -> String? {
+        guard parseDLLOverrides(plan)["d3d12"] != "" else { return nil }
+        let keys = executables
+            .map { DLLOverrideScope.program($0).registryKey }
+            .filter { WineRegistryFile.readValue(bottleURL: bottleURL, key: $0, valueName: "d3d12") == "" }
+        guard !keys.isEmpty else { return nil }
+        var lines = ["Windows Registry Editor Version 5.00", ""]
+        for key in keys {
+            lines += ["[\(key)]", #""d3d12"=-"#, ""]
+        }
+        return lines.joined(separator: "\r\n")
+    }
+
     /// Renders a `.reg` leaving each key holding exactly `overrides`.
     ///
     /// `[-Key]` then `[Key]` is a replace, since `.reg` runs in order. That is

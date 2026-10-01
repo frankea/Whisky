@@ -85,6 +85,7 @@ public enum SteamLauncher {
             userOverrides: installURL.flatMap { userOverrides(forInstallURL: $0, bottle: bottle) }
         )
         let steamExe = steamRoot.appending(path: "steam.exe")
+        let gameExecutables = installURL.map { SteamLibrary.executableURLs(under: $0).map(\.lastPathComponent) } ?? []
 
         return Task {
             try await Wine.prepareBottlePrefix(bottle: bottle)
@@ -105,6 +106,7 @@ public enum SteamLauncher {
                 gameProfileEnvironment: plan.gameProfileEnvironment,
                 // the plan is the game's; steam.exe is only the vehicle
                 overridesApplyToDescendants: true,
+                descendantExecutables: gameExecutables,
                 onOutput: onOutput
             )
         }

@@ -97,11 +97,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (or `fakechinese`, `fakejapanese`, `fakekorean`) installed Source Han
   Sans. Wine's DirectWrite falls back to Noto Sans CJK for characters a font
   lacks, and those verbs alias only the Microsoft font names, so the
-  fallback found no font. Launches now alias Noto Sans CJK SC, TC, JP and KR
-  to the matching Source Han Sans faces when the fonts are present, also in
+  fallback found no font. Launches, and `WhiskyCmd run --command` when it
+  prepares a printed command, now alias Noto Sans CJK SC, TC, JP and KR to
+  the matching Source Han Sans faces when the fonts are present, also in
   bottles set up before this release, and leave any value already set alone.
   A launcher that is already running sees the aliases only after a full
-  restart (#283, fixes #278).
+  restart (#283, #289, fixes #278).
 - Unity 6000.3 games start again in bottles on DXVK or DXMT, which on the
   standard engine is every bottle left on Recommended. 3.7.0 turned d3d12
   off under both backends so that a DirectX 12 game could not hand one

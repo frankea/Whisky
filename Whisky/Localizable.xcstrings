@@ -56559,6 +56559,23 @@
         }
       }
     },
+    "gptk.error.storeNotVerified" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The imported Game Porting Toolkit payload did not pass Apple's signature check, so it was not deployed. Remove it and import Apple's evaluation environment disk image again."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The imported Game Porting Toolkit payload did not pass Apple's signature check, so it was not deployed. Remove it and import Apple's evaluation environment disk image again."
+          }
+        }
+      }
+    },
     "gptk.error.unsealedItem" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -72739,6 +72756,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "尚未匯入 D3DMetal 酬載"
+          }
+        }
+      }
+    },
+    "settings.gptk.unverified" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This payload did not pass Apple's signature check, so Whisky is not using it. Remove it, then import Apple's evaluation environment disk image again."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This payload did not pass Apple's signature check, so Whisky is not using it. Remove it, then import Apple's evaluation environment disk image again."
           }
         }
       }

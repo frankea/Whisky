@@ -67,31 +67,24 @@ struct WhiskyApp: App {
         Telemetry.startIfConsented()
     }
 
-    /// Installs the MetalFX bridge into runtimes that already hold the GPTK
-    /// payload.
+    /// Brings a deployed GPTK payload up to date at launch, in one background
+    /// task so the steps never run over each other.
     ///
-    /// Deploying does this too, but an install that was set up before the
-    /// bridge existed never deploys again, so without this MetalFX would stay
-    /// unreachable until it happened to reimport. Idempotent, and a no-op on
-    /// runtimes whose payload does not carry the bridge.
-    private func installMetalFXBridgeIfNeeded() {
-        Task.detached(priority: .background) {
-            GPTKImporter.ensureMetalFXBridgeInstalled()
-            GPTKImporter.ensureNVAPIBridgeInstalled()
-        }
-    }
-
-    /// Installs the D3D12 video processor if the GPTK payload is already
-    /// deployed.
-    ///
-    /// Deploying does this too, but an install that was set up before the
-    /// interposer existed never deploys again, so without this it would keep
-    /// rendering video through the engine's broken fallback until it happened
-    /// to reimport. Idempotent, and a no-op on runtimes that ship no interposer.
-    private func installVideoProcessorIfNeeded() {
+    /// - The stored payload is checked first if nothing has checked it as it
+    ///   is now (a store imported before imports verified Apple's signature),
+    ///   and a deployment of a store that fails is taken back out.
+    /// - The MetalFX and NVAPI bridges and the D3D12 video processor go into
+    ///   runtimes that already hold the payload. Deploying does this too, but
+    ///   an install set up before they existed never deploys again, so without
+    ///   this they would stay missing until it happened to reimport. Each step
+    ///   is idempotent and a no-op on runtimes it does not apply to.
+    private func updateGPTKPayloadIfNeeded() {
         var data = BottleData()
         let bottles = data.loadBottles().map(\.url)
         Task.detached(priority: .background) {
+            GPTKImporter.verifyStoredPayload()
+            GPTKImporter.ensureMetalFXBridgeInstalled()
+            GPTKImporter.ensureNVAPIBridgeInstalled()
             GPTKImporter.ensureVideoProcessorInstalled(bottles: bottles)
         }
     }
@@ -108,8 +101,7 @@ struct WhiskyApp: App {
                     Task.detached {
                         await WhiskyApp.deleteOldLogs()
                     }
-                    installMetalFXBridgeIfNeeded()
-                    installVideoProcessorIfNeeded()
+                    updateGPTKPayloadIfNeeded()
                     startAudioDeviceListening()
                 }
                 .onReceive(

@@ -64,8 +64,15 @@ extension GPTKImporter {
     ///
     /// Callers gate this on ``isRuntimeGPTKCapable()`` — deploying to an
     /// incapable runtime turns every D3DMetal launch into a crash.
+    ///
+    /// - Throws: ``GPTKImportError/storeNotVerified(_:)`` when the store fails
+    ///   the checks an import applies (see ``verifyStoredPayload()``).
     public static func deployStoredPayload() throws {
-        try deploy(fromStore: storeFolder, intoLibraryFolder: WhiskyWineInstaller.libraryFolder)
+        let store = storeFolder
+        if case let .failed(reason) = storeVerdict(inStore: store, isAppleSigned: isAppleSigned(_:identifier:)) {
+            throw GPTKImportError.storeNotVerified(reason)
+        }
+        try deploy(fromStore: store, intoLibraryFolder: WhiskyWineInstaller.libraryFolder)
     }
 
     /// Deploys the stored payload if there is one and the runtime can execute
@@ -78,19 +85,33 @@ extension GPTKImporter {
     /// runs without anyone asking, every time Settings opens, and deploying
     /// would replace that payload, deleting its forwarders or filing them away
     /// as Wine's own. Importing is what replaces it.
+    ///
+    /// A store that fails the checks an import applies is not deployed either
+    /// (see ``verifyStoredPayload()``).
     @discardableResult
     public static func deployStoredPayloadIfCapable() -> Bool {
         guard isRuntimeGPTKCapable() else { return false }
         return deployStoredPayloadIfPresent(
-            fromStore: storeFolder, intoLibraryFolder: WhiskyWineInstaller.libraryFolder
+            fromStore: storeFolder,
+            intoLibraryFolder: WhiskyWineInstaller.libraryFolder,
+            isAppleSigned: isAppleSigned(_:identifier:)
         )
     }
 
     /// Testable seam for ``deployStoredPayloadIfCapable()``, past the runtime
     /// capability check.
     @discardableResult
-    static func deployStoredPayloadIfPresent(fromStore store: URL, intoLibraryFolder folder: URL) -> Bool {
+    static func deployStoredPayloadIfPresent(
+        fromStore store: URL,
+        intoLibraryFolder folder: URL,
+        isAppleSigned: (_ code: URL, _ identifier: String) -> Bool
+    ) -> Bool {
         guard storedRecord(inStore: store) != nil else { return false }
+        let verdict = verifyStoredPayload(inStore: store, libraryFolder: folder, isAppleSigned: isAppleSigned)
+        guard verdict == .verified else {
+            logger.info("Left the stored GPTK payload undeployed: it fails the checks an import applies")
+            return false
+        }
         guard !holdsHandPlacedPayload(inLibraryFolder: folder, usingStore: store) else {
             logger.info("Left the GPTK payload copied into the runtime by hand in place of the stored one")
             return false
@@ -255,7 +276,9 @@ extension GPTKImporter {
             // Backups from a replaced engine: drop them and leave the tree,
             // which this store never deployed into, untouched.
             guard originalsAreCurrent else {
-                if hasBackup { try fileManager.removeItem(at: backup) }
+                if hasBackup {
+                    try fileManager.removeItem(at: backup)
+                }
                 continue
             }
 

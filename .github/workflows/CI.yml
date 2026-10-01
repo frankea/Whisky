@@ -182,6 +182,11 @@ jobs:
           [ "$missing" -eq 0 ] || exit 1
           echo "Bundled resources present: winetricks, verbs.txt, cabextract"
 
+          # Every compiled localization must carry every en key, or untranslated
+          # strings render as raw identifiers (#291). The "Fill Missing
+          # Translations" build phase does the filling; this asserts it ran.
+          python3 scripts/fill-missing-translations.py --check "$app/Contents/Resources"
+
   # XCUITest job - runs WhiskyUITests against the Whisky app target.
   # Tests that need bottle fixtures call `try requireBottleFixture()` which
   # XCTSkips them when the user container is empty (always true on a fresh

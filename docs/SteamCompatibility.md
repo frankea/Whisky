@@ -291,10 +291,9 @@ Apple changed mach port and threading behavior in macOS 15.4, breaking Wine's pr
    - macOS Version should show 15.4 or higher
    - Check for these environment variables:
      ```
-     WINE_MACH_PORT_TIMEOUT = 30000
-     WINE_MACH_PORT_RETRY_COUNT = 5
-     WINE_CPU_TOPOLOGY = 8:8
-     WINE_THREAD_PRIORITY_PRESERVE = 1
+     WINEFSYNC = 0
+     STEAM_RUNTIME = 0
+     CEF_DISABLE_SANDBOX = 1
      ```
 
 3. **Restart Bottle:**

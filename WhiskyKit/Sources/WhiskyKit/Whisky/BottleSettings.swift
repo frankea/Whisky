@@ -957,10 +957,11 @@ public struct BottleSettings: Codable, Equatable {
             builder.set("MTL_DEBUG_LAYER", "1", layer: .bottleManaged)
         }
 
-        // The old sequoiaCompatMode block is gone: all three values it set
-        // (MTL_DEBUG_LAYER, D3DM_VALIDATION, WINEFSYNC) are platform-layer
-        // fixes on every supported macOS, so the toggle's off position changed
-        // nothing and its on position only hid the provenance.
+        // The old sequoiaCompatMode block is gone: of the three values it set,
+        // MTL_DEBUG_LAYER and WINEFSYNC are platform-layer fixes on every
+        // supported macOS and D3DM_VALIDATION is read by no runtime, so the
+        // toggle's off position changed nothing and its on position only hid
+        // the provenance.
 
         // Shader cache control. DXVK_STATE_CACHE is the variable DXVK actually
         // reads; the previous pair (a compile-thread throttle and an NVIDIA GL
@@ -1062,7 +1063,7 @@ public struct BottleSettings: Codable, Equatable {
     /// the bottle's own settings.
     ///
     /// Ray tracing has its own toggle, ``dxrEnabled``, whose bottle layer sets `D3DM_SUPPORT_DXR` when it is on.
-    /// Unlike the `GPU_*` keys beside it, that one is read by D3DMetal. It
+    /// Unlike the rest of the spoof, that one is read by D3DMetal. It
     /// only matters to games, since launcher UIs render on DXVK, and every game
     /// a launcher starts inherits the launcher's environment. So the spoof
     /// turned DXR on for every game in a bottle that Play had configured for

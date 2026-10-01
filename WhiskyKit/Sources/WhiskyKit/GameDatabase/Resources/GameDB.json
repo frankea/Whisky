@@ -3661,7 +3661,6 @@
             "sequoiaCompatMode": false
           },
           "environmentVariables": {
-            "DXVK_REQUIRED": "1",
             "WINE_LARGE_ADDRESS_AWARE": "1"
           },
           "dllOverrides": [],

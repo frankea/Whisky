@@ -103,7 +103,7 @@ final class LauncherDiagnosticsTests: XCTestCase {
         // Verify launcher-specific variables are set
         XCTAssertNotNil(env["STEAM_DISABLE_CEF_SANDBOX"])
         XCTAssertNotNil(env["LC_ALL"])
-        XCTAssertNotNil(env["GPU_VENDOR_ID"])
+        XCTAssertNotNil(env["MESA_GL_VERSION_OVERRIDE"])
         XCTAssertNotNil(env["WINHTTP_CONNECT_TIMEOUT"])
     }
 
@@ -183,8 +183,8 @@ final class LauncherDiagnosticsTests: XCTestCase {
             bottle.settings.environmentVariables(wineEnv: &env)
 
             // Verify GPU spoofing is applied for each vendor
-            XCTAssertEqual(env["GPU_VENDOR_ID"], vendor.vendorID, "Vendor ID should match for \(vendor.rawValue)")
-            XCTAssertNotNil(env["GPU_DEVICE_ID"])
+            XCTAssertEqual(env["MESA_GL_VERSION_OVERRIDE"], "4.6", "Spoof should apply for \(vendor.rawValue)")
+            XCTAssertNil(env["GPU_VENDOR_ID"], "No shipped runtime reads GPU_VENDOR_ID")
         }
     }
 
@@ -277,7 +277,7 @@ final class LauncherDiagnosticsTests: XCTestCase {
         bottle.settings.environmentVariables(wineEnv: &env)
 
         // GPU spoofing should not be applied
-        XCTAssertNil(env["GPU_VENDOR_ID"], "GPU vendor should not be set when spoofing disabled")
+        XCTAssertNil(env["MESA_GL_VERSION_OVERRIDE"], "GPU spoof should not be set when spoofing disabled")
     }
 
     // MARK: - Locale Configuration Tests

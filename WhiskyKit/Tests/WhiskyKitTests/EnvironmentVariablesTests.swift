@@ -231,10 +231,11 @@ final class EnvironmentVariablesTests: XCTestCase {
         var env: [String: String] = [:]
         settings.environmentVariables(wineEnv: &env)
 
-        // All three values the toggle used to set are platform-layer fixes on
-        // every supported macOS, carried with provenance by
-        // constructWineEnvironment; the bottle-layer duplicates meant the
-        // toggle's off position changed nothing.
+        // Of the three values the toggle used to set, two are platform-layer
+        // fixes on every supported macOS, carried with provenance by
+        // constructWineEnvironment, and D3DM_VALIDATION is read by no runtime;
+        // the bottle-layer duplicates meant the toggle's off position changed
+        // nothing.
         XCTAssertNil(env["MTL_DEBUG_LAYER"])
         XCTAssertNil(env["D3DM_VALIDATION"])
         XCTAssertNil(env["WINEFSYNC"])
@@ -249,9 +250,10 @@ final class EnvironmentVariablesTests: XCTestCase {
 
         let env = Wine.constructWineEnvironment(for: bottle)
 
-        // Supported macOS is 15.4+ at minimum, so all three fixes apply.
+        // Supported macOS is 15.4+ at minimum, so both fixes apply.
+        // D3DM_VALIDATION is no longer one: no runtime reads it.
         XCTAssertEqual(env["MTL_DEBUG_LAYER"], "0")
-        XCTAssertEqual(env["D3DM_VALIDATION"], "0")
+        XCTAssertNil(env["D3DM_VALIDATION"])
         XCTAssertEqual(env["WINEFSYNC"], "0")
     }
 

@@ -317,7 +317,7 @@ private struct ActiveEnvironmentOverrides: View {
     var body: some View {
         DisclosureGroup("Active Environment Overrides", isExpanded: $isExpanded) {
             VStack(alignment: .leading, spacing: 12) {
-                if let launcher {
+                if let launcher, !launcher.fixDetails().isEmpty {
                     launcherFixesSection(launcher)
                 }
 

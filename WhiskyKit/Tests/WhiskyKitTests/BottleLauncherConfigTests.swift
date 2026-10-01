@@ -118,8 +118,8 @@ final class BottleLauncherConfigTests: XCTestCase {
         XCTAssertEqual(env["LC_TIME"], "C")
 
         // Should include GPU spoofing
-        XCTAssertNotNil(env["GPU_VENDOR_ID"])
-        XCTAssertNotNil(env["GPU_DEVICE_ID"])
+        XCTAssertNotNil(env["MESA_GL_VERSION_OVERRIDE"])
+        XCTAssertNotNil(env["MESA_GLSL_VERSION_OVERRIDE"])
     }
 
     func testEnvironmentVariablesWithoutLauncherCompatibility() {

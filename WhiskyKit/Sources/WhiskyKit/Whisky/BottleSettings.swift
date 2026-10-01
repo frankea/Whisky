@@ -592,9 +592,14 @@ public struct BottleSettings: Codable, Equatable {
         set { launcherConfig.networkTimeout = newValue }
     }
 
-    /// Whether to automatically enable DXVK when launcher requires it.
+    /// Whether to force DXVK in a bottle whose launcher requires it.
     ///
-    /// Rockstar Games Launcher requires DXVK to render logo screen.
+    /// Only Rockstar Games Launcher does (``LauncherType/requiresDXVK``): it
+    /// cannot render its logo screen without DXVK. When on, detecting it
+    /// switches the bottle to DXVK, and every launch in the bottle deploys
+    /// DXVK and (in launcher compatibility mode) gets its DLL overrides,
+    /// whatever ``graphicsBackend`` says.
+    /// Every launcher already resolves to DXVK under `.recommended`.
     public var autoEnableDXVK: Bool {
         get { launcherConfig.autoEnableDXVK }
         set { launcherConfig.autoEnableDXVK = newValue }

@@ -1029,154 +1029,6 @@
         }
       }
     },
-    "Auto-Enable DXVK for Launchers" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تفعيل DXVK تلقائيًا للمشغّلات"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automaticky zapnout DXVK pro launchery"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktivér DXVK automatisk til launchere"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DXVK für Launcher automatisch aktivieren"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auto-Enable DXVK for Launchers"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auto-Enable DXVK for Launchers"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activar DXVK automáticamente para lanzadores"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ota DXVK automaattisesti käyttöön käynnistimissä"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activer DXVK automatiquement pour les lanceurs"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Attiva automaticamente DXVK per i launcher"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ランチャーで DXVK を自動的に有効にする"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "런처에 DXVK 자동 활성화"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DXVK automatisch inschakelen voor launchers"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatyczny DXVK dla launcherów"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ativar DXVK automaticamente para launchers"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ativar DXVK automaticamente para launchers"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activează DXVK automat pentru launchere"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Включать DXVK для лаунчеров"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktivera DXVK automatiskt för launchers"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Başlatıcılar için DXVK'yı Otomatik Etkinleştir"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Вмикати DXVK для лаунчерів"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tự bật DXVK cho trình khởi chạy"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "为启动器自动启用 DXVK"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "為啟動器自動啟用 DXVK"
-          }
-        }
-      }
-    },
     "Automatic" : {
       "localizations" : {
         "ar" : {
@@ -1469,154 +1321,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自動：依可執行檔路徑辨識啟動器\n手動：使用明確選擇的啟動器類型"
-          }
-        }
-      }
-    },
-    "Automatically enables DXVK when launcher requires it (e.g., Rockstar Games Launcher)" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يفعّل DXVK تلقائيًا عندما يتطلبه المشغّل (مثل Rockstar Games Launcher)"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automaticky zapne DXVK, pokud to launcher vyžaduje (např. Rockstar Games Launcher)"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktiverer automatisk DXVK, når launcheren kræver det (f.eks. Rockstar Games Launcher)"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktiviert DXVK automatisch, wenn der Launcher es erfordert (z. B. Rockstar Games Launcher)"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatically enables DXVK when launcher requires it (e.g., Rockstar Games Launcher)"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatically enables DXVK when launcher requires it (e.g., Rockstar Games Launcher)"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activa DXVK automáticamente cuando el lanzador lo requiere (por ejemplo, Rockstar Games Launcher)"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ottaa DXVK:n automaattisesti käyttöön, kun käynnistin vaatii sitä (esim. Rockstar Games Launcher)"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Active automatiquement DXVK lorsque le lanceur l'exige (par exemple Rockstar Games Launcher)"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Attiva automaticamente DXVK quando il launcher lo richiede (ad esempio Rockstar Games Launcher)"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ランチャーが必要とする場合 (Rockstar Games Launcher など) に DXVK を自動的に有効にします"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "런처에 필요한 경우(예: Rockstar Games Launcher) DXVK를 자동으로 활성화합니다"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schakelt DXVK automatisch in wanneer de launcher dat vereist (bijv. Rockstar Games Launcher)"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatycznie włącza DXVK, gdy wymaga tego launcher (np. Rockstar Games Launcher)"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ativa o DXVK automaticamente quando o launcher exige (por exemplo, Rockstar Games Launcher)"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ativa o DXVK automaticamente quando o launcher o exige (por exemplo, Rockstar Games Launcher)"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activează automat DXVK când launcherul o cere (de exemplu Rockstar Games Launcher)"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Автоматически включает DXVK, если этого требует лаунчер (например, Rockstar Games Launcher)"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktiverar DXVK automatiskt när launchern kräver det (t.ex. Rockstar Games Launcher)"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Başlatıcı gerektirdiğinde DXVK'yı otomatik olarak etkinleştirir (örn. Rockstar Games Launcher)"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Автоматично вмикає DXVK, якщо цього вимагає лаунчер (наприклад, Rockstar Games Launcher)"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tự động bật DXVK khi trình khởi chạy yêu cầu (ví dụ: Rockstar Games Launcher)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "当启动器需要时（例如 Rockstar Games Launcher）自动启用 DXVK"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "當啟動器需要時（例如 Rockstar Games Launcher）自動啟用 DXVK"
           }
         }
       }
@@ -9266,6 +8970,22 @@
         }
       }
     },
+    "Rockstar Games Launcher shows no window without DXVK. When it is this bottle's launcher, the bottle switches to DXVK on detection and every program in it runs with DXVK, whatever Graphics Backend is set to. Other launchers already run on DXVK under the Recommended backend." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rockstar Games Launcher shows no window without DXVK. When it is this bottle's launcher, the bottle switches to DXVK on detection and every program in it runs with DXVK, whatever Graphics Backend is set to. Other launchers already run on DXVK under the Recommended backend."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rockstar Games Launcher shows no window without DXVK. When it is this bottle's launcher, the bottle switches to DXVK on detection and every program in it runs with DXVK, whatever Graphics Backend is set to. Other launchers already run on DXVK under the Recommended backend."
+          }
+        }
+      }
+    },
     "Run Diagnostics" : {
       "localizations" : {
         "ar" : {
@@ -11190,6 +10910,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "音訊疑難排解…"
+          }
+        }
+      }
+    },
+    "Use DXVK for Rockstar Games Launcher" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use DXVK for Rockstar Games Launcher"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use DXVK for Rockstar Games Launcher"
           }
         }
       }

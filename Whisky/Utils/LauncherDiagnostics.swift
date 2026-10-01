@@ -150,7 +150,7 @@ enum LauncherDiagnostics {
             config += "GPU Vendor: \(bottle.settings.gpuVendor.rawValue)\n"
         }
         config += "Network Timeout: \(bottle.settings.networkTimeout)ms\n"
-        config += "Auto-Enable DXVK: \(bottle.settings.autoEnableDXVK ? "✅ Yes" : "❌ No")\n\n"
+        config += "DXVK for Rockstar: \(bottle.settings.autoEnableDXVK ? "✅ Yes" : "❌ No")\n\n"
 
         // Graphics Settings
         config += "--- Graphics Configuration ---\n"

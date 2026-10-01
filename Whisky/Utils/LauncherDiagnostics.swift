@@ -215,7 +215,7 @@ enum LauncherDiagnostics {
             } else {
                 validation += "⚠️  Configuration warnings for \(launcher.rawValue):\n\n"
                 for warning in warnings {
-                    validation += "  \(warning)\n"
+                    validation += "  \(warning.diagnosticMessage)\n"
                 }
                 validation += "\n"
             }

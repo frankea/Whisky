@@ -165,8 +165,10 @@ extension Bottle {
                 ) {
                     if !startMenuPrograms.contains(where: { $0.url == program.url }) {
                         startMenuPrograms.append(program)
-                        try FileManager.default.removeItem(at: link)
                     }
+                    // Remove every shortcut to the program, not just the first one.
+                    // A leftover duplicate would be picked up again on the next scan.
+                    try FileManager.default.removeItem(at: link)
                 }
             } catch {
                 Logger.wineKit.warning("Failed to process Start Menu shortcut: \(error.localizedDescription)")

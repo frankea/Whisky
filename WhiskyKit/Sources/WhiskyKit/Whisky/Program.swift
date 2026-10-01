@@ -104,9 +104,14 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
     ///
     /// Setting this property automatically updates the bottle's pin list.
     /// Pinned programs appear in a separate section of the UI.
+    ///
+    /// Setting `true` on a program the bottle already pins is a no-op: pins are
+    /// keyed by URL (the same identity the load-time cleanup in ``Bottle`` uses),
+    /// so the pin list is not modified and Metadata.plist is not rewritten.
     @Published public var pinned: Bool {
         didSet {
             if pinned {
+                guard !bottle.settings.pins.contains(where: { $0.url == url }) else { return }
                 bottle.settings.pins.append(PinnedProgram(
                     name: name.replacingOccurrences(of: ".exe", with: ""),
                     url: url

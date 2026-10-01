@@ -199,6 +199,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   This removes `PerformancePreset` and the `performancePreset` properties of
   `BottleSettings`, `ProgramOverrides` and `GameConfigVariantSettings` from
   WhiskyKit's public API (#272).
+- The Force DirectX 11 toggle, from both the Graphics and Performance
+  sections of the bottle settings and from the per-program overrides. It
+  only set `D3DM_FORCE_D3D11` and `D3DM_FEATURE_LEVEL_12_0`, and neither
+  D3DMetal nor the Wine, DXVK and DXMT builds Whisky ships read them, so it
+  never changed how a game ran. The launcher presets for Rockstar, Epic,
+  Ubisoft, Paradox and EA App no longer set those keys or turn the toggle
+  on, the launcher warnings no longer recommend it, the GPU spoof drops its
+  equally unread `D3DM_FEATURE_LEVEL_*` keys, and the troubleshooter offers
+  Switch Graphics Backend for D3D12 errors instead of the old "Force
+  DirectX 11 Mode" fix. Saved bottles, program overrides and game configs
+  that still carry the setting load as before and drop it on the next save
+  (#292, fixes #284).
+
+  This removes the `forceD3D11` properties of `BottleSettings`,
+  `ProgramOverrides` and `GameConfigVariantSettings` (and the matching
+  `GameConfigVariantSettings` initializer parameter) from WhiskyKit's
+  public API, and `GPUDetection.validateSpoofingEnvironment` no longer
+  requires `D3DM_FEATURE_LEVEL_12_1` (#292).
 
 ## [3.7.0] - 2026-08-29 (App)
 

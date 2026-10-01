@@ -891,6 +891,12 @@ public class Wine {
     /// stale-store case (originals from a previous engine, payload gone) take
     /// the removal path instead of deploying a dxgi the current runtime never
     /// shipped.
+    ///
+    /// The deployed branch still sweeps `syswow64`: GPTK forwards only the
+    /// 64-bit builtin, so the 32-bit one is wine's own and DXMT residue there
+    /// is just as wrong as without the payload. The sweep is scoped to
+    /// `syswow64` on purpose; the stripped system32 copy is native by design,
+    /// and a both-arch sweep would delete it on every launch.
     static func reconcileDXGIForDXVK(
         prefixRoot: URL,
         gptkOriginalsDXGI: URL = GPTKImporter.storeFolder
@@ -902,6 +908,7 @@ public class Wine {
             removeStaleNativeDXGI(prefixRoot: prefixRoot, libraryFolder: libraryFolder)
             return
         }
+        removeStaleNativeDXGI(prefixRoot: prefixRoot, libraryFolder: libraryFolder, directories: ["syswow64"])
         deployCleanDXGI(prefixRoot: prefixRoot, from: gptkOriginalsDXGI)
     }
 
@@ -923,15 +930,16 @@ public class Wine {
     /// per-launch prefix-mutation path.
     ///
     /// Whether removal is the right answer at all is decided by
-    /// ``reconcileDXGIForDXVK(prefixRoot:gptkOriginalsDXGI:gptkPayloadIsDeployed:)``,
-    /// which owns the payload predicate.
+    /// ``reconcileDXGIForDXVK(prefixRoot:gptkOriginalsDXGI:gptkPayloadIsDeployed:libraryFolder:)``,
+    /// which owns the payload predicate and picks the `directories` to sweep.
     static func removeStaleNativeDXGI(
         prefixRoot: URL,
-        libraryFolder: URL = WhiskyWineInstaller.libraryFolder
+        libraryFolder: URL = WhiskyWineInstaller.libraryFolder,
+        directories: Set<String> = ["system32", "syswow64"]
     ) {
         let fileManager = FileManager.default
         let builtinDirs = ["system32": "x86_64-windows", "syswow64": "i386-windows"]
-        for (dir, arch) in builtinDirs {
+        for (dir, arch) in builtinDirs where directories.contains(dir) {
             let dxgi = prefixRoot.appending(path: "drive_c").appending(path: "windows")
                 .appending(path: dir).appending(path: "dxgi.dll")
             guard fileManager.fileExists(atPath: dxgi.path(percentEncoded: false)),
@@ -990,12 +998,19 @@ public class Wine {
     /// Only `system32` is written: GPTK deploys forwarders into
     /// `wine/x86_64-windows` only, so the 32-bit builtin is still Wine's own
     /// and the stored 64-bit original has no business in `syswow64`.
+    ///
+    /// This runs on every DXVK launch, so a prefix that already holds the
+    /// stripped original is left untouched rather than copied and patched
+    /// again.
     static func deployCleanDXGI(prefixRoot: URL, from gptkOriginalsDXGI: URL) {
         let fileManager = FileManager.default
         guard fileManager.fileExists(atPath: gptkOriginalsDXGI.path(percentEncoded: false)) else { return }
 
         let sys32DXGI = prefixRoot.appending(path: "drive_c").appending(path: "windows")
             .appending(path: "system32").appending(path: "dxgi.dll")
+        if isStrippedCopy(sys32DXGI, of: gptkOriginalsDXGI) {
+            return
+        }
         do {
             try fileManager.installFile(at: sys32DXGI, from: gptkOriginalsDXGI)
             try stripBuiltinMarker(at: sys32DXGI)
@@ -1004,6 +1019,22 @@ public class Wine {
                 "Could not deploy clean dxgi.dll into prefix: \(error.localizedDescription, privacy: .public)"
             )
         }
+    }
+
+    /// Whether `deployed` is already what ``deployCleanDXGI(prefixRoot:from:)``
+    /// would write: a native PE that matches `original` byte for byte outside
+    /// the 16-byte marker window at 0x40, the only bytes the strip rewrites.
+    private static func isStrippedCopy(_ deployed: URL, of original: URL) -> Bool {
+        guard FileManager.default.fileExists(atPath: deployed.path(percentEncoded: false)),
+              (try? isNativePE(deployed)) == true,
+              let existing = try? Data(contentsOf: deployed),
+              let source = try? Data(contentsOf: original),
+              existing.count == source.count,
+              existing.count >= 0x50
+        else { return false }
+        let window = 0x40 ..< 0x50
+        return existing[..<window.lowerBound] == source[..<window.lowerBound]
+            && existing[window.upperBound...] == source[window.upperBound...]
     }
 
     /// Errors thrown by ``enableDXMT(bottle:)``.

@@ -64,6 +64,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and kept them from starting once a game's settings applied on every Steam
   launch. Several DirectX 11/12 games whose DXVK advice was unrelated to
   DirectX 11 now use the recommended backend too (#302).
+- The game database entry for Train Sim World 5 now matches the game. It
+  carried the Steam App ID of an unrelated playtest, so its settings never
+  applied (#303).
+- The warnings in a bottle's launcher settings can now be translated; they
+  were shown in English in every language (#303).
 - Enabling DXVK now reconciles the bottle's dxgi.dll against the D3DMetal
   payload. With the payload deployed, the builtin dxgi is Apple's forwarder,
   which DXVK's d3d11 cannot pair with, so Wine's own backed-up dxgi is

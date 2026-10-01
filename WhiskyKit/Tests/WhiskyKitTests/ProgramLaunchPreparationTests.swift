@@ -214,6 +214,30 @@ final class ProgramLaunchPreparationTests {
         #expect(recorder.imports.isEmpty)
     }
 
+    @Test("A launch without a Program adds the font aliases before it reads a bottle setting")
+    func launchAddsCJKFontAliasesBeforeReadingSettings() async throws {
+        let bottle = try makeBottle()
+        try addCJKFonts(to: bottle, collection: true)
+        let game = try makeExecutable("Games/Game.exe", in: bottle)
+        let recorder = RegistryRecorder()
+        // The real import runs Wine for seconds, time enough to switch the bottle's backend.
+        let importer: Wine.RegistryImporter = { document, target in
+            try await recorder.importer(document, target)
+            target.settings.graphicsBackend = .wined3d
+        }
+
+        // What the public `runProgram` prepares, for the Run button, the library and Steam.
+        let launch = try await Wine.prepareProgramLaunch(
+            at: game, bottle: bottle, overrideWriter: recorder.writer, importer: importer
+        )
+
+        #expect(recorder.imports == [CJKFontReplacements.registryDocument(for: CJKFontReplacements.replacements)])
+        // The whole launch is wined3d's: none of it is the DXVK the bottle had before the import.
+        #expect(launch.environment["WINED3DMETAL"] == "0")
+        #expect(recorder.overrides(for: .bottle)?["d2d1"] == "n,b")
+        #expect(recorder.overrides(for: .bottle)?["d3d11"] == nil)
+    }
+
     @Test("A printed command runs the prepared launch")
     func printedCommandRunsThePreparedLaunch() async throws {
         let bottle = try makeBottle()

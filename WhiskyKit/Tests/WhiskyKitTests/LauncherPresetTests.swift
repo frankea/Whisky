@@ -67,8 +67,9 @@ final class LauncherPresetTests: XCTestCase {
         // Rockstar Launcher requires DXVK to display logo
         XCTAssertTrue(launcher.requiresDXVK)
 
+        // DXVK is turned on through requiresDXVK, not an environment variable
         let env = launcher.environmentOverrides()
-        XCTAssertEqual(env["DXVK_REQUIRED"], "1")
+        XCTAssertNil(env["DXVK_REQUIRED"], "No shipped runtime reads DXVK_REQUIRED")
         XCTAssertNil(env["D3DM_FORCE_D3D11"], "No shipped runtime reads D3DM_FORCE_D3D11")
     }
 
@@ -93,7 +94,7 @@ final class LauncherPresetTests: XCTestCase {
 
         // Epic-specific settings
         XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8")
-        XCTAssertEqual(env["WINE_DISABLE_NTDLL_THREAD_REGS"], "1")
+        XCTAssertNil(env["WINE_DISABLE_NTDLL_THREAD_REGS"], "No shipped runtime reads it")
         XCTAssertNil(env["D3DM_FORCE_D3D11"])
     }
 
@@ -112,15 +113,21 @@ final class LauncherPresetTests: XCTestCase {
 
         // Battle.net-specific settings
         XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8")
-        XCTAssertEqual(env["WINE_CPU_TOPOLOGY"], "8:8")
+        XCTAssertNil(env["WINE_CPU_TOPOLOGY"], "No shipped runtime reads it")
     }
 
     func testParadoxPreset() {
-        let env = LauncherType.paradox.environmentOverrides()
+        // The resource lookup workaround set WINE_DISABLE_FAST_PATH, which
+        // no shipped runtime reads, so Paradox has no environment fix.
+        XCTAssertTrue(LauncherType.paradox.environmentOverrides().isEmpty)
+        XCTAssertTrue(LauncherType.paradox.fixDetails().isEmpty)
+    }
 
-        // Paradox Launcher resource lookup workaround
-        XCTAssertEqual(env["WINE_DISABLE_FAST_PATH"], "1")
-        XCTAssertNil(env["D3DM_FORCE_D3D11"])
+    func testFixDetailsMatchEnvironmentOverrides() {
+        for launcher in LauncherType.allCases {
+            let details = Dictionary(uniqueKeysWithValues: launcher.fixDetails().map { ($0.key, $0.value) })
+            XCTAssertEqual(details, launcher.environmentOverrides(), "\(launcher.rawValue)")
+        }
     }
 
     func testRecommendedLocales() {

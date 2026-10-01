@@ -187,8 +187,8 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
 
         case .rockstar:
             // Rockstar Launcher fixes (whisky-app/whisky#1335, #835, #1120)
-            // DXVK is REQUIRED for logo screen to render
-            env["DXVK_REQUIRED"] = "1"
+            // DXVK is required for the logo screen to render; requiresDXVK makes
+            // BottleSettings add the DXVK DLL overrides for it.
 
             // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
 
@@ -211,9 +211,6 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
             env["LC_ALL"] = "en_US.UTF-8"
 
-            // Thread safety for Epic's web views
-            env["WINE_DISABLE_NTDLL_THREAD_REGS"] = "1"
-
         case .ubisoft:
             // Ubisoft Connect fixes (whisky-app/whisky#1004)
             // Anno 1800 and other Ubisoft games compatibility
@@ -227,13 +224,10 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
             env["LC_ALL"] = "en_US.UTF-8"
 
-            // Battle.net requires specific threading
-            env["WINE_CPU_TOPOLOGY"] = "8:8"
-
         case .paradox:
-            // Paradox Launcher fixes (whisky-app/whisky#1091)
-            // Resource lookup bug workaround
-            env["WINE_DISABLE_FAST_PATH"] = "1"
+            // No environment fix: the old resource lookup workaround
+            // (whisky-app/whisky#1091) set a variable no runtime reads.
+            break
         }
 
         return env
@@ -300,7 +294,7 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
         case .battleNet:
             "Fixes authentication and launcher rendering issues"
         case .paradox:
-            "Fixes recursive resource lookup bugs and initialization"
+            "No launcher-specific fixes needed"
         }
     }
 }

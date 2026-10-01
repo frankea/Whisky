@@ -42,8 +42,12 @@ public struct MacOSVersion: Comparable, Sendable {
     // swiftlint:enable identifier_name
 
     public static func < (lhs: MacOSVersion, rhs: MacOSVersion) -> Bool {
-        if lhs.major != rhs.major { return lhs.major < rhs.major }
-        if lhs.minor != rhs.minor { return lhs.minor < rhs.minor }
+        if lhs.major != rhs.major {
+            return lhs.major < rhs.major
+        }
+        if lhs.minor != rhs.minor {
+            return lhs.minor < rhs.minor
+        }
         return lhs.patch < rhs.patch
     }
 
@@ -101,6 +105,10 @@ public enum MacOSCompatibilityFixes {
     ///
     /// Fixes are ordered by the macOS version they apply from, with universal fixes first.
     /// Each fix carries a reason string and category for provenance display.
+    ///
+    /// Only list a variable something actually reads: a shipped runtime (Wine, DXVK,
+    /// DXMT, D3DMetal), Steam or CEF, or an Apple framework. Names no runtime
+    /// binary contains do nothing except clutter the provenance display.
     public static let allFixes: [MacOSFix] = [
         // Universal fixes (all macOS versions)
         MacOSFix(
@@ -120,16 +128,6 @@ public enum MacOSCompatibilityFixes {
             reason: "Disables Metal validation that causes rendering issues on macOS 15.3+",
             appliesFrom: .sequoia15_3, category: .graphics
         ),
-        MacOSFix(
-            key: "D3DM_VALIDATION", value: "0",
-            reason: "Improves D3DMetal stability on macOS 15.3+",
-            appliesFrom: .sequoia15_3, category: .graphics
-        ),
-        MacOSFix(
-            key: "WINE_DISABLE_NTDLL_THREAD_REGS", value: "1",
-            reason: "Fixes Wine preloader issues on Sequoia 15.3+",
-            appliesFrom: .sequoia15_3, category: .threading
-        ),
 
         // macOS 15.4+ fixes
         MacOSFix(
@@ -138,56 +136,9 @@ public enum MacOSCompatibilityFixes {
             appliesFrom: .sequoia15_4, category: .threading
         ),
         MacOSFix(
-            key: "WINE_ENABLE_PIPE_SYNC_FOR_APP", value: "0",
-            reason: "Disables pipe sync that conflicts with 15.4 security changes",
-            appliesFrom: .sequoia15_4, category: .threading
-        ),
-        MacOSFix(
             key: "STEAM_RUNTIME", value: "0",
             reason: "Disables Steam Runtime (incompatible with Wine on macOS 15.4+)",
             appliesFrom: .sequoia15_4, category: .compatibility
-        ),
-        MacOSFix(
-            key: "WINE_CPU_TOPOLOGY", value: "8:8",
-            reason: "Configures thread topology for M-series compatibility on macOS 15.4+",
-            appliesFrom: .sequoia15_4, category: .threading
-        ),
-        MacOSFix(
-            key: "WINE_THREAD_PRIORITY_PRESERVE", value: "1",
-            reason: "Preserves thread priorities for wine-preloader stability",
-            appliesFrom: .sequoia15_4, category: .threading
-        ),
-        MacOSFix(
-            key: "WINE_ENABLE_POSIX_SIGNALS", value: "1",
-            reason: "Improves signal handling on macOS 15.4+",
-            appliesFrom: .sequoia15_4, category: .threading
-        ),
-        MacOSFix(
-            key: "WINE_SIGPIPE_IGNORE", value: "1",
-            reason: "Prevents SIGPIPE crashes on macOS 15.4+",
-            appliesFrom: .sequoia15_4, category: .threading
-        ),
-        MacOSFix(
-            key: "WINE_PRELOADER_DEBUG", value: "0",
-            reason: "Disables preloader debug for process creation reliability on 15.4+",
-            appliesFrom: .sequoia15_4, category: .compatibility
-        ),
-        MacOSFix(
-            key: "WINE_DISABLE_FAST_PATH", value: "1",
-            reason: "Disables fast path for process creation reliability on macOS 15.4+",
-            appliesFrom: .sequoia15_4, category: .compatibility
-        ),
-
-        // macOS 15.4.1+ fixes
-        MacOSFix(
-            key: "WINE_MACH_PORT_TIMEOUT", value: "30000",
-            reason: "Compensates for changed mach port handling in macOS 15.4.1",
-            appliesFrom: .sequoia15_4_1, category: .threading
-        ),
-        MacOSFix(
-            key: "WINE_MACH_PORT_RETRY_COUNT", value: "5",
-            reason: "Adds mach port retry resilience for macOS 15.4.1 regression",
-            appliesFrom: .sequoia15_4_1, category: .threading
         )
     ]
 

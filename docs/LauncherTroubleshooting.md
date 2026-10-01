@@ -148,7 +148,7 @@ Rockstar's logo screen uses DirectX rendering that requires DXVK translation. Wi
 
 2. **Verify GPU Spoofing:**
    - Generate diagnostics report
-   - Check `GPU_VENDOR_ID=0x10DE`
+   - Check that GPU Spoofing shows as enabled
 
 3. **Check Locale:**
    - Set Locale Override to **English**
@@ -227,12 +227,8 @@ Ubisoft's servers can be slow, requiring higher timeouts.
 1. **Enable Launcher Compatibility:**
    - Full compatibility mode with English locale
 
-2. **Verify Threading:**
-   - Generate diagnostics
-   - Check `WINE_CPU_TOPOLOGY=8:8`
-
 **Why This Happens:**
-Battle.net's web-based authentication requires proper Chromium rendering and threading configuration.
+Battle.net's web-based authentication requires proper Chromium rendering.
 
 ---
 
@@ -248,9 +244,8 @@ Battle.net's web-based authentication requires proper Chromium rendering and thr
 1. **Enable Launcher Compatibility:**
    - Detect as Paradox Launcher (Auto or Manual)
 
-2. **Verify Fast Path Disabled:**
-   - Generate diagnostics
-   - Check `WINE_DISABLE_FAST_PATH=1`
+Whisky has no Paradox-specific environment fix. The `WINE_DISABLE_FAST_PATH`
+workaround earlier versions set is read by no shipped runtime, so it was removed.
 
 **Related Upstream Issues:**
 - whisky-app/whisky#1091 (Resource lookup bug)
@@ -275,8 +270,7 @@ Battle.net's web-based authentication requires proper Chromium rendering and thr
 2. **Verify macOS Fixes Applied:**
    - Generate diagnostics report
    - Check macOS version detection
-   - Check `WINE_MACH_PORT_TIMEOUT=30000`
-   - Check `WINE_CPU_TOPOLOGY=8:8`
+   - Check `WINEFSYNC=0`
 
 **Why This Happens:**
 Apple changed threading and mach port behavior in macOS 15.4. The compatibility mode applies Wine environment fixes for these changes.
@@ -327,7 +321,7 @@ GPU Spoofing: ✅ Enabled (NVIDIA)
 Look for:
 - `LC_ALL=en_US.UTF-8` (locale fix)
 - `STEAM_DISABLE_CEF_SANDBOX=1` (CEF fix)
-- `GPU_VENDOR_ID=0x10DE` (GPU spoofing)
+- `MESA_GL_VERSION_OVERRIDE=4.6` (GPU spoofing)
 - `WINHTTP_CONNECT_TIMEOUT=90000` (network timeout)
 
 **Validation Results:**
@@ -465,7 +459,7 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 - ✅ Locale: English
 
 **Critical Settings:**
-- `GPU_VENDOR_ID=0x10DE` (passes GPU check)
+- GPU Spoofing enabled
 
 ---
 
@@ -479,7 +473,6 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 
 **Critical Settings:**
 - `CEF_DISABLE_SANDBOX=1` (UI rendering)
-- `WINE_DISABLE_NTDLL_THREAD_REGS=1` (thread safety)
 
 ---
 
@@ -505,7 +498,6 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 - ✅ DXVK
 
 **Critical Settings:**
-- `WINE_CPU_TOPOLOGY=8:8` (threading)
 - `CEF_DISABLE_SANDBOX=1` (authentication)
 
 ---
@@ -515,7 +507,7 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 - ✅ Launcher Compatibility Mode
 
 **Critical Settings:**
-- `WINE_DISABLE_FAST_PATH=1` (resource lookup fix)
+- None beyond Launcher Compatibility Mode
 
 ---
 
@@ -660,8 +652,7 @@ Before making changes:
 |---------------|-------------------|--------------|
 | 15.0-15.2 | ✅ Full | None known |
 | 15.3 | ✅ Full | Graphics validation (handled) |
-| 15.4 | ✅ Full | Thread management (handled) |
-| 15.4.1+ | ✅ Full | Mach port timing (handled) |
+| 15.4+ | ✅ Full | Sync mode and Steam Runtime (handled) |
 | < 15.0 | ⚠️ Limited | Sequoia fixes not available |
 
 ---

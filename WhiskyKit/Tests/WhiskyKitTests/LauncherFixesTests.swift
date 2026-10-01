@@ -148,10 +148,12 @@ final class LauncherFixesApplyTests: LauncherFixesTestCase {
         // The auto-mode Play path (#166): a fresh Steam bottle defaults to
         // compatibility mode off, and apply turns it on alongside the full
         // Steam profile, not just the flag.
+        // Pinned to a runtime without the payload, where Steam's DXVK is still
+        // bottle-wide; the scoped case is covered below.
         let bottle = makeBottle()
         XCTAssertFalse(bottle.settings.launcherCompatibilityMode)
 
-        LauncherFixes.apply(to: bottle, launcher: .steam)
+        LauncherFixes.apply(to: bottle, launcher: .steam, recommendedBackend: .dxmt)
 
         XCTAssertTrue(bottle.settings.launcherCompatibilityMode)
         XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
@@ -216,5 +218,73 @@ final class LauncherFixesApplyTests: LauncherFixesTestCase {
 
         bottle.settings.dxrEnabled = true
         XCTAssertEqual(Wine.constructWineEnvironment(for: bottle)["D3DM_SUPPORT_DXR"], "1")
+    }
+}
+
+// MARK: - Steam's DXVK scoped to its own processes (#276)
+
+final class LauncherFixesScopingTests: LauncherFixesTestCase {
+    @MainActor
+    func testSteamProfileLeavesARecommendedBottleOverD3DMetalAlone() throws {
+        let bottle = makeBottle()
+        XCTAssertEqual(bottle.settings.graphicsBackend, .recommended)
+
+        LauncherFixes.apply(to: bottle, launcher: .steam, recommendedBackend: .d3dMetal)
+
+        XCTAssertEqual(bottle.settings.graphicsBackend, .recommended)
+        XCTAssertEqual(try persistedSettings().graphicsBackend, .recommended)
+        // The rest of the profile still lands.
+        XCTAssertTrue(bottle.settings.launcherCompatibilityMode)
+        XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
+        XCTAssertEqual(bottle.settings.launcherLocale, .english)
+        XCTAssertEqual(bottle.settings.networkTimeout, 90_000)
+    }
+
+    @MainActor
+    func testSteamProfileStillSwitchesWhenGamesWouldResolveToDXMT() {
+        // DXMT and DXVK both put their d3d11.dll in system32, so they cannot
+        // be split per executable.
+        let bottle = makeBottle()
+
+        LauncherFixes.apply(to: bottle, launcher: .steam, recommendedBackend: .dxmt)
+
+        XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
+    }
+
+    @MainActor
+    func testSteamProfileStillSwitchesAnExplicitBackend() {
+        // Only Recommended is steered per launch, so an explicit D3DMetal
+        // bottle would start Steam on D3DMetal.
+        for backend in [GraphicsBackend.d3dMetal, .dxmt, .wined3d] {
+            let bottle = makeBottle()
+            bottle.settings.graphicsBackend = backend
+
+            LauncherFixes.apply(to: bottle, launcher: .steam, recommendedBackend: .d3dMetal)
+
+            XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk, "\(backend)")
+        }
+    }
+
+    @MainActor
+    func testForcedSteamProfileStillSwitchesTheBottle() {
+        // The troubleshooting path is an explicit request for the full profile.
+        let bottle = makeBottle()
+
+        LauncherFixes.apply(to: bottle, launcher: .steam, force: true, recommendedBackend: .d3dMetal)
+
+        XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
+        XCTAssertTrue(bottle.settings.dxvkAsync)
+    }
+
+    @MainActor
+    func testUnmappedLaunchersStillSwitchTheBottle() {
+        // Their helpers have no validated AppDefaults entries yet.
+        for launcher in [LauncherType.ubisoft, .battleNet, .rockstar] {
+            let bottle = makeBottle()
+
+            LauncherFixes.apply(to: bottle, launcher: launcher, recommendedBackend: .d3dMetal)
+
+            XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk, "\(launcher)")
+        }
     }
 }

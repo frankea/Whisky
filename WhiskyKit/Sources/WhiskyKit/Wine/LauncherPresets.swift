@@ -265,6 +265,26 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
         }
     }
 
+    /// Executables of this launcher that something else starts, so they never
+    /// go through Whisky's launch path and only get an `AppDefaults` entry if
+    /// one is written ahead of time.
+    ///
+    /// Rockstar's: a Rockstar title bought on Steam (Red Dead Redemption 2's
+    /// `PlayRDR2.exe`) starts the Rockstar Games Launcher and Social Club inside
+    /// the Steam session. Both draw with Chromium and need DXVK the way Steam's
+    /// helper does. `Launcher.exe` also needs `d3d12` off: it asks D3D12 for
+    /// graphics information at startup, and with D3DMetal's `d3d12` reachable
+    /// that query hangs its shutdown, which keeps the game "running" in Steam
+    /// (#276). Social Club gets the same entry, the layout measured there.
+    public var chainExecutables: [String] {
+        switch self {
+        case .rockstar:
+            ["Launcher.exe", "SocialClubHelper.exe"]
+        case .steam, .epicGames, .eaApp, .battleNet, .ubisoft, .paradox:
+            []
+        }
+    }
+
     /// The recommended locale for this launcher.
     ///
     /// Most launchers work best with US English locale to avoid

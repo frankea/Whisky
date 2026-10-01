@@ -86,6 +86,17 @@ public struct BottleLauncherConfig: Codable, Equatable {
     /// Some launchers (Rockstar) will not render UI without DXVK.
     var autoEnableDXVK: Bool = true
 
+    /// The last ``LauncherBackendMigration`` this bottle has been through.
+    ///
+    /// A bottle created by this version starts at the current one, since the
+    /// profile it migrates from was never applied to it. A file without the
+    /// key predates the migration and decodes as `0`.
+    var backendMigration: Int = LauncherBackendMigration.current
+
+    /// Whether the graphics settings should say the migration put the bottle
+    /// back on Recommended, until the user dismisses it or picks a backend.
+    var backendResetNotice: Bool = false
+
     public init() {}
 
     public init(from decoder: Decoder) throws {
@@ -98,6 +109,8 @@ public struct BottleLauncherConfig: Codable, Equatable {
         self.gpuVendor = container.decodeLenientIfPresent(GPUVendor.self, forKey: .gpuVendor) ?? .nvidia
         self.networkTimeout = try container.decodeIfPresent(Int.self, forKey: .networkTimeout) ?? 60_000
         self.autoEnableDXVK = try container.decodeIfPresent(Bool.self, forKey: .autoEnableDXVK) ?? true
+        self.backendMigration = try container.decodeIfPresent(Int.self, forKey: .backendMigration) ?? 0
+        self.backendResetNotice = try container.decodeIfPresent(Bool.self, forKey: .backendResetNotice) ?? false
     }
 }
 

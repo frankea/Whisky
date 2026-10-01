@@ -262,15 +262,19 @@ final class ProgramLaunchPreparationTests {
         let bottle = try makeBottle()
         let steam = try makeExecutable("Program Files (x86)/Steam/steam.exe", in: bottle)
         let recorder = RegistryRecorder()
+        var plan = ProgramOverrides()
+        plan.dllOverrides = [DLLOverrideEntry(dllName: "xinput1_3", mode: .native)]
 
         let launch = try await Wine.prepareProgramLaunch(
-            at: steam, args: ["-applaunch", "1174180"], bottle: bottle,
+            at: steam, args: ["-applaunch", "1174180"], bottle: bottle, programOverrides: plan,
             overridesApplyToDescendants: true, overrideWriter: recorder.writer
         )
 
-        #expect(launch.environment["WINEDLLOVERRIDES"] != nil)
+        #expect(Wine.parseDLLOverrides(launch.environment["WINEDLLOVERRIDES"] ?? "")["xinput1_3"] == "n")
         #expect(launch.arguments == ["start", "/unix", steam.path(percentEncoded: false), "-applaunch", "1174180"])
-        #expect(recorder.overrides(for: .program("steam.exe")) == nil)
+        // The launcher keeps its own set; the game's plan is not in it.
+        #expect(recorder.overrides(for: .program("steam.exe"))?["d3d11"] == "n,b")
+        #expect(recorder.overrides(for: .program("steam.exe"))?["xinput1_3"] == nil)
         #expect(recorder.overrides(for: .program("steamwebhelper.exe"))?["nvapi64"] == "")
     }
 

@@ -97,6 +97,17 @@ public enum LauncherFixes {
     /// - Configures DXVK if required
     /// - Enables GPU spoofing for compatibility checks
     ///
+    /// **Steam and the bottle's backend:** a bottle left on Recommended over
+    /// D3DMetal keeps that backend. Steam's own processes get DXVK per
+    /// executable instead: the resolver steers the client to DXVK and the launch
+    /// writes it into their `AppDefaults` entries, so the games Steam starts stay
+    /// on D3DMetal. Switching the whole bottle to DXVK turned `d3d12` off for
+    /// every one of them, and a DirectX 12 game with no D3D11 path never started
+    /// (#276). Anywhere else the bottle still goes to DXVK as before: an explicit
+    /// backend is never steered, and without the payload the bottle's games
+    /// resolve to DXMT, whose files share the prefix's `d3d11.dll` with DXVK's.
+    /// So does a forced apply, which is an explicit troubleshooting step.
+    ///
     /// **Important:** This method saves settings synchronously to disk via
     /// `bottle.saveBottleSettings()`, blocking until the write completes.
     /// This ensures settings are persisted before Wine reads them for
@@ -106,9 +117,14 @@ public enum LauncherFixes {
     ///   - bottle: The bottle to configure
     ///   - launcher: The detected or manually selected launcher type
     ///   - force: If `true`, overrides existing settings; if `false`, only applies if not already configured
+    ///   - recommendedBackend: What `.recommended` resolves to for the bottle's
+    ///     games. Defaults to the resolver's answer for the installed runtime.
     @MainActor
     // swiftlint:disable:next cyclomatic_complexity
-    public static func apply(to bottle: Bottle, launcher: LauncherType, force: Bool = false) {
+    public static func apply(
+        to bottle: Bottle, launcher: LauncherType, force: Bool = false,
+        recommendedBackend: GraphicsBackend = GraphicsBackendResolver.resolve()
+    ) {
         // Enable launcher compatibility mode
         if !bottle.settings.launcherCompatibilityMode || force {
             bottle.settings.launcherCompatibilityMode = true
@@ -123,8 +139,11 @@ public enum LauncherFixes {
             // Steam requires en_US locale to avoid steamwebhelper crashes
             bottle.settings.launcherLocale = launcher.recommendedLocale
 
-            // DXVK improves Steam UI performance
-            if force || !bottle.settings.dxvk {
+            // Steam's UI needs DXVK. Scoped to Steam's own processes where the
+            // launch can do that; bottle-wide everywhere else.
+            let scopesDXVK = !force && bottle.settings.graphicsBackend == .recommended
+                && recommendedBackend == .d3dMetal
+            if !scopesDXVK, force || !bottle.settings.dxvk {
                 bottle.settings.dxvk = true
                 bottle.settings.dxvkAsync = true
             }
@@ -136,7 +155,10 @@ public enum LauncherFixes {
             bottle.settings.networkTimeout = 90_000 // 90 seconds
 
         case .rockstar:
-            // Rockstar REQUIRES DXVK to display logo and UI
+            // Rockstar REQUIRES DXVK to display logo and UI. Still bottle-wide
+            // (the launcher layer adds the preset too): only Launcher.exe and
+            // SocialClubHelper.exe get entries of their own, and the rest of the
+            // standalone launcher's processes have not been mapped.
             if bottle.settings.autoEnableDXVK {
                 bottle.settings.dxvk = true
             }
@@ -158,7 +180,9 @@ public enum LauncherFixes {
             bottle.settings.gpuSpoofing = true
 
         case .ubisoft:
-            // Enable DXVK async for Anno 1800 and other games
+            // Enable DXVK async for Anno 1800 and other games. Still bottle-wide:
+            // Ubisoft Connect's Chromium helper has no AppDefaults entry yet
+            // (see `helperExecutables`), so scoping would leave it on D3DMetal.
             if force || !bottle.settings.dxvk {
                 bottle.settings.dxvk = true
                 bottle.settings.dxvkAsync = true
@@ -172,7 +196,8 @@ public enum LauncherFixes {
             bottle.settings.launcherLocale = .english
             bottle.settings.gpuSpoofing = true
 
-            // DXVK recommended
+            // DXVK recommended. Still bottle-wide: Battle.net Launcher.exe starts
+            // Battle.net.exe, which no launch writes an AppDefaults entry for.
             if force || !bottle.settings.dxvk {
                 bottle.settings.dxvk = true
             }

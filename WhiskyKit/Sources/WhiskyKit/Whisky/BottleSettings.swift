@@ -605,6 +605,19 @@ public struct BottleSettings: Codable, Equatable {
         set { launcherConfig.autoEnableDXVK = newValue }
     }
 
+    /// The last ``LauncherBackendMigration`` this bottle has been through.
+    var launcherBackendMigration: Int {
+        get { launcherConfig.backendMigration }
+        set { launcherConfig.backendMigration = newValue }
+    }
+
+    /// Whether the graphics settings say that ``LauncherBackendMigration`` put
+    /// this bottle back on Recommended. Cleared once the user has seen it.
+    public var launcherBackendResetNotice: Bool {
+        get { launcherConfig.backendResetNotice }
+        set { launcherConfig.backendResetNotice = newValue }
+    }
+
     // MARK: - Controller and input settings
 
     /// Whether controller compatibility mode is enabled.

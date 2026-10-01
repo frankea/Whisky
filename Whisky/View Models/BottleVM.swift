@@ -101,6 +101,11 @@ final class BottleVM: ObservableObject {
         // conflicting actions during move/export/duplicate.
         let inFlight = Dictionary(bottles.filter(\.inFlight).map { ($0.url, $0) }) { first, _ in first }
         bottles = bottlesList.loadBottles().map { inFlight[$0.url] ?? $0 }
+        // Here rather than in WhiskyKit's loader, which WhiskyCmd shares: a
+        // command should not rewrite a bottle's settings as a side effect.
+        for bottle in bottles where bottle.isAvailable && !bottle.inFlight {
+            LauncherBackendMigration.migrateIfNeeded(bottle)
+        }
     }
 
     /// Bottles found on disk with no registry entry, awaiting a re-import

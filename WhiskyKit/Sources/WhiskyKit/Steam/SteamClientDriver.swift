@@ -129,7 +129,10 @@ open class WineSteamClientDriver: SteamClientDriver {
     /// to the client. The returned task can outlive the game, so it is never
     /// awaited. The install URL is already known, which saves a library rescan.
     open func launchGame(_ game: SteamGame) throws {
-        _ = try SteamLauncher.launch(appId: game.appId, bottle: bottle, installURL: game.installURL)
+        // The orchestrator has started the client or found it running already.
+        _ = try SteamLauncher.launch(
+            appId: game.appId, bottle: bottle, installURL: game.installURL, clientIsRunning: true
+        )
     }
 
     open func killProcess(winePID: Int32) async {

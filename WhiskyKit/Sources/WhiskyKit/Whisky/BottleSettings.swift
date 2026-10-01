@@ -351,9 +351,12 @@ public struct BottleSettings: Codable, Equatable {
     ///
     /// Controls which translation layer is used for Direct3D rendering.
     /// `.recommended` resolves to a concrete backend at launch time based on GPU/OS heuristics.
+    ///
+    /// Changing it clears `launcherSwitchedBackend`: whatever changed it, the
+    /// backend is no longer the one a launcher profile left behind.
     public var graphicsBackend: GraphicsBackend {
         get { graphicsConfig.backend }
-        set { graphicsConfig.backend = newValue }
+        set { setBackend(newValue) }
     }
 
     /// Whether this bottle opts in to D3DMetal's DLSS-to-MetalFX path.
@@ -403,7 +406,14 @@ public struct BottleSettings: Codable, Equatable {
     /// switches the backend to `.dxvk`; setting to `false` switches to `.recommended`.
     public var dxvk: Bool {
         get { graphicsConfig.backend == .dxvk }
-        set { graphicsConfig.backend = newValue ? .dxvk : .recommended }
+        set { setBackend(newValue ? .dxvk : .recommended) }
+    }
+
+    private mutating func setBackend(_ backend: GraphicsBackend) {
+        if backend != graphicsConfig.backend {
+            launcherConfig.backendSwitchedByLauncher = false
+        }
+        graphicsConfig.backend = backend
     }
 
     /// Whether DXVK async shader compilation is enabled.
@@ -616,6 +626,14 @@ public struct BottleSettings: Codable, Equatable {
     public var launcherBackendResetNotice: Bool {
         get { launcherConfig.backendResetNotice }
         set { launcherConfig.backendResetNotice = newValue }
+    }
+
+    /// Whether a launcher profile, not the user, switched this bottle from
+    /// Recommended to DXVK. Set after the switch, since changing the backend
+    /// clears it.
+    var launcherSwitchedBackend: Bool {
+        get { launcherConfig.backendSwitchedByLauncher }
+        set { launcherConfig.backendSwitchedByLauncher = newValue }
     }
 
     // MARK: - Controller and input settings

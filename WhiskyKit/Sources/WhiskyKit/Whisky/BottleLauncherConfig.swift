@@ -97,6 +97,15 @@ public struct BottleLauncherConfig: Codable, Equatable {
     /// back on Recommended, until the user dismisses it or picks a backend.
     var backendResetNotice: Bool = false
 
+    /// Whether the bottle is on DXVK because a launcher profile switched it
+    /// there from Recommended, rather than because the user picked it.
+    ///
+    /// Set where the Steam profile has to switch the whole bottle, which is on
+    /// a runtime without the D3DMetal payload. Once the payload is installed,
+    /// ``LauncherBackendMigration`` puts such a bottle back on Recommended and
+    /// Steam keeps DXVK per executable. Any other change of backend clears it.
+    var backendSwitchedByLauncher: Bool = false
+
     public init() {}
 
     public init(from decoder: Decoder) throws {
@@ -111,6 +120,9 @@ public struct BottleLauncherConfig: Codable, Equatable {
         self.autoEnableDXVK = try container.decodeIfPresent(Bool.self, forKey: .autoEnableDXVK) ?? true
         self.backendMigration = try container.decodeIfPresent(Int.self, forKey: .backendMigration) ?? 0
         self.backendResetNotice = try container.decodeIfPresent(Bool.self, forKey: .backendResetNotice) ?? false
+        self.backendSwitchedByLauncher = try container.decodeIfPresent(
+            Bool.self, forKey: .backendSwitchedByLauncher
+        ) ?? false
     }
 }
 

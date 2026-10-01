@@ -266,14 +266,51 @@ final class LauncherFixesScopingTests: LauncherFixesTestCase {
     }
 
     @MainActor
-    func testForcedSteamProfileStillSwitchesTheBottle() {
-        // The troubleshooting path is an explicit request for the full profile.
+    func testForcedSteamProfileKeepsARecommendedBottleOverD3DMetal() throws {
+        // Apply Launcher Fixes in troubleshooting switched the bottle to DXVK,
+        // undoing the scoped layout it was meant to fix.
         let bottle = makeBottle()
 
         LauncherFixes.apply(to: bottle, launcher: .steam, force: true, recommendedBackend: .d3dMetal)
 
+        XCTAssertEqual(bottle.settings.graphicsBackend, .recommended)
+        XCTAssertEqual(try persistedSettings().graphicsBackend, .recommended)
+        XCTAssertTrue(bottle.settings.launcherCompatibilityMode)
+        XCTAssertEqual(bottle.settings.launcherLocale, .english)
+    }
+
+    @MainActor
+    func testForcedSteamProfileStillSwitchesWithoutThePayload() {
+        let bottle = makeBottle()
+
+        LauncherFixes.apply(to: bottle, launcher: .steam, force: true, recommendedBackend: .dxmt)
+
         XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
         XCTAssertTrue(bottle.settings.dxvkAsync)
+    }
+
+    @MainActor
+    func testForcedSteamProfilePutsAProfileSwitchBack() {
+        // Switched on a runtime without the payload, then forced once it has it.
+        let bottle = makeBottle()
+        LauncherFixes.apply(to: bottle, launcher: .steam, recommendedBackend: .dxmt)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
+
+        LauncherFixes.apply(to: bottle, launcher: .steam, force: true, recommendedBackend: .d3dMetal)
+
+        XCTAssertEqual(bottle.settings.graphicsBackend, .recommended)
+        XCTAssertTrue(bottle.settings.launcherBackendResetNotice)
+    }
+
+    @MainActor
+    func testForcedSteamProfileLeavesAUserPickedDXVKAlone() {
+        let bottle = makeBottle()
+        bottle.settings.graphicsBackend = .dxvk
+
+        LauncherFixes.apply(to: bottle, launcher: .steam, force: true, recommendedBackend: .d3dMetal)
+
+        XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
+        XCTAssertFalse(bottle.settings.launcherBackendResetNotice)
     }
 
     @MainActor

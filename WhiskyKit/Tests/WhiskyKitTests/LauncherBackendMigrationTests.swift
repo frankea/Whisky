@@ -77,6 +77,67 @@ final class LauncherBackendMigrationTests: LauncherFixesTestCase {
     }
 
     @MainActor
+    func testAnOldSwitchSeenWithoutD3DMetalGoesBackOnceThePayloadArrives() throws {
+        let bottle = try makeSwitchedBottle()
+        XCTAssertFalse(LauncherBackendMigration.migrateIfNeeded(bottle, d3dMetalInstalled: false))
+
+        // GPTK imported later, or the app relaunched with it deployed.
+        let reloaded = Bottle(bottleUrl: bottleURL)
+        XCTAssertTrue(LauncherBackendMigration.migrateIfNeeded(reloaded, d3dMetalInstalled: true))
+
+        XCTAssertEqual(reloaded.settings.graphicsBackend, .recommended)
+        XCTAssertTrue(reloaded.settings.launcherBackendResetNotice)
+        XCTAssertFalse(LauncherBackendMigration.migrateIfNeeded(reloaded, d3dMetalInstalled: true))
+    }
+
+    @MainActor
+    func testAProfileSwitchOnARuntimeWithoutThePayloadGoesBackOnceItArrives() throws {
+        // A bottle created now, switched by today's profile because its games
+        // resolve to DXMT, then GPTK is imported.
+        let bottle = makeBottle()
+        LauncherFixes.apply(to: bottle, launcher: .steam, recommendedBackend: .dxmt)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
+        XCTAssertFalse(LauncherBackendMigration.migrateIfNeeded(bottle, d3dMetalInstalled: false))
+
+        let reloaded = Bottle(bottleUrl: bottleURL)
+        XCTAssertTrue(LauncherBackendMigration.migrateIfNeeded(reloaded, d3dMetalInstalled: true))
+
+        XCTAssertEqual(reloaded.settings.graphicsBackend, .recommended)
+        XCTAssertTrue(reloaded.settings.launcherBackendResetNotice)
+        XCTAssertEqual(try persistedSettings().graphicsBackend, .recommended)
+    }
+
+    @MainActor
+    func testADXVKPickedByTheUserIsNeverPutBack() {
+        // Picked before Steam's profile ran: the profile leaves it alone.
+        let picked = makeBottle()
+        picked.settings.graphicsBackend = .dxvk
+        LauncherFixes.apply(to: picked, launcher: .steam, recommendedBackend: .dxmt)
+        XCTAssertFalse(LauncherBackendMigration.migrateIfNeeded(picked, d3dMetalInstalled: true))
+        XCTAssertEqual(picked.settings.graphicsBackend, .dxvk)
+
+        // Picked again after the profile switched it: the user's now.
+        let repicked = makeBottle()
+        LauncherFixes.apply(to: repicked, launcher: .steam, recommendedBackend: .dxmt)
+        repicked.settings.graphicsBackend = .wined3d
+        repicked.settings.graphicsBackend = .dxvk
+        XCTAssertFalse(LauncherBackendMigration.migrateIfNeeded(repicked, d3dMetalInstalled: true))
+        XCTAssertEqual(repicked.settings.graphicsBackend, .dxvk)
+    }
+
+    @MainActor
+    func testAnExplicitBackendTheProfileSwitchedIsNotPutOnRecommended() {
+        // It was not on Recommended before, so Recommended is not where it goes back to.
+        let bottle = makeBottle()
+        bottle.settings.graphicsBackend = .wined3d
+        LauncherFixes.apply(to: bottle, launcher: .steam, recommendedBackend: .dxmt)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
+
+        XCTAssertFalse(LauncherBackendMigration.migrateIfNeeded(bottle, d3dMetalInstalled: true))
+        XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
+    }
+
+    @MainActor
     func testOtherLaunchersAreNotMigrated() throws {
         let bottle = try makeSwitchedBottle()
         bottle.settings.detectedLauncher = .battleNet

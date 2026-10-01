@@ -19,30 +19,44 @@
 import Foundation
 import os.log
 
-/// Puts a bottle that an older Steam profile switched to DXVK back on Recommended, once.
+/// Puts a bottle that a Steam profile switched to DXVK back on Recommended,
+/// once D3DMetal is there to serve its games.
 ///
 /// Up to 3.7.0, the Steam profile Play applies set the whole bottle to DXVK so
 /// the client could draw. That turned `d3d12` off for every game Steam
 /// started, so a DirectX 12 game with no D3D11 path never came up (#276). The
 /// profile now leaves a bottle on Recommended and scopes DXVK to Steam's own
-/// processes, but bottles it already switched still say DXVK on disk.
+/// processes, but only over D3DMetal: on a runtime without the payload it
+/// still switches the bottle, and bottles it switched before still say DXVK
+/// on disk.
 ///
-/// From the settings alone such a bottle looks the same as one where the user
-/// picked DXVK, so the migration is narrow: launcher mode auto, Steam as the
-/// detected launcher, DXVK as the backend, and D3DMetal installed, so that
-/// Recommended means D3DMetal for the games and the scoped layout applies.
-/// It runs once per bottle. Every bottle is stamped the first time it is
-/// looked at, whether it changed or not, so a backend picked after the update
-/// is never undone. Manual mode is never touched.
+/// Two kinds of bottle qualify:
+///
+/// - One the profile switched from Recommended since this version, which says
+///   so (`launcherSwitchedBackend`). Any later change of backend clears that,
+///   so a DXVK picked by the user is never undone.
+/// - One an older version switched. From the settings alone that looks the
+///   same as a DXVK the user picked, so only a narrow shape counts: launcher
+///   mode auto, Steam as the detected launcher, DXVK as the backend. The first
+///   look at such a bottle marks it as switched by the profile, and every
+///   bottle is stamped then, so the guess is made once.
+///
+/// A qualifying bottle goes back to Recommended as soon as D3DMetal is
+/// installed: on load, or right after the payload is imported or deployed. A
+/// bottle first looked at without the payload waits for it. The graphics
+/// settings then show a one-line notice.
 public enum LauncherBackendMigration {
     /// The migration this version performs. A bottle stamped below it has not
-    /// been through it yet.
-    public static let current = 1
+    /// been through it yet. 2 marks old-profile bottles instead of skipping
+    /// them when the payload is missing.
+    public static let current = 2
 
-    /// Runs the migration on `bottle` if it has not been through it.
+    /// Runs the migration on `bottle`: stamps it if it has not been through
+    /// it, then puts it back on Recommended if it qualifies and D3DMetal is
+    /// installed.
     ///
-    /// Saves the bottle's settings once when it stamps them, and not at all
-    /// when the bottle is already stamped.
+    /// Saves the bottle's settings once when anything changed, and not at all
+    /// otherwise, so it is cheap to run on every load and after every import.
     ///
     /// - Parameters:
     ///   - bottle: The bottle to look at.
@@ -55,24 +69,46 @@ public enum LauncherBackendMigration {
     public static func migrateIfNeeded(
         _ bottle: Bottle, d3dMetalInstalled: Bool = WhiskyWineInstaller.isD3DMetalInstalled()
     ) -> Bool {
-        guard bottle.settings.launcherBackendMigration < current else { return false }
-
         var settings = bottle.settings
-        let reset = wasSwitchedBySteamProfile(settings) && d3dMetalInstalled
+        var changed = false
+        if settings.launcherBackendMigration < current {
+            if wasSwitchedBySteamProfile(settings) {
+                settings.launcherSwitchedBackend = true
+            }
+            settings.launcherBackendMigration = current
+            changed = true
+        }
+
+        let reset = d3dMetalInstalled && isRestorable(settings)
         if reset {
-            settings.graphicsBackend = .recommended
-            settings.launcherBackendResetNotice = true
+            restore(&settings)
             Logger.wineKit.info(
                 "Put '\(settings.name, privacy: .public)' back on Recommended; Steam keeps DXVK per executable"
             )
+            changed = true
         }
-        settings.launcherBackendMigration = current
-        // One assignment, so one save.
-        bottle.settings = settings
+        if changed {
+            // One assignment, so one save.
+            bottle.settings = settings
+        }
         return reset
     }
 
-    /// Whether the settings look like the result of the old Steam profile.
+    /// Whether the settings are on DXVK only because a Steam profile put them there.
+    static func isRestorable(_ settings: BottleSettings) -> Bool {
+        settings.launcherSwitchedBackend
+            && settings.graphicsBackend == .dxvk
+            && settings.detectedLauncher == .steam
+    }
+
+    /// Puts the settings back on Recommended and raises the notice that says so.
+    static func restore(_ settings: inout BottleSettings) {
+        // Clears launcherSwitchedBackend too.
+        settings.graphicsBackend = .recommended
+        settings.launcherBackendResetNotice = true
+    }
+
+    /// Whether the settings look like the result of an older Steam profile.
     static func wasSwitchedBySteamProfile(_ settings: BottleSettings) -> Bool {
         settings.launcherMode == .auto
             && settings.detectedLauncher == .steam

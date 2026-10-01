@@ -168,6 +168,9 @@ struct WhiskyWineInstallView: View {
             // Only cleanup tarball after verified successful installation
             // This preserves it for retry attempts if installation fails
             WhiskyWineInstaller.cleanupTarball(at: capturedTarURL)
+            // The install may have brought D3DMetal with it (a stored GPTK
+            // payload redeploys), which lets Steam bottles off bottle-wide DXVK.
+            BottleVM.shared.migrateLauncherBackends()
             try? await Task.sleep(for: Self.installSuccessDelay)
             proceed()
         }
@@ -201,7 +204,9 @@ struct WhiskyWineInstallView: View {
         case failure(reason: Telemetry.InstallFailureReason, message: String?)
 
         var installed: Bool {
-            if case .success = self { return true }
+            if case .success = self {
+                return true
+            }
             return false
         }
     }

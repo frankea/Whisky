@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Steam's Store, Community and Profile pages black. It only surfaced on a
   runtime whose wine.inf matched the bottle's update stamp, because every
   other runtime triggers a prefix update that silently reinstalls the
-  placeholder. That is why it looked like a wine 11.16 regression (#163).
+  placeholder. That is why it looked like a wine 11.16 regression (#251).
 - The Recommended graphics backend now resolves launchers (Steam and other
   Chromium-based clients) to DXVK on every runtime. Previously a runtime
   without the D3DMetal payload resolved launchers to DXMT, whose Direct3D
@@ -25,11 +25,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   payload. With the payload deployed, the builtin dxgi is Apple's forwarder,
   which DXVK's d3d11 cannot pair with, so Wine's own backed-up dxgi is
   installed into system32 with its builtin marker stripped and loads as a
-  true native PE. Without the payload, a stale native dxgi.dll a previous
-  DXMT launch left in the bottle's system directories is removed instead:
-  that leftover paired DXVK's d3d11 with DXMT's dxgi, which cannot create
-  window swapchains, leaving Chromium-based launchers such as Steam running
-  with no window after a switch from DXMT to DXVK (#163).
+  true native PE; it is only rewritten when the copy there no longer
+  matches. A stale native dxgi.dll a previous DXMT launch left behind is
+  removed instead, from both system directories without the payload and
+  from syswow64 with it: that leftover paired DXVK's d3d11 with DXMT's
+  dxgi, which cannot create window swapchains, leaving Chromium-based
+  launchers such as Steam running with no window after a switch from DXMT
+  to DXVK, and with the payload deployed it made the Steam client crash-loop
+  (#251, #295, fixes #248).
 - A Visual C++ Runtime whose installer hung under wine after installing
   successfully is now detected. The winetricks.log entry is only written once
   the installer exits, so the Dependencies panel kept saying "Not Installed"
@@ -167,6 +170,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   settings could overwrite that change. Apart from repairs such as
   replacing a missing or damaged file, loading now saves only when it
   removes a stale or duplicate pin (#288).
+- Pinning a program that is already pinned no longer adds a second pin. The
+  start menu scan did this whenever it found another shortcut to a pinned
+  program, and the duplicate was written back on every settings save and
+  removed again on the next bottle load. Every start menu shortcut to a program
+  is now cleaned up, not just the first one (#296).
+- Strings that have not been translated yet now show their English text in
+  every language instead of a raw identifier such as `library.title` or
+  `sidebar.bottles`. About 130 strings per language were affected, including
+  the Library and sidebar titles. A build step fills each compiled language
+  from English for any key it lacks, so the catalog and Crowdin stay as they
+  are (#297, fixes #291).
+- Guided Troubleshooting's "Switch to DXVK" fix (Graphics problems and
+  graphics-related launch crashes) now switches the bottle to DXVK. It used
+  to preview Recommended to Recommended and leave the bottle unchanged (#298).
+- The crash diagnosis card that resets the graphics backend is now titled
+  "Reset Graphics Backend to Recommended" and describes that reset, and it
+  no longer appears for a bottle that is already on Recommended (#298, fixes #294).
+- A Game Porting Toolkit payload imported before Whisky checked Apple's
+  signature is now checked once before it is deployed again, and again
+  whenever the stored payload changes. One that fails is no longer
+  deployed (a copy already in the engine stays until it is imported
+  again), and the Game Porting Toolkit section in Settings asks you to
+  import Apple's disk image again. Payloads copied into the engine by hand
+  are left alone (#299).
+- `whisky run` (default, `--follow` and `--command`) and `whisky launch` now
+  set up a bottle's Wine prefix before preparing the launch when it doesn't
+  have one yet, the same way the app does when it creates a bottle. A bottle
+  made with `whisky create` previously failed its first run with "The file
+  d3d11.dll doesn't exist", because preparation deployed the graphics
+  backend's files into a system32 that wasn't there. When the prefix can't be
+  set up, the error now says so instead of naming a DLL (#300, fixes #293).
+- Shift-clicking Run (Run in Terminal) now prepares the bottle before the
+  terminal opens, like `whisky run --command`: the program's DLL overrides go
+  into the bottle's registry, the graphics backend's files and any missing
+  CJK font aliases are put in place, and a missing Wine prefix is created.
+  Previously the terminal ran the program without any of that. A failure to
+  prepare the bottle or open the terminal is now reported instead of opening
+  nothing (#300).
 
 ### Security
 - A bottle name, bottle path or DLL override name can no longer run
@@ -187,6 +228,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   carry an Apple signature: the D3D forwarders keep their builtin-marker
   check, which a hand-made DLL can also pass, and the NVIDIA bridges are
   not checked (#265).
+
+### Changed
+- The "Auto-Enable DXVK for Launchers" toggle is now "Use DXVK for Rockstar
+  Games Launcher", with help text that says what it does: Rockstar is the
+  only launcher it applies to, and every other launcher already runs on
+  DXVK under the Recommended backend (#298, part of #260).
 
 ### Removed
 - ClickOnce support. Games do not arrive as `.appref-ms` deployments, and
@@ -229,6 +276,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `GameConfigVariantSettings` initializer parameter) from WhiskyKit's
   public API, and `GPUDetection.validateSpoofingEnvironment` no longer
   requires `D3DM_FEATURE_LEVEL_12_1` (#292).
+- Environment variables Whisky set that no runtime it ships reads. On
+  macOS 15.3 and later every launch carried eleven of them, among them
+  `D3DM_VALIDATION`, `WINE_CPU_TOPOLOGY`, `WINE_DISABLE_FAST_PATH` and the
+  `WINE_MACH_PORT_*` pair; the Rockstar, Epic, Battle.net and Paradox
+  launcher presets added `DXVK_REQUIRED`, `WINE_DISABLE_NTDLL_THREAD_REGS`,
+  `WINE_CPU_TOPOLOGY` and `WINE_DISABLE_FAST_PATH`; and GPU spoofing set
+  `GPU_VENDOR_ID`, `GPU_DEVICE_ID`, `GPU_DESCRIPTION`, `GPU_MEMORY_SIZE` and
+  `D3DM_SHADER_MODEL`. They no longer appear in the Active Environment
+  Overrides list or in launch logs. Rockstar still gets DXVK, the Paradox
+  preset now has no environment fix, and `WINEESYNC` and `WINEFSYNC` stay
+  because the v2.5.0 runtime reads them (#301).
 
 ## [3.7.0] - 2026-08-29 (App)
 

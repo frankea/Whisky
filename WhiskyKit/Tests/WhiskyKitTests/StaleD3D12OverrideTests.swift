@@ -21,7 +21,8 @@ import Testing
 @testable import WhiskyKit
 
 /// A `d3d12` that 3.7.0 turned off in a game's own `AppDefaults` entry, which
-/// outlived the fix for games Steam starts (#285).
+/// outlived the fix for games Steam starts (#285). A Steam game launch now
+/// writes the game's plan into that entry, which replaces it.
 @Suite("Stale d3d12 overrides")
 @MainActor
 final class StaleD3D12OverrideTests {
@@ -90,50 +91,39 @@ final class StaleD3D12OverrideTests {
         )
     }
 
-    @Test("A game launch through Steam takes a stale disabled d3d12 out of the game's own entry")
-    func steamGameLaunchRemovesStaleD3D12() async throws {
+    @Test("A game launch through Steam replaces the game's own entry, which drops a stale d3d12")
+    func steamGameLaunchReplacesStaleD3D12() async throws {
         let bottle = try makeBottle(.recommended)
         try addStaleD3D12(to: bottle)
         let recorder = ScopeRecorder()
 
         try await prepareGameLaunch(bottle, recorder: recorder)
 
-        #expect(recorder.imports.count == 1)
-        let document = recorder.imports.first ?? ""
-        #expect(document.contains(#"[HKCU\Software\Wine\AppDefaults\RDR2.exe\DllOverrides]"#))
-        #expect(document.contains(#""d3d12"=-"#))
-        // Only the value goes: no delete of the key, and nothing for the
-        // executable that had no disabled d3d12.
-        #expect(!document.contains("[-"))
-        #expect(!document.contains("PlayRDR2.exe"))
+        // Written as scopes, so the document deletes each key before writing it.
+        #expect(recorder.imports.isEmpty)
+        for game in ["RDR2.exe", "PlayRDR2.exe"] {
+            let entry = recorder.overrides(for: .program(game))
+            #expect(entry != nil, "\(game) gets its entry rewritten")
+            #expect(entry?["d3d12"] == nil, "\(game): d3d12")
+        }
     }
 
-    @Test("With D3DMetal behind d3d12, an entry loading DXVK natively keeps d3d12 off")
-    func steamGameLaunchKeepsD3D12BesideANativeLayerOverD3DMetal() async throws {
+    @Test("Over D3DMetal, the rewritten entry has no translation layer in front of d3d12 either")
+    func steamGameLaunchOverD3DMetalLeavesNoNativeLayer() async throws {
         let bottle = try makeBottle(.recommended)
         try addStaleD3D12(to: bottle)
         let recorder = ScopeRecorder()
 
         try await prepareGameLaunch(bottle, payload: true, recorder: recorder)
 
-        // Taking it out would leave DXVK's dxgi in front of D3DMetal's d3d12.
-        #expect(recorder.imports.isEmpty)
+        let entry = recorder.overrides(for: .program("RDR2.exe"))
+        #expect(entry != nil)
+        for dll in ["dxgi", "d3d11", "d3d10core", "d3d12"] {
+            #expect(entry?[dll] == nil, "RDR2.exe: \(dll)")
+        }
     }
 
-    @Test("With D3DMetal behind d3d12, a bare disabled d3d12 still goes")
-    func steamGameLaunchRemovesABareD3D12OverD3DMetal() async throws {
-        let bottle = try makeBottle(.recommended)
-        try addStaleD3D12(to: bottle, rdr2Native: false)
-        let recorder = ScopeRecorder()
-
-        try await prepareGameLaunch(bottle, payload: true, recorder: recorder)
-
-        #expect(recorder.imports.count == 1)
-        let document = recorder.imports.first ?? ""
-        #expect(document.contains(#"[HKCU\Software\Wine\AppDefaults\RDR2.exe\DllOverrides]"#))
-    }
-
-    @Test("A game whose own plan still turns d3d12 off keeps the value")
+    @Test("A game whose own plan still turns d3d12 off over D3DMetal keeps it off")
     func steamGameLaunchKeepsD3D12TheGameStillDisables() async throws {
         let bottle = try makeBottle(.recommended)
         try addStaleD3D12(to: bottle, rdr2Native: false)
@@ -143,17 +133,9 @@ final class StaleD3D12OverrideTests {
 
         try await prepareGameLaunch(bottle, plan: plan, payload: true, recorder: recorder)
 
-        #expect(recorder.imports.isEmpty)
-    }
-
-    @Test("Nothing is imported when no entry has a disabled d3d12")
-    func steamGameLaunchWithoutStaleD3D12ImportsNothing() async throws {
-        let bottle = try makeBottle(.recommended)
-        let recorder = ScopeRecorder()
-
-        try await prepareGameLaunch(bottle, recorder: recorder)
-
-        #expect(recorder.imports.isEmpty)
+        let entry = recorder.overrides(for: .program("RDR2.exe"))
+        #expect(entry?["d3d12"] == "")
+        #expect(entry?["dxgi"] == "n,b")
     }
 
     @Test("A direct launch replaces the game's own entry, which drops a stale d3d12")

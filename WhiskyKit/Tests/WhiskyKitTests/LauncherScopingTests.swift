@@ -152,16 +152,15 @@ final class LauncherScopingTests {
         expectDXVK(recorder.overrides(for: .program("steamservice.exe")), "steamservice.exe")
         #expect(recorder.overrides(for: .program("steamwebhelper.exe"))?["nvapi64"] == "")
         expectDXVK(recorder.overrides(for: .program("steam.exe")), "steam.exe")
-        // The game resolves the way the bottle's games do, not steered to DXVK.
-        let plan = Wine.parseDLLOverrides(launch.environment["WINEDLLOVERRIDES"] ?? "")
-        #expect(plan["d3d11"] == nil)
-        #expect(plan["d3d12"] == nil)
+        // The game resolves the way the bottle's games do, not steered to DXVK,
+        // and the environment carries no overrides for anything to inherit.
+        #expect(launch.environment["WINEDLLOVERRIDES"] == nil)
     }
 
     // MARK: - Matrix row 3: -applaunch whose game plan says DXVK
 
-    @Test("A game whose own plan is DXVK carries DXVK in the environment")
-    func applaunchCarriesTheGamesDXVKPlan() async throws {
+    @Test("A game whose own plan is DXVK keeps it out of the environment and the prefix default")
+    func applaunchKeepsTheGamesDXVKPlanScoped() async throws {
         let bottle = try makeBottle(.recommended)
         let recorder = ScopeRecorder()
         var plan = ProgramOverrides()
@@ -171,9 +170,8 @@ final class LauncherScopingTests {
 
         expectNoTranslationLayer(recorder.overrides(for: .bottle))
         expectDXVK(recorder.overrides(for: .program("steamwebhelper.exe")), "steamwebhelper.exe")
-        let environment = Wine.parseDLLOverrides(launch.environment["WINEDLLOVERRIDES"] ?? "")
-        #expect(environment["d3d11"] == "n,b")
-        #expect(environment["d3d12"] == "")
+        // The plan goes to the game's own entries (SteamGameLaunchScopingTests).
+        #expect(launch.environment["WINEDLLOVERRIDES"] == nil)
     }
 
     // MARK: - Matrix row 4: DXVK chosen for the bottle

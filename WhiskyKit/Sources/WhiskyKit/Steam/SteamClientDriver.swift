@@ -112,10 +112,7 @@ open class WineSteamClientDriver: SteamClientDriver {
 
     /// `steam.exe -silent` runs for the whole session, so the run is never awaited.
     open func startClient(steamExe: URL) {
-        let bottle = self.bottle
-        Task {
-            _ = try? await Wine.runProgram(at: steamExe, args: ["-silent"], bottle: bottle)
-        }
+        SteamLauncher.startClient(steamExe: steamExe, bottle: bottle)
     }
 
     /// Through the shared path, which carries the locale, DXVK and

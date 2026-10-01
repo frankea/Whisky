@@ -41,12 +41,17 @@ public enum SteamLaunchError: LocalizedError, Equatable {
 public enum SteamLauncher {
     /// Launches a game through the bottle's Steam client.
     ///
+    /// The game's DLL overrides go into the `AppDefaults` entries of its
+    /// executables, and the `-applaunch` invocation carries none in its
+    /// environment, which every process it starts would inherit and which
+    /// outranks their own entries. So the game gets its plan whether the
+    /// running client or this invocation starts it, and the client and its
+    /// helpers keep DXVK even when `-applaunch` brings them up (#276).
+    ///
     /// Starts the client first when it isn't running, the way Play does: with
-    /// `-silent`, as a launch of its own, and only then hands over `-applaunch`.
-    /// `-applaunch` on a cold client would start the client itself, and the
-    /// client and its helpers would inherit the game's DLL overrides from that
-    /// invocation's environment, which outranks their own `AppDefaults` entries
-    /// (#276). The returned task is the `-applaunch` invocation. A command-line
+    /// `-silent`, as a launch of its own, and only then hands over `-applaunch`,
+    /// so the client never inherits the game's environment variables. The
+    /// returned task is the `-applaunch` invocation. A command-line
     /// caller has to await it: the launch only happens inside the task, and a
     /// process that exits first takes the task with it before Wine has started
     /// anything.
@@ -85,7 +90,7 @@ public enum SteamLauncher {
             userOverrides: installURL.flatMap { userOverrides(forInstallURL: $0, bottle: bottle) }
         )
         let steamExe = steamRoot.appending(path: "steam.exe")
-        let gameExecutables = installURL.map { SteamLibrary.executableURLs(under: $0).map(\.lastPathComponent) } ?? []
+        let gameExecutables = gameExecutables(installURL: installURL, plan: plan)
 
         return Task {
             try await Wine.prepareBottlePrefix(bottle: bottle)
@@ -94,9 +99,7 @@ public enum SteamLauncher {
                 let running = await hostSteamPIDs()
                 await startClientIfNeeded(
                     isRunning: { await isClientRunning(bottle: bottle, hostSteamPIDs: running) },
-                    start: {
-                        Task { _ = try? await Wine.runProgram(at: steamExe, args: ["-silent"], bottle: bottle) }
-                    },
+                    start: { startClient(steamExe: steamExe, bottle: bottle) },
                     hasStarted: { await !hostSteamPIDs().subtracting(running).isEmpty }
                 )
             }
@@ -104,12 +107,38 @@ public enum SteamLauncher {
                 at: steamExe, args: ["-applaunch", String(appId)], bottle: bottle,
                 programOverrides: plan.overrides,
                 gameProfileEnvironment: plan.gameProfileEnvironment,
-                // the plan is the game's; steam.exe is only the vehicle
+                // The plan is the game's; steam.exe is only the vehicle. It goes
+                // into the game executables' own entries, so it reaches the game
+                // whichever process starts it, and the client keeps DXVK even
+                // when this invocation is what brings it up.
                 overridesApplyToDescendants: true,
                 descendantExecutables: gameExecutables,
+                descendantLaunchers: plan.startsLaunchers,
                 onOutput: onOutput
             )
         }
+    }
+
+    /// Starts `steam.exe -silent` with the user's own overrides for it, the
+    /// way the Programs tab would, so the client's entry matches the one a
+    /// game launch writes for it. Runs for the whole session, so it is never
+    /// awaited.
+    @MainActor
+    static func startClient(steamExe: URL, bottle: Bottle) {
+        let overrides = Program.persistedOverrides(for: steamExe, bottleURL: bottle.url)
+        Task {
+            _ = try? await Wine.runProgram(
+                at: steamExe, args: ["-silent"], bottle: bottle, programOverrides: overrides
+            )
+        }
+    }
+
+    /// The executable names a game launch scopes the game's plan to: what the
+    /// install folder holds, then what the GameDB lists, each name once.
+    static func gameExecutables(installURL: URL?, plan: LaunchPlan) -> [String] {
+        let found = installURL.map { SteamLibrary.executableURLs(under: $0).map(\.lastPathComponent) } ?? []
+        var seen = Set<String>()
+        return (found + plan.gameExecutables).filter { seen.insert($0.lowercased()).inserted }
     }
 
     /// Starts the client when it isn't running, then waits until it is.

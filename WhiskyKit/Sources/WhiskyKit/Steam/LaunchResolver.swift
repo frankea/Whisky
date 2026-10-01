@@ -32,6 +32,12 @@ public struct LaunchPlan {
     /// Human-readable notes on where the configuration came from, for
     /// logging and provenance UI.
     public let provenance: [String]
+    /// The game's executable names as the GameDB lists them, to scope the
+    /// overrides to alongside the ones found in the install folder.
+    public var gameExecutables: [String] = []
+    /// Launchers the game starts on its own inside the Steam session, whose
+    /// processes then need their `AppDefaults` entries ahead of time.
+    public var startsLaunchers: [LauncherType] = []
 }
 
 /// Turns a Steam App ID into a ``LaunchPlan`` by matching the GameDB and
@@ -58,25 +64,34 @@ public enum LaunchResolver {
         let database = entries ?? GameDBLoader.loadDefaults()
         let metadata = ProgramMetadata(exeName: exeName ?? "", steamAppId: steamAppId)
 
-        guard let match = GameMatcher.bestMatch(metadata: metadata, against: database),
-              let variant = match.recommendedVariant
-        else {
-            return LaunchPlan(
+        let match = GameMatcher.bestMatch(metadata: metadata, against: database)
+        let rockstar = LauncherType.rockstarSteamAppIds.contains(steamAppId)
+            || match?.entry.subtitle?.localizedCaseInsensitiveContains("Rockstar Games") == true
+        let startsLaunchers: [LauncherType] = rockstar ? [.rockstar] : []
+
+        guard let match, let variant = match.recommendedVariant else {
+            var plan = LaunchPlan(
                 overrides: userOverrides ?? ProgramOverrides(),
                 gameProfileEnvironment: [:],
                 provenance: []
             )
+            plan.gameExecutables = match?.entry.exeNames ?? []
+            plan.startsLaunchers = startsLaunchers
+            return plan
         }
 
         let overrides = merge(variant: variant.settings, dllOverrides: variant.dllOverrides, under: userOverrides)
 
-        return LaunchPlan(
+        var plan = LaunchPlan(
             overrides: overrides,
             gameProfileEnvironment: variant.environmentVariables ?? [:],
             provenance: [
                 "gamedb: \(match.entry.title) — \(variant.label) (\(match.explanation))"
             ]
         )
+        plan.gameExecutables = match.entry.exeNames ?? []
+        plan.startsLaunchers = startsLaunchers
+        return plan
     }
 
     /// Fills GameDB variant settings into every field the user left unset.

@@ -48,9 +48,19 @@ Steam is the most widely used game launcher in Whisky, but also has the most com
 
 ### Step 3: Configure for Optimal Performance
 
-1. **Enable DXVK:**
-   - Config → DXVK → Toggle **ON**
-   - Enable **DXVK Async** for smoother UI
+1. **Leave the graphics backend on Recommended:**
+   - Steam's own processes (steam.exe, steamwebhelper.exe, steamservice.exe,
+     GameOverlayUI.exe) get DXVK through per-executable overrides, so the
+     client draws on DXVK while the games it starts keep the bottle's backend.
+     With the D3DMetal payload that is D3DMetal, which DirectX 12 games need.
+   - A game started from Whisky's library, `whisky launch` or a whisky:// link
+     gets its own settings (Programs tab and game database) in per-executable
+     overrides for its executables, whichever process starts it.
+   - On a runtime without the D3DMetal payload, Play still switches the bottle
+     to DXVK. Importing GPTK later puts it back on Recommended once, with a
+     note in the bottle's graphics settings, unless you picked DXVK yourself.
+   - Setting the whole bottle to DXVK turns d3d12 off for every game when the
+     payload is deployed; only do it for a bottle whose games all want DXVK.
 
 2. **Adjust Network Timeout:**
    - Config → Launcher Compatibility
@@ -629,10 +639,9 @@ Network Timeout: 90 seconds
 DXVK for Rockstar: Yes
 ```
 
-**DXVK:**
+**Graphics:**
 ```
-DXVK: Enabled
-DXVK Async: Enabled
+Backend: Recommended (Steam itself gets DXVK per executable)
 DXVK HUD: Off (or FPS for monitoring)
 ```
 

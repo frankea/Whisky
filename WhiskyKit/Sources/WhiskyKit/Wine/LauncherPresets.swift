@@ -250,10 +250,16 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     /// `AppDefaults` is per executable with no inheritance, and Steam draws its
     /// client in `steamwebhelper.exe`, so an override on `steam.exe` alone
     /// leaves the window blank. Games a launcher starts are deliberately absent.
+    ///
+    /// Steam's overlay process is on the list because it draws the in-game
+    /// overlay with Direct3D in a process of its own, beside a game that may be
+    /// on D3DMetal. Current clients ship it as `gameoverlayui64.exe` only;
+    /// `GameOverlayUI.exe` is the name older ones used. Helpers that draw nothing (`steamerrorreporter.exe`,
+    /// `steam_monitor.exe`) run on the bottle's backend unharmed.
     public var helperExecutables: [String] {
         switch self {
         case .steam:
-            ["steamwebhelper.exe", "steamservice.exe"]
+            ["steamwebhelper.exe", "steamservice.exe", "gameoverlayui64.exe", "GameOverlayUI.exe"]
         case .epicGames:
             ["EpicWebHelper.exe"]
         case .eaApp:
@@ -264,6 +270,41 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             []
         }
     }
+
+    /// Executables of this launcher that something else starts, so they never
+    /// go through Whisky's launch path and only get an `AppDefaults` entry if
+    /// one is written ahead of time.
+    ///
+    /// Rockstar's: a Rockstar title bought on Steam (Red Dead Redemption 2's
+    /// `PlayRDR2.exe`) starts the Rockstar Games Launcher and Social Club inside
+    /// the Steam session. Both draw with Chromium and need DXVK the way Steam's
+    /// helper does. `Launcher.exe` also needs `d3d12` off: it asks D3D12 for
+    /// graphics information at startup, and with D3DMetal's `d3d12` reachable
+    /// that query hangs its shutdown, which keeps the game "running" in Steam
+    /// (#276). Social Club gets the same entry, the layout measured there.
+    public var chainExecutables: [String] {
+        switch self {
+        case .rockstar:
+            ["Launcher.exe", "SocialClubHelper.exe"]
+        case .steam, .epicGames, .eaApp, .battleNet, .ubisoft, .paradox:
+            []
+        }
+    }
+
+    /// Steam App IDs of Rockstar titles that start the Rockstar Games Launcher,
+    /// so a Steam launch of one writes Rockstar's ``chainExecutables`` entries
+    /// even before that launcher is installed: the first run installs it and
+    /// starts it in the same session.
+    ///
+    /// Red Dead Redemption 2, Grand Theft Auto V (Legacy and Enhanced), L.A.
+    /// Noire and its VR Case Files, Max Payne 3, Grand Theft Auto IV, Bully:
+    /// Scholarship Edition, Red Dead Redemption, and the three Definitive
+    /// Editions of the GTA trilogy. GameDB entries published by Rockstar Games
+    /// count as well (see ``LaunchResolver``).
+    static let rockstarSteamAppIds: Set<Int> = [
+        1_174_180, 271_590, 3_240_220, 110_800, 722_230, 204_100,
+        12_210, 12_200, 2_668_510, 1_546_990, 1_546_970, 1_547_000
+    ]
 
     /// The recommended locale for this launcher.
     ///

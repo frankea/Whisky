@@ -257,20 +257,27 @@ final class ProgramLaunchPreparationTests {
         ))
     }
 
-    @Test("Overrides meant for a descendant stay in the environment and off the launcher's entry")
-    func descendantOverridesStayInTheEnvironment() async throws {
+    @Test("Overrides meant for a descendant go to its own entry, off the launcher's and the environment")
+    func descendantOverridesGoToTheDescendantsEntry() async throws {
         let bottle = try makeBottle()
         let steam = try makeExecutable("Program Files (x86)/Steam/steam.exe", in: bottle)
         let recorder = RegistryRecorder()
+        var plan = ProgramOverrides()
+        plan.dllOverrides = [DLLOverrideEntry(dllName: "xinput1_3", mode: .native)]
 
         let launch = try await Wine.prepareProgramLaunch(
-            at: steam, args: ["-applaunch", "1174180"], bottle: bottle,
-            overridesApplyToDescendants: true, overrideWriter: recorder.writer
+            at: steam, args: ["-applaunch", "1174180"], bottle: bottle, programOverrides: plan,
+            overridesApplyToDescendants: true, descendantExecutables: ["RDR2.exe"],
+            overrideWriter: recorder.writer
         )
 
-        #expect(launch.environment["WINEDLLOVERRIDES"] != nil)
+        // A client this invocation starts would inherit the variable.
+        #expect(launch.environment["WINEDLLOVERRIDES"] == nil)
+        #expect(recorder.overrides(for: .program("RDR2.exe"))?["xinput1_3"] == "n")
         #expect(launch.arguments == ["start", "/unix", steam.path(percentEncoded: false), "-applaunch", "1174180"])
-        #expect(recorder.overrides(for: .program("steam.exe")) == nil)
+        // The launcher keeps its own set; the game's plan is not in it.
+        #expect(recorder.overrides(for: .program("steam.exe"))?["d3d11"] == "n,b")
+        #expect(recorder.overrides(for: .program("steam.exe"))?["xinput1_3"] == nil)
         #expect(recorder.overrides(for: .program("steamwebhelper.exe"))?["nvapi64"] == "")
     }
 

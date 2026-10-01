@@ -41,6 +41,9 @@ extension Wine {
     ///   - bottle: The bottle whose settings configure the environment.
     ///   - environment: Caller-provided environment variables (typically from `Program.generateEnvironment()`).
     ///   - programOverrides: Optional per-program setting overrides. `nil` fields inherit from bottle.
+    ///   - recommendedBackend: What `.recommended` resolves to, for the bottle and
+    ///     for a program set to it. Defaults to `nil`, which asks
+    ///     ``GraphicsBackendResolver`` about the installed runtime.
     ///   - builtinD3D12IsD3DMetal: Whether the runtime's builtin `d3d12` is
     ///     D3DMetal's, which decides whether the DXVK and DXMT presets turn it
     ///     off. Defaults to whether the GPTK payload is deployed, read once so
@@ -53,6 +56,7 @@ extension Wine {
         programOverrides: ProgramOverrides? = nil,
         programSettings: ProgramSettings? = nil,
         gameProfileEnvironment: [String: String] = [:],
+        recommendedBackend: GraphicsBackend? = nil,
         builtinD3D12IsD3DMetal: Bool = GPTKImporter.isDeployed()
     ) -> [String: String] {
         var builder = EnvironmentBuilder()
@@ -89,7 +93,8 @@ extension Wine {
 
         // Layer 3: Bottle managed -- settings-derived env vars (DXVK, sync, Metal, perf)
         let managedOverrides = bottle.settings.populateBottleManagedLayer(
-            builder: &builder, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
+            builder: &builder, resolvedBackend: recommendedBackend,
+            builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
         )
         dllResolver.managed.append(contentsOf: managedOverrides)
 
@@ -143,6 +148,7 @@ extension Wine {
             applyProgramOverrides(
                 overrides,
                 frameGeneration: bottle.settings.frameGeneration,
+                recommendedBackend: recommendedBackend,
                 builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal,
                 builder: &builder,
                 dllResolver: &dllResolver
@@ -197,10 +203,12 @@ extension Wine {
     /// `builtinD3D12IsD3DMetal` says whether the runtime's builtin `d3d12` is
     /// D3DMetal's, which decides whether the DXVK and DXMT presets turn it off
     /// and whether the reset union puts it back. Defaults to whether the GPTK
-    /// payload is deployed.
+    /// payload is deployed. `recommendedBackend` is what a program set to
+    /// `.recommended` gets; `nil` asks ``GraphicsBackendResolver``.
     static func applyProgramOverrides(
         _ overrides: ProgramOverrides,
         frameGeneration: Bool = false,
+        recommendedBackend: GraphicsBackend? = nil,
         builtinD3D12IsD3DMetal: Bool = GPTKImporter.isDeployed(),
         builder: inout EnvironmentBuilder,
         dllResolver: inout DLLOverrideResolver
@@ -212,7 +220,7 @@ extension Wine {
         // Graphics backend override: replaces bottle-level backend entirely
         if let backend = overrides.graphicsBackend {
             let resolved = if backend == .recommended {
-                GraphicsBackendResolver.resolve()
+                recommendedBackend ?? GraphicsBackendResolver.resolve()
             } else {
                 backend
             }

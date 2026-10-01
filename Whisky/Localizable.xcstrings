@@ -59418,6 +59418,38 @@
         }
       }
     },
+    "config.graphics.backend.launcherReset" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This bottle is back on Recommended. Steam now uses DXVK on its own, so its games keep D3DMetal."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This bottle is back on Recommended. Steam now uses DXVK on its own, so its games keep D3DMetal."
+          }
+        }
+      }
+    },
+    "config.graphics.backend.launcherReset.dismiss" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dismiss"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dismiss"
+          }
+        }
+      }
+    },
     "config.graphics.currentlyUsing %@" : {
       "localizations" : {
         "en" : {

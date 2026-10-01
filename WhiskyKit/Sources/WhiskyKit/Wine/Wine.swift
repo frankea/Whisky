@@ -253,6 +253,9 @@ public class Wine {
     ///   - gameProfileEnvironment: Environment variables from the game's GameDB profile.
     ///   - overridesApplyToDescendants: Whether the DLL overrides belong to a process this
     ///     one spawns rather than to `url` itself, as when `steam.exe` launches a game.
+    ///   - descendantExecutables: The executable names of what this launch starts, when the
+    ///     overrides apply to descendants.
+    ///   - descendantLaunchers: Launchers what this launch starts brings up on its own.
     ///   - onOutput: Receives each output event of the `wine64` process as it arrives,
     ///     starting with ``ProcessOutput/started`` once the process is running.
     /// - Returns: The exit code and log file of the run.
@@ -264,6 +267,8 @@ public class Wine {
         programOverrides: ProgramOverrides? = nil, programSettings: ProgramSettings? = nil,
         gameProfileEnvironment: [String: String] = [:],
         overridesApplyToDescendants: Bool = false,
+        descendantExecutables: [String] = [],
+        descendantLaunchers: [LauncherType] = [],
         onOutput: (@MainActor (ProcessOutput) -> Void)? = nil
     ) async throws -> ProgramRunResult {
         try await runProgram(at: url, bottle: bottle, programSettings: programSettings, onOutput: onOutput) {
@@ -271,7 +276,9 @@ public class Wine {
                 at: url, args: args, bottle: bottle, environment: environment,
                 programOverrides: programOverrides, programSettings: programSettings,
                 gameProfileEnvironment: gameProfileEnvironment,
-                overridesApplyToDescendants: overridesApplyToDescendants
+                overridesApplyToDescendants: overridesApplyToDescendants,
+                descendantExecutables: descendantExecutables,
+                descendantLaunchers: descendantLaunchers
             )
         }
     }
@@ -399,8 +406,18 @@ public class Wine {
     ///   - programSettings: The program's settings, which carry its diagnostic `WINEDEBUG` preset.
     ///   - gameProfileEnvironment: Environment variables from the game's GameDB profile.
     ///   - overridesApplyToDescendants: Whether the DLL overrides belong to a process this one
-    ///     spawns. They then stay in the environment: the registry can only scope overrides to
-    ///     an executable whose name is known.
+    ///     spawns. For a launcher they go to `descendantExecutables` and the environment keeps
+    ///     none; otherwise they stay in the environment, since the registry can only scope
+    ///     overrides to an executable whose name is known.
+    ///   - descendantExecutables: The executable names of what this launch starts, when the
+    ///     overrides apply to descendants. The overrides go into their `AppDefaults` entries,
+    ///     replacing whatever an earlier launch or version left there.
+    ///   - descendantLaunchers: Launchers what this launch starts brings up on its own, such as
+    ///     the Rockstar Games Launcher a Rockstar title starts inside the Steam session.
+    ///   - recommendedBackend: What `.recommended` resolves to for the bottle's games.
+    ///     Defaults to the resolver's answer for the installed runtime; tests pin it.
+    ///   - builtinD3D12IsD3DMetal: Whether the runtime's builtin `d3d12` is D3DMetal's.
+    ///     Defaults to whether the GPTK payload is deployed; tests pin it.
     ///   - overrideWriter: What writes the DLL overrides into the prefix registry. Tests pass a
     ///     recorder, so they can see what a launch writes without running Wine.
     ///   - importer: What imports the CJK font aliases the prefix is missing. Tests pass a
@@ -414,6 +431,10 @@ public class Wine {
         programOverrides: ProgramOverrides? = nil, programSettings: ProgramSettings? = nil,
         gameProfileEnvironment: [String: String] = [:],
         overridesApplyToDescendants: Bool = false,
+        descendantExecutables: [String] = [],
+        descendantLaunchers: [LauncherType] = [],
+        recommendedBackend: GraphicsBackend = GraphicsBackendResolver.resolve(),
+        builtinD3D12IsD3DMetal: Bool = GPTKImporter.isDeployed(),
         overrideWriter: DLLOverrideWriter = { try await syncDLLOverrides(bottle: $0, scopes: $1) },
         importer: RegistryImporter = { try await importRegistry(document: $0, bottle: $1) }
     ) async throws -> PreparedLaunch {
@@ -429,17 +450,26 @@ public class Wine {
         // backend. This decides which translation layer's files are deployed;
         // the matching WINEDLLOVERRIDES come from the environment layers.
         // `.recommended` resolves against what is being launched, not just the
-        // machine.
+        // machine: a launcher is steered to DXVK. Not when the overrides are a
+        // descendant's, as with `steam.exe -applaunch`: steam.exe is only the
+        // vehicle there and the plan is the game's, so the game resolves the way
+        // the bottle's games do. Steered, every game started that way got DXVK's
+        // set, `d3d12=` included (#276). The launcher keeps DXVK through its own
+        // `AppDefaults` entry, written from the launcher's set.
+        let launcher = LauncherType.detect(from: url)
+        let steeredLauncher = overridesApplyToDescendants ? nil : launcher
         let effectiveBackendChoice = programOverrides?.graphicsBackend ?? bottle.settings.graphicsBackend
-        let effectiveBackend = effectiveBackendChoice == .recommended
-            ? GraphicsBackendResolver.resolve(for: LauncherType.detect(from: url))
-            : effectiveBackendChoice
+        let effectiveBackend = if effectiveBackendChoice == .recommended {
+            steeredLauncher.map { GraphicsBackendResolver.resolve(for: $0) } ?? recommendedBackend
+        } else {
+            effectiveBackendChoice
+        }
 
         // The bottle composes its overrides from its own resolution, which does
         // not know what is being launched, so pin the decision here or a
         // steered launcher gets DXVK's files and none of its overrides.
         var programOverrides = programOverrides
-        if effectiveBackendChoice == .recommended, effectiveBackend != GraphicsBackendResolver.resolve() {
+        if effectiveBackendChoice == .recommended, effectiveBackend != recommendedBackend {
             var pinned = programOverrides ?? ProgramOverrides()
             pinned.graphicsBackend = effectiveBackend
             programOverrides = pinned
@@ -451,11 +481,23 @@ public class Wine {
 
         try prepareBackendPrefix(effectiveBackend, bottle: bottle)
 
+        // The MetalFX placeholder serves the bottle's games, and only D3DMetal
+        // answers it. A launcher's own launch says nothing about them, so it is
+        // keyed on what they resolve to: keyed on the launcher's DXVK, every
+        // Steam start took away the placeholder its games need (#276).
+        let gamesBackend = bottle.settings.graphicsBackend == .recommended
+            ? recommendedBackend : bottle.settings.graphicsBackend
+        applyMetalFX(bottle: bottle, backend: steeredLauncher == nil ? effectiveBackend : gamesBackend)
+
         // Enable DXVK if needed: effective backend, the legacy program-level
         // flag (honored only without a backend override, mirroring
-        // applyProgramOverrides), or launcher auto-enable.
+        // applyProgramOverrides), or launcher auto-enable. A launcher that only
+        // carries a game's plan still runs, and its helpers keep restarting, on
+        // DXVK: its files stay in place, and are copied after a DXMT plan's, so
+        // the launcher keeps working when the two share a file.
         let legacyProgramDXVK = programOverrides?.graphicsBackend == nil && programOverrides?.dxvk == true
         let shouldEnableDXVK = effectiveBackend == .dxvk || legacyProgramDXVK ||
+            (overridesApplyToDescendants && launcher != nil) ||
             (bottle.settings.autoEnableDXVK &&
                 bottle.settings.detectedLauncher?.requiresDXVK == true)
 
@@ -466,13 +508,18 @@ public class Wine {
         // Build the Wine environment with program overrides flowing through the programUser layer
         var wineEnvironment = constructWineEnvironment(
             for: bottle, environment: environment, programOverrides: programOverrides,
-            programSettings: programSettings, gameProfileEnvironment: gameProfileEnvironment
+            programSettings: programSettings, gameProfileEnvironment: gameProfileEnvironment,
+            recommendedBackend: recommendedBackend, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
         )
 
         try await applyDLLOverrides(
             for: url, bottle: bottle,
             wineEnvironment: &wineEnvironment,
             applyToDescendants: overridesApplyToDescendants,
+            descendantExecutables: descendantExecutables,
+            descendantLaunchers: descendantLaunchers,
+            recommendedBackend: recommendedBackend,
+            builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal,
             writer: overrideWriter
         )
 
@@ -1116,8 +1163,6 @@ public class Wine {
         case .d3dMetal, .dxvk, .wined3d, .recommended:
             break
         }
-
-        applyMetalFX(bottle: bottle, backend: backend)
     }
 
     /// Opts a bottle in or out of D3DMetal's DLSS-to-MetalFX path, per
@@ -1139,7 +1184,8 @@ public class Wine {
     ///
     /// - Parameters:
     ///   - bottle: The ``Bottle`` whose opt-in state to apply.
-    ///   - backend: The backend this launch resolved to.
+    ///   - backend: The backend the games this launch concerns resolve to: the
+    ///     program's own, or the bottle's games' when a launcher is started.
     ///   - libraryFolder: The runtime tree holding the bridge.
     ///
     /// - Note: Called by `runProgram` for every launch, in both directions, so

@@ -215,4 +215,72 @@ struct SteamLauncherTests {
             try SteamLauncher.resolveGame(appId: 1_245_620, in: [named], routing: routing)
         }
     }
+
+    // MARK: - Bringing the client up before -applaunch (#276)
+
+    @Test("A running client is not started again")
+    @MainActor func runningClientIsNotStarted() async {
+        var starts = 0
+
+        let running = await SteamLauncher.startClientIfNeeded(
+            isRunning: { true }, start: { starts += 1 }, hasStarted: { false },
+            timeout: .seconds(5), pollInterval: .milliseconds(10)
+        )
+
+        #expect(running)
+        #expect(starts == 0)
+    }
+
+    @Test("A cold client is started on its own and waited for before the game is handed over")
+    @MainActor func coldClientIsStartedAndAwaited() async {
+        var starts = 0
+        var bottleChecks = 0
+        var polls = 0
+
+        let running = await SteamLauncher.startClientIfNeeded(
+            isRunning: {
+                bottleChecks += 1
+                return false
+            },
+            start: { starts += 1 },
+            hasStarted: {
+                polls += 1
+                // Comes up on the third look after the start.
+                return starts > 0 && polls >= 3
+            },
+            timeout: .seconds(30), pollInterval: .milliseconds(10)
+        )
+
+        #expect(running)
+        #expect(starts == 1)
+        // The bottle is asked once; the wait only looks at the cheap check.
+        #expect(bottleChecks == 1)
+        #expect(polls == 3)
+    }
+
+    @Test("A client that never comes up stops the wait after the timeout")
+    @MainActor func clientThatNeverComesUpTimesOut() async {
+        var starts = 0
+
+        let running = await SteamLauncher.startClientIfNeeded(
+            isRunning: { false }, start: { starts += 1 }, hasStarted: { false },
+            timeout: .milliseconds(50), pollInterval: .milliseconds(10)
+        )
+
+        #expect(!running)
+        #expect(starts == 1)
+    }
+
+    @Test("Steam's host processes are found by their Windows image")
+    func steamPIDsComeFromTheHostListing() {
+        let listing = """
+          101 /Users/me/Libraries/Wine/bin/wineserver
+          202 C:\\windows\\system32\\winedevice.exe
+          303 C:\\Program Files (x86)\\Steam\\steam.exe
+          404 C:\\Program Files (x86)\\Steam\\bin\\cef\\cef.win7x64\\steamwebhelper.exe
+          505 C:\\Program Files (x86)\\Steam\\STEAM.EXE
+        """
+
+        #expect(SteamLauncher.steamPIDs(inProcessListing: listing) == [303, 505])
+    }
 }

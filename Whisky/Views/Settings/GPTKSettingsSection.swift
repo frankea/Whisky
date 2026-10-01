@@ -86,6 +86,7 @@ struct GPTKSettingsSection: View {
                 return reason
             }.value
             refresh()
+            BottleVM.shared.migrateLauncherBackends()
         }
         .fileImporter(
             isPresented: $showImporter,
@@ -145,6 +146,9 @@ struct GPTKSettingsSection: View {
                     importing = false
                     storeFailure = nil
                     refresh()
+                    // D3DMetal may be installed now: bottles Steam's profile
+                    // had to switch to DXVK can go back to Recommended.
+                    BottleVM.shared.migrateLauncherBackends()
                 }
             } catch {
                 for mount in mounts.reversed() {

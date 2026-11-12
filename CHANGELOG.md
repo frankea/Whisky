@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- The Metal HUD can be set per program. The bottle's HUD draws over every
+  Metal renderer in the bottle, Steam's store and overlay included, so a
+  program can now turn it on for itself alone, or turn the bottle's HUD off
+  for itself. It applies to programs started from Whisky; a game a launcher
+  starts follows the launcher's setting (#313).
+- On launch, Whisky offers once to import bottles from the original Whisky
+  when it finds any that aren't registered yet. File > Migrate from the
+  Original Whisky still does it any time (#323, fixes #321).
+
 ## [3.8.0] - 2026-11-12 (App)
 
 ### Added

@@ -32,6 +32,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   one chosen there. Auto still uses US English for those launchers (#332,
   part of #330).
 
+### Security
+- The Sparkle updater is updated to 2.10.1. It fixes two Sparkle
+  advisories: while an update installed, another local process could send
+  the installer forged update details (GHSA-g3hp-f6mg-559v), and a crafted
+  delta update could write outside the app (GHSA-hg88-v3cw-3qrh; Whisky
+  ships full updates only, so this one wasn't reachable) (#336).
+
 ## [3.8.0] - 2026-11-12 (App)
 
 ### Added

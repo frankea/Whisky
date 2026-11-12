@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- A failed runtime install or update no longer leaves Whisky without Wine.
+  The installer deleted the installed `Libraries` folder before extracting
+  the new archive, so a corrupt download or a disk that filled up mid-untar
+  left every bottle unable to launch until a fresh download succeeded. The
+  new runtime is now extracted into a staging folder first and swapped in
+  only once extraction has succeeded. Accepting a runtime update also no
+  longer uninstalls the current runtime before the download starts (#320).
 - Removing a stale native dxgi.dll from a bottle now puts Wine's own marked
   builtin copy back in its place. Wine's loader only finds a builtin through
   its system32 placeholder, so an empty slot made `dxgi.dll` unloadable and

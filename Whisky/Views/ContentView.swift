@@ -37,6 +37,7 @@ struct ContentView: View {
 
     @State var toast: ToastData?
     @State var corruptRegistryBackupURL: URL?
+    @State private var updatingRuntime: Bool = false
 
     var body: some View {
         NavigationSplitView {
@@ -147,7 +148,12 @@ struct ContentView: View {
             BottleCreationView(newlyCreatedBottleURL: $newlyCreatedBottleURL)
         }
         .sheet(isPresented: $showSetup) {
-            SetupView(showSetup: $showSetup, firstTime: false)
+            SetupView(showSetup: $showSetup, firstTime: false, updatingRuntime: updatingRuntime)
+        }
+        .onChange(of: showSetup) { _, isShowing in
+            if !isShowing {
+                updatingRuntime = false
+            }
         }
         .sheet(item: $openedFileURL) { url in
             FileOpenView(
@@ -235,7 +241,10 @@ struct ContentView: View {
                 let response = alert.runModal()
 
                 if response == .alertFirstButtonReturn {
-                    WhiskyWineInstaller.uninstall()
+                    // Keep the current runtime installed: the installer swaps the
+                    // new one in only after it has extracted, so a failed download
+                    // or install leaves bottles working.
+                    updatingRuntime = true
                     showSetup = true
                 }
             }

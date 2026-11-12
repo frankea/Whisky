@@ -175,11 +175,16 @@ public class WhiskyWineInstaller {
     /// extraction can be tested against a temporary directory without touching
     /// the real application support folder.
     ///
-    /// Only the `Libraries` subfolder is removed before extraction. The
-    /// destination is the live Application Support folder, which also holds
-    /// unrelated app state (e.g. the analytics SDK's anonymous ID and queued
-    /// events) — wiping the whole folder destroyed that state on every runtime
-    /// install and update.
+    /// Only the `Libraries` subfolder is replaced. The destination is the live
+    /// Application Support folder, which also holds unrelated app state (e.g.
+    /// the analytics SDK's anonymous ID and queued events) — wiping the whole
+    /// folder destroyed that state on every runtime install and update.
+    ///
+    /// The archive is extracted into a staging folder inside `destination`
+    /// first, and the installed runtime is swapped out only once extraction
+    /// has succeeded. A failed extraction (a corrupt archive, or the disk
+    /// filling up mid-untar) therefore leaves the previous runtime usable
+    /// instead of deleting it up front and leaving every bottle without Wine.
     static func install(tarball: URL, into destination: URL) throws {
         // Verify the tarball exists before modifying the destination, so a
         // purged temp file can't leave the destination half-rebuilt.
@@ -187,13 +192,38 @@ public class WhiskyWineInstaller {
             throw WhiskyWineInstallError.tarballNotFound
         }
 
-        let existingRuntime = destination.appending(path: "Libraries")
-        if FileManager.default.fileExists(atPath: existingRuntime.path) {
-            try FileManager.default.removeItem(at: existingRuntime)
-        }
-        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+        let fileManager = FileManager.default
+        try fileManager.createDirectory(at: destination, withIntermediateDirectories: true)
 
-        try Tar.untar(tarBall: tarball, toURL: destination)
+        // Staging inside the destination keeps every move below on one volume,
+        // so the swap is a rename rather than a copy.
+        let staging = destination.appending(path: ".runtime-staging-\(UUID().uuidString)")
+        try fileManager.createDirectory(at: staging, withIntermediateDirectories: true)
+        defer { try? fileManager.removeItem(at: staging) }
+
+        try Tar.untar(tarBall: tarball, toURL: staging)
+
+        let newRuntime = staging.appending(path: "Libraries")
+        guard fileManager.fileExists(atPath: newRuntime.path) else {
+            throw CocoaError(.fileNoSuchFile, userInfo: [NSFilePathErrorKey: newRuntime.path])
+        }
+
+        let existingRuntime = destination.appending(path: "Libraries")
+        guard fileManager.fileExists(atPath: existingRuntime.path) else {
+            try fileManager.moveItem(at: newRuntime, to: existingRuntime)
+            return
+        }
+
+        // Retire the old runtime into staging (removed by the defer), and put
+        // it back if the new one can't be moved into place.
+        let retiredRuntime = staging.appending(path: "Libraries.previous")
+        try fileManager.moveItem(at: existingRuntime, to: retiredRuntime)
+        do {
+            try fileManager.moveItem(at: newRuntime, to: existingRuntime)
+        } catch {
+            try? fileManager.moveItem(at: retiredRuntime, to: existingRuntime)
+            throw error
+        }
     }
 
     /// Computes the SHA-256 of a file by streaming it in chunks.

@@ -31,6 +31,10 @@ struct SetupView: View {
     @State private var whiskyWineDiagnostics = WhiskyWineSetupDiagnostics()
     @Binding var showSetup: Bool
     var firstTime: Bool = true
+    /// Set when the user accepted a runtime update. The installed runtime stays
+    /// in place until the new one has been extracted, so setup has to go to the
+    /// download stage even though a runtime is already installed.
+    var updatingRuntime: Bool = false
 
     var body: some View {
         VStack {
@@ -69,7 +73,8 @@ struct SetupView: View {
             // otherwise the opt-in would be unreachable. The only call site
             // (ContentView) always passes `firstTime: false`, so the consent check,
             // not `firstTime`, is what keeps the welcome screen reachable.
-            if !firstTime, Telemetry.consent != .undecided, !WhiskyWineInstaller.isWhiskyWineInstalled() {
+            if !firstTime, Telemetry.consent != .undecided,
+               updatingRuntime || !WhiskyWineInstaller.isWhiskyWineInstalled() {
                 path = [.whiskyWineDownload]
             }
         }

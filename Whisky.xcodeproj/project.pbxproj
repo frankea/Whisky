@@ -41,6 +41,7 @@
 		6E40495829CCA19C006E3F1B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E40495729CCA19C006E3F1B /* ContentView.swift */; };
 		C1A2B3C4E5F60601A9B0A3D8 /* ContentView+Sidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0A3D9 /* ContentView+Sidebar.swift */; };
 		6E40495A29CCA19C006E3F1B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6E40495929CCA19C006E3F1B /* Assets.xcassets */; };
+		6EA1C0DE2C0A0002000A1B2C /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 6EA1C0DE2C0A0001000A1B2C /* AppIcon.icon */; };
 		6E40495D29CCA19C006E3F1B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6E40495C29CCA19C006E3F1B /* Preview Assets.xcassets */; };
 		6E40498129CCA8B0006E3F1B /* BottleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E40498029CCA8B0006E3F1B /* BottleView.swift */; };
 		C1A2B3C4E5F60601A9B0B1D8 /* BottleActionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0B1D9 /* BottleActionBar.swift */; };
@@ -239,6 +240,7 @@
 		6E40495729CCA19C006E3F1B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		C1A2B3C4E5F60601A9B0A3D9 /* ContentView+Sidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+Sidebar.swift"; sourceTree = "<group>"; };
 		6E40495929CCA19C006E3F1B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		6EA1C0DE2C0A0001000A1B2C /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		6E40495C29CCA19C006E3F1B /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		6E40495E29CCA19C006E3F1B /* Whisky.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Whisky.entitlements; sourceTree = "<group>"; };
 		6E40498029CCA8B0006E3F1B /* BottleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottleView.swift; sourceTree = "<group>"; };
@@ -521,6 +523,7 @@
 				6E5197CE29D71FE800CF655E /* View Models */,
 				6E5197CD29D71FCD00CF655E /* Views */,
 				6E40495929CCA19C006E3F1B /* Assets.xcassets */,
+				6EA1C0DE2C0A0001000A1B2C /* AppIcon.icon */,
 				6E899D1129CFC41D00A4A083 /* Info.plist */,
 				6E40495E29CCA19C006E3F1B /* Whisky.entitlements */,
 				6E40495B29CCA19C006E3F1B /* Preview Content */,
@@ -925,6 +928,7 @@
 				6EB58AC92AEACE5E00B1ED3F /* Localizable.xcstrings in Resources */,
 				C1A2B3C4E5F60601A9B0E1D8 /* WhiskyAudioTest.exe in Resources */,
 				6E40495A29CCA19C006E3F1B /* Assets.xcassets in Resources */,
+				6EA1C0DE2C0A0002000A1B2C /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

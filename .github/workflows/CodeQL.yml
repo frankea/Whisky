@@ -39,7 +39,7 @@ jobs:
           # unsigned xcodebuild of every scheme as the CI build job.
           - language: swift
             build-mode: manual
-            runner: macos-15
+            runner: macos-26
           - language: python
             build-mode: none
             runner: ubuntu-latest

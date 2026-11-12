@@ -694,7 +694,8 @@ final class EnvironmentVariablesTests: XCTestCase {
         var overrides = ProgramOverrides()
         overrides.metalHud = false
 
-        // Removed, not "0": D3DMetal reads the variable's presence.
+        // Removed rather than set to "0": the removal shadows the bottle's value,
+        // and an absent variable leaves Metal's HUD off.
         XCTAssertNil(resolvedHUDEnvironment(bottleHUD: true, overrides)["MTL_HUD_ENABLED"])
     }
 

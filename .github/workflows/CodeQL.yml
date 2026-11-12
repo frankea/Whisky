@@ -47,8 +47,12 @@ jobs:
             build-mode: none
             runner: ubuntu-latest
     steps:
+      # The Swift build runs Xcode build phases and package code, so don't leave
+      # the job's token (which can write security events) in the git config.
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Setup Xcode
         if: matrix.language == 'swift'

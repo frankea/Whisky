@@ -33,19 +33,21 @@ jobs:
       security-events: write
     strategy:
       fail-fast: false
+      # Swift is analyzed by watching a real build, the same unsigned xcodebuild
+      # of every scheme as the CI build job. Under CodeQL's tracer that holds a
+      # macOS runner for about 35 minutes, so Swift runs on pushes to main, the
+      # weekly scan and manual runs. Pull requests get the Python and workflow
+      # analyses, which take under a minute.
       matrix:
-        include:
-          # Swift is analyzed by watching a real build, so it uses the same
-          # unsigned xcodebuild of every scheme as the CI build job.
-          - language: swift
-            build-mode: manual
-            runner: macos-26
-          - language: python
-            build-mode: none
-            runner: ubuntu-latest
-          - language: actions
-            build-mode: none
-            runner: ubuntu-latest
+        include: >-
+          ${{ fromJSON(github.event_name == 'pull_request' && '[
+          {"language": "python", "build-mode": "none", "runner": "ubuntu-latest"},
+          {"language": "actions", "build-mode": "none", "runner": "ubuntu-latest"}
+          ]' || '[
+          {"language": "swift", "build-mode": "manual", "runner": "macos-26"},
+          {"language": "python", "build-mode": "none", "runner": "ubuntu-latest"},
+          {"language": "actions", "build-mode": "none", "runner": "ubuntu-latest"}
+          ]') }}
     steps:
       # The Swift build runs Xcode build phases and package code, so don't leave
       # the job's token (which can write security events) in the git config.
@@ -60,6 +62,22 @@ jobs:
         with:
           xcode-version: latest-stable
 
+      # Fetch the packages before CodeQL starts tracing. Under the tracer,
+      # cloning them took about 9 minutes; outside it they come from the same
+      # cache CI uses.
+      - name: Cache SPM Dependencies
+        if: matrix.language == 'swift'
+        uses: actions/cache@v5
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/*/SourcePackages
+          key: ${{ runner.os }}-codeql-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-codeql-spm-
+
+      - name: Resolve packages
+        if: matrix.language == 'swift'
+        run: xcodebuild -resolvePackageDependencies -project Whisky.xcodeproj -scheme Whisky
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
@@ -67,6 +85,9 @@ jobs:
           build-mode: ${{ matrix.build-mode }}
 
       # SwiftLint's build phase skips itself when CI=true, which GitHub Actions sets.
+      # The analysis reads the source, so one architecture is enough (Debug
+      # builds both, which doubled the traced compile), and the IDE index
+      # store is skipped. Packages resolved above are not fetched again.
       - name: Build
         if: matrix.language == 'swift'
         run: |
@@ -75,7 +96,11 @@ jobs:
             xcodebuild -project Whisky.xcodeproj \
               -scheme "$scheme" \
               -configuration Debug \
+              -disableAutomaticPackageResolution \
               build \
+              ARCHS=arm64 \
+              ONLY_ACTIVE_ARCH=YES \
+              COMPILER_INDEX_STORE_ENABLE=NO \
               CODE_SIGN_IDENTITY="" \
               CODE_SIGNING_REQUIRED=NO \
               CODE_SIGNING_ALLOWED=NO

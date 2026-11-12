@@ -48,6 +48,9 @@ public enum SteamLauncher {
     /// running client or this invocation starts it, and the client and its
     /// helpers keep DXVK even when `-applaunch` brings them up (#276).
     ///
+    /// The plan's launch arguments follow the App ID, and the client passes them
+    /// on to the game.
+    ///
     /// Starts the client first when it isn't running, the way Play does: with
     /// `-silent`, as a launch of its own, and only then hands over `-applaunch`,
     /// so the client never inherits the game's environment variables. The
@@ -104,7 +107,7 @@ public enum SteamLauncher {
                 )
             }
             return try await Wine.runProgram(
-                at: steamExe, args: ["-applaunch", String(appId)], bottle: bottle,
+                at: steamExe, args: ["-applaunch", String(appId)] + plan.launchArguments, bottle: bottle,
                 programOverrides: plan.overrides,
                 gameProfileEnvironment: plan.gameProfileEnvironment,
                 // The plan is the game's; steam.exe is only the vehicle. It goes

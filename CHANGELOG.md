@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - On launch, Whisky offers once to import bottles from the original Whisky
   when it finds any that aren't registered yet. File > Migrate from the
   Original Whisky still does it any time (#323, fixes #321).
+- On macOS 26 the app icon renders as Liquid Glass and has a dark
+  appearance, in the Dock, the app switcher and Whisky's own dialogs. macOS
+  15 keeps the existing icon (#310, thanks @EnzoDeg40).
 
 ### Fixed
 - `.cmd` scripts run through the command interpreter like `.bat` files,

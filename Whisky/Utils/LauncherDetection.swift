@@ -104,13 +104,15 @@ enum LauncherDetection {
     // swiftlint:disable:next cyclomatic_complexity
     static func validateBottleForLauncher(_ bottle: Bottle, launcher: LauncherType) -> [LauncherConfigWarning] {
         var warnings: [LauncherConfigWarning] = []
-        let nonEnglishLocale = bottle.settings.launcherLocale != .english
+        // Auto keeps the preset's en_US, so only an explicit other locale can
+        // trip the launchers' web views.
+        let nonEnglishLocale = ![.english, .auto].contains(bottle.settings.launcherLocale)
 
         switch launcher {
         case .steam:
             // No DXVK check: Steam's own processes get DXVK through their own
             // overrides, so a bottle on D3DMetal is the intended setup (#276).
-            if nonEnglishLocale, bottle.settings.launcherLocale != .auto {
+            if nonEnglishLocale {
                 warnings.append(.steamLocale)
             }
             if !bottle.settings.gpuSpoofing {

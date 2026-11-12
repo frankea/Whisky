@@ -293,13 +293,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   not checked (#265).
 
 ### Changed
-- Whisky now offers once to import bottles from the original Whisky when
-  the archived app left bottles it hasn't registered yet: when the main
-  window opens, or after first-launch setup finishes. Most people install
-  this fork coming from the original app, and the import was only
-  reachable from **File → Migrate from the Original Whisky…**, so a first
-  launch created a fresh bottle without mentioning the old ones. The menu
-  item stays (#321).
 - The "Auto-Enable DXVK for Launchers" toggle is now "Use DXVK for Rockstar
   Games Launcher", with help text that says what it does: Rockstar is the
   only launcher it applies to, and every other launcher already runs on

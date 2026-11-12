@@ -6,6 +6,31 @@
         <description>Whisky update feed</description>
         <language>en</language>
         <item>
+            <title>Whisky 3.8.0</title>
+            <pubDate>Thu, 12 Nov 2026 19:44:26 +0000</pubDate>
+            <sparkle:version>56</sparkle:version>
+            <sparkle:shortVersionString>3.8.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <p>Whisky 3.8.0 is a fix release: Steam keeps your games on D3DMetal, DirectX 12 titles start from Steam again, and a long list of settings and command line paths now do what they say.</p>
+                <ul>
+                    <li><strong>Steam no longer turns d3d12 off for every game</strong>: Steam's own processes get DXVK through overrides of their own, so a bottle on Recommended keeps D3DMetal and DirectX 12 games such as Red Dead Redemption 2 start. Bottles an earlier version switched go back to Recommended once D3DMetal is installed.</li>
+                    <li><strong>Games get their own settings again</strong> when started from the library, <code>whisky launch</code> or a whisky:// link.</li>
+                    <li><strong>Steam's Store pages render again</strong>, and Unity 6000.3 games start again in DXVK and DXMT bottles.</li>
+                    <li><strong>Logs and troubleshooting work</strong>: a launch's log holds the program's output, and Guided Troubleshooting opens on the symptom picker.</li>
+                    <li><strong>Command line fixes</strong>: <code>whisky launch</code> starts the game, and Open in Terminal exports correct paths and values.</li>
+                    <li><strong>Game database fixes</strong> for DirectX 12 titles, Warframe's launcher and Train Sim World 5, plus a new entry for Solarpunk.</li>
+                    <li><strong>Settings that never did anything are gone</strong>: the performance presets, Force DirectX 11 and ClickOnce support.</li>
+                </ul>
+                <p>See the <a href="https://github.com/frankea/Whisky/releases/tag/app-v3.8.0">release notes</a> for the full changelog.</p>
+            ]]></description>
+            <enclosure
+                url="https://github.com/frankea/Whisky/releases/download/app-v3.8.0/Whisky-3.8.0.dmg"
+                sparkle:edSignature="1sEhBni/FtOxq5SKG6vBOr6SBLSOMdUv64k+GOfN+alJypDqNkdO0lnkwqFJmAL2EDLZXVxMMeig/vc/k7MaBQ=="
+                length="11098256"
+                type="application/octet-stream" />
+        </item>
+        <item>
             <title>Whisky 3.7.0</title>
             <pubDate>Sun, 30 Aug 2026 01:37:29 +0000</pubDate>
             <sparkle:version>55</sparkle:version>

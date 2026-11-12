@@ -291,6 +291,12 @@ struct ProgramOverrideSettingsView: View {
                     Toggle("config.metal4", isOn: metal4Binding)
                 }
 
+                // Not gated on the backend: the Metal HUD is Apple's, and it
+                // draws over DXVK titles too. The bottle value covers every
+                // process in the prefix, launcher windows included, so this is
+                // how one title gets the HUD to itself.
+                Toggle("config.metalHud", isOn: metalHudBinding)
+
                 // "Takes effect next launch" note
                 Text("config.graphics.nextLaunch")
                     .font(.caption)
@@ -627,12 +633,14 @@ struct ProgramOverrideSettingsView: View {
                     program.settings.overrides?.dxvkAsync = bottle.settings.dxvkAsync
                     program.settings.overrides?.dxvkHud = bottle.settings.dxvkHud
                     program.settings.overrides?.metal4Enabled = bottle.settings.metal4Enabled
+                    program.settings.overrides?.metalHud = bottle.settings.metalHud
                 } else {
                     program.settings.overrides?.graphicsBackend = nil
                     program.settings.overrides?.dxvk = nil
                     program.settings.overrides?.dxvkAsync = nil
                     program.settings.overrides?.dxvkHud = nil
                     program.settings.overrides?.metal4Enabled = nil
+                    program.settings.overrides?.metalHud = nil
                 }
             }
         )
@@ -743,6 +751,13 @@ struct ProgramOverrideSettingsView: View {
         Binding(
             get: { program.settings.overrides?.metal4Enabled ?? bottle.settings.metal4Enabled },
             set: { program.settings.overrides?.metal4Enabled = $0 }
+        )
+    }
+
+    private var metalHudBinding: Binding<Bool> {
+        Binding(
+            get: { program.settings.overrides?.metalHud ?? bottle.settings.metalHud },
+            set: { program.settings.overrides?.metalHud = $0 }
         )
     }
 

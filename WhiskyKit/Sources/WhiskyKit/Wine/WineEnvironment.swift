@@ -348,6 +348,22 @@ extension Wine {
             }
         }
 
+        // Metal HUD override. The bottle value lands in the bottleManaged layer
+        // and reaches every process in the prefix, launcher windows included, so
+        // a program that wants the HUD to itself sets it here.
+        //
+        // Removal rather than "0": the resolved environment must not carry the
+        // variable at all -- absence is off to the HUD, and a removal also
+        // shadows the bottle's value instead of contradicting it. (Verified on
+        // macOS 27.2: MTL_HUD_ENABLED=1 draws the HUD; =0 and absent do not.)
+        if let metalHud = overrides.metalHud {
+            if metalHud {
+                builder.set("MTL_HUD_ENABLED", "1", layer: .programUser)
+            } else {
+                builder.remove("MTL_HUD_ENABLED", layer: .programUser)
+            }
+        }
+
         // Shader cache override, on the variable DXVK actually reads.
         if let shaderCache = overrides.shaderCacheEnabled {
             if !shaderCache {

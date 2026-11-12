@@ -662,6 +662,84 @@ final class EnvironmentVariablesTests: XCTestCase {
         XCTAssertEqual(decoded.metal4Enabled, false)
     }
 
+    // MARK: - Metal HUD is per program, because the bottle value also covers launchers
+
+    /// Resolves the environment a program gets from a bottle with the Metal HUD
+    /// on, which is where `MTL_HUD_ENABLED` is set, with its own overrides on top.
+    private func resolvedHUDEnvironment(
+        bottleHUD: Bool,
+        _ overrides: ProgramOverrides
+    ) -> [String: String] {
+        var settings = BottleSettings()
+        settings.metalHud = bottleHUD
+        var builder = EnvironmentBuilder()
+        var dllResolver = DLLOverrideResolver(managed: [], bottleCustom: [], programCustom: [])
+
+        _ = settings.populateBottleManagedLayer(builder: &builder)
+        Wine.applyProgramOverrides(overrides, builder: &builder, dllResolver: &dllResolver)
+
+        return builder.resolve().environment
+    }
+
+    func testProgramCanTakeTheHUDWithoutTheBottleHavingIt() {
+        // The point of the override: measure one title without the HUD sitting
+        // over the launcher the player is still using.
+        var overrides = ProgramOverrides()
+        overrides.metalHud = true
+
+        XCTAssertEqual(resolvedHUDEnvironment(bottleHUD: false, overrides)["MTL_HUD_ENABLED"], "1")
+    }
+
+    func testProgramCanDropTheHUDWithoutTheBottleLosingIt() {
+        var overrides = ProgramOverrides()
+        overrides.metalHud = false
+
+        // Removed rather than set to "0": the removal shadows the bottle's value,
+        // and an absent variable leaves Metal's HUD off.
+        XCTAssertNil(resolvedHUDEnvironment(bottleHUD: true, overrides)["MTL_HUD_ENABLED"])
+    }
+
+    func testMetalHUDOverrideUnsetInheritsTheBottle() {
+        XCTAssertEqual(resolvedHUDEnvironment(bottleHUD: true, ProgramOverrides())["MTL_HUD_ENABLED"], "1")
+        XCTAssertNil(resolvedHUDEnvironment(bottleHUD: false, ProgramOverrides())["MTL_HUD_ENABLED"])
+        XCTAssertNil(ProgramOverrides().metalHud)
+    }
+
+    func testMetalHUDOverrideCountsTowardsIsEmpty() {
+        var overrides = ProgramOverrides()
+        overrides.metalHud = true
+
+        XCTAssertFalse(overrides.isEmpty)
+    }
+
+    func testOverridesWithoutAMetalHUDKeyDecodeToInherit() throws {
+        // Overrides written before this key existed must keep inheriting.
+        let json = Data(#"{"metal4Enabled":true}"#.utf8)
+        let decoded = try JSONDecoder().decode(ProgramOverrides.self, from: json)
+
+        XCTAssertNil(decoded.metalHud)
+        XCTAssertEqual(decoded.metal4Enabled, true)
+    }
+
+    func testMetalHUDOverrideSurvivesASettingsRoundTrip() throws {
+        var overrides = ProgramOverrides()
+        overrides.metalHud = true
+
+        let data = try PropertyListEncoder().encode(overrides)
+        let decoded = try PropertyListDecoder().decode(ProgramOverrides.self, from: data)
+
+        XCTAssertEqual(decoded.metalHud, true)
+    }
+
+    func testSettingsWithoutAMetalHUDKeyDecodeToInherit() throws {
+        // Settings written before this override existed must keep inheriting.
+        let json = Data(#"{"metal4Enabled":false}"#.utf8)
+        let decoded = try JSONDecoder().decode(ProgramOverrides.self, from: json)
+
+        XCTAssertNil(decoded.metalHud)
+        XCTAssertEqual(decoded.metal4Enabled, false)
+    }
+
     /// Resolves the environment a program launch actually sees: the bottle-managed
     /// layer with the program override applied on top.
     private func resolvedEnvironment(

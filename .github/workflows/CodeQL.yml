@@ -33,19 +33,21 @@ jobs:
       security-events: write
     strategy:
       fail-fast: false
+      # Swift is analyzed by watching a real build, the same unsigned xcodebuild
+      # of every scheme as the CI build job. Under CodeQL's tracer that holds a
+      # macOS runner for about 35 minutes, so Swift runs on pushes to main, the
+      # weekly scan and manual runs. Pull requests get the Python and workflow
+      # analyses, which take under a minute.
       matrix:
-        include:
-          # Swift is analyzed by watching a real build, so it uses the same
-          # unsigned xcodebuild of every scheme as the CI build job.
-          - language: swift
-            build-mode: manual
-            runner: macos-26
-          - language: python
-            build-mode: none
-            runner: ubuntu-latest
-          - language: actions
-            build-mode: none
-            runner: ubuntu-latest
+        include: >-
+          ${{ fromJSON(github.event_name == 'pull_request' && '[
+          {"language": "python", "build-mode": "none", "runner": "ubuntu-latest"},
+          {"language": "actions", "build-mode": "none", "runner": "ubuntu-latest"}
+          ]' || '[
+          {"language": "swift", "build-mode": "manual", "runner": "macos-26"},
+          {"language": "python", "build-mode": "none", "runner": "ubuntu-latest"},
+          {"language": "actions", "build-mode": "none", "runner": "ubuntu-latest"}
+          ]') }}
     steps:
       # The Swift build runs Xcode build phases and package code, so don't leave
       # the job's token (which can write security events) in the git config.

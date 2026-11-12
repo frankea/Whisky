@@ -110,10 +110,13 @@ jobs:
   # All three schemes build in one job: they share WhiskyKit and most compiled
   # sources through a common DerivedData, so sequential scheme builds are mostly
   # incremental — one checkout/Xcode/cache setup instead of three matrix jobs.
+  # macOS jobs run on macos-26. On macos-15 the newest Xcode is 26.3, whose
+  # actool crashes compiling the Icon Composer app icon (#310); macos-26's
+  # latest-stable Xcode (26.6 at the switch) compiles it.
   build:
     name: Build all schemes
     needs: [lint, format]
-    runs-on: macos-15
+    runs-on: macos-26
 
     steps:
       - name: Checkout
@@ -205,7 +208,7 @@ jobs:
     name: WhiskyUITests
     needs: [lint, format, changes]
     if: github.event_name != 'pull_request' || needs.changes.outputs.app == 'true'
-    runs-on: macos-15
+    runs-on: macos-26
 
     steps:
       - name: Checkout
@@ -287,7 +290,7 @@ jobs:
   test:
     name: Run Tests
     needs: [lint, format]
-    runs-on: macos-15
+    runs-on: macos-26
     
     steps:
       - name: Checkout

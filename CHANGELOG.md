@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   when it finds any that aren't registered yet. File > Migrate from the
   Original Whisky still does it any time (#323, fixes #321).
 
+### Fixed
+- `.cmd` scripts run through the command interpreter like `.bat` files,
+  from the Run panel, the bottle's Run button, and by opening them from
+  Finder. Upper-case extensions such as `SETUP.BAT` are recognized too; they
+  previously launched as programs and failed (#331).
+
 ## [3.8.0] - 2026-11-12 (App)
 
 ### Added

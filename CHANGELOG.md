@@ -7,13 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.8.0] - 2026-11-12 (App)
+
 ### Added
 - A game database entry for Solarpunk. It sets DXMT, installs the VC++
   runtime with winetricks, and keeps the runtime's DLLs on native through
   the bottle's own overrides. Without them, the game's Unreal Engine
-  bootstrap refuses to start with a Visual C++ Redistributable error (#306).
+  bootstrap refuses to start with a Visual C++ Redistributable error (#307,
+  fixes #306).
 
 ### Fixed
+- Warframe's launcher shows its page again instead of a white window. It is
+  embedded Chromium, which paints in a separate GPU process into a window
+  the launcher owns, and Wine's macOS driver only shows drawing from the
+  window's own process. Started from Steam, the launcher now gets
+  `--in-process-gpu` from the game database, which keeps the painting in
+  its own process. Game database entries can carry launch arguments for
+  this (#318).
 - Removing a stale native dxgi.dll from a bottle now puts Wine's own marked
   builtin copy back in its place. Wine's loader only finds a builtin through
   its system32 placeholder, so an empty slot made `dxgi.dll` unloadable and

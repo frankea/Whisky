@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   from the Run panel, the bottle's Run button, and by opening them from
   Finder. Upper-case extensions such as `SETUP.BAT` are recognized too; they
   previously launched as programs and failed (#331).
+- Locale Override in Launcher Compatibility now works for Steam, EA App,
+  Epic Games, Battle.net and Rockstar bottles. Their presets forced US
+  English on every game they start, and the picker had no effect; a game
+  that takes its region or language from the Windows locale can now get the
+  one chosen there. Auto still uses US English for those launchers (#332,
+  part of #330).
 
 ## [3.8.0] - 2026-11-12 (App)
 

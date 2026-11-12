@@ -60,6 +60,22 @@ jobs:
         with:
           xcode-version: latest-stable
 
+      # Fetch the packages before CodeQL starts tracing. Under the tracer,
+      # cloning them took about 9 minutes; outside it they come from the same
+      # cache CI uses.
+      - name: Cache SPM Dependencies
+        if: matrix.language == 'swift'
+        uses: actions/cache@v5
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/*/SourcePackages
+          key: ${{ runner.os }}-codeql-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-codeql-spm-
+
+      - name: Resolve packages
+        if: matrix.language == 'swift'
+        run: xcodebuild -resolvePackageDependencies -project Whisky.xcodeproj -scheme Whisky
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
@@ -67,6 +83,9 @@ jobs:
           build-mode: ${{ matrix.build-mode }}
 
       # SwiftLint's build phase skips itself when CI=true, which GitHub Actions sets.
+      # The analysis reads the source, so one architecture is enough (Debug
+      # builds both, which doubled the traced compile), and the IDE index
+      # store is skipped. Packages resolved above are not fetched again.
       - name: Build
         if: matrix.language == 'swift'
         run: |
@@ -75,7 +94,11 @@ jobs:
             xcodebuild -project Whisky.xcodeproj \
               -scheme "$scheme" \
               -configuration Debug \
+              -disableAutomaticPackageResolution \
               build \
+              ARCHS=arm64 \
+              ONLY_ACTIVE_ARCH=YES \
+              COMPILER_INDEX_STORE_ENABLE=NO \
               CODE_SIGN_IDENTITY="" \
               CODE_SIGNING_REQUIRED=NO \
               CODE_SIGNING_ALLOWED=NO

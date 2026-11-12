@@ -1,0 +1,84 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: &docs-paths
+      - '**.md'
+      - 'docs/**'
+      - 'images/**'
+      - 'LICENSE'
+  pull_request:
+    branches: [main]
+    paths-ignore: *docs-paths
+  schedule:
+    # Weekly, so new CodeQL queries run against code that hasn't changed.
+    - cron: '23 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Swift is analyzed by watching a real build, so it uses the same
+          # unsigned xcodebuild of every scheme as the CI build job.
+          - language: swift
+            build-mode: manual
+            runner: macos-15
+          - language: python
+            build-mode: none
+            runner: ubuntu-latest
+          - language: actions
+            build-mode: none
+            runner: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Xcode
+        if: matrix.language == 'swift'
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      # SwiftLint's build phase skips itself when CI=true, which GitHub Actions sets.
+      - name: Build
+        if: matrix.language == 'swift'
+        run: |
+          for scheme in Whisky WhiskyCmd WhiskyThumbnail; do
+            echo "::group::Build $scheme"
+            xcodebuild -project Whisky.xcodeproj \
+              -scheme "$scheme" \
+              -configuration Debug \
+              build \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGNING_ALLOWED=NO
+            echo "::endgroup::"
+          done
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}

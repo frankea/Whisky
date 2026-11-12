@@ -91,7 +91,7 @@ struct FileOpenView: View {
                         Telemetry.capture(.firstProgramLaunchAttempted)
                     }
 
-                    if fileURL.pathExtension == "bat" {
+                    if Wine.isBatchFile(fileURL) {
                         try await Wine.runBatchFile(
                             url: fileURL,
                             bottle: bottle

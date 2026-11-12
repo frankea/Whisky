@@ -88,7 +88,8 @@ struct LaunchResolverTests {
                             "environmentVariables": {
                                 "DXVK_FRAME_RATE": "120"
                             },
-                            "dllOverrides": []
+                            "dllOverrides": [],
+                            "launchArguments": ["--in-process-gpu"]
                         }
                     ]
                 }
@@ -111,6 +112,7 @@ struct LaunchResolverTests {
         #expect(plan.overrides.graphicsBackend == .dxvk)
         #expect(plan.overrides.dxvkAsync == true)
         #expect(plan.gameProfileEnvironment["DXVK_FRAME_RATE"] == "120")
+        #expect(plan.launchArguments == ["--in-process-gpu"])
         #expect(plan.provenance.count == 1)
         #expect(plan.provenance[0].contains("Casualties: Unknown Demo"))
     }
@@ -141,6 +143,7 @@ struct LaunchResolverTests {
 
         #expect(plan.overrides.graphicsBackend == .wined3d)
         #expect(plan.gameProfileEnvironment.isEmpty)
+        #expect(plan.launchArguments.isEmpty)
         #expect(plan.provenance.isEmpty)
     }
 

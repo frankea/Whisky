@@ -7,7 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- The Metal HUD can be set per program. The bottle's HUD draws over every
+  Metal renderer in the bottle, Steam's store and overlay included, so a
+  program can now turn it on for itself alone, or turn the bottle's HUD off
+  for itself. It applies to programs started from Whisky; a game a launcher
+  starts follows the launcher's setting (#313).
+- On launch, Whisky offers once to import bottles from the original Whisky
+  when it finds any that aren't registered yet. File > Migrate from the
+  Original Whisky still does it any time (#323, fixes #321).
+
 ### Fixed
+- `.cmd` scripts run through the command interpreter like `.bat` files,
+  from the Run panel, the bottle's Run button, and by opening them from
+  Finder. Upper-case extensions such as `SETUP.BAT` are recognized too; they
+  previously launched as programs and failed (#331).
+- Locale Override in Launcher Compatibility now works for Steam, EA App,
+  Epic Games, Battle.net and Rockstar bottles. Their presets forced US
+  English on every game they start, and the picker had no effect; a game
+  that takes its region or language from the Windows locale can now get the
+  one chosen there. Auto still uses US English for those launchers (#332,
+  part of #330).
+
+## [3.8.0] - 2026-11-12 (App)
+
+### Added
+- A game database entry for Solarpunk. It sets DXMT, installs the VC++
+  runtime with winetricks, and keeps the runtime's DLLs on native through
+  the bottle's own overrides. Without them, the game's Unreal Engine
+  bootstrap refuses to start with a Visual C++ Redistributable error (#307,
+  fixes #306).
+
+### Fixed
+- Warframe's launcher shows its page again instead of a white window. It is
+  embedded Chromium, which paints in a separate GPU process into a window
+  the launcher owns, and Wine's macOS driver only shows drawing from the
+  window's own process. Started from Steam, the launcher now gets
+  `--in-process-gpu` from the game database, which keeps the painting in
+  its own process. Game database entries can carry launch arguments for
+  this (#318).
 - Removing a stale native dxgi.dll from a bottle now puts Wine's own marked
   builtin copy back in its place. Wine's loader only finds a builtin through
   its system32 placeholder, so an empty slot made `dxgi.dll` unloadable and

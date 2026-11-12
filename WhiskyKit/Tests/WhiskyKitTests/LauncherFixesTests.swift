@@ -157,7 +157,8 @@ final class LauncherFixesApplyTests: LauncherFixesTestCase {
 
         XCTAssertTrue(bottle.settings.launcherCompatibilityMode)
         XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
-        XCTAssertEqual(bottle.settings.launcherLocale, .english)
+        // The locale stays the user's: the preset carries en_US while it is Auto (#330).
+        XCTAssertEqual(bottle.settings.launcherLocale, .auto)
         XCTAssertTrue(bottle.settings.dxvk)
         XCTAssertTrue(bottle.settings.dxvkAsync)
         XCTAssertTrue(bottle.settings.gpuSpoofing)
@@ -167,7 +168,7 @@ final class LauncherFixesApplyTests: LauncherFixesTestCase {
         let persisted = try persistedSettings()
         XCTAssertTrue(persisted.launcherCompatibilityMode)
         XCTAssertEqual(persisted.detectedLauncher, .steam)
-        XCTAssertEqual(persisted.launcherLocale, .english)
+        XCTAssertEqual(persisted.launcherLocale, .auto)
         XCTAssertTrue(persisted.dxvk)
         XCTAssertTrue(persisted.dxvkAsync)
         XCTAssertTrue(persisted.gpuSpoofing)
@@ -188,7 +189,7 @@ final class LauncherFixesApplyTests: LauncherFixesTestCase {
         XCTAssertFalse(bottle.settings.dxvkAsync)
         // The rest of the profile still lands.
         XCTAssertTrue(bottle.settings.gpuSpoofing)
-        XCTAssertEqual(bottle.settings.launcherLocale, .english)
+        XCTAssertEqual(bottle.settings.launcherLocale, .auto)
     }
 
     @MainActor
@@ -236,7 +237,7 @@ final class LauncherFixesScopingTests: LauncherFixesTestCase {
         // The rest of the profile still lands.
         XCTAssertTrue(bottle.settings.launcherCompatibilityMode)
         XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
-        XCTAssertEqual(bottle.settings.launcherLocale, .english)
+        XCTAssertEqual(bottle.settings.launcherLocale, .auto)
         XCTAssertEqual(bottle.settings.networkTimeout, 90_000)
     }
 
@@ -276,7 +277,7 @@ final class LauncherFixesScopingTests: LauncherFixesTestCase {
         XCTAssertEqual(bottle.settings.graphicsBackend, .recommended)
         XCTAssertEqual(try persistedSettings().graphicsBackend, .recommended)
         XCTAssertTrue(bottle.settings.launcherCompatibilityMode)
-        XCTAssertEqual(bottle.settings.launcherLocale, .english)
+        XCTAssertEqual(bottle.settings.launcherLocale, .auto)
     }
 
     @MainActor

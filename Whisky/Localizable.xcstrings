@@ -4821,154 +4821,6 @@
         }
       }
     },
-    "Forces %@ locale to fix steamwebhelper crashes" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يفرض اللغة المحلية %@ لإصلاح تعطل steamwebhelper"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vynutí národní prostředí %@ kvůli pádům steamwebhelperu"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gennemtvinger sprogområdet %@ for at undgå nedbrud i steamwebhelper"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erzwingt Sprachregion %@, um steamwebhelper-Abstürze zu beheben"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Forces %@ locale to fix steamwebhelper crashes"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Forces %@ locale to fix steamwebhelper crashes"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fuerza el idioma %@ para evitar fallos de steamwebhelper"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pakottaa maa-asetukseksi %@ steamwebhelperin kaatumisten estämiseksi"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Force la langue %@ pour corriger les plantages de steamwebhelper"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Forza la lingua %@ per correggere gli arresti di steamwebhelper"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "steamwebhelper のクラッシュを防ぐためロケールを %@ に固定します"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "steamwebhelper 크래시를 막기 위해 로케일을 %@(으)로 고정합니다"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Forceert de landinstelling %@ om steamwebhelper-crashes te verhelpen"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wymusza ustawienia regionalne %@, by uniknąć awarii steamwebhelper"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Força o idioma %@ para corrigir falhas do steamwebhelper"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Força o idioma %@ para corrigir falhas do steamwebhelper"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Forțează limba %@ pentru a evita crash-urile steamwebhelper"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Принудительно задаёт локаль %@ для устранения сбоев steamwebhelper"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tvingar språkregionen %@ för att undvika krascher i steamwebhelper"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "steamwebhelper çökmelerini önlemek için %@ yerel ayarını zorlar"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Задає локаль %@ для усунення збоїв steamwebhelper"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buộc dùng ngôn ngữ %@ để tránh lỗi steamwebhelper"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "强制使用 %@ 区域设置以修复 steamwebhelper 崩溃"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "強制使用 %@ 地區設定以修正 steamwebhelper 當機"
-          }
-        }
-      }
-    },
     "GPU Spoofing" : {
       "localizations" : {
         "ar" : {
@@ -8408,6 +8260,22 @@
         }
       }
     },
+    "Programs in this bottle, the launcher included, use %@. If the launcher's window stops working, set this back to Auto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Programs in this bottle, the launcher included, use %@. If the launcher's window stops working, set this back to Auto."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Programs in this bottle, the launcher included, use %@. If the launcher's window stops working, set this back to Auto."
+          }
+        }
+      }
+    },
     "Re-analyze" : {
       "localizations" : {
         "en-GB" : {
@@ -10222,6 +10090,22 @@
         }
       }
     },
+    "Sets the Windows locale for every program in this bottle, including games a launcher starts. Auto keeps the launcher's default: US English for Steam, EA App, Epic Games, Battle.net and Rockstar, and the Mac's own language and region otherwise." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sets the Windows locale for every program in this bottle, including games a launcher starts. Auto keeps the launcher's default: US English for Steam, EA App, Epic Games, Battle.net and Rockstar, and the Mac's own language and region otherwise."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sets the Windows locale for every program in this bottle, including games a launcher starts. Auto keeps the launcher's default: US English for Steam, EA App, Epic Games, Battle.net and Rockstar, and the Mac's own language and region otherwise."
+          }
+        }
+      }
+    },
     "Stability" : {
       "localizations" : {
         "ar" : {
@@ -10354,154 +10238,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "穩定性"
-          }
-        }
-      }
-    },
-    "Steam and Chromium-based launchers require en_US locale to avoid steamwebhelper crashes" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يتطلب Steam والمشغّلات المبنية على Chromium اللغة المحلية en_US لتفادي تعطل steamwebhelper"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam a launchery založené na Chromiu vyžadují národní prostředí en_US, jinak steamwebhelper padá"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam og Chromium-baserede launchere kræver sprogområdet en_US for at undgå nedbrud i steamwebhelper"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam und Chromium-basierte Launcher benötigen die Sprachregion en_US, um Abstürze von steamwebhelper zu vermeiden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam and Chromium-based launchers require en_US locale to avoid steamwebhelper crashes"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam and Chromium-based launchers require en_US locale to avoid steamwebhelper crashes"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam y los lanzadores basados en Chromium necesitan el idioma en_US para evitar fallos de steamwebhelper"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam ja Chromium-pohjaiset käynnistimet vaativat en_US-maa-asetuksen steamwebhelperin kaatumisten välttämiseksi"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam et les lanceurs basés sur Chromium nécessitent la langue en_US pour éviter les plantages de steamwebhelper"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam e i launcher basati su Chromium richiedono la lingua en_US per evitare arresti di steamwebhelper"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam や Chromium ベースのランチャーでは、steamwebhelper のクラッシュを避けるため en_US ロケールが必要です"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam과 Chromium 기반 런처는 steamwebhelper 크래시를 피하기 위해 en_US 로케일이 필요합니다"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam en op Chromium gebaseerde launchers hebben landinstelling en_US nodig om crashes van steamwebhelper te voorkomen"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam i launchery oparte na Chromium wymagają ustawień en_US, inaczej steamwebhelper ulega awarii"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O Steam e os launchers baseados em Chromium exigem o idioma en_US para evitar falhas do steamwebhelper"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O Steam e os launchers baseados em Chromium exigem o idioma en_US para evitar falhas do steamwebhelper"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam și launcherele bazate pe Chromium au nevoie de limba en_US pentru a evita crash-urile steamwebhelper"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam и лаунчеры на основе Chromium требуют локаль en_US, иначе steamwebhelper аварийно завершается"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam och Chromium-baserade launchers kräver språkregionen en_US för att undvika krascher i steamwebhelper"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam ve Chromium tabanlı başlatıcılar, steamwebhelper çökmelerini önlemek için en_US yerel ayarını gerektirir"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam і лаунчери на основі Chromium потребують локалі en_US, інакше steamwebhelper аварійно завершується"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam và các trình khởi chạy nền Chromium cần ngôn ngữ en_US để tránh lỗi steamwebhelper"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam 及基于 Chromium 的启动器需要 en_US 区域设置，以避免 steamwebhelper 崩溃"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam 與基於 Chromium 的啟動器需要 en_US 地區設定，以避免 steamwebhelper 當機"
           }
         }
       }

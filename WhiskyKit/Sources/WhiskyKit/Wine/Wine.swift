@@ -825,6 +825,12 @@ public class Wine {
         return output.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    /// Whether `url` is a Windows batch script (`.bat` or `.cmd`, any case),
+    /// which runs through ``runBatchFile(url:bottle:)`` rather than as a program.
+    public static func isBatchFile(_ url: URL) -> Bool {
+        ["bat", "cmd"].contains(url.pathExtension.lowercased())
+    }
+
     /// Executes a Windows batch file (.bat or .cmd) within a bottle.
     ///
     /// This runs the batch file using `cmd /c` through Wine, allowing execution

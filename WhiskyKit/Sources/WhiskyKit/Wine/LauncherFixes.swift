@@ -93,7 +93,6 @@ public enum LauncherFixes {
     ///
     /// **Changes Applied:**
     /// - Enables launcher compatibility mode
-    /// - Sets launcher-specific locale
     /// - Configures DXVK if required
     /// - Enables GPU spoofing for compatibility checks
     ///
@@ -136,12 +135,12 @@ public enum LauncherFixes {
         // Set detected launcher
         bottle.settings.detectedLauncher = launcher
 
-        // Apply launcher-specific configurations
+        // Apply launcher-specific configurations. The locale is not among them:
+        // the presets carry en_US while Locale Override is on Auto, and writing
+        // English into the setting turned it into an explicit choice that Steam's
+        // orchestrator rewrote on every start, so the user's own never stuck (#330).
         switch launcher {
         case .steam:
-            // Steam requires en_US locale to avoid steamwebhelper crashes
-            bottle.settings.launcherLocale = launcher.recommendedLocale
-
             applySteamBackend(to: bottle, force: force, recommendedBackend: recommendedBackend)
 
             // GPU spoofing helps with game compatibility checks
@@ -159,20 +158,12 @@ public enum LauncherFixes {
                 bottle.settings.dxvk = true
             }
 
-            // English locale recommended
-            bottle.settings.launcherLocale = .english
-
         case .eaApp:
             // EA App needs GPU spoofing to pass checks
             bottle.settings.gpuSpoofing = true
             bottle.settings.gpuVendor = .nvidia
 
-            // Locale fix for Chromium-based UI
-            bottle.settings.launcherLocale = .english
-
         case .epicGames:
-            // Epic Games launcher improvements
-            bottle.settings.launcherLocale = .english
             bottle.settings.gpuSpoofing = true
 
         case .ubisoft:
@@ -188,8 +179,6 @@ public enum LauncherFixes {
             bottle.settings.networkTimeout = 90_000
 
         case .battleNet:
-            // Battle.net Chromium-based launcher
-            bottle.settings.launcherLocale = .english
             bottle.settings.gpuSpoofing = true
 
             // DXVK recommended. Still bottle-wide: Battle.net Launcher.exe starts

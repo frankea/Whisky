@@ -218,14 +218,15 @@ extension LauncherConfigSection {
                 }
             }
             .help("""
-            Steam and Chromium-based launchers require en_US locale \
-            to avoid steamwebhelper crashes
+            Sets the Windows locale for every program in this bottle, including games a launcher starts. \
+            Auto keeps the launcher's default: US English for Steam, EA App, Epic Games, Battle.net and \
+            Rockstar, and the Mac's own language and region otherwise.
             """)
 
             if bottle.settings.launcherLocale != .auto {
                 Text("""
-                Forces \(bottle.settings.launcherLocale.pretty()) locale \
-                to fix steamwebhelper crashes
+                Programs in this bottle, the launcher included, use \(bottle.settings.launcherLocale.pretty()). \
+                If the launcher's window stops working, set this back to Auto.
                 """)
                 .font(.caption)
                 .foregroundColor(.secondary)

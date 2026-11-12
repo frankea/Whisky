@@ -184,7 +184,7 @@ struct ContentView: View {
         .dropDestination(for: URL.self) { urls, _ in
             // A Finder drop of anything the Run panel would accept opens the
             // same run-this-file flow, wherever on the window it lands.
-            let runnable = ["exe", "msi", "bat", "msix", "appx", "url"]
+            let runnable = ["exe", "msi", "bat", "cmd", "msix", "appx", "url"]
             guard let url = urls.first(where: { runnable.contains($0.pathExtension.lowercased()) })
             else { return false }
             openedFileURL = url

@@ -38,6 +38,8 @@ public struct LaunchPlan {
     /// Launchers the game starts on its own inside the Steam session, whose
     /// processes then need their `AppDefaults` entries ahead of time.
     public var startsLaunchers: [LauncherType] = []
+    /// Arguments for the game's own command line, from the GameDB variant.
+    public var launchArguments: [String] = []
 }
 
 /// Turns a Steam App ID into a ``LaunchPlan`` by matching the GameDB and
@@ -91,6 +93,7 @@ public enum LaunchResolver {
         )
         plan.gameExecutables = match.entry.exeNames ?? []
         plan.startsLaunchers = startsLaunchers
+        plan.launchArguments = variant.launchArguments ?? []
         return plan
     }
 

@@ -5693,10 +5693,10 @@
           "isDefault": true,
           "whenToUse": "Recommended community-tested configuration",
           "rationale": [
-            "White CEF launcher pane is a known IE/font fallback issue with the Evolution Engine launcher",
+            "The launcher's embedded Chromium (CEF) paints from a separate GPU process into a window the launcher owns, which Wine's macOS driver does not show: the page runs and takes clicks but stays white. --in-process-gpu keeps that painting in the launcher's own process (WineHQ bugs 56463 and 58543)",
             "DXVK avoids the D3DMetal CEF rendering bug; these settings also reach Launcher.exe, so the launcher draws on DXVK",
             "DirectX 11 and 12, selectable in the launcher (PCGamingWiki); on DXVK, play in DirectX 11 mode",
-            "corefonts supplies Times/Arial that the launcher's HTML expects"
+            "corefonts supplies the Verdana and Arial that the launcher's stylesheet falls back to"
           ],
           "settings": {
             "graphicsBackend": "dxvk",
@@ -5713,20 +5713,29 @@
             "vcrun2019",
             "corefonts"
           ],
+          "launchArguments": [
+            "--in-process-gpu"
+          ],
           "testedWith": {
-            "lastTestedAt": "2026-04-30T00:00:00Z",
-            "macOSVersion": "15.4.0",
-            "wineVersion": "10.0",
+            "lastTestedAt": "2026-10-23T00:00:00Z",
+            "macOSVersion": "27.0.1",
+            "wineVersion": "11.0",
             "cpuArchitecture": "arm64"
           }
         }
       ],
       "notes": [],
-      "knownIssues": [],
+      "knownIssues": [
+        {
+          "description": "Play inside Steam starts the launcher without Whisky's launch arguments, so its page stays white",
+          "severity": "major",
+          "workaround": "Start Warframe from Whisky's Library, or add --in-process-gpu to its launch options in Steam"
+        }
+      ],
       "provenance": {
         "source": "community-reference",
         "author": "Whisky Community",
-        "lastUpdated": "2026-04-30T00:00:00Z",
+        "lastUpdated": "2026-10-23T00:00:00Z",
         "referenceURL": "https://github.com/whisky-app/whisky/issues/524"
       }
     },

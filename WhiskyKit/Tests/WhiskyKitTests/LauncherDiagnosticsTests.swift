@@ -525,7 +525,7 @@ final class LauncherDiagnosticsTests: XCTestCase {
         let bottle = Bottle(bottleUrl: tempURL, inFlight: false, isAvailable: true)
         bottle.settings.launcherCompatibilityMode = true
         bottle.settings.detectedLauncher = .steam
-        bottle.settings.launcherLocale = .english // This is set by LauncherDetection
+        bottle.settings.launcherLocale = .english // An explicit English, like Auto, keeps en_US.UTF-8
 
         // Get full Wine environment (includes launcher preset + bottle settings)
         let env = Wine.constructWineEnvironment(for: bottle, environment: [:])

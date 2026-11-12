@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- A game database entry for Solarpunk. It sets DXMT, installs the VC++
+  runtime with winetricks, and keeps the runtime's DLLs on native through
+  the bottle's own overrides. Without them, the game's Unreal Engine
+  bootstrap refuses to start with a Visual C++ Redistributable error (#306).
+
 ### Fixed
 - Removing a stale native dxgi.dll from a bottle now puts Wine's own marked
   builtin copy back in its place. Wine's loader only finds a builtin through

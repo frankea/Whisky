@@ -3913,6 +3913,111 @@
       }
     },
     {
+      "id": "solarpunk",
+      "title": "Solarpunk",
+      "aliases": [
+        "SolarpunkSteam"
+      ],
+      "subtitle": "Cyberwave / rokaplay",
+      "store": "steam",
+      "steamAppId": 1805110,
+      "rating": "works",
+      "exeNames": [
+        "Solarpunk.exe",
+        "SolarpunkSteam-Win64-Shipping.exe"
+      ],
+      "pathPatterns": [
+        "solarpunk"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "11.0"
+      },
+      "variants": [
+        {
+          "id": "dxmt-vc-runtime",
+          "label": "DXMT + VC++ runtime",
+          "isDefault": true,
+          "whenToUse": "Recommended configuration",
+          "rationale": [
+            "Unreal Engine 5.7 bootstrap stub (Solarpunk.exe) checks the FileVersion of system32 msvcp140_2.dll and refuses to start without the VC++ 2015-2022 runtime",
+            "vcrun2022 installs the real runtime; Wine pre-creates the VC Runtimes registry key, so Steam's own redist step skips the install",
+            "Native-then-builtin overrides make Wine report the installed DLL's version instead of its builtin's 14.42; they live in the bottle settings because each launch's override sync replaces the registry key winetricks writes",
+            "DXMT leaves d3d12 unavailable, so the game falls back to D3D11 on its own, with no -dx11 argument"
+          ],
+          "settings": {
+            "graphicsBackend": "dxmt",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "msync",
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [
+            {
+              "dllName": "msvcp140",
+              "mode": "n,b"
+            },
+            {
+              "dllName": "msvcp140_1",
+              "mode": "n,b"
+            },
+            {
+              "dllName": "msvcp140_2",
+              "mode": "n,b"
+            },
+            {
+              "dllName": "vcruntime140",
+              "mode": "n,b"
+            },
+            {
+              "dllName": "vcruntime140_1",
+              "mode": "n,b"
+            }
+          ],
+          "winetricksVerbs": [
+            "vcrun2022"
+          ],
+          "testedWith": {
+            "lastTestedAt": "2026-10-09T00:00:00Z",
+            "macOSVersion": "27.0.0",
+            "wineVersion": "11.0",
+            "whiskyVersion": "3.7.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Tested on an M5 MacBook Air (24 GB): about 109 fps uncapped on Low; CPU-bound under Rosetta",
+        "Native resolution, exclusive fullscreen (macOS Game Mode activates), Medium preset and in-game VSync give a locked 60 on a 60 Hz panel",
+        "The Medium preset enables TSR upscaling; Low turns it off, and anti-aliasing has no separate in-game setting"
+      ],
+      "knownIssues": [
+        {
+          "description": "Quitting shows a \"UE Fatal Error!\" dialog: an access violation in ntdll while unloading the Steam API, after the engine has shut down and saved",
+          "severity": "minor",
+          "workaround": "Click OK; nothing is lost"
+        },
+        {
+          "description": "Brief one-off hitches while DXMT compiles shaders for new areas",
+          "severity": "minor",
+          "workaround": "They fade as the shader cache fills"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "arcataroger",
+        "lastUpdated": "2026-10-09T00:00:00Z",
+        "referenceURL": "https://github.com/frankea/Whisky/issues/306"
+      }
+    },
+    {
       "id": "spellforce-3",
       "title": "SpellForce 3",
       "aliases": [

@@ -188,18 +188,21 @@ extension Whisky {
 
             // Should ask for confirmation
             let bottleToRemove = bottles.first(where: { $0.settings.name == name })
-            if let bottleToRemove {
-                bottlesList.paths.removeAll(where: { $0 == bottleToRemove.url })
-                do {
-                    try FileManager.default.removeItem(at: bottleToRemove.url)
-                    GameRouting().removeRoutes(toBottle: bottleToRemove.url)
-                    print("Deleted \"\(name)\".")
-                } catch {
-                    print(error)
-                }
-            } else {
+            guard let bottleToRemove else {
                 throw DomainError("No bottle called \"\(name)\" found.")
             }
+            // Delete first and unregister only on success: a bottle whose
+            // folder is still on disk stays in the list instead of vanishing
+            // from Whisky while its files remain.
+            do {
+                try FileManager.default.removeItem(at: bottleToRemove.url)
+            } catch {
+                // Exits 1 (ExitCode.failure) with the reason on stderr.
+                throw DomainError("Couldn't delete \"\(name)\": \(error.localizedDescription)")
+            }
+            bottlesList.paths.removeAll(where: { $0 == bottleToRemove.url })
+            GameRouting().removeRoutes(toBottle: bottleToRemove.url)
+            print("Deleted \"\(name)\".")
         }
     }
 

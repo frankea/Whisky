@@ -96,8 +96,8 @@ public enum GameConfigApplicator {
     /// Applies a game configuration variant to a bottle's settings.
     ///
     /// This method:
-    /// 1. Snapshots the current ``BottleSettings`` and the settings of every
-    ///    program it changes
+    /// 1. Snapshots the current ``BottleSettings`` and the program environment
+    ///    variables it replaces
     /// 2. Mutates the bottle's settings based on the variant
     /// 3. Applies the variant's environment variables to the game's launches
     ///    (see ``applyEnvironment(_:entry:to:targets:programURL:)``)
@@ -113,8 +113,8 @@ public enum GameConfigApplicator {
     ///   - entry: The game database entry being applied.
     ///   - variant: The specific variant to apply.
     ///   - bottle: The target bottle whose settings will be mutated.
-    ///   - programURL: The program the configuration is applied from, if any. Its
-    ///     settings are snapshotted, and it receives the environment variables.
+    ///   - programURL: The program the configuration is applied from, if any. It
+    ///     receives the environment variables.
     ///   - isBackendAvailable: Whether this machine can run a backend; see
     ///     ``effectiveBackend(_:isBackendAvailable:)``. Defaults to the installed runtime.
     /// - Returns: The snapshot created before applying changes.
@@ -141,14 +141,9 @@ public enum GameConfigApplicator {
             timestamp: Date()
         )
 
-        // Snapshot the settings of every program this apply can change
+        // Record the program environment variables this apply replaces
         let environmentTargets = environmentTargets(entry: entry, bottle: bottle, programURL: programURL)
-        var snapshotted = environmentTargets
-        if let programURL, let program = bottle.programs.first(where: { $0.url == programURL }),
-           !snapshotted.contains(where: { $0 === program }) {
-            snapshotted.append(program)
-        }
-        try snapshotPrograms(snapshotted, into: &snapshot, encoder: encoder)
+        snapshotEnvironment(variant.environmentVariables ?? [:], of: environmentTargets, into: &snapshot)
 
         // 3. Apply variant settings to bottle
         applyVariantSettings(variant.settings, to: bottle, isBackendAvailable: isBackendAvailable)
@@ -176,9 +171,9 @@ public enum GameConfigApplicator {
     /// Reverts a bottle's settings to the state captured in the snapshot.
     ///
     /// Decodes the snapshot's ``GameConfigSnapshot/bottleSettingsData`` and replaces
-    /// the bottle's settings entirely, then puts back the program settings in
-    /// ``GameConfigSnapshot/programSettingsData``. The `didSet` observers
-    /// handle automatic persistence.
+    /// the bottle's settings entirely, then puts back the program environment
+    /// variables in ``GameConfigSnapshot/programEnvironments``. The `didSet`
+    /// observers handle automatic persistence.
     ///
     /// - Parameters:
     ///   - bottle: The bottle whose settings will be restored.
@@ -197,7 +192,7 @@ public enum GameConfigApplicator {
             let restoredSettings = try decoder.decode(BottleSettings.self, from: settingsData)
             bottle.settings = restoredSettings
         }
-        try restorePrograms(from: snapshot, in: bottle)
+        restoreProgramEnvironments(from: snapshot, in: bottle)
 
         // 2. Delete the snapshot file
         try GameConfigSnapshot.delete(from: bottle.url)

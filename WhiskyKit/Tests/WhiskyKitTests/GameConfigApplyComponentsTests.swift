@@ -90,7 +90,10 @@ final class GameConfigApplyComponentsTests {
         #expect(game.settings.environment == ["KEEP": "1", "D3DM_SUPPORT_DXR": "0"])
         #expect(other.settings.environment.isEmpty)
         #expect(bottle.settings.gameConfigEnvironments.isEmpty)
-        #expect(snapshot.programSettingsData?.keys.sorted() == [game.url.absoluteString])
+        #expect(snapshot.programEnvironments == [game.url.absoluteString: GameConfigProgramEnvironment(
+            appliedValues: ["D3DM_SUPPORT_DXR": "0"], previousValues: ["D3DM_SUPPORT_DXR": "1"]
+        )])
+        #expect(snapshot.programSettingsData == nil)
     }
 
     @Test("The program the configuration is applied from gets the variables")

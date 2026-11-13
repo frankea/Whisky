@@ -75,3 +75,43 @@ extension BottleSettings {
         return environment
     }
 }
+
+/// The environment variables an applied game configuration wrote into one
+/// program's settings, with the values they replaced, so a revert can undo
+/// exactly those.
+public struct GameConfigProgramEnvironment: Codable, Sendable, Equatable {
+    /// The variables the apply set, with the values it set them to.
+    public var appliedValues: [String: String]
+    /// The value each of those variables had before the apply. Variables the
+    /// apply added are absent.
+    public var previousValues: [String: String]
+
+    public init(appliedValues: [String: String], previousValues: [String: String]) {
+        self.appliedValues = appliedValues
+        self.previousValues = previousValues
+    }
+
+    /// Records what applying `variables` to a program whose environment is
+    /// `environment` replaces.
+    public init(applying variables: [String: String], to environment: [String: String]) {
+        self.init(
+            appliedValues: variables,
+            previousValues: environment.filter { variables[$0.key] != nil }
+        )
+    }
+
+    /// `environment` with the applied variables put back as they were.
+    ///
+    /// A variable whose value has changed since the apply is left alone, so an
+    /// edit made after the apply survives the revert.
+    ///
+    /// - Parameter environment: The program's current environment.
+    /// - Returns: The environment to restore.
+    public func reverting(_ environment: [String: String]) -> [String: String] {
+        var result = environment
+        for (key, applied) in appliedValues where result[key] == applied {
+            result[key] = previousValues[key]
+        }
+        return result
+    }
+}

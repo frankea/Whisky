@@ -57,20 +57,25 @@ extension GameConfigApplicator {
         return names
     }
 
-    /// Records the settings of every program the apply touches in `snapshot`,
-    /// so a revert can put them back.
+    /// Records in `snapshot` the environment variables applying `variables`
+    /// replaces in each of `programs`, so a revert can put back just those.
+    ///
+    /// Programs are not recorded when the variant sets no variables, since the
+    /// apply leaves them unchanged.
     @MainActor
-    static func snapshotPrograms(
-        _ programs: [Program],
-        into snapshot: inout GameConfigSnapshot,
-        encoder: PropertyListEncoder
-    ) throws {
-        guard !programs.isEmpty else { return }
-        var data = snapshot.programSettingsData ?? [:]
+    static func snapshotEnvironment(
+        _ variables: [String: String],
+        of programs: [Program],
+        into snapshot: inout GameConfigSnapshot
+    ) {
+        guard !variables.isEmpty, !programs.isEmpty else { return }
+        var records = snapshot.programEnvironments ?? [:]
         for program in programs {
-            data[program.url.absoluteString] = try encoder.encode(program.settings)
+            records[program.url.absoluteString] = GameConfigProgramEnvironment(
+                applying: variables, to: program.settings.environment
+            )
         }
-        snapshot.programSettingsData = data
+        snapshot.programEnvironments = records
     }
 
     /// Makes a variant's environment variables part of every launch of the game.
@@ -147,22 +152,28 @@ extension GameConfigApplicator {
         }
     }
 
-    /// Puts back the program settings a snapshot recorded.
+    /// Puts back the program environment variables a snapshot recorded,
+    /// leaving the rest of each program's settings alone.
     ///
     /// Programs the bottle no longer lists are restored through a fresh
     /// ``Program`` as long as their executable still exists, so the settings
     /// file is right when the program shows up again.
     @MainActor
-    static func restorePrograms(from snapshot: GameConfigSnapshot, in bottle: Bottle) throws {
-        guard let programData = snapshot.programSettingsData else { return }
-        let decoder = PropertyListDecoder()
-        for (urlString, data) in programData {
+    static func restoreProgramEnvironments(from snapshot: GameConfigSnapshot, in bottle: Bottle) {
+        guard let records = snapshot.programEnvironments else { return }
+        for (urlString, record) in records {
             guard let url = URL(string: urlString) else { continue }
-            let settings = try decoder.decode(ProgramSettings.self, from: data)
-            if let program = bottle.programs.first(where: { $0.url == url }) {
-                program.settings = settings
+            let program: Program
+            if let listed = bottle.programs.first(where: { $0.url == url }) {
+                program = listed
             } else if FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) {
-                Program(url: url, bottle: bottle).settings = settings
+                program = Program(url: url, bottle: bottle)
+            } else {
+                continue
+            }
+            let restored = record.reverting(program.settings.environment)
+            if restored != program.settings.environment {
+                program.settings.environment = restored
             }
         }
     }

@@ -548,20 +548,23 @@ public class Wine {
 
     /// Resolves the virtual desktop resolution string from per-program overrides.
     ///
-    /// - Parameter overrides: The program overrides containing display settings.
+    /// Match Display reads the display the same way the bottle's Display
+    /// section does (``ResolutionPreset/resolutionString(customWidth:customHeight:displaySize:)``).
+    ///
+    /// - Parameters:
+    ///   - overrides: The program overrides containing display settings.
+    ///   - displaySize: Reads the display size for Match Display. Defaults to the main display.
     /// - Returns: A resolution string like `"1920x1080"`.
-    private static func resolveVirtualDesktopResolution(from overrides: ProgramOverrides) -> String {
-        let preset = overrides.resolutionPreset ?? .r1920x1080
-        if let dims = preset.dimensions {
-            return "\(dims.width)x\(dims.height)"
-        }
-        if preset == .custom {
-            let width = overrides.customResolutionWidth ?? 1_920
-            let height = overrides.customResolutionHeight ?? 1_080
-            return "\(width)x\(height)"
-        }
-        // matchDisplay fallback
-        return "1920x1080"
+    static func resolveVirtualDesktopResolution(
+        from overrides: ProgramOverrides,
+        displaySize: () -> (width: Int, height: Int)? = MainDisplay.pixelSize
+    ) -> String {
+        let fallback = ResolutionPreset.fallbackResolution
+        return (overrides.resolutionPreset ?? .r1920x1080).resolutionString(
+            customWidth: overrides.customResolutionWidth ?? fallback.width,
+            customHeight: overrides.customResolutionHeight ?? fallback.height,
+            displaySize: displaySize
+        )
     }
 
     /// Generates a shell command string for running a Windows program.

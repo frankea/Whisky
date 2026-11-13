@@ -77,8 +77,6 @@ public final class ProcessRegistry: @unchecked Sendable {
     ///   - programName: Name of the program being launched
     public func register(process: Process, bottle: Bottle, programName: String) {
         lock.lock()
-        defer { lock.unlock() }
-
         let info = ProcessInfo(
             pid: 0, // Will be updated after launch
             launchTime: Date(),
@@ -93,8 +91,11 @@ public final class ProcessRegistry: @unchecked Sendable {
         lastLaunches[bottle.url] = info.launchTime
 
         ensureDisplayWakeAssertionLocked()
+        lock.unlock()
 
         logger.info("Registered process '\(programName)' for bottle '\(bottle.url.lastPathComponent)'")
+        // After unlocking: on the main thread observers run inside the post and
+        // query the registry, which would wait on the lock forever.
         postChange(for: bottle.url)
     }
 
@@ -154,21 +155,22 @@ public final class ProcessRegistry: @unchecked Sendable {
     /// - Parameter pid: The process ID to unregister
     public func unregister(pid: Int32) {
         lock.lock()
-        defer { lock.unlock() }
-
-        for (bottleURL, processes) in activeProcesses {
+        var removed: ProcessInfo?
+        search: for (bottleURL, processes) in activeProcesses {
             for info in processes where info.pid == pid {
                 var mutableProcesses = processes
                 mutableProcesses.remove(info)
                 activeProcesses[bottleURL] = mutableProcesses
-
                 releaseDisplayWakeAssertionIfIdleLocked()
-
-                logger.info("Unregistered process '\(info.programName)' (PID: \(pid))")
-                postChange(for: bottleURL)
-                return
+                removed = info
+                break search
             }
         }
+        lock.unlock()
+
+        guard let removed else { return }
+        logger.info("Unregistered process '\(removed.programName)' (PID: \(pid))")
+        postChange(for: removed.bottleURL)
     }
 
     /// Unregisters exactly one entry, as ``getProcesses(for:)`` returned it.
@@ -310,6 +312,9 @@ public final class ProcessRegistry: @unchecked Sendable {
     }
 
     /// Posts ``didChangeNotification`` on the main thread, where views observe it.
+    ///
+    /// Never call this while holding ``lock``: on the main thread the post is
+    /// synchronous, and an observer that reads the registry would deadlock.
     private func postChange(for bottleURL: URL) {
         let post: @Sendable () -> Void = {
             NotificationCenter.default.post(

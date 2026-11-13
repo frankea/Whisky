@@ -31,21 +31,6 @@ public struct TerminalLaunchError: LocalizedError, Equatable {
 }
 
 public extension Program {
-    /// Runs this program in the user's terminal, reporting a failure in an alert.
-    ///
-    /// The shift-click Run. The bottle is prepared the way a launch prepares it
-    /// before the terminal opens, so this returns at once and the work happens
-    /// in a task.
-    func runInTerminal() {
-        Task {
-            do {
-                try await openInTerminal()
-            } catch {
-                showRunError(message: error.localizedDescription)
-            }
-        }
-    }
-
     /// Prepares the bottle for this program, then opens the user's terminal running it.
     ///
     /// The launch is recorded in the bottle's session, as any other launch is.

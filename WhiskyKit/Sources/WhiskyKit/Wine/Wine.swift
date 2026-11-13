@@ -496,10 +496,13 @@ public class Wine {
         // DXVK: its files stay in place, and are copied after a DXMT plan's, so
         // the launcher keeps working when the two share a file.
         let legacyProgramDXVK = programOverrides?.graphicsBackend == nil && programOverrides?.dxvk == true
-        let shouldEnableDXVK = effectiveBackend == .dxvk || legacyProgramDXVK ||
-            (overridesApplyToDescendants && launcher != nil) ||
-            (bottle.settings.autoEnableDXVK &&
-                bottle.settings.detectedLauncher?.requiresDXVK == true)
+        let shouldEnableDXVK = deploysDXVK(
+            effectiveBackend: effectiveBackend,
+            legacyProgramDXVK: legacyProgramDXVK,
+            launcherCarriesDescendantPlan: overridesApplyToDescendants && launcher != nil,
+            autoEnableDXVK: bottle.settings.autoEnableDXVK,
+            detectedLauncher: bottle.settings.detectedLauncher
+        )
 
         if shouldEnableDXVK {
             try enableDXVK(bottle: bottle)

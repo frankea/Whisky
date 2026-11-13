@@ -86,6 +86,11 @@ jobs:
             echo "Run ./scripts/british-english.py locally and commit the result."
             exit 1
           }
+      # A translation export can return the key itself as a "translated" value
+      # (es `audio.findings.fix` = "audio.findings.fix"). The build-time fill
+      # only adds missing keys, so such a cell shows the raw identifier.
+      - name: Check no translation is a placeholder key
+        run: ./scripts/check-placeholder-translations.py
 
   # Detects which areas a PR touches so macOS jobs can be skipped when they
   # can't be affected. Runs on every event; the outputs are only consulted for

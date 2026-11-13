@@ -141,4 +141,38 @@ public struct SettingValueCheck: TroubleshootingCheck {
             nil
         }
     }
+
+    /// The summary of a result from this check in the user's language.
+    ///
+    /// ``CheckResult/summary`` stays in English because it is written to
+    /// history and escalation exports; this rebuilds the on-screen text from
+    /// the result's outcome and evidence.
+    ///
+    /// - Parameter result: A result produced by ``run(params:context:)``.
+    /// - Returns: The localized summary, or `nil` to show ``CheckResult/summary`` (the
+    ///   flow-authoring errors for missing parameters have no localized form).
+    public static func localizedSummary(for result: CheckResult) -> String? {
+        let evidence = result.evidence
+        switch result.outcome {
+        case .error:
+            if evidence["error"] != nil {
+                return String(localized: "troubleshooting.check.settingsUnreadable")
+            }
+            guard let setting = evidence["setting"] else { return nil }
+            return String(localized: "troubleshooting.check.setting.unknown \(setting)")
+        case .alreadyConfigured:
+            guard let setting = evidence["setting"], let expected = evidence["expected"] else { return nil }
+            return String(localized: "troubleshooting.check.value.matches \(setting) \(expected)")
+        case .fail:
+            guard let setting = evidence["setting"],
+                  let current = evidence["current"],
+                  let expected = evidence["expected"]
+            else {
+                return nil
+            }
+            return String(localized: "troubleshooting.check.value.mismatch \(setting) \(current) \(expected)")
+        case .pass, .unknown:
+            return nil
+        }
+    }
 }

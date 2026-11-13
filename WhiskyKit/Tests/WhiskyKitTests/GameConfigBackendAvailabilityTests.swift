@@ -84,7 +84,7 @@ struct GameConfigBackendAvailabilityTests {
         let changes = GameConfigApplicator.previewChanges(
             variant: variant(.d3dMetal), bottle: bottle, isBackendAvailable: noD3DMetal
         )
-        let row = try #require(changes.first { $0.settingName == "Graphics Backend" })
+        let row = try #require(changes.first { $0.kind == .graphicsBackend })
         #expect(row.newValue == GraphicsBackend.recommended.displayName)
 
         // A bottle already on Recommended has nothing to change.
@@ -92,7 +92,7 @@ struct GameConfigBackendAvailabilityTests {
         let unchanged = GameConfigApplicator.previewChanges(
             variant: variant(.d3dMetal), bottle: bottle, isBackendAvailable: noD3DMetal
         )
-        #expect(!unchanged.contains { $0.settingName == "Graphics Backend" })
+        #expect(!unchanged.contains { $0.kind == .graphicsBackend })
     }
 
     @Test("Recommended passes through whatever is installed")

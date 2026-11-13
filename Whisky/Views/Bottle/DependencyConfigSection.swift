@@ -87,8 +87,8 @@ struct DependencyConfigSection: View {
 
                 statusBadge(depStatus.status)
 
-                if depStatus.confidence == .cached || depStatus.confidence == .heuristic {
-                    Text("(\(depStatus.confidence.rawValue))")
+                if let confidenceLabel = confidenceLabel(depStatus.confidence) {
+                    Text("(\(confidenceLabel))")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
@@ -155,6 +155,19 @@ struct DependencyConfigSection: View {
     }
 
     // MARK: - Helpers
+
+    /// The marker shown next to a status that came from the cache or a
+    /// heuristic probe; `nil` for the confidences that need no caveat.
+    private func confidenceLabel(_ confidence: DependencyConfidence) -> String? {
+        switch confidence {
+        case .cached:
+            String(localized: "dependency.confidence.cached")
+        case .heuristic:
+            String(localized: "dependency.confidence.heuristic")
+        case .authoritative, .unknown:
+            nil
+        }
+    }
 
     private func isInstalled(_ status: DependencyInstallStatus) -> Bool {
         if case .installed = status { return true }

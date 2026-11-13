@@ -79,11 +79,11 @@ extension EscalationView {
                         Image(systemName: resultIcon(for: attempt.result))
                             .foregroundStyle(resultColor(for: attempt.result))
                             .font(.caption)
-                        Text(attempt.fixId)
+                        Text(attempt.localizedFixName)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Text(attempt.result.rawValue)
+                        Text(attempt.result.localizedName)
                             .font(.caption2)
                             .foregroundStyle(.tertiary)
                     }

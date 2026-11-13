@@ -37,15 +37,15 @@ public enum DLLOverrideMode: String, Codable, CaseIterable, Sendable, Equatable,
     public var displayName: String {
         switch self {
         case .builtin:
-            "Builtin (b)"
+            String(localized: "config.dllOverrides.mode.builtin")
         case .native:
-            "Native (n)"
+            String(localized: "config.dllOverrides.mode.native")
         case .nativeThenBuiltin:
-            "Native then Builtin (n,b)"
+            String(localized: "config.dllOverrides.mode.nativeThenBuiltin")
         case .builtinThenNative:
-            "Builtin then Native (b,n)"
+            String(localized: "config.dllOverrides.mode.builtinThenNative")
         case .disabled:
-            "Disabled"
+            String(localized: "config.dllOverrides.mode.disabled")
         }
     }
 }
@@ -288,7 +288,7 @@ public struct DLLOverrideResolver: Sendable {
                 warnings.append(DLLOverrideWarning(
                     dllName: dllName,
                     overriddenSource: source,
-                    message: "Override for \(dllName) overrides \(sourceDesc) setting"
+                    message: String(localized: "config.dllOverrides.warning.conflict \(dllName) \(sourceDesc)")
                 ))
             }
         }

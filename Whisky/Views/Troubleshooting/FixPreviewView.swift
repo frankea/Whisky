@@ -140,7 +140,7 @@ extension FixPreviewView {
                 .clipShape(RoundedRectangle(cornerRadius: 4))
             }
 
-            Text(String(format: String(localized: "troubleshooting.fix.scope %@"), preview.scope))
+            Text(String(format: String(localized: "troubleshooting.fix.scope %@"), preview.displayScope))
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
         }

@@ -118,7 +118,7 @@ extension GameEntryDetailView {
                 .foregroundStyle(ratingColor)
             Spacer()
             if let store = entry.store {
-                Text(store.capitalized)
+                Text(GameDBEntry.storeDisplayName(store))
                     .font(.caption)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
@@ -136,10 +136,10 @@ extension GameEntryDetailView {
                 }
             }
             if let minMacOS = constraints.minMacOSVersion {
-                constraintTag("macOS \(minMacOS)+", icon: "laptopcomputer")
+                constraintTag(String(localized: "gamedb.tag.minMacOS \(minMacOS)"), icon: "laptopcomputer")
             }
             if let minWine = constraints.minWineVersion {
-                constraintTag("Wine \(minWine)+", icon: "wineglass")
+                constraintTag(String(localized: "gamedb.tag.minWine \(minWine)"), icon: "wineglass")
             }
         }
     }
@@ -163,7 +163,7 @@ extension GameEntryDetailView {
             HStack(spacing: 6) {
                 Image(systemName: "shield.slash")
                     .foregroundStyle(.orange)
-                Text("\(antiCheat) -- online play unavailable")
+                Text("gameConfig.detail.antiCheat \(antiCheat)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -369,18 +369,21 @@ extension GameEntryDetailView {
     private func graphicsSettingsList(_ settings: GameConfigVariantSettings) -> [SettingDisplay] {
         var items: [SettingDisplay] = []
         if let backend = settings.graphicsBackend {
-            items.append(SettingDisplay(name: "Graphics Backend", value: backend.displayName))
+            items.append(SettingDisplay(
+                name: String(localized: "config.graphics.backend"),
+                value: backend.displayName
+            ))
         }
         if let dxvk = settings.dxvk {
-            items.append(SettingDisplay(name: "DXVK", value: dxvk ? "Enabled" : "Disabled"))
+            items.append(SettingDisplay(name: "DXVK", value: enabledLabel(dxvk)))
         }
         if let dxvkAsync = settings.dxvkAsync {
-            items.append(SettingDisplay(name: "DXVK Async", value: dxvkAsync ? "Enabled" : "Disabled"))
+            items.append(SettingDisplay(name: String(localized: "config.dxvk.async"), value: enabledLabel(dxvkAsync)))
         }
         if let sequoia = settings.sequoiaCompatMode {
             items.append(SettingDisplay(
-                name: "Sequoia Compat",
-                value: sequoia ? "Enabled" : "Disabled"
+                name: String(localized: "config.sequoiaCompat"),
+                value: enabledLabel(sequoia)
             ))
         }
         return items
@@ -390,19 +393,28 @@ extension GameEntryDetailView {
         var items: [SettingDisplay] = []
         if let enhancedSync = settings.enhancedSync {
             let syncName = switch enhancedSync {
-            case .none: "None"
-            case .esync: "ESync"
-            case .msync: "MSync"
+            case .none: String(localized: "config.enhancedSync.none")
+            case .esync: String(localized: "config.enhancedSync.esync")
+            case .msync: String(localized: "config.enhancedSync.msync")
             }
-            items.append(SettingDisplay(name: "Enhanced Sync", value: syncName))
+            items.append(SettingDisplay(name: String(localized: "config.enhancedSync"), value: syncName))
         }
         if let shaderCache = settings.shaderCacheEnabled {
-            items.append(SettingDisplay(name: "Shader Cache", value: shaderCache ? "Enabled" : "Disabled"))
+            items.append(SettingDisplay(
+                name: String(localized: "config.shaderCache"),
+                value: enabledLabel(shaderCache)
+            ))
         }
         if let avx = settings.avxEnabled {
-            items.append(SettingDisplay(name: "AVX Support", value: avx ? "Enabled" : "Disabled"))
+            items.append(SettingDisplay(name: String(localized: "config.avx"), value: enabledLabel(avx)))
         }
         return items
+    }
+
+    private func enabledLabel(_ isEnabled: Bool) -> String {
+        isEnabled
+            ? String(localized: "config.retinaMode.on")
+            : String(localized: "config.retinaMode.off")
     }
 }
 
@@ -451,7 +463,7 @@ extension GameEntryDetailView {
                             .font(.caption)
                     }
                     if let workaround = issue.workaround {
-                        Text("Workaround: \(workaround)")
+                        Text("gameConfig.detail.workaround \(workaround)")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
@@ -461,13 +473,23 @@ extension GameEntryDetailView {
     }
 
     private func severityBadge(_ severity: String) -> some View {
-        Text(severity.capitalized)
+        Text(severityLabel(severity))
             .font(.caption2)
             .fontWeight(.medium)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(severityColor(severity).opacity(0.15), in: Capsule())
             .foregroundStyle(severityColor(severity))
+    }
+
+    /// Names the severities the game database uses; anything else shows as written.
+    private func severityLabel(_ severity: String) -> String {
+        switch severity.lowercased() {
+        case "critical": String(localized: "gameConfig.detail.severity.critical")
+        case "major": String(localized: "gameConfig.detail.severity.major")
+        case "minor": String(localized: "gameConfig.detail.severity.minor")
+        default: severity.capitalized
+        }
     }
 
     private func severityColor(_ severity: String) -> Color {
@@ -496,7 +518,7 @@ extension GameEntryDetailView {
         VStack(alignment: .leading, spacing: 6) {
             provenanceRow(
                 String(localized: "gameConfig.detail.provenance.source"),
-                value: provenance.source
+                value: provenanceSourceLabel(provenance.source)
             )
 
             if let author = provenance.author {
@@ -523,6 +545,20 @@ extension GameEntryDetailView {
                         .font(.caption)
                 }
             }
+        }
+    }
+
+    /// Names the provenance sources the game database uses; anything else shows as written.
+    private func provenanceSourceLabel(_ source: String) -> String {
+        switch source {
+        case "community-reference":
+            String(localized: "gameConfig.detail.provenance.source.communityReference")
+        case "whisky-knowledge":
+            String(localized: "gameConfig.detail.provenance.source.whiskyKnowledge")
+        case "maintainer-verified":
+            String(localized: "gameConfig.detail.provenance.source.maintainerVerified")
+        default:
+            source
         }
     }
 

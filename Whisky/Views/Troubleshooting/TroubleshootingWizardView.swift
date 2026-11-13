@@ -215,7 +215,7 @@ extension TroubleshootingWizardView {
                             Image(systemName: resultIcon(for: attempt.result))
                                 .font(.caption)
                                 .foregroundStyle(resultColor(for: attempt.result))
-                            Text(attempt.fixId)
+                            Text(attempt.localizedFixName)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -308,5 +308,45 @@ extension TroubleshootingWizardView {
         sessionStore.deleteActiveSession(for: entryContext.bottleURL)
         showResumeOverlay = false
         dismiss()
+    }
+}
+
+// MARK: - Fix Attempt Display
+
+extension FixResult {
+    /// The result in the user's language. Exports and issue drafts keep
+    /// ``rawValue`` so they read the same in every language.
+    var localizedName: String {
+        switch self {
+        case .pending: String(localized: "troubleshooting.fixResult.pending")
+        case .applied: String(localized: "troubleshooting.fixResult.applied")
+        case .verified: String(localized: "troubleshooting.fixResult.verified")
+        case .failed: String(localized: "troubleshooting.fixResult.failed")
+        case .undone: String(localized: "troubleshooting.fixResult.undone")
+        }
+    }
+}
+
+extension FixAttempt {
+    /// A readable name for the attempted fix in the user's language.
+    ///
+    /// Falls back to the raw ``fixId`` for an id with no catalog entry.
+    /// Exports and issue drafts keep ``fixId``.
+    var localizedFixName: String {
+        switch fixId {
+        case "switch-backend": String(localized: "troubleshooting.fixName.switchBackend")
+        case "enable-dxvk-async": String(localized: "troubleshooting.fixName.enableDxvkAsync")
+        case "set-audio-driver": String(localized: "troubleshooting.fixName.setAudioDriver")
+        case "set-buffer-size": String(localized: "troubleshooting.fixName.setBufferSize")
+        case "enable-esync": String(localized: "troubleshooting.fixName.enableEsync")
+        case "enable-controller-compat": String(localized: "troubleshooting.fixName.enableControllerCompat")
+        case "install-winetricks-verb": String(localized: "troubleshooting.fixName.installWinetricksVerb")
+        case "run-enhanced-diagnostics": String(localized: "troubleshooting.fixName.runEnhancedDiagnostics")
+        case "set-registry-value": String(localized: "troubleshooting.fixName.setRegistryValue")
+        case "apply-launcher-fixes": String(localized: "troubleshooting.fixName.applyLauncherFixes")
+        case "apply-game-config": String(localized: "troubleshooting.fixName.applyGameConfig")
+        case "restart-wineserver": String(localized: "troubleshooting.fixName.restartWineserver")
+        default: fixId
+        }
     }
 }

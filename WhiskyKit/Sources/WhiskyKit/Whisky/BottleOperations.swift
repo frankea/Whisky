@@ -251,20 +251,34 @@ public enum BottleOperations {
     /// - If no existing bottle is named "\(baseName) Copy", returns "\(baseName) Copy".
     /// - Otherwise tries "\(baseName) Copy 2", "Copy 3", etc.
     ///
+    /// The "Copy" suffix follows the app's language, as Finder's does. The English
+    /// default is what a lookup without the app's string catalog (such as the
+    /// package tests) returns.
+    ///
     /// - Parameters:
     ///   - baseName: The original bottle's name.
     ///   - existingNames: Names of all current bottles.
     /// - Returns: The next available duplicate name.
     public static func nextDuplicateName(baseName: String, existingNames: [String]) -> String {
-        let candidate = "\(baseName) Copy"
+        let candidate = String(
+            localized: "duplicate.bottle.name %@",
+            defaultValue: "\(baseName) Copy"
+        )
         if !existingNames.contains(candidate) {
             return candidate
         }
         var counter = 2
-        while existingNames.contains("\(baseName) Copy \(counter)") {
+        while existingNames.contains(numberedDuplicateName(baseName: baseName, counter: counter)) {
             counter += 1
         }
-        return "\(baseName) Copy \(counter)"
+        return numberedDuplicateName(baseName: baseName, counter: counter)
+    }
+
+    private static func numberedDuplicateName(baseName: String, counter: Int) -> String {
+        String(
+            localized: "duplicate.bottle.nameNumbered %@ %lld",
+            defaultValue: "\(baseName) Copy \(counter)"
+        )
     }
 
     // MARK: - Remove
@@ -321,7 +335,7 @@ public enum BottleOperations {
         NSError(
             domain: "com.franke.Whisky",
             code: 1,
-            userInfo: [NSLocalizedDescriptionKey: "Bottle not found"]
+            userInfo: [NSLocalizedDescriptionKey: String(localized: "bottle.error.notFound")]
         )
     }
 

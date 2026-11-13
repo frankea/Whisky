@@ -34,9 +34,23 @@ public struct AudioTestCheck: TroubleshootingCheck {
         // The probe would return .skipped gracefully.
         CheckResult(
             outcome: .unknown,
-            evidence: ["reason": "Audio test executable not available"],
+            evidence: ["reason": String(localized: "troubleshooting.check.audioTest.unavailableReason")],
             summary: "Audio playback test is not available (MinGW not compiled)",
             confidence: .low
         )
+    }
+
+    /// The summary of a result from this check in the user's language.
+    ///
+    /// ``CheckResult/summary`` stays in English because it is written to
+    /// history and escalation exports; this rebuilds the on-screen text from
+    /// the result's outcome.
+    ///
+    /// - Parameter result: A result produced by ``run(params:context:)``.
+    /// - Returns: The localized summary, or `nil` if the result was not
+    ///   produced by this check.
+    public static func localizedSummary(for result: CheckResult) -> String? {
+        guard result.outcome == .unknown else { return nil }
+        return String(localized: "troubleshooting.check.audioTest.unavailable")
     }
 }

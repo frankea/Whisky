@@ -146,7 +146,9 @@ public final class AudioDeviceMonitor: @unchecked Sendable {
             let event = AudioDeviceChangeEvent(
                 timestamp: Date(),
                 eventType: .defaultOutputChanged,
-                deviceName: device?.name ?? "Unknown",
+                // Events live only in memory (AudioDeviceHistory is not saved),
+                // so the fallback can be in the user's language.
+                deviceName: device?.name ?? String(localized: "audio.device.unknownName", defaultValue: "Unknown"),
                 transportType: device?.transportType ?? .unknown
             )
             self.onChange?(event)

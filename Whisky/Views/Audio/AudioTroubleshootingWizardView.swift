@@ -113,7 +113,7 @@ struct AudioTroubleshootingWizardView: View {
                 if engine.isRunningProbe {
                     HStack(spacing: 8) {
                         ProgressView().controlSize(.small)
-                        Text("Analyzing\u{2026}").font(.caption).foregroundStyle(.secondary)
+                        Text("audio.troubleshoot.analyzing").font(.caption).foregroundStyle(.secondary)
                     }
                 }
             }
@@ -222,7 +222,8 @@ struct AudioTroubleshootingWizardView: View {
                     ForEach(engine.attemptedFixes) { fix in
                         HStack(spacing: 6) {
                             Image(systemName: "checkmark").font(.caption2).foregroundStyle(.green)
-                            Text(fix.actionId).font(.caption).foregroundStyle(.secondary)
+                            Text(AudioTroubleshootingEngine.fixDescription(for: fix.actionId))
+                                .font(.caption).foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -263,17 +264,22 @@ struct AudioTroubleshootingWizardView: View {
         .padding()
     }
 
+    /// Copies an English diagnostics report to the clipboard.
+    ///
+    /// The report reads the same in every language: it uses stable ids and raw
+    /// values plus the probes' English evidence lines, never the localized
+    /// summaries and finding text shown in the wizard.
     private func exportDiagnostics() {
         var lines = ["=== Audio Diagnostics Export ===", "Date: \(Date().formatted())"]
-        if let symptom = engine.selectedSymptom { lines.append("Symptom: \(symptom.displayName)") }
+        if let symptom = engine.selectedSymptom { lines.append("Symptom: \(symptom.rawValue)") }
         lines.append("\n--- Probe Results ---")
         for result in engine.probeResults {
-            lines.append("[\(result.status.displayName)] \(result.summary)")
+            lines.append("[\(result.status.rawValue)] \(result.probeId)")
             result.evidence.forEach { lines.append("  \($0)") }
         }
         lines.append("\n--- Findings ---")
         for finding in engine.currentFindings {
-            lines.append("[\(finding.confidence.displayName)] \(finding.description): \(finding.evidence)")
+            lines.append("[\(finding.confidence.rawValue)] \(finding.id)")
         }
         lines.append("\n--- Attempted Fixes ---")
         engine.attemptedFixes.forEach { lines.append("- \($0.actionId)") }

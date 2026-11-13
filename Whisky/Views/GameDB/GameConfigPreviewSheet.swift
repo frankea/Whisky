@@ -251,7 +251,7 @@ extension GameConfigPreviewSheet {
 extension GameConfigPreviewSheet {
     @ViewBuilder
     private var restartNote: some View {
-        let hasBackendChange = changes.contains { $0.category == "Graphics" && $0.settingName == "Graphics Backend" }
+        let hasBackendChange = changes.contains { $0.kind == .graphicsBackend }
         if hasBackendChange {
             HStack(spacing: 6) {
                 Image(systemName: "arrow.clockwise")

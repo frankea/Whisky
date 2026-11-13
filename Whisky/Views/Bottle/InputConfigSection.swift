@@ -353,8 +353,8 @@ struct InputConfigSection: View {
     private func copyControllerInfo() {
         var lines = ["Connected Controllers:"]
         for controller in controllerMonitor.controllers {
-            lines.append("  - \(controller.name)")
-            lines.append("    Type: \(controller.typeBadge.displayName)")
+            lines.append("  - \(controller.exportName)")
+            lines.append("    Type: \(controller.typeBadge.exportName)")
             lines.append("    Connection: \(controller.connectionType.rawValue)")
             if let level = controller.batteryLevel {
                 let stateStr = controller.batteryState.map { " (\($0))" } ?? ""

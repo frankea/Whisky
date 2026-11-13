@@ -159,7 +159,7 @@ extension DiagnosisHistoryView {
     }
 
     private func confidenceBadge(_ tier: ConfidenceTier) -> some View {
-        Text(tier.displayName)
+        Text(tier.localizedName)
             .font(.caption2)
             .fontWeight(.medium)
             .padding(.horizontal, 6)

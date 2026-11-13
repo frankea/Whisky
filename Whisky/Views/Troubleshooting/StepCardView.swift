@@ -138,19 +138,20 @@ extension StepCardView {
                 Image(systemName: outcomeIcon(result.outcome))
                     .foregroundStyle(outcomeColor(result.outcome))
                     .font(.caption)
-                Text(result.summary)
+                Text(displaySummary(for: result))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             // Evidence key-value pairs using evidenceMap for labels
-            if !result.evidence.isEmpty {
+            let evidence = displayEvidence(for: result)
+            if !evidence.isEmpty {
                 ForEach(
-                    Array(result.evidence.sorted(by: { $0.key < $1.key })),
+                    Array(evidence.sorted(by: { $0.key < $1.key })),
                     id: \.key
                 ) { key, value in
                     HStack(alignment: .top, spacing: 4) {
-                        Text(evidenceLabel(for: key) + ":")
+                        Text("troubleshooting.evidence.label \(evidenceLabel(for: key))")
                             .font(.caption2)
                             .fontWeight(.medium)
                             .foregroundStyle(.secondary)
@@ -166,6 +167,46 @@ extension StepCardView {
     private func evidenceLabel(for key: String) -> String {
         node.evidenceMap?[key] ?? key
     }
+
+    /// The result summary in the user's language when the check that produced
+    /// it can rebuild one; otherwise the check's English summary.
+    ///
+    /// ``CheckResult/summary`` stays in English for history and exports.
+    private func displaySummary(for result: CheckResult) -> String {
+        guard let checkId = node.checkId,
+              let localize = Self.summaryLocalizers[checkId],
+              let localized = localize(result)
+        else {
+            return result.summary
+        }
+        return localized
+    }
+
+    /// The result evidence with values in the user's language when the check
+    /// that produced it stores them language-neutrally; otherwise as stored.
+    private func displayEvidence(for result: CheckResult) -> [String: String] {
+        guard node.checkId == CrashLogCheck().checkId else { return result.evidence }
+        return CrashLogCheck.localizedEvidence(for: result)
+    }
+
+    /// Checks that can rebuild their summary in the user's language, by check ID.
+    private static let summaryLocalizers: [String: @Sendable (CheckResult) -> String?] = [
+        AudioDeviceCheck().checkId: AudioDeviceCheck.localizedSummary(for:),
+        AudioDriverCheck().checkId: AudioDriverCheck.localizedSummary(for:),
+        AudioTestCheck().checkId: AudioTestCheck.localizedSummary(for:),
+        CrashLogCheck().checkId: CrashLogCheck.localizedSummary(for:),
+        DependencyCheck().checkId: DependencyCheck.localizedSummary(for:),
+        DiagnosticsEnhanceCheck().checkId: DiagnosticsEnhanceCheck.localizedSummary(for:),
+        DXVKSettingsCheck().checkId: DXVKSettingsCheck.localizedSummary(for:),
+        EnvironmentCheck().checkId: EnvironmentCheck.localizedSummary(for:),
+        GameConfigAvailableCheck().checkId: GameConfigAvailableCheck.localizedSummary(for:),
+        GraphicsBackendCheck().checkId: GraphicsBackendCheck.localizedSummary(for:),
+        LauncherTypeCheck().checkId: LauncherTypeCheck.localizedSummary(for:),
+        ProcessRunningCheck().checkId: ProcessRunningCheck.localizedSummary(for:),
+        RegistryValueCheck().checkId: RegistryValueCheck.localizedSummary(for:),
+        SettingValueCheck().checkId: SettingValueCheck.localizedSummary(for:),
+        WinetricksVerbCheck().checkId: WinetricksVerbCheck.localizedSummary(for:)
+    ]
 
     private func outcomeIcon(_ outcome: CheckOutcome) -> String {
         switch outcome {
@@ -191,7 +232,7 @@ extension StepCardView {
 
 extension StepCardView {
     private func confidenceBadge(_ tier: ConfidenceTier) -> some View {
-        Text(tier.displayName)
+        Text(tier.localizedName)
             .font(.caption2)
             .fontWeight(.medium)
             .padding(.horizontal, 8)

@@ -210,27 +210,27 @@ public struct TroubleshootingSessionStore: TroubleshootingSessionStoring {
 
         var changes: [StalenessChange] = []
 
-        // Graphics backend changed
+        // Graphics backend changed. The preflight stores raw values ("dxvk"),
+        // so the message names the backends the way the app does.
         if snapshot.graphicsBackend != currentPreflight.graphicsBackend {
+            let oldBackend = Self.backendName(snapshot.graphicsBackend)
+            let newBackend = Self.backendName(currentPreflight.graphicsBackend)
             changes.append(StalenessChange(
                 field: "graphicsBackend",
                 oldValue: snapshot.graphicsBackend,
                 newValue: currentPreflight.graphicsBackend,
-                displayMessage: "Graphics backend changed from \(snapshot.graphicsBackend) "
-                    + "to \(currentPreflight.graphicsBackend)"
+                displayMessage: String(
+                    localized: "troubleshooting.resume.change.backend \(oldBackend) \(newBackend)"
+                )
             ))
         }
 
         // Audio device name changed
-        let oldAudio = snapshot.audioDeviceName ?? "none"
-        let newAudio = currentPreflight.audioDeviceName ?? "none"
-        if oldAudio != newAudio {
-            changes.append(StalenessChange(
-                field: "audioDeviceName",
-                oldValue: oldAudio,
-                newValue: newAudio,
-                displayMessage: "Audio output device changed from \(oldAudio) to \(newAudio)"
-            ))
+        if let audioChange = Self.audioDeviceChange(
+            from: snapshot.audioDeviceName,
+            to: currentPreflight.audioDeviceName
+        ) {
+            changes.append(audioChange)
         }
 
         // Wineserver running state changed
@@ -241,7 +241,9 @@ public struct TroubleshootingSessionStore: TroubleshootingSessionStoring {
                 field: "isWineserverRunning",
                 oldValue: oldState,
                 newValue: newState,
-                displayMessage: "Wine server is now \(newState) (was \(oldState))"
+                displayMessage: currentPreflight.isWineserverRunning
+                    ? String(localized: "troubleshooting.resume.change.wineserverStarted")
+                    : String(localized: "troubleshooting.resume.change.wineserverStopped")
             ))
         }
 
@@ -255,10 +257,37 @@ public struct TroubleshootingSessionStore: TroubleshootingSessionStoring {
                 field: "processCount",
                 oldValue: String(oldCount),
                 newValue: String(newCount),
-                displayMessage: "Wine process count changed from \(oldCount) to \(newCount)"
+                displayMessage: String(
+                    localized: "troubleshooting.resume.change.processCount \(oldCount) \(newCount)"
+                )
             ))
         }
 
         return changes
+    }
+
+    /// The change in default audio output device, if any. `oldValue` and
+    /// `newValue` keep "none" for a missing device; only the message is localized.
+    private static func audioDeviceChange(from oldDevice: String?, to newDevice: String?) -> StalenessChange? {
+        let oldAudio = oldDevice ?? "none"
+        let newAudio = newDevice ?? "none"
+        guard oldAudio != newAudio else { return nil }
+        let noDevice = String(localized: "troubleshooting.resume.change.noDevice")
+        let oldName = oldDevice ?? noDevice
+        let newName = newDevice ?? noDevice
+        return StalenessChange(
+            field: "audioDeviceName",
+            oldValue: oldAudio,
+            newValue: newAudio,
+            displayMessage: String(
+                localized: "troubleshooting.resume.change.audioDevice \(oldName) \(newName)"
+            )
+        )
+    }
+
+    /// A graphics backend's display name for a stored raw value, or the raw
+    /// value itself when it no longer names a backend.
+    private static func backendName(_ rawValue: String) -> String {
+        GraphicsBackend(rawValue: rawValue)?.displayName ?? rawValue
     }
 }

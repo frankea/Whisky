@@ -54,9 +54,9 @@ struct LogViewerView: View {
 extension LogViewerView {
     private var filterBar: some View {
         HStack(spacing: 8) {
-            filterButton(title: "Show all", mode: .all)
-            filterButton(title: "Only tagged", mode: .tagged)
-            filterButton(title: "Crash-related", mode: .crashRelated)
+            filterButton(title: "diagnostics.log.filter.all", mode: .all)
+            filterButton(title: "diagnostics.log.filter.tagged", mode: .tagged)
+            filterButton(title: "diagnostics.log.filter.crashRelated", mode: .crashRelated)
             Spacer()
             TextField("Search log\u{2026}", text: $searchText)
                 .textFieldStyle(.roundedBorder)
@@ -68,7 +68,7 @@ extension LogViewerView {
         .background(Color(.windowBackgroundColor))
     }
 
-    private func filterButton(title: String, mode: LogFilterMode) -> some View {
+    private func filterButton(title: LocalizedStringKey, mode: LogFilterMode) -> some View {
         Button {
             filterMode = mode
             if case .category = mode {} else {

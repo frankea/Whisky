@@ -189,7 +189,7 @@ struct ConfigView: View {
         }
         .sheet(isPresented: $showStabilityDiagnostics) {
             DiagnosticsReportView(
-                title: "Stability Diagnostics Report",
+                title: String(localized: "config.stability.report.title"),
                 report: stabilityDiagnosticReport,
                 defaultFilenamePrefix: "whisky-stability-diagnostics"
             )

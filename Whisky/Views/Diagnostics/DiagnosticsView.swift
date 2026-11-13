@@ -192,7 +192,7 @@ extension DiagnosticsView {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    if let headline = diagnosis.headline {
+                    if let headline = diagnosis.displayHeadline {
                         Text(headline)
                             .font(.title3)
                             .fontWeight(.semibold)
@@ -203,7 +203,7 @@ extension DiagnosticsView {
                             Circle()
                                 .fill(colorForConfidence(confidence))
                                 .frame(width: 8, height: 8)
-                            Text("\(confidence.displayName) confidence")
+                            Text(confidence.confidenceLabel)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -234,20 +234,19 @@ extension DiagnosticsView {
         guard let category = diagnosis.primaryCategory,
               let confidence = diagnosis.primaryConfidence
         else {
-            return "No strong patterns detected."
+            return String(localized: "diagnostics.why.noPatterns")
         }
 
+        // The quoted log text is data and stays as it is.
         let matchedLines = diagnosis.matches
             .filter { $0.pattern.category == category }
             .prefix(3)
-            .map { "Line \($0.lineIndex + 1): \($0.lineText.prefix(80))" }
-            .joined(separator: "\n")
+            .map { String(localized: "diagnostics.why.line \($0.lineIndex + 1) \(String($0.lineText.prefix(80)))") }
 
-        return """
-        \(matchCount) pattern(s) matched for \(category.displayName) \
-        with \(confidence.displayName.lowercased()) confidence.
-        \(matchedLines)
-        """
+        let summary = String(
+            localized: "diagnostics.why.summary \(matchCount) \(category.displayName) \(confidence.confidenceLabel)"
+        )
+        return ([summary] + matchedLines).joined(separator: "\n")
     }
 }
 

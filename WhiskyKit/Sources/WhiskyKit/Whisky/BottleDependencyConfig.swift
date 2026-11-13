@@ -85,40 +85,45 @@ extension DependencyDefinition {
     /// Each entry maps a user-facing name to one or more winetricks verbs.
     /// The list covers the most commonly needed Windows components for
     /// games and applications running under Wine.
-    public static let standardDependencies: [DependencyDefinition] = [
-        DependencyDefinition(
-            id: "vcruntime",
-            displayName: "Visual C++ Runtime",
-            description: "Required by most Windows games and applications",
-            winetricksVerbs: ["vcrun2019"],
-            category: .runtime,
-            estimatedInstallMinutes: 2
-        ),
-        DependencyDefinition(
-            id: "dotnet48",
-            displayName: ".NET Framework 4.8",
-            description: "Required by .NET applications and some game launchers",
-            winetricksVerbs: ["dotnet48"],
-            category: .runtime,
-            estimatedInstallMinutes: 10
-        ),
-        DependencyDefinition(
-            id: "directx",
-            displayName: "DirectX Runtime",
-            description: "DirectX 9/10/11 components for older games",
-            winetricksVerbs: ["d3dx9", "d3dcompiler_47"],
-            category: .directx,
-            estimatedInstallMinutes: 3
-        ),
-        DependencyDefinition(
-            id: "directx_audio",
-            displayName: "DirectX Audio",
-            description: "XACT audio framework for games using DirectX audio",
-            winetricksVerbs: ["xact"],
-            category: .audio,
-            estimatedInstallMinutes: 2
-        )
-    ]
+    ///
+    /// Computed on each access so the names and descriptions follow the
+    /// app's current language.
+    public static var standardDependencies: [DependencyDefinition] {
+        [
+            DependencyDefinition(
+                id: "vcruntime",
+                displayName: String(localized: "dependency.vcruntime.name"),
+                description: String(localized: "dependency.vcruntime.description"),
+                winetricksVerbs: ["vcrun2019"],
+                category: .runtime,
+                estimatedInstallMinutes: 2
+            ),
+            DependencyDefinition(
+                id: "dotnet48",
+                displayName: ".NET Framework 4.8",
+                description: String(localized: "dependency.dotnet48.description"),
+                winetricksVerbs: ["dotnet48"],
+                category: .runtime,
+                estimatedInstallMinutes: 10
+            ),
+            DependencyDefinition(
+                id: "directx",
+                displayName: String(localized: "dependency.directx.name"),
+                description: String(localized: "dependency.directx.description"),
+                winetricksVerbs: ["d3dx9", "d3dcompiler_47"],
+                category: .directx,
+                estimatedInstallMinutes: 3
+            ),
+            DependencyDefinition(
+                id: "directx_audio",
+                displayName: String(localized: "dependency.directxAudio.name"),
+                description: String(localized: "dependency.directxAudio.description"),
+                winetricksVerbs: ["xact"],
+                category: .audio,
+                estimatedInstallMinutes: 2
+            )
+        ]
+    }
 }
 
 // MARK: - Dependency Confidence

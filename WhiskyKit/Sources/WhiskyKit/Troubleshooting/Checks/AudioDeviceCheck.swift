@@ -46,8 +46,8 @@ public struct AudioDeviceCheck: TroubleshootingCheck {
         ]
 
         // Check for Bluetooth transport (potential latency)
-        if transportType.lowercased().contains("bluetooth") {
-            evidence["warning"] = "Bluetooth audio may have latency issues"
+        if Self.isBluetooth(transportType) {
+            evidence["warning"] = String(localized: "troubleshooting.check.audioDevice.bluetoothWarning")
             return CheckResult(
                 outcome: .pass,
                 evidence: evidence,
@@ -62,5 +62,41 @@ public struct AudioDeviceCheck: TroubleshootingCheck {
             summary: "\(deviceName) (\(transportType)) available",
             confidence: .high
         )
+    }
+
+    /// The summary of a result from this check in the user's language.
+    ///
+    /// ``CheckResult/summary`` stays in English because it is written to
+    /// history and escalation exports; this rebuilds the on-screen text from
+    /// the result's outcome and evidence.
+    ///
+    /// - Parameter result: A result produced by ``run(params:context:)``.
+    /// - Returns: The localized summary, or `nil` if the result was not
+    ///   produced by this check.
+    public static func localizedSummary(for result: CheckResult) -> String? {
+        if result.outcome == .fail {
+            return String(localized: "troubleshooting.check.audioDevice.none")
+        }
+        guard let deviceName = result.evidence["deviceName"],
+              let transportType = result.evidence["transportType"]
+        else {
+            return nil
+        }
+        if isBluetooth(transportType) {
+            return String(localized: "troubleshooting.check.audioDevice.bluetooth \(deviceName)")
+        }
+        // Preflight stores the English name ("Built-in"); older sessions may hold a raw value.
+        let transport = AudioTransportType.allCases
+            .first { $0.exportName == transportType || $0.rawValue == transportType }?
+            .displayName ?? transportType
+        return String(localized: "troubleshooting.check.audioDevice.available \(deviceName) \(transport)")
+    }
+
+    /// Whether a preflight transport value names a Bluetooth device.
+    ///
+    /// Accepts both a raw ``AudioTransportType`` value and its display name.
+    private static func isBluetooth(_ transportType: String) -> Bool {
+        AudioTransportType(rawValue: transportType) == .bluetooth
+            || transportType.lowercased().contains("bluetooth")
     }
 }

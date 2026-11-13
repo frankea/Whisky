@@ -75,7 +75,7 @@ extension TroubleshootingHistoryView {
                         .foregroundStyle(.secondary)
                         .frame(width: 20)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(entry.symptomCategory.displayTitle)
+                        Text(entry.symptomCategory.localizedTitle)
                             .font(.subheadline)
                             .fontWeight(.medium)
                             .foregroundStyle(.primary)

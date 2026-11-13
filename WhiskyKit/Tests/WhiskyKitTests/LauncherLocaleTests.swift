@@ -40,9 +40,31 @@ private func launcherEnvironment(
 
 @Suite("Launcher locale override (#330)")
 struct LauncherLocaleTests {
-    @Test("The presets that set a locale are the five Chromium launchers")
+    @Test("The presets that set a locale are the four Chromium launchers other than Steam")
     func presetsSettingALocale() {
-        #expect(Set(presetsWithLocale) == [.steam, .rockstar, .eaApp, .epicGames, .battleNet])
+        #expect(Set(presetsWithLocale) == [.rockstar, .eaApp, .epicGames, .battleNet])
+    }
+
+    @Test("A Steam bottle on Auto leaves the locale to the Mac")
+    func steamAutoFollowsTheMac() {
+        let env = launcherEnvironment(.steam, locale: .auto).environment
+        for key in ["LC_ALL", "LANG", "LC_TIME", "LC_NUMERIC"] {
+            #expect(env[key] == nil, "\(key)")
+        }
+    }
+
+    @Test("A full Steam launch on Auto carries no locale variables")
+    @MainActor
+    func steamAutoFullLaunch() {
+        let bottle = Bottle(bottleUrl: FileManager.default.temporaryDirectory.appending(path: "steam_locale"))
+        bottle.settings.launcherCompatibilityMode = true
+        bottle.settings.detectedLauncher = .steam
+        let env = Wine.constructWineEnvironment(for: bottle, builtinD3D12IsD3DMetal: false)
+        for key in ["LC_ALL", "LANG", "LC_TIME", "LC_NUMERIC"] {
+            #expect(env[key] == nil, "\(key)")
+        }
+        // The rest of the Steam preset still applies.
+        #expect(env["STEAM_DISABLE_CEF_SANDBOX"] == "1")
     }
 
     @Test("A Steam bottle set to Japanese resolves the Japanese locale")

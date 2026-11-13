@@ -136,9 +136,9 @@ public enum LauncherFixes {
         bottle.settings.detectedLauncher = launcher
 
         // Apply launcher-specific configurations. The locale is not among them:
-        // the presets carry en_US while Locale Override is on Auto, and writing
-        // English into the setting turned it into an explicit choice that Steam's
-        // orchestrator rewrote on every start, so the user's own never stuck (#330).
+        // Auto keeps the preset's locale (or the Mac's), and writing
+        // English into the setting turned it into an explicit choice, rewritten
+        // whenever the fixes were applied again (#330, LauncherLocaleMigration).
         switch launcher {
         case .steam:
             applySteamBackend(to: bottle, force: force, recommendedBackend: recommendedBackend)

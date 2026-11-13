@@ -115,8 +115,8 @@ open class WineSteamClientDriver: SteamClientDriver {
         SteamLauncher.startClient(steamExe: steamExe, bottle: bottle)
     }
 
-    /// Through the shared path, which carries the locale, DXVK and
-    /// GPU-spoofing settings steamwebhelper needs and not just the compat flag.
+    /// Through the shared path, which carries the DXVK and GPU-spoofing
+    /// settings steamwebhelper needs and not just the compat flag.
     open func applyLauncherFixes() {
         LauncherFixes.apply(to: bottle, launcher: .steam)
     }

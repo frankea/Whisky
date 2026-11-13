@@ -10090,18 +10090,18 @@
         }
       }
     },
-    "Sets the Windows locale for every program in this bottle, including games a launcher starts. Auto keeps the launcher's default: US English for Steam, EA App, Epic Games, Battle.net and Rockstar, and the Mac's own language and region otherwise." : {
+    "Sets the Windows locale for every program in this bottle, including games a launcher starts. Auto keeps the launcher's default: US English for EA App, Epic Games, Battle.net and Rockstar, and the Mac's own language and region otherwise." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sets the Windows locale for every program in this bottle, including games a launcher starts. Auto keeps the launcher's default: US English for Steam, EA App, Epic Games, Battle.net and Rockstar, and the Mac's own language and region otherwise."
+            "value" : "Sets the Windows locale for every program in this bottle, including games a launcher starts. Auto keeps the launcher's default: US English for EA App, Epic Games, Battle.net and Rockstar, and the Mac's own language and region otherwise."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sets the Windows locale for every program in this bottle, including games a launcher starts. Auto keeps the launcher's default: US English for Steam, EA App, Epic Games, Battle.net and Rockstar, and the Mac's own language and region otherwise."
+            "value" : "Sets the Windows locale for every program in this bottle, including games a launcher starts. Auto keeps the launcher's default: US English for EA App, Epic Games, Battle.net and Rockstar, and the Mac's own language and region otherwise."
           }
         }
       }
@@ -58247,22 +58247,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "GPU spoofing helps with game compatibility checks"
-          }
-        }
-      }
-    },
-    "launcher.warning.steamLocale" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam may crash without en_US locale (steamwebhelper issue)"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Steam may crash without en_US locale (steamwebhelper issue)"
           }
         }
       }

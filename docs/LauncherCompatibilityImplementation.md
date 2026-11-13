@@ -78,7 +78,7 @@ The implementation follows a layered architecture with clear separation of conce
 **Sample Environment Overrides:**
 ```swift
 Steam:
-- LC_ALL=en_US.UTF-8 (fixes steamwebhelper crashes)
+- No locale (on Auto, the Mac's language and region)
 - STEAM_DISABLE_CEF_SANDBOX=1 (Wine compatibility)
 - WINHTTP_CONNECT_TIMEOUT=90000 (download reliability)
 
@@ -354,7 +354,7 @@ if bottle.settings.launcherCompatibilityMode &&
 ### Unit Tests Summary
 
 #### LauncherPresetTests.swift (12 tests)
-✅ `testSteamPresetIncludesLocale`
+✅ `testSteamPresetLeavesTheLocaleToTheMac`
 ✅ `testSteamPresetDisablesSandbox`
 ✅ `testSteamPresetIncludesNetworkFixes`
 ✅ `testRockstarRequiresDXVK`

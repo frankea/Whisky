@@ -62,8 +62,8 @@ public struct BottleLauncherConfig: Codable, Equatable {
 
     /// Locale override for launcher compatibility.
     ///
-    /// Most launchers (Steam, EA App, Epic) work best with `en_US.UTF-8`
-    /// to avoid steamwebhelper crashes and date/time parsing issues.
+    /// Auto keeps the launcher preset's locale, or the Mac's when the preset
+    /// sets none (Steam's sets none, #330).
     var launcherLocale: Locales = .auto
 
     /// Whether to enable GPU spoofing for launcher compatibility checks.
@@ -106,6 +106,13 @@ public struct BottleLauncherConfig: Codable, Equatable {
     /// Steam keeps DXVK per executable. Any other change of backend clears it.
     var backendSwitchedByLauncher: Bool = false
 
+    /// The last ``LauncherLocaleMigration`` this bottle has been through.
+    ///
+    /// A bottle created by this version starts at the current one, since no
+    /// older Steam fixes ever wrote its locale. A file without the key
+    /// predates the migration and decodes as `0`.
+    var localeMigration: Int = LauncherLocaleMigration.current
+
     public init() {}
 
     public init(from decoder: Decoder) throws {
@@ -123,6 +130,7 @@ public struct BottleLauncherConfig: Codable, Equatable {
         self.backendSwitchedByLauncher = try container.decodeIfPresent(
             Bool.self, forKey: .backendSwitchedByLauncher
         ) ?? false
+        self.localeMigration = try container.decodeIfPresent(Int.self, forKey: .localeMigration) ?? 0
     }
 }
 

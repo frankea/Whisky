@@ -33,7 +33,6 @@ import WhiskyKit
 /// ``diagnosticMessage``, in English, so reports read the same whatever the
 /// reporter's language.
 enum LauncherConfigWarning: Hashable {
-    case steamLocale
     case steamGPUSpoofing
     case rockstarDXVK
     case eaGPUSpoofing
@@ -54,7 +53,6 @@ enum LauncherConfigWarning: Hashable {
     /// The warning for the settings UI, in the app's language.
     var localizedMessage: String {
         let message = switch self {
-        case .steamLocale: String(localized: "launcher.warning.steamLocale")
         case .steamGPUSpoofing: String(localized: "launcher.warning.steamGPUSpoofing")
         case .rockstarDXVK: String(localized: "launcher.warning.rockstarDXVK")
         case .eaGPUSpoofing: String(localized: "launcher.warning.eaGPUSpoofing")
@@ -69,7 +67,6 @@ enum LauncherConfigWarning: Hashable {
     /// The warning for diagnostics exports, always in English.
     var diagnosticMessage: String {
         let message = switch self {
-        case .steamLocale: "Steam may crash without en_US locale (steamwebhelper issue)"
         case .steamGPUSpoofing: "GPU spoofing helps with game compatibility checks"
         case .rockstarDXVK: "DXVK REQUIRED for Rockstar Launcher (logo won't display without it)"
         case .eaGPUSpoofing: "GPU spoofing REQUIRED for EA App (will show 'GPU not supported')"
@@ -104,17 +101,15 @@ enum LauncherDetection {
     // swiftlint:disable:next cyclomatic_complexity
     static func validateBottleForLauncher(_ bottle: Bottle, launcher: LauncherType) -> [LauncherConfigWarning] {
         var warnings: [LauncherConfigWarning] = []
-        // Auto keeps the preset's en_US, so only an explicit other locale can
-        // trip the launchers' web views.
+        // Auto keeps the EA, Epic, and Battle.net presets' en_US, so only an
+        // explicit other locale can trip those launchers' web views. Steam's
+        // web helper runs under any locale, so it gets no locale warning (#330).
         let nonEnglishLocale = ![.english, .auto].contains(bottle.settings.launcherLocale)
 
         switch launcher {
         case .steam:
             // No DXVK check: Steam's own processes get DXVK through their own
             // overrides, so a bottle on D3DMetal is the intended setup (#276).
-            if nonEnglishLocale {
-                warnings.append(.steamLocale)
-            }
             if !bottle.settings.gpuSpoofing {
                 warnings.append(.steamGPUSpoofing)
             }

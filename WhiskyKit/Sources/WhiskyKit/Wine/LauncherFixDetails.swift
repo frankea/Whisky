@@ -34,26 +34,6 @@ extension LauncherType {
         case .steam:
             [
                 LauncherFixDetail(
-                    key: "LC_ALL", value: "en_US.UTF-8",
-                    reason: "Fixes steamwebhelper CEF locale crashes",
-                    category: .locale
-                ),
-                LauncherFixDetail(
-                    key: "LANG", value: "en_US.UTF-8",
-                    reason: "Fixes steamwebhelper CEF locale crashes",
-                    category: .locale
-                ),
-                LauncherFixDetail(
-                    key: "LC_TIME", value: "C",
-                    reason: "Avoids ICU date/time parsing errors",
-                    category: .locale
-                ),
-                LauncherFixDetail(
-                    key: "LC_NUMERIC", value: "C",
-                    reason: "Avoids ICU numeric parsing errors",
-                    category: .locale
-                ),
-                LauncherFixDetail(
                     key: "STEAM_DISABLE_CEF_SANDBOX", value: "1",
                     reason: "Disables Steam-specific CEF sandbox (crashes under Wine)",
                     category: .sandbox

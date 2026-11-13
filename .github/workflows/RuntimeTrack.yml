@@ -29,9 +29,10 @@ env:
   WINE_PINNED: "11.0_1"
   DXVK_REPO: Gcenx/DXVK-macOS
   DXVK_PINNED: v1.10.3-20230507-repack
-  # v0.80 is the last MIT-licensed DXMT release (v1.0+ is LGPL); bundled since
-  # runtime v3.1.0. Bumping past it is a deliberate relicensing decision — see
-  # docs/DEPENDENCIES.md — not a routine drift fix.
+  # v0.80 is the last MIT-licensed DXMT release (everything after it is LGPL);
+  # bundled since runtime v3.1.0. Whisky stays on it permanently (#138, see
+  # docs/DEPENDENCIES.md), so DXMT is checked as frozen: newer upstream
+  # releases are listed in the summary but never filed as drift.
   DXMT_REPO: 3Shain/dxmt
   DXMT_PINNED: v0.80
 
@@ -77,7 +78,7 @@ jobs:
           summary="| Component | Pinned | Latest upstream | Status |\n|---|---|---|---|\n"
 
           check() {
-            local name="$1" repo="$2" pinned="$3" latest="$4"
+            local name="$1" repo="$2" pinned="$3" latest="$4" frozen="${5:-}"
             local status
             if [ "$latest" = "ERROR" ]; then
               status="⚠️ could not check (skipped)"
@@ -85,6 +86,8 @@ jobs:
               status="ℹ️ pin not set"
             elif [ "$pinned" = "$latest" ]; then
               status="✅ current"
+            elif [ -n "$frozen" ]; then
+              status="🔒 frozen (${frozen}); newer upstream not adopted"
             else
               status="⚠️ behind"
               drift_body="${drift_body}- **${name}** (\`${repo}\`): bundled \`${pinned}\` → latest \`${latest}\`\n"
@@ -95,7 +98,7 @@ jobs:
           # Wine: compare against the latest STABLE tag (not the devel /releases/latest).
           check "Wine"  "$WINE_REPO" "$WINE_PINNED" "$(latest_stable_tag "$WINE_REPO")"
           check "DXVK"  "$DXVK_REPO" "$DXVK_PINNED" "$(latest_tag "$DXVK_REPO")"
-          check "DXMT"  "$DXMT_REPO" "$DXMT_PINNED" "$(latest_tag "$DXMT_REPO")"
+          check "DXMT"  "$DXMT_REPO" "$DXMT_PINNED" "$(latest_tag "$DXMT_REPO")" "last MIT release"
 
           printf "### Runtime dependency check\n\n%b\n" "$summary" >> "$GITHUB_STEP_SUMMARY"
 

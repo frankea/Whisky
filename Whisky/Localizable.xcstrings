@@ -45877,6 +45877,56 @@
         }
       }
     },
+    "diagnostics.export.error.archiveMissing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The diagnostics archive was not created."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The diagnostics archive was not created."
+          }
+        }
+      }
+    },
+    "diagnostics.export.error.compressionFailed %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The diagnostics archive could not be created (ditto exited with status %lld)."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The diagnostics archive could not be created (ditto exited with status %lld)."
+          }
+        }
+      }
+    },
+    "diagnostics.export.saveFailed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't Save the Diagnostic Report"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't Save the Diagnostic Report"
+          }
+        }
+      }
+    },
     "diagnostics.headline %@ %@" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -74,7 +74,8 @@ extension EscalationView {
                     .fontWeight(.medium)
                     .foregroundStyle(.secondary)
 
-                ForEach(engine.session.fixAttempts, id: \.fixId) { attempt in
+                // A fix tried more than once has a row per attempt.
+                ForEach(Array(engine.session.fixAttempts.enumerated()), id: \.offset) { _, attempt in
                     HStack(spacing: 6) {
                         Image(systemName: resultIcon(for: attempt.result))
                             .foregroundStyle(resultColor(for: attempt.result))

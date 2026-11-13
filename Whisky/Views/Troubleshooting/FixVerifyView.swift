@@ -142,14 +142,10 @@ extension FixVerifyView {
         else {
             return false
         }
-        // Check if the fix is reversible by previewing (read-only, no side effects)
-        let preview = FixApplicator.preview(
-            fixId: lastApplied.fixId,
-            params: lastApplied.params ?? [:],
-            bottle: bottle,
-            program: program
-        )
-        return preview?.isReversible ?? false
+        // Decided from the attempt alone: this runs on every render, and a
+        // preview reads the current value (all of system.reg for a registry
+        // fix) on the main actor.
+        return FixApplicator.canUndo(lastApplied, hasProgram: program != nil)
     }
 
     private func performUndo() {

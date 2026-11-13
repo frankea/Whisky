@@ -220,4 +220,39 @@ final class TroubleshootingFixLifecycleTests: XCTestCase {
             "no step the engine never reaches"
         )
     }
+
+    // MARK: - Undo availability
+
+    func testUndoAvailabilityComesFromTheAttempt() {
+        let registry = FixAttempt(
+            fixId: "set-registry-value",
+            beforeValue: "1.1.1.1",
+            result: .applied,
+            params: ["key": #"HKLM\System\Tcpip"#, "valueName": "NameServer"]
+        )
+        XCTAssertTrue(FixApplicator.canUndo(registry, hasProgram: false))
+        XCTAssertFalse(
+            FixApplicator.canUndo(FixAttempt(fixId: "set-registry-value", result: .applied), hasProgram: false),
+            "a registry fix recorded without its key cannot be put back"
+        )
+
+        let bottleBackend = FixAttempt(fixId: "switch-backend", beforeValue: "d3dMetal", result: .applied)
+        XCTAssertTrue(FixApplicator.canUndo(bottleBackend, hasProgram: false))
+        let programBackend = FixAttempt(
+            fixId: "switch-backend", beforeValue: "d3dMetal", result: .applied, params: ["scope": "program"]
+        )
+        XCTAssertFalse(FixApplicator.canUndo(programBackend, hasProgram: false))
+        XCTAssertTrue(FixApplicator.canUndo(programBackend, hasProgram: true))
+
+        let enhanced = FixAttempt(fixId: "run-enhanced-diagnostics", beforeValue: "default", result: .applied)
+        XCTAssertFalse(FixApplicator.canUndo(enhanced, hasProgram: false))
+        XCTAssertTrue(FixApplicator.canUndo(enhanced, hasProgram: true))
+
+        XCTAssertTrue(FixApplicator.canUndo(
+            FixAttempt(fixId: "enable-dxvk-async", beforeValue: "false"),
+            hasProgram: false
+        ))
+        XCTAssertFalse(FixApplicator.canUndo(FixAttempt(fixId: "install-winetricks-verb"), hasProgram: true))
+        XCTAssertFalse(FixApplicator.canUndo(FixAttempt(fixId: "restart-wineserver"), hasProgram: true))
+    }
 }

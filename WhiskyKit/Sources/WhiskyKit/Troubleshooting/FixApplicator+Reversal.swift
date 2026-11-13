@@ -35,3 +35,40 @@ public extension FixApplicator {
         currentPreset != enhancedDiagnosticsPreset
     }
 }
+
+// MARK: - Undo Availability
+
+public extension FixApplicator {
+    /// Whether ``undo(attempt:bottle:program:)`` can restore an applied fix,
+    /// decided from the attempt alone.
+    ///
+    /// Reads no settings, files or registry, so a view can ask on every
+    /// render; ``preview(fixId:params:bottle:program:)`` reads the current
+    /// value (all of `system.reg` for a registry fix) and is for the fix
+    /// card.
+    ///
+    /// - Parameters:
+    ///   - attempt: The applied attempt.
+    ///   - hasProgram: Whether a program is at hand, which program-scoped
+    ///     fixes need to be undone.
+    /// - Returns: `true` when the fix is reversible and the attempt kept
+    ///   what undoing it needs.
+    static func canUndo(_ attempt: FixAttempt, hasProgram: Bool) -> Bool {
+        switch attempt.fixId {
+        case "switch-backend":
+            guard attempt.beforeValue.flatMap(GraphicsBackend.init(rawValue:)) != nil else { return false }
+            return attempt.params?[backendScopeKey] != "program" || hasProgram
+        case "enable-dxvk-async", "set-audio-driver", "set-buffer-size", "enable-esync",
+             "enable-controller-compat":
+            return attempt.beforeValue != nil
+        case "run-enhanced-diagnostics":
+            return hasProgram
+        case "set-registry-value":
+            return attempt.params?["key"] != nil && attempt.params?["valueName"] != nil
+        case "apply-game-config":
+            return true
+        default:
+            return false
+        }
+    }
+}

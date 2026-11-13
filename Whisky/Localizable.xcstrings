@@ -47749,6 +47749,22 @@
         }
       }
     },
+    "gameConfig.detail.applyHelp.skipPreview" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies without the preview. Hold Option while clicking to review the changes first."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies without the preview. Hold Option while clicking to review the changes first."
+          }
+        }
+      }
+    },
     "gameConfig.detail.applyTo %@" : {
       "localizations" : {
         "ar" : {
@@ -51429,6 +51445,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不再顯示預覽"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.dontShowAgain.help" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply will skip this preview from now on. Hold Option while clicking Apply to see it again."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply will skip this preview from now on. Hold Option while clicking Apply to see it again."
           }
         }
       }

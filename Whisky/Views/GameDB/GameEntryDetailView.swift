@@ -35,6 +35,7 @@ struct GameEntryDetailView: View {
     @State private var toast: ToastData?
     @State private var applyTask: Task<Void, Never>?
     @State private var verbProgress: GameConfigVerbProgress?
+    @AppStorage("gameConfigSkipPreview") private var skipPreview: Bool = false
 
     var body: some View {
         ScrollView {
@@ -243,13 +244,20 @@ extension GameEntryDetailView {
             }
 
             Button {
-                showPreviewSheet = true
+                // "Don't show preview again" applies straight away; holding
+                // Option brings the preview back for this apply.
+                if skipPreview, !NSEvent.modifierFlags.contains(.option) {
+                    startApply(variant, installComponents: true)
+                } else {
+                    showPreviewSheet = true
+                }
             } label: {
                 Text("gameConfig.detail.applyTo \(bottle.settings.name)")
             }
             .controlSize(.large)
             .buttonStyle(.borderedProminent)
             .disabled(applyTask != nil)
+            .help(skipPreview ? String(localized: "gameConfig.detail.applyHelp.skipPreview") : "")
             .accessibilityIdentifier("gamedb.detail.applyButton")
 
             applyProgressRow

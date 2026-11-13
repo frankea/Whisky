@@ -280,6 +280,7 @@ extension GameConfigPreviewSheet {
             Toggle("gameConfig.preview.dontShowAgain", isOn: $skipPreview)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .help("gameConfig.preview.dontShowAgain.help")
 
             Spacer()
 

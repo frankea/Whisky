@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- The console's exit code labels and the program overrides' DLL summary
+  showed raw text such as `console.exitCode 1` or `%lld` instead of the
+  message, in every language.
+- Strings in the controller, dependency, audio, install, import and
+  troubleshooting screens that showed in English whatever the app's
+  language now use their existing translations, and about 85 more are
+  available to translators. Thanks to @PolarisSdesu for finding them
+  (#345, from #339).
+
 ## [3.9.1] - 2026-11-12 (App)
 
 ### Changed

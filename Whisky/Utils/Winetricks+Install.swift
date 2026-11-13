@@ -232,3 +232,71 @@ extension Winetricks {
         timeoutTask.cancel()
     }
 }
+
+// MARK: - Game Configuration Components
+
+/// The component an applied game configuration is installing, for the progress line.
+struct GameConfigVerbProgress: Equatable {
+    /// The winetricks verb being installed.
+    let verb: String
+    /// Its 1-based position among the verbs being installed.
+    let index: Int
+    /// How many verbs are being installed.
+    let total: Int
+
+    /// "Installing vcrun2022 (1 of 2)..."
+    var label: String {
+        String(localized: "gameConfig.apply.installing \(verb) \(index) \(total)")
+    }
+}
+
+extension Winetricks {
+    /// Installs the winetricks verbs an applied game configuration needs.
+    ///
+    /// Verbs install one at a time through ``installVerb(_:for:timeout:)``, so
+    /// a failure in one does not stop the rest. Each finished verb is recorded
+    /// in the returned outcome; one cut short by cancelling the calling task is
+    /// left unrecorded and counts as not installed. The verbs that installed
+    /// are added to the bottle's game configuration snapshot.
+    ///
+    /// - Parameters:
+    ///   - verbs: The verbs to install, normally the variant's pending verbs.
+    ///   - bottle: The bottle to install into.
+    ///   - onProgress: Called as each verb starts.
+    /// - Returns: Which verbs installed and which did not.
+    @MainActor
+    static func installGameConfigVerbs(
+        _ verbs: [String],
+        for bottle: Bottle,
+        onProgress: @MainActor (GameConfigVerbProgress) -> Void
+    ) async -> GameConfigVerbInstallOutcome {
+        var outcome = GameConfigVerbInstallOutcome(requested: verbs)
+        let total = outcome.requested.count
+        for (offset, verb) in outcome.requested.enumerated() {
+            guard !Task.isCancelled else { break }
+            onProgress(GameConfigVerbProgress(verb: verb, index: offset + 1, total: total))
+
+            var exitCode: Int32?
+            var failure: String?
+            for await progress in installVerb(verb, for: bottle) {
+                switch progress {
+                case let .completed(code): exitCode = code
+                case let .failed(message): failure = message
+                case .preparing, .output: break
+                }
+            }
+            guard !Task.isCancelled else { break }
+            outcome.record(verb, exitCode: exitCode, failure: failure)
+            if !outcome.installed.contains(verb) {
+                logger.warning("Game configuration component '\(verb)' failed to install")
+            }
+        }
+
+        do {
+            try GameConfigApplicator.recordInstalledVerbs(outcome.installed, bottleURL: bottle.url)
+        } catch {
+            logger.error("Failed to record installed components: \(error.localizedDescription)")
+        }
+        return outcome
+    }
+}

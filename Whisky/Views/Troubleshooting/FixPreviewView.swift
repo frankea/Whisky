@@ -34,6 +34,7 @@ struct FixPreviewView: View {
     @State private var fixPreview: FixPreview?
     @State private var showConfirmation: Bool = false
     @State private var isApplying: Bool = false
+    @State private var verbProgress: GameConfigVerbProgress?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -45,6 +46,11 @@ struct FixPreviewView: View {
                 fallbackDescription
             }
             actionButtons
+            if let verbProgress {
+                Text(verbProgress.label)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(16)
         .background(
@@ -292,6 +298,11 @@ extension FixPreviewView {
             return
         }
 
+        if fixId == "apply-game-config" {
+            applyGameConfig(params: params, fixId: fixId)
+            return
+        }
+
         isApplying = true
         let attempt = FixApplicator.apply(
             fixId: fixId,
@@ -338,6 +349,38 @@ extension FixPreviewView {
                 engine.confirmFixApplied(fixId: fixId)
             } else {
                 engine.markFixFailed(fixId: fixId)
+            }
+            isApplying = false
+        }
+    }
+}
+
+// MARK: - Game Configuration
+
+extension FixPreviewView {
+    /// Applies the matched game configuration, then installs the winetricks
+    /// components it needs before the flow moves on, so the progress stays in
+    /// view. The attempt counts as applied once the settings are, so Undo can
+    /// put them back; the verify step lists any component that did not install.
+    private func applyGameConfig(params: [String: String], fixId: String) {
+        isApplying = true
+        Task {
+            let attempt = FixApplicator.apply(fixId: fixId, params: params, bottle: bottle, program: program)
+            if attempt.result != .failed, let program,
+               let config = GameConfigApplicator.recommendedConfiguration(for: program) {
+                let installed = await Winetricks.loadInstalledVerbs(for: bottle).verbs
+                let pending = GameConfigApplicator.pendingWinetricksVerbs(
+                    variant: config.variant, installedVerbs: installed
+                )
+                _ = await Winetricks.installGameConfigVerbs(pending, for: bottle) { verbProgress = $0 }
+            }
+            verbProgress = nil
+
+            engine.applyFix(fixId: fixId, beforeValue: attempt.beforeValue, afterValue: attempt.afterValue)
+            if attempt.result == .failed {
+                engine.markFixFailed(fixId: fixId)
+            } else {
+                engine.confirmFixApplied(fixId: fixId)
             }
             isApplying = false
         }

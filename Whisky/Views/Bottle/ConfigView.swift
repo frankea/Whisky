@@ -97,6 +97,7 @@ struct ConfigView: View {
             DLLOverrideConfigSection(bottle: bottle, isExpanded: $dllOverrideSectionExpanded)
             DependencyConfigSection(bottle: bottle)
             gameConfigRevertSection
+            gameConfigEnvironmentSection
             Section("Diagnostics") {
                 Text("Analyze Wine crash output for troubleshooting guidance")
                     .font(.caption)
@@ -411,10 +412,44 @@ extension ConfigView {
         }
     }
 
+    /// Environment variables applied game configurations keep for games that
+    /// were not in the bottle yet, scoped to their executables. Programs that
+    /// were there got the variables in their own settings instead.
+    @ViewBuilder
+    var gameConfigEnvironmentSection: some View {
+        if !bottle.settings.gameConfigEnvironments.isEmpty {
+            Section("gameConfig.environment.title") {
+                ForEach(bottle.settings.gameConfigEnvironments) { record in
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(record.title)
+                                .font(.callout)
+                            if !record.executables.isEmpty {
+                                Text(record.executables.joined(separator: ", "))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            ForEach(record.variables.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
+                                Text(verbatim: "\(key)=\(value)")
+                                    .font(.caption.monospaced())
+                                    .textSelection(.enabled)
+                            }
+                        }
+                        Spacer()
+                        Button("gameConfig.environment.remove", role: .destructive) {
+                            bottle.settings.gameConfigEnvironments.removeAll { $0.entryId == record.entryId }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     func revertGameConfig(_ snapshot: GameConfigSnapshot) {
         do {
+            // revert deletes the snapshot file itself; deleting it again here
+            // threw, so the reverted section never went away.
             let remainingVerbs = try GameConfigApplicator.revert(bottle: bottle, snapshot: snapshot)
-            try GameConfigSnapshot.delete(from: bottle.url)
             gameConfigSnapshot = nil
             if !remainingVerbs.isEmpty {
                 logger.info(

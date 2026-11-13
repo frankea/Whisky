@@ -46633,6 +46633,54 @@
         }
       }
     },
+    "gameConfig.apply.applying" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applying configuration…"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applying configuration…"
+          }
+        }
+      }
+    },
+    "gameConfig.apply.componentsFailed %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applied the %1$@ settings, but these components failed to install: %2$@"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applied the %1$@ settings, but these components failed to install: %2$@"
+          }
+        }
+      }
+    },
+    "gameConfig.apply.componentsSkipped %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applied the %1$@ settings without these required components: %2$@"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applied the %1$@ settings without these required components: %2$@"
+          }
+        }
+      }
+    },
     "gameConfig.apply.failed %@" : {
       "localizations" : {
         "ar" : {
@@ -46777,6 +46825,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法套用組態：%@"
+          }
+        }
+      }
+    },
+    "gameConfig.apply.installing %@ %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installing %1$@ (%2$lld of %3$lld)…"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installing %1$@ (%2$lld of %3$lld)…"
           }
         }
       }
@@ -47681,6 +47745,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@: online play unavailable"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.applyHelp.skipPreview" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies without the preview. Hold Option while clicking to review the changes first."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies without the preview. Hold Option while clicking to review the changes first."
           }
         }
       }
@@ -50609,6 +50689,38 @@
         }
       }
     },
+    "gameConfig.environment.remove" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove"
+          }
+        }
+      }
+    },
+    "gameConfig.environment.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Game Environment Variables"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Game Environment Variables"
+          }
+        }
+      }
+    },
     "gameConfig.match.exeName %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -51333,6 +51445,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不再顯示預覽"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.dontShowAgain.help" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply will skip this preview from now on. Hold Option while clicking Apply to see it again."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply will skip this preview from now on. Hold Option while clicking Apply to see it again."
           }
         }
       }
@@ -95981,6 +96109,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "第 %1$d 次修正嘗試，共 %2$d 次"
+          }
+        }
+      }
+    },
+    "troubleshooting.verify.componentsMissing %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The settings were applied, but these components did not install: %@"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The settings were applied, but these components did not install: %@"
           }
         }
       }

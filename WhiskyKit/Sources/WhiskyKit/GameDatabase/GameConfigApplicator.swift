@@ -96,19 +96,25 @@ public enum GameConfigApplicator {
     /// Applies a game configuration variant to a bottle's settings.
     ///
     /// This method:
-    /// 1. Snapshots the current ``BottleSettings`` (and optionally program settings)
+    /// 1. Snapshots the current ``BottleSettings`` and the program environment
+    ///    variables it replaces
     /// 2. Mutates the bottle's settings based on the variant
-    /// 3. Saves the snapshot to the bottle directory
-    /// 4. Returns the snapshot for display and future revert
+    /// 3. Applies the variant's environment variables to the game's launches
+    ///    (see ``applyEnvironment(_:entry:to:targets:programURL:)``)
+    /// 4. Saves the snapshot to the bottle directory
+    /// 5. Returns the snapshot for display and future revert
     ///
-    /// Winetricks verb installation is NOT done here -- the UI handles that
-    /// separately per user decision.
+    /// Winetricks verbs are not installed here: installing runs winetricks for
+    /// minutes, so the app does it afterwards with progress, using
+    /// ``pendingWinetricksVerbs(variant:installedVerbs:)``, and records what
+    /// landed with ``recordInstalledVerbs(_:bottleURL:)``.
     ///
     /// - Parameters:
     ///   - entry: The game database entry being applied.
     ///   - variant: The specific variant to apply.
     ///   - bottle: The target bottle whose settings will be mutated.
-    ///   - programURL: Optional program URL for program-level settings snapshot.
+    ///   - programURL: The program the configuration is applied from, if any. It
+    ///     receives the environment variables.
     ///   - isBackendAvailable: Whether this machine can run a backend; see
     ///     ``effectiveBackend(_:isBackendAvailable:)``. Defaults to the installed runtime.
     /// - Returns: The snapshot created before applying changes.
@@ -126,24 +132,18 @@ public enum GameConfigApplicator {
         encoder.outputFormat = .xml
         let bottleSettingsData = try encoder.encode(bottle.settings)
 
-        // 2. Create snapshot
+        // 2. Create snapshot. No verbs are installed yet; the app records the
+        // ones that install with recordInstalledVerbs.
         var snapshot = GameConfigSnapshot(
             bottleSettingsData: bottleSettingsData,
-            installedVerbs: variant.winetricksVerbs,
             appliedEntryId: entry.id,
             appliedVariantId: variant.id,
             timestamp: Date()
         )
 
-        // Snapshot program settings if a program URL is provided
-        if let programURL {
-            let programURLString = programURL.absoluteString
-            // Find the matching program by URL
-            if let program = bottle.programs.first(where: { $0.url == programURL }) {
-                let programData = try encoder.encode(program.settings)
-                snapshot.programSettingsData = [programURLString: programData]
-            }
-        }
+        // Record the program environment variables this apply replaces
+        let environmentTargets = environmentTargets(entry: entry, bottle: bottle, programURL: programURL)
+        snapshotEnvironment(variant.environmentVariables ?? [:], of: environmentTargets, into: &snapshot)
 
         // 3. Apply variant settings to bottle
         applyVariantSettings(variant.settings, to: bottle, isBackendAvailable: isBackendAvailable)
@@ -153,11 +153,12 @@ public enum GameConfigApplicator {
             applyDLLOverrides(overrides, to: bottle)
         }
 
-        // 5. Apply custom environment variables
-        // Store in bottle.settings for the bottleUser layer of EnvironmentBuilder.
-        // Note: The EnvironmentBuilder already handles env vars from variant.environmentVariables
-        // at launch time when the applicator stores them. For now, env vars are recorded
-        // in the snapshot for reference but applied through the existing cascade.
+        // 5. Apply custom environment variables to the game's launches
+        if let variables = variant.environmentVariables {
+            applyEnvironment(
+                variables, entry: entry, to: bottle, targets: environmentTargets, programURL: programURL
+            )
+        }
 
         // 6. Save snapshot to bottle directory
         try GameConfigSnapshot.save(snapshot, to: bottle.url)
@@ -170,13 +171,14 @@ public enum GameConfigApplicator {
     /// Reverts a bottle's settings to the state captured in the snapshot.
     ///
     /// Decodes the snapshot's ``GameConfigSnapshot/bottleSettingsData`` and replaces
-    /// the bottle's settings entirely. The ``BottleSettings/didSet`` observer
-    /// handles automatic persistence.
+    /// the bottle's settings entirely, then puts back the program environment
+    /// variables in ``GameConfigSnapshot/programEnvironments``. The `didSet`
+    /// observers handle automatic persistence.
     ///
     /// - Parameters:
     ///   - bottle: The bottle whose settings will be restored.
     ///   - snapshot: The snapshot from a previous ``apply(entry:variant:to:programURL:)`` call.
-    /// - Returns: A list of winetricks verbs that were installed during the original apply
+    /// - Returns: A list of winetricks verbs that were installed after the original apply
     ///   (non-reversible, for UI display: "Settings reverted; installed components remain").
     /// - Throws: An error if the snapshot data cannot be decoded or the snapshot file cannot be deleted.
     @MainActor
@@ -190,6 +192,7 @@ public enum GameConfigApplicator {
             let restoredSettings = try decoder.decode(BottleSettings.self, from: settingsData)
             bottle.settings = restoredSettings
         }
+        restoreProgramEnvironments(from: snapshot, in: bottle)
 
         // 2. Delete the snapshot file
         try GameConfigSnapshot.delete(from: bottle.url)
@@ -218,7 +221,7 @@ public enum GameConfigApplicator {
 
     // MARK: - Preview Changes
 
-    // swiftlint:disable cyclomatic_complexity function_body_length
+    // swiftlint:disable function_body_length
     /// Generates a preview of what settings would change if a variant were applied.
     ///
     /// Compares each non-nil field in the variant's settings against the current
@@ -228,6 +231,12 @@ public enum GameConfigApplicator {
     /// - Parameters:
     ///   - variant: The variant to preview.
     ///   - bottle: The bottle whose current settings are compared.
+    ///   - entry: The entry the variant belongs to. With it, environment variables
+    ///     are compared against where the apply puts them; without it they are
+    ///     all listed as not set.
+    ///   - programURL: The program the configuration is applied from, if any.
+    ///   - installedVerbs: The winetricks verbs the bottle already has, which are
+    ///     left out of the verbs to install.
     ///   - isBackendAvailable: Whether this machine can run a backend, so the
     ///     preview shows the backend ``apply(entry:variant:to:programURL:isBackendAvailable:)``
     ///     will actually set. Defaults to the installed runtime.
@@ -236,6 +245,9 @@ public enum GameConfigApplicator {
     public static func previewChanges(
         variant: GameConfigVariant,
         bottle: Bottle,
+        entry: GameDBEntry? = nil,
+        programURL: URL? = nil,
+        installedVerbs: Set<String> = [],
         isBackendAvailable: (GraphicsBackend) -> Bool = WhiskyWineInstaller.isBackendAvailable
     ) -> [ConfigChange] {
         var changes: [ConfigChange] = []
@@ -345,35 +357,15 @@ public enum GameConfigApplicator {
         }
 
         // Environment variables
-        if let envVars = variant.environmentVariables, !envVars.isEmpty {
-            for (key, value) in envVars.sorted(by: { $0.key < $1.key }) {
-                changes.append(ConfigChange(
-                    kind: .environmentVariable,
-                    category: String(localized: "program.env"),
-                    settingName: key,
-                    currentValue: notSet,
-                    newValue: value
-                ))
-            }
-        }
+        changes += environmentChanges(variant: variant, entry: entry, bottle: bottle, programURL: programURL)
 
         // Winetricks verbs
-        if let verbs = variant.winetricksVerbs, !verbs.isEmpty {
-            for verb in verbs {
-                changes.append(ConfigChange(
-                    kind: .winetricksVerb,
-                    category: String(localized: "gameConfig.detail.winetricks"),
-                    settingName: verb,
-                    currentValue: String(localized: "gameConfig.preview.value.notInstalled"),
-                    newValue: String(localized: "gameConfig.preview.value.willInstall")
-                ))
-            }
-        }
+        changes += winetricksChanges(variant: variant, installedVerbs: installedVerbs)
 
         return changes
     }
 
-    // swiftlint:enable cyclomatic_complexity function_body_length
+    // swiftlint:enable function_body_length
 
     // MARK: - Backend Availability
 

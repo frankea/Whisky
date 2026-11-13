@@ -245,11 +245,14 @@ final class GameApplicatorTests: XCTestCase {
 
         let variant = makeTestVariant(winetricksVerbs: ["vcrun2022", "dotnet48"])
         let entry = makeTestEntry(variant: variant)
-        let snapshot = try GameConfigApplicator.apply(entry: entry, variant: variant, to: bottle)
+        _ = try GameConfigApplicator.apply(entry: entry, variant: variant, to: bottle)
+        // Only the verbs that actually installed are recorded, after the apply.
+        try GameConfigApplicator.recordInstalledVerbs(["vcrun2022"], bottleURL: bottle.url)
+        let snapshot = try XCTUnwrap(GameConfigSnapshot.load(from: bottle.url))
 
         let verbs = try GameConfigApplicator.revert(bottle: bottle, snapshot: snapshot)
 
-        XCTAssertEqual(verbs, ["vcrun2022", "dotnet48"], "Revert should return the installed verbs list")
+        XCTAssertEqual(verbs, ["vcrun2022"], "Revert should return the verbs that were installed")
     }
 
     // MARK: - Test 6: Pending Winetricks Verbs Filters Installed

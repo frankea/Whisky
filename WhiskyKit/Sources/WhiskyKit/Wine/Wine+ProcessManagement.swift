@@ -184,3 +184,100 @@ public extension Wine {
         }
     }
 }
+
+// MARK: - Launch Tracking
+
+public extension Wine {
+    /// Whether the bottle has something running, and whether Whisky started it.
+    ///
+    /// Probes the bottle's wineserver and weighs it against the launches the
+    /// ``ProcessRegistry`` knows about
+    /// (``BottleRunState/resolve(trackedCount:lastLaunch:wineserverRunning:now:grace:)``).
+    /// A session whose wineserver has gone idle is ended here, so its tracked
+    /// launches stop counting.
+    ///
+    /// - Parameter bottle: The bottle to probe.
+    /// - Returns: The bottle's state.
+    @MainActor
+    static func runState(for bottle: Bottle) async -> BottleRunState {
+        let wineserverRunning = await isWineserverRunning(for: bottle)
+        // Read after the probe, so a launch registered while it ran counts.
+        let registry = ProcessRegistry.shared
+        let state = BottleRunState.resolve(
+            trackedCount: registry.getProcessCount(for: bottle.url),
+            lastLaunch: registry.lastLaunch(for: bottle.url),
+            wineserverRunning: wineserverRunning
+        )
+        if state == .idle {
+            registry.endSession(for: bottle.url)
+        }
+        return state
+    }
+}
+
+extension Wine {
+    /// Bottles with a ``watchSession(for:)`` loop running.
+    @MainActor private static var watchedSessions: Set<URL> = []
+
+    /// Records a launch the user asked for that has no program entry of its
+    /// own, such as a batch file or `winecfg`, and watches for its session to end.
+    @MainActor
+    static func noteUserLaunch(in bottle: Bottle) {
+        ProcessRegistry.shared.noteLaunch(bottleURL: bottle.url)
+        watchSession(for: bottle)
+    }
+
+    /// Starts a program's `wine64` process, tracked in the ``ProcessRegistry``.
+    ///
+    /// The process is registered before it starts and given its PID once it
+    /// has one, and the bottle's session is watched until its wineserver goes idle.
+    @MainActor
+    static func startTrackedProgram(
+        _ process: Process, name: String, bottle: Bottle, fileHandle: FileHandle?
+    ) throws -> AsyncStream<ProcessOutput> {
+        let registry = ProcessRegistry.shared
+        registry.register(process: process, bottle: bottle, programName: name)
+        let stream: AsyncStream<ProcessOutput>
+        do {
+            stream = try process.runStream(name: name, fileHandle: fileHandle)
+        } catch {
+            registry.unregister(process: process)
+            throw error
+        }
+        registry.updatePID(pid: process.processIdentifier, for: process)
+        watchSession(for: bottle)
+        return stream
+    }
+
+    /// Updates a program's entry once its `wine start` process has exited.
+    ///
+    /// The program itself runs on under the wineserver, so a clean exit keeps
+    /// the entry but drops the PID: it belongs to a process that is gone and
+    /// may be reused, and a stop must never signal it. A failed start leaves
+    /// nothing running, so its entry goes.
+    @MainActor
+    static func launcherDidExit(_ process: Process, exitCode: Int32) {
+        if exitCode == 0 {
+            ProcessRegistry.shared.updatePID(pid: 0, for: process)
+        } else {
+            ProcessRegistry.shared.unregister(process: process)
+        }
+    }
+
+    /// Ends the bottle's session once its wineserver goes idle.
+    ///
+    /// Something has to look: the sidebar only probes the bottles it shows, and
+    /// a session left open would keep its launches counted, and the display
+    /// awake, after the game is gone. One loop per bottle; a launch while it
+    /// runs only moves the session's start.
+    @MainActor
+    static func watchSession(for bottle: Bottle, interval: Duration = .seconds(30)) {
+        guard watchedSessions.insert(bottle.url).inserted else { return }
+        Task { @MainActor in
+            defer { watchedSessions.remove(bottle.url) }
+            repeat {
+                try? await Task.sleep(for: interval)
+            } while await runState(for: bottle).isRunning
+        }
+    }
+}

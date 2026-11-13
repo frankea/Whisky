@@ -98,16 +98,25 @@ public class Wine {
         name: String? = nil, args: [String], environment: [String: String], executableURL: URL, directory: URL? = nil,
         fileHandle: FileHandle?
     ) throws -> AsyncStream<ProcessOutput> {
+        let process = makeProcess(
+            args: args, environment: environment, executableURL: executableURL, directory: directory
+        )
+        return try process.runStream(
+            name: name ?? args.joined(separator: " "), fileHandle: fileHandle
+        )
+    }
+
+    /// A process for the executable at `executableURL`, configured but not started.
+    static func makeProcess(
+        args: [String], environment: [String: String], executableURL: URL, directory: URL? = nil
+    ) -> Process {
         let process = Process()
         process.executableURL = executableURL
         process.arguments = args
         process.currentDirectoryURL = directory ?? executableURL.deletingLastPathComponent()
         process.environment = environment
         process.qualityOfService = .userInitiated
-
-        return try process.runStream(
-            name: name ?? args.joined(separator: " "), fileHandle: fileHandle
-        )
+        return process
     }
 
     /// Run a `wine` process with the given arguments and environment variables returning a stream of output
@@ -360,17 +369,15 @@ public class Wine {
         DiscordIntegration.shared.programLaunching(url, bottle: bottle)
 
         var exitCode: Int32 = 0
-        for await output in try runProcess(
-            name: programName,
-            args: launch.arguments,
-            environment: launch.environment, executableURL: wineBinary,
-            fileHandle: fileHandle
-        ) {
+        let process = makeProcess(args: launch.arguments, environment: launch.environment, executableURL: wineBinary)
+        for await output in
+            try startTrackedProgram(process, name: programName, bottle: bottle, fileHandle: fileHandle) {
             onOutput?(output)
             if case let .terminated(code) = output {
                 exitCode = code
             }
         }
+        launcherDidExit(process, exitCode: exitCode)
 
         // Update the run log entry with exit information
         var updatedHistory = RunLogStore.load(for: programName, in: bottle.url)
@@ -846,6 +853,8 @@ public class Wine {
     public static func runBatchFile(url: URL, bottle: Bottle) async throws -> String {
         // A script can start a launcher too, so it gets the aliases a program launch gets.
         await syncCJKFontReplacements(bottle: bottle)
+        // Whatever it starts runs under the bottle's wineserver, which is then Whisky's doing.
+        noteUserLaunch(in: bottle)
         return try await runWine(["cmd", "/c", url.path(percentEncoded: false)], bottle: bottle)
     }
 

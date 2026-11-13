@@ -163,17 +163,21 @@ struct ContentView: View {
                   let oldBottle = bottleVM.bottles.first(where: { $0.url == oldURL })
             else { return }
 
-            let count = ProcessRegistry.shared.getProcessCount(for: oldBottle)
-            guard count > 0 else { return }
+            // Only for what Whisky launched there: a game keeps running under
+            // the wineserver after its launch returns, so the registry count
+            // alone misses it, and an orphan has its own stop button.
+            Task {
+                guard await Wine.runState(for: oldBottle).isRunning else { return }
 
-            switch oldBottle.settings.closeWithProcessesPolicy {
-            case .alwaysKeepRunning:
-                break
-            case .alwaysStop:
-                Wine.killBottle(bottle: oldBottle)
-                ProcessRegistry.shared.clearRegistry(for: oldBottle.url)
-            case .ask:
-                showProcessCloseAlert(for: oldBottle)
+                switch oldBottle.settings.closeWithProcessesPolicy {
+                case .alwaysKeepRunning:
+                    break
+                case .alwaysStop:
+                    Wine.killBottle(bottle: oldBottle)
+                    ProcessRegistry.shared.clearRegistry(for: oldBottle.url)
+                case .ask:
+                    showProcessCloseAlert(for: oldBottle)
+                }
             }
         }
         .handlesExternalEvents(preferring: [], allowing: ["*"])

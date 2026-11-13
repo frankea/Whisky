@@ -34,6 +34,8 @@ struct BottleView: View {
     @State private var showWinetricksSheet: Bool = false
     @State private var showDuplicate: Bool = false
     @State private var toast: ToastData?
+    /// Launches the ``ProcessRegistry`` tracks for this bottle, for the Processes badge.
+    @State private var trackedProcessCount: Int = 0
 
     private let gridLayout = [GridItem(.adaptive(minimum: 100, maximum: .infinity))]
 
@@ -65,9 +67,8 @@ struct BottleView: View {
                     NavigationLink(value: BottleStage.processes) {
                         HStack {
                             Label("tab.processes", systemImage: "hockey.puck.circle")
-                            let count = ProcessRegistry.shared.getProcessCount(for: bottle)
-                            if count > 0 {
-                                Text("\(count)")
+                            if trackedProcessCount > 0 {
+                                Text("\(trackedProcessCount)")
                                     .font(.caption2)
                                     .padding(.horizontal, 6)
                                     .padding(.vertical, 2)
@@ -97,6 +98,13 @@ struct BottleView: View {
             }
             .task {
                 await updateStartMenu()
+            }
+            .task(id: bottle.url) {
+                trackedProcessCount = ProcessRegistry.shared.getProcessCount(for: bottle)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: ProcessRegistry.didChangeNotification)) { note in
+                guard note.userInfo?[ProcessRegistry.bottleURLKey] as? URL == bottle.url else { return }
+                trackedProcessCount = ProcessRegistry.shared.getProcessCount(for: bottle)
             }
             .disabled(!bottle.isAvailable)
             .navigationTitle(bottle.settings.name)

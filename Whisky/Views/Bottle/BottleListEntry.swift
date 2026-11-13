@@ -85,6 +85,11 @@ struct BottleListEntry: View {
         .onDisappear {
             probeTask?.cancel()
         }
+        .onReceive(NotificationCenter.default.publisher(for: ProcessRegistry.didChangeNotification)) { note in
+            // A launch or stop in this bottle shows at once rather than at the next tick.
+            guard note.userInfo?[ProcessRegistry.bottleURLKey] as? URL == bottle.url else { return }
+            Task { await probeRunningState() }
+        }
         .onChange(of: refresh, initial: true) {
             name = bottle.settings.name
             Task { await probeRunningState() }
@@ -241,17 +246,15 @@ struct BottleListEntry: View {
         }
     }
 
+    /// The orange stop button is only for a wineserver nothing Whisky launched
+    /// in this run of the app accounts for. A game started here keeps the
+    /// wineserver up long after its `wine start` process exits, and that is
+    /// a running bottle, not an orphan.
     @MainActor
     private func probeRunningState() async {
-        let trackedCount = ProcessRegistry.shared.getProcessCount(for: bottle)
-        runningCount = trackedCount
-
-        if trackedCount == 0 {
-            let active = await Wine.isWineserverRunning(for: bottle)
-            hasOrphanProcesses = active
-        } else {
-            hasOrphanProcesses = false
-        }
+        let state = await Wine.runState(for: bottle)
+        runningCount = state.badgeCount
+        hasOrphanProcesses = state == .orphaned
     }
 }
 

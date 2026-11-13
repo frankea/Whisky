@@ -4646,7 +4646,11 @@
     {
       "id": "binding-of-isaac-rebirth",
       "title": "The Binding of Isaac: Rebirth",
-      "aliases": [],
+      "aliases": [
+        "Repentance",
+        "Repentance+",
+        "Afterbirth"
+      ],
       "subtitle": "Nicalis",
       "store": "steam",
       "steamAppId": 250900,
@@ -4674,12 +4678,9 @@
           "isDefault": true,
           "whenToUse": "Community-tested configuration",
           "rationale": [
-            "DX9 sprite-based 2D engine works better via wineD3D than DXVK d3d9 on Apple Silicon",
-            "Repentance/Repentance+ DLC scripting depends on stable d3d9 path"
+            "Renders through OpenGL: opengl32 goes through Wine's macOS driver to Apple's OpenGL, so the graphics backend setting does not affect it, and this configuration leaves it unchanged"
           ],
           "settings": {
-            "graphicsBackend": "wined3d",
-            "dxvk": false,
             "dxvkAsync": false,
             "enhancedSync": "msync",
             "shaderCacheEnabled": true,
@@ -4700,7 +4701,13 @@
         }
       ],
       "notes": [],
-      "knownIssues": [],
+      "knownIssues": [
+        {
+          "description": "Some post-process effects render black: the stage transition pixelation, the Retro Vision pill and the Mirror World in Downpour and Dross",
+          "severity": "minor",
+          "workaround": "None known yet; tracked in frankea/Whisky#200"
+        }
+      ],
       "provenance": {
         "source": "community-reference",
         "author": "Whisky Community",

@@ -31,22 +31,9 @@ public struct TerminalLaunchError: LocalizedError, Equatable {
 }
 
 public extension Program {
-    /// Runs this program in the user's terminal, reporting a failure in an alert.
-    ///
-    /// The shift-click Run. The bottle is prepared the way a launch prepares it
-    /// before the terminal opens, so this returns at once and the work happens
-    /// in a task.
-    func runInTerminal() {
-        Task {
-            do {
-                try await openInTerminal()
-            } catch {
-                showRunError(message: error.localizedDescription)
-            }
-        }
-    }
-
     /// Prepares the bottle for this program, then opens the user's terminal running it.
+    ///
+    /// The launch is recorded in the bottle's session, as any other launch is.
     ///
     /// The command is the one `WhiskyCmd run --command` prints: the prefix is
     /// created if missing, and the DLL overrides, backend files and CJK font
@@ -82,6 +69,9 @@ public extension Program {
             let description = error["NSAppleScriptErrorMessage"] as? String
             throw TerminalLaunchError(message: description ?? String(describing: error))
         }
+        // The terminal starts the program under the bottle's wineserver, which
+        // is then Whisky's doing and must not read as orphaned.
+        Wine.noteUserLaunch(in: bottle)
     }
 }
 

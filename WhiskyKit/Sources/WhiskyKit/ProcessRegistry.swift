@@ -39,59 +39,30 @@ import os.log
 public final class ProcessRegistry: @unchecked Sendable {
     public static let shared = ProcessRegistry()
 
+    /// Posted on the main thread whenever a bottle's tracked processes or launch
+    /// session change. `userInfo[bottleURLKey]` holds the bottle's URL.
+    public static let didChangeNotification = Notification.Name("com.franke.Whisky.processRegistryDidChange")
+    /// The `userInfo` key of ``didChangeNotification`` that holds the bottle URL.
+    public static let bottleURLKey = "bottleURL"
+
     private let lock = NSLock()
     private var activeProcesses: [URL: Set<ProcessInfo>] = [:]
 
-    /// IOKit power assertion held while at least one Wine process is registered.
-    /// Prevents the screen saver and display sleep during gaming sessions where
-    /// only a controller is generating input (whisky-app/whisky#547).
+    /// When Whisky last launched something in each bottle during this run of
+    /// the app. A bottle is in here from its first launch until its wineserver
+    /// is seen idle (``endSession(for:)``), which is what tells a game Whisky
+    /// started apart from a wineserver nobody here started. Not persisted: after
+    /// a restart, whatever is still running is no longer this run's.
+    private var lastLaunches: [URL: Date] = [:]
+
+    /// IOKit power assertion held while a tracked launcher process is running.
+    /// Prevents the screen saver and display sleep while one does
+    /// (whisky-app/whisky#547). Deliberately not held for a whole session:
+    /// entries outlive their `wine start` process, and a launcher such as Steam
+    /// idling in the tray would then keep the display awake for hours.
     private var displayWakeAssertion: IOPMAssertionID = .init(0)
 
-    private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ProcessRegistry")
-
-    /// Information about a tracked Wine process.
-    public struct ProcessInfo: Hashable, Sendable {
-        /// Process ID (may be 0 if not yet launched)
-        public let pid: Int32
-        /// When the process was launched
-        public let launchTime: Date
-        /// URL of the bottle containing this process
-        public let bottleURL: URL
-        /// Name of the program/executable
-        public let programName: String
-        /// Identity of the underlying `Process` object, used to disambiguate
-        /// pre-launch entries (where ``pid`` is still 0). Excluded from hashing
-        /// and equality so that updating ``pid`` does not change identity.
-        let processIdentity: ObjectIdentifier?
-
-        public init(
-            pid: Int32,
-            launchTime: Date,
-            bottleURL: URL,
-            programName: String,
-            processIdentity: ObjectIdentifier? = nil
-        ) {
-            self.pid = pid
-            self.launchTime = launchTime
-            self.bottleURL = bottleURL
-            self.programName = programName
-            self.processIdentity = processIdentity
-        }
-
-        public func hash(into hasher: inout Hasher) {
-            hasher.combine(pid)
-            hasher.combine(launchTime)
-            hasher.combine(bottleURL)
-            hasher.combine(programName)
-        }
-
-        public static func == (lhs: ProcessInfo, rhs: ProcessInfo) -> Bool {
-            lhs.pid == rhs.pid &&
-                lhs.launchTime == rhs.launchTime &&
-                lhs.bottleURL == rhs.bottleURL &&
-                lhs.programName == rhs.programName
-        }
-    }
+    let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ProcessRegistry")
 
     private init() {}
 
@@ -108,8 +79,6 @@ public final class ProcessRegistry: @unchecked Sendable {
     ///   - programName: Name of the program being launched
     public func register(process: Process, bottle: Bottle, programName: String) {
         lock.lock()
-        defer { lock.unlock() }
-
         let info = ProcessInfo(
             pid: 0, // Will be updated after launch
             launchTime: Date(),
@@ -121,10 +90,29 @@ public final class ProcessRegistry: @unchecked Sendable {
         var processes = activeProcesses[bottle.url] ?? Set()
         processes.insert(info)
         activeProcesses[bottle.url] = processes
-
-        ensureDisplayWakeAssertionLocked()
+        lastLaunches[bottle.url] = info.launchTime
+        lock.unlock()
 
         logger.info("Registered process '\(programName)' for bottle '\(bottle.url.lastPathComponent)'")
+        // After unlocking: on the main thread observers run inside the post and
+        // query the registry, which would wait on the lock forever.
+        postChange(for: bottle.url)
+    }
+
+    /// Records that Whisky started something in a bottle without a process to track.
+    ///
+    /// For launches that block until they finish, such as a batch file or
+    /// `winecfg`: there is no program entry to show, but the bottle's wineserver
+    /// is Whisky's doing and must not read as orphaned.
+    ///
+    /// - Parameters:
+    ///   - bottleURL: The bottle the launch runs in.
+    ///   - date: When it was launched.
+    public func noteLaunch(bottleURL: URL, at date: Date = Date()) {
+        lock.lock()
+        lastLaunches[bottleURL] = date
+        lock.unlock()
+        postChange(for: bottleURL)
     }
 
     /// Updates the PID for a registered process.
@@ -151,6 +139,11 @@ public final class ProcessRegistry: @unchecked Sendable {
                 )
                 mutableProcesses.insert(updatedInfo)
                 activeProcesses[bottleURL] = mutableProcesses
+                if pid > 0 {
+                    ensureDisplayWakeAssertionLocked()
+                } else {
+                    releaseDisplayWakeAssertionIfIdleLocked()
+                }
 
                 logger.debug("Updated PID for process '\(info.programName)' to \(pid)")
                 return
@@ -167,19 +160,57 @@ public final class ProcessRegistry: @unchecked Sendable {
     /// - Parameter pid: The process ID to unregister
     public func unregister(pid: Int32) {
         lock.lock()
-        defer { lock.unlock() }
-
-        for (bottleURL, processes) in activeProcesses {
+        var removed: ProcessInfo?
+        search: for (bottleURL, processes) in activeProcesses {
             for info in processes where info.pid == pid {
                 var mutableProcesses = processes
                 mutableProcesses.remove(info)
                 activeProcesses[bottleURL] = mutableProcesses
-
                 releaseDisplayWakeAssertionIfIdleLocked()
-
-                logger.info("Unregistered process '\(info.programName)' (PID: \(pid))")
-                return
+                removed = info
+                break search
             }
+        }
+        lock.unlock()
+
+        guard let removed else { return }
+        logger.info("Unregistered process '\(removed.programName)' (PID: \(pid))")
+        postChange(for: removed.bottleURL)
+    }
+
+    /// Unregisters exactly one entry, as ``getProcesses(for:)`` returned it.
+    ///
+    /// Unlike ``unregister(pid:)`` this cannot hit another entry: once a
+    /// launcher process has exited its entry's PID is 0, which many share.
+    ///
+    /// - Parameter entry: The entry to remove.
+    public func unregister(_ entry: ProcessInfo) {
+        removeEntries(in: entry.bottleURL) { $0 == entry }
+    }
+
+    /// Unregisters the entry registered for `process`, as when it failed to start.
+    ///
+    /// - Parameter process: The process passed to ``register(process:bottle:programName:)``.
+    public func unregister(process: Process) {
+        let identity = ObjectIdentifier(process)
+        let bottleURLs = getAllProcesses().compactMap { url, entries in
+            entries.contains { $0.processIdentity == identity } ? url : nil
+        }
+        for bottleURL in bottleURLs {
+            removeEntries(in: bottleURL) { $0.processIdentity == identity }
+        }
+    }
+
+    /// Removes the entries of one bottle that match, then reports the change.
+    private func removeEntries(in bottleURL: URL, where matches: (ProcessInfo) -> Bool) {
+        lock.lock()
+        let before = activeProcesses[bottleURL] ?? Set()
+        let after = before.filter { !matches($0) }
+        activeProcesses[bottleURL] = after.isEmpty ? nil : after
+        releaseDisplayWakeAssertionIfIdleLocked()
+        lock.unlock()
+        if after.count != before.count {
+            postChange(for: bottleURL)
         }
     }
 
@@ -230,6 +261,17 @@ public final class ProcessRegistry: @unchecked Sendable {
         return activeProcesses[bottleURL]?.count ?? 0
     }
 
+    /// When Whisky last launched something in a bottle, or `nil` when nothing it
+    /// launched there is still running as far as it knows.
+    ///
+    /// - Parameter bottleURL: The URL of the bottle to query.
+    /// - Returns: The time of the latest launch in the bottle's current session.
+    public func lastLaunch(for bottleURL: URL) -> Date? {
+        lock.lock()
+        defer { lock.unlock() }
+        return lastLaunches[bottleURL]
+    }
+
     /// Returns whether any active processes exist for a bottle identified by URL.
     ///
     /// - Parameter bottleURL: The URL of the bottle to check.
@@ -238,103 +280,74 @@ public final class ProcessRegistry: @unchecked Sendable {
         getProcessCount(for: bottleURL) > 0
     }
 
-    // MARK: - Cleanup
-
-    /// Cleans up all processes across all bottles.
-    ///
-    /// This method attempts graceful shutdown first (SIGTERM), waits for a timeout,
-    /// then optionally force kills (SIGKILL) if processes are still running.
-    ///
-    /// - Parameters:
-    ///   - bottles: Array of bottles to check for processes to clean up
-    ///   - force: If true, force kills processes after timeout. If false, only attempts graceful shutdown.
-    public func cleanupAll(bottles: [Bottle], force: Bool) async {
-        let allProcesses = getAllProcesses()
-
-        for (bottleURL, _) in allProcesses {
-            guard let bottle = bottles.first(where: { $0.url == bottleURL }) else {
-                logger.warning("Bottle not found for cleanup: \(bottleURL.path)")
-                continue
-            }
-
-            await cleanup(for: bottle, force: force)
-        }
-    }
-
-    /// Cleans up processes for a specific bottle.
-    ///
-    /// This method sends SIGTERM to all processes, waits for them to terminate,
-    /// and optionally sends SIGKILL if force is enabled and processes are still running.
-    ///
-    /// - Parameters:
-    ///   - bottle: The bottle to clean up
-    ///   - force: If true, force kill after timeout
-    public func cleanup(for bottle: Bottle, force: Bool) async {
-        let processes = getProcesses(for: bottle)
-
-        guard !processes.isEmpty else {
-            logger.debug("No processes to clean up for bottle '\(bottle.url.lastPathComponent)'")
-            return
-        }
-
-        logger.info("Cleaning up \(processes.count) process(es) for bottle '\(bottle.url.lastPathComponent)'")
-
-        // Send SIGTERM for graceful shutdown
-        for process in processes where process.pid > 0 {
-            killProcess(process.pid, signal: SIGTERM)
-            logger.debug("Sent SIGTERM to process '\(process.programName)' (PID: \(process.pid))")
-        }
-
-        // Wait for processes to terminate
-        try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
-
-        // Check if processes are still running. Use kill(pid, 0) to verify
-        // OS-level liveness so already-exited processes don't receive SIGKILL.
-        let remainingProcesses = getProcesses(for: bottle).filter { Self.isAlive(pid: $0.pid) }
-
-        if !remainingProcesses.isEmpty, force {
-            logger
-                .warning(
-                    "Force killing \(remainingProcesses.count) process(es) for bottle '\(bottle.url.lastPathComponent)'"
-                )
-
-            // Send SIGKILL for force termination
-            for process in remainingProcesses {
-                killProcess(process.pid, signal: SIGKILL)
-                logger.debug("Sent SIGKILL to process '\(process.programName)' (PID: \(process.pid))")
-            }
-
-            // Wait for force kill to complete
-            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
-        }
-
-        // Clear registry for this bottle
-        clearRegistry(for: bottle.url)
-
-        logger.info("Completed cleanup for bottle '\(bottle.url.lastPathComponent)'")
-    }
-
     /// Clears the registry for a specific bottle URL.
+    ///
+    /// The bottle's launch session is kept: a kill takes a moment, and until the
+    /// wineserver is gone it is still the one Whisky started, not an orphan.
+    /// ``endSession(for:)`` ends it once the wineserver is seen idle.
     ///
     /// - Parameter bottleURL: The bottle URL to clear
     public func clearRegistry(for bottleURL: URL) {
         lock.lock()
+        let hadProcesses = activeProcesses[bottleURL] != nil
         activeProcesses[bottleURL] = nil
         releaseDisplayWakeAssertionIfIdleLocked()
         lock.unlock()
+        if hadProcesses {
+            postChange(for: bottleURL)
+        }
+    }
+
+    /// Ends a bottle's launch session: its tracked processes and its last launch.
+    ///
+    /// Called once the bottle's wineserver is seen idle, when nothing Whisky
+    /// started there can still be running.
+    ///
+    /// - Parameter bottleURL: The bottle whose session ended.
+    public func endSession(for bottleURL: URL) {
+        lock.lock()
+        let changed = activeProcesses[bottleURL] != nil || lastLaunches[bottleURL] != nil
+        activeProcesses[bottleURL] = nil
+        lastLaunches[bottleURL] = nil
+        releaseDisplayWakeAssertionIfIdleLocked()
+        lock.unlock()
+        if changed {
+            postChange(for: bottleURL)
+        }
+    }
+
+    /// Posts ``didChangeNotification`` on the main thread, where views observe it.
+    ///
+    /// Never call this while holding ``lock``: on the main thread the post is
+    /// synchronous, and an observer that reads the registry would deadlock.
+    private func postChange(for bottleURL: URL) {
+        let post: @Sendable () -> Void = {
+            NotificationCenter.default.post(
+                name: Self.didChangeNotification, object: nil, userInfo: [Self.bottleURLKey: bottleURL]
+            )
+        }
+        if Thread.isMainThread {
+            post()
+        } else {
+            DispatchQueue.main.async(execute: post)
+        }
     }
 
     // MARK: - Display Wake Assertion
 
-    /// Total tracked process count across all bottles. Caller must hold ``lock``.
-    private func totalProcessCountLocked() -> Int {
-        activeProcesses.values.reduce(0) { $0 + $1.count }
+    /// Tracked entries whose launcher process is running: it has a PID, which
+    /// ``updatePID(pid:for:)`` sets once it starts and clears once it exits.
+    /// Caller must hold ``lock``.
+    private func liveLauncherCountLocked() -> Int {
+        activeProcesses.values.reduce(0) { total, entries in
+            total + entries.filter { $0.pid > 0 }.count
+        }
     }
 
     /// Acquires an IOKit `NoDisplaySleep` assertion if not already held and at
-    /// least one process is registered. Caller must hold ``lock``.
+    /// least one launcher process is running. Caller must hold ``lock``.
     private func ensureDisplayWakeAssertionLocked() {
-        guard displayWakeAssertion == 0, totalProcessCountLocked() > 0 else { return }
+        guard displayWakeAssertion == 0, liveLauncherCountLocked() > 0 else { return }
         var assertionID = IOPMAssertionID(0)
         let reason = "Whisky game running" as CFString
         let result = IOPMAssertionCreateWithName(
@@ -350,44 +363,29 @@ public final class ProcessRegistry: @unchecked Sendable {
         }
     }
 
-    /// Releases the display-sleep assertion if no processes remain. Caller must
-    /// hold ``lock``.
+    /// Releases the display-sleep assertion if no launcher process is running.
+    /// Caller must hold ``lock``.
     private func releaseDisplayWakeAssertionIfIdleLocked() {
-        guard displayWakeAssertion != 0, totalProcessCountLocked() == 0 else { return }
+        guard displayWakeAssertion != 0, liveLauncherCountLocked() == 0 else { return }
         IOPMAssertionRelease(displayWakeAssertion)
         displayWakeAssertion = IOPMAssertionID(0)
     }
 
-    /// Kills a process by sending the specified signal.
-    ///
-    /// - Parameters:
-    ///   - pid: Process ID to kill
-    ///   - signal: Signal to send (SIGTERM or SIGKILL)
-    private func killProcess(_ pid: Int32, signal: Int32) {
-        let result = kill(pid, signal)
-        if result != 0, errno != ESRCH {
-            // ESRCH means process doesn't exist, which is expected
-            logger.error("Failed to send signal \(signal) to PID \(pid): \(String(cString: strerror(errno)))")
-        }
-    }
-
-    /// Returns whether a PID currently corresponds to a running process.
-    ///
-    /// Sends signal 0, which performs error checking without delivering a signal.
-    /// `ESRCH` means the process is gone; any other result (including `EPERM`)
-    /// means it is still around.
-    private static func isAlive(pid: Int32) -> Bool {
-        guard pid > 0 else { return false }
-        if kill(pid, 0) == 0 { return true }
-        return errno != ESRCH
-    }
-
     // MARK: - Testing Support
+
+    /// Whether the display-sleep assertion is currently held.
+    var holdsDisplayWakeAssertion: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return displayWakeAssertion != 0
+    }
 
     /// Resets the registry to empty state. For testing purposes only.
     public func reset() {
         lock.lock()
         activeProcesses.removeAll()
+        lastLaunches.removeAll()
+        releaseDisplayWakeAssertionIfIdleLocked()
         lock.unlock()
     }
 }

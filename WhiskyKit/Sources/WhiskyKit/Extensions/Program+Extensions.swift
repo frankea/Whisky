@@ -47,48 +47,54 @@ private let crashSignatures: Set<String> = [
 ]
 
 public extension Program {
+    /// Launches the program the way every Run button does, reporting a failure in an alert.
+    ///
+    /// Shift selects the terminal. Goes through ``launchWithUserMode(useTerminal:onClipboardCleared:)``
+    /// so a context-menu Run gets the clipboard policy and crash watching a Play button gets.
     func run() {
-        if NSEvent.modifierFlags.contains(.shift) {
-            self.runInTerminal()
-        } else {
-            self.runInWine()
+        let useTerminal = NSEvent.modifierFlags.contains(.shift)
+        Task {
+            let result = await launchWithUserMode(useTerminal: useTerminal)
+            if let message = result.errorDescription {
+                showRunError(message: message)
+            }
         }
     }
 
-    /// Checks the clipboard before launching a Wine program, applying the bottle's policy.
-    ///
-    /// For `.needsUserDecision` results, presents a blocking alert asking the user
-    /// to clear or keep the clipboard. For `.autoCleared` results, the clipboard has
-    /// already been cleared by ``ClipboardManager``.
+    /// Checks the clipboard before launching this program, applying its bottle's policy.
     ///
     /// - Returns: The clipboard check result after any user interaction.
     @MainActor
     func performClipboardCheck() -> ClipboardCheckResult {
-        let policy = bottle.settings.clipboardPolicy
-        let threshold = bottle.settings.clipboardThreshold
-        let launcher = bottle.settings.detectedLauncher
-
-        let result = ClipboardManager.shared.checkBeforeLaunch(
-            launcher: launcher, policy: policy, threshold: threshold
-        )
-
-        switch result {
-        case .safe, .autoCleared:
-            return result
-        case let .needsUserDecision(contentType, sizeBytes, textPreview):
-            return showClipboardAlert(
-                contentType: contentType, sizeBytes: sizeBytes, textPreview: textPreview
-            )
-        }
+        bottle.performClipboardCheck()
     }
 
     /// Launches the program respecting user's modifier key preference and returns the result.
-    /// - Parameter useTerminal: Whether to launch in Terminal mode (e.g., Shift was held).
-    ///   **Important:** Capture `NSEvent.modifierFlags.contains(.shift)` synchronously at the call site,
-    ///   before entering any async context, to avoid race conditions with key state.
+    ///
+    /// Every launch the app starts for a ``Program`` comes through here, so
+    /// launcher auto-detection and the bottle's clipboard policy are applied
+    /// once per launch, whichever button or menu started it and whichever mode.
+    ///
+    /// - Parameters:
+    ///   - useTerminal: Whether to launch in Terminal mode (e.g., Shift was held).
+    ///     **Important:** Capture `NSEvent.modifierFlags.contains(.shift)` synchronously at the call site,
+    ///     before entering any async context, to avoid race conditions with key state.
+    ///   - onClipboardCleared: Called with the content type and size in bytes when the
+    ///     clipboard policy cleared the clipboard before the launch.
     /// - Returns: LaunchResult indicating success, terminal launch, or failure
     @MainActor
-    func launchWithUserMode(useTerminal: Bool) async -> LaunchResult {
+    func launchWithUserMode(
+        useTerminal: Bool,
+        onClipboardCleared: (@MainActor (_ contentType: String, _ sizeBytes: Int) -> Void)? = nil
+    ) async -> LaunchResult {
+        // Launcher detection first: in Automatic mode the clipboard policy
+        // depends on which launcher this is. Settings it changes are saved
+        // before the launch below prepares the bottle.
+        LauncherFixes.detectAndApply(from: url, for: bottle)
+        if case let .autoCleared(contentType, sizeBytes) = performClipboardCheck() {
+            onClipboardCleared?(contentType, sizeBytes)
+        }
+
         // Check for terminal mode (typically shift-click)
         if useTerminal {
             do {
@@ -267,74 +273,5 @@ public extension Program {
         alert.alertStyle = .critical
         alert.addButton(withTitle: String(localized: "button.ok"))
         alert.runModal()
-    }
-
-    /// Shows a blocking alert when the clipboard contains large content that needs user decision.
-    ///
-    /// - Parameters:
-    ///   - contentType: The type of clipboard content ("text", "image", or "other")
-    ///   - sizeBytes: Size of the content in bytes
-    ///   - textPreview: Optional preview of text content (first 50 characters)
-    /// - Returns: `.autoCleared` if user chose to clear, `.safe` if user chose to keep
-    @MainActor private func showClipboardAlert(
-        contentType: String,
-        sizeBytes: Int,
-        textPreview: String?
-    ) -> ClipboardCheckResult {
-        let alert = NSAlert()
-        alert.messageText = String(localized: "clipboard.large.title")
-
-        let sizeKB = (Double(sizeBytes) / 1_024.0).formatted(.number.precision(.fractionLength(1)))
-        let message: String
-        switch contentType {
-        case "text":
-            let preview = textPreview ?? ""
-            message = String(localized: "clipboard.large.message.text")
-                .replacingOccurrences(of: "{size}", with: sizeKB)
-                .replacingOccurrences(of: "{preview}", with: preview)
-        case "image":
-            message = String(localized: "clipboard.large.message.image")
-                .replacingOccurrences(of: "{size}", with: sizeKB)
-        default:
-            message = String(localized: "clipboard.large.message.other")
-                .replacingOccurrences(of: "{size}", with: sizeKB)
-        }
-
-        alert.informativeText = message
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: String(localized: "clipboard.clear"))
-        alert.addButton(withTitle: String(localized: "clipboard.keep"))
-
-        let response = alert.runModal()
-        if response == .alertFirstButtonReturn {
-            ClipboardManager.shared.clear()
-            return .autoCleared(contentType: contentType, sizeBytes: sizeBytes)
-        }
-        return .safe
-    }
-}
-
-extension Program {
-    func runInWine() {
-        let arguments = settings.arguments.split { $0.isWhitespace }.map(String.init)
-
-        Task {
-            do {
-                let result = try await self.launch(args: arguments)
-
-                // Track the log file URL
-                settings.lastLogFileURL = result.logFileURL
-
-                // Trigger classification on non-zero exit or crash signatures
-                if result.exitCode != 0 || logContainsCrashSignatures(result.logFileURL) {
-                    triggerCrashClassification(
-                        logFileURL: result.logFileURL,
-                        exitCode: result.exitCode
-                    )
-                }
-            } catch {
-                self.showRunError(message: error.localizedDescription)
-            }
-        }
     }
 }

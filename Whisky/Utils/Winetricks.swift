@@ -104,19 +104,30 @@ class Winetricks {
         guard let appleScript = NSAppleScript(source: script) else { return false }
         appleScript.executeAndReturnError(&error)
 
-        guard let error else { return true }
+        guard let error else {
+            // The terminal runs winetricks under the bottle's wineserver,
+            // which is then Whisky's doing and must not read as orphaned.
+            Wine.noteUserLaunch(in: bottle)
+            return true
+        }
         logger.error("AppleScript error: \(error)")
         if let description = error["NSAppleScriptErrorMessage"] as? String {
-            let alert = NSAlert()
-            alert.messageText = String(localized: "alert.message")
-            alert.informativeText = String(localized: "alert.info")
-                + " \(command): "
-                + description
-            alert.alertStyle = .critical
-            alert.addButton(withTitle: String(localized: "button.ok"))
-            alert.runModal()
+            showTerminalError(command: command, description: description)
         }
         return false
+    }
+
+    /// Reports that the terminal could not be opened to run a winetricks command.
+    @MainActor
+    private static func showTerminalError(command: String, description: String) {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "alert.message")
+        alert.informativeText = String(localized: "alert.info")
+            + " \(command): "
+            + description
+        alert.alertStyle = .critical
+        alert.addButton(withTitle: String(localized: "button.ok"))
+        alert.runModal()
     }
 
     /// Writes the winetricks invocation to a temp script the terminal sources.

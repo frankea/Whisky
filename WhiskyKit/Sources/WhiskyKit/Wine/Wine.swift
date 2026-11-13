@@ -98,16 +98,25 @@ public class Wine {
         name: String? = nil, args: [String], environment: [String: String], executableURL: URL, directory: URL? = nil,
         fileHandle: FileHandle?
     ) throws -> AsyncStream<ProcessOutput> {
+        let process = makeProcess(
+            args: args, environment: environment, executableURL: executableURL, directory: directory
+        )
+        return try process.runStream(
+            name: name ?? args.joined(separator: " "), fileHandle: fileHandle
+        )
+    }
+
+    /// A process for the executable at `executableURL`, configured but not started.
+    static func makeProcess(
+        args: [String], environment: [String: String], executableURL: URL, directory: URL? = nil
+    ) -> Process {
         let process = Process()
         process.executableURL = executableURL
         process.arguments = args
         process.currentDirectoryURL = directory ?? executableURL.deletingLastPathComponent()
         process.environment = environment
         process.qualityOfService = .userInitiated
-
-        return try process.runStream(
-            name: name ?? args.joined(separator: " "), fileHandle: fileHandle
-        )
+        return process
     }
 
     /// Run a `wine` process with the given arguments and environment variables returning a stream of output
@@ -305,8 +314,9 @@ public class Wine {
         prepare: @MainActor () async throws -> PreparedLaunch
     ) async throws -> ProgramRunResult {
         // Note: Launcher detection and fix application happen before this method
-        // is called, via LauncherFixes.detectAndApply from the app's run paths
-        // (FileOpenView/BottleView/ProgramMenuView).
+        // is called: in Program.launchWithUserMode for a program, and via
+        // LauncherFixes.detectAndApply in the app's run-a-file paths
+        // (FileOpenView, BottleActionBar).
 
         // Disable App Nap if requested to prevent macOS from throttling Wine processes.
         // Note: This token is held while the `wine start` launcher process runs. The actual
@@ -360,17 +370,15 @@ public class Wine {
         DiscordIntegration.shared.programLaunching(url, bottle: bottle)
 
         var exitCode: Int32 = 0
-        for await output in try runProcess(
-            name: programName,
-            args: launch.arguments,
-            environment: launch.environment, executableURL: wineBinary,
-            fileHandle: fileHandle
-        ) {
+        let process = makeProcess(args: launch.arguments, environment: launch.environment, executableURL: wineBinary)
+        for await output in
+            try startTrackedProgram(process, name: programName, bottle: bottle, fileHandle: fileHandle) {
             onOutput?(output)
             if case let .terminated(code) = output {
                 exitCode = code
             }
         }
+        launcherDidExit(process, exitCode: exitCode)
 
         // Update the run log entry with exit information
         var updatedHistory = RunLogStore.load(for: programName, in: bottle.url)
@@ -756,14 +764,27 @@ public class Wine {
 
     /// Run a `wine` command with the given arguments and a bottle context
     ///
-    /// - Parameter createsLogFile: `false` for polls whose output is parsed rather
-    ///   than read, such as `tasklist.exe`: a log file per poll buries the launch
-    ///   logs people are asked to attach.
+    /// - Parameters:
+    ///   - createsLogFile: `false` for polls whose output is parsed rather
+    ///     than read, such as `tasklist.exe`: a log file per poll buries the launch
+    ///     logs people are asked to attach.
+    ///   - isHelper: Whether the run is recorded in ``WineHelperActivity``, so the
+    ///     wineserver it brings up does not read as orphaned.
     @discardableResult
     @MainActor
     static func runWineWithBottle(
-        _ args: [String], bottle: Bottle, environment: [String: String] = [:], createsLogFile: Bool = true
+        _ args: [String], bottle: Bottle, environment: [String: String] = [:], createsLogFile: Bool = true,
+        isHelper: Bool = true
     ) async throws -> String {
+        let bottleURL = bottle.url
+        if isHelper {
+            WineHelperActivity.shared.begin(bottleURL: bottleURL)
+        }
+        defer {
+            if isHelper {
+                WineHelperActivity.shared.end(bottleURL: bottleURL)
+            }
+        }
         var result: [String] = []
         let fileHandle = try createsLogFile ? makeFileHandle() : nil
         fileHandle?.writeApplicationInfo()
@@ -855,6 +876,8 @@ public class Wine {
     public static func runBatchFile(url: URL, bottle: Bottle) async throws -> String {
         // A script can start a launcher too, so it gets the aliases a program launch gets.
         await syncCJKFontReplacements(bottle: bottle)
+        // Whatever it starts runs under the bottle's wineserver, which is then Whisky's doing.
+        noteUserLaunch(in: bottle)
         return try await runWine(["cmd", "/c", url.path(percentEncoded: false)], bottle: bottle)
     }
 

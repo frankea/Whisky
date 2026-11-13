@@ -122,15 +122,21 @@ class ProcessesViewModel: ObservableObject {
                 }) {
                     parsed[index].source = .whisky
                     parsed[index].launchTime = match.launchTime
-                    parsed[index].macosPID = match.pid
+                    // The PID is the `wine start` process's, and 0 once it has
+                    // exited, which it does seconds after the launch.
+                    parsed[index].macosPID = match.pid > 0 ? match.pid : nil
                 }
             }
 
-            // Clean up stale registry entries (in registry but not in tasklist)
+            // Clean up stale registry entries (in registry but not in tasklist).
+            // Not while a launch is still starting: the program shows up in
+            // tasklist a moment after `wine start` hands it over.
             let tasklistNames = Set(parsed.map { $0.imageName.lowercased() })
+            let now = Date()
             for registryEntry in registryProcesses
-                where !tasklistNames.contains(registryEntry.programName.lowercased()) {
-                ProcessRegistry.shared.unregister(pid: registryEntry.pid)
+                where !tasklistNames.contains(registryEntry.programName.lowercased())
+                && now.timeIntervalSince(registryEntry.launchTime) >= BottleRunState.startupGrace {
+                ProcessRegistry.shared.unregister(registryEntry)
                 logger.debug(
                     "Unregistered stale registry entry: \(registryEntry.programName)"
                 )

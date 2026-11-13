@@ -288,19 +288,22 @@ public extension Wine {
     @discardableResult
     @MainActor
     static func control(bottle: Bottle) async throws -> String {
-        try await Wine.runWine(["control"], bottle: bottle)
+        Wine.noteUserLaunch(in: bottle)
+        return try await Wine.runWine(["control"], bottle: bottle)
     }
 
     @discardableResult
     @MainActor
     static func regedit(bottle: Bottle) async throws -> String {
-        try await Wine.runWine(["regedit"], bottle: bottle)
+        Wine.noteUserLaunch(in: bottle)
+        return try await Wine.runWine(["regedit"], bottle: bottle)
     }
 
     @discardableResult
     @MainActor
     static func cfg(bottle: Bottle) async throws -> String {
-        try await Wine.runWine(["winecfg"], bottle: bottle)
+        Wine.noteUserLaunch(in: bottle)
+        return try await Wine.runWine(["winecfg"], bottle: bottle)
     }
 
     @discardableResult

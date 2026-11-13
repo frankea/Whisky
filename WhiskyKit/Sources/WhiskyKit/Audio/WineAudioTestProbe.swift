@@ -99,6 +99,9 @@ public final class WineAudioTestProbe: AudioProbe, @unchecked Sendable {
         environment: [String: String],
         exePath: String
     ) async -> ProcessResult? {
+        let bottleURL = bottle.url
+        WineHelperActivity.shared.begin(bottleURL: bottleURL)
+        defer { WineHelperActivity.shared.end(bottleURL: bottleURL) }
         var stdoutLines: [String] = []
         var stderrLines: [String] = []
         var exitCode: Int32 = -1

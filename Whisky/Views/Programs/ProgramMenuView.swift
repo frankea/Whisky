@@ -27,9 +27,8 @@ struct ProgramMenuView: View {
     var body: some View {
         Button("button.run", systemImage: "play") {
             Telemetry.capture(.firstProgramLaunchAttempted)
-            // Program-list and pin launches historically skipped launcher
-            // detection; only FileOpenView and the bottle Run button had it.
-            LauncherFixes.detectAndApply(from: program.url, for: program.bottle)
+            // Launcher detection and the clipboard policy run in the shared
+            // launch path, as they do for every other Run and Play.
             program.run()
         }
         .labelStyle(.titleAndIcon)

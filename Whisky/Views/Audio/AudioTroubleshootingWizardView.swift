@@ -230,11 +230,15 @@ struct AudioTroubleshootingWizardView: View {
             Text(String(localized: "audio.troubleshoot.escalationNext"))
                 .font(.body).foregroundStyle(.secondary)
             VStack(spacing: 8) {
-                Button(String(localized: "audio.troubleshoot.openAdvanced")) {
-                    onOpenAdvanced?()
-                    onDismiss()
+                // Offered only where a caller can actually open the advanced
+                // audio settings.
+                if let onOpenAdvanced {
+                    Button(String(localized: "audio.troubleshoot.openAdvanced")) {
+                        onOpenAdvanced()
+                        onDismiss()
+                    }
+                    .buttonStyle(.bordered)
                 }
-                .buttonStyle(.bordered)
                 Button(String(localized: "audio.troubleshoot.exportDiagnostics")) { exportDiagnostics() }
                     .buttonStyle(.bordered)
                 Button(String(localized: "audio.troubleshoot.openSystemSound")) {

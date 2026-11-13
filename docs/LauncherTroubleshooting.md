@@ -38,22 +38,17 @@ If problems persist, see launcher-specific sections below.
    - Open bottle → Config → Launcher Compatibility
    - Toggle "Launcher Compatibility Mode" ON
 
-2. **Verify Locale Setting:**
-   - Check "Locale Override" is set to **English (en_US.UTF-8)**
-   - This fixes ICU parsing errors in steamwebhelper
-
-3. **Check Configuration:**
+2. **Check Configuration:**
    - Click "Generate Diagnostics Report"
-   - Verify `LC_ALL=en_US.UTF-8` in environment variables
    - Verify `STEAM_DISABLE_CEF_SANDBOX=1`
 
-**Why This Happens:**
-Steam's Chromium-based web helper crashes when parsing dates/times in certain locales. The `.UTF-8` suffix is critical for proper Unicode handling.
+**About Locale:**
+Earlier versions forced `LC_ALL=en_US.UTF-8` for Steam to avoid this crash. That crash did not reproduce in current testing (steamwebhelper started and the login page loaded under German and Japanese locales on both the stable and beta engines), so the Steam preset now sets no locale. With Locale Override on **Auto**, Steam and the games it starts get your Mac's language and region as their Windows locale; pick another locale there to change that. Steam's own interface language is a Steam setting (Steam > Settings > Interface). If Steam's window fails to load under your locale, set Locale Override to English (en_US) and please report it.
 
 **Related Upstream Issues:**
 - whisky-app/whisky#946 (steamwebhelper crash)
 - whisky-app/whisky#1224 (UI unusable)
-- whisky-app/whisky#1241 (Locale fix discovery)
+- whisky-app/whisky#1241 (Earlier locale workaround)
 
 ---
 
@@ -313,13 +308,12 @@ Rosetta 2: ✅ Installed
 ```
 Compatibility Mode: ✅ Enabled
 Detected Launcher: Steam
-Launcher Locale: English (en_US.UTF-8)
+Launcher Locale: Auto
 GPU Spoofing: ✅ Enabled (NVIDIA)
 ```
 
 **Environment Variables:**
 Look for:
-- `LC_ALL=en_US.UTF-8` (locale fix)
 - `STEAM_DISABLE_CEF_SANDBOX=1` (CEF fix)
 - `MESA_GL_VERSION_OVERRIDE=4.6` (GPU spoofing)
 - `WINHTTP_CONNECT_TIMEOUT=90000` (network timeout)
@@ -339,10 +333,6 @@ Look for:
 ### ❌ "DXVK REQUIRED for Rockstar Launcher"
 **Impact:** Logo won't display, launcher unusable  
 **Solution:** Enable DXVK immediately (critical)
-
-### ⚠️ "Steam may crash without en_US locale"
-**Impact:** steamwebhelper crashes likely  
-**Solution:** Set Locale Override to English
 
 ### ❌ "GPU spoofing REQUIRED for EA App"
 **Impact:** Black screen, "GPU not supported"  
@@ -421,14 +411,13 @@ Isolate launcher issues:
 ### Steam
 **Must Have:**
 - ✅ Launcher Compatibility Mode
-- ✅ Locale: English (en_US.UTF-8)
 
 **Recommended:**
 - ✅ DXVK (improves UI performance)
 - ✅ Network timeout: 90s
+- ✅ Locale: Auto (your Mac's language and region; the Steam preset sets no locale)
 
 **Critical Settings:**
-- `LC_ALL=en_US.UTF-8` (prevents steamwebhelper crash)
 - `STEAM_DISABLE_CEF_SANDBOX=1` (Wine compatibility)
 
 ---
@@ -641,8 +630,8 @@ Before making changes:
 ### Q: Can I customize individual launcher settings?
 **A:** Currently, settings apply to the detected launcher. Per-game overrides may be added in future versions.
 
-### Q: Why does my launcher require English locale?
-**A:** Chromium Embedded Framework in launchers has Unicode parsing bugs with certain locales. English (en_US.UTF-8) avoids these issues.
+### Q: Why do some launchers use an English locale?
+**A:** The Rockstar, EA App, Epic Games, and Battle.net presets set en_US.UTF-8 to avoid locale problems reported for those launchers. Steam's preset sets no locale, so with Locale Override on Auto, Steam and the games it starts get your Mac's language and region. Launcher bottles that older versions of Whisky set to English are put back on Auto once. Locale Override can pick a specific locale for any launcher.
 
 ---
 

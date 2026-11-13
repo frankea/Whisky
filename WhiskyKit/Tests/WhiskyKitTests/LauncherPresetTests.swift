@@ -20,16 +20,13 @@
 import XCTest
 
 final class LauncherPresetTests: XCTestCase {
-    func testSteamPresetIncludesLocale() {
+    func testSteamPresetLeavesTheLocaleToTheMac() {
         let env = LauncherType.steam.environmentOverrides()
 
-        // Steam should set en_US locale to fix steamwebhelper crashes
-        XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8")
-        XCTAssertEqual(env["LANG"], "en_US.UTF-8")
-
-        // Should force C locale for time/numeric to avoid ICU issues
-        XCTAssertEqual(env["LC_TIME"], "C")
-        XCTAssertEqual(env["LC_NUMERIC"], "C")
+        // steamwebhelper runs under other locales, so the preset sets none (#330)
+        for key in ["LC_ALL", "LANG", "LC_TIME", "LC_NUMERIC"] {
+            XCTAssertNil(env[key], key)
+        }
     }
 
     func testSteamPresetDisablesSandbox() {
@@ -131,13 +128,13 @@ final class LauncherPresetTests: XCTestCase {
     }
 
     func testRecommendedLocales() {
-        // Steam, EA App, Epic Games, Battle.net should recommend English
-        XCTAssertEqual(LauncherType.steam.recommendedLocale, .english)
+        // EA App, Epic Games, Battle.net should recommend English
         XCTAssertEqual(LauncherType.eaApp.recommendedLocale, .english)
         XCTAssertEqual(LauncherType.epicGames.recommendedLocale, .english)
         XCTAssertEqual(LauncherType.battleNet.recommendedLocale, .english)
 
-        // Others can use auto
+        // Others can use auto; Steam's language follows the Mac's (#330)
+        XCTAssertEqual(LauncherType.steam.recommendedLocale, .auto)
         XCTAssertEqual(LauncherType.rockstar.recommendedLocale, .auto)
         XCTAssertEqual(LauncherType.ubisoft.recommendedLocale, .auto)
     }

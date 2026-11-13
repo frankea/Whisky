@@ -429,7 +429,7 @@ final class LauncherDiagnosticsTests: XCTestCase {
     }
 
     func testRecommendedLocales() {
-        XCTAssertEqual(LauncherType.steam.recommendedLocale, .english)
+        XCTAssertEqual(LauncherType.steam.recommendedLocale, .auto)
         XCTAssertEqual(LauncherType.eaApp.recommendedLocale, .english)
         XCTAssertEqual(LauncherType.epicGames.recommendedLocale, .english)
         XCTAssertEqual(LauncherType.battleNet.recommendedLocale, .english)
@@ -516,8 +516,8 @@ final class LauncherDiagnosticsTests: XCTestCase {
     // MARK: - Locale Preservation Tests
 
     func testSteamLocaleNotOverwritten() throws {
-        // CRITICAL: Verify that Steam's "en_US.UTF-8" locale is not overwritten
-        // with "en_US" (missing .UTF-8 suffix) which would break steamwebhelper
+        // An explicit English override on a Steam bottle resolves to the full
+        // "en_US.UTF-8", never a bare "en_US"
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempURL) }
@@ -525,15 +525,13 @@ final class LauncherDiagnosticsTests: XCTestCase {
         let bottle = Bottle(bottleUrl: tempURL, inFlight: false, isAvailable: true)
         bottle.settings.launcherCompatibilityMode = true
         bottle.settings.detectedLauncher = .steam
-        bottle.settings.launcherLocale = .english // An explicit English, like Auto, keeps en_US.UTF-8
+        bottle.settings.launcherLocale = .english
 
         // Get full Wine environment (includes launcher preset + bottle settings)
         let env = Wine.constructWineEnvironment(for: bottle, environment: [:])
 
-        // CRITICAL: LC_ALL must be "en_US.UTF-8" (with .UTF-8 suffix) not just "en_US"
-        // The .UTF-8 suffix is essential for preventing steamwebhelper crashes
-        XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8", "Steam's LC_ALL must have .UTF-8 suffix")
-        XCTAssertEqual(env["LANG"], "en_US.UTF-8", "Steam's LANG must have .UTF-8 suffix")
+        XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8", "LC_ALL must have the .UTF-8 suffix")
+        XCTAssertEqual(env["LANG"], "en_US.UTF-8", "LANG must have the .UTF-8 suffix")
     }
 
     func testEnglishLocaleIncludesUTF8() {

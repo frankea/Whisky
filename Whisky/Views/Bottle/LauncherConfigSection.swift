@@ -219,8 +219,8 @@ extension LauncherConfigSection {
             }
             .help("""
             Sets the Windows locale for every program in this bottle, including games a launcher starts. \
-            Auto keeps the launcher's default: US English for Steam, EA App, Epic Games, Battle.net and \
-            Rockstar, and the Mac's own language and region otherwise.
+            Auto keeps the launcher's default: US English for EA App, Epic Games, Battle.net and Rockstar, \
+            and the Mac's own language and region otherwise.
             """)
 
             if bottle.settings.launcherLocale != .auto {

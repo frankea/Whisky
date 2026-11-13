@@ -104,12 +104,12 @@ final class BottleVM: ObservableObject {
         migrateLauncherBackends()
     }
 
-    /// Runs ``LauncherBackendMigration`` on every bottle, here and not in WhiskyKit's
-    /// loader so WhiskyCmd never rewrites settings. Also run after a GPTK deploy.
+    /// Runs the launcher migrations on every bottle, here so WhiskyCmd never rewrites settings.
     func migrateLauncherBackends() {
         let d3dMetalInstalled = WhiskyWineInstaller.isD3DMetalInstalled()
         for bottle in bottles where bottle.isAvailable && !bottle.inFlight {
             LauncherBackendMigration.migrateIfNeeded(bottle, d3dMetalInstalled: d3dMetalInstalled)
+            LauncherLocaleMigration.migrateIfNeeded(bottle)
         }
     }
 

@@ -113,7 +113,7 @@ final class BottleLauncherConfigTests: XCTestCase {
         // Should include Steam-specific fixes
         XCTAssertEqual(env["STEAM_DISABLE_CEF_SANDBOX"], "1")
 
-        // Should include locale override (with .UTF-8 suffix, critical for steamwebhelper)
+        // Should include the explicit English override, with the .UTF-8 suffix
         XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8")
         XCTAssertEqual(env["LC_TIME"], "C")
 

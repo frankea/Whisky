@@ -157,7 +157,7 @@ final class LauncherFixesApplyTests: LauncherFixesTestCase {
 
         XCTAssertTrue(bottle.settings.launcherCompatibilityMode)
         XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
-        // The locale stays the user's: the preset carries en_US while it is Auto (#330).
+        // The locale stays the user's: Auto, which follows the Mac for Steam (#330).
         XCTAssertEqual(bottle.settings.launcherLocale, .auto)
         XCTAssertTrue(bottle.settings.dxvk)
         XCTAssertTrue(bottle.settings.dxvkAsync)

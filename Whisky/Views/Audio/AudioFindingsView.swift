@@ -25,7 +25,9 @@ import WhiskyKit
 /// and optional fix action buttons.
 struct AudioFindingsView: View {
     let findings: [AudioFinding]
-    var onApplyFix: ((String) -> Void)?
+    /// Called with a finding that has a fix, and that fix. Without it the
+    /// findings show their advice and no Fix buttons.
+    var onApplyFix: ((AudioFinding, AudioFixAction) -> Void)?
 
     @State private var showAllFindings: Bool = false
 
@@ -87,10 +89,16 @@ struct AudioFindingsView: View {
             .font(.caption)
             .foregroundStyle(.secondary)
 
-            // Fix button
-            if finding.suggestedAction != nil {
-                Button("audio.findings.fix") {
-                    onApplyFix?(finding.id)
+            // Fix button, for findings Whisky can act on
+            if let onApplyFix, let action = AudioFixAction(findingId: finding.id) {
+                Button {
+                    onApplyFix(finding, action)
+                } label: {
+                    if action.changesBottle {
+                        Text("audio.findings.fix")
+                    } else {
+                        Text("audio.troubleshoot.openSystemSound")
+                    }
                 }
                 .controlSize(.small)
             }

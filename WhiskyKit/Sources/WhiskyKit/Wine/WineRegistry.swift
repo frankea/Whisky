@@ -167,12 +167,30 @@ public extension Wine {
         bottle: Bottle, key: String, name: String, type: RegistryType
     ) async throws -> String? {
         let output = try await runWine(["reg", "query", key, "-v", name], bottle: bottle)
-        let lines = output.split(omittingEmptySubsequences: true, whereSeparator: \.isNewline)
+        return registryValue(fromQueryOutput: output, type: type)
+    }
 
-        guard let line = lines.first(where: { $0.contains(type.rawValue) }) else { return nil }
-        let array = line.split(omittingEmptySubsequences: true, whereSeparator: \.isWhitespace)
-        guard let value = array.last else { return nil }
-        return String(value)
+    /// The data of the first value of `type` in `reg query` output.
+    ///
+    /// A value line reads `    Name    REG_SZ    data`. Everything after the
+    /// type token is the data, so a value with spaces comes back whole and
+    /// an empty value comes back as `""` rather than as the type name.
+    ///
+    /// - Returns: The data, or `nil` when no value of that type is listed.
+    internal static func registryValue(fromQueryOutput output: String, type: RegistryType) -> String? {
+        for line in output.split(whereSeparator: \.isNewline) {
+            var searchStart = line.startIndex
+            while let range = line[searchStart...].range(of: type.rawValue) {
+                let precededBySpace = range.lowerBound > line.startIndex
+                    && line[line.index(before: range.lowerBound)].isWhitespace
+                let followedBySpace = range.upperBound == line.endIndex || line[range.upperBound].isWhitespace
+                if precededBySpace, followedBySpace {
+                    return line[range.upperBound...].trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                searchStart = range.upperBound
+            }
+        }
+        return nil
     }
 
     @MainActor

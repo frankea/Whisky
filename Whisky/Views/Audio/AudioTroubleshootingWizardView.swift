@@ -29,6 +29,10 @@ struct AudioTroubleshootingWizardView: View {
     @ObservedObject var engine: AudioTroubleshootingEngine
     var onDismiss: () -> Void
     var onOpenAdvanced: (() -> Void)?
+    /// Applies the fix behind a wizard step, given its action id.
+    var onApplyFix: ((String) async -> Void)?
+
+    @State private var isApplyingFix = false
 
     var body: some View {
         NavigationStack {
@@ -170,15 +174,25 @@ struct AudioTroubleshootingWizardView: View {
             Text(String(localized: "audio.troubleshoot.suggestedFix")).font(.title3).fontWeight(.medium)
             Text(fixDescription).font(.body).foregroundStyle(.secondary)
                 .multilineTextAlignment(.center).padding(.horizontal, 32)
+            if AudioFixAction(troubleshootingActionId: actionId)?.closesRunningPrograms == true {
+                Text("audio.fix.closesPrograms").font(.caption).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center).padding(.horizontal, 32)
+            }
             Spacer()
             VStack(spacing: 8) {
                 Button(String(localized: "audio.troubleshoot.applyFix")) {
-                    engine.applyFix(actionId: actionId)
+                    isApplyingFix = true
+                    Task { @MainActor in
+                        await onApplyFix?(actionId)
+                        isApplyingFix = false
+                        engine.applyFix(actionId: actionId)
+                    }
                 }
                 .buttonStyle(.borderedProminent).controlSize(.large)
                 Button(String(localized: "audio.troubleshoot.skipFix")) { engine.offerNextFix() }
                     .buttonStyle(.bordered)
             }
+            .disabled(isApplyingFix)
             .padding(.bottom)
         }
         .padding()
@@ -288,7 +302,7 @@ struct AudioTroubleshootingWizardView: View {
     }
 
     private func openSystemSoundSettings() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.Sound-Settings.extension") {
+        if let url = AudioFixAction.soundSettingsURL {
             NSWorkspace.shared.open(url)
         }
     }

@@ -98,6 +98,12 @@ public final class TroubleshootingFlowEngine: ObservableObject {
     /// the next check should see.
     var preflightIsStale = false
 
+    /// The step the user was on when each pending fix was applied, by fix
+    /// ID. A fix that takes a while (a winetricks install) lands after the
+    /// user may have moved on; it only moves the session when the user is
+    /// still on that step.
+    var pendingFixOrigins: [String: String] = [:]
+
     // MARK: - Dependencies
 
     let flowDefinitions: [String: FlowDefinition]
@@ -278,14 +284,14 @@ public final class TroubleshootingFlowEngine: ObservableObject {
             if let nextNodeId = node.on?[outcome] {
                 logger.debug("Check \(checkId) outcome '\(outcome)' -> navigating to \(nextNodeId)")
                 session.recordBranch(from: node.id, targetNodeId: nextNodeId, reason: "Check outcome: \(outcome)")
-                navigateToNode(nextNodeId)
+                advance(to: nextNodeId)
             } else if let defaultNext = node.on?["default"] {
                 logger.debug("Check \(checkId) outcome '\(outcome)' not mapped, using default -> \(defaultNext)")
                 session.recordBranch(
                     from: node.id, targetNodeId: defaultNext,
                     reason: "Default branch (outcome: \(outcome))"
                 )
-                navigateToNode(defaultNext)
+                advance(to: defaultNext)
             } else {
                 logger.warning("Check \(checkId) outcome '\(outcome)' has no target and no default")
             }
@@ -345,7 +351,7 @@ public final class TroubleshootingFlowEngine: ObservableObject {
         }
         logger.debug("\(reason): step \(node.id) -> \(nextNodeId)")
         session.recordBranch(from: node.id, targetNodeId: nextNodeId, reason: reason)
-        navigateToNode(nextNodeId)
+        advance(to: nextNodeId)
     }
 
     /// Goes back to the previous step in the history.
@@ -400,6 +406,7 @@ public final class TroubleshootingFlowEngine: ObservableObject {
         )
         currentNode = nil
         automatedStepCount = 0
+        pendingFixOrigins = [:]
         pathChanged = false
         pathChangeReason = nil
         autoSave()
@@ -443,7 +450,7 @@ public final class TroubleshootingFlowEngine: ObservableObject {
         }
         let reason = launcherTarget != nil ? "Launcher: \(launcher ?? "")" : "Default branch"
         session.recordBranch(from: node.id, targetNodeId: target, reason: reason)
-        navigateToNode(target)
+        advance(to: target)
     }
 
     /// Resolves a node ID to a ``FlowStepNode`` by searching the current flow

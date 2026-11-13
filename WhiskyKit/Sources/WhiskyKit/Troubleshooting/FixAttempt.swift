@@ -48,6 +48,11 @@ public struct FixAttempt: Codable, Sendable {
     /// outside a flow node.
     public var nodeId: String?
 
+    /// Whether the fix landed. A `failed` attempt that landed is one the
+    /// user said did not help; one that did not land failed to apply.
+    /// `nil` in attempts recorded before this was tracked.
+    public var wasApplied: Bool?
+
     public init(
         fixId: String,
         timestamp: Date = Date(),

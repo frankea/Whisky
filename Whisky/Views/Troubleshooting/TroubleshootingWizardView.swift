@@ -185,6 +185,10 @@ extension TroubleshootingWizardView {
                     bottle: bottle,
                     program: program
                 )
+                // Each fix step gets its own card state: an install still
+                // running on a step the user skipped must not leave the
+                // next fix's card spinning.
+                .id(node.id)
             }
         case .verify:
             FixVerifyView(engine: engine, bottle: bottle, program: program)

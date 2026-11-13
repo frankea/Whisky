@@ -137,18 +137,16 @@ final class TroubleshootingFlowWiringTests: XCTestCase {
         let engine = makeEngine(scripted: [
             "graphics.backend_is": .fail,
             "crash.log_classify": .pass,
-            "dxvk.settings_check": .fail
+            "dxvk.settings_check": .fail,
+            "game.config_available": .pass
         ])
         engine.selectCategory(.graphics)
-        await waitUntil("backend fix offered") { engine.currentNode?.id == "fix_enable_dxvk" }
 
-        for attempt in 1 ... 2 {
+        for fixStep in ["fix_enable_dxvk", "fix_enable_async", "suggest_game_config"] {
+            await waitUntil("\(fixStep) offered") { engine.currentNode?.id == fixStep }
             applyCurrentFix(engine)
             engine.userReportsNotFixed()
-            await waitUntil("fix \(attempt + 1) offered") { engine.currentNode?.id == "fix_enable_async" }
         }
-        applyCurrentFix(engine)
-        engine.userReportsNotFixed()
 
         XCTAssertEqual(engine.session.failedFixCount, 3)
         XCTAssertEqual(engine.session.phase, .escalation)

@@ -57,6 +57,7 @@ extension TroubleshootingFlowEngine {
             nodeId: fixNode(for: fixId)?.id
         )
         session.recordFixAttempt(attempt)
+        pendingFixOrigins[fixId] = currentNode?.id ?? ""
         autoSave()
     }
 
@@ -66,6 +67,10 @@ extension TroubleshootingFlowEngine {
     /// none), which leads to the step that asks whether the fix helped. A
     /// fix with no node to follow goes straight to the verify phase.
     ///
+    /// A fix that lands after the user left the step it was applied from
+    /// (skipped or went back during a long install) is recorded as applied
+    /// without moving the session from where the user is now.
+    ///
     /// - Parameter fixId: The fix identifier to confirm.
     public func confirmFixApplied(fixId: String) {
         guard let index = session.fixAttempts.lastIndex(where: { $0.fixId == fixId && $0.result == .pending })
@@ -73,15 +78,21 @@ extension TroubleshootingFlowEngine {
             return
         }
         session.fixAttempts[index].result = .applied
+        session.fixAttempts[index].wasApplied = true
         // The fix changed what the snapshot describes.
         preflightIsStale = true
 
+        guard userStayed(withFixAt: index) else {
+            logger.debug("Fix \(fixId) applied after the user moved on; staying on the current step")
+            autoSave()
+            return
+        }
         if let nodeId = session.fixAttempts[index].nodeId,
            let node = resolveNode(nodeId),
            let next = node.on?["applied"] ?? node.on?["default"] {
             logger.debug("Fix \(fixId) applied: step \(node.id) -> \(next)")
             session.recordBranch(from: node.id, targetNodeId: next, reason: "Fix applied")
-            navigateToNode(next)
+            advance(to: next)
         } else {
             session.phase = .verify
         }
@@ -93,6 +104,8 @@ extension TroubleshootingFlowEngine {
     ///
     /// The session stays on the fix step, where it can be tried again or
     /// skipped, until ``maxFailedFixes`` fixes have failed; then it escalates.
+    /// A fix that fails after the user moved on is recorded without moving
+    /// the session; the cap then applies at the next fix that fails.
     ///
     /// - Parameter fixId: The fix identifier that failed.
     public func markFixFailed(fixId: String) {
@@ -102,6 +115,10 @@ extension TroubleshootingFlowEngine {
         }
         session.fixAttempts[index].result = .failed
         autoSave()
+        guard userStayed(withFixAt: index) else {
+            logger.debug("Fix \(fixId) failed after the user moved on; staying on the current step")
+            return
+        }
         if session.failedFixCount >= Self.maxFailedFixes, session.phase != .escalation {
             logger.info("Max fix attempts reached, escalating")
             escalate()
@@ -145,14 +162,63 @@ extension TroubleshootingFlowEngine {
             escalate()
         } else if let node = currentNode, let nextNodeId = node.on?["no"] ?? node.on?["default"] {
             session.recordBranch(from: node.id, targetNodeId: nextNodeId, reason: "Not fixed")
-            navigateToNode(nextNodeId)
+            advance(to: nextNodeId)
         } else {
             escalate()
         }
         autoSave()
     }
 
+    // MARK: - Flow Transitions
+
+    /// Follows a flow transition to a step, passing over fix steps whose fix
+    /// was applied in this session and did not help.
+    ///
+    /// "Still broken" leads back through the flow's checks, and a check that
+    /// passes whether or not its fix was applied (a game configuration the
+    /// database has) offered the same fix again until the attempt cap
+    /// escalated. A fix step already tried follows its `skipped` transition
+    /// (`default` when it has none) instead. A fix that failed to apply is
+    /// offered again, and steps reached any other way (resuming, retrying
+    /// from a chosen step) are shown as they are.
+    ///
+    /// - Parameter nodeId: The transition's target.
+    func advance(to nodeId: String) {
+        var target = nodeId
+        var passedOver: Set<String> = []
+        while let node = resolveNode(target), node.type == .fix, fixDidNotHelp(at: node),
+              passedOver.insert(node.id).inserted,
+              let next = node.on?["skipped"] ?? node.on?["default"] {
+            logger.debug("Fix step \(node.id) did not help this session; following skipped -> \(next)")
+            session.recordBranch(from: node.id, targetNodeId: next, reason: "Fix already tried")
+            target = next
+        }
+        navigateToNode(target)
+    }
+
+    /// Whether a fix offered from this step was applied in this session and
+    /// the user said it did not help.
+    func fixDidNotHelp(at node: FlowStepNode) -> Bool {
+        session.fixAttempts.contains { $0.nodeId == node.id && $0.result == .failed && $0.wasApplied == true }
+    }
+
     // MARK: - Helpers
+
+    /// Whether the user is still on the step a pending fix was applied
+    /// from, which is when its outcome may move the session. Forgets the
+    /// step either way: the attempt is no longer pending.
+    ///
+    /// A fix applied from elsewhere (enhanced diagnostics on the escalation
+    /// screen) was applied from the step the user was on then. An attempt
+    /// with no recorded step is compared against its fix node.
+    private func userStayed(withFixAt index: Int) -> Bool {
+        let attempt = session.fixAttempts[index]
+        let current = currentNode?.id ?? ""
+        guard let origin = pendingFixOrigins.removeValue(forKey: attempt.fixId) else {
+            return attempt.nodeId == nil || attempt.nodeId == current
+        }
+        return origin == current
+    }
 
     /// The flow node that offers a fix: the current node when it does,
     /// otherwise the first node with that fix ID in the current flow and

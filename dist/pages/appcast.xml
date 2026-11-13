@@ -6,6 +6,27 @@
         <description>Whisky update feed</description>
         <language>en</language>
         <item>
+            <title>Whisky 3.9.1</title>
+            <pubDate>Fri, 13 Nov 2026 03:05:22 +0000</pubDate>
+            <sparkle:version>58</sparkle:version>
+            <sparkle:shortVersionString>3.9.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <p>Whisky 3.9.1 lets Steam bottles follow your Mac's language and region, and fixes Game Configurations that chose a graphics backend this Mac can't run.</p>
+                <ul>
+                    <li><strong>Steam bottles no longer force US English</strong>: on Auto, Steam and the games it starts get your Mac's language and region, so games that take their region from Windows see the right one.</li>
+                    <li><strong>Game Configurations no longer set a backend this Mac can't run</strong>: a configuration that picks D3DMetal without the GPTK payload now uses Recommended instead of falling back to WineD3D.</li>
+                    <li><strong>The Binding of Isaac's configuration no longer switches the bottle to WineD3D.</strong></li>
+                </ul>
+                <p>See the <a href="https://github.com/frankea/Whisky/releases/tag/app-v3.9.1">release notes</a> for the full changelog.</p>
+            ]]></description>
+            <enclosure
+                url="https://github.com/frankea/Whisky/releases/download/app-v3.9.1/Whisky-3.9.1.dmg"
+                sparkle:edSignature="AtTKxywTYIQ0Foq8DDFxuwkMGPQAqntiwPjDrghHF5G23MD35BRv9lcZF7iWNLIb6VSG3ysy7L/oiom4cP3UBQ=="
+                length="11369725"
+                type="application/octet-stream" />
+        </item>
+        <item>
             <title>Whisky 3.9.0</title>
             <pubDate>Fri, 13 Nov 2026 00:06:41 +0000</pubDate>
             <sparkle:version>57</sparkle:version>

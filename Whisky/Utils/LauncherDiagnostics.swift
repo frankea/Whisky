@@ -141,6 +141,9 @@ enum LauncherDiagnostics {
         config += "Detection Mode: \(bottle.settings.launcherMode.rawValue)\n"
         if let launcher = bottle.settings.detectedLauncher {
             config += "Detected Launcher: \(launcher.rawValue)\n"
+            // Same condition as the launcher config summary and the launch itself.
+            let launcherDXVK = bottle.settings.deploysDXVK(whenLaunching: launcher)
+            config += "DXVK for Launcher Launches: \(launcherDXVK ? "✅ Enabled" : "❌ Disabled")\n"
         } else {
             config += "Detected Launcher: None\n"
         }
@@ -154,7 +157,9 @@ enum LauncherDiagnostics {
 
         // Graphics Settings
         config += "--- Graphics Configuration ---\n"
-        config += "DXVK: \(bottle.settings.dxvk ? "✅ Enabled" : "❌ Disabled")\n"
+        // The chosen backend; whether a launcher launch gets DXVK is reported
+        // above, since Recommended and the auto-enable deploy it under any backend.
+        config += "Graphics Backend: \(bottle.settings.graphicsBackend.rawValue)\n"
         if bottle.settings.dxvk {
             config += "DXVK Async: \(bottle.settings.dxvkAsync ? "✅ Enabled" : "❌ Disabled")\n"
             config += "DXVK HUD: \(bottle.settings.dxvkHud)\n"

@@ -145,6 +145,17 @@ see [SECURITY.md](SECURITY.md) for the full list. Like any HTTPS request,
 PostHog's ingestion sees the connecting IP (GeoIP enrichment is disabled); none
 of this is tied to your identity.
 
+## Translations
+
+Whisky is translated into 22 languages, and translations are managed on Crowdin.
+To help translate, or to fix a translation you've spotted, join the
+[Whisky Crowdin project](https://crowdin.com/project/frankea-whisky). If Crowdin
+asks you to join, use the access request prompt on the project page. New and
+updated translations sync into the app automatically, so please contribute
+there rather than by opening a pull request; see
+[CONTRIBUTING.md](CONTRIBUTING.md#localization) for how strings get from the
+code to Crowdin and back.
+
 ## Documentation
 
 - **[Support](docs/SUPPORT.md)** - Where to file bugs and what to expect from a single-maintainer fork

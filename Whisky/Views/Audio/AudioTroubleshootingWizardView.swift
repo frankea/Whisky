@@ -53,7 +53,7 @@ struct AudioTroubleshootingWizardView: View {
             .navigationTitle(String(localized: "audio.troubleshoot.title"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { onDismiss() }
+                    Button("troubleshooting.wizard.close") { onDismiss() }
                 }
             }
         }
@@ -144,7 +144,7 @@ struct AudioTroubleshootingWizardView: View {
                     Button(String(localized: "audio.troubleshoot.tryFix")) { engine.offerNextFix() }
                         .buttonStyle(.borderedProminent)
                 }
-                Button("Close") { onDismiss() }.keyboardShortcut(.cancelAction)
+                Button("troubleshooting.wizard.close") { onDismiss() }.keyboardShortcut(.cancelAction)
             }
             .padding(.horizontal).padding(.bottom)
         }
@@ -218,7 +218,7 @@ struct AudioTroubleshootingWizardView: View {
             Text(String(localized: "audio.troubleshoot.resolved")).font(.title3).fontWeight(.medium)
             if !engine.attemptedFixes.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Changes applied:").font(.caption).foregroundStyle(.secondary)
+                    Text("troubleshooting.resolved.changesApplied").font(.caption).foregroundStyle(.secondary)
                     ForEach(engine.attemptedFixes) { fix in
                         HStack(spacing: 6) {
                             Image(systemName: "checkmark").font(.caption2).foregroundStyle(.green)
@@ -258,7 +258,7 @@ struct AudioTroubleshootingWizardView: View {
                 .buttonStyle(.bordered)
             }
             Spacer()
-            Button("Close") { onDismiss() }.keyboardShortcut(.cancelAction).padding(.bottom)
+            Button("troubleshooting.wizard.close") { onDismiss() }.keyboardShortcut(.cancelAction).padding(.bottom)
         }
         .padding()
     }

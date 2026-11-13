@@ -1,6 +1,15 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%@ -- online play unavailable" : {
+
+    },
+    "%@ Fixes" : {
+
+    },
+    "%@ confidence" : {
+
+    },
     "%@: %@" : {
       "localizations" : {
         "ar" : {
@@ -148,6 +157,12 @@
           }
         }
       }
+    },
+    "%@: %lld" : {
+
+    },
+    "%lldch" : {
+
     },
     "%llds" : {
       "localizations" : {
@@ -444,6 +459,12 @@
           }
         }
       }
+    },
+    "Advanced audio settings active" : {
+
+    },
+    "All components verified as installed" : {
+
     },
     "Allow Background Events" : {
       "localizations" : {
@@ -1007,6 +1028,32 @@
         }
       }
     },
+    "Analyze latest log" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyse latest log"
+          }
+        }
+      }
+    },
+    "Analyzing…" : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analysing…"
+          }
+        }
+      }
+    },
+    "Applies next launch" : {
+
+    },
+    "Apply" : {
+
+    },
     "Arguments and logs have common secret shapes scrubbed unless sensitive details are included" : {
       "localizations" : {
         "en" : {
@@ -1028,6 +1075,15 @@
           }
         }
       }
+    },
+    "Audio" : {
+
+    },
+    "Audio Driver" : {
+
+    },
+    "Audio Troubleshooting…" : {
+
     },
     "Automatic" : {
       "localizations" : {
@@ -1460,6 +1516,15 @@
           }
         }
       }
+    },
+    "Check compatibility notes for this title" : {
+
+    },
+    "Checking installed dependencies…" : {
+
+    },
+    "Checking prefix health…" : {
+
     },
     "Clear" : {
       "localizations" : {
@@ -2016,6 +2081,9 @@
           }
         }
       }
+    },
+    "Confirm Action" : {
+
     },
     "Controller & Input" : {
       "localizations" : {
@@ -2845,6 +2913,9 @@
         }
       }
     },
+    "Could not verify installation status" : {
+
+    },
     "Crash Diagnosis History" : {
       "localizations" : {
         "ar" : {
@@ -3116,6 +3187,12 @@
           }
         }
       }
+    },
+    "Deselect All" : {
+
+    },
+    "Details" : {
+
     },
     "Detected:" : {
       "localizations" : {
@@ -3548,6 +3625,9 @@
           }
         }
       }
+    },
+    "Did you hear the tone?" : {
+
     },
     "Disable HIDAPI" : {
       "localizations" : {
@@ -4672,6 +4752,12 @@
           }
         }
       }
+    },
+    "Findings" : {
+
+    },
+    "Fix" : {
+
     },
     "Fixes Steam download stalls and connection timeouts" : {
       "localizations" : {
@@ -5809,6 +5895,12 @@
         }
       }
     },
+    "Import Bottles from the Original Whisky" : {
+
+    },
+    "Import Selected" : {
+
+    },
     "Include full log file" : {
       "localizations" : {
         "ar" : {
@@ -6217,6 +6309,27 @@
         }
       }
     },
+    "Installation Log (%lld lines)" : {
+
+    },
+    "Installation completed successfully" : {
+
+    },
+    "Installation exited with code %lld" : {
+
+    },
+    "Installation may have failed -- components not detected" : {
+
+    },
+    "Installed components cannot be automatically removed." : {
+
+    },
+    "Installing…" : {
+
+    },
+    "Install…" : {
+
+    },
     "Last analyzed:" : {
       "localizations" : {
         "en-GB" : {
@@ -6358,6 +6471,15 @@
           }
         }
       }
+    },
+    "Last refreshed: %@ ago" : {
+
+    },
+    "Last tested" : {
+
+    },
+    "Latency" : {
+
     },
     "Launcher Compatibility" : {
       "localizations" : {
@@ -7100,6 +7222,9 @@
         }
       }
     },
+    "Launcher fixes applied: %@" : {
+
+    },
     "Locale Override:" : {
       "localizations" : {
         "ar" : {
@@ -7544,6 +7669,12 @@
         }
       }
     },
+    "Map Command Key to Windows Ctrl" : {
+
+    },
+    "Migrate from the Original Whisky…" : {
+
+    },
     "NVIDIA (recommended) provides best compatibility across launchers" : {
       "localizations" : {
         "ar" : {
@@ -7840,6 +7971,12 @@
         }
       }
     },
+    "No" : {
+
+    },
+    "No bottles from the original Whisky were found." : {
+
+    },
     "No crash diagnoses recorded" : {
       "localizations" : {
         "ar" : {
@@ -7975,6 +8112,9 @@
           }
         }
       }
+    },
+    "No diagnosis available" : {
+
     },
     "None" : {
       "localizations" : {
@@ -8123,6 +8263,42 @@
           }
         }
       }
+    },
+    "Not supported" : {
+
+    },
+    "Not supported on macOS" : {
+
+    },
+    "Open audio diagnostics and troubleshooting for this bottle" : {
+
+    },
+    "Other things to try" : {
+
+    },
+    "Output Device" : {
+
+    },
+    "Pinned device:" : {
+
+    },
+    "Platform Fixes" : {
+
+    },
+    "Play Test Tone" : {
+
+    },
+    "Prefix Health" : {
+
+    },
+    "Prefix validation failed. Installation may not succeed. You can proceed anyway." : {
+
+    },
+    "Preflight Checks" : {
+
+    },
+    "Preserves physical button positions (Cross/Circle) for PlayStation controllers instead of XInput layout (A/B/X/Y)." : {
+
     },
     "Program" : {
       "localizations" : {
@@ -8276,6 +8452,9 @@
         }
       }
     },
+    "Raw Log Output" : {
+
+    },
     "Re-analyze" : {
       "localizations" : {
         "en-GB" : {
@@ -8417,6 +8596,12 @@
           }
         }
       }
+    },
+    "Re-check all dependency statuses" : {
+
+    },
+    "Re-checking dependency status…" : {
+
     },
     "Re-run with enhanced logging" : {
       "localizations" : {
@@ -8838,6 +9023,12 @@
         }
       }
     },
+    "Reset Audio State" : {
+
+    },
+    "Reset Audio State?" : {
+
+    },
     "Rockstar Games Launcher shows no window without DXVK. When it is this bottle's launcher, the bottle switches to DXVK on detection and every program in it runs with DXVK, whatever Graphics Backend is set to. Other launchers already run on DXVK under the Recommended backend." : {
       "localizations" : {
         "en" : {
@@ -9126,6 +9317,19 @@
         }
       }
     },
+    "Run the program to generate a crash diagnosis, or analyze the latest log." : {
+      "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run the program to generate a crash diagnosis, or analyse the latest log."
+          }
+        }
+      }
+    },
+    "Running winetricks for %@" : {
+
+    },
     "Save ZIP…" : {
       "localizations" : {
         "ar" : {
@@ -9261,6 +9465,9 @@
           }
         }
       }
+    },
+    "Search log…" : {
+
     },
     "Security Note" : {
       "localizations" : {
@@ -9409,6 +9616,9 @@
           }
         }
       }
+    },
+    "Select All" : {
+
     },
     "Select a bottle" : {
       "localizations" : {
@@ -9681,6 +9891,9 @@
           }
         }
       }
+    },
+    "Sets LeftCommandIsCtrl/RightCommandIsCtrl in Wine's Mac driver registry so Cmd+A/C/V/S register inside Wine apps as Ctrl+A/C/V/S." : {
+
     },
     "Sets SDL_GAMECONTROLLER_USE_BUTTON_LABELS=1 to preserve native button layouts for PlayStation and Switch controllers instead of converting to XInput format." : {
       "localizations" : {
@@ -10106,6 +10319,15 @@
         }
       }
     },
+    "Show" : {
+
+    },
+    "Show all findings (%lld)" : {
+
+    },
+    "Some components may not have installed correctly" : {
+
+    },
     "Stability" : {
       "localizations" : {
         "ar" : {
@@ -10242,6 +10464,21 @@
         }
       }
     },
+    "Switch to %@…" : {
+
+    },
+    "Technical details" : {
+
+    },
+    "Test Input: System Settings > Game Controllers" : {
+
+    },
+    "Test Wine Audio" : {
+
+    },
+    "These bottles were created by the archived original Whisky app. Importing references them in place: your files aren't moved or copied, and the original app keeps working." : {
+
+    },
     "These settings modify SDL environment variables to improve controller detection and button mapping. Try different combinations if your controller isn't working correctly." : {
       "localizations" : {
         "ar" : {
@@ -10377,6 +10614,12 @@
           }
         }
       }
+    },
+    "This will clear Wine cached audio device mappings and restart the Wine server." : {
+
+    },
+    "This will install: %@" : {
+
     },
     "This will remove all crash diagnosis records for this program." : {
       "localizations" : {
@@ -10650,6 +10893,15 @@
         }
       }
     },
+    "Try connecting via USB or check System Settings > Bluetooth" : {
+
+    },
+    "Try running the game in offline mode if available" : {
+
+    },
+    "Undo: %@" : {
+
+    },
     "Use DXVK for Rockstar Games Launcher" : {
       "localizations" : {
         "en" : {
@@ -10801,6 +11053,9 @@
           }
         }
       }
+    },
+    "Verbs to install" : {
+
     },
     "View Details" : {
       "localizations" : {
@@ -11074,6 +11329,9 @@
         }
       }
     },
+    "View Diagnostics" : {
+
+    },
     "View Latest Diagnosis" : {
       "localizations" : {
         "ar" : {
@@ -11345,6 +11603,24 @@
           }
         }
       }
+    },
+    "What you’re installing" : {
+
+    },
+    "Whisky" : {
+
+    },
+    "Why" : {
+
+    },
+    "Why this diagnosis" : {
+
+    },
+    "Workaround: %@" : {
+
+    },
+    "Yes" : {
+
     },
     "accessibility.toast.dismiss" : {
       "localizations" : {

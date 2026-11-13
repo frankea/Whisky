@@ -180,7 +180,7 @@ extension DiagnosisHistoryView {
             Button("Clear", role: .destructive) {
                 clearHistory()
             }
-            Button("Cancel", role: .cancel) {}
+            Button("button.cancel", role: .cancel) {}
         } message: {
             Text("This will remove all crash diagnosis records for this program.")
         }

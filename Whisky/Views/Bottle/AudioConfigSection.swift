@@ -70,8 +70,8 @@ struct AudioConfigSection: View {
 
             // 3. Simple/Advanced toggle
             Picker("", selection: $advancedMode) {
-                Text("Simple").tag(false)
-                Text("Advanced").tag(true)
+                Text("config.graphics.simple").tag(false)
+                Text("config.graphics.advanced").tag(true)
             }
             .pickerStyle(.segmented)
             .labelsHidden()

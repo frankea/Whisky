@@ -144,8 +144,8 @@ struct AudioSettingsView: View {
             .controlSize(.small)
             .disabled(isResettingAudioState)
             .alert("Reset Audio State?", isPresented: $showResetConfirmation) {
-                Button("Cancel", role: .cancel) {}
-                Button("Reset", role: .destructive) {
+                Button("button.cancel", role: .cancel) {}
+                Button("config.dxvk.reset", role: .destructive) {
                     performReset()
                 }
             } message: {

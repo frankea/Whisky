@@ -66,7 +66,7 @@ struct DiagnosticsPickerSheet: View {
             }
 
             HStack {
-                Button("Cancel", role: .cancel) {
+                Button("button.cancel", role: .cancel) {
                     dismiss()
                 }
                 .keyboardShortcut(.cancelAction)

@@ -80,7 +80,7 @@ extension RemediationCardView {
             "Confirm Action",
             isPresented: $showConfirmation
         ) {
-            Button("Cancel", role: .cancel) {}
+            Button("button.cancel", role: .cancel) {}
             Button("Apply") {
                 onAction?(action)
             }
@@ -179,7 +179,7 @@ extension RemediationCardView {
                 }
                 .controlSize(.small)
             } else {
-                Button("Apply\u{2026}") {
+                Button("gameConfig.banner.apply") {
                     showConfirmation = true
                 }
                 .controlSize(.small)

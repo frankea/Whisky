@@ -100,7 +100,8 @@ extension SessionResumeView {
                 Image(systemName: "clock")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
-                (Text("troubleshooting.resume.lastUpdated") + Text(" ") + Text(session.lastUpdatedAt, style: .relative))
+                (Text("troubleshooting.resume.lastUpdated") + Text(" ")
+                    + Text(.currentDate, format: .reference(to: session.lastUpdatedAt)))
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }

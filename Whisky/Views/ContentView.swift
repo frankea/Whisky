@@ -168,6 +168,9 @@ struct ContentView: View {
             // alone misses it, and an orphan has its own stop button.
             Task {
                 guard await Wine.runState(for: oldBottle).isRunning else { return }
+                // The probe takes a moment; if the user came back to this
+                // bottle meanwhile, they haven't left it, so don't stop it.
+                guard selected != oldURL else { return }
 
                 switch oldBottle.settings.closeWithProcessesPolicy {
                 case .alwaysKeepRunning:

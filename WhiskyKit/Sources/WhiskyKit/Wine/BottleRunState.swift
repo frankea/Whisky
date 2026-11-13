@@ -35,8 +35,9 @@ public enum BottleRunState: Equatable, Sendable {
     /// told to stop, or once the Processes page found a launcher gone that
     /// handed off to another executable.
     case running(trackedCount: Int)
-    /// The bottle's wineserver is up and Whisky launched nothing there in this
-    /// run of the app: left over from before a restart, or started outside Whisky.
+    /// The bottle's wineserver is up and neither a launch in this run of the
+    /// app nor one of Whisky's own helpers accounts for it: left over from
+    /// before a restart, or started outside Whisky.
     case orphaned
 
     /// How long after a launch a bottle counts as running without its
@@ -51,6 +52,10 @@ public enum BottleRunState: Equatable, Sendable {
     ///   - lastLaunch: When Whisky last launched something in the bottle, or `nil`
     ///     when it has no session there.
     ///   - wineserverRunning: Whether the bottle's wineserver answered a probe.
+    ///   - helpersAccountForWineserver: Whether Whisky's own helpers, such as
+    ///     bottle creation or the Processes page's listing, account for the
+    ///     wineserver (``WineHelperActivity/accountsForWineserver(bottleURL:now:)``).
+    ///     Such a wineserver runs nothing to show or stop.
     ///   - now: The time of the probe.
     ///   - grace: How long a launch counts as starting up; ``startupGrace`` by default.
     /// - Returns: The bottle's state. ``idle`` with a session still recorded means the
@@ -59,12 +64,16 @@ public enum BottleRunState: Equatable, Sendable {
         trackedCount: Int,
         lastLaunch: Date?,
         wineserverRunning: Bool,
+        helpersAccountForWineserver: Bool = false,
         now: Date = Date(),
         grace: TimeInterval = startupGrace
     ) -> BottleRunState {
         let hasSession = lastLaunch != nil || trackedCount > 0
         if wineserverRunning {
-            return hasSession ? .running(trackedCount: trackedCount) : .orphaned
+            if hasSession {
+                return .running(trackedCount: trackedCount)
+            }
+            return helpersAccountForWineserver ? .idle : .orphaned
         }
         // A launch can be ahead of its wineserver; the startup window keeps it
         // running until the wineserver has had time to come up.

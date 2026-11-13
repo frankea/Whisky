@@ -755,14 +755,27 @@ public class Wine {
 
     /// Run a `wine` command with the given arguments and a bottle context
     ///
-    /// - Parameter createsLogFile: `false` for polls whose output is parsed rather
-    ///   than read, such as `tasklist.exe`: a log file per poll buries the launch
-    ///   logs people are asked to attach.
+    /// - Parameters:
+    ///   - createsLogFile: `false` for polls whose output is parsed rather
+    ///     than read, such as `tasklist.exe`: a log file per poll buries the launch
+    ///     logs people are asked to attach.
+    ///   - isHelper: Whether the run is recorded in ``WineHelperActivity``, so the
+    ///     wineserver it brings up does not read as orphaned.
     @discardableResult
     @MainActor
     static func runWineWithBottle(
-        _ args: [String], bottle: Bottle, environment: [String: String] = [:], createsLogFile: Bool = true
+        _ args: [String], bottle: Bottle, environment: [String: String] = [:], createsLogFile: Bool = true,
+        isHelper: Bool = true
     ) async throws -> String {
+        let bottleURL = bottle.url
+        if isHelper {
+            WineHelperActivity.shared.begin(bottleURL: bottleURL)
+        }
+        defer {
+            if isHelper {
+                WineHelperActivity.shared.end(bottleURL: bottleURL)
+            }
+        }
         var result: [String] = []
         let fileHandle = try createsLogFile ? makeFileHandle() : nil
         fileHandle?.writeApplicationInfo()

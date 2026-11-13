@@ -194,6 +194,9 @@ extension Winetricks {
             continuation.finish()
             return
         }
+        // The install runs Wine in the bottle; its wineserver is Whisky's doing, not an orphan.
+        WineHelperActivity.shared.begin(bottleURL: bottleURL)
+        defer { WineHelperActivity.shared.end(bottleURL: bottleURL) }
 
         await withTaskCancellationHandler {
             await awaitProcessCompletion(process, verb: verb, timeout: timeout)

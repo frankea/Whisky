@@ -68,6 +68,11 @@ public extension Wine {
 
     /// Lists the bottle's Wine processes as `tasklist.exe` reports them.
     ///
+    /// A bottle whose wineserver is down has none, and is not listed: running
+    /// `tasklist.exe` there would bring up a wineserver nothing else uses. A
+    /// listing is weighed against the bottle's launch session
+    /// (``WineHelperActivity/recordListing(_:bottleURL:registry:now:)``).
+    ///
     /// `tasklist.exe` is a Wine process in the bottle, so unlike the `-k0` probe
     /// above it runs with the bottle's full environment, the way any other helper
     /// does. What it skips is the log file. The Processes page polls this every
@@ -79,10 +84,15 @@ public extension Wine {
     /// - Throws: An error if `tasklist.exe` cannot be started.
     @MainActor
     static func listProcesses(for bottle: Bottle) async throws -> [WineProcess] {
+        guard await isWineserverRunning(for: bottle) else { return [] }
+        // Not a helper that accounts for the wineserver: it only runs while one
+        // is already up, and a program it finds there must still read as orphaned.
         let output = try await runWineWithBottle(
-            ["tasklist.exe", "/FO", "CSV"], bottle: bottle, createsLogFile: false
+            ["tasklist.exe", "/FO", "CSV"], bottle: bottle, createsLogFile: false, isHelper: false
         )
-        return parseTasklistOutput(output)
+        let processes = parseTasklistOutput(output)
+        WineHelperActivity.shared.recordListing(processes, bottleURL: bottle.url)
+        return processes
     }
 
     /// Parses the CSV output of `tasklist.exe` into an array of ``WineProcess`` values.
@@ -192,7 +202,7 @@ public extension Wine {
     ///
     /// Probes the bottle's wineserver and weighs it against the launches the
     /// ``ProcessRegistry`` knows about
-    /// (``BottleRunState/resolve(trackedCount:lastLaunch:wineserverRunning:now:grace:)``).
+    /// (``BottleRunState/resolve(trackedCount:lastLaunch:wineserverRunning:helpersAccountForWineserver:now:grace:)``).
     /// A session whose wineserver has gone idle is ended here, so its tracked
     /// launches stop counting.
     ///
@@ -206,7 +216,8 @@ public extension Wine {
         let state = BottleRunState.resolve(
             trackedCount: registry.getProcessCount(for: bottle.url),
             lastLaunch: registry.lastLaunch(for: bottle.url),
-            wineserverRunning: wineserverRunning
+            wineserverRunning: wineserverRunning,
+            helpersAccountForWineserver: WineHelperActivity.shared.accountsForWineserver(bottleURL: bottle.url)
         )
         if state == .idle {
             registry.endSession(for: bottle.url)
@@ -220,9 +231,12 @@ extension Wine {
     @MainActor private static var watchedSessions: Set<URL> = []
 
     /// Records a launch the user asked for that has no program entry of its
-    /// own, such as a batch file or `winecfg`, and watches for its session to end.
+    /// own, such as a batch file, `winecfg` or a winetricks command, and
+    /// watches for its session to end.
+    ///
+    /// - Parameter bottle: The bottle the launch runs in.
     @MainActor
-    static func noteUserLaunch(in bottle: Bottle) {
+    public static func noteUserLaunch(in bottle: Bottle) {
         ProcessRegistry.shared.noteLaunch(bottleURL: bottle.url)
         watchSession(for: bottle)
     }

@@ -32,6 +32,27 @@ struct BottleRunStateTests {
         #expect(state.badgeCount == 0)
     }
 
+    @Test("A wineserver only Whisky's own helpers keep up is idle, not orphaned")
+    func helperWineserverIsIdle() {
+        let state = BottleRunState.resolve(
+            trackedCount: 0, lastLaunch: nil, wineserverRunning: true, helpersAccountForWineserver: true, now: now
+        )
+        #expect(state == .idle)
+        #expect(state.badgeCount == 0)
+    }
+
+    @Test("Helpers do not hide a session: a launch under the same wineserver still runs")
+    func helpersDoNotHideASession() {
+        let state = BottleRunState.resolve(
+            trackedCount: 1,
+            lastLaunch: now.addingTimeInterval(-600),
+            wineserverRunning: true,
+            helpersAccountForWineserver: true,
+            now: now
+        )
+        #expect(state == .running(trackedCount: 1))
+    }
+
     @Test("A game Whisky launched is running, not orphaned, after its launcher process exited")
     func launchedGameIsRunning() {
         // Minutes after the launch: `wine start` is long gone, the wineserver is up.

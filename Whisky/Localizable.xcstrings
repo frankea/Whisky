@@ -35642,6 +35642,22 @@
         }
       }
     },
+    "config.installVcRedist.pending" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The installer runs in Terminal. This shows as installed once the runtime is found in the bottle."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The installer runs in Terminal. This shows as installed once the runtime is found in the bottle."
+          }
+        }
+      }
+    },
     "config.metal4" : {
       "localizations" : {
         "en" : {

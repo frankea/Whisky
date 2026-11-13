@@ -6,6 +6,30 @@
         <description>Whisky update feed</description>
         <language>en</language>
         <item>
+            <title>Whisky 3.9.0</title>
+            <pubDate>Fri, 13 Nov 2026 00:06:41 +0000</pubDate>
+            <sparkle:version>57</sparkle:version>
+            <sparkle:shortVersionString>3.9.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <p>Whisky 3.9.0 brings a Liquid Glass app icon with a dark appearance on macOS 26, a per-program Metal HUD, <code>.cmd</code> script support, a Locale Override that works for launcher bottles, and a security update to the updater.</p>
+                <ul>
+                    <li><strong>Liquid Glass app icon</strong> with a dark appearance on macOS 26.</li>
+                    <li><strong>Per-program Metal HUD</strong>: turn the HUD on for one game, or off for one program in a bottle that shows it.</li>
+                    <li><strong>Import from the original Whisky</strong> is offered once when Whisky finds bottles it doesn't know yet.</li>
+                    <li><strong><code>.cmd</code> scripts</strong> run like <code>.bat</code> files, and upper-case extensions work.</li>
+                    <li><strong>Locale Override works for Steam, EA App, Epic Games, Battle.net and Rockstar bottles</strong>, so a game can get the region or language you choose.</li>
+                    <li><strong>Security</strong>: the Sparkle updater is updated to 2.10.1, fixing two Sparkle advisories.</li>
+                </ul>
+                <p>See the <a href="https://github.com/frankea/Whisky/releases/tag/app-v3.9.0">release notes</a> for the full changelog.</p>
+            ]]></description>
+            <enclosure
+                url="https://github.com/frankea/Whisky/releases/download/app-v3.9.0/Whisky-3.9.0.dmg"
+                sparkle:edSignature="Iu44t+xGAutqf6O4hJGnkseAtN6L1b5ZWWr/TeVCmdiZ2eSm9vSu/hqhR1bFO29mGZJuaUj42f4b6mu2X5ZfCQ=="
+                length="11362472"
+                type="application/octet-stream" />
+        </item>
+        <item>
             <title>Whisky 3.8.0</title>
             <pubDate>Thu, 12 Nov 2026 19:44:26 +0000</pubDate>
             <sparkle:version>56</sparkle:version>

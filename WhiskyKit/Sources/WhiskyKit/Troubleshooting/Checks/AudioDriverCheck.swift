@@ -21,13 +21,17 @@ import Foundation
 /// Checks the Wine audio driver setting against an expected value.
 ///
 /// Reads the audio driver mode from the bottle settings and compares it
-/// to `params["expected"]`. Returns `.alreadyConfigured` if the driver
-/// is already set as expected, `.pass` if auto-detect resolves correctly,
-/// and `.fail` if the driver does not match.
+/// to `params["expected"]`, a driver id or a comma-separated list of the
+/// ids that are fine (`"auto,coreaudio"`). Returns `.alreadyConfigured` if
+/// the driver is one of them and `.fail` if it is not.
 public struct AudioDriverCheck: TroubleshootingCheck {
     public let checkId = "audio.driver_check"
 
     public init() {}
+
+    public let signature: CheckSignature? = CheckSignature(
+        acceptedParams: ["expected"], outcomes: [.alreadyConfigured, .fail, .error]
+    )
 
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         let expected = params["expected"] ?? "auto"
@@ -54,11 +58,11 @@ public struct AudioDriverCheck: TroubleshootingCheck {
             "expectedDriver": expected
         ]
 
-        if currentDriver == expected {
+        if expected.flowParamList.contains(currentDriver) {
             return CheckResult(
                 outcome: .alreadyConfigured,
                 evidence: evidence,
-                summary: "Audio driver is already set to \(expected)",
+                summary: "Audio driver is already set to \(currentDriver)",
                 confidence: .high
             )
         }
@@ -84,8 +88,14 @@ public struct AudioDriverCheck: TroubleshootingCheck {
         case .error:
             return String(localized: "troubleshooting.check.settingsUnreadable")
         case .alreadyConfigured:
-            guard let expected = result.evidence["expectedDriver"].map(driverName) else { return nil }
-            return String(localized: "troubleshooting.check.audioDriver.matches \(expected)")
+            // The driver in use: with several accepted, the expected list
+            // would not say which one it is.
+            guard let current = (result.evidence["currentDriver"] ?? result.evidence["expectedDriver"])
+                .map(driverName)
+            else {
+                return nil
+            }
+            return String(localized: "troubleshooting.check.audioDriver.matches \(current)")
         case .fail:
             guard let current = result.evidence["currentDriver"].map(driverName),
                   let expected = result.evidence["expectedDriver"].map(driverName)
@@ -98,8 +108,13 @@ public struct AudioDriverCheck: TroubleshootingCheck {
         }
     }
 
-    /// The on-screen name for a driver id; ids the app doesn't know stay raw.
+    /// The on-screen name for a driver id, or for each of a comma-separated
+    /// list of them; ids the app doesn't know stay raw.
     private static func driverName(_ rawValue: String) -> String {
-        AudioDriverMode(rawValue: rawValue)?.displayName ?? rawValue
+        let ids = rawValue.flowParamList
+        guard ids.count > 1 else {
+            return AudioDriverMode(rawValue: rawValue)?.displayName ?? rawValue
+        }
+        return ids.map { AudioDriverMode(rawValue: $0)?.displayName ?? $0 }.joined(separator: ", ")
     }
 }

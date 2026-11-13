@@ -33,6 +33,10 @@ public struct LauncherTypeCheck: TroubleshootingCheck {
 
     public init() {}
 
+    public let signature: CheckSignature? = CheckSignature(
+        acceptedParams: ["expected"], outcomes: [.pass, .fail, .unknown]
+    )
+
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         let detectedLauncher = context.preflight.launcherType
 

@@ -87,7 +87,7 @@ public struct FixPreview: Sendable {
 /// | `enable-dxvk-async` | DXVK async shader compilation | Yes |
 /// | `set-audio-driver` | Wine audio driver registry key | Yes |
 /// | `set-buffer-size` | DirectSound buffer size | Yes |
-/// | `enable-esync` | Enhanced sync mode | Yes |
+/// | `enable-esync` | Enhanced sync mode (none to MSync) | Yes |
 /// | `enable-controller-compat` | Controller compatibility mode | Yes |
 /// | `install-winetricks-verb` | Winetricks verb installation | No |
 /// | `run-enhanced-diagnostics` | Program WINEDEBUG preset | Yes |
@@ -135,13 +135,14 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
     ) -> FixPreview? {
         switch fixId {
         case "switch-backend":
-            let current = bottle.settings.graphicsBackend
+            let override = programBackendOverride(program)
+            let current = override ?? bottle.settings.graphicsBackend
             let target = params["backend"].flatMap { GraphicsBackend(rawValue: $0) } ?? .recommended
             return FixPreview(
                 settingName: String(localized: "config.graphics.backend"),
                 currentValue: current.displayName,
                 newValue: target.displayName,
-                scope: "bottle",
+                scope: override == nil ? "bottle" : "program",
                 isReversible: true
             )
 
@@ -181,7 +182,7 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
             return FixPreview(
                 settingName: String(localized: "config.enhancedSync"),
                 currentValue: enhancedSyncName(current),
-                newValue: enhancedSyncName(.esync),
+                newValue: enhancedSyncName(enhancedSyncTarget(from: current)),
                 scope: "bottle",
                 isReversible: true
             )
@@ -237,7 +238,7 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
             )
 
         case "apply-launcher-fixes":
-            let launcher = program.flatMap { LauncherType.detect(from: $0.url) }
+            let launcher = launcherForFixes(bottle: bottle, program: program)
             return FixPreview(
                 settingName: String(localized: "troubleshooting.fix.setting.launcherFixes"),
                 currentValue: launcher.map(\.displayName)
@@ -313,14 +314,27 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
     ) -> FixAttempt {
         switch fixId {
         case "switch-backend":
-            let before = bottle.settings.graphicsBackend.rawValue
             let target = params["backend"].flatMap { GraphicsBackend(rawValue: $0) } ?? .recommended
+            // A program's override is what its launches use, so the switch
+            // goes there when one is set; on the bottle it would change nothing.
+            if let program, let override = programBackendOverride(program) {
+                setProgramBackendOverride(target, on: program)
+                return FixAttempt(
+                    fixId: fixId,
+                    beforeValue: override.rawValue,
+                    afterValue: target.rawValue,
+                    result: .applied,
+                    params: params.merging([backendScopeKey: "program"]) { _, scope in scope }
+                )
+            }
+            let before = bottle.settings.graphicsBackend.rawValue
             bottle.settings.graphicsBackend = target
             return FixAttempt(
                 fixId: fixId,
                 beforeValue: before,
                 afterValue: target.rawValue,
-                result: .applied
+                result: .applied,
+                params: params.merging([backendScopeKey: "bottle"]) { _, scope in scope }
             )
 
         case "enable-dxvk-async":
@@ -358,12 +372,13 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
             )
 
         case "enable-esync":
-            let before = String(describing: bottle.settings.enhancedSync)
-            bottle.settings.enhancedSync = .esync
+            let current = bottle.settings.enhancedSync
+            let target = enhancedSyncTarget(from: current)
+            bottle.settings.enhancedSync = target
             return FixAttempt(
                 fixId: fixId,
-                beforeValue: before,
-                afterValue: "esync",
+                beforeValue: String(describing: current),
+                afterValue: String(describing: target),
                 result: .applied
             )
 
@@ -430,8 +445,8 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
             )
 
         case "apply-launcher-fixes":
-            guard let program, let launcher = LauncherType.detect(from: program.url) else {
-                logger.info("apply-launcher-fixes: no launcher detected for this program")
+            guard let launcher = launcherForFixes(bottle: bottle, program: program) else {
+                logger.info("apply-launcher-fixes: no launcher detected for this program or bottle")
                 return FixAttempt(fixId: fixId, result: .failed)
             }
             LauncherFixes.apply(to: bottle, launcher: launcher, force: true)
@@ -518,6 +533,11 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
             else {
                 return false
             }
+            if attempt.params?[backendScopeKey] == "program" {
+                guard let program else { return false }
+                setProgramBackendOverride(backend, on: program)
+                return true
+            }
             bottle.settings.graphicsBackend = backend
             return true
 
@@ -601,6 +621,36 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
     }
 
     // MARK: - Preview Helpers
+
+    /// The param a switch-backend attempt records its target in: `program`
+    /// when it changed the program's override, `bottle` otherwise.
+    static let backendScopeKey = "scope"
+
+    /// The program's graphics backend override, if it has one.
+    @MainActor
+    private static func programBackendOverride(_ program: Program?) -> GraphicsBackend? {
+        program?.settings.overrides?.graphicsBackend
+    }
+
+    @MainActor
+    private static func setProgramBackendOverride(_ backend: GraphicsBackend, on program: Program) {
+        var overrides = program.settings.overrides ?? ProgramOverrides()
+        overrides.graphicsBackend = backend
+        program.settings.overrides = overrides
+    }
+
+    /// The enhanced sync mode the fix leaves: an enabled mode stays as it is
+    /// (MSync, the default, is never traded for ESync), and none gets MSync.
+    private static func enhancedSyncTarget(from current: EnhancedSync) -> EnhancedSync {
+        current == .none ? .msync : current
+    }
+
+    /// The launcher the launcher fixes are for: the program's own when it is
+    /// one, otherwise the launcher the bottle was set up for.
+    @MainActor
+    private static func launcherForFixes(bottle: Bottle, program: Program?) -> LauncherType? {
+        program.flatMap { LauncherType.detect(from: $0.url) } ?? bottle.settings.detectedLauncher
+    }
 
     private static func stateName(_ isEnabled: Bool) -> String {
         isEnabled ? String(localized: "config.retinaMode.on") : String(localized: "config.retinaMode.off")

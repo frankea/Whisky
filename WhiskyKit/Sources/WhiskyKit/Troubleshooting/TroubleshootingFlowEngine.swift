@@ -84,14 +84,28 @@ public final class TroubleshootingFlowEngine: ObservableObject {
     /// evidence (e.g. which winetricks verb the check found missing).
     @Published public private(set) var lastCheckResult: CheckResult?
 
+    /// Collects a fresh preflight snapshot.
+    ///
+    /// The snapshot is taken when the session starts, but the user changes
+    /// what it describes along the way: a fix changes settings, and "it is
+    /// still broken" means the program was launched again and wrote a new
+    /// log. After those the next check runs on a snapshot from this
+    /// provider, so a log check reads the new log. Without a provider the
+    /// checks keep the snapshot the session started with.
+    public var preflightProvider: (@MainActor () async -> PreflightData)?
+
+    /// Whether the user did something since the snapshot was taken that
+    /// the next check should see.
+    var preflightIsStale = false
+
     // MARK: - Dependencies
 
-    private let flowDefinitions: [String: FlowDefinition]
-    private let fragments: [String: FlowDefinition]
+    let flowDefinitions: [String: FlowDefinition]
+    let fragments: [String: FlowDefinition]
     private let checkRegistry: CheckRegistry
-    private let sessionStore: any TroubleshootingSessionStoring
+    let sessionStore: any TroubleshootingSessionStoring
 
-    private let logger = Logger(
+    let logger = Logger(
         subsystem: "com.franke.Whisky",
         category: "TroubleshootingFlowEngine"
     )
@@ -202,12 +216,17 @@ public final class TroubleshootingFlowEngine: ObservableObject {
         session.pushStep(node)
 
         // Update session phase if the node's phase differs
-        let nodePhase = TroubleshootingSession.SessionPhase(flowPhase: node.phase)
+        let nodePhase = unresolvedGuard(TroubleshootingSession.SessionPhase(flowPhase: node.phase))
         if nodePhase != session.phase {
             session.phase = nodePhase
         }
 
         autoSave()
+
+        if node.type == .branch {
+            routeBranch(node)
+            return
+        }
 
         // Auto-run checks for check-type nodes
         if let checkId = node.checkId {
@@ -223,6 +242,11 @@ public final class TroubleshootingFlowEngine: ObservableObject {
 
         Task { [weak self] in
             guard let self else { return }
+
+            if preflightIsStale, let preflightProvider {
+                preflightIsStale = false
+                session.preflightSnapshot = await preflightProvider()
+            }
 
             let context = CheckContext(
                 bottleURL: session.preflightSnapshot?.bottleURL ?? session.bottleURL ?? URL(filePath: "/"),
@@ -270,102 +294,20 @@ public final class TroubleshootingFlowEngine: ObservableObject {
         }
     }
 
-    // MARK: - Fix Application
-
-    /// Records a fix application and transitions to the verify phase.
-    ///
-    /// Creates a ``FixAttempt`` with `.pending` result and records it in the session.
-    ///
-    /// - Parameters:
-    ///   - fixId: The stable fix identifier from the flow node.
-    ///   - beforeValue: The setting value before the fix, if applicable.
-    ///   - afterValue: The setting value after the fix, if applicable.
-    public func applyFix(fixId: String, beforeValue: String?, afterValue: String?) {
-        let attempt = FixAttempt(
-            fixId: fixId,
-            timestamp: Date(),
-            beforeValue: beforeValue,
-            afterValue: afterValue,
-            result: .pending
-        )
-        session.recordFixAttempt(attempt)
-        session.phase = .verify
-        autoSave()
-    }
-
-    /// Marks the most recent pending fix attempt as applied.
-    ///
-    /// - Parameter fixId: The fix identifier to confirm.
-    public func confirmFixApplied(fixId: String) {
-        if let index = session.fixAttempts.lastIndex(where: { $0.fixId == fixId && $0.result == .pending }) {
-            session.fixAttempts[index].result = .applied
-            autoSave()
-        }
-    }
-
-    /// Marks the most recent pending fix attempt as failed, so a fix that
-    /// could not be performed never reads as applied in the session record.
-    ///
-    /// - Parameter fixId: The fix identifier that failed.
-    public func markFixFailed(fixId: String) {
-        if let index = session.fixAttempts.lastIndex(where: { $0.fixId == fixId && $0.result == .pending }) {
-            session.fixAttempts[index].result = .failed
-            autoSave()
-        }
-    }
-
-    // MARK: - Verification
-
-    /// Called when the user reports the problem is fixed.
-    ///
-    /// Sets the session outcome to resolved, transitions to the export phase,
-    /// and saves the completed session to history.
-    public func userReportsFixed() {
-        session.outcome = .resolved
-        session.phase = .export
-
-        // Mark the most recent applied fix as verified
-        if let index = session.fixAttempts.lastIndex(where: { $0.result == .applied }) {
-            session.fixAttempts[index].result = .verified
-        }
-
-        autoSave()
-        sessionStore.completeSession(session)
-    }
-
-    /// Called when the user reports the fix did not help.
-    ///
-    /// If the maximum fix attempts (3) have been exhausted, escalates.
-    /// Otherwise, navigates to the next fix or re-branches from the current check.
-    public func userReportsNotFixed() {
-        // Mark the most recent applied fix as failed
-        if let index = session.fixAttempts.lastIndex(where: { $0.result == .applied }) {
-            session.fixAttempts[index].result = .failed
-        }
-
-        if session.failedFixCount >= 3 {
-            logger.info("Max fix attempts reached, escalating")
-            escalate()
-        } else {
-            // Navigate to the "no" or "default" target from current node
-            if let node = currentNode, let nextNodeId = node.on?["no"] ?? node.on?["default"] {
-                navigateToNode(nextNodeId)
-            } else {
-                escalate()
-            }
-        }
-        autoSave()
-    }
-
     // MARK: - Skip / Back / Restart
 
-    /// Skips the current step, navigating to the "skipped" or "default" target.
-    ///
-    /// Per the locked "skip for now" decision, users can skip any step.
     /// Whether the current node has a `continue` transition, which is how an
-    /// info node hands over to the next step.
+    /// info node hands over to the next step. Never while escalated: the
+    /// escalation screen offers its own ways on.
     public var canContinue: Bool {
-        currentNode?.on?["continue"] != nil
+        session.phase != .escalation && currentNode?.on?["continue"] != nil
+    }
+
+    /// Whether the current step can be skipped. Never while escalated: the
+    /// escalation summary's transitions lead to the report steps, which are
+    /// the escalation screen's own options.
+    public var canSkip: Bool {
+        session.phase != .escalation && currentNode != nil
     }
 
     /// Follows the current node's `continue` transition.
@@ -374,17 +316,29 @@ public final class TroubleshootingFlowEngine: ObservableObject {
     /// this transition. Nothing followed it, so every flow that reached one
     /// stopped there with Skip and Back as the only controls.
     public func continueStep() {
+        // Moving on from an info card is when the user acts on it, such as
+        // launching the program again with enhanced logging on.
+        preflightIsStale = true
         follow(["continue", "default"], reason: "Continue")
     }
 
-    /// Skips the current step. `continue` is the last fallback: skipping an
-    /// info node means moving on.
+    /// Skips the current step, navigating to the "skipped" or "default"
+    /// target. `continue` is the last fallback: skipping an info node means
+    /// moving on.
+    ///
+    /// Per the locked "skip for now" decision, users can skip any step.
     public func skipStep() {
         follow(["skipped", "default", "continue"], reason: "Skip")
     }
 
     private func follow(_ keys: [String], reason: String) {
         guard let node = currentNode else { return }
+        // An escalated session stays escalated: following the summary's
+        // transitions drew the resolved screen for a problem that wasn't.
+        guard session.phase != .escalation else {
+            logger.debug("\(reason) ignored: the session is escalated")
+            return
+        }
         guard let nextNodeId = keys.lazy.compactMap({ node.on?[$0] }).first else {
             logger.warning("No \(reason) target for node \(node.id)")
             return
@@ -406,7 +360,7 @@ public final class TroubleshootingFlowEngine: ObservableObject {
         // Restore the previous step
         if let previousStep = session.stepHistory.last {
             session.currentNodeId = previousStep.nodeId
-            session.phase = previousStep.phase
+            session.phase = unresolvedGuard(previousStep.phase)
             currentNode = resolveNode(previousStep.nodeId)
             automatedStepCount = 0
             autoSave()
@@ -464,12 +418,40 @@ public final class TroubleshootingFlowEngine: ObservableObject {
 
     // MARK: - Private Helpers
 
+    /// The phase to show for a step's phase. The export phase is where the
+    /// wizard says the problem is resolved, so a session the user has not
+    /// confirmed as fixed shows escalation there instead: the escalation
+    /// fragment's own steps (its summary, report and support draft) are
+    /// export-phase steps.
+    private func unresolvedGuard(
+        _ phase: TroubleshootingSession.SessionPhase
+    ) -> TroubleshootingSession.SessionPhase {
+        phase == .export && session.outcome != .resolved ? .escalation : phase
+    }
+
+    /// Follows a branch node's transition for the detected launcher.
+    ///
+    /// Branch nodes key their transitions by ``LauncherType`` raw value
+    /// (`"Steam"`, `"EA App"`), matched against the preflight's launcher
+    /// type, and fall back to `default` for any other launcher or none.
+    private func routeBranch(_ node: FlowStepNode) {
+        let launcher = session.preflightSnapshot?.launcherType
+        let launcherTarget = launcher.flatMap { node.on?[$0] }
+        guard let target = launcherTarget ?? node.on?["default"] else {
+            logger.warning("Branch \(node.id) has no target for launcher \(launcher ?? "none") and no default")
+            return
+        }
+        let reason = launcherTarget != nil ? "Launcher: \(launcher ?? "")" : "Default branch"
+        session.recordBranch(from: node.id, targetNodeId: target, reason: reason)
+        navigateToNode(target)
+    }
+
     /// Resolves a node ID to a ``FlowStepNode`` by searching the current flow
     /// and then all fragments.
     ///
     /// - Parameter nodeId: The node ID to resolve.
     /// - Returns: The resolved node, or `nil` if not found.
-    private func resolveNode(_ nodeId: String) -> FlowStepNode? {
+    func resolveNode(_ nodeId: String) -> FlowStepNode? {
         // Check current flow first
         if let categoryId = session.currentFlowCategoryId,
            let flow = flowDefinitions[categoryId],
@@ -488,7 +470,7 @@ public final class TroubleshootingFlowEngine: ObservableObject {
     }
 
     /// Auto-saves the session via the session store.
-    private func autoSave() {
+    func autoSave() {
         session.lastUpdatedAt = Date()
         sessionStore.save(session)
     }

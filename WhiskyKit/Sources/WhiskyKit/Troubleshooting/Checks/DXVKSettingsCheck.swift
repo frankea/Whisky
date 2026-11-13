@@ -28,6 +28,11 @@ public struct DXVKSettingsCheck: TroubleshootingCheck {
 
     public init() {}
 
+    public let signature: CheckSignature? = CheckSignature(
+        acceptedParams: ["expected"], requiredParams: ["setting"],
+        outcomes: [.alreadyConfigured, .fail, .error]
+    )
+
     // swiftlint:disable:next function_body_length
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         guard let setting = params["setting"] else {

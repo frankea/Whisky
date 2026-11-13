@@ -36,6 +36,11 @@ struct TroubleshootingWizardView: View {
     @State private var resumeSession: TroubleshootingSession?
     @State private var stalenessChanges: [StalenessChange] = []
     @State private var showConfirmationSubSheet: Bool = false
+    /// Set until the first preflight snapshot is in: no check may run, and
+    /// no symptom be picked, on a session without one.
+    @State private var isCollectingPreflight: Bool = true
+    /// The snapshot taken on open, which a resumed session continues with.
+    @State private var currentPreflight: PreflightData?
 
     private let sessionStore = TroubleshootingSessionStore()
 
@@ -68,7 +73,7 @@ struct TroubleshootingWizardView: View {
             }
         }
         .frame(minWidth: 700, minHeight: 500)
-        .onAppear(perform: onAppear)
+        .task { await onAppear() }
     }
 }
 
@@ -104,7 +109,7 @@ extension TroubleshootingWizardView {
                 Button("troubleshooting.back") { engine.goBack() }
                     .disabled(engine.session.stepHistory.count <= 1)
                 Button("troubleshooting.wizard.skip") { engine.skipStep() }
-                    .disabled(engine.currentNode == nil)
+                    .disabled(!engine.canSkip)
                 if engine.canContinue {
                     Button("troubleshooting.wizard.continue") { engine.continueStep() }
                         .keyboardShortcut(.defaultAction)
@@ -146,6 +151,15 @@ extension TroubleshootingWizardView {
 
     @ViewBuilder
     private var stepContent: some View {
+        if isCollectingPreflight {
+            checksPlaceholder
+        } else {
+            phaseContent
+        }
+    }
+
+    @ViewBuilder
+    private var phaseContent: some View {
         switch engine.session.phase {
         case .symptom:
             SymptomPickerView(engine: engine)
@@ -256,42 +270,47 @@ extension TroubleshootingWizardView {
 // MARK: - Lifecycle
 
 extension TroubleshootingWizardView {
-    private func onAppear() {
+    private func onAppear() async {
         // Configure session with bottle/program context
         engine.session.bottleURL = entryContext.bottleURL
         engine.session.programURL = entryContext.programURL
+        // Fixes and relaunches change what the snapshot describes; the
+        // engine takes a new one before the next check after them.
+        engine.preflightProvider = { [bottle, program, entryContext] in
+            await PreflightCollector.collect(
+                bottle: bottle, program: program, programURL: entryContext.programURL
+            )
+        }
+
+        let preflight = await collectPreflight()
+        currentPreflight = preflight
+        isCollectingPreflight = false
 
         // Check for existing active session
         if let existingSession = sessionStore.loadActiveSession(for: entryContext.bottleURL) {
-            let currentPreflight = collectPreflight()
             stalenessChanges = sessionStore.checkStaleness(
                 session: existingSession,
-                currentPreflight: currentPreflight
+                currentPreflight: preflight
             )
             resumeSession = existingSession
             showResumeOverlay = true
         } else {
-            // Collect preflight and populate session
-            let preflight = collectPreflight()
             engine.session.preflightSnapshot = preflight
             engine.start(from: entryContext)
         }
     }
 
-    private func collectPreflight() -> PreflightData {
-        PreflightData(
-            bottleURL: entryContext.bottleURL,
-            bottleName: bottle.settings.name,
-            programURL: entryContext.programURL,
-            programName: program?.name,
-            isWineserverRunning: false,
-            processCount: 0,
-            graphicsBackend: bottle.settings.graphicsBackend.rawValue
-        )
+    private func collectPreflight() async -> PreflightData {
+        await PreflightCollector.collect(bottle: bottle, program: program, programURL: entryContext.programURL)
     }
 
     private func resumeSession(session: TroubleshootingSession) {
         engine.session = session
+        // The resumed checks run against the bottle as it is now; the resume
+        // screen has shown what changed since.
+        if let currentPreflight {
+            engine.session.preflightSnapshot = currentPreflight
+        }
         if let nodeId = session.currentNodeId {
             engine.navigateToNode(nodeId)
         }

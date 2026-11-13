@@ -29,6 +29,10 @@ public struct AudioTestCheck: TroubleshootingCheck {
 
     public init() {}
 
+    public let signature: CheckSignature? = CheckSignature(
+        outcomes: [.unknown]
+    )
+
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         // MinGW is not available; WhiskyAudioTest.exe is not compiled.
         // The probe would return .skipped gracefully.

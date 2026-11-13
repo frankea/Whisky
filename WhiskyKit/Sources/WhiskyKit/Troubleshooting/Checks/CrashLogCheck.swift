@@ -29,6 +29,10 @@ public struct CrashLogCheck: TroubleshootingCheck {
 
     public init() {}
 
+    public let signature: CheckSignature? = CheckSignature(
+        outcomes: [.pass, .fail, .unknown, .error]
+    )
+
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         guard let logURL = context.preflight.recentLogURL else {
             return CheckResult(

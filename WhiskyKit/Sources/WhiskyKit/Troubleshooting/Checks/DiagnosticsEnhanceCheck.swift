@@ -29,6 +29,10 @@ public struct DiagnosticsEnhanceCheck: TroubleshootingCheck {
 
     public init() {}
 
+    public let signature: CheckSignature? = CheckSignature(
+        acceptedParams: ["preset"], outcomes: [.pass, .alreadyConfigured, .error]
+    )
+
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         let bottleURL = context.bottleURL
         let metadataURL = bottleURL.appending(path: "Metadata.plist")

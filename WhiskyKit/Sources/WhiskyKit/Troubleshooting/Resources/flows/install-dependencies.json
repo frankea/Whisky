@@ -15,6 +15,7 @@
       },
       "on": {
         "pass": "check_game_config",
+        "already_configured": "check_dlls",
         "fail": "show_missing_deps",
         "unknown": "check_game_config",
         "error": "check_game_config"

@@ -145,7 +145,7 @@ extension FixVerifyView {
         // Check if the fix is reversible by previewing (read-only, no side effects)
         let preview = FixApplicator.preview(
             fixId: lastApplied.fixId,
-            params: [:],
+            params: lastApplied.params ?? [:],
             bottle: bottle,
             program: program
         )

@@ -145,6 +145,10 @@ extension EscalationView {
         )
     }
 
+    /// Turns on the enhanced logging preset. The engine ties the attempt to
+    /// the escalation fragment's enhanced diagnostics step and follows its
+    /// `applied` transition: launch the program again, then analyze the new
+    /// log.
     private func runEnhancedDiagnostics() {
         let attempt = FixApplicator.apply(
             fixId: "run-enhanced-diagnostics",
@@ -155,7 +159,8 @@ extension EscalationView {
         engine.applyFix(
             fixId: attempt.fixId,
             beforeValue: attempt.beforeValue,
-            afterValue: attempt.afterValue
+            afterValue: attempt.afterValue,
+            params: attempt.params
         )
         if attempt.result == .failed {
             engine.markFixFailed(fixId: attempt.fixId)

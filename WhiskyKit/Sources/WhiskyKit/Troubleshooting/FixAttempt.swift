@@ -43,13 +43,19 @@ public struct FixAttempt: Codable, Sendable {
     /// does not identify the target.
     public var params: [String: String]?
 
+    /// The flow node the fix was applied from, whose `applied` transition
+    /// the session follows once the fix lands. `nil` for a fix applied
+    /// outside a flow node.
+    public var nodeId: String?
+
     public init(
         fixId: String,
         timestamp: Date = Date(),
         beforeValue: String? = nil,
         afterValue: String? = nil,
         result: FixResult = .pending,
-        params: [String: String]? = nil
+        params: [String: String]? = nil,
+        nodeId: String? = nil
     ) {
         self.fixId = fixId
         self.timestamp = timestamp
@@ -57,6 +63,7 @@ public struct FixAttempt: Codable, Sendable {
         self.afterValue = afterValue
         self.result = result
         self.params = params
+        self.nodeId = nodeId
     }
 }
 

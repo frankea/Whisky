@@ -33,135 +33,189 @@ public enum PreflightCollector {
         category: "PreflightCollector"
     )
 
+    /// What the collector reads from the bottle and program on the main actor.
+    struct Inputs: Sendable {
+        let bottleURL: URL
+        let bottleName: String
+        let programURL: URL?
+        /// The launcher detected for the program, or the one the bottle was
+        /// set up for.
+        let launcherType: LauncherType?
+        let bottleBackend: GraphicsBackend
+        /// The program's backend override, when a ``Program`` was at hand.
+        let programBackendOverride: GraphicsBackend?
+        /// Whether to read the override from the program's settings file:
+        /// there is a program URL but no ``Program`` to ask.
+        let readsPersistedOverride: Bool
+    }
+
+    /// The most recent run of a program found in the run history.
+    struct RecentRun: Equatable {
+        let logURL: URL?
+        let exitCode: Int32?
+    }
+
     /// Collects cheap preflight data for a troubleshooting session.
     ///
-    /// Gathers bottle identity, program identity, running process state,
-    /// recent log file location, audio device info, and resolved graphics
-    /// backend. All operations are fast and do not launch Wine processes.
+    /// Gathers bottle identity, program identity, the launcher in use,
+    /// running process state, the most recent run's log and exit code,
+    /// audio device info, and the graphics backend a launch uses (the
+    /// program's override first, then the bottle's). Nothing launches Wine;
+    /// the file and audio reads run off the main actor.
     ///
     /// - Parameters:
     ///   - bottle: The bottle being troubleshot.
     ///   - program: The program being troubleshot, if any.
+    ///   - programURL: The program's URL when there is no ``Program`` for it.
     /// - Returns: A ``PreflightData`` snapshot.
     @MainActor
-    public static func collect(bottle: Bottle, program: Program?) async -> PreflightData {
-        let isRunning = await Wine.isWineserverRunning(for: bottle)
-        let processCount = ProcessRegistry.shared.getProcessCount(for: bottle)
-
-        let resolvedBackend: GraphicsBackend = if bottle.settings.graphicsBackend == .recommended {
-            GraphicsBackendResolver.resolve()
-        } else {
-            bottle.settings.graphicsBackend
+    public static func collect(bottle: Bottle, program: Program?, programURL: URL? = nil) async -> PreflightData {
+        let inputs = inputs(bottle: bottle, program: program, programURL: programURL)
+        let gathering = Task.detached(priority: .userInitiated) {
+            gather(inputs, logsFolder: Wine.logsFolder)
         }
-
-        // Audio device info (best-effort)
-        let audioMonitor = AudioDeviceMonitor()
-        let audioDevice = audioMonitor.defaultOutputDevice()
-
-        // Recent log and exit code from run history
-        let (recentLogURL, lastExitCode) = findRecentRunInfo(for: bottle, program: program)
+        // Asynchronous on the main actor: it waits on a process without
+        // blocking.
+        let isRunning = await Wine.isWineserverRunning(for: bottle)
+        let preflight = await gathering.value.with(isWineserverRunning: isRunning)
 
         logger.debug(
-            "Preflight: wineserver=\(isRunning), procs=\(processCount), backend=\(resolvedBackend.rawValue)"
+            """
+            Preflight: wineserver=\(isRunning), procs=\(preflight.processCount), \
+            backend=\(preflight.graphicsBackend), launcher=\(preflight.launcherType ?? "none")
+            """
         )
+        return preflight
+    }
 
-        return PreflightData(
+    // MARK: - Steps
+
+    @MainActor
+    static func inputs(bottle: Bottle, program: Program?, programURL: URL?) -> Inputs {
+        let url = program?.url ?? programURL
+        return Inputs(
             bottleURL: bottle.url,
             bottleName: bottle.settings.name,
-            programURL: program?.url,
-            programName: program?.name,
-            launcherType: nil, // LauncherDetection is in app target; populated by app layer if needed
-            isWineserverRunning: isRunning,
-            processCount: processCount,
-            recentLogURL: recentLogURL,
-            lastExitCode: lastExitCode,
-            audioDeviceName: audioDevice?.name,
-            audioTransportType: audioDevice?.transportType.exportName,
-            graphicsBackend: resolvedBackend.rawValue,
+            programURL: url,
+            launcherType: url.flatMap { LauncherType.detect(from: $0) } ?? bottle.settings.detectedLauncher,
+            bottleBackend: bottle.settings.graphicsBackend,
+            programBackendOverride: program?.settings.overrides?.graphicsBackend,
+            readsPersistedOverride: program == nil && url != nil
+        )
+    }
+
+    /// Everything but the wineserver probe, which the caller fills in.
+    static func gather(
+        _ inputs: Inputs,
+        logsFolder: URL,
+        audioDevice: () -> AudioDeviceInfo? = { AudioDeviceMonitor().defaultOutputDevice() },
+        recommendedBackend: (LauncherType?) -> GraphicsBackend = { GraphicsBackendResolver.resolve(for: $0) }
+    ) -> PreflightData {
+        var programOverride = inputs.programBackendOverride
+        if inputs.readsPersistedOverride, let programURL = inputs.programURL {
+            programOverride = Program.persistedOverrides(for: programURL, bottleURL: inputs.bottleURL)?
+                .graphicsBackend
+        }
+        let backends = resolvedBackends(
+            bottle: inputs.bottleBackend,
+            programOverride: programOverride,
+            programURL: inputs.programURL,
+            recommended: recommendedBackend
+        )
+        let recentRun = recentRun(
+            programName: inputs.programURL?.lastPathComponent,
+            bottleURL: inputs.bottleURL,
+            logsFolder: logsFolder
+        )
+        let device = audioDevice()
+
+        return PreflightData(
+            bottleURL: inputs.bottleURL,
+            bottleName: inputs.bottleName,
+            programURL: inputs.programURL,
+            programName: inputs.programURL?.lastPathComponent,
+            launcherType: inputs.launcherType?.rawValue,
+            isWineserverRunning: false,
+            processCount: ProcessRegistry.shared.getProcessCount(for: inputs.bottleURL),
+            recentLogURL: recentRun.logURL,
+            lastExitCode: recentRun.exitCode,
+            audioDeviceName: device?.name,
+            audioTransportType: device?.transportType.exportName,
+            audioSampleRate: device?.sampleRate,
+            graphicsBackend: backends.effective.rawValue,
+            bottleGraphicsBackend: backends.bottle.rawValue,
             collectedAt: Date()
         )
     }
 
-    // MARK: - Private Helpers
-
-    /// Finds the most recent log file URL and exit code for a program.
+    /// The backends a launch of the program and the bottle's other programs
+    /// resolve to.
     ///
-    /// Queries the run log history for the program (or scans the bottle's
-    /// log directory if no program is specified) to find the most recent
-    /// log entry.
-    ///
-    /// - Parameters:
-    ///   - bottle: The bottle to search in.
-    ///   - program: The program to search for, if any.
-    /// - Returns: A tuple of the most recent log URL and exit code.
-    @MainActor
-    private static func findRecentRunInfo(
-        for bottle: Bottle,
-        program: Program?
-    ) -> (URL?, Int32?) {
-        guard let program else {
-            // No program context; try to find any recent log in the bottle
-            return (findRecentLogInBottle(bottle: bottle), nil)
+    /// Mirrors the launch: the program's override wins over the bottle's
+    /// setting, and Recommended resolves for what is launched, which steers
+    /// a launcher to DXVK.
+    static func resolvedBackends(
+        bottle: GraphicsBackend,
+        programOverride: GraphicsBackend?,
+        programURL: URL?,
+        recommended: (LauncherType?) -> GraphicsBackend
+    ) -> (effective: GraphicsBackend, bottle: GraphicsBackend) {
+        let bottleResolved = bottle == .recommended ? recommended(nil) : bottle
+        let choice = programOverride ?? bottle
+        guard choice == .recommended else {
+            return (choice, bottleResolved)
         }
-
-        let history = RunLogStore.load(for: program.name, in: bottle.url)
-        guard let mostRecent = history.entries.last else {
-            return (nil, nil)
-        }
-
-        let logsFolder = bottle.url
-            .appending(path: "logs")
-            .appending(path: program.name)
-        let logURL = logsFolder.appending(path: mostRecent.logFileName)
-        let logExists = FileManager.default.fileExists(atPath: logURL.path(percentEncoded: false))
-
-        return (logExists ? logURL : nil, mostRecent.exitCode)
+        let launcher = programURL.flatMap { LauncherType.detect(from: $0) }
+        return (recommended(launcher), bottleResolved)
     }
 
-    /// Scans the bottle's log directory for the most recently modified log file.
+    /// The most recent run in the bottle's run history: the program's when
+    /// one is named, otherwise the newest of any program in the bottle.
     ///
-    /// Used when no program context is available. Searches all subdirectories
-    /// of the logs folder for `.log` files and returns the most recent one.
-    private static func findRecentLogInBottle(bottle: Bottle) -> URL? {
-        let logsFolder = bottle.url.appending(path: "logs")
-        let fileManager = FileManager.default
-
-        guard fileManager.fileExists(atPath: logsFolder.path(percentEncoded: false)) else {
-            return nil
+    /// The log is only returned while its file still exists; run logs live
+    /// in the shared logs folder, named in the history entry.
+    static func recentRun(programName: String?, bottleURL: URL, logsFolder: URL) -> RecentRun {
+        let entries: [RunLogEntry] = if let programName {
+            RunLogStore.load(for: programName, in: bottleURL).entries
+        } else {
+            historyProgramNames(in: bottleURL).flatMap { RunLogStore.load(for: $0, in: bottleURL).entries }
         }
+        guard let latest = entries.max(by: { $0.startTime < $1.startTime }) else {
+            return RecentRun(logURL: nil, exitCode: nil)
+        }
+        let logURL = logsFolder.appending(path: latest.logFileName)
+        let logExists = FileManager.default.fileExists(atPath: logURL.path(percentEncoded: false))
+        return RecentRun(logURL: logExists ? logURL : nil, exitCode: latest.exitCode)
+    }
 
-        guard let enumerator = fileManager.enumerator(
-            at: logsFolder,
-            includingPropertiesForKeys: [.contentModificationDateKey],
-            options: [.skipsHiddenFiles]
+    /// The programs with a run history in the bottle.
+    private static func historyProgramNames(in bottleURL: URL) -> [String] {
+        let suffix = ".run-history.plist"
+        let folder = bottleURL.appending(path: "Program Settings")
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path(percentEncoded: false))) ?? []
+        return names.filter { $0.hasSuffix(suffix) }.map { String($0.dropLast(suffix.count)) }
+    }
+}
+
+extension PreflightData {
+    /// This snapshot with the wineserver state replaced.
+    func with(isWineserverRunning: Bool) -> PreflightData {
+        PreflightData(
+            bottleURL: bottleURL,
+            bottleName: bottleName,
+            programURL: programURL,
+            programName: programName,
+            launcherType: launcherType,
+            isWineserverRunning: isWineserverRunning,
+            processCount: processCount,
+            recentLogURL: recentLogURL,
+            lastExitCode: lastExitCode,
+            audioDeviceName: audioDeviceName,
+            audioTransportType: audioTransportType,
+            audioSampleRate: audioSampleRate,
+            graphicsBackend: graphicsBackend,
+            bottleGraphicsBackend: bottleGraphicsBackend,
+            collectedAt: collectedAt
         )
-        else {
-            return nil
-        }
-
-        var mostRecentURL: URL?
-        var mostRecentDate: Date?
-
-        for case let fileURL as URL in enumerator {
-            guard fileURL.pathExtension == "log" else { continue }
-
-            guard let values = try? fileURL.resourceValues(forKeys: [.contentModificationDateKey]),
-                  let modDate = values.contentModificationDate
-            else {
-                continue
-            }
-
-            if let existingDate = mostRecentDate {
-                if modDate > existingDate {
-                    mostRecentDate = modDate
-                    mostRecentURL = fileURL
-                }
-            } else {
-                mostRecentDate = modDate
-                mostRecentURL = fileURL
-            }
-        }
-
-        return mostRecentURL
     }
 }

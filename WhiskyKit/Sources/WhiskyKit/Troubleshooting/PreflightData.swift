@@ -59,8 +59,18 @@ public struct PreflightData: Codable, Sendable {
     /// Transport type of the audio device (e.g., "built-in", "bluetooth").
     public let audioTransportType: String?
 
-    /// Resolved graphics backend (e.g., "dxvk", "gptk").
+    /// Nominal sample rate of the default audio output device in Hz, if
+    /// detected.
+    public let audioSampleRate: Double?
+
+    /// The graphics backend a launch of the program uses, resolved (e.g.,
+    /// "dxvk", "d3dMetal"): the program's override when it has one, the
+    /// bottle's otherwise.
     public let graphicsBackend: String
+
+    /// The bottle's own graphics backend, resolved, whatever the program
+    /// overrides. `nil` in snapshots taken before this was recorded.
+    public let bottleGraphicsBackend: String?
 
     /// When this preflight data was collected.
     public let collectedAt: Date
@@ -77,7 +87,9 @@ public struct PreflightData: Codable, Sendable {
         lastExitCode: Int32? = nil,
         audioDeviceName: String? = nil,
         audioTransportType: String? = nil,
+        audioSampleRate: Double? = nil,
         graphicsBackend: String,
+        bottleGraphicsBackend: String? = nil,
         collectedAt: Date = Date()
     ) {
         self.bottleURL = bottleURL
@@ -91,7 +103,9 @@ public struct PreflightData: Codable, Sendable {
         self.lastExitCode = lastExitCode
         self.audioDeviceName = audioDeviceName
         self.audioTransportType = audioTransportType
+        self.audioSampleRate = audioSampleRate
         self.graphicsBackend = graphicsBackend
+        self.bottleGraphicsBackend = bottleGraphicsBackend
         self.collectedAt = collectedAt
     }
 }

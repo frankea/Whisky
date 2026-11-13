@@ -16,6 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   language now use their existing translations, and about 85 more are
   available to translators. Thanks to @PolarisSdesu for finding them
   (#345, from #339).
+- Parts of the audio screens showed raw identifiers such as
+  `audio.findings.fix` in Spanish, French, Italian, Portuguese and
+  Romanian. They show English until translated, and translation updates
+  can no longer bring the identifiers back (#346).
+- Text the app assembles itself, such as setting summaries, troubleshooting
+  results, audio findings, fix previews and error messages, is now
+  translatable instead of always English. Diagnostics exports stay in
+  English so reports read the same everywhere (#346).
+- The crash step in troubleshooting shows its result in the app's
+  language, and shortcut launchers show their "Whisky not found" alert in
+  it too (#346).
 
 ## [3.9.1] - 2026-11-12 (App)
 

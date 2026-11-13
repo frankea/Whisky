@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.9.1] - 2026-11-12 (App)
+
 ### Changed
 - Steam bottles no longer force US English. With Locale Override on Auto,
   Steam and the games it starts now get the Mac's language and region, so

@@ -74,6 +74,13 @@ extension BottleSettings {
         }
         return environment
     }
+
+    /// The game profile a launch of `url` runs with: the scoped variables of
+    /// game configurations applied before the game was in the bottle, with
+    /// `caller` (a Steam launch plan's profile) winning where both set one.
+    public func gameConfigProfile(launching url: URL, caller: [String: String]) -> [String: String] {
+        gameConfigEnvironment(forExecutable: url.lastPathComponent).merging(caller) { _, caller in caller }
+    }
 }
 
 /// The environment variables an applied game configuration wrote into one

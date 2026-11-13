@@ -45,13 +45,19 @@ struct WinetricksCategory {
 }
 
 class Winetricks {
+    /// Opens the winetricks command in the user's terminal.
+    ///
+    /// - Returns: `true` when the command was handed to the terminal, `false`
+    ///   when it never started (the prefix failed validation or could not be
+    ///   repaired, resources are missing, or the terminal script failed).
     @MainActor
-    static func runCommand(command: String, bottle: Bottle) async {
+    @discardableResult
+    static func runCommand(command: String, bottle: Bottle) async -> Bool {
         await runCommandInternal(command: command, bottle: bottle, isRetryAfterRepair: false)
     }
 
     @MainActor
-    private static func runCommandInternal(command: String, bottle: Bottle, isRetryAfterRepair: Bool) async {
+    private static func runCommandInternal(command: String, bottle: Bottle, isRetryAfterRepair: Bool) async -> Bool {
         // Pre-flight validation: check that the Wine prefix has required user directories
         let validationResult = WinePrefixValidation.validatePrefix(for: bottle)
 
@@ -61,21 +67,20 @@ class Winetricks {
             if isRetryAfterRepair {
                 logger.error("Validation still failing after repair attempt")
                 showRepairFailedAlert(info: String(localized: "winetricks.error.repairFailedInfo"))
-                return
+                return false
             }
-            await showPrefixErrorAlert(
+            return await showPrefixErrorAlert(
                 validationResult: validationResult,
                 bottle: bottle,
                 command: command
             )
-            return
         }
 
         guard let resourcesURL = Bundle.main.url(forResource: "cabextract", withExtension: nil)?
             .deletingLastPathComponent()
         else {
             showMissingResourcesAlert(command: command)
-            return
+            return false
         }
         // Winetricks ships in the app bundle Resources alongside cabextract. Invoke it via
         // `bash` (matching the headless install paths) so no executable bit is relied upon.
@@ -91,25 +96,25 @@ class Winetricks {
         } catch {
             logger.error("Failed to write winetricks script: \(error)")
             showMissingResourcesAlert(command: command)
-            return
+            return false
         }
         let script = TerminalApp.preferred.generateAppleScript(for: scriptURL.path)
 
         var error: NSDictionary?
-        if let appleScript = NSAppleScript(source: script) {
-            appleScript.executeAndReturnError(&error)
+        guard let appleScript = NSAppleScript(source: script) else { return false }
+        appleScript.executeAndReturnError(&error)
 
-            if let error {
-                logger.error("AppleScript error: \(error)")
-                if let description = error["NSAppleScriptErrorMessage"] as? String {
-                    showTerminalError(command: command, description: description)
-                }
-            } else {
-                // The terminal runs winetricks under the bottle's wineserver,
-                // which is then Whisky's doing and must not read as orphaned.
-                Wine.noteUserLaunch(in: bottle)
-            }
+        guard let error else {
+            // The terminal runs winetricks under the bottle's wineserver,
+            // which is then Whisky's doing and must not read as orphaned.
+            Wine.noteUserLaunch(in: bottle)
+            return true
         }
+        logger.error("AppleScript error: \(error)")
+        if let description = error["NSAppleScriptErrorMessage"] as? String {
+            showTerminalError(command: command, description: description)
+        }
+        return false
     }
 
     /// Reports that the terminal could not be opened to run a winetricks command.
@@ -179,13 +184,13 @@ class Winetricks {
         validationResult: WinePrefixValidation.ValidationResult,
         bottle: Bottle,
         command: String
-    ) async {
-        guard let diagnostics = validationResult.diagnostics else { return }
+    ) async -> Bool {
+        guard let diagnostics = validationResult.diagnostics else { return false }
 
         let errorMessage: String
         switch validationResult {
         case .valid:
-            return
+            return false
         case .missingUserProfile:
             errorMessage = String(localized: "winetricks.error.missingUserProfile")
         case .missingAppData:
@@ -207,19 +212,20 @@ class Winetricks {
         switch response {
         case .alertFirstButtonReturn:
             // Repair prefix
-            await repairPrefixAndRetry(bottle: bottle, command: command)
+            return await repairPrefixAndRetry(bottle: bottle, command: command)
         case .alertSecondButtonReturn:
             // Copy diagnostics
             let report = diagnostics.reportString(error: errorMessage)
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(report, forType: .string)
+            return false
         default:
-            break
+            return false
         }
     }
 
     @MainActor
-    private static func repairPrefixAndRetry(bottle: Bottle, command: String) async {
+    private static func repairPrefixAndRetry(bottle: Bottle, command: String) async -> Bool {
         defer {
             bottle.clearWineUsernameCache()
         }
@@ -229,10 +235,11 @@ class Winetricks {
             logger.info("Prefix repair completed, retrying winetricks command")
             // Retry the original command - validation will be done by runCommandInternal
             // and will show an error if still invalid (without offering repair again)
-            await runCommandInternal(command: command, bottle: bottle, isRetryAfterRepair: true)
+            return await runCommandInternal(command: command, bottle: bottle, isRetryAfterRepair: true)
         } catch {
             logger.error("Failed to repair prefix: \(error.localizedDescription)")
             showRepairFailedAlert(info: error.localizedDescription)
+            return false
         }
     }
 

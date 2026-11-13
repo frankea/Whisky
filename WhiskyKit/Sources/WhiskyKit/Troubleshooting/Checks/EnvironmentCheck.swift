@@ -28,6 +28,10 @@ public struct EnvironmentCheck: TroubleshootingCheck {
 
     public init() {}
 
+    public let signature: CheckSignature? = CheckSignature(
+        acceptedParams: ["expected"], requiredParams: ["key"], outcomes: [.pass, .fail, .error]
+    )
+
     // swiftlint:disable:next function_body_length
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         guard let key = params["key"] else {

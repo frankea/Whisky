@@ -22,12 +22,20 @@ import Foundation
 ///
 /// Reads the resolved graphics backend from preflight data and compares it
 /// to the `expected` parameter. Returns `.alreadyConfigured` when the
-/// backend is explicitly set, `.pass` when it resolves correctly via
-/// `.recommended`, and `.fail` when the backend does not match.
+/// backend matches and `.fail` when it does not.
+///
+/// `params["scope"]` picks the backend compared: `program_or_bottle` (the
+/// default) is the one a launch uses, the program's override when it has
+/// one and the bottle's otherwise; `bottle` is the bottle's alone.
 public struct GraphicsBackendCheck: TroubleshootingCheck {
     public let checkId = "graphics.backend_is"
 
     public init() {}
+
+    public let signature: CheckSignature? = CheckSignature(
+        acceptedParams: ["scope"], requiredParams: ["expected"],
+        outcomes: [.alreadyConfigured, .fail]
+    )
 
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         guard let expected = params["expected"] else {
@@ -39,7 +47,12 @@ public struct GraphicsBackendCheck: TroubleshootingCheck {
             )
         }
 
-        let resolvedBackend = context.preflight.graphicsBackend
+        let preflight = context.preflight
+        let resolvedBackend = if params["scope"] == "bottle" {
+            preflight.bottleGraphicsBackend ?? preflight.graphicsBackend
+        } else {
+            preflight.graphicsBackend
+        }
 
         let evidence = [
             "current": resolvedBackend,

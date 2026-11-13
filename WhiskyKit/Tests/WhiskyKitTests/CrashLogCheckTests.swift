@@ -23,7 +23,12 @@ final class CrashLogCheckTests: XCTestCase {
     private let dllLine =
         "0024:err:module:import_dll Library MSVCR100.dll (which is needed by L\"game.exe\") not found"
 
-    private func runCheck(log: String) async throws -> CheckResult {
+    private func runCheck(
+        log: String,
+        params: [String: String] = [:],
+        runStartedAt: Date? = nil,
+        fixAttempts: [FixAttempt] = []
+    ) async throws -> CheckResult {
         let logURL = FileManager.default.temporaryDirectory
             .appending(path: "crash-log-check-\(UUID().uuidString).log")
         try log.write(to: logURL, atomically: true, encoding: .utf8)
@@ -36,16 +41,68 @@ final class CrashLogCheckTests: XCTestCase {
             isWineserverRunning: false,
             processCount: 0,
             recentLogURL: logURL,
+            recentRunStartTime: runStartedAt,
             graphicsBackend: "dxmt"
         )
+        var session = TroubleshootingSession(bottleURL: bottleURL)
+        session.fixAttempts = fixAttempts
         let context = CheckContext(
             bottleURL: bottleURL,
             bottleName: "Test Bottle",
             programName: nil,
             preflight: preflight,
-            session: TroubleshootingSession(bottleURL: bottleURL)
+            session: session
         )
-        return await CrashLogCheck().run(params: [:], context: context)
+        return await CrashLogCheck().run(params: params, context: context)
+    }
+
+    // MARK: - A launch after a fix
+
+    private let afterEnhanced = ["newerThanFix": "run-enhanced-diagnostics"]
+
+    private func enhancedDiagnostics(appliedAt date: Date) -> FixAttempt {
+        var attempt = FixAttempt(fixId: "run-enhanced-diagnostics", timestamp: date, result: .applied)
+        attempt.wasApplied = true
+        return attempt
+    }
+
+    func testLogFromBeforeTheFixIsNotAnalyzed() async throws {
+        let appliedAt = Date()
+        let result = try await runCheck(
+            log: dllLine,
+            params: afterEnhanced,
+            runStartedAt: appliedAt.addingTimeInterval(-60),
+            fixAttempts: [enhancedDiagnostics(appliedAt: appliedAt)]
+        )
+
+        XCTAssertEqual(result.outcome, .unknown, "the old log has no enhanced output to report on")
+        XCTAssertEqual(result.summary, CrashLogCheck.noNewRunSummary)
+        XCTAssertEqual(
+            CrashLogCheck.localizedSummary(for: result),
+            String(localized: "troubleshooting.check.crashLog.noNewRun")
+        )
+    }
+
+    func testLogFromALaunchAfterTheFixIsAnalyzed() async throws {
+        let appliedAt = Date()
+        let result = try await runCheck(
+            log: dllLine,
+            params: afterEnhanced,
+            runStartedAt: appliedAt.addingTimeInterval(60),
+            fixAttempts: [enhancedDiagnostics(appliedAt: appliedAt)]
+        )
+
+        XCTAssertEqual(result.outcome, .fail)
+    }
+
+    func testRunOfUnknownStartOrWithoutTheFixIsNotAnalyzed() async throws {
+        let unknownStart = try await runCheck(
+            log: dllLine, params: afterEnhanced, fixAttempts: [enhancedDiagnostics(appliedAt: Date())]
+        )
+        XCTAssertEqual(unknownStart.outcome, .unknown)
+
+        let neverApplied = try await runCheck(log: dllLine, params: afterEnhanced, runStartedAt: Date())
+        XCTAssertEqual(neverApplied.outcome, .unknown)
     }
 
     func testFailStoresLanguageNeutralEvidence() async throws {

@@ -118,10 +118,8 @@ struct ResolutionConfigSection: View {
         HStack {
             Image(systemName: "display")
                 .foregroundStyle(.secondary)
-            if let screen = NSScreen.main {
-                let pixelWidth = Int(screen.frame.width * screen.backingScaleFactor)
-                let pixelHeight = Int(screen.frame.height * screen.backingScaleFactor)
-                Text("config.virtualDesktop.matchDisplay \(pixelWidth) \(pixelHeight)")
+            if let size = MainDisplay.pixelSize() {
+                Text("config.virtualDesktop.matchDisplay \(size.width) \(size.height)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
@@ -191,14 +189,7 @@ struct ResolutionConfigSection: View {
     // MARK: - Helpers
 
     func currentResolutionSummary() -> String {
-        let preset = bottle.settings.resolutionPreset
-        if let dims = preset.dimensions {
-            return "\(dims.width)x\(dims.height)"
-        }
-        if preset == .custom {
-            return "\(bottle.settings.customResolutionWidth)x\(bottle.settings.customResolutionHeight)"
-        }
-        return effectiveResolutionString()
+        effectiveResolutionString()
     }
 
     func presetLabel(_ preset: ResolutionPreset) -> String {
@@ -264,24 +255,13 @@ extension ResolutionConfigSection {
         persistResolution()
     }
 
+    /// The size written to the registry, resolved the same way a program's
+    /// virtual desktop override is at launch.
     func effectiveResolutionString() -> String {
-        let preset = bottle.settings.resolutionPreset
-        switch preset {
-        case .matchDisplay:
-            if let screen = NSScreen.main {
-                let width = Int(screen.frame.width * screen.backingScaleFactor)
-                let height = Int(screen.frame.height * screen.backingScaleFactor)
-                return "\(width)x\(height)"
-            }
-            return "1920x1080"
-        case .custom:
-            return "\(bottle.settings.customResolutionWidth)x\(bottle.settings.customResolutionHeight)"
-        default:
-            if let dims = preset.dimensions {
-                return "\(dims.width)x\(dims.height)"
-            }
-            return "1920x1080"
-        }
+        bottle.settings.resolutionPreset.resolutionString(
+            customWidth: bottle.settings.customResolutionWidth,
+            customHeight: bottle.settings.customResolutionHeight
+        )
     }
 
     func loadRegistryState() async {

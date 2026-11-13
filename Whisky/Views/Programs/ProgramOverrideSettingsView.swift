@@ -31,6 +31,9 @@ struct ProgramOverrideSettingsView: View {
     @ObservedObject var bottle: Bottle
     @ObservedObject var program: Program
     @Binding var isExpanded: Bool
+    /// Opens the bottle's configuration page, where the advanced audio
+    /// settings live. Without it the wizard does not offer to open them.
+    var onOpenBottleConfig: (() -> Void)?
 
     @State private var showResetConfirmation = false
     @State private var diagnosisPresentation: DiagnosisPresentation?
@@ -38,6 +41,13 @@ struct ProgramOverrideSettingsView: View {
     @State private var showGameConfigDetail: Bool = false
     @State private var recommendedDependencies: [DependencyDefinition] = []
     @State private var dependencyToInstall: DependencyDefinition?
+    /// The audio troubleshooting wizard for this program's bottle, while it is open.
+    @State private var audioWizard: AudioWizardPresentation?
+    @State private var audioMonitor = AudioDeviceMonitor()
+    /// Set when the wizard asked for the advanced audio settings; acted on
+    /// once its sheet is gone so the navigation is not lost to the dismissal.
+    @State private var openAdvancedAudioAfterWizard = false
+    @AppStorage("audioAdvancedMode") private var audioAdvancedMode = false
 
     var body: some View {
         dependencyBadgeSection
@@ -60,7 +70,7 @@ struct ProgramOverrideSettingsView: View {
             }
             .sheet(isPresented: $showGameConfigDetail) {
                 if let match = gameMatch {
-                    GameEntryDetailView(entry: match.entry, bottle: bottle)
+                    GameEntryDetailView(entry: match.entry, bottle: bottle, programURL: program.url)
                         .frame(minWidth: 600, minHeight: 500)
                 }
             }
@@ -148,13 +158,33 @@ struct ProgramOverrideSettingsView: View {
     private var audioTroubleshootingSection: some View {
         Section("config.title.audio") {
             Button("Troubleshoot Audio\u{2026}") {
-                NotificationCenter.default.post(
-                    name: .openAudioTroubleshooting,
-                    object: nil
-                )
+                audioWizard = .make(for: bottle, monitor: audioMonitor)
             }
             .help("program.overrides.audio.troubleshoot.help")
         }
+        .sheet(item: $audioWizard, onDismiss: openAdvancedAudioIfRequested) { presentation in
+            AudioTroubleshootingWizardView(
+                engine: presentation.engine,
+                onDismiss: {
+                    audioWizard = nil
+                },
+                onOpenAdvanced: onOpenBottleConfig == nil ? nil : {
+                    openAdvancedAudioAfterWizard = true
+                },
+                onApplyFix: { actionId in
+                    await AudioWizardPresentation.applyFix(actionId, bottle: bottle).failureReason
+                }
+            )
+        }
+    }
+
+    /// Shows the bottle's audio settings in advanced mode on its configuration
+    /// page, after the wizard asked for them.
+    private func openAdvancedAudioIfRequested() {
+        guard openAdvancedAudioAfterWizard else { return }
+        openAdvancedAudioAfterWizard = false
+        audioAdvancedMode = true
+        onOpenBottleConfig?()
     }
 
     // MARK: - Dependency Badge

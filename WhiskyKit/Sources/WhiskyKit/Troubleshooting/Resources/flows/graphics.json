@@ -87,7 +87,8 @@
       "description": "Checking whether DXVK async shader compilation is enabled for smoother rendering.",
       "checkId": "dxvk.settings_check",
       "params": {
-        "check": "async_enabled"
+        "setting": "async",
+        "expected": "true"
       },
       "on": {
         "pass": "check_game_config",
@@ -97,8 +98,8 @@
         "error": "check_game_config"
       },
       "evidenceMap": {
-        "asyncEnabled": "Async compilation",
-        "dxvkVersion": "DXVK version"
+        "current": "Async compilation",
+        "expected": "Recommended"
       }
     },
     "fix_enable_async": {
@@ -110,7 +111,7 @@
       "fixId": "enable-dxvk-async",
       "fixPreview": {
         "settingName": "DXVK Async",
-        "currentValueKey": "asyncEnabled",
+        "currentValueKey": "current",
         "newValue": "true",
         "scope": "bottle"
       },

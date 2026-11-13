@@ -120,7 +120,11 @@ public enum StabilityDiagnostics {
         summary += "Bottle Wine Version: \(bottle.settings.wineVersion)\n\n"
 
         summary += "--- Graphics/Metal ---\n"
-        summary += "DXVK: \(bottle.settings.dxvk ? "✅ Enabled" : "❌ Disabled")\n"
+        // The bottle's backend as chosen, not a DXVK yes/no: Recommended
+        // resolves per launch, and a launcher gets DXVK under any backend (see
+        // "DXVK for Launcher Launches" below), so the legacy dxvk accessor would
+        // report DXVK as disabled for launches that deploy it.
+        summary += "Graphics Backend: \(bottle.settings.graphicsBackend.rawValue)\n"
         summary += "DXVK Async: \(bottle.settings.dxvkAsync ? "✅ Enabled" : "❌ Disabled")\n"
         summary += "DXR Enabled: \(bottle.settings.dxrEnabled ? "✅ Yes" : "❌ No")\n"
         summary += "Metal HUD: \(bottle.settings.metalHud ? "✅ Yes" : "❌ No")\n"
@@ -137,6 +141,9 @@ public enum StabilityDiagnostics {
         summary += "Launcher Compatibility Mode: \(launcherCompatibilityStatus)\n"
         if let launcher = bottle.settings.detectedLauncher {
             summary += "Detected Launcher: \(launcher.rawValue)\n"
+            // Same condition as the launcher config summary and the launch itself.
+            let launcherDXVK = bottle.settings.deploysDXVK(whenLaunching: launcher)
+            summary += "DXVK for Launcher Launches: \(launcherDXVK ? "✅ Enabled" : "❌ Disabled")\n"
         } else {
             summary += "Detected Launcher: None\n"
         }

@@ -12,8 +12,7 @@
       "checkId": "setting.value_check",
       "params": {
         "setting": "enhancedSync",
-        "scope": "bottle",
-        "expected": "esync"
+        "expected": "msync,esync"
       },
       "on": {
         "pass": "escalate",

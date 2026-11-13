@@ -222,6 +222,9 @@ struct ContentView: View {
             if !WhiskyWineInstaller.isWhiskyWineInstalled() {
                 showSetup = true
             }
+            // Settings' "Automatically check for WhiskyWine updates" gates only
+            // this launch-time check.
+            guard WhiskyWineInstaller.automaticUpdateChecksEnabled() else { return }
             let task = Task.detached {
                 await WhiskyWineInstaller.shouldUpdateWhiskyWine()
             }

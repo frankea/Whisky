@@ -74,7 +74,8 @@ extension EscalationView {
                     .fontWeight(.medium)
                     .foregroundStyle(.secondary)
 
-                ForEach(engine.session.fixAttempts, id: \.fixId) { attempt in
+                // A fix tried more than once has a row per attempt.
+                ForEach(Array(engine.session.fixAttempts.enumerated()), id: \.offset) { _, attempt in
                     HStack(spacing: 6) {
                         Image(systemName: resultIcon(for: attempt.result))
                             .foregroundStyle(resultColor(for: attempt.result))
@@ -123,44 +124,10 @@ extension EscalationView {
 extension EscalationView {
     private var optionsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            if program != nil {
-                enhancedDiagnosticsOption
-            }
+            enhancedDiagnosticsOptions
             exportDiagnosticsOption
             supportIssueOption
             retryOption
-        }
-    }
-}
-
-// MARK: - Enhanced Diagnostics
-
-extension EscalationView {
-    private var enhancedDiagnosticsOption: some View {
-        escalationButton(
-            title: "troubleshooting.escalation.enhancedDiag",
-            description: "troubleshooting.escalation.enhancedDiag.description",
-            sfSymbol: "text.magnifyingglass",
-            action: runEnhancedDiagnostics
-        )
-    }
-
-    private func runEnhancedDiagnostics() {
-        let attempt = FixApplicator.apply(
-            fixId: "run-enhanced-diagnostics",
-            params: [:],
-            bottle: bottle,
-            program: program
-        )
-        engine.applyFix(
-            fixId: attempt.fixId,
-            beforeValue: attempt.beforeValue,
-            afterValue: attempt.afterValue
-        )
-        if attempt.result == .failed {
-            engine.markFixFailed(fixId: attempt.fixId)
-        } else {
-            engine.confirmFixApplied(fixId: attempt.fixId)
         }
     }
 }
@@ -338,7 +305,7 @@ extension EscalationView {
 // MARK: - Shared Escalation Button
 
 extension EscalationView {
-    private func escalationButton(
+    func escalationButton(
         title: LocalizedStringKey,
         description: LocalizedStringKey,
         sfSymbol: String,

@@ -168,6 +168,10 @@ public struct BottleSettings: Codable, Equatable {
     private var discordConfig: BottleDiscordConfig
     /// User-defined DLL overrides at the bottle level.
     private var customDLLOverrides: [DLLOverrideEntry] = []
+    /// Environment variables applied game configurations set for games that
+    /// were not in the bottle yet, scoped to their executables. See
+    /// ``GameConfigEnvironment``.
+    public var gameConfigEnvironments: [GameConfigEnvironment] = []
 
     /// Creates a new BottleSettings instance with default values.
     public init() {
@@ -186,6 +190,7 @@ public struct BottleSettings: Codable, Equatable {
         self.customDLLOverrides = []
     }
 
+    // swiftlint:disable:next function_body_length
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.fileVersion = try container.decodeIfPresent(SemanticVersion.self, forKey: .fileVersion) ?? Self
@@ -237,6 +242,10 @@ public struct BottleSettings: Codable, Equatable {
         self.customDLLOverrides = try container.decodeIfPresent(
             [DLLOverrideEntry].self,
             forKey: .customDLLOverrides
+        ) ?? []
+        self.gameConfigEnvironments = try container.decodeIfPresent(
+            [GameConfigEnvironment].self,
+            forKey: .gameConfigEnvironments
         ) ?? []
     }
 

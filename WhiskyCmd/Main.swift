@@ -130,15 +130,41 @@ extension Whisky {
     struct Add: ParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Add an existing bottle.")
 
-        @Argument var path: String
+        @Argument(help: "The bottle's directory (the folder holding its Metadata.plist).")
+        var path: String
 
         mutating func run() throws {
-            // Should be sanitised
-            let bottleURL = URL(filePath: path)
-            let settings = try BottleSettings.decode(from: bottleURL)
+            let bottleURL = BottleData.bottleURL(
+                forPath: path,
+                currentDirectory: FileManager.default.currentDirectoryPath
+            )
+            let shownPath = bottleURL.path(percentEncoded: false)
+            // Read-only: a path that is not a bottle is refused, never turned into one.
+            let settings: BottleSettings
+            do {
+                settings = try BottleData.existingBottleSettings(at: bottleURL)
+            } catch let error as ExistingBottleError {
+                throw DomainError(Self.message(for: error, path: shownPath))
+            }
+
             var bottlesList = BottleData()
-            bottlesList.paths.append(bottleURL)
+            guard bottlesList.registerBottlePath(bottleURL) else {
+                throw DomainError("Couldn't save the bottle list, so \"\(settings.name)\" was not added.")
+            }
             print("Bottle \"\(settings.name)\" added.")
+        }
+
+        private static func message(for error: ExistingBottleError, path: String) -> String {
+            switch error {
+            case .notFound:
+                "Nothing exists at \(path)."
+            case .notADirectory:
+                "\(path) is a file, not a bottle directory."
+            case .missingMetadata:
+                "\(path) is not a Whisky bottle: it has no Metadata.plist."
+            case .unreadableMetadata:
+                "\(path) is not a Whisky bottle: its Metadata.plist could not be read."
+            }
         }
     }
 
@@ -162,18 +188,21 @@ extension Whisky {
 
             // Should ask for confirmation
             let bottleToRemove = bottles.first(where: { $0.settings.name == name })
-            if let bottleToRemove {
-                bottlesList.paths.removeAll(where: { $0 == bottleToRemove.url })
-                do {
-                    try FileManager.default.removeItem(at: bottleToRemove.url)
-                    GameRouting().removeRoutes(toBottle: bottleToRemove.url)
-                    print("Deleted \"\(name)\".")
-                } catch {
-                    print(error)
-                }
-            } else {
+            guard let bottleToRemove else {
                 throw DomainError("No bottle called \"\(name)\" found.")
             }
+            // Delete first and unregister only on success: a bottle whose
+            // folder is still on disk stays in the list instead of vanishing
+            // from Whisky while its files remain.
+            do {
+                try FileManager.default.removeItem(at: bottleToRemove.url)
+            } catch {
+                // Exits 1 (ExitCode.failure) with the reason on stderr.
+                throw DomainError("Couldn't delete \"\(name)\": \(error.localizedDescription)")
+            }
+            bottlesList.paths.removeAll(where: { $0 == bottleToRemove.url })
+            GameRouting().removeRoutes(toBottle: bottleToRemove.url)
+            print("Deleted \"\(name)\".")
         }
     }
 

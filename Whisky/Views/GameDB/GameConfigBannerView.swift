@@ -34,7 +34,7 @@ struct GameConfigBannerView: View {
         if !isDismissed {
             bannerContent
                 .sheet(isPresented: $showDetail) {
-                    GameEntryDetailView(entry: matchResult.entry, bottle: bottle)
+                    GameEntryDetailView(entry: matchResult.entry, bottle: bottle, programURL: programURL)
                         .frame(minWidth: 600, minHeight: 500)
                 }
         }

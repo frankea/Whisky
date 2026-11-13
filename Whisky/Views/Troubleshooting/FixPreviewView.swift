@@ -34,6 +34,7 @@ struct FixPreviewView: View {
     @State private var fixPreview: FixPreview?
     @State private var showConfirmation: Bool = false
     @State private var isApplying: Bool = false
+    @State private var verbProgress: GameConfigVerbProgress?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -45,6 +46,11 @@ struct FixPreviewView: View {
                 fallbackDescription
             }
             actionButtons
+            if let verbProgress {
+                Text(verbProgress.label)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(16)
         .background(
@@ -184,6 +190,12 @@ extension FixPreviewView {
 
             Spacer()
 
+            if lastAttemptFailed, !isApplying {
+                Label("troubleshooting.fixResult.failed", systemImage: "xmark.circle")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+
             Button {
                 if node.requiresConfirmation == true {
                     showConfirmation = true
@@ -203,6 +215,12 @@ extension FixPreviewView {
         }
     }
 
+    /// Whether the last try of this step's fix failed, so the card says so
+    /// while it offers the fix again.
+    private var lastAttemptFailed: Bool {
+        engine.session.fixAttempts.last { $0.nodeId == node.id }?.result == .failed
+    }
+
     private var confirmationMessage: String {
         if let preview = fixPreview {
             String(
@@ -218,32 +236,42 @@ extension FixPreviewView {
 // MARK: - Actions
 
 extension FixPreviewView {
-    /// The node's params, with the winetricks verb inherited from the check
-    /// that found it missing when the flow does not hardcode one.
+    /// The node's params, with the winetricks verbs inherited from the check
+    /// that found them missing when the flow does not hardcode any: every
+    /// missing verb, comma-separated, so the card previews and installs all
+    /// of them.
     private var resolvedParams: [String: String] {
         var params = node.params ?? [:]
-        if node.fixId == "install-winetricks-verb", params["verb"] == nil,
-           let missing = missingVerbsEvidence,
-           let first = missing.split(separator: ",").first {
-            params["verb"] = first.trimmingCharacters(in: .whitespaces)
+        if node.fixId == "install-winetricks-verb", params["verb"] == nil {
+            let missing = missingVerbs
+            if !missing.isEmpty {
+                params["verb"] = missing.joined(separator: ", ")
+            }
         }
         return params
     }
 
-    /// The `missing` evidence of the most recent check on the path here.
+    /// The verbs the most recent winetricks check on the path here found
+    /// missing.
     ///
-    /// Read from the session rather than `lastCheckResult`: that one is not
-    /// persisted, so a resumed session offered to install "unknown".
-    private var missingVerbsEvidence: String? {
-        if let missing = engine.lastCheckResult?.evidence["missing"] {
-            return missing
-        }
-        for step in engine.session.stepHistory.reversed() {
-            if let missing = engine.session.checkResults[step.nodeId]?.evidence["missing"] {
+    /// Read from the session rather than `lastCheckResult` alone: that one
+    /// is not persisted, so a resumed session offered to install "unknown".
+    private var missingVerbs: [String] {
+        if let result = engine.lastCheckResult {
+            let missing = WinetricksVerbCheck.missingVerbs(in: result)
+            if !missing.isEmpty {
                 return missing
             }
         }
-        return nil
+        for step in engine.session.stepHistory.reversed() {
+            if let result = engine.session.checkResults[step.nodeId] {
+                let missing = WinetricksVerbCheck.missingVerbs(in: result)
+                if !missing.isEmpty {
+                    return missing
+                }
+            }
+        }
+        return []
     }
 
     private func loadPreview() {
@@ -261,11 +289,17 @@ extension FixPreviewView {
         let params = resolvedParams
 
         if fixId == "install-winetricks-verb" {
-            guard let verb = params["verb"] else {
+            let verbs = params["verb"].map(WinetricksVerbCheck.verbs(in:)) ?? []
+            guard !verbs.isEmpty else {
                 engine.skipStep()
                 return
             }
-            installVerb(verb, fixId: fixId)
+            installVerbs(verbs, fixId: fixId, params: params)
+            return
+        }
+
+        if fixId == "apply-game-config" {
+            applyGameConfig(params: params, fixId: fixId)
             return
         }
 
@@ -279,7 +313,8 @@ extension FixPreviewView {
         engine.applyFix(
             fixId: fixId,
             beforeValue: attempt.beforeValue,
-            afterValue: attempt.afterValue
+            afterValue: attempt.afterValue,
+            params: attempt.params ?? params
         )
         if attempt.result == .failed {
             engine.markFixFailed(fixId: fixId)
@@ -290,25 +325,62 @@ extension FixPreviewView {
         isApplying = false
     }
 
-    /// Runs the winetricks install for real and only confirms the attempt
-    /// once the verb actually landed.
-    private func installVerb(_ verb: String, fixId: String) {
+    /// Runs the winetricks installs for real, one verb after another, and
+    /// only confirms the attempt once every verb actually landed.
+    private func installVerbs(_ verbs: [String], fixId: String, params: [String: String]) {
         isApplying = true
-        engine.applyFix(fixId: fixId, beforeValue: nil, afterValue: verb)
+        engine.applyFix(
+            fixId: fixId, beforeValue: nil, afterValue: verbs.joined(separator: ", "), params: params
+        )
         Task {
-            var exitCode: Int32?
-            var failure: String?
-            for await progress in Winetricks.installVerb(verb, for: bottle) {
+            var succeeded: Set<String> = []
+            var failed: Set<String> = []
+            for await (verb, progress) in Winetricks.installVerbs(verbs, for: bottle) {
                 switch progress {
-                case let .completed(code): exitCode = code
-                case let .failed(message): failure = message
-                case .preparing, .output: break
+                case let .completed(code):
+                    if code == 0 { succeeded.insert(verb) } else { failed.insert(verb) }
+                case .failed:
+                    failed.insert(verb)
+                case .preparing, .output:
+                    break
                 }
             }
-            if failure == nil, exitCode == 0 {
+            if failed.isEmpty, succeeded.count == Set(verbs).count {
                 engine.confirmFixApplied(fixId: fixId)
             } else {
                 engine.markFixFailed(fixId: fixId)
+            }
+            isApplying = false
+        }
+    }
+}
+
+// MARK: - Game Configuration
+
+extension FixPreviewView {
+    /// Applies the matched game configuration, then installs the winetricks
+    /// components it needs before the flow moves on, so the progress stays in
+    /// view. The attempt counts as applied once the settings are, so Undo can
+    /// put them back; the verify step lists any component that did not install.
+    private func applyGameConfig(params: [String: String], fixId: String) {
+        isApplying = true
+        Task {
+            let attempt = FixApplicator.apply(fixId: fixId, params: params, bottle: bottle, program: program)
+            if attempt.result != .failed, let program,
+               let config = GameConfigApplicator.recommendedConfiguration(for: program) {
+                let installed = await Winetricks.loadInstalledVerbs(for: bottle).verbs
+                let pending = GameConfigApplicator.pendingWinetricksVerbs(
+                    variant: config.variant, installedVerbs: installed
+                )
+                _ = await Winetricks.installGameConfigVerbs(pending, for: bottle) { verbProgress = $0 }
+            }
+            verbProgress = nil
+
+            engine.applyFix(fixId: fixId, beforeValue: attempt.beforeValue, afterValue: attempt.afterValue)
+            if attempt.result == .failed {
+                engine.markFixFailed(fixId: fixId)
+            } else {
+                engine.confirmFixApplied(fixId: fixId)
             }
             isApplying = false
         }

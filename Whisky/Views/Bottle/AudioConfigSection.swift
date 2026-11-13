@@ -119,9 +119,6 @@ struct AudioConfigSection: View {
         .onAppear {
             startDeviceListening()
         }
-        .onReceive(NotificationCenter.default.publisher(for: .openAudioTroubleshooting)) { _ in
-            openTroubleshootingWizard()
-        }
         .sheet(item: $wizardPresentation) { presentation in
             AudioTroubleshootingWizardView(
                 engine: presentation.engine,
@@ -249,21 +246,14 @@ extension AudioConfigSection {
     /// - Returns: Why the fix failed, or `nil` when it was applied. On failure
     ///   the bottle is unchanged, so the section keeps its last results.
     private func applyWizardFix(_ actionId: String) async -> String? {
-        guard let action = AudioFixAction(troubleshootingActionId: actionId) else { return nil }
-        guard action.changesBottle else {
-            openSoundSettings()
-            return nil
+        let result = await AudioWizardPresentation.applyFix(actionId, bottle: bottle)
+        if case .applied = result {
+            // The section's last results describe the bottle before the fix.
+            probeResults = []
+            audioStatus = .unknown
+            fixOutcome = nil
         }
-        do {
-            try await Wine.applyAudioFix(action, bottle: bottle)
-        } catch {
-            return error.localizedDescription
-        }
-        // The section's last results describe the bottle before the fix.
-        probeResults = []
-        audioStatus = .unknown
-        fixOutcome = nil
-        return nil
+        return result.failureReason
     }
 
     private func openSoundSettings() {
@@ -290,15 +280,7 @@ extension AudioConfigSection {
 
 extension AudioConfigSection {
     private func openTroubleshootingWizard() {
-        let probes: [any AudioProbe] = [
-            CoreAudioDeviceProbe(monitor: monitor),
-            WineRegistryAudioProbe(bottle: bottle),
-            WineAudioTestProbe(
-                bottle: bottle,
-                testExeURL: Bundle.main.url(forResource: "WhiskyAudioTest", withExtension: "exe")
-            )
-        ]
-        wizardPresentation = AudioWizardPresentation(engine: AudioTroubleshootingEngine(probes: probes))
+        wizardPresentation = .make(for: bottle, monitor: monitor)
     }
 }
 
@@ -323,12 +305,6 @@ extension AudioConfigSection {
             }
         }
     }
-}
-
-/// What the audio troubleshooting sheet is built from.
-struct AudioWizardPresentation: Identifiable {
-    let id = UUID()
-    let engine: AudioTroubleshootingEngine
 }
 
 /// A findings-list fix waiting for the user to confirm it.

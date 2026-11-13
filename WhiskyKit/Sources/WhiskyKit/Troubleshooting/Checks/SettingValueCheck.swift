@@ -21,13 +21,18 @@ import Foundation
 /// Checks a specific bottle setting property value against an expected value.
 ///
 /// Reads the setting named in `params["setting"]` from the bottle's
-/// ``BottleSettings`` and compares against `params["expected"]`.
+/// ``BottleSettings`` and compares against `params["expected"]`, a value or
+/// a comma-separated list of the values that are fine (`"msync,esync"`).
 /// Supports common settings like `enhancedSync`, `graphicsBackend`,
 /// `windowsVersion`, `dxvk`, `metalHud`.
 public struct SettingValueCheck: TroubleshootingCheck {
     public let checkId = "setting.value_check"
 
     public init() {}
+
+    public let signature: CheckSignature? = CheckSignature(
+        requiredParams: ["setting", "expected"], outcomes: [.alreadyConfigured, .fail, .error]
+    )
 
     // swiftlint:disable:next function_body_length
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
@@ -75,17 +80,18 @@ public struct SettingValueCheck: TroubleshootingCheck {
             )
         }
 
+        let accepted = expected.flowParamList
         let evidence = [
             "setting": settingName,
             "current": currentValue,
-            "expected": expected
+            "expected": accepted.joined(separator: ", ")
         ]
 
-        if currentValue == expected {
+        if accepted.contains(currentValue) {
             return CheckResult(
                 outcome: .alreadyConfigured,
                 evidence: evidence,
-                summary: "\(settingName) is already \(expected)",
+                summary: "\(settingName) is already \(currentValue)",
                 confidence: .high
             )
         }
@@ -161,8 +167,14 @@ public struct SettingValueCheck: TroubleshootingCheck {
             guard let setting = evidence["setting"] else { return nil }
             return String(localized: "troubleshooting.check.setting.unknown \(setting)")
         case .alreadyConfigured:
-            guard let setting = evidence["setting"], let expected = evidence["expected"] else { return nil }
-            return String(localized: "troubleshooting.check.value.matches \(setting) \(expected)")
+            // The value in use: with several accepted, the expected list
+            // would not say which one it is.
+            guard let setting = evidence["setting"],
+                  let current = evidence["current"] ?? evidence["expected"]
+            else {
+                return nil
+            }
+            return String(localized: "troubleshooting.check.value.matches \(setting) \(current)")
         case .fail:
             guard let setting = evidence["setting"],
                   let current = evidence["current"],

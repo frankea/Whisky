@@ -166,7 +166,7 @@ final class FixApplicatorLocalizationTests: XCTestCase {
             bottle.settings.enhancedSync = mode
             let fix = try preview("enable-esync")
             assertCatalogKey(fix.currentValue)
-            XCTAssertEqual(fix.newValue, String(localized: "config.enhancedSync.esync"))
+            assertCatalogKey(fix.newValue)
             currentValues.append(fix.currentValue)
         }
 
@@ -184,7 +184,7 @@ final class FixApplicatorLocalizationTests: XCTestCase {
         let attempt = FixApplicator.apply(fixId: "enable-esync", params: [:], bottle: bottle, program: nil)
 
         XCTAssertEqual(attempt.beforeValue, "msync")
-        XCTAssertEqual(attempt.afterValue, "esync")
+        XCTAssertEqual(attempt.afterValue, "msync")
     }
 
     // MARK: - Winetricks

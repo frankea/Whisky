@@ -21,21 +21,23 @@ import WhiskyKit
 
 /// A sheet that shows a before/after diff of what settings will change when
 /// applying a game configuration variant, with winetricks preflight and apply action.
+///
+/// Apply hands the decision back through `onApply`, which runs the apply and
+/// installs the components with progress in the view that presented the
+/// sheet, the same path a direct apply ("Don't show preview again") takes.
 struct GameConfigPreviewSheet: View {
     let entry: GameDBEntry
     let variant: GameConfigVariant
     @ObservedObject var bottle: Bottle
     let programURL: URL?
+    /// Applies the variant; the argument says whether to install its missing components.
+    let onApply: (_ installComponents: Bool) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var changes: [ConfigChange] = []
-    @State private var missingVerbs: [String] = []
     @State private var installedVerbs: Set<String> = []
-    @State private var isApplying: Bool = false
-    @State private var applyError: String?
     @State private var stalenessResult: StalenessResult?
     @State private var includeWinetricks: Bool = true
     @AppStorage("gameConfigSkipPreview") private var skipPreview: Bool = false
-    @Binding var toast: ToastData?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -47,7 +49,6 @@ struct GameConfigPreviewSheet: View {
                     changesSection
                     winetricksSection
                     restartNote
-                    errorBanner
                 }
                 .padding()
             }
@@ -120,9 +121,14 @@ extension GameConfigPreviewSheet {
 // MARK: - Changes Section
 
 extension GameConfigPreviewSheet {
+    /// The changes the apply makes: without components, the verb rows are left out.
+    private var shownChanges: [ConfigChange] {
+        includeWinetricks ? changes : changes.filter { $0.kind != .winetricksVerb }
+    }
+
     @ViewBuilder
     private var changesSection: some View {
-        if changes.isEmpty {
+        if shownChanges.isEmpty {
             Text("gameConfig.preview.noChanges")
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -132,7 +138,7 @@ extension GameConfigPreviewSheet {
     }
 
     private var changesGroupedByCategory: some View {
-        let grouped = Dictionary(grouping: changes, by: \.category)
+        let grouped = Dictionary(grouping: shownChanges, by: \.category)
         let sortedKeys = grouped.keys.sorted()
 
         return VStack(alignment: .leading, spacing: 12) {
@@ -266,25 +272,6 @@ extension GameConfigPreviewSheet {
     }
 }
 
-// MARK: - Error Banner
-
-extension GameConfigPreviewSheet {
-    @ViewBuilder
-    private var errorBanner: some View {
-        if let error = applyError {
-            HStack(spacing: 6) {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(.red)
-                Text(error)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-            }
-            .padding(8)
-            .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
-        }
-    }
-}
-
 // MARK: - Footer
 
 extension GameConfigPreviewSheet {
@@ -293,6 +280,7 @@ extension GameConfigPreviewSheet {
             Toggle("gameConfig.preview.dontShowAgain", isOn: $skipPreview)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .help("gameConfig.preview.dontShowAgain.help")
 
             Spacer()
 
@@ -303,12 +291,10 @@ extension GameConfigPreviewSheet {
             .accessibilityIdentifier("gamedb.preview.cancelButton")
 
             Button("gameConfig.preview.applyButton") {
-                Task {
-                    await applyConfiguration()
-                }
+                dismiss()
+                onApply(includeWinetricks)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(isApplying)
             .keyboardShortcut(.defaultAction)
             .accessibilityIdentifier("gamedb.preview.applyButton")
         }
@@ -321,51 +307,21 @@ extension GameConfigPreviewSheet {
 
 extension GameConfigPreviewSheet {
     private func loadPreviewData() async {
-        // Load preview changes
-        changes = GameConfigApplicator.previewChanges(variant: variant, bottle: bottle)
-
-        // Load installed verbs
+        // Installed verbs first, so the changes only list the ones Apply installs
         let result = await Winetricks.loadInstalledVerbs(for: bottle)
         installedVerbs = result.verbs
-        missingVerbs = GameConfigApplicator.pendingWinetricksVerbs(
+
+        changes = GameConfigApplicator.previewChanges(
             variant: variant,
+            bottle: bottle,
+            entry: entry,
+            programURL: programURL,
             installedVerbs: result.verbs
         )
 
         // Check staleness
         if let testedWith = variant.testedWith {
             stalenessResult = StalenessChecker.check(testedWith: testedWith)
-        }
-    }
-}
-
-// MARK: - Apply Action
-
-extension GameConfigPreviewSheet {
-    private func applyConfiguration() async {
-        isApplying = true
-        applyError = nil
-
-        do {
-            let snapshot = try GameConfigApplicator.apply(
-                entry: entry,
-                variant: variant,
-                to: bottle,
-                programURL: programURL
-            )
-
-            dismiss()
-
-            toast = ToastData(
-                message: String(localized: "gameConfig.apply.success \(entry.title)"),
-                style: .success
-            )
-
-            // Schedule undo availability check -- snapshot is saved to bottle
-            _ = snapshot // Snapshot saved to bottle directory for future revert
-        } catch {
-            applyError = String(localized: "gameConfig.apply.failed \(error.localizedDescription)")
-            isApplying = false
         }
     }
 }

@@ -26,10 +26,15 @@ import WhiskyKit
 struct GameEntryDetailView: View {
     let entry: GameDBEntry
     @ObservedObject var bottle: Bottle
+    /// The program the entry was matched from, if any. Applying writes the
+    /// variant's environment variables into its settings.
+    var programURL: URL?
     @State private var selectedVariant: GameConfigVariant?
     @State private var showPreviewSheet: Bool = false
     @State private var stalenessResult: StalenessResult?
     @State private var toast: ToastData?
+    @ObservedObject private var applies = GameConfigApplyCoordinator.shared
+    @AppStorage("gameConfigSkipPreview") private var skipPreview: Bool = false
 
     var body: some View {
         ScrollView {
@@ -52,12 +57,15 @@ struct GameEntryDetailView: View {
                     entry: entry,
                     variant: variant,
                     bottle: bottle,
-                    programURL: nil,
-                    toast: $toast
+                    programURL: programURL,
+                    onApply: { installComponents in
+                        startApply(variant, installComponents: installComponents)
+                    }
                 )
             }
         }
         .onAppear {
+            showApplyResult()
             if selectedVariant == nil {
                 selectedVariant = entry.defaultVariant
             }
@@ -71,6 +79,9 @@ struct GameEntryDetailView: View {
             } else {
                 stalenessResult = nil
             }
+        }
+        .onChange(of: applies.results[bottle.url]?.id) { _, _ in
+            showApplyResult()
         }
     }
 }
@@ -236,15 +247,71 @@ extension GameEntryDetailView {
             }
 
             Button {
-                showPreviewSheet = true
+                // "Don't show preview again" applies straight away; holding
+                // Option brings the preview back for this apply.
+                if skipPreview, !NSEvent.modifierFlags.contains(.option) {
+                    startApply(variant, installComponents: true)
+                } else {
+                    showPreviewSheet = true
+                }
             } label: {
                 Text("gameConfig.detail.applyTo \(bottle.settings.name)")
             }
             .controlSize(.large)
             .buttonStyle(.borderedProminent)
+            .disabled(applies.run(in: bottle) != nil)
+            .help(skipPreview ? String(localized: "gameConfig.detail.applyHelp.skipPreview") : "")
             .accessibilityIdentifier("gamedb.detail.applyButton")
+
+            applyProgressRow
         }
         .padding(.vertical, 4)
+    }
+}
+
+// MARK: - Apply
+
+extension GameEntryDetailView {
+    @ViewBuilder
+    private var applyProgressRow: some View {
+        if let run = applies.run(in: bottle) {
+            HStack(spacing: 8) {
+                ProgressView()
+                    .controlSize(.small)
+                Text(run.progress?.label ?? String(localized: "gameConfig.apply.applying"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                if run.progress != nil {
+                    Button("button.cancel") {
+                        applies.cancel(in: bottle)
+                    }
+                    .controlSize(.small)
+                }
+            }
+        }
+    }
+
+    /// Applies `variant` and installs the components it still needs, showing
+    /// progress below the Apply button. The apply runs in
+    /// ``GameConfigApplyCoordinator``, so it carries on if this view goes away,
+    /// and only one runs in a bottle at a time.
+    private func startApply(_ variant: GameConfigVariant, installComponents: Bool) {
+        applies.start(
+            entry: entry,
+            variant: variant,
+            bottle: bottle,
+            programURL: programURL,
+            installComponents: installComponents
+        )
+    }
+
+    /// Shows the result of a finished apply of this entry, including one that
+    /// finished while the view was away.
+    private func showApplyResult() {
+        if let result = applies.takeResult(for: entry.id, in: bottle) {
+            toast = result
+        }
     }
 }
 

@@ -35642,6 +35642,22 @@
         }
       }
     },
+    "config.installVcRedist.pending" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The installer runs in Terminal. This shows as installed once the runtime is found in the bottle."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The installer runs in Terminal. This shows as installed once the runtime is found in the bottle."
+          }
+        }
+      }
+    },
     "config.metal4" : {
       "localizations" : {
         "en" : {
@@ -45861,6 +45877,56 @@
         }
       }
     },
+    "diagnostics.export.error.archiveMissing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The diagnostics archive was not created."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The diagnostics archive was not created."
+          }
+        }
+      }
+    },
+    "diagnostics.export.error.compressionFailed %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The diagnostics archive could not be created (ditto exited with status %lld)."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The diagnostics archive could not be created (ditto exited with status %lld)."
+          }
+        }
+      }
+    },
+    "diagnostics.export.saveFailed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't Save the Diagnostic Report"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't Save the Diagnostic Report"
+          }
+        }
+      }
+    },
     "diagnostics.headline %@ %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -46633,6 +46699,54 @@
         }
       }
     },
+    "gameConfig.apply.applying" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applying configuration…"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applying configuration…"
+          }
+        }
+      }
+    },
+    "gameConfig.apply.componentsFailed %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applied the %1$@ settings, but these components failed to install: %2$@"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applied the %1$@ settings, but these components failed to install: %2$@"
+          }
+        }
+      }
+    },
+    "gameConfig.apply.componentsSkipped %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applied the %1$@ settings without these required components: %2$@"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applied the %1$@ settings without these required components: %2$@"
+          }
+        }
+      }
+    },
     "gameConfig.apply.failed %@" : {
       "localizations" : {
         "ar" : {
@@ -46777,6 +46891,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法套用組態：%@"
+          }
+        }
+      }
+    },
+    "gameConfig.apply.installing %@ %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installing %1$@ (%2$lld of %3$lld)…"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installing %1$@ (%2$lld of %3$lld)…"
           }
         }
       }
@@ -47681,6 +47811,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@: online play unavailable"
+          }
+        }
+      }
+    },
+    "gameConfig.detail.applyHelp.skipPreview" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies without the preview. Hold Option while clicking to review the changes first."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies without the preview. Hold Option while clicking to review the changes first."
           }
         }
       }
@@ -50609,6 +50755,38 @@
         }
       }
     },
+    "gameConfig.environment.remove" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove"
+          }
+        }
+      }
+    },
+    "gameConfig.environment.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Game Environment Variables"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Game Environment Variables"
+          }
+        }
+      }
+    },
     "gameConfig.match.exeName %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -51333,6 +51511,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不再顯示預覽"
+          }
+        }
+      }
+    },
+    "gameConfig.preview.dontShowAgain.help" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply will skip this preview from now on. Hold Option while clicking Apply to see it again."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply will skip this preview from now on. Hold Option while clicking Apply to see it again."
           }
         }
       }
@@ -86537,6 +86731,23 @@
         }
       }
     },
+    "troubleshooting.check.crashLog.noNewRun" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The program has not been launched since enhanced logging was turned on"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The program has not been launched since enhanced logging was turned on"
+          }
+        }
+      }
+    },
     "troubleshooting.check.crashLog.readFailed" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -88342,6 +88553,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Brak dostępnych poprzednich kroków"
+          }
+        }
+      }
+    },
+    "troubleshooting.escalation.restoreLogging" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off enhanced logging"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off enhanced logging"
+          }
+        }
+      }
+    },
+    "troubleshooting.escalation.restoreLogging.description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Put this program's logging back to what it was before enhanced diagnostics. Enhanced logs are large and slow down every launch."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Put this program's logging back to what it was before enhanced diagnostics. Enhanced logs are large and slow down every launch."
           }
         }
       }
@@ -95932,6 +96175,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "第 %1$d 次修正嘗試，共 %2$d 次"
+          }
+        }
+      }
+    },
+    "troubleshooting.verify.componentsMissing %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The settings were applied, but these components did not install: %@"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The settings were applied, but these components did not install: %@"
           }
         }
       }

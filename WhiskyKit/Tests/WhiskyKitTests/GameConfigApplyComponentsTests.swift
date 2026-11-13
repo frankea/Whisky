@@ -314,6 +314,19 @@ final class GameConfigApplyComponentsTests {
         #expect(config?.variant == variant)
         #expect(GameConfigApplicator.recommendedConfiguration(for: program, entries: []) == nil)
     }
+
+    @Test("Missing components are the matched variant's verbs the bottle's cache does not list")
+    func missingRecommendedComponents() throws {
+        let program = try makeProgram("Games/Test/TestGame.exe")
+        let entry = makeEntry(variant: makeVariant(verbs: ["vcrun2022", "d3dcompiler_47"]))
+
+        #expect(GameConfigApplicator.missingRecommendedComponents(for: program, entries: [entry])
+            == ["vcrun2022", "d3dcompiler_47"])
+        try WinetricksVerbCache.save(WinetricksVerbCache(installedVerbs: ["vcrun2022"]), to: bottle.url)
+        #expect(GameConfigApplicator.missingRecommendedComponents(for: program, entries: [entry])
+            == ["d3dcompiler_47"])
+        #expect(GameConfigApplicator.missingRecommendedComponents(for: program, entries: []).isEmpty)
+    }
 }
 
 // MARK: - Verb Install Outcome

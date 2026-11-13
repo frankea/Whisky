@@ -34,6 +34,7 @@ struct FixVerifyView: View {
             Spacer()
             headerSection
             descriptionSection
+            missingComponentsNotice
             attemptCounter
             actionButtons
             undoButton
@@ -64,6 +65,31 @@ extension FixVerifyView {
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 24)
+    }
+}
+
+// MARK: - Missing Components
+
+extension FixVerifyView {
+    /// After a game configuration was applied, the components it needs that
+    /// did not install. Its settings are in place either way.
+    @ViewBuilder
+    private var missingComponentsNotice: some View {
+        if let program,
+           engine.session.fixAttempts.last?.fixId == "apply-game-config",
+           engine.session.fixAttempts.last?.result == .applied {
+            let missing = GameConfigApplicator.missingRecommendedComponents(for: program)
+            if !missing.isEmpty {
+                Label {
+                    Text("troubleshooting.verify.componentsMissing \(missing.joined(separator: ", "))")
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                }
+                .font(.caption)
+                .padding(.horizontal, 24)
+            }
+        }
     }
 }
 

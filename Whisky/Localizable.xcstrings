@@ -96064,6 +96064,22 @@
         }
       }
     },
+    "troubleshooting.verify.componentsMissing %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The settings were applied, but these components did not install: %@"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The settings were applied, but these components did not install: %@"
+          }
+        }
+      }
+    },
     "troubleshooting.verify.description" : {
       "localizations" : {
         "ar" : {

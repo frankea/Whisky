@@ -204,6 +204,27 @@ extension GameConfigApplicator {
         }
         return (match.entry, variant)
     }
+
+    /// The components the configuration ``recommendedConfiguration(for:entries:)``
+    /// picks for `program` needs that its bottle does not have, going by the
+    /// bottle's ``WinetricksVerbCache``.
+    ///
+    /// The troubleshooter shows these after `apply-game-config` when a
+    /// component failed to install, since the settings were applied anyway.
+    ///
+    /// - Parameters:
+    ///   - program: The program the configuration was applied for.
+    ///   - entries: The entries to match against. Defaults to the bundled database.
+    /// - Returns: The missing verbs in the variant's order; empty without a match.
+    @MainActor
+    public static func missingRecommendedComponents(
+        for program: Program,
+        entries: [GameDBEntry]? = nil
+    ) -> [String] {
+        guard let config = recommendedConfiguration(for: program, entries: entries) else { return [] }
+        let installed = WinetricksVerbCache.load(from: program.bottle.url)?.installedVerbs ?? []
+        return pendingWinetricksVerbs(variant: config.variant, installedVerbs: installed)
+    }
 }
 
 // MARK: - Winetricks Verbs

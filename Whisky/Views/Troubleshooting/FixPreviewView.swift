@@ -331,24 +331,24 @@ extension FixPreviewView {
 extension FixPreviewView {
     /// Applies the matched game configuration, then installs the winetricks
     /// components it needs before the flow moves on, so the progress stays in
-    /// view. The attempt only counts as applied when every component landed.
+    /// view. The attempt counts as applied once the settings are, so Undo can
+    /// put them back; the verify step lists any component that did not install.
     private func applyGameConfig(params: [String: String], fixId: String) {
         isApplying = true
         Task {
             let attempt = FixApplicator.apply(fixId: fixId, params: params, bottle: bottle, program: program)
-            var outcome = GameConfigVerbInstallOutcome(requested: [])
             if attempt.result != .failed, let program,
                let config = GameConfigApplicator.recommendedConfiguration(for: program) {
                 let installed = await Winetricks.loadInstalledVerbs(for: bottle).verbs
                 let pending = GameConfigApplicator.pendingWinetricksVerbs(
                     variant: config.variant, installedVerbs: installed
                 )
-                outcome = await Winetricks.installGameConfigVerbs(pending, for: bottle) { verbProgress = $0 }
+                _ = await Winetricks.installGameConfigVerbs(pending, for: bottle) { verbProgress = $0 }
             }
             verbProgress = nil
 
             engine.applyFix(fixId: fixId, beforeValue: attempt.beforeValue, afterValue: attempt.afterValue)
-            if attempt.result == .failed || outcome.status != .complete {
+            if attempt.result == .failed {
                 engine.markFixFailed(fixId: fixId)
             } else {
                 engine.confirmFixApplied(fixId: fixId)

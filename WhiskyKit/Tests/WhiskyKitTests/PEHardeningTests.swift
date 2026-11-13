@@ -220,37 +220,65 @@ final class MalformedPEHardeningTests: XCTestCase {
         XCTAssertLessThan(elapsed, 2.0, "Truncated huge-count table must parse in bounded time")
     }
 
-    func testFanOutAmplificationCompletesQuickly() throws {
-        // A root table whose many entries ALL point at the same oversized subtable.
-        // Each sibling re-parses that subtable (a legal DAG), so without a global
-        // budget this fans out into a huge number of processed entries. The shared
-        // traversal budget must stop the walk and return promptly.
-        let siblingCount: UInt16 = 8_000
+    func testClaimedEntryCountIsClampedToFileLength() throws {
+        // The parse above yields no entries with or without the clamp (reads past
+        // EOF decode as rejected data entries), so pin the clamp itself: a table
+        // claiming 65,535 entries with room for exactly one must iterate one.
+        var data = Data()
+        data.append(tableHeader(idEntries: UInt16.max))
+        data.append(idEntry(id: 3, offset: 0, isDirectory: false))
+
+        let fileURL = tempDir.appending(path: "clamp_\(UUID().uuidString).bin")
+        try data.write(to: fileURL)
+        let handle = try FileHandle(forReadingFrom: fileURL)
+        defer { try? handle.close() }
+
+        let count = ResourceDirectoryTable.clampedEntryCount(
+            claimed: UInt16.max, firstEntryOffset: 16, handle: handle, fileName: "clamp"
+        )
+        XCTAssertEqual(count, 1)
+    }
+
+    func testFanOutAmplificationIsBoundedByGlobalBudget() throws {
+        // A root table whose entries ALL point at the same oversized subtable. Each
+        // sibling re-parses that subtable (a legal DAG), so without a global budget
+        // every sibling re-walks all 65,535 leaves (a real attack uses thousands of
+        // siblings). Every leaf points at one valid data entry, so each leaf the walk
+        // processes surfaces in `allEntries`: the count IS the work done, which keeps
+        // this deterministic instead of a wall-clock race. Four siblings is enough to
+        // show the budget cutting the root loop, and few enough that a broken budget
+        // fails the count in seconds (262,140 leaves) instead of hanging the suite.
+        let siblingCount: UInt16 = 4
         let subtableOffset = UInt32(16 + Int(siblingCount) * 8) // right after the root's entries
+        let leafCount = Int(UInt16.max)
+        // The shared data entry sits right after the subtable's header and entries.
+        let dataEntryOffset = subtableOffset + 16 + UInt32(leafCount * 8)
 
         var data = Data()
         data.append(tableHeader(idEntries: siblingCount))
         for _ in 0 ..< siblingCount {
             data.append(idEntry(id: 3, offset: subtableOffset, isDirectory: true))
         }
-        // The shared subtable: itself claims the maximum entry count.
+        // The shared subtable claims the maximum entry count, and the file holds all
+        // of them, so the budget (not the per-table clamp) is what stops the fan-out.
         data.append(tableHeader(idEntries: UInt16.max))
-        // Pad so the subtable's claimed entries have file bytes to read, forcing the
-        // budget (not just the clamp) to be the thing that stops the fan-out.
-        data.append(Data(count: Int(UInt16.max) * 8))
+        let leaf = idEntry(id: 1, offset: dataEntryOffset, isDirectory: false)
+        for _ in 0 ..< leafCount {
+            data.append(leaf)
+        }
+        data.append(dataEntryBytes(dataRVA: 0x4000, size: 0x10))
 
-        let start = Date()
         let table = try parseTable(data, name: "fan_out")
-        let elapsed = Date().timeIntervalSince(start)
+        let entries = table.allEntries
 
-        // The walk completes (does not hang) and the budget bounds total work:
-        // an un-budgeted fan-out would process ~524M entries (8,000 × 65,535).
-        XCTAssertLessThanOrEqual(
-            table.allEntries.count,
-            100_000,
-            "Global budget must bound the total processed entries"
-        )
-        XCTAssertLessThan(elapsed, 5.0, "Fan-out amplification must complete under the global budget")
+        // The budget counts every processed directory entry. The first sibling
+        // spends 1 + 65,535; the second spends 1 and then the remainder on leaves;
+        // the third finds the budget empty and stops the root loop. So exactly two
+        // root entries and (budget - 2) leaves are processed. A per-table budget or
+        // a missing one would surface far more leaves; a budget that stopped early
+        // (or a shared subtable dropped as a false cycle) would surface fewer.
+        XCTAssertEqual(entries.count, ResourceDirectoryTable.maxTotalEntries - 2)
+        XCTAssertTrue(entries.allSatisfy { $0.dataRVA == 0x4000 })
     }
 }
 

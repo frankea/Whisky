@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- The "when switching away with running processes" setting now takes
+  effect. Its default is Ask, so switching bottles while a program Whisky
+  launched is still running now asks whether to keep it running (#352).
+
+### Fixed
+- Guided troubleshooting: "No, still broken" moves on to the next check
+  instead of giving up after the first fix, launcher-specific steps follow
+  the detected launcher, and checks use the bottle's real audio device,
+  launcher, graphics backend and latest log instead of placeholder data
+  (#349).
+- Guided troubleshooting no longer shows "Problem resolved" when stepping
+  past the escalation screen, Undo works for the network DNS fix, and
+  several flows no longer dead-end or check the wrong setting (#349).
+- Applying a Game Configuration now installs its components, with
+  progress and a Cancel button, and its environment variables apply to
+  every launch of the game rather than only Steam launches. "Don't show
+  this again" on the preview is honored; hold Option when clicking Apply
+  to see the preview again (#350).
+- While a game Whisky launched was running, the sidebar could show the
+  orange leftover-processes button, which stops the bottle. Running games
+  now show as running, and the Processes tab reflects them (#352).
+- Launcher fixes and the clipboard setting now apply however a program is
+  started, including pins, the Dock and menu bar, and the context menu
+  (#352).
+- "Automatically check for WhiskyWine updates" is honored (#351).
+- "Install VC++ Runtime" only shows as installed once the runtime is
+  actually found in the bottle (#351).
+- A program's "Match Display" virtual desktop uses the display's size
+  instead of always 1920x1080 (#351).
+- The Rockstar "DXVK required" warning only shows when DXVK won't be used
+  (#351).
+- "Troubleshoot Audio..." on a program page opens the audio troubleshooter
+  (#351).
+- `whisky add` works with real bottles and refuses paths that aren't one,
+  and `whisky delete` reports a failed deletion instead of exiting
+  successfully (#351).
+- Saving diagnostics as a ZIP reports failures and no longer deletes the
+  file being replaced when the save fails (#351).
+
 ## [3.9.2] - 2026-11-13 (App)
 
 ### Fixed

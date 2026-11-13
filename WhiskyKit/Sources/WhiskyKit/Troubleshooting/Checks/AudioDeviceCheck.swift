@@ -21,12 +21,26 @@ import Foundation
 /// Checks the default audio output device availability and transport type.
 ///
 /// Uses preflight data to verify that a default audio device is present.
-/// Returns `.warning` for Bluetooth devices (potential latency), `.pass`
-/// for wired devices, and `.fail` when no device is detected.
+/// Returns `.pass` for an available device (noting the latency risk of a
+/// Bluetooth one) and `.fail` when no device is detected.
+///
+/// With `params["check"]` set to `sample_rate_compat` it also fails a device
+/// whose sample rate is known and below 44.1 kHz, the rate the audio probe
+/// treats as standard. An unknown rate is not held against the device.
 public struct AudioDeviceCheck: TroubleshootingCheck {
     public let checkId = "audio.device_check"
 
+    /// The `check` param value that adds the sample rate test.
+    static let sampleRateCheck = "sample_rate_compat"
+
+    /// The lowest sample rate that passes the sample rate test, in Hz.
+    static let minimumSampleRate = 44_100
+
     public init() {}
+
+    public let signature: CheckSignature? = CheckSignature(
+        acceptedParams: ["check"], outcomes: [.pass, .fail]
+    )
 
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         guard let deviceName = context.preflight.audioDeviceName else {
@@ -44,6 +58,20 @@ public struct AudioDeviceCheck: TroubleshootingCheck {
             "deviceName": deviceName,
             "transportType": transportType
         ]
+        let sampleRate = context.preflight.audioSampleRate.map { Int($0) }.flatMap { $0 > 0 ? $0 : nil }
+        if let sampleRate {
+            evidence["sampleRate"] = "\(sampleRate)"
+        }
+
+        if params["check"] == Self.sampleRateCheck, let sampleRate, sampleRate < Self.minimumSampleRate {
+            evidence["recommendedRate"] = "\(Self.minimumSampleRate)"
+            return CheckResult(
+                outcome: .fail,
+                evidence: evidence,
+                summary: "\(deviceName) runs at \(sampleRate) Hz, below \(Self.minimumSampleRate) Hz",
+                confidence: .medium
+            )
+        }
 
         // Check for Bluetooth transport (potential latency)
         if Self.isBluetooth(transportType) {
@@ -75,6 +103,11 @@ public struct AudioDeviceCheck: TroubleshootingCheck {
     ///   produced by this check.
     public static func localizedSummary(for result: CheckResult) -> String? {
         if result.outcome == .fail {
+            // A failure with a device is the sample rate test's.
+            if result.evidence["deviceName"] != nil,
+               let sampleRate = result.evidence["sampleRate"].flatMap({ Int($0) }) {
+                return String(localized: "audio.finding.lowSampleRate \(sampleRate)")
+            }
             return String(localized: "troubleshooting.check.audioDevice.none")
         }
         guard let deviceName = result.evidence["deviceName"],

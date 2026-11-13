@@ -12,7 +12,7 @@
       "checkId": "setting.value_check",
       "params": {
         "setting": "controllerCompatibilityMode",
-        "scope": "program"
+        "expected": "true"
       },
       "on": {
         "pass": "escalate",
@@ -37,7 +37,7 @@
         "settingName": "Controller Compatibility Mode",
         "currentValueKey": "currentValue",
         "newValue": "true",
-        "scope": "program"
+        "scope": "bottle"
       },
       "isReversible": true,
       "requiresConfirmation": false,

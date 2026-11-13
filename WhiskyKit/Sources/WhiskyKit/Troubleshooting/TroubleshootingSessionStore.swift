@@ -204,7 +204,11 @@ public struct TroubleshootingSessionStore: TroubleshootingSessionStoring {
         session: TroubleshootingSession,
         currentPreflight: PreflightData
     ) -> [StalenessChange] {
-        guard let snapshot = session.preflightSnapshot else {
+        // A snapshot without the bottle's own backend was taken before the
+        // wizard collected a real preflight: it stored the raw backend
+        // setting, no audio device, no process count and the wineserver as
+        // stopped, so comparing it reports changes that never happened.
+        guard let snapshot = session.preflightSnapshot, snapshot.bottleGraphicsBackend != nil else {
             return []
         }
 

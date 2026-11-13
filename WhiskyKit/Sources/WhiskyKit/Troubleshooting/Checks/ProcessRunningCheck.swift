@@ -29,6 +29,10 @@ public struct ProcessRunningCheck: TroubleshootingCheck {
 
     public init() {}
 
+    public let signature: CheckSignature? = CheckSignature(
+        acceptedParams: ["process"], outcomes: [.pass, .fail]
+    )
+
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         let processName = params["process"] ?? "wineserver"
         let count = ProcessRegistry.shared.getProcessCount(for: context.bottleURL)

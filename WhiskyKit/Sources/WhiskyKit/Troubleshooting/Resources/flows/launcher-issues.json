@@ -18,22 +18,21 @@
         "error": "escalate"
       },
       "evidenceMap": {
-        "launcherType": "Detected launcher",
-        "launcherName": "Launcher name"
+        "detectedLauncher": "Detected launcher"
       }
     },
     "branch_by_launcher": {
       "id": "branch_by_launcher",
-      "type": "info",
+      "type": "branch",
       "phase": "checks",
       "title": "Launcher identified",
       "description": "Routing to launcher-specific troubleshooting steps based on the detected launcher.",
       "on": {
-        "steam": "check_steam_process",
-        "ea": "fix_launcher_env",
-        "epic": "fix_launcher_env",
-        "rockstar": "fix_launcher_env",
-        "default": "escalate"
+        "Steam": "check_steam_process",
+        "EA App": "fix_launcher_env",
+        "Epic Games Store": "fix_launcher_env",
+        "Rockstar Games Launcher": "fix_launcher_env",
+        "default": "fix_launcher_env"
       }
     },
     "check_steam_process": {

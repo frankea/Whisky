@@ -32,6 +32,10 @@ public struct GameConfigAvailableCheck: TroubleshootingCheck {
 
     public init() {}
 
+    public let signature: CheckSignature? = CheckSignature(
+        outcomes: [.pass, .fail, .unknown]
+    )
+
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         guard let programName = context.programName else {
             return CheckResult(

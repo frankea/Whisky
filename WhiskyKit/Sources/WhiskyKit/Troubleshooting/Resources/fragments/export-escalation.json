@@ -10,27 +10,8 @@
       "title": "Unresolved issue",
       "description": "The steps so far have not resolved this issue. Here is a summary of what was tried. You can run enhanced diagnostics to gather more information, or export a report.",
       "on": {
-        "continue": "offer_enhanced_diagnostics"
-      }
-    },
-    "offer_enhanced_diagnostics": {
-      "id": "offer_enhanced_diagnostics",
-      "type": "check",
-      "phase": "export",
-      "title": "Check enhanced diagnostics availability",
-      "description": "Checking whether enhanced diagnostics can be run for additional information.",
-      "checkId": "diagnostics.can_enhance",
-      "params": {},
-      "on": {
-        "pass": "run_enhanced_diagnostics",
-        "fail": "export_bundle",
-        "already_configured": "export_bundle",
-        "unknown": "export_bundle",
-        "error": "export_bundle"
-      },
-      "evidenceMap": {
-        "canEnhance": "Enhanced diagnostics available",
-        "reason": "Reason"
+        "enhanced_diagnostics": "run_enhanced_diagnostics",
+        "export": "export_bundle"
       }
     },
     "run_enhanced_diagnostics": {
@@ -43,7 +24,18 @@
       "isReversible": true,
       "requiresConfirmation": true,
       "on": {
-        "applied": "reclassify_after_enhanced",
+        "applied": "relaunch_for_enhanced_logs",
+        "skipped": "export_bundle"
+      }
+    },
+    "relaunch_for_enhanced_logs": {
+      "id": "relaunch_for_enhanced_logs",
+      "type": "info",
+      "phase": "checks",
+      "title": "Reproduce the problem",
+      "description": "Enhanced logging is now on for this program. Launch it again and reproduce the problem, then continue to analyze the new log.",
+      "on": {
+        "continue": "reclassify_after_enhanced",
         "skipped": "export_bundle"
       }
     },
@@ -54,10 +46,12 @@
       "title": "Re-analyze with enhanced logs",
       "description": "Analyzing the enhanced debug output for additional diagnostic patterns.",
       "checkId": "crash.log_classify",
-      "params": {},
+      "params": {
+        "newerThanFix": "run-enhanced-diagnostics"
+      },
       "on": {
-        "pass": "resolved",
-        "fail": "export_bundle",
+        "pass": "export_bundle",
+        "fail": "enhanced_findings",
         "unknown": "export_bundle",
         "error": "export_bundle"
       },
@@ -67,12 +61,15 @@
         "headline": "Finding"
       }
     },
-    "resolved": {
-      "id": "resolved",
+    "enhanced_findings": {
+      "id": "enhanced_findings",
       "type": "info",
-      "phase": "export",
+      "phase": "checks",
       "title": "Issue identified",
-      "description": "Enhanced diagnostics revealed additional information. Review the findings and consider restarting the troubleshooting flow with this new evidence."
+      "description": "Enhanced diagnostics found crash patterns in the new log. Export a diagnostic report to share them, or start troubleshooting over with this new evidence.",
+      "on": {
+        "continue": "export_bundle"
+      }
     },
     "export_bundle": {
       "id": "export_bundle",

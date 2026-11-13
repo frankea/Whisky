@@ -29,6 +29,10 @@ public struct WinetricksVerbCheck: TroubleshootingCheck {
 
     public init() {}
 
+    public let signature: CheckSignature? = CheckSignature(
+        requiredParams: ["verbs"], outcomes: [.alreadyConfigured, .fail]
+    )
+
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         guard let verbsParam = params["verbs"], !verbsParam.isEmpty else {
             return CheckResult(
@@ -69,6 +73,24 @@ public struct WinetricksVerbCheck: TroubleshootingCheck {
             summary: "\(missingVerbs.count) missing verb(s): \(missingVerbs.joined(separator: ", "))",
             confidence: .high
         )
+    }
+
+    /// The verbs in a comma-separated list, as flows and this check's
+    /// evidence write them (`"vcrun2019, dotnet48"`).
+    ///
+    /// - Parameter list: The comma-separated verbs.
+    /// - Returns: Each verb, trimmed, in order.
+    public static func verbs(in list: String) -> [String] {
+        list.flowParamList
+    }
+
+    /// The verbs a result from this check found missing.
+    ///
+    /// - Parameter result: A result produced by ``run(params:context:)``.
+    /// - Returns: The missing verbs in the order checked; empty when none
+    ///   are missing or the result is not this check's.
+    public static func missingVerbs(in result: CheckResult) -> [String] {
+        result.evidence["missing"].map(verbs(in:)) ?? []
     }
 
     /// The summary of a result from this check in the user's language.

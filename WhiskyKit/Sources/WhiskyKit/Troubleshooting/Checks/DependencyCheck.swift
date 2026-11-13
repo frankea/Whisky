@@ -29,6 +29,10 @@ public struct DependencyCheck: TroubleshootingCheck {
 
     public init() {}
 
+    public let signature: CheckSignature? = CheckSignature(
+        requiredParams: ["dlls"], outcomes: [.pass, .fail, .error]
+    )
+
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         guard let dllsParam = params["dlls"], !dllsParam.isEmpty else {
             return CheckResult(

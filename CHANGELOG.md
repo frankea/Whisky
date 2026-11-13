@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Applying a Game Configuration no longer sets a graphics backend this Mac
+  can't run. 27 configurations, among them Elden Ring, Cyberpunk 2077,
+  Baldur's Gate 3 and The Witcher 3, choose D3DMetal; without the GPTK
+  payload that left the bottle falling back to WineD3D, which can't start
+  Direct3D 11 games. Such a backend now becomes Recommended, and the preview
+  shows what will actually be set (#337).
+- The Binding of Isaac's Game Configuration no longer switches the bottle to
+  WineD3D. The game renders through OpenGL, which no backend setting
+  reaches, so the change only affected the bottle's other programs. The
+  entry now lists the black post-process effects as a known issue (#338,
+  part of #200).
+
 ## [3.9.0] - 2026-11-12 (App)
 
 ### Added

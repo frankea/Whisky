@@ -1026,6 +1026,12 @@
             "state" : "translated",
             "value" : "Argumenty i dzienniki są oczyszczane z potocznych sekretnych kształtów, dopóki wrażliwe dane nie są dołączane"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "除非包含敏感细节，否则参数和日志中常见的密钥形式会被脱敏"
+          }
         }
       }
     },
@@ -1450,7 +1456,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bottle"
+            "value" : "容器"
           }
         },
         "zh-Hant" : {
@@ -8273,6 +8279,12 @@
             "state" : "translated",
             "value" : "Programs in this bottle, the launcher included, use %@. If the launcher's window stops working, set this back to Auto."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此容器中的所有程序（包括启动器）都使用 %@。如果启动器窗口无法正常工作，请将其改回“自动”。"
+          }
         }
       }
     },
@@ -8850,6 +8862,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rockstar Games Launcher shows no window without DXVK. When it is this bottle's launcher, the bottle switches to DXVK on detection and every program in it runs with DXVK, whatever Graphics Backend is set to. Other launchers already run on DXVK under the Recommended backend."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有 DXVK 时 Rockstar Games Launcher 不显示窗口。当它作为此容器的启动器时，容器一经检测到就会切换到 DXVK，容器内所有程序都使用 DXVK，无论图形后端设置为何。其他启动器在“推荐”后端下本已使用 DXVK。"
           }
         }
       }
@@ -10103,6 +10121,12 @@
             "state" : "translated",
             "value" : "Sets the Windows locale for every program in this bottle, including games a launcher starts. Auto keeps the launcher's default: US English for Steam, EA App, Epic Games, Battle.net and Rockstar, and the Mac's own language and region otherwise."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为此容器中的所有程序设置 Windows 区域设置，包括启动器启动的游戏。“自动”会沿用启动器的默认值：Steam、EA App、Epic Games、Battle.net 和 Rockstar 使用美式英语，其他情况使用 Mac 自身的语言和区域设置。"
+          }
         }
       }
     },
@@ -10662,6 +10686,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Use DXVK for Rockstar Games Launcher"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为 Rockstar Games Launcher 使用 DXVK"
           }
         }
       }
@@ -21245,6 +21275,12 @@
             "state" : "translated",
             "value" : "macOS odmawia dostępu do %@. Zezwól aplikacji Whisky w Ustawieniach systemowych > Prywatność i ochrona > Pliki i foldery, a następnie spróbuj ponownie."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 正在阻止访问 %@。请在“系统设置 > 隐私与安全性 > 文件与文件夹”中授予 Whisky 访问权限，然后重试。"
+          }
         }
       }
     },
@@ -21568,6 +21604,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zatrzymaj butelkę"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止容器"
           }
         }
       }
@@ -26446,7 +26488,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Winetrick..."
+            "value" : "Winetricks…"
           }
         },
         "zh-Hant" : {
@@ -33001,6 +33043,12 @@
             "state" : "translated",
             "value" : "Discord"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discord"
+          }
         }
       }
     },
@@ -33023,6 +33071,12 @@
             "state" : "translated",
             "value" : "Zezwól grom ogłaszać swą obecność"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许游戏发布自己的活动状态"
+          }
         }
       }
     },
@@ -33044,6 +33098,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Przekazuje tunel Discordowy oczekiwany przez grę Windosową klientowi Discorda na twoim Macu. Ma tylko wpływ, gdy gry ogłaszają swą obecność."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把 Windows 游戏期望的 Discord 管道转发到 Mac 上的 Discord 客户端。仅影响自行发布活动状态的游戏。"
           }
         }
       }
@@ -33073,6 +33133,12 @@
             "state" : "translated",
             "value" : "Pokaż w co grasz"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示你正在玩的游戏"
+          }
         }
       }
     },
@@ -33095,6 +33161,12 @@
             "state" : "translated",
             "value" : "Ogłasza program uruchamiany za pomocą Whisky na Twojej aktywności na platformie Discord, pokazuje pod nazwą Whisky."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将 Whisky 启动的程序发布为你的 Discord 活动状态，显示在 Whisky 名下。"
+          }
         }
       }
     },
@@ -33116,6 +33188,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Niedostępne: ten build nie ma skonfigurowanej aplikacji Discord."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不可用：此构建未配置 Discord 应用。"
           }
         }
       }
@@ -35811,6 +35889,12 @@
             "state" : "translated",
             "value" : "Generowanie klatek przez DLSS"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DLSS 帧生成"
+          }
         }
       }
     },
@@ -35832,6 +35916,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wyłączone domyślnie. Generowanie klatek kontaktuje się z interpolacją klatek MetalFX, która na obecnej wersji macOS może sprawić, że sterownik karty GPU nie będzie odpowiadał, a nawet kończyć sesje logowania. Nie dotyczy powyższego upscalingu DLSS. Niektóre tytułu NVIDIA Streamline nie będą się uruchamiać z tą opcją wyłączona, m.in. Deep Rock Galactic."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认关闭。帧生成会用到 MetalFX 帧插值，在当前 macOS 上可能造成 GPU 驱动无响应并结束登录会话。上方的 DLSS 超分辨率不受影响。部分 NVIDIA Streamline 游戏在关闭此项时无法启动，Deep Rock Galactic 就是其中之一。"
           }
         }
       }
@@ -36305,6 +36395,12 @@
             "state" : "translated",
             "value" : "Mechanizm Metal 4"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Metal 4 后端"
+          }
         }
       }
     },
@@ -36326,6 +36422,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Używa wymuszania polecenia Metal 4 dla tytułów opartych o DirectX 12. Ignorowane na wersjach macOS wydanych przed nim."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为 DirectX 12 游戏使用 Metal 4 命令编码。在早于 Metal 4 的 macOS 版本上会被忽略。"
           }
         }
       }
@@ -36355,6 +36457,12 @@
             "state" : "translated",
             "value" : "DLSS za pomocą MetalFX"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通过 MetalFX 实现 DLSS"
+          }
         }
       }
     },
@@ -36376,6 +36484,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mapuje DLSS gry do upscalingu MetalFX. Ma tylko wpływ, gdy DLSS jest również włączony w ustawieniach gry."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将游戏的 DLSS 映射到 MetalFX 超分辨率。仅在游戏自身设置中也开启 DLSS 时生效。"
           }
         }
       }
@@ -42757,6 +42871,12 @@
             "state" : "translated",
             "value" : "Sprawdź ponownie"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再次检查"
+          }
         }
       }
     },
@@ -42785,6 +42905,12 @@
             "state" : "translated",
             "value" : "Otwórz ustawienia prywatności…"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开隐私设置…"
+          }
         }
       }
     },
@@ -42806,6 +42932,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "To położenie nie może być użyte"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法使用此位置"
           }
         }
       }
@@ -46090,6 +46222,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Duplikuj"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制"
           }
         }
       }
@@ -55581,6 +55719,12 @@
             "state" : "translated",
             "value" : "This is not a genuine Game Porting Toolkit payload, a file is not the one Apple shipped:"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这不是正版 Game Porting Toolkit 载荷，其中一个文件并非 Apple 提供的版本："
+          }
         }
       }
     },
@@ -56045,6 +56189,12 @@
             "state" : "translated",
             "value" : "The imported Game Porting Toolkit payload did not pass Apple's signature check, so it was not deployed. Remove it and import Apple's evaluation environment disk image again."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入的 Game Porting Toolkit 载荷未通过 Apple 的签名检查，因此未部署。请移除它，并重新导入 Apple 的评估环境磁盘映像。"
+          }
         }
       }
     },
@@ -56061,6 +56211,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This Game Porting Toolkit payload has been changed, or copied in a way that did not keep it intact. Import Apple's evaluation environment disk image instead. Apple's signature does not cover this item:"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 Game Porting Toolkit 载荷已被修改，或复制方式破坏了其完整性。请改用 Apple 的评估环境磁盘映像。Apple 的签名不覆盖此项："
           }
         }
       }
@@ -58152,6 +58308,12 @@
             "state" : "translated",
             "value" : "en_US locale recommended for Battle.net"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建议 Battle.net 使用 en_US 区域设置"
+          }
         }
       }
     },
@@ -58167,6 +58329,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Launcher Compatibility Mode is disabled. Enable it for automatic fixes."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启动器兼容模式已禁用。启用后可自动修复。"
           }
         }
       }
@@ -58184,6 +58352,12 @@
             "state" : "translated",
             "value" : "GPU spoofing REQUIRED for EA App (will show 'GPU not supported')"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EA App 必须启用 GPU 伪装（否则会显示“不支持 GPU”）"
+          }
         }
       }
     },
@@ -58199,6 +58373,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "en_US locale recommended for EA App launcher UI"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建议 EA App 启动器界面使用 en_US 区域设置"
           }
         }
       }
@@ -58216,6 +58396,12 @@
             "state" : "translated",
             "value" : "en_US locale recommended for Epic Games launcher"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建议 Epic Games 启动器使用 en_US 区域设置"
+          }
         }
       }
     },
@@ -58231,6 +58417,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DXVK REQUIRED for Rockstar Launcher (logo won't display without it)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rockstar 启动器必须启用 DXVK（否则 Logo 无法显示）"
           }
         }
       }
@@ -58248,6 +58440,12 @@
             "state" : "translated",
             "value" : "GPU spoofing helps with game compatibility checks"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GPU 伪装有助于通过游戏兼容性检查"
+          }
         }
       }
     },
@@ -58263,6 +58461,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Steam may crash without en_US locale (steamwebhelper issue)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不使用 en_US 区域设置时 Steam 可能崩溃（steamwebhelper 问题）"
           }
         }
       }
@@ -58589,6 +58793,12 @@
             "state" : "translated",
             "value" : "Konfiguruj butelkę"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "配置容器"
+          }
         }
       }
     },
@@ -58617,6 +58827,12 @@
             "state" : "translated",
             "value" : "Uruchamia ten program"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行此程序"
+          }
         }
       }
     },
@@ -58639,6 +58855,12 @@
             "state" : "translated",
             "value" : "Nigdy nie uruchamiaj"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从未运行"
+          }
         }
       }
     },
@@ -58660,6 +58882,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Launcher"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启动器"
           }
         }
       }
@@ -58689,6 +58917,12 @@
             "state" : "translated",
             "value" : "Uruchamianie…"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在启动…"
+          }
         }
       }
     },
@@ -58716,6 +58950,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uruchomione"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行中"
           }
         }
       }
@@ -58745,6 +58985,12 @@
             "state" : "translated",
             "value" : "Zatrzymaj"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止"
+          }
         }
       }
     },
@@ -58766,6 +59012,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Odepnij"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消固定"
           }
         }
       }
@@ -58795,6 +59047,12 @@
             "state" : "translated",
             "value" : "Stwórz butelkę, w której będą instalowane programy na Windowsa."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "创建一个容器来安装 Windows 程序。"
+          }
         }
       }
     },
@@ -58816,6 +59074,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Programy zainstalowane w butelce będą się tu wyświetlać"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安装到容器中的程序会显示在这里。"
           }
         }
       }
@@ -58839,6 +59103,12 @@
             "state" : "translated",
             "value" : "Otwórz butelkę i przypnij program, aby go zobaczyć tutaj."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开容器并固定一个程序，即可在此查看。"
+          }
         }
       }
     },
@@ -58860,6 +59130,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Jeszcze nic nie zainstalowano"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未安装任何内容"
           }
         }
       }
@@ -58889,6 +59165,12 @@
             "state" : "translated",
             "value" : "Nie można było uruchomić"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法启动"
+          }
         }
       }
     },
@@ -58910,6 +59192,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uruchamianie %@…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在启动 %@…"
           }
         }
       }
@@ -58933,6 +59221,12 @@
             "state" : "translated",
             "value" : "Steam już nie wyświetla tej gry jako zainstalowanej."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steam 已不再将此游戏列为已安装。"
+          }
         }
       }
     },
@@ -58954,6 +59248,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Szukaj programów"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索程序"
           }
         }
       }
@@ -58979,6 +59279,12 @@
           }
         },
         "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steam"
+          }
+        },
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Steam"
@@ -59011,6 +59317,12 @@
             "state" : "translated",
             "value" : "Sortuj"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "排序"
+          }
         }
       }
     },
@@ -59038,6 +59350,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "wg butelki"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "容器"
           }
         }
       }
@@ -59067,6 +59385,12 @@
             "state" : "translated",
             "value" : "wg nazwy"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "名称"
+          }
         }
       }
     },
@@ -59094,6 +59418,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "wg ostatnio granych"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近玩过"
           }
         }
       }
@@ -59129,6 +59459,12 @@
             "state" : "translated",
             "value" : "Biblioteka"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "资料库"
+          }
         }
       }
     },
@@ -59157,6 +59493,12 @@
             "state" : "translated",
             "value" : "Butelki"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "容器"
+          }
         }
       }
     },
@@ -59178,6 +59520,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zezwól na zdarzenia w tle"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许后台事件"
           }
         }
       }
@@ -59201,6 +59549,12 @@
             "state" : "translated",
             "value" : "Tryb zgodności kontrolerów"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "控制器兼容模式"
+          }
         }
       }
     },
@@ -59222,6 +59576,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wyłącz mapowanie kontrolerów"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "禁用控制器映射"
           }
         }
       }
@@ -59251,6 +59611,12 @@
             "state" : "translated",
             "value" : "Wyłącz HIDAPI"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "禁用 HIDAPI"
+          }
         }
       }
     },
@@ -59279,6 +59645,12 @@
             "state" : "translated",
             "value" : "Mechanizm grafiki"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "图形后端"
+          }
         }
       }
     },
@@ -59295,6 +59667,12 @@
             "state" : "translated",
             "value" : "This bottle is back on Recommended. Steam now uses DXVK on its own, so its games keep D3DMetal."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此容器已恢复为“推荐”。Steam 现在会自行使用 DXVK，因此其游戏仍使用 D3DMetal。"
+          }
         }
       }
     },
@@ -59310,6 +59688,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dismiss"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "忽略"
           }
         }
       }
@@ -59333,6 +59717,12 @@
             "state" : "translated",
             "value" : "%@ jest obecnie używane"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前使用 %@"
+          }
         }
       }
     },
@@ -59354,6 +59744,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Obecnie zalecane jest %@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“推荐”当前解析为 %@。"
           }
         }
       }
@@ -59377,6 +59773,12 @@
             "state" : "translated",
             "value" : "Będzie miało wpływ po następnym uruchomieniu tego programu."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下次启动此程序时生效。"
+          }
         }
       }
     },
@@ -59398,6 +59800,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Używaj etykiet przycisków"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用按钮标签"
           }
         }
       }
@@ -59421,6 +59829,12 @@
             "state" : "translated",
             "value" : "Wyczyść konsolę"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清空控制台"
+          }
         }
       }
     },
@@ -59443,6 +59857,12 @@
             "state" : "translated",
             "value" : "Usuń stare dzienniki"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除旧日志"
+          }
         }
       }
     },
@@ -59464,6 +59884,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Usuń uruchomienie"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除记录"
           }
         }
       }
@@ -59493,6 +59919,12 @@
             "state" : "translated",
             "value" : "Kod wyjścia %lld"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "退出码 %lld"
+          }
         }
       }
     },
@@ -59514,6 +59946,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zakończyło działanie kodem %lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已退出，代码 %lld"
           }
         }
       }
@@ -59543,6 +59981,12 @@
             "state" : "translated",
             "value" : "Ostatnie uruchomienie"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上次运行"
+          }
         }
       }
     },
@@ -59570,6 +60014,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kopiuj dziennik"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷贝日志"
           }
         }
       }
@@ -59599,6 +60049,12 @@
             "state" : "translated",
             "value" : "Wyeksportuj dziennik"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出日志"
+          }
         }
       }
     },
@@ -59627,6 +60083,12 @@
             "state" : "translated",
             "value" : "Na żywo"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时"
+          }
         }
       }
     },
@@ -59648,6 +60110,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Brak uruchomień"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未运行"
           }
         }
       }
@@ -59671,6 +60139,12 @@
             "state" : "translated",
             "value" : "Uruchom ten program i pokaż tego dane wyjściowe tutaj."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行此程序后，其输出会显示在这里。"
+          }
         }
       }
     },
@@ -59693,6 +60167,12 @@
             "state" : "translated",
             "value" : "Otwórz folder dzienników"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开日志文件夹"
+          }
         }
       }
     },
@@ -59714,6 +60194,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Poprzednie uruchomienia"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "历史运行"
           }
         }
       }
@@ -59743,6 +60229,12 @@
             "state" : "translated",
             "value" : "Uruchomione"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行中"
+          }
         }
       }
     },
@@ -59771,6 +60263,12 @@
             "state" : "translated",
             "value" : "Konsola"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "控制台"
+          }
         }
       }
     },
@@ -59792,6 +60290,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ten program uchyla mechanizm grafiki butelki."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此程序覆盖了容器的图形后端设置。"
           }
         }
       }
@@ -59821,6 +60325,12 @@
             "state" : "translated",
             "value" : "Wyświetlanie"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示"
+          }
         }
       }
     },
@@ -59842,6 +60352,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uchylenia bibliotek DLL"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DLL 覆盖"
           }
         }
       }
@@ -59871,6 +60387,12 @@
             "state" : "translated",
             "value" : "Grafika"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "图形"
+          }
         }
       }
     },
@@ -59893,6 +60415,12 @@
             "state" : "translated",
             "value" : "Dziedziczone z butelki"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继承自容器"
+          }
         }
       }
     },
@@ -59914,6 +60442,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wejście"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入"
           }
         }
       }
@@ -59943,6 +60477,12 @@
             "state" : "translated",
             "value" : "Wydajność"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "性能"
+          }
         }
       }
     },
@@ -59964,6 +60504,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zresetuj uchylenia"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置覆盖项"
           }
         }
       }
@@ -59987,6 +60533,12 @@
             "state" : "translated",
             "value" : "Zresetować uchylenia tego programu, tak aby używał ustawień butelki?"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置此程序的覆盖项，使其重新跟随容器设置？"
+          }
         }
       }
     },
@@ -60008,6 +60560,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Synchronizacja"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步"
           }
         }
       }
@@ -60031,6 +60589,12 @@
             "state" : "translated",
             "value" : "Uchylenia programu"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "程序覆盖项"
+          }
         }
       }
     },
@@ -60052,6 +60616,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "W tej butelce nie zainstalowano żadnych zleceń Winetricks."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此容器中未安装任何 Winetricks 组件。"
           }
         }
       }
@@ -60075,6 +60645,12 @@
             "state" : "translated",
             "value" : "Zlecenia zainstalowane w butelce, w której ten program się uruchamia."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此程序所在容器中已安装的 Winetricks 组件。"
+          }
         }
       }
     },
@@ -60093,6 +60669,12 @@
           }
         },
         "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Winetricks"
+          }
+        },
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Winetricks"
@@ -60119,6 +60701,12 @@
             "state" : "translated",
             "value" : "Używane przez ten program"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此程序正在使用"
+          }
         }
       }
     },
@@ -60140,6 +60728,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uchyla butelkowe ustawienia wyświetlania tylko dla tego programu."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅为此程序覆盖容器的显示设置。"
           }
         }
       }
@@ -70076,6 +70670,12 @@
             "state" : "translated",
             "value" : "The command to open the terminal couldn't be prepared."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法准备打开终端的命令。"
+          }
         }
       }
     },
@@ -70246,6 +70846,12 @@
             "state" : "translated",
             "value" : "Zastosowano: %@"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已应用：%@"
+          }
         }
       }
     },
@@ -70267,6 +70873,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ nie zostało zainstalowane. W dzienniku znajdują się szczegóły."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 未安装成功。详情见日志。"
           }
         }
       }
@@ -70290,6 +70902,12 @@
             "state" : "translated",
             "value" : "Zainstalowano %@."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已安装 %@。"
+          }
         }
       }
     },
@@ -70312,6 +70930,12 @@
             "state" : "translated",
             "value" : "Instalowanie %@. Może to zająć chwilkę."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在安装 %@，可能需要几分钟。"
+          }
         }
       }
     },
@@ -70333,6 +70957,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tej sugestii nie można automatycznie zaaplikować."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此建议无法自动应用。"
           }
         }
       }
@@ -72421,6 +73051,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This payload did not pass Apple's signature check, so Whisky will not deploy it again. Remove it, then import Apple's evaluation environment disk image again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此载荷未通过 Apple 的签名检查，因此 Whisky 不会再次部署它。请移除它，然后重新导入 Apple 的评估环境磁盘映像。"
           }
         }
       }
@@ -84884,6 +85520,12 @@
             "state" : "translated",
             "value" : "Ścieżka rozwiązywania problemów została zaktualizowana na podstawie wyników testu."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已根据检查结果更新故障排除路径。"
+          }
         }
       }
     },
@@ -84905,6 +85547,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zaktualizowano ścieżkę: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "路径已更新：%@"
           }
         }
       }
@@ -85964,6 +86612,12 @@
             "state" : "translated",
             "value" : "Schowek (gotów na wklejanie)"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪贴板（可直接粘贴）"
+          }
         }
       }
     },
@@ -85985,6 +86639,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Automatyczne rozwiązywanie problemów nie mogło rozwiązać tego problemu. Oto kilka kolejnych kroków."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动故障排除未能解决问题。以下是一些后续步骤。"
           }
         }
       }
@@ -86156,6 +86816,12 @@
             "state" : "translated",
             "value" : "Włącz rozwlekłe logowanie WINE (WINEDEBUG) dla tego programu przy jego następnym uruchomienie. Szczegółowy dziennik pomaga w diagnozowaniu problemu."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为此程序的下次运行启用详细 Wine 日志（WINEDEBUG）。详细日志有助于诊断问题。"
+          }
         }
       }
     },
@@ -86326,6 +86992,12 @@
             "state" : "translated",
             "value" : "Skopiuj do schowka podsumowanie znalezisk, historii napraw i szczegóły środowiska w celu ich udostępnienia."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将检测结果、修复历史和环境详情的摘要拷贝到剪贴板以便分享。"
+          }
         }
       }
     },
@@ -86348,6 +87020,12 @@
             "state" : "translated",
             "value" : "Wyeksportowano do %@"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已导出至：%@"
+          }
         }
       }
     },
@@ -86369,6 +87047,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Brak dostępnych poprzednich kroków"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可返回的上一步"
           }
         }
       }
@@ -86540,6 +87224,12 @@
             "state" : "translated",
             "value" : "Cofnij do poprzedniego kroku i spróbuj innej ścieżki."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回上一步，尝试其他路径。"
+          }
         }
       }
     },
@@ -86561,6 +87251,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Krok %d:"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "步骤 %d："
           }
         }
       }
@@ -86732,6 +87428,12 @@
             "state" : "translated",
             "value" : "Skopiuj do schowka uzupełnione podsumowanie w celu przekazania w problemie na platformie GitHub."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将预填的摘要拷贝到剪贴板，以便粘贴到 GitHub issue。"
+          }
         }
       }
     },
@@ -86901,6 +87603,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Czego spróbowano:"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已尝试的操作："
           }
         }
       }
@@ -87220,6 +87928,12 @@
             "state" : "translated",
             "value" : "Zmieni to %1$@ z „%2$@” na „%3$@”."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这将把 %1$@ 从“%2$@”改为“%3$@”。"
+          }
         }
       }
     },
@@ -87389,6 +88103,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Potwierdź naprawę"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确认修复"
           }
         }
       }
@@ -88003,6 +88723,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zakres: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "范围：%@"
           }
         }
       }
@@ -88765,6 +89491,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Spróbowane naprawy:"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已尝试的修复："
           }
         }
       }
@@ -90120,6 +90852,12 @@
             "state" : "translated",
             "value" : "Zastosowane zmiany:"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已应用的更改："
+          }
         }
       }
     },
@@ -90733,6 +91471,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ostatnia aktualizacja:"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上次更新："
           }
         }
       }
@@ -91644,6 +92388,12 @@
             "state" : "translated",
             "value" : "Brak lub trzaskający dźwięk albo złe urządzenie wyjściowe"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有声音、爆音、杂音或输出设备不正确"
+          }
         }
       }
     },
@@ -91813,6 +92563,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nie wykryto kontrolera lub źle przypisano przyciski"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未检测到控制器或按键映射不正确"
           }
         }
       }
@@ -91984,6 +92740,12 @@
             "state" : "translated",
             "value" : "Czarny ekran, migotanie, artefakty lub niska ilość klatek na sekundę"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "黑屏、闪烁、画面异常或帧率过低"
+          }
         }
       }
     },
@@ -92153,6 +92915,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Brakujące komponenty .NET, VC++, DirectX albo Winetricks"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "缺少 .NET、VC++、DirectX 或 Winetricks 组件"
           }
         }
       }
@@ -92324,6 +93092,12 @@
             "state" : "translated",
             "value" : "Program nie może się uruchomić lub szybko ulega awarii"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "程序无法启动或在几秒内崩溃"
+          }
         }
       }
     },
@@ -92493,6 +93267,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Problemy z launcherami Steam EA App, Epic Games lub Rockstar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steam、EA App、Epic Games 或 Rockstar 启动器问题"
           }
         }
       }
@@ -92664,6 +93444,12 @@
             "state" : "translated",
             "value" : "Upływanie limitu czasu pobierania, Steam się zawiesza lub problemy z połączeniem"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载超时、Steam 卡住或连接失败"
+          }
         }
       }
     },
@@ -92833,6 +93619,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Opisz swój problem, a my postaramy się pomóc"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "描述你的问题，我们会尝试帮助"
           }
         }
       }
@@ -93004,6 +93796,12 @@
             "state" : "translated",
             "value" : "Zacinanie, pomijanie klatek lub zawieszanie po krótkiej rozgrywce"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "游玩一段时间后卡顿、掉帧或卡死"
+          }
         }
       }
     },
@@ -93174,6 +93972,12 @@
             "state" : "translated",
             "value" : "Wybierz butelkę oraz opcjonalnie program, w którym należy rozwiązać problemy."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择要排查的容器，也可选择一个程序。"
+          }
         }
       }
     },
@@ -93196,6 +94000,12 @@
             "state" : "translated",
             "value" : "Brak konkretnego programu (na poziomie butelki)"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不指定程序（容器级）"
+          }
         }
       }
     },
@@ -93217,6 +94027,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wybierz butelkę"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择容器"
           }
         }
       }
@@ -93980,6 +94796,12 @@
             "state" : "translated",
             "value" : "Cofnij ostatnią naprawę"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤销上次修复"
+          }
         }
       }
     },
@@ -94001,6 +94823,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zamknij"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
           }
         }
       }
@@ -94024,6 +94852,12 @@
             "state" : "translated",
             "value" : "Kontynuuj"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续"
+          }
         }
       }
     },
@@ -94045,6 +94879,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sprawdzanie…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在检查…"
           }
         }
       }
@@ -94068,6 +94908,12 @@
             "state" : "translated",
             "value" : "Pomiń"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跳过"
+          }
         }
       }
     },
@@ -94089,6 +94935,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Krok %d."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "步骤 %d"
           }
         }
       }
@@ -94704,6 +95556,12 @@
             "state" : "translated",
             "value" : "Łącze spoza aplikacji Whisky poprosiło o uruchomienie. Whisky może tylko uruchamiać już zainstalowane gry i przypięte aplikacje, nigdy nie wykona przypadkowego programu, lecz nadal użytkownik powinien rozpoznawać ten."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此启动请求来自 Whisky 之外的链接。Whisky 只能启动你已有的游戏和固定项，绝不会启动任意程序，但你仍应确认是否认识此项。"
+          }
         }
       }
     },
@@ -94725,6 +95583,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uruchom"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启动"
           }
         }
       }
@@ -94748,6 +95612,12 @@
             "state" : "translated",
             "value" : "Uruchomić %@?"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启动 %@？"
+          }
         }
       }
     },
@@ -94769,6 +95639,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zawsze zezwalaj na to z łączy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "始终允许来自链接的此操作"
           }
         }
       }
@@ -94792,6 +95668,12 @@
             "state" : "translated",
             "value" : "Brak butelki nazwanej %@."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有名为 %@ 的容器。"
+          }
         }
       }
     },
@@ -94813,6 +95695,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nic tak nazwanego nie przypięto."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该名称下没有固定的项目。"
           }
         }
       }
@@ -94979,6 +95867,12 @@
             "state" : "translated",
             "value" : "This bottle's Wine prefix couldn't be set up, so nothing can run in it yet. The latest Wine log has the details."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法设置此容器的 Wine 前缀，因此暂时无法在其中运行任何程序。详情见最新的 Wine 日志。"
+          }
         }
       }
     },
@@ -94995,6 +95889,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This bottle's Wine prefix can't be set up because the Wine runtime isn't installed. Open Whisky to install it, then try again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由于未安装 Wine 运行时，无法设置此容器的 Wine 前缀。请打开 Whisky 安装后再试。"
           }
         }
       }
@@ -103191,6 +104091,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wykryty wyświetlacz: %lld x %lld pikseli"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检测到的显示器：%lld x %lld 像素"
           }
         }
       }
@@ -112876,6 +113782,1146 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已安裝的 Wine 執行階段未包含 DXMT。請在 Whisky 的設定流程中更新執行階段後重試。"
+          }
+        }
+      }
+    },
+    " ago" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " 前"
+          }
+        }
+      }
+    },
+    "%@ -- online play unavailable" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ -- 不支持在线游玩"
+          }
+        }
+      }
+    },
+    "%@ Fixes" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 项修复"
+          }
+        }
+      }
+    },
+    "%@ confidence" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 置信度"
+          }
+        }
+      }
+    },
+    "%@: %lld" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@：%2$lld"
+          }
+        }
+      }
+    },
+    "%lldch" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 声道"
+          }
+        }
+      }
+    },
+    "Active Environment Overrides" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "生效的环境变量覆盖"
+          }
+        }
+      }
+    },
+    "Advanced" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高级"
+          }
+        }
+      }
+    },
+    "Advanced audio settings active" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已启用高级音频设置"
+          }
+        }
+      }
+    },
+    "All components verified as installed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已确认所有组件均已安装"
+          }
+        }
+      }
+    },
+    "Analyze latest log" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分析最新日志"
+          }
+        }
+      }
+    },
+    "Analyzing…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在分析…"
+          }
+        }
+      }
+    },
+    "Applies next launch" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下次启动时生效"
+          }
+        }
+      }
+    },
+    "Apply" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用"
+          }
+        }
+      }
+    },
+    "Apply…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用…"
+          }
+        }
+      }
+    },
+    "Audio" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频"
+          }
+        }
+      }
+    },
+    "Audio Driver" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频驱动"
+          }
+        }
+      }
+    },
+    "Audio Troubleshooting…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频故障排除…"
+          }
+        }
+      }
+    },
+    "Battery: %lld%%" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "电池：%lld%%"
+          }
+        }
+      }
+    },
+    "Bluetooth dropouts can break input; USB is more reliable" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蓝牙断连可能导致输入失效；USB 更可靠"
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
+          }
+        }
+      }
+    },
+    "Changes applied:" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已应用的更改："
+          }
+        }
+      }
+    },
+    "Check compatibility notes for this title" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看此游戏的兼容性说明"
+          }
+        }
+      }
+    },
+    "Checked " : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上次检查："
+          }
+        }
+      }
+    },
+    "Checking installed dependencies…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在检查已安装的依赖项…"
+          }
+        }
+      }
+    },
+    "Checking prefix health…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在检查前缀健康状况…"
+          }
+        }
+      }
+    },
+    "Close" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        }
+      }
+    },
+    "Confirm Action" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确认操作"
+          }
+        }
+      }
+    },
+    "Connected Controllers" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已连接的控制器"
+          }
+        }
+      }
+    },
+    "Continue" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续"
+          }
+        }
+      }
+    },
+    "Copy Controller Info" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷贝控制器信息"
+          }
+        }
+      }
+    },
+    "Could not verify installation status" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法验证安装状态"
+          }
+        }
+      }
+    },
+    "Dependencies" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依赖项"
+          }
+        }
+      }
+    },
+    "Deselect All" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消全选"
+          }
+        }
+      }
+    },
+    "Details" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "详情"
+          }
+        }
+      }
+    },
+    "Did you hear the tone?" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你听到提示音了吗？"
+          }
+        }
+      }
+    },
+    "Disable Controller Mapping" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "禁用控制器映射"
+          }
+        }
+      }
+    },
+    "Estimated time: %lld minutes" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预计时间：%lld 分钟"
+          }
+        }
+      }
+    },
+    "Findings" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检测结果"
+          }
+        }
+      }
+    },
+    "Fix" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修复"
+          }
+        }
+      }
+    },
+    "Import Bottles from the Original Whisky" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从原版 Whisky 导入容器"
+          }
+        }
+      }
+    },
+    "Import Selected" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入所选"
+          }
+        }
+      }
+    },
+    "Install" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安装"
+          }
+        }
+      }
+    },
+    "Installation Log (%lld lines)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安装日志（%lld 行）"
+          }
+        }
+      }
+    },
+    "Installation completed successfully" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安装成功完成"
+          }
+        }
+      }
+    },
+    "Installation exited with code %d" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安装以代码 %d 退出"
+          }
+        }
+      }
+    },
+    "Installation failed: %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安装失败：%@"
+          }
+        }
+      }
+    },
+    "Installation may have failed -- components not detected" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安装可能已失败——未检测到组件"
+          }
+        }
+      }
+    },
+    "Installed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已安装"
+          }
+        }
+      }
+    },
+    "Installed components cannot be automatically removed." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已安装的组件无法自动移除。"
+          }
+        }
+      }
+    },
+    "Installing…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在安装…"
+          }
+        }
+      }
+    },
+    "Install…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安装…"
+          }
+        }
+      }
+    },
+    "Last refreshed: %@ ago" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上次刷新：%@前"
+          }
+        }
+      }
+    },
+    "Last tested" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上次测试"
+          }
+        }
+      }
+    },
+    "Latency" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "延迟"
+          }
+        }
+      }
+    },
+    "Launcher fixes applied: %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已应用启动器修复：%@"
+          }
+        }
+      }
+    },
+    "Map Command Key to Windows Ctrl" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将 Command 键映射为 Windows Ctrl"
+          }
+        }
+      }
+    },
+    "Migrate from the Original Whisky…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从原版 Whisky 迁移…"
+          }
+        }
+      }
+    },
+    "No" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "否"
+          }
+        }
+      }
+    },
+    "No bottles from the original Whisky were found." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到原版 Whisky 的容器。"
+          }
+        }
+      }
+    },
+    "No controllers detected" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未检测到控制器"
+          }
+        }
+      }
+    },
+    "No diagnosis available" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无诊断结果"
+          }
+        }
+      }
+    },
+    "Not Installed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未安装"
+          }
+        }
+      }
+    },
+    "Not supported" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不支持"
+          }
+        }
+      }
+    },
+    "Not supported on macOS" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 上不支持"
+          }
+        }
+      }
+    },
+    "Open audio diagnostics and troubleshooting for this bottle" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开此容器的音频诊断与故障排除"
+          }
+        }
+      }
+    },
+    "Other things to try" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他可尝试的方法"
+          }
+        }
+      }
+    },
+    "Output Device" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输出设备"
+          }
+        }
+      }
+    },
+    "Partially Installed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "部分安装"
+          }
+        }
+      }
+    },
+    "Pinned device:" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已固定的设备："
+          }
+        }
+      }
+    },
+    "Platform Fixes" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "平台修复"
+          }
+        }
+      }
+    },
+    "Play Test Tone" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放测试音"
+          }
+        }
+      }
+    },
+    "Prefix Health" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前缀健康状况"
+          }
+        }
+      }
+    },
+    "Prefix validation failed. Installation may not succeed. You can proceed anyway." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前缀校验失败，安装可能无法成功。你仍可继续。"
+          }
+        }
+      }
+    },
+    "Preflight Checks" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预检"
+          }
+        }
+      }
+    },
+    "Preserves physical button positions (Cross/Circle) for PlayStation controllers instead of XInput layout (A/B/X/Y)." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "对 PlayStation 控制器保留物理按键位置（Cross/Circle），而非 XInput 布局（A/B/X/Y）。"
+          }
+        }
+      }
+    },
+    "Raw Log Output" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "原始日志输出"
+          }
+        }
+      }
+    },
+    "Re-check all dependency statuses" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新检查所有依赖项状态"
+          }
+        }
+      }
+    },
+    "Re-checking dependency status…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在重新检查依赖项状态…"
+          }
+        }
+      }
+    },
+    "Refresh" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新"
+          }
+        }
+      }
+    },
+    "Reset" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置"
+          }
+        }
+      }
+    },
+    "Reset Audio State" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置音频状态"
+          }
+        }
+      }
+    },
+    "Reset Audio State?" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置音频状态？"
+          }
+        }
+      }
+    },
+    "Run the program to generate a crash diagnosis, or analyze the latest log." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行程序以生成崩溃诊断，或分析最新日志。"
+          }
+        }
+      }
+    },
+    "Running winetricks for %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在为 %@ 运行 winetricks"
+          }
+        }
+      }
+    },
+    "Search log…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索日志…"
+          }
+        }
+      }
+    },
+    "Select All" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全选"
+          }
+        }
+      }
+    },
+    "Sets LeftCommandIsCtrl/RightCommandIsCtrl in Wine's Mac driver registry so Cmd+A/C/V/S register inside Wine apps as Ctrl+A/C/V/S." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Wine 的 Mac 驱动注册表中设置 LeftCommandIsCtrl/RightCommandIsCtrl，使 Wine 应用内的 Cmd+A/C/V/S 被识别为 Ctrl+A/C/V/S。"
+          }
+        }
+      }
+    },
+    "Show" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示"
+          }
+        }
+      }
+    },
+    "Show all findings (%lld)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示全部检测结果（%lld）"
+          }
+        }
+      }
+    },
+    "Simple" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "简单"
+          }
+        }
+      }
+    },
+    "Some components may not have installed correctly" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "部分组件可能未正确安装"
+          }
+        }
+      }
+    },
+    "Switch to %@…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换到 %@…"
+          }
+        }
+      }
+    },
+    "Technical details" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "技术详情"
+          }
+        }
+      }
+    },
+    "Test Input: System Settings > Game Controllers" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "测试输入：系统设置 > 游戏控制器"
+          }
+        }
+      }
+    },
+    "Test Wine Audio" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "测试 Wine 音频"
+          }
+        }
+      }
+    },
+    "These bottles were created by the archived original Whisky app. Importing references them in place — your files aren't moved or copied, and the original app keeps working." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这些容器由已归档的原版 Whisky 应用创建。导入只是就地引用——文件不会被移动或复制，原应用仍可正常工作。"
+          }
+        }
+      }
+    },
+    "This will clear Wine cached audio device mappings and restart the Wine server." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这将清除 Wine 缓存的音频设备映射，并重启 wine 服务器。"
+          }
+        }
+      }
+    },
+    "This will install: %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将安装：%@"
+          }
+        }
+      }
+    },
+    "Try connecting via USB or check System Settings > Bluetooth" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尝试通过 USB 连接，或检查系统设置 > 蓝牙"
+          }
+        }
+      }
+    },
+    "Try running the game in offline mode if available" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如可用，尝试以离线模式运行游戏"
+          }
+        }
+      }
+    },
+    "Undo: %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤销：%@"
+          }
+        }
+      }
+    },
+    "Unknown" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知"
+          }
+        }
+      }
+    },
+    "Verbs to install" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要安装的组件"
+          }
+        }
+      }
+    },
+    "Verification" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "验证"
+          }
+        }
+      }
+    },
+    "View Diagnostics" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看诊断"
+          }
+        }
+      }
+    },
+    "What you’re installing" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你将安装的内容"
+          }
+        }
+      }
+    },
+    "Whisky" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whisky"
+          }
+        }
+      }
+    },
+    "Why" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "原因"
+          }
+        }
+      }
+    },
+    "Why this diagnosis" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "诊断依据"
+          }
+        }
+      }
+    },
+    "Workaround: %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "变通方法：%@"
+          }
+        }
+      }
+    },
+    "Yes" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
+          }
+        }
+      }
+    },
+    "console.exitCode %d" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "退出码 %d"
+          }
+        }
+      }
+    },
+    "console.exited %d" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已退出，代码 %d"
           }
         }
       }

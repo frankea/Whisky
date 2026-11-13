@@ -113,7 +113,7 @@ extension DiagnosticExportSheet {
 
     private var actionButtons: some View {
         HStack {
-            Button("Cancel", role: .cancel) {
+            Button("button.cancel", role: .cancel) {
                 dismiss()
             }
             .keyboardShortcut(.cancelAction)

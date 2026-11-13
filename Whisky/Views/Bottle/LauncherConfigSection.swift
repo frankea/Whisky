@@ -316,7 +316,7 @@ private struct ActiveEnvironmentOverrides: View {
     @Binding var isExpanded: Bool
 
     var body: some View {
-        DisclosureGroup("Active Environment Overrides", isExpanded: $isExpanded) {
+        DisclosureGroup("launcher.config.activeOverrides", isExpanded: $isExpanded) {
             VStack(alignment: .leading, spacing: 12) {
                 if let launcher, !launcher.fixDetails().isEmpty {
                     launcherFixesSection(launcher)

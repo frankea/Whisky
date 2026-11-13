@@ -30,27 +30,27 @@ struct ProgressRailView: View {
     private let railPhases: [RailPhase] = [
         RailPhase(
             phase: .symptom,
-            title: "Symptom",
+            title: "troubleshooting.rail.symptom",
             sfSymbol: "questionmark.circle"
         ),
         RailPhase(
             phase: .checks,
-            title: "Checks",
+            title: "troubleshooting.rail.checks",
             sfSymbol: "magnifyingglass.circle"
         ),
         RailPhase(
             phase: .fix,
-            title: "Fix",
+            title: "troubleshooting.rail.fix",
             sfSymbol: "wrench.and.screwdriver"
         ),
         RailPhase(
             phase: .verify,
-            title: "Verify",
+            title: "troubleshooting.rail.verify",
             sfSymbol: "checkmark.circle"
         ),
         RailPhase(
             phase: .export,
-            title: "Export",
+            title: "troubleshooting.rail.export",
             sfSymbol: "square.and.arrow.up.circle"
         )
     ]
@@ -182,7 +182,7 @@ extension ProgressRailView {
 extension ProgressRailView {
     struct RailPhase {
         let phase: TroubleshootingSession.SessionPhase
-        let title: String
+        let title: LocalizedStringKey
         let sfSymbol: String
     }
 }

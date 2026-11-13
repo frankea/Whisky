@@ -213,7 +213,7 @@ struct ConsoleLogView: View {
         Group {
             if !isStillRunning, let exitCode = currentExitCode {
                 HStack {
-                    Text("console.exited \(exitCode)")
+                    Text("console.exited \(Int(exitCode))")
                         .font(.caption)
                         .foregroundStyle(exitCode == 0 ? .green : .red)
                     Spacer()
@@ -276,7 +276,7 @@ struct ConsoleLogView: View {
     }
 
     private func exitCodeBadge(_ exitCode: Int32) -> some View {
-        Text("console.exitCode \(exitCode)")
+        Text("console.exitCode \(Int(exitCode))")
             .font(.caption)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)

@@ -64,7 +64,7 @@ struct MigrateBottlesSheet: View {
             Text(
                 """
                 These bottles were created by the archived original Whisky app. Importing references \
-                them in place — your files aren't moved or copied, and the original app keeps working.
+                them in place: your files aren't moved or copied, and the original app keeps working.
                 """
             )
             .font(.subheadline)
@@ -109,7 +109,7 @@ struct MigrateBottlesSheet: View {
                 Button(allSelected ? "Deselect All" : "Select All", action: toggleAll)
             }
             Spacer()
-            Button("Cancel", role: .cancel) { dismiss() }
+            Button("button.cancel", role: .cancel) { dismiss() }
                 .keyboardShortcut(.cancelAction)
             Button("Import Selected", action: importSelected)
                 .keyboardShortcut(.defaultAction)

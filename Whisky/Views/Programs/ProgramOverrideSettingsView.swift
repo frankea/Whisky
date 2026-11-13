@@ -469,8 +469,10 @@ struct ProgramOverrideSettingsView: View {
                 )
             } else {
                 inheritedSummary(
-                    "\(bottle.settings.dllOverrides.count) "
-                        + String(localized: "program.overrides.dll.customCount")
+                    String(
+                        format: String(localized: "program.overrides.dll.customCount"),
+                        bottle.settings.dllOverrides.count
+                    )
                 )
             }
         }

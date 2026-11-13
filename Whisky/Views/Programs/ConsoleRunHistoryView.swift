@@ -243,7 +243,7 @@ struct ConsoleRunHistoryView: View {
     private func exitCodeBadge(_ exitCode: Int32?) -> some View {
         Group {
             if let code = exitCode {
-                Text("console.exitCode \(code)")
+                Text("console.exitCode \(Int(code))")
                     .font(.caption)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
@@ -263,7 +263,7 @@ struct ConsoleRunHistoryView: View {
     }
 
     private func exitedFooter(exitCode: Int32) -> some View {
-        Text("console.exited \(exitCode)")
+        Text("console.exited \(Int(exitCode))")
             .font(.caption2)
             .foregroundStyle(exitCode == 0 ? .green : .red)
     }

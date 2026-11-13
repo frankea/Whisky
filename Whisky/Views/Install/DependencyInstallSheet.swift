@@ -121,7 +121,7 @@ extension DependencyInstallSheet {
                 .font(.callout)
 
                 Label(
-                    "Estimated time: \(definition.estimatedInstallMinutes) minutes",
+                    "dependency.install.estimated \(definition.estimatedInstallMinutes)",
                     systemImage: "clock"
                 )
                 .font(.callout)
@@ -269,7 +269,7 @@ extension DependencyInstallSheet {
 extension DependencyInstallSheet {
     @ViewBuilder
     private var verifyStage: some View {
-        Label("Verification", systemImage: "checkmark.seal")
+        Label("dependency.install.verify", systemImage: "checkmark.seal")
             .font(.title2)
             .fontWeight(.semibold)
 
@@ -297,13 +297,16 @@ extension DependencyInstallSheet {
                 .foregroundStyle(.green)
         case let .failure(exitCode):
             Label(
-                "Installation exited with code \(exitCode)",
+                "Installation exited with code \(Int(exitCode))",
                 systemImage: "exclamationmark.triangle.fill"
             )
             .foregroundStyle(.orange)
         case let .error(message):
-            Label("Installation failed: \(message)", systemImage: "xmark.circle.fill")
-                .foregroundStyle(.red)
+            Label(
+                String(format: String(localized: "setup.whiskywine.error.installFailed.detail"), message),
+                systemImage: "xmark.circle.fill"
+            )
+            .foregroundStyle(.red)
         }
     }
 
@@ -340,7 +343,7 @@ extension DependencyInstallSheet {
     private var bottomBar: some View {
         HStack {
             if stage != .verify {
-                Button("Cancel") {
+                Button("button.cancel") {
                     cancelInstall()
                     dismiss()
                 }
@@ -351,13 +354,13 @@ extension DependencyInstallSheet {
 
             switch stage {
             case .info:
-                Button("Continue") {
+                Button("troubleshooting.wizard.continue") {
                     stage = .preflight
                     runPreflightChecks()
                 }
                 .keyboardShortcut(.defaultAction)
             case .preflight:
-                Button("Install") {
+                Button("dependency.install") {
                     startInstallation()
                 }
                 .keyboardShortcut(.defaultAction)

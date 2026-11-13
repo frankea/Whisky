@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.9.0] - 2026-11-12 (App)
+
 ### Added
 - The Metal HUD can be set per program. The bottle's HUD draws over every
   Metal renderer in the bottle, Steam's store and overlay included, so a

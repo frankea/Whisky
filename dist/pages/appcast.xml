@@ -6,6 +6,28 @@
         <description>Whisky update feed</description>
         <language>en</language>
         <item>
+            <title>Whisky 3.9.2</title>
+            <pubDate>Fri, 13 Nov 2026 16:18:14 +0000</pubDate>
+            <sparkle:version>59</sparkle:version>
+            <sparkle:shortVersionString>3.9.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <p>Whisky 3.9.2 makes the audio Fix buttons work and shows much more of the app in your language.</p>
+                <ul>
+                    <li><strong>The audio Fix buttons now fix things</strong>: a test tone you can't hear, a disabled driver, a too-small buffer or a missing output device each get a real fix, and Audio Troubleshooting applies the fixes it suggests.</li>
+                    <li><strong>Audio checks detect a disabled audio driver again.</strong></li>
+                    <li><strong>Much more of the app is translated</strong>, and raw identifiers no longer appear in the audio screens in Spanish, French, Italian, Portuguese and Romanian.</li>
+                    <li><strong>Console exit codes and the DLL override summary show their text</strong> instead of placeholders.</li>
+                </ul>
+                <p>See the <a href="https://github.com/frankea/Whisky/releases/tag/app-v3.9.2">release notes</a> for the full changelog.</p>
+            ]]></description>
+            <enclosure
+                url="https://github.com/frankea/Whisky/releases/download/app-v3.9.2/Whisky-3.9.2.dmg"
+                sparkle:edSignature="HDZL8nfpmLsI4T1ExmzLY2zO0v+HAIFf8PYH7qqlZo/P0R4AYYM1ZrDqgKXEUCQ8xAubqBVxhBHSZ9qFmp5hCA=="
+                length="11663284"
+                type="application/octet-stream" />
+        </item>
+        <item>
             <title>Whisky 3.9.1</title>
             <pubDate>Fri, 13 Nov 2026 03:05:22 +0000</pubDate>
             <sparkle:version>58</sparkle:version>

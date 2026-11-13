@@ -38,7 +38,7 @@ struct AudioFindingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Findings")
+            Text("audio.findings.title")
                 .font(.headline)
 
             ForEach(visibleFindings) { finding in
@@ -46,7 +46,7 @@ struct AudioFindingsView: View {
             }
 
             if findings.count > 5, !showAllFindings {
-                Button("Show all findings (\(findings.count))") {
+                Button("audio.findings.showAll \(findings.count)") {
                     showAllFindings = true
                 }
                 .font(.caption)
@@ -71,7 +71,7 @@ struct AudioFindingsView: View {
             }
 
             // Expandable details
-            DisclosureGroup("Details") {
+            DisclosureGroup("audio.findings.details") {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(finding.evidence)
                         .font(.caption)
@@ -89,7 +89,7 @@ struct AudioFindingsView: View {
 
             // Fix button
             if finding.suggestedAction != nil {
-                Button("Fix") {
+                Button("audio.findings.fix") {
                     onApplyFix?(finding.id)
                 }
                 .controlSize(.small)
@@ -115,7 +115,7 @@ struct AudioFindingsView: View {
     }
 
     private func confidenceBadge(_ tier: ConfidenceTier) -> some View {
-        Text(tier.displayName)
+        Text(tier.localizedName)
             .font(.caption2)
             .fontWeight(.medium)
             .padding(.horizontal, 8)
@@ -138,7 +138,7 @@ struct AudioFindingsView: View {
     // MARK: - Technical Details
 
     private var technicalDetailsSection: some View {
-        DisclosureGroup("Technical details") {
+        DisclosureGroup("audio.findings.technicalDetails") {
             VStack(alignment: .leading, spacing: 2) {
                 ForEach(findings) { finding in
                     Text("[\(finding.id)] \(finding.evidence)")

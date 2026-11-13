@@ -246,11 +246,11 @@ struct ProgramItemView: View {
         // Check clipboard before launch (blocking alert for needsUserDecision is handled internally)
         let clipResult = program.performClipboardCheck()
         if case let .autoCleared(contentType, sizeBytes) = clipResult {
-            let sizeKB = String(format: "%.1f", Double(sizeBytes) / 1_024.0)
+            let sizeKB = (Double(sizeBytes) / 1_024.0).formatted(.number.precision(.fractionLength(1)))
             withAnimation {
                 toast = ToastData(
                     message: String(localized: "clipboard.cleared.toast")
-                        .replacingOccurrences(of: "{contentType}", with: contentType)
+                        .replacingOccurrences(of: "{contentType}", with: clipboardContentName(contentType))
                         .replacingOccurrences(of: "{sizeKB}", with: sizeKB),
                     style: .info
                 )
@@ -263,6 +263,20 @@ struct ProgramItemView: View {
                 toast = result.toastData
             }
             isLaunching = false
+        }
+    }
+
+    /// The clipboard content kind for the cleared toast, in the user's language.
+    ///
+    /// `contentType` is ClipboardManager's identifier ("text", "image", "other").
+    private func clipboardContentName(_ contentType: String) -> String {
+        switch contentType {
+        case "text":
+            String(localized: "clipboard.contentType.text")
+        case "image":
+            String(localized: "clipboard.contentType.image")
+        default:
+            String(localized: "clipboard.contentType.other")
         }
     }
 }

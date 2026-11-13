@@ -44,8 +44,31 @@ public enum CrashCategory: String, Codable, Sendable, CaseIterable, Hashable {
     /// Low-confidence suggestions, unrecognized errors.
     case otherUnknown
 
-    /// Human-readable display name for this category.
+    /// Display name for this category in the app's language.
+    ///
+    /// Exported reports use ``exportName`` instead so they read the same
+    /// whatever language the app runs in.
     public var displayName: String {
+        switch self {
+        case .coreCrashFatal:
+            String(localized: "diagnostics.category.coreCrashFatal")
+        case .graphics:
+            String(localized: "diagnostics.category.graphics")
+        case .dependenciesLoading:
+            String(localized: "diagnostics.category.dependenciesLoading")
+        case .prefixFilesystem:
+            String(localized: "diagnostics.category.prefixFilesystem")
+        case .networkingLaunchers:
+            String(localized: "diagnostics.category.networkingLaunchers")
+        case .antiCheatUnsupported:
+            String(localized: "diagnostics.category.antiCheatUnsupported")
+        case .otherUnknown:
+            String(localized: "diagnostics.category.otherUnknown")
+        }
+    }
+
+    /// English name for this category, used in exported diagnostic reports.
+    public var exportName: String {
         switch self {
         case .coreCrashFatal:
             "Crash / Fatal Error"

@@ -142,13 +142,30 @@ public extension ShortcutCreator {
     /// instead of baking the environment at creation time: current settings,
     /// GameDB profiles, backend deployment, and run logs all apply at launch,
     /// and nothing breaks when the bottle moves or settings change.
-    static func liveLaunchScript(for target: LiveTarget) -> String {
+    ///
+    /// - Parameters:
+    ///   - target: What the shortcut launches.
+    ///   - notFoundTitle: Title of the alert shown when Whisky can't be found,
+    ///     in the language the shortcut is created in.
+    ///   - notFoundMessage: Message of that alert.
+    static func liveLaunchScript(
+        for target: LiveTarget,
+        notFoundTitle: String = String(localized: "shortcut.notFound.title", defaultValue: "Whisky not found"),
+        notFoundMessage: String = String(
+            localized: "shortcut.notFound.message",
+            defaultValue: "Install Whisky to use this shortcut."
+        )
+    ) -> String {
         let invocation = switch target {
         case let .steamGame(appId):
             "launch \(appId)"
         case let .program(bottleName, windowsPath):
             "run \(shellQuoted(bottleName)) \(shellQuoted(windowsPath))"
         }
+        // Translated text can hold quotes and backslashes: quote it for
+        // AppleScript first, then quote the whole -e argument for the shell.
+        let alert = "display alert \(appleScriptQuoted(notFoundTitle))"
+            + " message \(appleScriptQuoted(notFoundMessage))"
 
         return """
         WHISKY_CMD="/Applications/Whisky.app/Contents/Resources/WhiskyCmd"
@@ -158,7 +175,7 @@ public extension ShortcutCreator {
             WHISKY_CMD="$WHISKY_APP/Contents/Resources/WhiskyCmd"
         fi
         if [ ! -x "$WHISKY_CMD" ]; then
-            osascript -e 'display alert "Whisky not found" message "Install Whisky to use this shortcut."'
+            osascript -e \(shellQuoted(alert))
             exit 1
         fi
         exec "$WHISKY_CMD" \(invocation)
@@ -178,5 +195,15 @@ public extension ShortcutCreator {
     /// Wraps a value in single quotes for safe shell interpolation.
     static func shellQuoted(_ value: String) -> String {
         "'" + value.replacingOccurrences(of: "'", with: "'\\''") + "'"
+    }
+
+    /// Wraps a value in double quotes as an AppleScript string literal.
+    static func appleScriptQuoted(_ value: String) -> String {
+        let escaped = value
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\r", with: "\\r")
+            .replacingOccurrences(of: "\n", with: "\\n")
+        return "\"" + escaped + "\""
     }
 }

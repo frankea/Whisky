@@ -30,6 +30,28 @@ public enum TarError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case let .pathTraversal(path):
+            String(
+                localized: "tar.error.pathTraversal",
+                defaultValue: "Archive contains unsafe path that escapes target directory: \(path)"
+            )
+        case let .unsafeSymlink(path, target):
+            String(
+                localized: "tar.error.unsafeSymlink",
+                defaultValue: "Archive contains symlink '\(path)' with unsafe target '\(target)'"
+            )
+        case let .commandFailed(output):
+            String(
+                localized: "tar.error.commandFailed",
+                defaultValue: "Tar command failed: \(output)"
+            )
+        }
+    }
+
+    /// The same message in English, for diagnostics reports and logs, which
+    /// read the same whatever the app's language.
+    public var diagnosticMessage: String {
+        switch self {
+        case let .pathTraversal(path):
             "Archive contains unsafe path that escapes target directory: \(path)"
         case let .unsafeSymlink(path, target):
             "Archive contains symlink '\(path)' with unsafe target '\(target)'"

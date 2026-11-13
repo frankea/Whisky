@@ -140,6 +140,15 @@ jobs:
               sys.exit(1)
           EOF
 
+      # Crowdin still stores some cells whose value is the key itself
+      # (audio.findings.fix = "audio.findings.fix" in six languages). They
+      # would put raw identifiers on screen, so drop them from every export.
+      - name: Strip placeholder translations
+        if: steps.check.outputs.configured == 'true' && github.event_name != 'push'
+        run: |
+          ./scripts/check-placeholder-translations.py --strip
+          ./scripts/check-placeholder-translations.py
+
       - name: Restore en-GB rows
         if: steps.check.outputs.configured == 'true' && github.event_name != 'push'
         run: |

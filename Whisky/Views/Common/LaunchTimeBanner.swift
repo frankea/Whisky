@@ -28,8 +28,8 @@ import WhiskyKit
 struct LaunchTimeBannerData: Equatable {
     /// The display name of the detected launcher.
     let launcherName: String
-    /// Deduplicated categories of fixes applied (e.g. ["locale", "sandbox"]).
-    let fixCategories: [String]
+    /// Deduplicated categories of fixes applied, sorted by raw value.
+    let fixCategories: [FixCategory]
     /// Total number of individual environment variable fixes applied.
     let fixCount: Int
 
@@ -39,7 +39,7 @@ struct LaunchTimeBannerData: Equatable {
     /// - Returns: Banner data summarizing the launcher's fixes.
     static func from(launcher: LauncherType) -> LaunchTimeBannerData {
         let details = launcher.fixDetails()
-        let categories = Array(Set(details.map(\.category.rawValue))).sorted()
+        let categories = Set(details.map(\.category)).sorted { $0.rawValue < $1.rawValue }
         return LaunchTimeBannerData(
             launcherName: launcher.displayName,
             fixCategories: categories,
@@ -89,7 +89,7 @@ struct LaunchTimeBanner: View {
 
             Spacer()
 
-            Button("View Details") {
+            Button("launcher.fixes.viewDetails") {
                 onViewDetails?()
                 NotificationCenter.default.post(name: .openLauncherConfig, object: nil)
             }
@@ -117,14 +117,16 @@ struct LaunchTimeBanner: View {
         .padding(.top, 8)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
-            String(localized: "accessibility.toast.launcherFixes")
-                + ": \(data.launcherName), \(data.fixCount) settings"
+            String(localized: "accessibility.launcherBanner \(data.launcherName) \(data.fixCount)")
         )
     }
 
     private var subtitleText: String {
-        let categories = data.fixCategories.joined(separator: ", ")
-        return "\(data.fixCount) settings configured (\(categories))"
+        guard !data.fixCategories.isEmpty else {
+            return String(localized: "launcher.fixes.count \(data.fixCount)")
+        }
+        let categories = data.fixCategories.map(\.displayName).formatted(.list(type: .and))
+        return String(localized: "launcher.fixes.summary \(data.fixCount) \(categories)")
     }
 }
 

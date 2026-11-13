@@ -284,7 +284,7 @@ public extension Program {
         let alert = NSAlert()
         alert.messageText = String(localized: "clipboard.large.title")
 
-        let sizeKB = String(format: "%.1f", Double(sizeBytes) / 1_024.0)
+        let sizeKB = (Double(sizeBytes) / 1_024.0).formatted(.number.precision(.fractionLength(1)))
         let message: String
         switch contentType {
         case "text":

@@ -35,6 +35,24 @@ public enum FixCategory: String, Codable, CaseIterable, Sendable {
     case threading
     /// General compatibility workarounds
     case compatibility
+
+    /// Localized name of the category for display in the UI.
+    public var displayName: String {
+        switch self {
+        case .locale:
+            String(localized: "locale.title")
+        case .sandbox:
+            String(localized: "launcher.fixCategory.sandbox")
+        case .graphics:
+            String(localized: "config.title.graphics")
+        case .network:
+            String(localized: "launcher.fixCategory.network")
+        case .threading:
+            String(localized: "launcher.fixCategory.threading")
+        case .compatibility:
+            String(localized: "launcher.fixCategory.compatibility")
+        }
+    }
 }
 
 /// Structured metadata for a single launcher-specific environment variable fix.
@@ -316,23 +334,23 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
         }
     }
 
-    /// User-friendly description of common issues this preset fixes.
+    /// Localized description of common issues this preset fixes, for display in the UI.
     public var fixesDescription: String {
         switch self {
         case .steam:
-            "Fixes steamwebhelper crashes, download stalls, and connection issues"
+            String(localized: "launcher.fixes.description.steam")
         case .rockstar:
-            "Fixes logo freeze and launcher initialization failures"
+            String(localized: "launcher.fixes.description.rockstar")
         case .eaApp:
-            "Fixes black screen and GPU detection errors"
+            String(localized: "launcher.fixes.description.eaApp")
         case .epicGames:
-            "Fixes launcher UI rendering and web view issues"
+            String(localized: "launcher.fixes.description.epicGames")
         case .ubisoft:
-            "Improves launcher stability and game compatibility"
+            String(localized: "launcher.fixes.description.ubisoft")
         case .battleNet:
-            "Fixes authentication and launcher rendering issues"
+            String(localized: "launcher.fixes.description.battleNet")
         case .paradox:
-            "No launcher-specific fixes needed"
+            String(localized: "launcher.fixes.description.paradox")
         }
     }
 }

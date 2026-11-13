@@ -62,7 +62,7 @@ public final class WineAudioTestProbe: AudioProbe, @unchecked Sendable {
             return AudioProbeResult(
                 probeId: id,
                 status: .skipped,
-                summary: "Audio test helper not available",
+                summary: String(localized: "audio.probe.wineTest.unavailable"),
                 evidence: ["WhiskyAudioTest.exe not found in app bundle"]
             )
         }
@@ -80,7 +80,7 @@ public final class WineAudioTestProbe: AudioProbe, @unchecked Sendable {
             return AudioProbeResult(
                 probeId: id,
                 status: .error,
-                summary: "Failed to launch audio test",
+                summary: String(localized: "audio.probe.wineTest.launchFailed"),
                 evidence: ["Error launching Wine process", "Exe path: \(exePath)"]
             )
         }
@@ -160,7 +160,7 @@ public final class WineAudioTestProbe: AudioProbe, @unchecked Sendable {
             return AudioProbeResult(
                 probeId: id,
                 status: .error,
-                summary: "Audio test produced no result",
+                summary: String(localized: "audio.probe.wineTest.noResult"),
                 evidence: evidence
             )
         }
@@ -172,7 +172,7 @@ public final class WineAudioTestProbe: AudioProbe, @unchecked Sendable {
             return AudioProbeResult(
                 probeId: id,
                 status: .error,
-                summary: "Audio test result could not be parsed",
+                summary: String(localized: "audio.probe.wineTest.unparseable"),
                 evidence: evidence
             )
         }
@@ -197,7 +197,7 @@ public final class WineAudioTestProbe: AudioProbe, @unchecked Sendable {
             return AudioProbeResult(
                 probeId: id,
                 status: .passed,
-                summary: "Wine audio stack is functional (\(result.api))",
+                summary: String(localized: "audio.probe.wineTest.ok \(result.api)"),
                 evidence: evidence
             )
         }
@@ -206,17 +206,17 @@ public final class WineAudioTestProbe: AudioProbe, @unchecked Sendable {
         let codeStr = result.code.map { String($0) } ?? "unknown"
         findings.append(AudioFinding(
             id: "wine-audio-test-error",
-            description: "Wine audio test failed via \(result.api)",
+            description: String(localized: "audio.finding.wineTestFailed \(result.api)"),
             confidence: .high,
-            evidence: "Error code: \(codeStr)",
-            suggestedAction: "Check Wine audio driver configuration"
+            evidence: String(localized: "audio.finding.wineTestFailed.evidence \(codeStr)"),
+            suggestedAction: String(localized: "audio.finding.wineTestFailed.action")
         ))
         evidence.append("Error code: \(codeStr)")
 
         return AudioProbeResult(
             probeId: id,
             status: .warning,
-            summary: "Wine audio test failed: \(result.api) error \(codeStr)",
+            summary: String(localized: "audio.probe.wineTest.failed \(result.api) \(codeStr)"),
             evidence: evidence,
             findings: findings
         )

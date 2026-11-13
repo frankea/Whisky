@@ -50,7 +50,7 @@ struct GameDBOpenGLEntryTests {
         let variant = try #require(entry.defaultVariant)
 
         #expect(!GameConfigApplicator.previewChanges(variant: variant, bottle: bottle)
-            .contains { $0.category == "Graphics" && ["Graphics Backend", "DXVK"].contains($0.settingName) })
+            .contains { [.graphicsBackend, .dxvk].contains($0.kind) })
         _ = try GameConfigApplicator.apply(entry: entry, variant: variant, to: bottle)
 
         #expect(bottle.settings.graphicsBackend == backend)

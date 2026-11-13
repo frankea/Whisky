@@ -144,8 +144,12 @@ public struct CrashClassifier: Sendable {
 
     // MARK: - Private
 
+    /// Builds the English headline stored on ``CrashDiagnosis/headline``.
+    ///
+    /// The headline feeds exported reports and stays English so they read the
+    /// same in every language; the UI shows ``CrashDiagnosis/displayHeadline``.
     private func buildHeadline(for match: DiagnosisMatch) -> String {
-        let category = match.pattern.category.displayName
+        let category = match.pattern.category.exportName
         let confidence = ConfidenceTier(score: match.pattern.confidence).displayName
 
         if !match.captures.isEmpty {
@@ -154,5 +158,39 @@ public struct CrashClassifier: Sendable {
         }
 
         return "\(category) (\(confidence) confidence)"
+    }
+}
+
+// MARK: - Display Headline
+
+extension CrashDiagnosis {
+    /// The headline in the user's language, for the diagnostics UI.
+    ///
+    /// Built from the primary (first) match like ``headline``, which stays
+    /// English for exports. Falls back to ``headline`` when there are no matches.
+    public var displayHeadline: String? {
+        guard let match = matches.first else { return headline }
+        return Self.localizedHeadline(
+            category: match.pattern.category,
+            confidence: ConfidenceTier(score: match.pattern.confidence),
+            detail: match.captures.isEmpty ? nil : match.captures.joined(separator: ", ")
+        )
+    }
+
+    /// Builds a headline in the user's language from its parts.
+    ///
+    /// - Parameters:
+    ///   - category: The primary match's category.
+    ///   - confidence: The primary match's confidence tier.
+    ///   - detail: The primary match's log captures (DLL names, error codes),
+    ///     joined. They are log text and stay as they are.
+    /// - Returns: The localized headline.
+    static func localizedHeadline(category: CrashCategory, confidence: ConfidenceTier, detail: String?) -> String {
+        let name = category.displayName
+        let label = confidence.confidenceLabel
+        guard let detail, !detail.isEmpty else {
+            return String(localized: "diagnostics.headline \(name) \(label)")
+        }
+        return String(localized: "diagnostics.headline.detail \(name) \(detail) \(label)")
     }
 }

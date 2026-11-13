@@ -40,9 +40,8 @@ class WhiskyCmd {
                     if let description = error["NSAppleScriptErrorMessage"] as? String {
                         await MainActor.run {
                             let alert = NSAlert()
-                            alert.messageText = String(localized: "alert.message")
-                            alert.informativeText = String(localized: "alert.info")
-                                + description
+                            alert.messageText = String(localized: "install.cli.failed.title")
+                            alert.informativeText = String(localized: "install.cli.failed \(description)")
                             alert.alertStyle = .critical
                             alert.addButton(withTitle: String(localized: "button.ok"))
                             alert.runModal()

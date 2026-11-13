@@ -76,7 +76,7 @@ public enum PreflightCollector {
             recentLogURL: recentLogURL,
             lastExitCode: lastExitCode,
             audioDeviceName: audioDevice?.name,
-            audioTransportType: audioDevice?.transportType.displayName,
+            audioTransportType: audioDevice?.transportType.exportName,
             graphicsBackend: resolvedBackend.rawValue,
             collectedAt: Date()
         )

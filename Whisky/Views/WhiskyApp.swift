@@ -396,26 +396,36 @@ struct WhiskyApp: App {
 
                 switch event.eventType {
                 case .defaultOutputChanged, .disconnected:
-                    let message = String(
-                        localized: "audio.alert.disconnected"
-                    ) + ": \(event.deviceName)"
+                    let message = deviceAlertMessage(
+                        String(localized: "audio.alert.disconnected"),
+                        deviceName: event.deviceName
+                    )
                     audioDeviceToast = ToastData(message: message, style: .info)
                 case .reconnected:
-                    let message = String(
-                        localized: "audio.alert.reconnected"
-                    ) + ": \(event.deviceName)"
+                    let message = deviceAlertMessage(
+                        String(localized: "audio.alert.reconnected"),
+                        deviceName: event.deviceName
+                    )
                     audioDeviceToast = ToastData(message: message, style: .success)
                 case .sampleRateChanged:
                     // Check for low sample rate (HFP/Bluetooth issue)
                     if let device = audioMonitor.defaultOutputDevice(),
                        device.sampleRate < 22_050, device.sampleRate > 0 {
-                        let message = String(localized: "audio.alert.lowSampleRate")
-                            + ": \(event.deviceName)"
+                        let message = deviceAlertMessage(
+                            String(localized: "audio.alert.lowSampleRate"),
+                            deviceName: event.deviceName
+                        )
                         audioDeviceToast = ToastData(message: message, style: .info)
                     }
                 }
             }
         }
+    }
+
+    /// An audio alert followed by the device's name, joined with the
+    /// translated "%@: %@" pattern so each language punctuates it its own way.
+    private func deviceAlertMessage(_ alertText: String, deviceName: String) -> String {
+        String(localized: "\(alertText): \(deviceName)")
     }
 }
 

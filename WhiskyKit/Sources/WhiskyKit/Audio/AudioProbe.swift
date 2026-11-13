@@ -58,23 +58,25 @@ public struct CoreAudioDeviceProbe: AudioProbe {
             return AudioProbeResult(
                 probeId: id,
                 status: .error,
-                summary: "No default output device found",
+                summary: String(localized: "audio.probe.noDevice"),
                 evidence: ["AudioObjectGetPropertyData returned nil for default output device"],
                 findings: [
                     AudioFinding(
                         id: "no-default-device",
-                        description: "No default output device found",
+                        description: String(localized: "audio.probe.noDevice"),
                         confidence: .high,
-                        evidence: "System has no configured default audio output device",
-                        suggestedAction: "Check macOS Sound settings and ensure an output device is selected"
+                        evidence: String(localized: "audio.finding.noDevice.evidence"),
+                        suggestedAction: String(localized: "audio.finding.noDevice.action")
                     )
                 ]
             )
         }
 
+        // Evidence lines are technical detail for the diagnostics export and
+        // stay English; summaries and findings are shown in the UI.
         let evidence = [
             "Device: \(device.name)",
-            "Transport: \(device.transportType.displayName)",
+            "Transport: \(device.transportType.exportName)",
             "Sample rate: \(Int(device.sampleRate)) Hz",
             "Output channels: \(device.outputChannelCount)",
             "Is default: \(device.isDefault)"
@@ -82,9 +84,11 @@ public struct CoreAudioDeviceProbe: AudioProbe {
 
         let findings = analyzeDevice(device)
         let status: ProbeStatus = findings.isEmpty ? .passed : .warning
+        let sampleRate = Int(device.sampleRate)
+        let transport = device.transportType.displayName
         let summary = findings.isEmpty
-            ? "\(device.name) (\(device.transportType.displayName), \(Int(device.sampleRate)) Hz)"
-            : "\(device.name): \(findings.count) issue\(findings.count == 1 ? "" : "s") detected"
+            ? String(localized: "audio.probe.device.summary \(device.name) \(transport) \(sampleRate)")
+            : String(localized: "audio.probe.device.issues \(device.name) \(findings.count)")
 
         return AudioProbeResult(
             probeId: id, status: status, summary: summary,
@@ -94,42 +98,48 @@ public struct CoreAudioDeviceProbe: AudioProbe {
 
     private func analyzeDevice(_ device: AudioDeviceInfo) -> [AudioFinding] {
         var findings: [AudioFinding] = []
+        let sampleRate = Int(device.sampleRate)
+        let standardSampleRate = 44_100
 
         if device.transportType == .bluetooth {
             findings.append(AudioFinding(
                 id: "bluetooth-device",
-                description: "Bluetooth audio device detected",
+                description: String(localized: "audio.finding.bluetooth"),
                 confidence: .medium,
-                evidence: "\(device.name) connected via Bluetooth",
-                suggestedAction: "Consider using wired headphones for lower latency"
+                evidence: String(localized: "audio.finding.bluetooth.evidence \(device.name)"),
+                suggestedAction: String(localized: "audio.finding.bluetooth.action")
             ))
         }
 
         if device.sampleRate < 22_050 {
             findings.append(AudioFinding(
                 id: "low-sample-rate",
-                description: "Low sample rate detected: \(Int(device.sampleRate)) Hz",
+                description: String(localized: "audio.finding.lowSampleRate \(sampleRate)"),
                 confidence: .high,
-                evidence: "Sample rate \(Int(device.sampleRate)) Hz is unusually low (expected >= 44100 Hz)",
-                suggestedAction: "Check if Bluetooth Hands-Free mode is active; switch to A2DP for better quality"
+                evidence: String(
+                    localized: "audio.finding.lowSampleRate.veryLow.evidence \(sampleRate) \(standardSampleRate)"
+                ),
+                suggestedAction: String(localized: "audio.finding.lowSampleRate.handsFree.action")
             ))
-        } else if device.sampleRate < 44_100, device.sampleRate > 0 {
+        } else if device.sampleRate < Double(standardSampleRate), device.sampleRate > 0 {
             findings.append(AudioFinding(
                 id: "low-sample-rate",
-                description: "Low sample rate detected: \(Int(device.sampleRate)) Hz",
+                description: String(localized: "audio.finding.lowSampleRate \(sampleRate)"),
                 confidence: .medium,
-                evidence: "Sample rate \(Int(device.sampleRate)) Hz is below the standard 44100 Hz",
-                suggestedAction: "Consider adjusting sample rate in Audio MIDI Setup"
+                evidence: String(
+                    localized: "audio.finding.lowSampleRate.belowStandard.evidence \(sampleRate) \(standardSampleRate)"
+                ),
+                suggestedAction: String(localized: "audio.finding.lowSampleRate.midi.action")
             ))
         }
 
         if device.outputChannelCount == 0 {
             findings.append(AudioFinding(
                 id: "no-output-channels",
-                description: "No output channels",
+                description: String(localized: "audio.finding.noOutputChannels"),
                 confidence: .high,
-                evidence: "Device \(device.name) reports 0 output channels",
-                suggestedAction: "The device may not support audio output; select a different device"
+                evidence: String(localized: "audio.finding.noOutputChannels.evidence \(device.name)"),
+                suggestedAction: String(localized: "audio.finding.noOutputChannels.action")
             ))
         }
 
@@ -171,8 +181,8 @@ public final class WineRegistryAudioProbe: AudioProbe, @unchecked Sendable {
 
         let status: ProbeStatus = findings.isEmpty ? .passed : .warning
         let summary = findings.isEmpty
-            ? "Wine audio registry: configured correctly"
-            : "Wine audio registry: \(findings.count) issue\(findings.count == 1 ? "" : "s") detected"
+            ? String(localized: "audio.probe.registry.ok")
+            : String(localized: "audio.probe.registry.issues \(findings.count)")
 
         return AudioProbeResult(
             probeId: id,
@@ -195,7 +205,7 @@ public final class WineRegistryAudioProbe: AudioProbe, @unchecked Sendable {
             return .error(AudioProbeResult(
                 probeId: id,
                 status: .error,
-                summary: "Failed to read Wine audio registry",
+                summary: String(localized: "audio.probe.registry.readFailed"),
                 evidence: ["Error reading audio driver key: \(error.localizedDescription)"],
                 findings: []
             ))
@@ -206,10 +216,10 @@ public final class WineRegistryAudioProbe: AudioProbe, @unchecked Sendable {
             if driver.isEmpty {
                 findings.append(AudioFinding(
                     id: "audio-disabled",
-                    description: "Audio is disabled in Wine",
+                    description: String(localized: "audio.finding.audioDisabled"),
                     confidence: .high,
-                    evidence: "Wine audio driver is set to empty string (disabled)",
-                    suggestedAction: "Set audio driver to Auto or CoreAudio to enable audio"
+                    evidence: String(localized: "audio.finding.audioDisabled.evidence"),
+                    suggestedAction: String(localized: "audio.finding.audioDisabled.action")
                 ))
             }
         } else {
@@ -234,10 +244,10 @@ public final class WineRegistryAudioProbe: AudioProbe, @unchecked Sendable {
             if bufSize < 256 {
                 findings.append(AudioFinding(
                     id: "low-buffer-size",
-                    description: "Very low audio buffer may cause issues",
+                    description: String(localized: "audio.finding.lowBuffer"),
                     confidence: .medium,
                     evidence: "HelBuflen = \(bufSize) (< 256 bytes)",
-                    suggestedAction: "Increase audio buffer size or switch to Default latency preset"
+                    suggestedAction: String(localized: "audio.finding.lowBuffer.action")
                 ))
             }
         } else if bufferSize == nil {

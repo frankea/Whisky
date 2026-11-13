@@ -73,7 +73,7 @@ struct GameEntryRowView: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(entry.title)
                 .font(.headline)
-            if let subtitle = entry.subtitle ?? entry.store {
+            if let subtitle = entry.subtitle ?? entry.store.map(GameDBEntry.storeDisplayName) {
                 Text(subtitle)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -133,7 +133,7 @@ struct GameEntryRowView: View {
         }
 
         if let minWine = entry.constraints?.minWineVersion {
-            tags.append("Wine \(minWine)+")
+            tags.append(String(localized: "gamedb.tag.minWine \(minWine)"))
         }
 
         return tags.isEmpty ? nil : tags

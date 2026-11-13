@@ -82,6 +82,25 @@ public struct MacOSFix: Sendable {
     public let appliesFrom: MacOSVersion
     /// The category of issue this fix addresses.
     public let category: FixCategory
+
+    /// ``reason`` for display in the app, from the string catalog.
+    ///
+    /// ``reason`` stays English, because it is the provenance recorded in the
+    /// environment and diagnostics. A fix with no catalog entry shows ``reason``.
+    public var localizedReason: String {
+        switch key {
+        case "STEAM_DISABLE_CEF_SANDBOX", "CEF_DISABLE_SANDBOX":
+            String(localized: "launcher.platformFix.reason.cefSandbox")
+        case "MTL_DEBUG_LAYER":
+            String(localized: "launcher.platformFix.reason.metalDebugLayer")
+        case "WINEFSYNC":
+            String(localized: "launcher.platformFix.reason.fsync")
+        case "STEAM_RUNTIME":
+            String(localized: "launcher.platformFix.reason.steamRuntime")
+        default:
+            reason
+        }
+    }
 }
 
 /// Registry of macOS compatibility fixes for Wine.

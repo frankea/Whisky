@@ -70,4 +70,36 @@ public struct AudioDriverCheck: TroubleshootingCheck {
             confidence: .high
         )
     }
+
+    /// The summary of a result from this check in the user's language.
+    ///
+    /// ``CheckResult/summary`` stays in English because it is written to
+    /// history and escalation exports; this rebuilds the on-screen text from
+    /// the result's outcome and evidence.
+    ///
+    /// - Parameter result: A result produced by ``run(params:context:)``.
+    /// - Returns: The localized summary, or `nil` to show ``CheckResult/summary``.
+    public static func localizedSummary(for result: CheckResult) -> String? {
+        switch result.outcome {
+        case .error:
+            return String(localized: "troubleshooting.check.settingsUnreadable")
+        case .alreadyConfigured:
+            guard let expected = result.evidence["expectedDriver"].map(driverName) else { return nil }
+            return String(localized: "troubleshooting.check.audioDriver.matches \(expected)")
+        case .fail:
+            guard let current = result.evidence["currentDriver"].map(driverName),
+                  let expected = result.evidence["expectedDriver"].map(driverName)
+            else {
+                return nil
+            }
+            return String(localized: "troubleshooting.check.audioDriver.mismatch \(current) \(expected)")
+        case .pass, .unknown:
+            return nil
+        }
+    }
+
+    /// The on-screen name for a driver id; ids the app doesn't know stay raw.
+    private static func driverName(_ rawValue: String) -> String {
+        AudioDriverMode(rawValue: rawValue)?.displayName ?? rawValue
+    }
 }

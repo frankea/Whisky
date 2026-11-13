@@ -283,20 +283,20 @@ final class GameApplicatorTests: XCTestCase {
         let changes = GameConfigApplicator.previewChanges(variant: variant, bottle: bottle)
 
         // Should have at least graphics backend change
-        let backendChange = changes.first { $0.settingName == "Graphics Backend" }
+        let backendChange = changes.first { $0.kind == .graphicsBackend }
         XCTAssertNotNil(backendChange, "Should include graphics backend change")
         XCTAssertEqual(backendChange?.newValue, GraphicsBackend.dxvk.displayName)
         XCTAssertTrue(backendChange?.isHighImpact == true, "Graphics backend change should be high impact")
 
         // Should have enhanced sync change
-        let syncChange = changes.first { $0.settingName == "Enhanced Sync" }
+        let syncChange = changes.first { $0.kind == .enhancedSync }
         XCTAssertNotNil(syncChange, "Should include enhanced sync change")
-        XCTAssertEqual(syncChange?.newValue, "ESync")
+        XCTAssertEqual(syncChange?.newValue, String(localized: "config.enhancedSync.esync"))
 
         // Should have DLL override change
-        let dllChange = changes.first { $0.settingName == "dxgi" }
+        let dllChange = changes.first { $0.kind == .dllOverride && $0.settingName == "dxgi" }
         XCTAssertNotNil(dllChange, "Should include DLL override change")
-        XCTAssertEqual(dllChange?.category, "DLL Overrides")
+        XCTAssertEqual(dllChange?.category, String(localized: "gameConfig.detail.dllOverrides"))
         XCTAssertTrue(dllChange?.isHighImpact == true, "DLL override additions should be high impact")
     }
 

@@ -77,7 +77,7 @@ struct PinCreationView: View {
                     .keyboardShortcut(.defaultAction)
                     .disabled(newPinName.isEmpty || newPinURL == nil)
                     .alert("pin.error.title", isPresented: $isDuplicate) {} message: {
-                        Text("pin.error.duplicate.\(newPinURL?.lastPathComponent ?? "unknown")")
+                        Text("pin.error.duplicate.\(newPinURL?.lastPathComponent ?? newPinName)")
                     }
                 }
             }

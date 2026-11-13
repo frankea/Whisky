@@ -36,8 +36,21 @@ public struct FixPreview: Sendable {
     /// The proposed new value after the fix is applied.
     public let newValue: String
 
-    /// Whether this fix targets the bottle or program level.
+    /// Whether this fix targets the bottle or program level: `"bottle"`
+    /// or `"program"`. Show ``displayScope`` on screen.
     public let scope: String
+
+    /// The scope as shown on screen, in the app's language.
+    public var displayScope: String {
+        switch scope {
+        case "bottle":
+            String(localized: "Bottle")
+        case "program":
+            String(localized: "Program")
+        default:
+            scope
+        }
+    }
 
     /// Whether this fix can be reversed via ``FixApplicator/undo(attempt:bottle:program:)``.
     public let isReversible: Bool
@@ -125,7 +138,7 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
             let current = bottle.settings.graphicsBackend
             let target = params["backend"].flatMap { GraphicsBackend(rawValue: $0) } ?? .recommended
             return FixPreview(
-                settingName: "Graphics Backend",
+                settingName: String(localized: "config.graphics.backend"),
                 currentValue: current.displayName,
                 newValue: target.displayName,
                 scope: "bottle",
@@ -134,9 +147,9 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
 
         case "enable-dxvk-async":
             return FixPreview(
-                settingName: "DXVK Async Shader Compilation",
-                currentValue: bottle.settings.dxvkAsync ? "Enabled" : "Disabled",
-                newValue: "Enabled",
+                settingName: String(localized: "troubleshooting.fix.setting.dxvkAsync"),
+                currentValue: stateName(bottle.settings.dxvkAsync),
+                newValue: stateName(true),
                 scope: "bottle",
                 isReversible: true
             )
@@ -145,7 +158,7 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
             let current = bottle.settings.audioDriver
             let target = params["driver"].flatMap { AudioDriverMode(rawValue: $0) } ?? .coreaudio
             return FixPreview(
-                settingName: "Audio Driver",
+                settingName: String(localized: "config.audio.driver"),
                 currentValue: current.displayName,
                 newValue: target.displayName,
                 scope: "bottle",
@@ -156,7 +169,7 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
             let current = bottle.settings.audioLatencyPreset
             let target = params["preset"].flatMap { AudioLatencyPreset(rawValue: $0) } ?? .stable
             return FixPreview(
-                settingName: "Audio Buffer Size",
+                settingName: String(localized: "troubleshooting.fix.setting.audioBuffer"),
                 currentValue: current.displayName,
                 newValue: target.displayName,
                 scope: "bottle",
@@ -166,27 +179,27 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
         case "enable-esync":
             let current = bottle.settings.enhancedSync
             return FixPreview(
-                settingName: "Enhanced Sync",
-                currentValue: String(describing: current),
-                newValue: "esync",
+                settingName: String(localized: "config.enhancedSync"),
+                currentValue: enhancedSyncName(current),
+                newValue: enhancedSyncName(.esync),
                 scope: "bottle",
                 isReversible: true
             )
 
         case "enable-controller-compat":
             return FixPreview(
-                settingName: "Controller Compatibility Mode",
-                currentValue: bottle.settings.controllerCompatibilityMode ? "Enabled" : "Disabled",
-                newValue: "Enabled",
+                settingName: String(localized: "config.controllerCompat"),
+                currentValue: stateName(bottle.settings.controllerCompatibilityMode),
+                newValue: stateName(true),
                 scope: "bottle",
                 isReversible: true
             )
 
         case "install-winetricks-verb":
-            let verb = params["verb"] ?? "unknown"
+            let verb = params["verb"] ?? String(localized: "troubleshooting.fix.value.unknown")
             return FixPreview(
-                settingName: "Winetricks Verb",
-                currentValue: "Not installed",
+                settingName: String(localized: "troubleshooting.fix.setting.winetricksVerb"),
+                currentValue: String(localized: "gameConfig.preview.winetricksMissing"),
                 newValue: verb,
                 scope: "bottle",
                 isReversible: false
@@ -196,23 +209,25 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
             guard let program else { return nil }
             let preset = params["preset"].flatMap(WineDebugPreset.init(rawValue:)) ?? .verbose
             return FixPreview(
-                settingName: "WINEDEBUG Preset",
-                currentValue: program.settings.activeWineDebugPreset?.rawValue ?? "default",
-                newValue: preset.rawValue,
+                settingName: String(localized: "WINEDEBUG Preset"),
+                currentValue: (program.settings.activeWineDebugPreset ?? .normal).displayName,
+                newValue: preset.displayName,
                 scope: "program",
                 isReversible: true
             )
 
         case "set-registry-value":
-            let name = params["settingName"] ?? params["valueName"] ?? "Registry value"
+            let name = params["settingName"] ?? params["valueName"]
+                ?? String(localized: "troubleshooting.fix.setting.registryValue")
+            let notSet = String(localized: "config.buildVersion.notSet")
             let current: String = if let key = params["key"], let valueName = params["valueName"] {
                 WineRegistryFile.readValue(
                     bottleURL: bottle.url, key: key, valueName: valueName
-                ) ?? "Not set"
+                ) ?? notSet
             } else {
-                "Unknown"
+                String(localized: "troubleshooting.fix.value.unknown")
             }
-            let newValue = params["value"].flatMap { $0.isEmpty ? nil : $0 } ?? "Not set"
+            let newValue = params["value"].flatMap { $0.isEmpty ? nil : $0 } ?? notSet
             return FixPreview(
                 settingName: name,
                 currentValue: current,
@@ -224,9 +239,10 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
         case "apply-launcher-fixes":
             let launcher = program.flatMap { LauncherType.detect(from: $0.url) }
             return FixPreview(
-                settingName: "Launcher compatibility fixes",
-                currentValue: launcher.map(\.displayName) ?? "No launcher detected",
-                newValue: "Reapplied",
+                settingName: String(localized: "troubleshooting.fix.setting.launcherFixes"),
+                currentValue: launcher.map(\.displayName)
+                    ?? String(localized: "troubleshooting.fix.value.noLauncher"),
+                newValue: String(localized: "troubleshooting.fix.value.reapplied"),
                 scope: "bottle",
                 isReversible: false
             )
@@ -245,9 +261,10 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
             }
             let changes = GameConfigApplicator.previewChanges(variant: variant, bottle: bottle)
             return FixPreview(
-                settingName: "Game configuration: \(match.entry.title)",
+                settingName: String(localized: "troubleshooting.fix.setting.gameConfig \(match.entry.title)"),
                 currentValue: changes.isEmpty
-                    ? "Already matches" : "\(changes.count) setting(s) differ",
+                    ? String(localized: "troubleshooting.fix.value.alreadyMatches")
+                    : String(localized: "troubleshooting.fix.value.settingsDiffer \(changes.count)"),
                 newValue: variant.label,
                 scope: "bottle",
                 isReversible: true
@@ -256,8 +273,8 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
         case "restart-wineserver":
             return FixPreview(
                 settingName: "Wineserver",
-                currentValue: "Running",
-                newValue: "Restarted",
+                currentValue: String(localized: "console.running"),
+                newValue: String(localized: "troubleshooting.fix.value.restarted"),
                 scope: "bottle",
                 isReversible: false
             )
@@ -580,6 +597,20 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
         default:
             logger.warning("Unknown fixId for undo: \(attempt.fixId)")
             return false
+        }
+    }
+
+    // MARK: - Preview Helpers
+
+    private static func stateName(_ isEnabled: Bool) -> String {
+        isEnabled ? String(localized: "config.retinaMode.on") : String(localized: "config.retinaMode.off")
+    }
+
+    private static func enhancedSyncName(_ mode: EnhancedSync) -> String {
+        switch mode {
+        case .none: String(localized: "config.enhancedSync.none")
+        case .esync: String(localized: "config.enhancedSync.esync")
+        case .msync: String(localized: "config.enhancedSync.msync")
         }
     }
 

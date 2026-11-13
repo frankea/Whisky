@@ -388,13 +388,27 @@ extension DependencyInstallSheet {
             }
             let preflight = PreflightResult(
                 prefixValid: result.isValid,
-                prefixMessage: result.isValid
-                    ? "Prefix is healthy and ready for installation"
-                    : result.diagnostics?.events.last ?? "Prefix validation failed"
+                prefixMessage: preflightMessage(for: result)
             )
             await MainActor.run {
                 preflightResult = preflight
             }
+        }
+    }
+
+    /// The Prefix Health caption for a validation result, in the user's language.
+    ///
+    /// The validation diagnostics stay English for reports and are not shown here.
+    private nonisolated func preflightMessage(for result: WinePrefixValidation.ValidationResult) -> String {
+        switch result {
+        case .valid:
+            String(localized: "dependency.install.preflight.healthy")
+        case .missingUserProfile:
+            String(localized: "winetricks.error.missingUserProfile")
+        case .missingAppData:
+            String(localized: "winetricks.error.missingAppData")
+        case .corruptedPrefix:
+            String(localized: "winetricks.error.corruptedPrefix")
         }
     }
 
@@ -430,7 +444,7 @@ extension DependencyInstallSheet {
             guard !Task.isCancelled else { return }
 
             let result: InstallResult = if hadError {
-                .error("One or more verbs failed")
+                .error(String(localized: "dependency.install.error.verbsFailed"))
             } else if lastExitCode == 0 {
                 .success
             } else {

@@ -43,15 +43,15 @@ public enum Architecture: Hashable {
     /// Unknown or unsupported architecture.
     case unknown
 
-    /// Returns a human-readable string representation of the architecture.
+    /// Returns a localized, human-readable string representation of the architecture.
     ///
     /// - Returns: "32-bit", "64-bit", or `nil` for unknown architectures.
     public func toString() -> String? {
         switch self {
         case .x32:
-            "32-bit"
+            String(localized: "program.architecture.x32", defaultValue: "32-bit")
         case .x64:
-            "64-bit"
+            String(localized: "program.architecture.x64", defaultValue: "64-bit")
         default:
             nil
         }

@@ -102,21 +102,29 @@ public final class AudioTroubleshootingEngine: ObservableObject {
         .menusOnly: ["set-coreaudio-driver", "check-dsound", "reset-audio-state"]
     ]
 
-    /// Human-readable descriptions for each fix action.
-    private static let fixDescriptions: [String: String] = [
-        "check-audio-driver":
-            "Verify the Wine audio driver is set to Auto or CoreAudio",
-        "set-coreaudio-driver":
-            "Set the Wine audio driver to CoreAudio explicitly",
-        "reset-audio-state":
-            "Clear Wine cached audio device mappings and restart",
-        "set-stable-latency":
-            "Increase the audio buffer size for more stable playback",
-        "check-system-settings":
-            "Check macOS Sound settings and ensure the correct output device is selected",
-        "check-dsound":
-            "Verify DirectSound configuration and buffer settings"
-    ]
+    /// Localized description of a fix action, looked up when the fix is offered
+    /// so it follows the app's current language.
+    ///
+    /// - Parameter actionId: A fix action id such as `"reset-audio-state"`.
+    /// - Returns: The description, or a generic "Apply fix" line for an unknown id.
+    public static func fixDescription(for actionId: String) -> String {
+        switch actionId {
+        case "check-audio-driver":
+            String(localized: "audio.troubleshoot.fix.checkAudioDriver")
+        case "set-coreaudio-driver":
+            String(localized: "audio.troubleshoot.fix.setCoreAudio")
+        case "reset-audio-state":
+            String(localized: "audio.troubleshoot.fix.resetAudioState")
+        case "set-stable-latency":
+            String(localized: "audio.troubleshoot.fix.stableLatency")
+        case "check-system-settings":
+            String(localized: "audio.troubleshoot.fix.checkSystemSettings")
+        case "check-dsound":
+            String(localized: "audio.troubleshoot.fix.checkDSound")
+        default:
+            String(localized: "audio.troubleshoot.fix.generic \(actionId)")
+        }
+    }
 
     // MARK: - Init
 
@@ -187,8 +195,7 @@ public final class AudioTroubleshootingEngine: ObservableObject {
             return
         }
 
-        let description = Self.fixDescriptions[nextActionId]
-            ?? "Apply fix: \(nextActionId)"
+        let description = Self.fixDescription(for: nextActionId)
 
         wizardState = .offeringFix(fixDescription: description, actionId: nextActionId)
     }

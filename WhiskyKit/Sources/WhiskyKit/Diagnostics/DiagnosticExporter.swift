@@ -189,7 +189,7 @@ public enum DiagnosticExporter {
             section += "**\(headline)**\n\n"
         }
         if let category = diagnosis.primaryCategory, let confidence = diagnosis.primaryConfidence {
-            section += "- **Primary Category:** \(category.displayName)\n"
+            section += "- **Primary Category:** \(category.exportName)\n"
             section += "- **Confidence:** \(confidence.displayName)\n"
         }
         if let exitCode = diagnosis.exitCode {
@@ -198,7 +198,7 @@ public enum DiagnosticExporter {
         if !diagnosis.categoryCounts.isEmpty {
             section += "\n**Category Counts:**\n"
             for (category, count) in diagnosis.categoryCounts.sorted(by: { $0.value > $1.value }) {
-                section += "- \(category.displayName): \(count)\n"
+                section += "- \(category.exportName): \(count)\n"
             }
         }
         section += "\n"
@@ -211,7 +211,7 @@ public enum DiagnosticExporter {
         var section = "### Matched Patterns\n\n"
         for diagMatch in diagnosis.matches.prefix(5) {
             let conf = ConfidenceTier(score: diagMatch.pattern.confidence).displayName
-            section += "- **\(diagMatch.pattern.id)** [\(diagMatch.pattern.category.displayName)]"
+            section += "- **\(diagMatch.pattern.id)** [\(diagMatch.pattern.category.exportName)]"
             section += " (\(conf) confidence)\n"
             if !diagMatch.captures.isEmpty {
                 section += "  - Captures: \(diagMatch.captures.joined(separator: ", "))\n"

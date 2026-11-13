@@ -54,4 +54,25 @@ public struct ProcessRunningCheck: TroubleshootingCheck {
             confidence: .high
         )
     }
+
+    /// The summary of a result from this check in the user's language.
+    ///
+    /// ``CheckResult/summary`` stays in English because it is written to
+    /// history and escalation exports; this rebuilds the on-screen text from
+    /// the result's outcome and evidence.
+    ///
+    /// - Parameter result: A result produced by ``run(params:context:)``.
+    /// - Returns: The localized summary, or `nil` if the result was not
+    ///   produced by this check.
+    public static func localizedSummary(for result: CheckResult) -> String? {
+        switch result.outcome {
+        case .pass:
+            guard let count = result.evidence["count"].flatMap({ Int($0) }) else { return nil }
+            return String(localized: "troubleshooting.check.process.running \(count)")
+        case .fail:
+            return String(localized: "troubleshooting.check.process.none")
+        default:
+            return nil
+        }
+    }
 }

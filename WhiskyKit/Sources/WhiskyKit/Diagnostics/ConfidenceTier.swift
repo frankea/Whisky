@@ -45,7 +45,11 @@ public enum ConfidenceTier: String, Codable, Sendable, CaseIterable, Comparable 
         }
     }
 
-    /// Human-readable display name.
+    /// English name of the tier.
+    ///
+    /// Kept in English on purpose: diagnostic exports and crash reports read
+    /// the same in every language. Use ``localizedName`` or
+    /// ``confidenceLabel`` for text shown in the UI.
     public var displayName: String {
         switch self {
         case .high:
@@ -54,6 +58,33 @@ public enum ConfidenceTier: String, Codable, Sendable, CaseIterable, Comparable 
             "Medium"
         case .low:
             "Low"
+        }
+    }
+
+    /// The tier name in the user's language, for badges and other UI.
+    public var localizedName: String {
+        switch self {
+        case .high:
+            String(localized: "diagnostics.confidence.high")
+        case .medium:
+            String(localized: "diagnostics.confidence.medium")
+        case .low:
+            String(localized: "diagnostics.confidence.low")
+        }
+    }
+
+    /// A full "<tier> confidence" phrase in the user's language.
+    ///
+    /// Translated as a whole so languages can order or inflect the
+    /// adjective and noun as they need.
+    public var confidenceLabel: String {
+        switch self {
+        case .high:
+            String(localized: "diagnostics.confidence.high.label")
+        case .medium:
+            String(localized: "diagnostics.confidence.medium.label")
+        case .low:
+            String(localized: "diagnostics.confidence.low.label")
         }
     }
 

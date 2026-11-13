@@ -35,17 +35,17 @@ extension LauncherType {
             [
                 LauncherFixDetail(
                     key: "STEAM_DISABLE_CEF_SANDBOX", value: "1",
-                    reason: "Disables Steam-specific CEF sandbox (crashes under Wine)",
+                    reason: LauncherFixReason.steamCefSandbox,
                     category: .sandbox
                 ),
                 LauncherFixDetail(
                     key: "STEAM_RUNTIME", value: "0",
-                    reason: "Disables Steam Runtime (incompatible with Wine)",
+                    reason: LauncherFixReason.steamRuntime,
                     category: .compatibility
                 ),
                 LauncherFixDetail(
                     key: "DXVK_ASYNC", value: "1",
-                    reason: "Reduces UI stuttering in Steam client",
+                    reason: LauncherFixReason.steamDxvkAsync,
                     category: .graphics
                 )
             ]
@@ -54,12 +54,12 @@ extension LauncherType {
             [
                 LauncherFixDetail(
                     key: "WINE_LARGE_ADDRESS_AWARE", value: "1",
-                    reason: "Improves launcher initialization memory handling",
+                    reason: LauncherFixReason.largeAddressAware,
                     category: .compatibility
                 ),
                 LauncherFixDetail(
                     key: "LC_ALL", value: "en_US.UTF-8",
-                    reason: "Sets locale for launcher UI rendering",
+                    reason: LauncherFixReason.rockstarLocale,
                     category: .locale
                 )
             ]
@@ -68,12 +68,12 @@ extension LauncherType {
             [
                 LauncherFixDetail(
                     key: "LC_ALL", value: "en_US.UTF-8",
-                    reason: "Fixes Chromium-based launcher locale issues",
+                    reason: LauncherFixReason.chromiumLocale,
                     category: .locale
                 ),
                 LauncherFixDetail(
                     key: "LANG", value: "en_US.UTF-8",
-                    reason: "Fixes Chromium-based launcher locale issues",
+                    reason: LauncherFixReason.chromiumLocale,
                     category: .locale
                 )
             ]
@@ -82,7 +82,7 @@ extension LauncherType {
             [
                 LauncherFixDetail(
                     key: "LC_ALL", value: "en_US.UTF-8",
-                    reason: "Fixes Chromium-based launcher locale issues",
+                    reason: LauncherFixReason.chromiumLocale,
                     category: .locale
                 )
             ]
@@ -91,7 +91,7 @@ extension LauncherType {
             [
                 LauncherFixDetail(
                     key: "DXVK_ASYNC", value: "1",
-                    reason: "Improves rendering for Anno 1800 and other Ubisoft games",
+                    reason: LauncherFixReason.ubisoftDxvkAsync,
                     category: .graphics
                 )
             ]
@@ -100,7 +100,7 @@ extension LauncherType {
             [
                 LauncherFixDetail(
                     key: "LC_ALL", value: "en_US.UTF-8",
-                    reason: "Fixes Chromium-based launcher locale issues",
+                    reason: LauncherFixReason.chromiumLocale,
                     category: .locale
                 )
             ]
@@ -111,4 +111,46 @@ extension LauncherType {
     }
 
     // swiftlint:enable function_body_length
+}
+
+// MARK: - Localized Reasons
+
+/// English fix reasons. ``LauncherFixDetail/reason`` keeps these as the
+/// provenance recorded in the environment; ``LauncherFixDetail/localizedReason``
+/// maps each one to its catalog entry for display.
+private enum LauncherFixReason {
+    static let steamCefSandbox = "Disables Steam-specific CEF sandbox (crashes under Wine)"
+    static let steamRuntime = "Disables Steam Runtime (incompatible with Wine)"
+    static let steamDxvkAsync = "Reduces UI stuttering in Steam client"
+    static let largeAddressAware = "Improves launcher initialization memory handling"
+    static let rockstarLocale = "Sets locale for launcher UI rendering"
+    static let chromiumLocale = "Fixes Chromium-based launcher locale issues"
+    static let ubisoftDxvkAsync = "Improves rendering for Anno 1800 and other Ubisoft games"
+}
+
+extension LauncherFixDetail {
+    /// ``reason`` for display in the app, from the string catalog.
+    ///
+    /// ``reason`` stays English, because it is the provenance recorded in the
+    /// environment and diagnostics. A fix with no catalog entry shows ``reason``.
+    public var localizedReason: String {
+        switch reason {
+        case LauncherFixReason.steamCefSandbox:
+            String(localized: "launcher.fix.reason.steamCefSandbox")
+        case LauncherFixReason.steamRuntime:
+            String(localized: "launcher.fix.reason.steamRuntime")
+        case LauncherFixReason.steamDxvkAsync:
+            String(localized: "launcher.fix.reason.steamDxvkAsync")
+        case LauncherFixReason.largeAddressAware:
+            String(localized: "launcher.fix.reason.largeAddressAware")
+        case LauncherFixReason.rockstarLocale:
+            String(localized: "launcher.fix.reason.rockstarLocale")
+        case LauncherFixReason.chromiumLocale:
+            String(localized: "launcher.fix.reason.chromiumLocale")
+        case LauncherFixReason.ubisoftDxvkAsync:
+            String(localized: "launcher.fix.reason.ubisoftDxvkAsync")
+        default:
+            reason
+        }
+    }
 }

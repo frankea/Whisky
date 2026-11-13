@@ -70,4 +70,27 @@ public struct WinetricksVerbCheck: TroubleshootingCheck {
             confidence: .high
         )
     }
+
+    /// The summary of a result from this check in the user's language.
+    ///
+    /// ``CheckResult/summary`` stays in English because it is written to
+    /// history and escalation exports; this rebuilds the on-screen text from
+    /// the result's outcome and evidence. Verb names are winetricks
+    /// identifiers and stay as they are.
+    ///
+    /// - Parameter result: A result produced by ``run(params:context:)``.
+    /// - Returns: The localized summary, or `nil` if the result was not
+    ///   produced by this check.
+    public static func localizedSummary(for result: CheckResult) -> String? {
+        switch result.outcome {
+        case .alreadyConfigured:
+            return String(localized: "troubleshooting.check.winetricks.allInstalled")
+        case .fail:
+            guard let missing = result.evidence["missing"], !missing.isEmpty else { return nil }
+            let count = missing.components(separatedBy: ", ").count
+            return String(localized: "troubleshooting.check.winetricks.missing \(count) \(missing)")
+        case .pass, .error, .unknown:
+            return nil
+        }
+    }
 }

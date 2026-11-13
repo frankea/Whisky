@@ -51,8 +51,25 @@ public enum WineDebugPreset: String, Codable, Sendable, CaseIterable {
         }
     }
 
-    /// Human-readable display name.
+    /// The preset name in the app's language, for the preset picker and other UI.
+    ///
+    /// Check evidence and exports use ``exportName`` instead so they read the
+    /// same whatever language the app runs in.
     public var displayName: String {
+        switch self {
+        case .normal:
+            String(localized: "diagnostics.wineDebug.normal")
+        case .crash:
+            String(localized: "diagnostics.wineDebug.crash")
+        case .dllLoad:
+            String(localized: "diagnostics.wineDebug.dllLoad")
+        case .verbose:
+            String(localized: "diagnostics.wineDebug.verbose")
+        }
+    }
+
+    /// English name of the preset, for check evidence and exported reports.
+    public var exportName: String {
         switch self {
         case .normal:
             "Normal"
@@ -65,17 +82,17 @@ public enum WineDebugPreset: String, Codable, Sendable, CaseIterable {
         }
     }
 
-    /// Description of what this preset enables.
+    /// Description of what this preset enables, in the user's language.
     public var presetDescription: String {
         switch self {
         case .normal:
-            "Default logging level. Suppresses fixme messages for cleaner output."
+            String(localized: "diagnostics.wineDebug.normal.description")
         case .crash:
-            "Enables SEH exception tracking, thread IDs, and timestamps for crash analysis."
+            String(localized: "diagnostics.wineDebug.crash.description")
         case .dllLoad:
-            "Enables DLL and module load tracing to diagnose missing dependency issues."
+            String(localized: "diagnostics.wineDebug.dllLoad.description")
         case .verbose:
-            "Enables all Wine debug channels. Very noisy; use only for deep debugging."
+            String(localized: "diagnostics.wineDebug.verbose.description")
         }
     }
 }

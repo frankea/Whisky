@@ -51,7 +51,7 @@ final class FixApplicatorTests: XCTestCase {
             fixId: "switch-backend", params: ["backend": "dxvk"], bottle: bottle, program: nil
         ))
 
-        XCTAssertEqual(preview.settingName, "Graphics Backend")
+        XCTAssertEqual(preview.settingName, String(localized: "config.graphics.backend"))
         XCTAssertEqual(preview.currentValue, "WineD3D")
         XCTAssertEqual(preview.newValue, "DXVK")
         XCTAssertTrue(preview.isReversible)
@@ -237,8 +237,8 @@ final class FixApplicatorTests: XCTestCase {
         ))
 
         XCTAssertEqual(preview.settingName, "Wine DNS override")
-        XCTAssertEqual(preview.currentValue, "Not set")
-        XCTAssertEqual(preview.newValue, "Not set")
+        XCTAssertEqual(preview.currentValue, String(localized: "config.buildVersion.notSet"))
+        XCTAssertEqual(preview.newValue, String(localized: "config.buildVersion.notSet"))
         XCTAssertTrue(preview.isReversible)
     }
 

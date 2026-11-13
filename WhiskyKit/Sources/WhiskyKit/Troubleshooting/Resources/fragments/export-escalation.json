@@ -10,27 +10,8 @@
       "title": "Unresolved issue",
       "description": "The steps so far have not resolved this issue. Here is a summary of what was tried. You can run enhanced diagnostics to gather more information, or export a report.",
       "on": {
-        "continue": "offer_enhanced_diagnostics"
-      }
-    },
-    "offer_enhanced_diagnostics": {
-      "id": "offer_enhanced_diagnostics",
-      "type": "check",
-      "phase": "export",
-      "title": "Check enhanced diagnostics availability",
-      "description": "Checking whether enhanced diagnostics can be run for additional information.",
-      "checkId": "diagnostics.can_enhance",
-      "params": {},
-      "on": {
-        "pass": "run_enhanced_diagnostics",
-        "fail": "export_bundle",
-        "already_configured": "export_bundle",
-        "unknown": "export_bundle",
-        "error": "export_bundle"
-      },
-      "evidenceMap": {
-        "canEnhance": "Enhanced diagnostics available",
-        "reason": "Reason"
+        "enhanced_diagnostics": "run_enhanced_diagnostics",
+        "export": "export_bundle"
       }
     },
     "run_enhanced_diagnostics": {

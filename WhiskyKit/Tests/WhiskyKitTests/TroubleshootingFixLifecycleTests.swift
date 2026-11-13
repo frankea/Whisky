@@ -173,4 +173,51 @@ final class TroubleshootingFixLifecycleTests: XCTestCase {
         engine.session.fixAttempts = [notApplied]
         XCTAssertTrue(engine.fixDidNotHelp(at: node))
     }
+
+    // MARK: - Undo from elsewhere
+
+    func testMarkingAFixUndoneTargetsThatFix() {
+        let engine = makeEngine(scripted: [:])
+        engine.session.fixAttempts = [
+            FixAttempt(fixId: "run-enhanced-diagnostics", result: .applied),
+            FixAttempt(fixId: "switch-backend", result: .applied)
+        ]
+
+        engine.markFixUndone(fixId: "run-enhanced-diagnostics")
+
+        XCTAssertEqual(engine.session.fixAttempts.map(\.result), [.undone, .applied])
+        XCTAssertNil(engine.session.appliedAttempt(of: "run-enhanced-diagnostics"))
+        XCTAssertEqual(engine.session.appliedAttempt(of: "switch-backend")?.fixId, "switch-backend")
+    }
+
+    func testAppliedAttemptIsTheLastAttemptStillInEffect() {
+        var session = TroubleshootingSession()
+        session.fixAttempts = [
+            FixAttempt(fixId: "run-enhanced-diagnostics", result: .applied),
+            FixAttempt(fixId: "run-enhanced-diagnostics", result: .undone)
+        ]
+        XCTAssertNil(session.appliedAttempt(of: "run-enhanced-diagnostics"), "the last attempt was undone")
+
+        session.fixAttempts.append(FixAttempt(fixId: "run-enhanced-diagnostics", result: .pending))
+        XCTAssertNil(session.appliedAttempt(of: "run-enhanced-diagnostics"))
+        XCTAssertNil(session.appliedAttempt(of: "switch-backend"))
+    }
+
+    func testEnhancedDiagnosticsOnlyOfferedWhenTheyAddLogging() {
+        XCTAssertTrue(FixApplicator.enhancedDiagnosticsAddsLogging(to: nil))
+        XCTAssertTrue(FixApplicator.enhancedDiagnosticsAddsLogging(to: .normal))
+        XCTAssertFalse(FixApplicator.enhancedDiagnosticsAddsLogging(to: FixApplicator.enhancedDiagnosticsPreset))
+    }
+
+    func testEscalationSummaryDescribesTheScreensOptions() throws {
+        let fragment = try XCTUnwrap(FlowLoader.loadFragments()["export-escalation"])
+        let summary = try XCTUnwrap(fragment.nodes[fragment.entryNodeId])
+
+        XCTAssertEqual(summary.on?["enhanced_diagnostics"], "run_enhanced_diagnostics")
+        XCTAssertNil(summary.on?["continue"], "Continue does nothing on the escalation screen")
+        XCTAssertFalse(
+            fragment.nodes.values.contains { $0.checkId == "diagnostics.can_enhance" },
+            "no step the engine never reaches"
+        )
+    }
 }

@@ -88346,6 +88346,38 @@
         }
       }
     },
+    "troubleshooting.escalation.restoreLogging" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off enhanced logging"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off enhanced logging"
+          }
+        }
+      }
+    },
+    "troubleshooting.escalation.restoreLogging.description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Put this program's logging back to what it was before enhanced diagnostics. Enhanced logs are large and slow down every launch."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Put this program's logging back to what it was before enhanced diagnostics. Enhanced logs are large and slow down every launch."
+          }
+        }
+      }
+    },
     "troubleshooting.escalation.retry" : {
       "localizations" : {
         "ar" : {

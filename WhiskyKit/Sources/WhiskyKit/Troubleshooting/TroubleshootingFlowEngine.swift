@@ -423,6 +423,18 @@ public final class TroubleshootingFlowEngine: ObservableObject {
         }
     }
 
+    /// Marks the most recent applied attempt at one fix as undone, for a
+    /// fix undone from outside the verify step (enhanced logging turned off
+    /// on the escalation screen).
+    ///
+    /// - Parameter fixId: The fix that was undone.
+    public func markFixUndone(fixId: String) {
+        if let index = session.fixAttempts.lastIndex(where: { $0.fixId == fixId && $0.result == .applied }) {
+            session.fixAttempts[index].result = .undone
+            autoSave()
+        }
+    }
+
     // MARK: - Private Helpers
 
     /// The phase to show for a step's phase. The export phase is where the

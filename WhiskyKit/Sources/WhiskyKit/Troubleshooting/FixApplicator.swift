@@ -208,7 +208,7 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
 
         case "run-enhanced-diagnostics":
             guard let program else { return nil }
-            let preset = params["preset"].flatMap(WineDebugPreset.init(rawValue:)) ?? .verbose
+            let preset = params["preset"].flatMap(WineDebugPreset.init(rawValue:)) ?? enhancedDiagnosticsPreset
             return FixPreview(
                 settingName: String(localized: "WINEDEBUG Preset"),
                 currentValue: (program.settings.activeWineDebugPreset ?? .normal).displayName,
@@ -408,7 +408,7 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
                 logger.info("run-enhanced-diagnostics needs a program context")
                 return FixAttempt(fixId: fixId, result: .failed)
             }
-            let preset = params["preset"].flatMap(WineDebugPreset.init(rawValue:)) ?? .verbose
+            let preset = params["preset"].flatMap(WineDebugPreset.init(rawValue:)) ?? enhancedDiagnosticsPreset
             let before = program.settings.activeWineDebugPreset?.rawValue ?? "default"
             program.settings.activeWineDebugPreset = preset
             return FixAttempt(

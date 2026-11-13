@@ -123,49 +123,10 @@ extension EscalationView {
 extension EscalationView {
     private var optionsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            if program != nil {
-                enhancedDiagnosticsOption
-            }
+            enhancedDiagnosticsOptions
             exportDiagnosticsOption
             supportIssueOption
             retryOption
-        }
-    }
-}
-
-// MARK: - Enhanced Diagnostics
-
-extension EscalationView {
-    private var enhancedDiagnosticsOption: some View {
-        escalationButton(
-            title: "troubleshooting.escalation.enhancedDiag",
-            description: "troubleshooting.escalation.enhancedDiag.description",
-            sfSymbol: "text.magnifyingglass",
-            action: runEnhancedDiagnostics
-        )
-    }
-
-    /// Turns on the enhanced logging preset. The engine ties the attempt to
-    /// the escalation fragment's enhanced diagnostics step and follows its
-    /// `applied` transition: launch the program again, then analyze the new
-    /// log.
-    private func runEnhancedDiagnostics() {
-        let attempt = FixApplicator.apply(
-            fixId: "run-enhanced-diagnostics",
-            params: [:],
-            bottle: bottle,
-            program: program
-        )
-        engine.applyFix(
-            fixId: attempt.fixId,
-            beforeValue: attempt.beforeValue,
-            afterValue: attempt.afterValue,
-            params: attempt.params
-        )
-        if attempt.result == .failed {
-            engine.markFixFailed(fixId: attempt.fixId)
-        } else {
-            engine.confirmFixApplied(fixId: attempt.fixId)
         }
     }
 }
@@ -343,7 +304,7 @@ extension EscalationView {
 // MARK: - Shared Escalation Button
 
 extension EscalationView {
-    private func escalationButton(
+    func escalationButton(
         title: LocalizedStringKey,
         description: LocalizedStringKey,
         sfSymbol: String,

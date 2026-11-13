@@ -117,13 +117,19 @@ final class GameApplicatorTests: XCTestCase {
 
         // Real entries pair an explicit backend with `dxvk: false`; the legacy
         // setter maps that `false` to Recommended, which used to undo the backend.
+        // D3DMetal is pinned as installed; a missing payload is covered in
+        // GameConfigBackendAvailabilityTests.
         let variant = makeTestVariant(graphicsBackend: .d3dMetal, dxvk: false)
         let entry = makeTestEntry(variant: variant)
 
-        _ = try GameConfigApplicator.apply(entry: entry, variant: variant, to: bottle)
+        _ = try GameConfigApplicator.apply(
+            entry: entry, variant: variant, to: bottle, isBackendAvailable: { _ in true }
+        )
 
         XCTAssertEqual(bottle.settings.graphicsBackend, .d3dMetal)
-        let changes = GameConfigApplicator.previewChanges(variant: variant, bottle: bottle)
+        let changes = GameConfigApplicator.previewChanges(
+            variant: variant, bottle: bottle, isBackendAvailable: { _ in true }
+        )
         XCTAssertFalse(changes.contains { $0.settingName == "DXVK" }, "no DXVK row when the backend is explicit")
     }
 

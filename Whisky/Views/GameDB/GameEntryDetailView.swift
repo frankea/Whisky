@@ -26,10 +26,15 @@ import WhiskyKit
 struct GameEntryDetailView: View {
     let entry: GameDBEntry
     @ObservedObject var bottle: Bottle
+    /// The program the entry was matched from, if any. Applying writes the
+    /// variant's environment variables into its settings.
+    var programURL: URL?
     @State private var selectedVariant: GameConfigVariant?
     @State private var showPreviewSheet: Bool = false
     @State private var stalenessResult: StalenessResult?
     @State private var toast: ToastData?
+    @State private var applyTask: Task<Void, Never>?
+    @State private var verbProgress: GameConfigVerbProgress?
 
     var body: some View {
         ScrollView {
@@ -52,8 +57,10 @@ struct GameEntryDetailView: View {
                     entry: entry,
                     variant: variant,
                     bottle: bottle,
-                    programURL: nil,
-                    toast: $toast
+                    programURL: programURL,
+                    onApply: { installComponents in
+                        startApply(variant, installComponents: installComponents)
+                    }
                 )
             }
         }
@@ -242,9 +249,88 @@ extension GameEntryDetailView {
             }
             .controlSize(.large)
             .buttonStyle(.borderedProminent)
+            .disabled(applyTask != nil)
             .accessibilityIdentifier("gamedb.detail.applyButton")
+
+            applyProgressRow
         }
         .padding(.vertical, 4)
+    }
+}
+
+// MARK: - Apply
+
+extension GameEntryDetailView {
+    @ViewBuilder
+    private var applyProgressRow: some View {
+        if applyTask != nil {
+            HStack(spacing: 8) {
+                ProgressView()
+                    .controlSize(.small)
+                Text(verbProgress?.label ?? String(localized: "gameConfig.apply.applying"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                if verbProgress != nil {
+                    Button("button.cancel") {
+                        applyTask?.cancel()
+                    }
+                    .controlSize(.small)
+                }
+            }
+        }
+    }
+
+    /// Applies `variant` and installs the components it still needs, showing
+    /// progress below the Apply button. Only one apply runs at a time.
+    private func startApply(_ variant: GameConfigVariant, installComponents: Bool) {
+        guard applyTask == nil else { return }
+        applyTask = Task {
+            await runApply(variant, installComponents: installComponents)
+            verbProgress = nil
+            applyTask = nil
+        }
+    }
+
+    private func runApply(_ variant: GameConfigVariant, installComponents: Bool) async {
+        do {
+            _ = try GameConfigApplicator.apply(entry: entry, variant: variant, to: bottle, programURL: programURL)
+        } catch {
+            toast = ToastData(
+                message: String(localized: "gameConfig.apply.failed \(error.localizedDescription)"),
+                style: .error
+            )
+            return
+        }
+
+        let installed = await Winetricks.loadInstalledVerbs(for: bottle).verbs
+        let pending = GameConfigApplicator.pendingWinetricksVerbs(variant: variant, installedVerbs: installed)
+        var outcome = GameConfigVerbInstallOutcome(requested: pending)
+        if installComponents, !pending.isEmpty {
+            outcome = await Winetricks.installGameConfigVerbs(pending, for: bottle) { verbProgress = $0 }
+        }
+        toast = applyToast(for: outcome)
+    }
+
+    /// Success only when every component the configuration needs is in the bottle.
+    private func applyToast(for outcome: GameConfigVerbInstallOutcome) -> ToastData {
+        let missing = outcome.missing.joined(separator: ", ")
+        return switch outcome.status {
+        case .complete:
+            ToastData(message: String(localized: "gameConfig.apply.success \(entry.title)"), style: .success)
+        case .failed:
+            ToastData(
+                message: String(localized: "gameConfig.apply.componentsFailed \(entry.title) \(missing)"),
+                style: .error,
+                autoDismiss: false
+            )
+        case .incomplete:
+            ToastData(
+                message: String(localized: "gameConfig.apply.componentsSkipped \(entry.title) \(missing)"),
+                style: .info,
+                autoDismiss: false
+            )
+        }
     }
 }
 

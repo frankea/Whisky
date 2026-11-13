@@ -248,20 +248,16 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
             )
 
         case "apply-game-config":
-            guard let program,
-                  let match = GameMatcher.bestMatch(
-                      metadata: ProgramMetadata(
-                          exeName: program.url.lastPathComponent, exeURL: program.url
-                      ),
-                      against: GameDBLoader.loadDefaults()
-                  ),
-                  let variant = match.entry.defaultVariant
-            else {
+            guard let program, let config = GameConfigApplicator.recommendedConfiguration(for: program) else {
                 return nil
             }
-            let changes = GameConfigApplicator.previewChanges(variant: variant, bottle: bottle)
+            let (entry, variant) = config
+            let changes = GameConfigApplicator.previewChanges(
+                variant: variant, bottle: bottle, entry: entry, programURL: program.url,
+                installedVerbs: WinetricksVerbCache.load(from: bottle.url)?.installedVerbs ?? []
+            )
             return FixPreview(
-                settingName: String(localized: "troubleshooting.fix.setting.gameConfig \(match.entry.title)"),
+                settingName: String(localized: "troubleshooting.fix.setting.gameConfig \(entry.title)"),
                 currentValue: changes.isEmpty
                     ? String(localized: "troubleshooting.fix.value.alreadyMatches")
                     : String(localized: "troubleshooting.fix.value.settingsDiffer \(changes.count)"),
@@ -443,26 +439,22 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
             )
 
         case "apply-game-config":
-            guard let program,
-                  let match = GameMatcher.bestMatch(
-                      metadata: ProgramMetadata(
-                          exeName: program.url.lastPathComponent, exeURL: program.url
-                      ),
-                      against: GameDBLoader.loadDefaults()
-                  ),
-                  let variant = match.entry.defaultVariant
-            else {
+            // Settings, DLL overrides and environment variables only: the
+            // variant's winetricks verbs are installed by the caller afterwards,
+            // with progress.
+            guard let program, let config = GameConfigApplicator.recommendedConfiguration(for: program) else {
                 logger.info("apply-game-config: no confident game match for this program")
                 return FixAttempt(fixId: fixId, result: .failed)
             }
+            let (entry, variant) = config
             do {
                 _ = try GameConfigApplicator.apply(
-                    entry: match.entry, variant: variant, to: bottle, programURL: program.url
+                    entry: entry, variant: variant, to: bottle, programURL: program.url
                 )
                 return FixAttempt(
                     fixId: fixId,
                     beforeValue: nil,
-                    afterValue: "\(match.entry.title) (\(variant.label))",
+                    afterValue: "\(entry.title) (\(variant.label))",
                     result: .applied
                 )
             } catch {

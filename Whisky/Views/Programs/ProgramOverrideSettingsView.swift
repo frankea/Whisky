@@ -60,7 +60,7 @@ struct ProgramOverrideSettingsView: View {
             }
             .sheet(isPresented: $showGameConfigDetail) {
                 if let match = gameMatch {
-                    GameEntryDetailView(entry: match.entry, bottle: bottle)
+                    GameEntryDetailView(entry: match.entry, bottle: bottle, programURL: program.url)
                         .frame(minWidth: 600, minHeight: 500)
                 }
             }

@@ -46633,6 +46633,54 @@
         }
       }
     },
+    "gameConfig.apply.applying" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applying configuration…"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applying configuration…"
+          }
+        }
+      }
+    },
+    "gameConfig.apply.componentsFailed %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applied the %1$@ settings, but these components failed to install: %2$@"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applied the %1$@ settings, but these components failed to install: %2$@"
+          }
+        }
+      }
+    },
+    "gameConfig.apply.componentsSkipped %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applied the %1$@ settings without these required components: %2$@"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applied the %1$@ settings without these required components: %2$@"
+          }
+        }
+      }
+    },
     "gameConfig.apply.failed %@" : {
       "localizations" : {
         "ar" : {
@@ -46777,6 +46825,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法套用組態：%@"
+          }
+        }
+      }
+    },
+    "gameConfig.apply.installing %@ %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installing %1$@ (%2$lld of %3$lld)…"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installing %1$@ (%2$lld of %3$lld)…"
           }
         }
       }
@@ -50605,6 +50669,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Workaround: %@"
+          }
+        }
+      }
+    },
+    "gameConfig.environment.remove" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove"
+          }
+        }
+      }
+    },
+    "gameConfig.environment.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Game Environment Variables"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Game Environment Variables"
           }
         }
       }

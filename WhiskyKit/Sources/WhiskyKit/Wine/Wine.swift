@@ -505,6 +505,13 @@ public class Wine {
             try enableDXVK(bottle: bottle)
         }
 
+        // A game configuration applied before the game was in the bottle keeps
+        // its variables in the bottle settings, scoped to the game's executables.
+        // The caller's profile (a Steam launch plan) wins where both set one.
+        let gameProfileEnvironment = bottle.settings
+            .gameConfigEnvironment(forExecutable: url.lastPathComponent)
+            .merging(gameProfileEnvironment) { _, caller in caller }
+
         // Build the Wine environment with program overrides flowing through the programUser layer
         var wineEnvironment = constructWineEnvironment(
             for: bottle, environment: environment, programOverrides: programOverrides,

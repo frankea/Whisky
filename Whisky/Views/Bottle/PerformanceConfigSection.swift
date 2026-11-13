@@ -72,8 +72,11 @@ struct PerformanceConfigSection: View {
         case .some(false):
             Button {
                 Task {
-                    await Winetricks.runCommand(command: "vcrun2019", bottle: bottle)
-                    vcRedistInstallStarted = true
+                    // Only claim the installer is running once Terminal has it;
+                    // a failed prefix check or missing resources starts nothing.
+                    if await Winetricks.runCommand(command: "vcrun2019", bottle: bottle) {
+                        vcRedistInstallStarted = true
+                    }
                 }
             } label: {
                 HStack {

@@ -244,20 +244,26 @@ extension AudioConfigSection {
         }
     }
 
-    /// Applies the fix behind a troubleshooting wizard step. The wizard
-    /// asks whether the problem is fixed either way, so a failed write only
-    /// leaves the bottle as it was.
-    private func applyWizardFix(_ actionId: String) async {
-        guard let action = AudioFixAction(troubleshootingActionId: actionId) else { return }
+    /// Applies the fix behind a troubleshooting wizard step.
+    ///
+    /// - Returns: Why the fix failed, or `nil` when it was applied. On failure
+    ///   the bottle is unchanged, so the section keeps its last results.
+    private func applyWizardFix(_ actionId: String) async -> String? {
+        guard let action = AudioFixAction(troubleshootingActionId: actionId) else { return nil }
         guard action.changesBottle else {
             openSoundSettings()
-            return
+            return nil
         }
-        try? await Wine.applyAudioFix(action, bottle: bottle)
+        do {
+            try await Wine.applyAudioFix(action, bottle: bottle)
+        } catch {
+            return error.localizedDescription
+        }
         // The section's last results describe the bottle before the fix.
         probeResults = []
         audioStatus = .unknown
         fixOutcome = nil
+        return nil
     }
 
     private func openSoundSettings() {

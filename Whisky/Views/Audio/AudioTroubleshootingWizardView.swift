@@ -29,10 +29,13 @@ struct AudioTroubleshootingWizardView: View {
     @ObservedObject var engine: AudioTroubleshootingEngine
     var onDismiss: () -> Void
     var onOpenAdvanced: (() -> Void)?
-    /// Applies the fix behind a wizard step, given its action id.
-    var onApplyFix: ((String) async -> Void)?
+    /// Applies the fix behind a wizard step, given its action id. Returns
+    /// why the fix failed, or `nil` when it was applied.
+    var onApplyFix: ((String) async -> String?)?
 
     @State private var isApplyingFix = false
+    /// Why the last Apply Fix failed; the step stays on screen to retry or skip.
+    @State private var fixFailure: String?
 
     var body: some View {
         NavigationStack {
@@ -165,39 +168,6 @@ struct AudioTroubleshootingWizardView: View {
         .background(RoundedRectangle(cornerRadius: 8).fill(Color(.controlBackgroundColor)))
     }
 
-    // MARK: - Offering Fix
-
-    private func offeringFixView(fixDescription: String, actionId: String) -> some View {
-        VStack(spacing: 20) {
-            Spacer()
-            Image(systemName: "wrench.and.screwdriver").font(.system(size: 40)).foregroundStyle(.blue)
-            Text(String(localized: "audio.troubleshoot.suggestedFix")).font(.title3).fontWeight(.medium)
-            Text(fixDescription).font(.body).foregroundStyle(.secondary)
-                .multilineTextAlignment(.center).padding(.horizontal, 32)
-            if AudioFixAction(troubleshootingActionId: actionId)?.closesRunningPrograms == true {
-                Text("audio.fix.closesPrograms").font(.caption).foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center).padding(.horizontal, 32)
-            }
-            Spacer()
-            VStack(spacing: 8) {
-                Button(String(localized: "audio.troubleshoot.applyFix")) {
-                    isApplyingFix = true
-                    Task { @MainActor in
-                        await onApplyFix?(actionId)
-                        isApplyingFix = false
-                        engine.applyFix(actionId: actionId)
-                    }
-                }
-                .buttonStyle(.borderedProminent).controlSize(.large)
-                Button(String(localized: "audio.troubleshoot.skipFix")) { engine.offerNextFix() }
-                    .buttonStyle(.bordered)
-            }
-            .disabled(isApplyingFix)
-            .padding(.bottom)
-        }
-        .padding()
-    }
-
     // MARK: - Asking Did It Work
 
     private var askingDidItWorkView: some View {
@@ -305,5 +275,52 @@ struct AudioTroubleshootingWizardView: View {
         if let url = AudioFixAction.soundSettingsURL {
             NSWorkspace.shared.open(url)
         }
+    }
+}
+
+// MARK: - Offering Fix
+
+extension AudioTroubleshootingWizardView {
+    private func offeringFixView(fixDescription: String, actionId: String) -> some View {
+        VStack(spacing: 20) {
+            Spacer()
+            Image(systemName: "wrench.and.screwdriver").font(.system(size: 40)).foregroundStyle(.blue)
+            Text(String(localized: "audio.troubleshoot.suggestedFix")).font(.title3).fontWeight(.medium)
+            Text(fixDescription).font(.body).foregroundStyle(.secondary)
+                .multilineTextAlignment(.center).padding(.horizontal, 32)
+            if AudioFixAction(troubleshootingActionId: actionId)?.closesRunningPrograms == true {
+                Text("audio.fix.closesPrograms").font(.caption).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center).padding(.horizontal, 32)
+            }
+            Spacer()
+            VStack(spacing: 8) {
+                Button(String(localized: "audio.troubleshoot.applyFix")) {
+                    isApplyingFix = true
+                    fixFailure = nil
+                    Task { @MainActor in
+                        fixFailure = await onApplyFix?(actionId)
+                        isApplyingFix = false
+                        // Only a fix that landed moves on to "Did that fix the problem?".
+                        if fixFailure == nil {
+                            engine.applyFix(actionId: actionId)
+                        }
+                    }
+                }
+                .buttonStyle(.borderedProminent).controlSize(.large)
+                Button(String(localized: "audio.troubleshoot.skipFix")) {
+                    fixFailure = nil
+                    engine.offerNextFix()
+                }
+                .buttonStyle(.bordered)
+                if let fixFailure {
+                    Label("audio.fix.failed \(fixFailure)", systemImage: "exclamationmark.triangle")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center).padding(.horizontal, 32)
+                }
+            }
+            .disabled(isApplyingFix)
+            .padding(.bottom)
+        }
+        .padding()
     }
 }

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.9.2] - 2026-11-13 (App)
+
 ### Fixed
 - The console's exit code labels and the program overrides' DLL summary
   showed raw text such as `console.exitCode 1` or `%lld` instead of the

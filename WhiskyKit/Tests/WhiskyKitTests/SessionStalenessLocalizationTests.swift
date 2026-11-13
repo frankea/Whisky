@@ -38,7 +38,8 @@ final class SessionStalenessLocalizationTests: XCTestCase {
             isWineserverRunning: wineserverRunning,
             processCount: processCount,
             audioDeviceName: audioDevice,
-            graphicsBackend: backend
+            graphicsBackend: backend,
+            bottleGraphicsBackend: backend
         )
     }
 
@@ -67,6 +68,23 @@ final class SessionStalenessLocalizationTests: XCTestCase {
 
     func testIdenticalPreflightMeansNoChanges() {
         XCTAssertTrue(changes(from: preflight(), to: preflight()).isEmpty)
+    }
+
+    func testSnapshotFromBeforeTheRealPreflightIsNotCompared() {
+        // What the wizard stored before it collected a real preflight: the
+        // raw backend setting, no audio device, nothing running.
+        let legacy = PreflightData(
+            bottleURL: bottleURL,
+            bottleName: "Staleness Test",
+            isWineserverRunning: false,
+            processCount: 0,
+            graphicsBackend: "recommended"
+        )
+        let current = preflight(
+            backend: "d3dMetal", audioDevice: "MacBook Pro Speakers", wineserverRunning: true, processCount: 8
+        )
+
+        XCTAssertTrue(changes(from: legacy, to: current).isEmpty)
     }
 
     // MARK: - Graphics backend

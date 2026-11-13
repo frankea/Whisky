@@ -314,8 +314,9 @@ public class Wine {
         prepare: @MainActor () async throws -> PreparedLaunch
     ) async throws -> ProgramRunResult {
         // Note: Launcher detection and fix application happen before this method
-        // is called, via LauncherFixes.detectAndApply from the app's run paths
-        // (FileOpenView/BottleView/ProgramMenuView).
+        // is called: in Program.launchWithUserMode for a program, and via
+        // LauncherFixes.detectAndApply in the app's run-a-file paths
+        // (FileOpenView, BottleActionBar).
 
         // Disable App Nap if requested to prevent macOS from throttling Wine processes.
         // Note: This token is held while the `wine start` launcher process runs. The actual

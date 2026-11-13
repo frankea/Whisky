@@ -202,6 +202,11 @@ extension LibraryModel {
                 launchError = String(localized: "library.launch.steamGameMissing")
                 return
             }
+            // A program launch applies the clipboard policy inside the launch;
+            // a Steam game is handed to the client, so it is applied here.
+            if case let .autoCleared(contentType, sizeBytes) = bottle.performClipboardCheck() {
+                toast = .clipboardCleared(contentType: contentType, sizeBytes: sizeBytes)
+            }
             orchestrator(for: bottle).launch(game)
         }
     }
@@ -220,26 +225,20 @@ extension LibraryModel {
     }
 
     private func launchProgram(at url: URL, in bottle: Bottle) {
-        // Through the bottle's own program list where possible, so the launch
-        // picks up that program's overrides rather than only the bottle's.
-        guard let program = bottle.programs.first(where: { $0.url == url }) else {
-            programLaunching.insert(url)
-            Task {
-                defer { programLaunching.remove(url) }
-                do {
-                    try await Wine.runProgram(at: url, bottle: bottle)
-                } catch {
-                    launchError = error.localizedDescription
-                }
-            }
-            return
-        }
+        // Always as a Program, so the launch picks up that program's overrides
+        // and gets launcher detection and the clipboard policy like every other
+        // Play. The bottle's own list is used where it has the program; built
+        // from the URL otherwise, as the Dock and menu bar do for a pin before
+        // any scan.
+        let program = bottle.programs.first(where: { $0.url == url }) ?? Program(url: url, bottle: bottle)
 
         programLaunching.insert(url)
         Telemetry.capture(.firstProgramLaunchAttempted)
         let useTerminal = NSEvent.modifierFlags.contains(.shift)
         Task {
-            let result = await program.launchWithUserMode(useTerminal: useTerminal)
+            let result = await program.launchWithUserMode(useTerminal: useTerminal) { [weak self] type, size in
+                self?.toast = .clipboardCleared(contentType: type, sizeBytes: size)
+            }
             programLaunching.remove(url)
             toast = result.toastData
         }

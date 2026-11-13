@@ -243,40 +243,17 @@ struct ProgramItemView: View {
         // Capture modifier flags synchronously before entering async context
         let useTerminal = NSEvent.modifierFlags.contains(.shift)
 
-        // Check clipboard before launch (blocking alert for needsUserDecision is handled internally)
-        let clipResult = program.performClipboardCheck()
-        if case let .autoCleared(contentType, sizeBytes) = clipResult {
-            let sizeKB = (Double(sizeBytes) / 1_024.0).formatted(.number.precision(.fractionLength(1)))
-            withAnimation {
-                toast = ToastData(
-                    message: String(localized: "clipboard.cleared.toast")
-                        .replacingOccurrences(of: "{contentType}", with: clipboardContentName(contentType))
-                        .replacingOccurrences(of: "{sizeKB}", with: sizeKB),
-                    style: .info
-                )
-            }
-        }
-
         Task {
-            let result = await program.launchWithUserMode(useTerminal: useTerminal)
+            // The clipboard policy is applied inside the launch, once.
+            let result = await program.launchWithUserMode(useTerminal: useTerminal) { contentType, sizeBytes in
+                withAnimation {
+                    toast = .clipboardCleared(contentType: contentType, sizeBytes: sizeBytes)
+                }
+            }
             withAnimation {
                 toast = result.toastData
             }
             isLaunching = false
-        }
-    }
-
-    /// The clipboard content kind for the cleared toast, in the user's language.
-    ///
-    /// `contentType` is ClipboardManager's identifier ("text", "image", "other").
-    private func clipboardContentName(_ contentType: String) -> String {
-        switch contentType {
-        case "text":
-            String(localized: "clipboard.contentType.text")
-        case "image":
-            String(localized: "clipboard.contentType.image")
-        default:
-            String(localized: "clipboard.contentType.other")
         }
     }
 }

@@ -24,16 +24,32 @@ import Foundation
 /// ``CheckResult`` for flow branching. Returns `.unknown` when no log is
 /// available, `.pass` when no patterns match, and `.fail` with evidence
 /// when crash patterns are detected.
+///
+/// With a `newerThanFix` param naming a fix, only a log from a launch that
+/// started after that fix was applied counts: re-analyzing after enhanced
+/// diagnostics must not report on the log from before they were on.
 public struct CrashLogCheck: TroubleshootingCheck {
     public let checkId = "crash.log_classify"
+
+    /// The `.unknown` summary when the newest run predates the fix named by
+    /// `newerThanFix`.
+    static let noNewRunSummary = "No launch since the fix was applied"
 
     public init() {}
 
     public let signature: CheckSignature? = CheckSignature(
-        outcomes: [.pass, .fail, .unknown, .error]
+        acceptedParams: [Param.newerThanFix], outcomes: [.pass, .fail, .unknown, .error]
     )
 
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
+        if let fixId = params[Param.newerThanFix], !Self.hasRun(after: fixId, in: context) {
+            return CheckResult(
+                outcome: .unknown,
+                evidence: [:],
+                summary: Self.noNewRunSummary,
+                confidence: .low
+            )
+        }
         guard let logURL = context.preflight.recentLogURL else {
             return CheckResult(
                 outcome: .unknown,
@@ -67,6 +83,11 @@ public struct CrashLogCheck: TroubleshootingCheck {
             )
         }
 
+        return Self.failResult(for: diagnosis)
+    }
+
+    /// The `.fail` result for a log with crash patterns.
+    private static func failResult(for diagnosis: CrashDiagnosis) -> CheckResult {
         // Language-neutral values (raw values and log captures) so the UI can
         // rebuild them in the user's language; `headline` and `summary` stay
         // English for history and exports.
@@ -93,6 +114,19 @@ public struct CrashLogCheck: TroubleshootingCheck {
         )
     }
 
+    /// Whether the run that wrote the snapshot's log started after the most
+    /// recent application of a fix. `false` when the fix was never applied
+    /// or the run's start is unknown.
+    static func hasRun(after fixId: String, in context: CheckContext) -> Bool {
+        let applied = context.session.fixAttempts.last {
+            $0.fixId == fixId && ($0.wasApplied == true || $0.result == .applied)
+        }
+        guard let appliedAt = applied?.timestamp, let runStart = context.preflight.recentRunStartTime else {
+            return false
+        }
+        return runStart > appliedAt
+    }
+
     /// The summary of a result from this check in the user's language.
     ///
     /// ``CheckResult/summary`` stays in English because it is written to
@@ -105,6 +139,9 @@ public struct CrashLogCheck: TroubleshootingCheck {
     public static func localizedSummary(for result: CheckResult) -> String? {
         switch result.outcome {
         case .unknown:
+            if result.summary == noNewRunSummary {
+                return String(localized: "troubleshooting.check.crashLog.noNewRun")
+            }
             return String(localized: "troubleshooting.check.crashLog.noLog")
         case .error:
             return String(localized: "troubleshooting.check.crashLog.readFailed")
@@ -156,6 +193,11 @@ public struct CrashLogCheck: TroubleshootingCheck {
             confidence: confidence,
             detail: evidence[EvidenceKey.captures]
         )
+    }
+
+    /// The params a flow node can pass.
+    enum Param {
+        static let newerThanFix = "newerThanFix"
     }
 
     /// Evidence keys, which the flow definitions' `evidenceMap` labels.

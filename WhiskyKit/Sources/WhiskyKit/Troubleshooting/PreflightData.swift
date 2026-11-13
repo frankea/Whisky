@@ -53,6 +53,10 @@ public struct PreflightData: Codable, Sendable {
     /// Exit code from the program's last run, if available.
     public let lastExitCode: Int32?
 
+    /// When the run that wrote ``recentLogURL`` started, if known. A check
+    /// that needs a launch made after a fix compares against this.
+    public let recentRunStartTime: Date?
+
     /// Name of the current default audio output device, if detected.
     public let audioDeviceName: String?
 
@@ -85,6 +89,7 @@ public struct PreflightData: Codable, Sendable {
         processCount: Int,
         recentLogURL: URL? = nil,
         lastExitCode: Int32? = nil,
+        recentRunStartTime: Date? = nil,
         audioDeviceName: String? = nil,
         audioTransportType: String? = nil,
         audioSampleRate: Double? = nil,
@@ -101,6 +106,7 @@ public struct PreflightData: Codable, Sendable {
         self.processCount = processCount
         self.recentLogURL = recentLogURL
         self.lastExitCode = lastExitCode
+        self.recentRunStartTime = recentRunStartTime
         self.audioDeviceName = audioDeviceName
         self.audioTransportType = audioTransportType
         self.audioSampleRate = audioSampleRate

@@ -46,7 +46,9 @@
       "title": "Re-analyze with enhanced logs",
       "description": "Analyzing the enhanced debug output for additional diagnostic patterns.",
       "checkId": "crash.log_classify",
-      "params": {},
+      "params": {
+        "newerThanFix": "run-enhanced-diagnostics"
+      },
       "on": {
         "pass": "export_bundle",
         "fail": "enhanced_findings",

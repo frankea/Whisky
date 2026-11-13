@@ -86537,6 +86537,23 @@
         }
       }
     },
+    "troubleshooting.check.crashLog.noNewRun" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The program has not been launched since enhanced logging was turned on"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The program has not been launched since enhanced logging was turned on"
+          }
+        }
+      }
+    },
     "troubleshooting.check.crashLog.readFailed" : {
       "extractionState" : "manual",
       "localizations" : {

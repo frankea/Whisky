@@ -142,6 +142,9 @@ final class TroubleshootingPreflightTests: XCTestCase {
         let run = PreflightCollector.recentRun(programName: nil, bottleURL: tempDir, logsFolder: tempDir)
 
         XCTAssertEqual(run.exitCode, 2)
+        // The run history is an XML plist, which keeps whole seconds.
+        let startTime = try XCTUnwrap(run.startTime, "the start of the run the log came from")
+        XCTAssertEqual(startTime.timeIntervalSince1970, newer.startTime.timeIntervalSince1970, accuracy: 1)
         XCTAssertNil(run.logURL, "a deleted log is not offered")
     }
 

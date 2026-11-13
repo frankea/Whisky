@@ -53,6 +53,7 @@ public enum PreflightCollector {
     struct RecentRun: Equatable {
         let logURL: URL?
         let exitCode: Int32?
+        var startTime: Date?
     }
 
     /// Collects cheap preflight data for a troubleshooting session.
@@ -139,6 +140,7 @@ public enum PreflightCollector {
             processCount: ProcessRegistry.shared.getProcessCount(for: inputs.bottleURL),
             recentLogURL: recentRun.logURL,
             lastExitCode: recentRun.exitCode,
+            recentRunStartTime: recentRun.startTime,
             audioDeviceName: device?.name,
             audioTransportType: device?.transportType.exportName,
             audioSampleRate: device?.sampleRate,
@@ -185,7 +187,7 @@ public enum PreflightCollector {
         }
         let logURL = logsFolder.appending(path: latest.logFileName)
         let logExists = FileManager.default.fileExists(atPath: logURL.path(percentEncoded: false))
-        return RecentRun(logURL: logExists ? logURL : nil, exitCode: latest.exitCode)
+        return RecentRun(logURL: logExists ? logURL : nil, exitCode: latest.exitCode, startTime: latest.startTime)
     }
 
     /// The programs with a run history in the bottle.
@@ -210,6 +212,7 @@ extension PreflightData {
             processCount: processCount,
             recentLogURL: recentLogURL,
             lastExitCode: lastExitCode,
+            recentRunStartTime: recentRunStartTime,
             audioDeviceName: audioDeviceName,
             audioTransportType: audioTransportType,
             audioSampleRate: audioSampleRate,

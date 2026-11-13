@@ -55,9 +55,11 @@ public final class ProcessRegistry: @unchecked Sendable {
     /// a restart, whatever is still running is no longer this run's.
     private var lastLaunches: [URL: Date] = [:]
 
-    /// IOKit power assertion held while at least one Wine process is registered.
-    /// Prevents the screen saver and display sleep during gaming sessions where
-    /// only a controller is generating input (whisky-app/whisky#547).
+    /// IOKit power assertion held while a tracked launcher process is running.
+    /// Prevents the screen saver and display sleep while one does
+    /// (whisky-app/whisky#547). Deliberately not held for a whole session:
+    /// entries outlive their `wine start` process, and a launcher such as Steam
+    /// idling in the tray would then keep the display awake for hours.
     private var displayWakeAssertion: IOPMAssertionID = .init(0)
 
     let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: "ProcessRegistry")
@@ -89,8 +91,6 @@ public final class ProcessRegistry: @unchecked Sendable {
         processes.insert(info)
         activeProcesses[bottle.url] = processes
         lastLaunches[bottle.url] = info.launchTime
-
-        ensureDisplayWakeAssertionLocked()
         lock.unlock()
 
         logger.info("Registered process '\(programName)' for bottle '\(bottle.url.lastPathComponent)'")
@@ -139,6 +139,11 @@ public final class ProcessRegistry: @unchecked Sendable {
                 )
                 mutableProcesses.insert(updatedInfo)
                 activeProcesses[bottleURL] = mutableProcesses
+                if pid > 0 {
+                    ensureDisplayWakeAssertionLocked()
+                } else {
+                    releaseDisplayWakeAssertionIfIdleLocked()
+                }
 
                 logger.debug("Updated PID for process '\(info.programName)' to \(pid)")
                 return
@@ -330,15 +335,19 @@ public final class ProcessRegistry: @unchecked Sendable {
 
     // MARK: - Display Wake Assertion
 
-    /// Total tracked process count across all bottles. Caller must hold ``lock``.
-    private func totalProcessCountLocked() -> Int {
-        activeProcesses.values.reduce(0) { $0 + $1.count }
+    /// Tracked entries whose launcher process is running: it has a PID, which
+    /// ``updatePID(pid:for:)`` sets once it starts and clears once it exits.
+    /// Caller must hold ``lock``.
+    private func liveLauncherCountLocked() -> Int {
+        activeProcesses.values.reduce(0) { total, entries in
+            total + entries.filter { $0.pid > 0 }.count
+        }
     }
 
     /// Acquires an IOKit `NoDisplaySleep` assertion if not already held and at
-    /// least one process is registered. Caller must hold ``lock``.
+    /// least one launcher process is running. Caller must hold ``lock``.
     private func ensureDisplayWakeAssertionLocked() {
-        guard displayWakeAssertion == 0, totalProcessCountLocked() > 0 else { return }
+        guard displayWakeAssertion == 0, liveLauncherCountLocked() > 0 else { return }
         var assertionID = IOPMAssertionID(0)
         let reason = "Whisky game running" as CFString
         let result = IOPMAssertionCreateWithName(
@@ -354,15 +363,22 @@ public final class ProcessRegistry: @unchecked Sendable {
         }
     }
 
-    /// Releases the display-sleep assertion if no processes remain. Caller must
-    /// hold ``lock``.
+    /// Releases the display-sleep assertion if no launcher process is running.
+    /// Caller must hold ``lock``.
     private func releaseDisplayWakeAssertionIfIdleLocked() {
-        guard displayWakeAssertion != 0, totalProcessCountLocked() == 0 else { return }
+        guard displayWakeAssertion != 0, liveLauncherCountLocked() == 0 else { return }
         IOPMAssertionRelease(displayWakeAssertion)
         displayWakeAssertion = IOPMAssertionID(0)
     }
 
     // MARK: - Testing Support
+
+    /// Whether the display-sleep assertion is currently held.
+    var holdsDisplayWakeAssertion: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return displayWakeAssertion != 0
+    }
 
     /// Resets the registry to empty state. For testing purposes only.
     public func reset() {

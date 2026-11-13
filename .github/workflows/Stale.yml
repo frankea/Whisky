@@ -36,5 +36,5 @@ jobs:
             It will close in 4 days without a reply; any comment keeps it open.
           close-issue-message: >
             Closing for now since there's been no reply. If this still happens
-            on the latest Whisky, comment here with the details and it will be
-            reopened.
+            on the latest Whisky, comment here with the details and the issue
+            can be reopened, or open a new one.

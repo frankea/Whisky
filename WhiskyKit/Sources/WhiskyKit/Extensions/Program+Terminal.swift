@@ -48,6 +48,8 @@ public extension Program {
 
     /// Prepares the bottle for this program, then opens the user's terminal running it.
     ///
+    /// The launch is recorded in the bottle's session, as any other launch is.
+    ///
     /// The command is the one `WhiskyCmd run --command` prints: the prefix is
     /// created if missing, and the DLL overrides, backend files and CJK font
     /// aliases a launch needs are in place before the terminal starts it. The
@@ -82,6 +84,9 @@ public extension Program {
             let description = error["NSAppleScriptErrorMessage"] as? String
             throw TerminalLaunchError(message: description ?? String(describing: error))
         }
+        // The terminal starts the program under the bottle's wineserver, which
+        // is then Whisky's doing and must not read as orphaned.
+        Wine.noteUserLaunch(in: bottle)
     }
 }
 

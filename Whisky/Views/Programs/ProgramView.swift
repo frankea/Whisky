@@ -22,6 +22,8 @@ import WhiskyKit
 
 struct ProgramView: View {
     @ObservedObject var program: Program
+    /// Opens the bottle's configuration page, where its audio settings live.
+    var onOpenBottleConfig: (() -> Void)?
     @State private var programLoading: Bool = false
     @State private var cachedIconImage: Image?
     @State private var toast: ToastData?
@@ -63,7 +65,8 @@ struct ProgramView: View {
             ProgramOverrideSettingsView(
                 bottle: program.bottle,
                 program: program,
-                isExpanded: $overridesSectionExpanded
+                isExpanded: $overridesSectionExpanded,
+                onOpenBottleConfig: onOpenBottleConfig
             )
             Section("console.title", isExpanded: $consoleRunsSectionExpanded) {
                 ConsoleRunHistoryView(

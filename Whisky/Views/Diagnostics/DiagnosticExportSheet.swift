@@ -37,6 +37,8 @@ struct DiagnosticExportSheet: View {
     @State private var includeFullLog = true
     @State private var isExporting = false
     @State private var showCopySuccess = false
+    /// Why the last Save ZIP failed, while its alert is up.
+    @State private var saveFailure: String?
 
     private var exportOptions: ExportOptions {
         ExportOptions(
@@ -67,6 +69,15 @@ struct DiagnosticExportSheet: View {
         }
         .padding(20)
         .frame(minWidth: 480)
+        .alert(
+            "diagnostics.export.saveFailed",
+            isPresented: Binding(get: { saveFailure != nil }, set: { if !$0 { saveFailure = nil } }),
+            presenting: saveFailure
+        ) { _ in
+            Button("button.ok") {}
+        } message: { reason in
+            Text(reason)
+        }
     }
 }
 
@@ -159,16 +170,22 @@ extension DiagnosticExportSheet {
             guard result == .OK, let destination = panel.url else { return }
             isExporting = true
             Task {
-                let zipURL = await DiagnosticExporter.exportZIP(
-                    diagnosis: diagnosis,
-                    bottle: bottle,
-                    program: program,
-                    logFileURL: logFileURL,
-                    timeline: loadRemediationTimeline(),
-                    options: exportOptions
-                )
-
-                try? moveFile(from: zipURL, to: destination)
+                do {
+                    try await DiagnosticExporter.exportZIP(
+                        diagnosis: diagnosis,
+                        bottle: bottle,
+                        program: program,
+                        logFileURL: logFileURL,
+                        timeline: loadRemediationTimeline(),
+                        options: exportOptions,
+                        to: destination
+                    )
+                } catch {
+                    // Stay open so the user can try again or pick another place.
+                    isExporting = false
+                    saveFailure = error.localizedDescription
+                    return
+                }
                 isExporting = false
                 dismiss()
             }
@@ -203,14 +220,6 @@ extension DiagnosticExportSheet {
 // MARK: - Helpers
 
 extension DiagnosticExportSheet {
-    private func moveFile(from source: URL, to destination: URL) throws {
-        let fileManager = FileManager.default
-        if fileManager.fileExists(atPath: destination.path(percentEncoded: false)) {
-            try fileManager.removeItem(at: destination)
-        }
-        try fileManager.moveItem(at: source, to: destination)
-    }
-
     private func loadDiagnosisHistory() -> DiagnosisHistory? {
         let historyURL = bottle.url
             .appending(path: "Program Settings")

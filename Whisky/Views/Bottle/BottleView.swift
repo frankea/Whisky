@@ -179,7 +179,11 @@ struct BottleView: View {
                 }
             }
             .navigationDestination(for: Program.self) { program in
-                ProgramView(program: program)
+                ProgramView(program: program) {
+                    // Open the bottle's configuration on top of the program,
+                    // so Back returns to it.
+                    path.append(BottleStage.config)
+                }
             }
         }
     }

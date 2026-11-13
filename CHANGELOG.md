@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Steam bottles no longer force US English. With Locale Override on Auto,
+  Steam and the games it starts now get the Mac's language and region, so
+  games that take their region or language from Windows (TEKKEN 8's online
+  region, for example) see the right one. The old workaround for Steam's
+  web helper isn't needed on current engines. Launcher bottles that earlier
+  versions set to English are put back on Auto once; Steam's own interface
+  language is still set in Steam's settings (#340, closes #330).
+
 ### Fixed
 - Applying a Game Configuration no longer sets a graphics backend this Mac
   can't run. 27 configurations, among them Elden Ring, Cyberpunk 2077,

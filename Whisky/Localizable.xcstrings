@@ -14076,6 +14076,54 @@
         }
       }
     },
+    "audio.fix.applied" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fix applied. Run the test again to check."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fix applied. Run the test again to check."
+          }
+        }
+      }
+    },
+    "audio.fix.closesPrograms" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This closes the programs running in this bottle."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This closes the programs running in this bottle."
+          }
+        }
+      }
+    },
+    "audio.fix.failed %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The fix couldn't be applied: %@"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The fix couldn't be applied: %@"
+          }
+        }
+      }
+    },
     "audio.history.clear" : {
       "localizations" : {
         "ar" : {

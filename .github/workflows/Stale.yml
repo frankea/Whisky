@@ -1,0 +1,40 @@
+name: Stale
+
+# Closes issues that are waiting on the reporter and have gone quiet.
+# Only issues labeled needs-info are touched: one is marked stale after
+# 10 days without activity and closed 4 days later, so a reporter gets 14
+# days to answer a request for details or a retest. Any comment resets the
+# clock. A reply after the stale warning also drops needs-info, so the
+# issue leaves this workflow until someone labels it again.
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  stale:
+    name: Close quiet needs-info issues
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v11
+        with:
+          only-issue-labels: needs-info
+          days-before-issue-stale: 10
+          days-before-issue-close: 4
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          stale-issue-label: stale
+          labels-to-remove-when-unstale: needs-info
+          exempt-issue-labels: pinned,roadmap
+          close-issue-reason: not_planned
+          stale-issue-message: >
+            This issue is waiting on details or a retest from the reporter.
+            It will close in 4 days without a reply; any comment keeps it open.
+          close-issue-message: >
+            Closing for now since there's been no reply. If this still happens
+            on the latest Whisky, comment here with the details and it will be
+            reopened.

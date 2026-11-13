@@ -38,6 +38,10 @@ struct ProgramOverrideSettingsView: View {
     @State private var showGameConfigDetail: Bool = false
     @State private var recommendedDependencies: [DependencyDefinition] = []
     @State private var dependencyToInstall: DependencyDefinition?
+    /// The audio troubleshooting wizard for this program's bottle, while it is open.
+    @State private var audioWizard: AudioWizardPresentation?
+    @State private var audioMonitor = AudioDeviceMonitor()
+    @AppStorage("audioAdvancedMode") private var audioAdvancedMode = false
 
     var body: some View {
         dependencyBadgeSection
@@ -148,12 +152,25 @@ struct ProgramOverrideSettingsView: View {
     private var audioTroubleshootingSection: some View {
         Section("config.title.audio") {
             Button("Troubleshoot Audio\u{2026}") {
-                NotificationCenter.default.post(
-                    name: .openAudioTroubleshooting,
-                    object: nil
-                )
+                audioWizard = .make(for: bottle, monitor: audioMonitor)
             }
             .help("program.overrides.audio.troubleshoot.help")
+        }
+        .sheet(item: $audioWizard) { presentation in
+            AudioTroubleshootingWizardView(
+                engine: presentation.engine,
+                onDismiss: {
+                    audioWizard = nil
+                },
+                onOpenAdvanced: {
+                    // The advanced audio settings live in the bottle's
+                    // configuration; open them in advanced mode there.
+                    audioAdvancedMode = true
+                },
+                onApplyFix: { actionId in
+                    await AudioWizardPresentation.applyFix(actionId, bottle: bottle).failureReason
+                }
+            )
         }
     }
 

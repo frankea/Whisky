@@ -324,3 +324,70 @@ extension AudioTroubleshootingWizardView {
         .padding()
     }
 }
+
+// MARK: - Presentation
+
+/// What the audio troubleshooting sheet is built from.
+///
+/// The bottle's Audio section and a program's settings both open the wizard
+/// through ``make(for:monitor:)`` and apply its fixes through
+/// ``applyFix(_:bottle:)``, so the two entry points run the same probes and
+/// the same fixes.
+struct AudioWizardPresentation: Identifiable {
+    let id = UUID()
+    let engine: AudioTroubleshootingEngine
+
+    /// Builds the wizard for a bottle with the full set of probes.
+    @MainActor
+    static func make(for bottle: Bottle, monitor: AudioDeviceMonitor) -> AudioWizardPresentation {
+        let probes: [any AudioProbe] = [
+            CoreAudioDeviceProbe(monitor: monitor),
+            WineRegistryAudioProbe(bottle: bottle),
+            WineAudioTestProbe(
+                bottle: bottle,
+                testExeURL: Bundle.main.url(forResource: "WhiskyAudioTest", withExtension: "exe")
+            )
+        ]
+        return AudioWizardPresentation(engine: AudioTroubleshootingEngine(probes: probes))
+    }
+
+    /// Applies the fix behind a wizard step to a bottle.
+    ///
+    /// A step that only points at the Mac's sound settings opens them and
+    /// leaves the bottle alone.
+    @MainActor
+    static func applyFix(_ actionId: String, bottle: Bottle) async -> AudioWizardFixResult {
+        guard let action = AudioFixAction(troubleshootingActionId: actionId) else { return .notApplied }
+        guard action.changesBottle else {
+            if let url = AudioFixAction.soundSettingsURL {
+                NSWorkspace.shared.open(url)
+            }
+            return .notApplied
+        }
+        do {
+            try await Wine.applyAudioFix(action, bottle: bottle)
+        } catch {
+            return .failed(error.localizedDescription)
+        }
+        return .applied
+    }
+}
+
+/// What applying a wizard step's fix did.
+enum AudioWizardFixResult {
+    /// The bottle changed.
+    case applied
+    /// Nothing in the bottle changed: an unknown action, or one handled outside it.
+    case notApplied
+    /// The fix failed and the bottle is unchanged.
+    case failed(String)
+
+    /// Why the fix failed, or `nil` when it did not, as the wizard's
+    /// `onApplyFix` reports it.
+    var failureReason: String? {
+        if case let .failed(reason) = self {
+            return reason
+        }
+        return nil
+    }
+}

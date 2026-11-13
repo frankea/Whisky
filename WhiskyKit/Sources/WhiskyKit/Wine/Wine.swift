@@ -497,11 +497,9 @@ public class Wine {
         // the launcher keeps working when the two share a file.
         let legacyProgramDXVK = programOverrides?.graphicsBackend == nil && programOverrides?.dxvk == true
         let shouldEnableDXVK = deploysDXVK(
-            effectiveBackend: effectiveBackend,
-            legacyProgramDXVK: legacyProgramDXVK,
+            effectiveBackend: effectiveBackend, legacyProgramDXVK: legacyProgramDXVK,
             launcherCarriesDescendantPlan: overridesApplyToDescendants && launcher != nil,
-            autoEnableDXVK: bottle.settings.autoEnableDXVK,
-            detectedLauncher: bottle.settings.detectedLauncher
+            autoEnableDXVK: bottle.settings.autoEnableDXVK, detectedLauncher: bottle.settings.detectedLauncher
         )
 
         if shouldEnableDXVK {

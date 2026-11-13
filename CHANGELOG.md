@@ -27,6 +27,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The crash step in troubleshooting shows its result in the app's
   language, and shortcut launchers show their "Whisky not found" alert in
   it too (#346).
+- The Fix buttons on audio findings did nothing, and Apply Fix in Audio
+  Troubleshooting only recorded the attempt. They now apply their fix:
+  re-enabling the audio driver, restoring the latency preset, clearing
+  Wine's cached audio devices, or opening Sound settings. Fixes that
+  restart the bottle say so first, and findings that are advice only no
+  longer show a button (#347).
+- Audio checks could not detect a disabled audio driver, and registry
+  values containing spaces were read back cut short (#347).
 
 ## [3.9.1] - 2026-11-12 (App)
 

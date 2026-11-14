@@ -467,19 +467,29 @@ public struct BottleSettings: Codable, Equatable {
     /// The output device routing mode for this bottle.
     ///
     /// Controls whether Wine follows the macOS default output device
-    /// or is pinned to a specific device by name.
+    /// or is pinned to the device named by ``pinnedDeviceUID``.
     public var outputDeviceMode: OutputDeviceMode {
         get { audioConfig.outputDeviceMode }
         set { audioConfig.outputDeviceMode = newValue }
     }
 
-    /// The name of the pinned audio output device, if any.
+    /// The display name of the pinned audio output device, if any.
     ///
-    /// Only meaningful when ``outputDeviceMode`` is `.pinned`.
-    /// Set to `nil` to clear the pin and follow the system default.
+    /// Kept only so the settings can still name the device while it is
+    /// disconnected; Wine matches on ``pinnedDeviceUID``.
     public var pinnedDeviceName: String? {
         get { audioConfig.pinnedDeviceName }
         set { audioConfig.pinnedDeviceName = newValue }
+    }
+
+    /// The CoreAudio UID of the pinned audio output device, if any.
+    ///
+    /// Only meaningful when ``outputDeviceMode`` is `.pinned`. This is the
+    /// identifier Wine's CoreAudio driver matches when picking the default
+    /// output; `nil` leaves Wine on the macOS default output.
+    public var pinnedDeviceUID: String? {
+        get { audioConfig.pinnedDeviceUID }
+        set { audioConfig.pinnedDeviceUID = newValue }
     }
 
     // MARK: - Display settings
@@ -602,14 +612,6 @@ public struct BottleSettings: Codable, Equatable {
     public var gpuVendor: GPUVendor {
         get { launcherConfig.gpuVendor }
         set { launcherConfig.gpuVendor = newValue }
-    }
-
-    /// Network timeout in milliseconds for launcher downloads.
-    ///
-    /// Addresses Steam download stalls and connection timeouts.
-    public var networkTimeout: Int {
-        get { launcherConfig.networkTimeout }
-        set { launcherConfig.networkTimeout = newValue }
     }
 
     /// Whether to force DXVK in a bottle whose launcher requires it.
@@ -750,9 +752,10 @@ public struct BottleSettings: Codable, Equatable {
 
     /// The policy for handling running processes when navigating away from this bottle.
     ///
-    /// Controls whether a confirmation dialog is shown when the user switches
-    /// to a different bottle while Wine processes are still running.
-    /// See ``CloseWithProcessesPolicy`` for available options.
+    /// Controls whether processes Whisky launched keep running, are stopped, or
+    /// prompt a confirmation dialog when the user selects a different bottle or
+    /// returns to the library while they are still running. Defaults to keeping
+    /// them running. See ``CloseWithProcessesPolicy`` for available options.
     public var closeWithProcessesPolicy: CloseWithProcessesPolicy {
         get { cleanupConfig.closeWithProcessesPolicy }
         set { cleanupConfig.closeWithProcessesPolicy = newValue }
@@ -1028,7 +1031,6 @@ public struct BottleSettings: Codable, Equatable {
     /// - Merges launcher-specific environment overrides
     /// - Applies the bottle's explicit Locale Override over any preset locale
     /// - Configures GPU spoofing for launcher checks
-    /// - Sets network timeouts for download reliability
     ///
     /// - Parameters:
     ///   - builder: The environment builder to populate.
@@ -1087,15 +1089,6 @@ public struct BottleSettings: Codable, Equatable {
                     builder.set(key, value, layer: .launcherManaged)
                 }
             }
-        }
-
-        // Network timeout configuration
-        // Applied if user customized timeout (including launcher-set values)
-        // Launcher-specific timeouts are set via bottle.settings.networkTimeout by
-        // LauncherFixes.apply(), giving users control via UI slider
-        if networkTimeout != 60_000 { // If not default (60s)
-            builder.set("WINHTTP_CONNECT_TIMEOUT", String(networkTimeout), layer: .launcherManaged)
-            builder.set("WINHTTP_RECEIVE_TIMEOUT", String(networkTimeout * 2), layer: .launcherManaged)
         }
 
         // The connection-pooling and SSL variables that used to be set here

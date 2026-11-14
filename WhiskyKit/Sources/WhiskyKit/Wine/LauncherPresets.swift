@@ -195,10 +195,6 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             // Reduce UI stuttering in Steam client
             env["DXVK_ASYNC"] = "1"
 
-            // Note: Network timeouts for Steam are configured via bottle.settings.networkTimeout
-            // which is set to 90000ms by LauncherFixes.apply()
-            // This allows users to customize timeouts via the UI slider
-
         case .rockstar:
             // Rockstar Launcher fixes (whisky-app/whisky#1335, #835, #1120)
             // DXVK is required for the logo screen to render; requiresDXVK makes
@@ -218,8 +214,6 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             env["LC_ALL"] = "en_US.UTF-8"
             env["LANG"] = "en_US.UTF-8"
 
-            // Note: Network timeouts configured via bottle.settings.networkTimeout (default 60s)
-
         case .epicGames:
             // Epic Games Store launcher fixes
             // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
@@ -229,9 +223,6 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             // Ubisoft Connect fixes (whisky-app/whisky#1004)
             // Anno 1800 and other Ubisoft games compatibility
             env["DXVK_ASYNC"] = "1"
-
-            // Note: Network timeouts for Ubisoft are configured via bottle.settings.networkTimeout
-            // which is set to 90000ms by LauncherFixes.apply()
 
         case .battleNet:
             // Blizzard Battle.net launcher

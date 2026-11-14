@@ -39,6 +39,13 @@ struct CleanupConfigSection: View {
                 Text("config.cleanup.killOnQuit.never").tag(KillOnQuitPolicy.neverKill)
             }
             .help("config.cleanup.killOnQuit.help")
+
+            Picker("config.cleanup.closeWithProcesses", selection: $bottle.settings.closeWithProcessesPolicy) {
+                Text("config.cleanup.closeWithProcesses.ask").tag(CloseWithProcessesPolicy.ask)
+                Text("config.cleanup.closeWithProcesses.keepRunning").tag(CloseWithProcessesPolicy.alwaysKeepRunning)
+                Text("config.cleanup.closeWithProcesses.stop").tag(CloseWithProcessesPolicy.alwaysStop)
+            }
+            .help("config.cleanup.closeWithProcesses.help")
         }
     }
 }

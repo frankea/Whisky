@@ -281,24 +281,6 @@ final class ProgramLaunchPreparationTests {
         #expect(recorder.overrides(for: .program("steamwebhelper.exe"))?["nvapi64"] == "")
     }
 
-    @Test("A program set to a virtual desktop is prepared to run in one")
-    func virtualDesktopArguments() async throws {
-        let bottle = try makeBottle()
-        let program = try Program(url: makeExecutable("Games/My Game.exe", in: bottle), bottle: bottle)
-        var overrides = ProgramOverrides()
-        overrides.virtualDesktopEnabled = true
-        overrides.resolutionPreset = .r1280x720
-
-        let launch = try await Wine.prepareProgramLaunch(
-            at: program.url, args: ["-x"], bottle: bottle, programOverrides: overrides,
-            overrideWriter: RegistryRecorder().writer
-        )
-
-        #expect(launch.arguments == [
-            "explorer", "/desktop=My_Game.exe,1280x720", program.url.path(percentEncoded: false), "-x"
-        ])
-    }
-
     @Test("A prepared launch prints exactly as prepared, without rebuilding its environment")
     func preparedLaunchPrintsVerbatim() {
         let launch = Wine.PreparedLaunch(

@@ -97,7 +97,6 @@ public enum SteamLauncher {
 
         return Task {
             try await Wine.prepareBottlePrefix(bottle: bottle)
-            await Wine.syncAudioRegistry(bottle: bottle)
             if !clientIsRunning {
                 let running = await hostSteamPIDs()
                 await startClientIfNeeded(

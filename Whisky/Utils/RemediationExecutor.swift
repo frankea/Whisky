@@ -151,11 +151,6 @@ enum RemediationExecutor {
             let before = String(bottle.settings.dxrEnabled)
             bottle.settings.dxrEnabled = action.settingValue == "true"
             return (before, String(bottle.settings.dxrEnabled))
-        case "networkTimeout":
-            guard let value = action.settingValue.flatMap(Int.init) else { return nil }
-            let before = String(bottle.settings.networkTimeout)
-            bottle.settings.networkTimeout = value
-            return (before, String(bottle.settings.networkTimeout))
         default:
             let keyPath = action.settingKeyPath ?? "nil"
             logger.error(

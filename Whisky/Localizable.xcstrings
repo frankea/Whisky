@@ -31052,6 +31052,86 @@
         }
       }
     },
+    "config.cleanup.closeWithProcesses" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When Leaving a Running Bottle"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When Leaving a Running Bottle"
+          }
+        }
+      }
+    },
+    "config.cleanup.closeWithProcesses.ask" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask Each Time"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask Each Time"
+          }
+        }
+      }
+    },
+    "config.cleanup.closeWithProcesses.help" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controls what happens to programs Whisky launched in this bottle when you select another bottle or return to the library while they are still running"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controls what happens to programs Whisky launched in this bottle when you select another bottle or return to the library while they are still running"
+          }
+        }
+      }
+    },
+    "config.cleanup.closeWithProcesses.keepRunning" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep Running"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep Running"
+          }
+        }
+      }
+    },
+    "config.cleanup.closeWithProcesses.stop" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop Processes"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop Processes"
+          }
+        }
+      }
+    },
     "config.cleanup.killOnQuit" : {
       "localizations" : {
         "ar" : {

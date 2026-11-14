@@ -64,12 +64,6 @@ struct AudioRegistryState: Codable, Equatable {
     }
 }
 
-/// Registry writes that `wine reg` reported as done but did not store.
-enum AudioRegistryWriteError: Error {
-    case endpointGUIDNotStored
-    case defaultOutputNotStored
-}
-
 /// The audio registry sync running for each bottle, keyed by bottle URL.
 @MainActor
 private enum AudioRegistrySyncQueue {
@@ -186,75 +180,7 @@ public extension Wine {
     ///   - uid: The CoreAudio device UID, or `nil` to follow the macOS default.
     @MainActor
     static func setDefaultOutputDevice(bottle: Bottle, uid: String?) async throws {
-        guard let uid, let deviceKey = WineAudioEndpoint.renderDeviceKey(uid: uid) else {
-            do {
-                try await deleteRegistryValue(
-                    bottle: bottle,
-                    key: WineAudioEndpoint.driverKey,
-                    name: WineAudioEndpoint.defaultOutputValue
-                )
-            } catch {
-                // The value might not exist; this is expected
-                logger.info("Default output device not pinned, nothing to remove")
-            }
-            return
-        }
-
-        let guid = try await endpointGUID(bottle: bottle, deviceKey: deviceKey)
-        let endpointID = WineAudioEndpoint.endpointID(for: guid)
-        try await addRegistryKey(
-            bottle: bottle,
-            key: WineAudioEndpoint.driverKey,
-            name: WineAudioEndpoint.defaultOutputValue,
-            data: endpointID,
-            type: .string
-        )
-
-        // `wine reg` does not report failures through its exit status, so the
-        // write is read back; throwing keeps the marker stale and the next
-        // launch retries.
-        let written = try? await queryRegistryKey(
-            bottle: bottle,
-            key: WineAudioEndpoint.driverKey,
-            name: WineAudioEndpoint.defaultOutputValue,
-            type: .string
-        )
-        guard written == endpointID else { throw AudioRegistryWriteError.defaultOutputNotStored }
-    }
-
-    /// The endpoint GUID Wine uses for a device, seeding one if none is stored.
-    ///
-    /// The GUID is always the one read back from the registry, never the one
-    /// generated here: a Wine process in the bottle may store its own first,
-    /// and Wine keeps whichever GUID is stored.
-    @MainActor
-    private static func endpointGUID(bottle: Bottle, deviceKey: String) async throws -> UUID {
-        if let guid = await storedEndpointGUID(bottle: bottle, deviceKey: deviceKey) {
-            return guid
-        }
-
-        try await addRegistryKey(
-            bottle: bottle,
-            key: deviceKey,
-            name: WineAudioEndpoint.guidValue,
-            data: WineAudioEndpoint.registryHex(for: UUID()),
-            type: .binary
-        )
-        guard let guid = await storedEndpointGUID(bottle: bottle, deviceKey: deviceKey) else {
-            throw AudioRegistryWriteError.endpointGUIDNotStored
-        }
-        return guid
-    }
-
-    @MainActor
-    private static func storedEndpointGUID(bottle: Bottle, deviceKey: String) async -> UUID? {
-        let value = try? await queryRegistryKey(
-            bottle: bottle,
-            key: deviceKey,
-            name: WineAudioEndpoint.guidValue,
-            type: .binary
-        )
-        return value.flatMap(WineAudioEndpoint.uuid(fromRegistryHex:))
+        try await WineAudioOutputPin.apply(uid: uid, registry: BottleAudioEndpointRegistry(bottle: bottle))
     }
 
     /// Brings the bottle's Wine registry in line with its audio settings.

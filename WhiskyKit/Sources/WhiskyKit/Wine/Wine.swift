@@ -210,6 +210,14 @@ public class Wine {
         /// Use this to correlate the run result with the run log history
         /// entry, e.g., to open the correct log entry in the console UI.
         public let runLogEntryId: UUID
+        /// Completed once the session's output has closed: the log is then
+        /// complete, the run log entry is marked finished, and every late
+        /// output event has reached `onOutput`.
+        ///
+        /// A run returns when the `wine start` launcher exits, seconds after
+        /// launch. The program it started, and the bottle's services, keep
+        /// writing to the run's log until the bottle's session ends.
+        public let outputCompletion: ProcessOutputCompletion
     }
 
     /// What a program launch runs once its bottle has been prepared for it.
@@ -323,20 +331,14 @@ public class Wine {
         // LauncherFixes.detectAndApply in the app's run-a-file paths
         // (FileOpenView, BottleActionBar).
 
-        // Disable App Nap if requested to prevent macOS from throttling Wine processes.
-        // Note: This token is held while the `wine start` launcher process runs. The actual
-        // game process continues as a child of wineserver after the launcher exits. Full
-        // App Nap prevention for the entire game session would require tracking wineserver,
-        // but this provides protection during the critical startup/initialization phase.
-        let activityToken: NSObjectProtocol? = bottle.settings.disableAppNap
-            ? ProcessInfo.processInfo.beginActivity(
-                options: [.userInitiated, .idleSystemSleepDisabled],
-                reason: "Wine process running for \(bottle.settings.name)"
-            )
-            : nil
+        // Disable App Nap if requested, so macOS doesn't throttle Whisky while it
+        // pumps the session's output: held until the output closes, not only
+        // while the `wine start` launcher runs.
+        let activity = LaunchActivity(bottle: bottle)
+        var sessionHoldsActivity = false
         defer {
-            if let token = activityToken {
-                ProcessInfo.processInfo.endActivity(token)
+            if !sessionHoldsActivity {
+                activity.end()
             }
         }
 
@@ -349,35 +351,24 @@ public class Wine {
         fileHandle.writeApplicationInfo()
         fileHandle.writeInfo(for: bottle)
 
-        // Create a run log entry to track this session
         let programName = url.lastPathComponent
-        var runLogEntry = RunLogEntry(programName: programName, logFileName: logFileURL.lastPathComponent)
-
-        // Record the active WINEDEBUG preset if one is set
-        if launch.environment.keys.contains("WINEDEBUG") {
-            runLogEntry.activeWineDebugPreset = programSettings?.activeWineDebugPreset?.rawValue
-        }
-
-        // Persist the "running" state immediately
-        var runLogHistory = RunLogStore.load(for: programName, in: bottle.url)
-        let prunedEntries = runLogHistory.append(runLogEntry)
-        RunLogStore.save(runLogHistory, for: programName, in: bottle.url)
-
-        // Clean up log files for pruned entries
-        for pruned in prunedEntries {
-            let prunedLogURL = Self.logsFolder.appending(path: pruned.logFileName)
-            try? FileManager.default.removeItem(at: prunedLogURL)
-        }
+        let runLogEntryId = recordRunStart(
+            programName: programName, logFileURL: logFileURL, launch: launch,
+            programSettings: programSettings, bottle: bottle
+        )
 
         // As late as possible: the bridge holds the prefix open only for a short
         // grace window before standing down, so it wants the smallest gap it can
         // get between itself and the program it is bridging for.
         DiscordIntegration.shared.programLaunching(url, bottle: bottle)
 
+        let session = ProgramSession(onOutput: onOutput)
         var exitCode: Int32 = 0
         let process = makeProcess(args: launch.arguments, environment: launch.environment, executableURL: wineBinary)
-        for await output in
-            try startTrackedProgram(process, name: programName, bottle: bottle, fileHandle: fileHandle) {
+        for await output in try startTrackedProgram(
+            process, name: programName, bottle: bottle, fileHandle: fileHandle,
+            outputCompletion: session.pipeCompletion, lateOutput: session.lateOutput
+        ) {
             onOutput?(output)
             if case let .terminated(code) = output {
                 exitCode = code
@@ -385,16 +376,17 @@ public class Wine {
         }
         launcherDidExit(process, exitCode: exitCode)
 
-        // Update the run log entry with exit information
-        var updatedHistory = RunLogStore.load(for: programName, in: bottle.url)
-        updatedHistory.markCompleted(
-            id: runLogEntry.id,
-            exitCode: exitCode,
-            hasWineDebug: launch.environment.keys.contains("WINEDEBUG")
+        sessionHoldsActivity = true
+        let completion = session.finish { [exitCode] in
+            recordRunEnd(
+                id: runLogEntryId, programName: programName, exitCode: exitCode,
+                hasWineDebug: launch.environment.keys.contains("WINEDEBUG"), bottle: bottle
+            )
+            activity.end()
+        }
+        return ProgramRunResult(
+            exitCode: exitCode, logFileURL: logFileURL, runLogEntryId: runLogEntryId, outputCompletion: completion
         )
-        RunLogStore.save(updatedHistory, for: programName, in: bottle.url)
-
-        return ProgramRunResult(exitCode: exitCode, logFileURL: logFileURL, runLogEntryId: runLogEntry.id)
     }
 
     /// Prepares a bottle to launch a program, without launching it.

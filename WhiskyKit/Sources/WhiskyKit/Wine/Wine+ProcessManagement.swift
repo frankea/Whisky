@@ -245,15 +245,22 @@ extension Wine {
     ///
     /// The process is registered before it starts and given its PID once it
     /// has one, and the bottle's session is watched until its wineserver goes idle.
+    /// The stream finishes when the process exits; what the program it started
+    /// writes after that goes to `fileHandle` and `lateOutput`
+    /// (``Foundation/Process/runStream(name:fileHandle:completion:lateOutput:)``).
     @MainActor
     static func startTrackedProgram(
-        _ process: Process, name: String, bottle: Bottle, fileHandle: FileHandle?
+        _ process: Process, name: String, bottle: Bottle, fileHandle: FileHandle?,
+        outputCompletion: ProcessOutputCompletion? = nil,
+        lateOutput: AsyncStream<ProcessOutput>.Continuation? = nil
     ) throws -> AsyncStream<ProcessOutput> {
         let registry = ProcessRegistry.shared
         registry.register(process: process, bottle: bottle, programName: name)
         let stream: AsyncStream<ProcessOutput>
         do {
-            stream = try process.runStream(name: name, fileHandle: fileHandle)
+            stream = try process.runStream(
+                name: name, fileHandle: fileHandle, completion: outputCompletion, lateOutput: lateOutput
+            )
         } catch {
             registry.unregister(process: process)
             throw error

@@ -69,8 +69,9 @@ public extension Wine {
     /// Lists the bottle's Wine processes as `tasklist.exe` reports them.
     ///
     /// A bottle whose wineserver is down has none, and is not listed: running
-    /// `tasklist.exe` there would bring up a wineserver nothing else uses. A
-    /// listing is weighed against the bottle's launch session
+    /// `tasklist.exe` there would bring up a wineserver nothing else uses.
+    /// Whisky's own helpers, `tasklist.exe` itself among them, are left out
+    /// (``withoutWhiskyHelpers(_:)``). A listing is weighed against the bottle's launch session
     /// (``WineHelperActivity/recordListing(_:bottleURL:registry:now:)``).
     ///
     /// `tasklist.exe` is a Wine process in the bottle, so unlike the `-k0` probe
@@ -90,9 +91,26 @@ public extension Wine {
         let output = try await runWineWithBottle(
             ["tasklist.exe", "/FO", "CSV"], bottle: bottle, createsLogFile: false, isHelper: false
         )
-        let processes = parseTasklistOutput(output)
+        let processes = withoutWhiskyHelpers(parseTasklistOutput(output))
         WineHelperActivity.shared.recordListing(processes, bottleURL: bottle.url)
         return processes
+    }
+
+    /// The Windows programs Whisky runs in a bottle on its own: `tasklist.exe`
+    /// for this listing, which always finds itself, `taskkill.exe` to quit a
+    /// process and `reg.exe` to read and write the registry. Lowercase.
+    static let whiskyHelperImageNames: Set<String> = ["tasklist.exe", "taskkill.exe", "reg.exe"]
+
+    /// Whether a listed process is one of Whisky's own helpers rather than
+    /// something the user runs.
+    static func isWhiskyHelper(_ process: WineProcess) -> Bool {
+        whiskyHelperImageNames.contains(process.imageName.lowercased())
+    }
+
+    /// A listing without Whisky's own helpers, which would otherwise show up
+    /// as untracked apps.
+    static func withoutWhiskyHelpers(_ processes: [WineProcess]) -> [WineProcess] {
+        processes.filter { !isWhiskyHelper($0) }
     }
 
     /// Parses the CSV output of `tasklist.exe` into an array of ``WineProcess`` values.

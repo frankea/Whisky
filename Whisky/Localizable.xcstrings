@@ -45911,6 +45911,22 @@
         }
       }
     },
+    "diagnostics.export.includeRemediationHistory.detail" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fixes applied from this program's diagnosis cards"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fixes applied from this program's diagnosis cards"
+          }
+        }
+      }
+    },
     "diagnostics.export.saveFailed" : {
       "localizations" : {
         "en" : {

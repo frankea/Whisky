@@ -84,7 +84,8 @@ struct ProgramOverrideSettingsView: View {
                     programName: program.name,
                     bottleName: bottle.settings.name,
                     timestamp: Date(),
-                    applyBottle: bottle
+                    applyBottle: bottle,
+                    applyProgramURL: program.url
                 )
                 .frame(minWidth: 600, minHeight: 400)
             }

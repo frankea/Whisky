@@ -223,75 +223,64 @@ final class DiagnosticExporterTests: XCTestCase {
         XCTAssertEqual(entry.topSignatures.count, 3, "topSignatures should be capped at 3")
     }
 
-    // MARK: - RemediationTimeline Tests
+    // MARK: - Remediation History Section Tests
 
-    func testRemediationTimelineFIFO() {
+    private func sampleTimeline() -> RemediationTimeline {
         var timeline = RemediationTimeline()
-        XCTAssertTrue(timeline.isEmpty)
-
-        // Add 11 entries; first should be evicted
-        for index in 0 ..< 11 {
-            let entry = RemediationTimelineEntry(
-                timestamp: Date(),
-                actionId: "action-\(index)",
-                actionTitle: "Action \(index)",
-                beforeValue: "before-\(index)",
-                afterValue: "after-\(index)",
-                bottleIdentifier: "bottle-1",
-                programPath: "/game.exe"
-            )
-            timeline.record(entry)
-        }
-
-        XCTAssertEqual(timeline.entries.count, RemediationTimeline.maxEntries)
-        // First entry (action-0) should have been evicted
-        XCTAssertEqual(timeline.entries.first?.actionId, "action-1")
-        XCTAssertEqual(timeline.entries.last?.actionId, "action-10")
-    }
-
-    func testRemediationTimelineRoundTrip() throws {
-        var timeline = RemediationTimeline()
-        let entry = RemediationTimelineEntry(
+        timeline.record(RemediationTimelineEntry(
             timestamp: Date(timeIntervalSince1970: 1_700_000_000),
-            actionId: "install-vcredist",
-            actionTitle: "Install Visual C++ Redistributable",
-            beforeValue: "not installed",
-            afterValue: "installed",
-            bottleIdentifier: "bottle-abc",
-            programPath: "/path/to/game.exe"
-        )
-        timeline.record(entry)
-
-        let tempURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("test-remediation-timeline-\(UUID()).plist")
-        defer { try? FileManager.default.removeItem(at: tempURL) }
-
-        try timeline.save(to: tempURL)
-        let loaded = RemediationTimeline.load(from: tempURL)
-
-        XCTAssertEqual(loaded.entries.count, 1)
-        XCTAssertEqual(loaded.entries.first?.actionId, "install-vcredist")
-        XCTAssertEqual(loaded.entries.first?.actionTitle, "Install Visual C++ Redistributable")
-        XCTAssertEqual(loaded.entries.first?.beforeValue, "not installed")
-        XCTAssertEqual(loaded.entries.first?.afterValue, "installed")
+            actionId: "install-vcrun2019",
+            actionTitle: "Install Visual C++ 2019",
+            beforeValue: nil,
+            afterValue: "installed"
+        ))
+        timeline.record(RemediationTimelineEntry(
+            timestamp: Date(timeIntervalSince1970: 1_700_000_600),
+            actionId: "enable-dxr",
+            actionTitle: "Enable DirectX Raytracing",
+            beforeValue: "false",
+            afterValue: "true"
+        ))
+        return timeline
     }
 
-    func testRemediationTimelineClear() {
-        var timeline = RemediationTimeline()
-        let entry = RemediationTimelineEntry(
-            timestamp: Date(),
-            actionId: "test",
-            actionTitle: "Test",
-            beforeValue: nil,
-            afterValue: nil,
-            bottleIdentifier: "bottle-1",
-            programPath: "/game.exe"
+    func testRemediationHistorySectionIncludedWhenEnabled() throws {
+        let section = DiagnosticExporter.generateRemediationHistorySection(
+            timeline: sampleTimeline(),
+            options: ExportOptions(includeRemediationHistory: true)
         )
-        timeline.record(entry)
-        XCTAssertFalse(timeline.isEmpty)
+        XCTAssertTrue(section.hasPrefix("### Remediation History"))
+        XCTAssertTrue(section.contains("**Enable DirectX Raytracing** (`enable-dxr`) false -> true"))
+        XCTAssertTrue(section.contains("**Install Visual C++ 2019** (`install-vcrun2019`) installed"))
+        // Newest first.
+        let newest = try XCTUnwrap(section.range(of: "enable-dxr"))
+        let oldest = try XCTUnwrap(section.range(of: "install-vcrun2019"))
+        XCTAssertLessThan(newest.lowerBound, oldest.lowerBound)
+    }
 
-        timeline.clear()
-        XCTAssertTrue(timeline.isEmpty)
+    func testRemediationHistorySectionOmittedWhenDisabled() {
+        let section = DiagnosticExporter.generateRemediationHistorySection(
+            timeline: sampleTimeline(),
+            options: ExportOptions(includeRemediationHistory: false)
+        )
+        XCTAssertEqual(section, "")
+    }
+
+    func testRemediationHistorySectionOmittedForEmptyTimeline() {
+        let options = ExportOptions(includeRemediationHistory: true)
+        XCTAssertEqual(
+            DiagnosticExporter.generateRemediationHistorySection(timeline: RemediationTimeline(), options: options),
+            ""
+        )
+        XCTAssertEqual(DiagnosticExporter.generateRemediationHistorySection(timeline: nil, options: options), "")
+    }
+
+    func testRemediationHistoryJSONHasNoPaths() throws {
+        let data = try DiagnosticExporter.remediationHistoryJSON(sampleTimeline())
+        let json = try XCTUnwrap(String(data: data, encoding: .utf8))
+        XCTAssertTrue(json.contains("enable-dxr"))
+        XCTAssertFalse(json.contains("programPath"))
+        XCTAssertFalse(json.contains("bottleIdentifier"))
     }
 
     // MARK: - DiagnosticExporter Helper Tests

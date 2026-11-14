@@ -96,8 +96,11 @@ public struct RemediationTimeline: Codable, Sendable {
 
     /// Where the timeline for the program at `programURL` lives.
     ///
-    /// `<bottle>/Program Settings/<program file name>.remediation-timeline.plist`,
-    /// next to the program's settings and diagnosis history.
+    /// `<bottle>/Program Settings/<identity>.remediation-timeline.plist`, next
+    /// to the program's settings. Keyed like the settings file, by the
+    /// executable's stem plus a hash of its bottle-relative path, so two
+    /// programs sharing a file name (the classic `Launch.exe` case) keep
+    /// separate histories.
     ///
     /// - Parameters:
     ///   - programURL: The program's executable.
@@ -106,7 +109,7 @@ public struct RemediationTimeline: Codable, Sendable {
     public static func url(forProgramAt programURL: URL, inBottleAt bottleURL: URL) -> URL {
         bottleURL
             .appending(path: "Program Settings")
-            .appending(path: programURL.lastPathComponent)
+            .appending(path: Program.settingsIdentity(for: programURL, bottleURL: bottleURL))
             .appendingPathExtension("remediation-timeline.plist")
     }
 

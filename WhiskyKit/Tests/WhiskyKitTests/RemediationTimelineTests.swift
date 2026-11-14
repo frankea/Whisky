@@ -91,18 +91,36 @@ final class RemediationTimelineTests: XCTestCase {
 
     // MARK: - Stored per program
 
-    func testUrlMatchesProgramName() {
-        // Program.name is the executable's file name, extension included, and
-        // the export sheet looks the file up under that name.
+    func testUrlIsKeyedByProgramIdentity() {
+        // Keyed like the program's settings file, so the recorder and the
+        // export sheet agree on it and it sits next to that settings file.
         let programURL = bottleURL.appending(path: "drive_c/Games/My Game.exe")
         let url = RemediationTimeline.url(forProgramAt: programURL, inBottleAt: bottleURL)
+        let identity = Program.settingsIdentity(for: programURL, bottleURL: bottleURL)
 
-        XCTAssertEqual(url.lastPathComponent, "My Game.exe.remediation-timeline.plist")
+        XCTAssertTrue(identity.hasPrefix("My Game-"))
+        XCTAssertEqual(url.lastPathComponent, "\(identity).remediation-timeline.plist")
         XCTAssertEqual(url.deletingLastPathComponent().lastPathComponent, "Program Settings")
         XCTAssertEqual(
             url.deletingLastPathComponent().deletingLastPathComponent().standardizedFileURL,
             bottleURL.standardizedFileURL
         )
+    }
+
+    func testProgramsSharingAFileNameKeepSeparateHistories() {
+        let first = bottleURL.appending(path: "drive_c/GameA/Launch.exe")
+        let second = bottleURL.appending(path: "drive_c/GameB/Launch.exe")
+        XCTAssertNotEqual(
+            RemediationTimeline.url(forProgramAt: first, inBottleAt: bottleURL),
+            RemediationTimeline.url(forProgramAt: second, inBottleAt: bottleURL)
+        )
+
+        RemediationTimeline.record(makeEntry(0), forProgramAt: first, inBottleAt: bottleURL)
+
+        let secondHistory = RemediationTimeline.load(
+            from: RemediationTimeline.url(forProgramAt: second, inBottleAt: bottleURL)
+        )
+        XCTAssertTrue(secondHistory.isEmpty)
     }
 
     func testRecordCreatesProgramSettingsFile() throws {
@@ -122,7 +140,8 @@ final class RemediationTimelineTests: XCTestCase {
             inBottleAt: bottleURL
         )
 
-        let fileURL = settingsFolder.appending(path: "Game.exe.remediation-timeline.plist")
+        let fileURL = RemediationTimeline.url(forProgramAt: programURL, inBottleAt: bottleURL)
+        XCTAssertEqual(fileURL.deletingLastPathComponent().lastPathComponent, settingsFolder.lastPathComponent)
         XCTAssertTrue(FileManager.default.fileExists(atPath: fileURL.path(percentEncoded: false)))
         let loaded = RemediationTimeline.load(from: fileURL)
         XCTAssertEqual(loaded.entries.count, 1)

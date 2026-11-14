@@ -212,7 +212,8 @@ struct ConfigView: View {
                 programName: presentation.program.name,
                 bottleName: bottle.settings.name,
                 timestamp: presentation.program.settings.lastDiagnosisDate ?? Date(),
-                applyBottle: bottle
+                applyBottle: bottle,
+                applyProgramURL: presentation.program.url
             )
             .frame(minWidth: 600, minHeight: 400)
         }

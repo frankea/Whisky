@@ -180,7 +180,8 @@ struct WhiskyApp: App {
                         programName: banner.programName,
                         bottleName: bottle(forProgramPath: banner.programPath)?.settings.name ?? "",
                         timestamp: Date(),
-                        applyBottle: bottle(forProgramPath: banner.programPath)
+                        applyBottle: bottle(forProgramPath: banner.programPath),
+                        applyProgramURL: URL(fileURLWithPath: banner.programPath)
                     )
                     .frame(minWidth: 600, minHeight: 400)
                 }

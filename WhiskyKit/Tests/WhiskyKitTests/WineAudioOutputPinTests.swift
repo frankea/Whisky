@@ -34,6 +34,8 @@ private final class FakeAudioEndpointRegistry: AudioEndpointRegistry {
     /// A GUID another Wine process stores just before ours is written.
     var racingGUID: UUID?
     var failDeletes = false
+    /// Deletes report failure and leave the value in place.
+    var deletesLeaveValue = false
     private(set) var adds: [Entry] = []
     private(set) var deletes: [Entry] = []
 
@@ -55,6 +57,9 @@ private final class FakeAudioEndpointRegistry: AudioEndpointRegistry {
         deletes.append(Entry(key: key, name: name))
         if failDeletes {
             throw CocoaError(.fileNoSuchFile)
+        }
+        if deletesLeaveValue {
+            return
         }
         values[key]?[name] = nil
     }
@@ -99,6 +104,17 @@ struct WineAudioOutputPinTests {
         try await WineAudioOutputPin.apply(uid: nil, registry: registry)
 
         #expect(registry.deletes.count == 1)
+    }
+
+    @Test("A DefaultOutput that survives the delete throws, so the unpin is retried")
+    func undeletedDefaultOutputThrows() async {
+        let registry = FakeAudioEndpointRegistry()
+        registry.values[defaultOutput.key] = [defaultOutput.name: "{0.0.0.00000000}.{OLD}"]
+        registry.deletesLeaveValue = true
+
+        await #expect(throws: AudioRegistryWriteError.defaultOutputNotRemoved) {
+            try await WineAudioOutputPin.apply(uid: nil, registry: registry)
+        }
     }
 
     @Test("An existing endpoint GUID is reused, never replaced")

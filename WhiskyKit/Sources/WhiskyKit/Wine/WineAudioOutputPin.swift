@@ -25,6 +25,7 @@ private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: 
 enum AudioRegistryWriteError: Error {
     case endpointGUIDNotStored
     case defaultOutputNotStored
+    case defaultOutputNotRemoved
 }
 
 /// The registry operations pinning Wine's default output needs.
@@ -70,7 +71,7 @@ enum WineAudioOutputPin {
     /// Wine has not stored one yet; an existing GUID is never replaced, since
     /// programs may have saved the endpoint ID it forms.
     ///
-    /// - Throws: ``AudioRegistryWriteError`` when a write did not stick, so
+    /// - Throws: ``AudioRegistryWriteError`` when a write or removal did not stick, so
     ///   the caller keeps its marker stale and the next launch retries.
     static func apply(uid: String?, registry: some AudioEndpointRegistry) async throws {
         guard let uid, let deviceKey = WineAudioEndpoint.renderDeviceKey(uid: uid) else {
@@ -83,6 +84,14 @@ enum WineAudioOutputPin {
                 // The value might not exist; this is expected
                 logger.info("Default output device not pinned, nothing to remove")
             }
+            // A failed delete of a value that does exist would leave the old
+            // device pinned while the marker says the bottle follows macOS.
+            let remaining = await registry.query(
+                key: WineAudioEndpoint.driverKey,
+                name: WineAudioEndpoint.defaultOutputValue,
+                type: .string
+            )
+            guard remaining == nil else { throw AudioRegistryWriteError.defaultOutputNotRemoved }
             return
         }
 

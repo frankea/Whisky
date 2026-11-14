@@ -56,6 +56,15 @@ final class RegistryQueryParsingTests: XCTestCase {
         XCTAssertEqual(value, "0x90")
     }
 
+    func testBinaryValue() {
+        // Wine prints REG_BINARY data as contiguous uppercase hex.
+        let value = Wine.registryValue(
+            fromQueryOutput: output("    guid    REG_BINARY    53FAF8B304008E43900351A46E139BFC"),
+            type: .binary
+        )
+        XCTAssertEqual(value, "53FAF8B304008E43900351A46E139BFC")
+    }
+
     func testMissingValueIsNil() {
         XCTAssertNil(Wine.registryValue(
             fromQueryOutput: "\r\nHKEY_CURRENT_USER\\Software\\Wine\\Drivers\r\n",

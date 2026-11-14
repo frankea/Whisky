@@ -122,9 +122,11 @@ struct AudioSettingsView: View {
             }
             if bottle.settings.outputDeviceMode == .pinned {
                 pinnedDevicePicker
-                Text("config.audio.device.pinned.footer")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                if bottle.settings.pinnedDeviceUID != nil {
+                    Text("config.audio.device.pinned.footer")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .onAppear {

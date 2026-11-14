@@ -138,6 +138,20 @@ struct AudioRegistrySyncTests {
         #expect(AudioRegistryState.load(from: dir) == .factoryDefault)
     }
 
+    @Test("Concurrent syncs of one bottle all finish and leave one marker")
+    @MainActor
+    func concurrentSyncsFinish() async {
+        let (dir, cleanup) = makeBottleDir()
+        defer { cleanup() }
+
+        let bottle = Bottle(bottleUrl: dir, inFlight: false, isAvailable: true)
+        async let first: Void = Wine.syncAudioRegistry(bottle: bottle)
+        async let second: Void = Wine.syncAudioRegistry(bottle: bottle)
+        _ = await (first, second)
+
+        #expect(AudioRegistryState.load(from: dir) == .factoryDefault)
+    }
+
     @Test("A marker matching the settings makes sync a no-op")
     @MainActor
     func matchingMarkerIsNoOp() async throws {

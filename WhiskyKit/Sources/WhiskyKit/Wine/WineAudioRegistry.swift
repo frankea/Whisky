@@ -64,6 +64,18 @@ struct AudioRegistryState: Codable, Equatable {
     }
 }
 
+/// Registry writes that `wine reg` reported as done but did not store.
+enum AudioRegistryWriteError: Error {
+    case endpointGUIDNotStored
+    case defaultOutputNotStored
+}
+
+/// The audio registry sync running for each bottle, keyed by bottle URL.
+@MainActor
+private enum AudioRegistrySyncQueue {
+    static var inFlight: [URL: Task<Void, Never>] = [:]
+}
+
 /// Extension on ``Wine`` providing typed read/write methods for Wine audio registry keys.
 ///
 /// Audio driver selection and DirectSound buffer configuration are stored in the Wine
@@ -189,37 +201,60 @@ public extension Wine {
         }
 
         let guid = try await endpointGUID(bottle: bottle, deviceKey: deviceKey)
+        let endpointID = WineAudioEndpoint.endpointID(for: guid)
         try await addRegistryKey(
             bottle: bottle,
             key: WineAudioEndpoint.driverKey,
             name: WineAudioEndpoint.defaultOutputValue,
-            data: WineAudioEndpoint.endpointID(for: guid),
+            data: endpointID,
             type: .string
         )
+
+        // `wine reg` does not report failures through its exit status, so the
+        // write is read back; throwing keeps the marker stale and the next
+        // launch retries.
+        let written = try? await queryRegistryKey(
+            bottle: bottle,
+            key: WineAudioEndpoint.driverKey,
+            name: WineAudioEndpoint.defaultOutputValue,
+            type: .string
+        )
+        guard written == endpointID else { throw AudioRegistryWriteError.defaultOutputNotStored }
     }
 
     /// The endpoint GUID Wine uses for a device, seeding one if none is stored.
+    ///
+    /// The GUID is always the one read back from the registry, never the one
+    /// generated here: a Wine process in the bottle may store its own first,
+    /// and Wine keeps whichever GUID is stored.
     @MainActor
     private static func endpointGUID(bottle: Bottle, deviceKey: String) async throws -> UUID {
-        let existing = try? await queryRegistryKey(
-            bottle: bottle,
-            key: deviceKey,
-            name: WineAudioEndpoint.guidValue,
-            type: .binary
-        )
-        if let guid = existing.flatMap(WineAudioEndpoint.uuid(fromRegistryHex:)) {
+        if let guid = await storedEndpointGUID(bottle: bottle, deviceKey: deviceKey) {
             return guid
         }
 
-        let guid = UUID()
         try await addRegistryKey(
             bottle: bottle,
             key: deviceKey,
             name: WineAudioEndpoint.guidValue,
-            data: WineAudioEndpoint.registryHex(for: guid),
+            data: WineAudioEndpoint.registryHex(for: UUID()),
             type: .binary
         )
+        guard let guid = await storedEndpointGUID(bottle: bottle, deviceKey: deviceKey) else {
+            throw AudioRegistryWriteError.endpointGUIDNotStored
+        }
         return guid
+    }
+
+    @MainActor
+    private static func storedEndpointGUID(bottle: Bottle, deviceKey: String) async -> UUID? {
+        let value = try? await queryRegistryKey(
+            bottle: bottle,
+            key: deviceKey,
+            name: WineAudioEndpoint.guidValue,
+            type: .binary
+        )
+        return value.flatMap(WineAudioEndpoint.uuid(fromRegistryHex:))
     }
 
     /// Brings the bottle's Wine registry in line with its audio settings.
@@ -229,8 +264,26 @@ public extension Wine {
     /// here, from the launch path, and only when the marker file shows they
     /// changed. A missing marker on factory settings is stamped without
     /// booting wineserver, since a fresh prefix already behaves that way.
+    ///
+    /// Syncs of one bottle run one after another, so two launches at once
+    /// cannot interleave their writes; the later one finds the marker current.
     @MainActor
     static func syncAudioRegistry(bottle: Bottle) async {
+        let bottleURL = bottle.url
+        let previous = AudioRegistrySyncQueue.inFlight[bottleURL]
+        let task = Task { @MainActor in
+            await previous?.value
+            await applyAudioRegistry(bottle: bottle)
+        }
+        AudioRegistrySyncQueue.inFlight[bottleURL] = task
+        await task.value
+        if AudioRegistrySyncQueue.inFlight[bottleURL] == task {
+            AudioRegistrySyncQueue.inFlight[bottleURL] = nil
+        }
+    }
+
+    @MainActor
+    private static func applyAudioRegistry(bottle: Bottle) async {
         let desired = AudioRegistryState.desired(for: bottle)
         let applied = AudioRegistryState.load(from: bottle.url)
         guard desired != applied else { return }

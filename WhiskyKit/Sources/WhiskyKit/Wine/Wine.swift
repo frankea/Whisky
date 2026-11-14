@@ -224,7 +224,7 @@ public class Wine {
         /// overrides into the prefix registry, where no child inherits them.
         let environment: [String: String]
         /// The arguments `wine64` runs with: `start /unix` and the program,
-        /// preceded by `explorer /desktop=...` for a program given its own
+        /// preceded by `start explorer /desktop=...` for a program given its own
         /// virtual desktop or kept out of the bottle's.
         let arguments: [String]
     }
@@ -431,6 +431,8 @@ public class Wine {
     ///     recorder, so they can see what a launch writes without running Wine.
     ///   - importer: What imports the CJK font aliases the prefix is missing. Tests pass a
     ///     recorder here too.
+    ///   - virtualDesktopQuery: Whether the bottle's registry turns its virtual desktop on.
+    ///     Only asked for a program whose override turns the virtual desktop off. Tests pin it.
     /// - Returns: The environment and `wine64` arguments the launch runs with.
     /// - Throws: An error if a backend's files cannot be deployed or the DLL override import
     ///   cannot be started. A failed font alias import is only logged.
@@ -445,7 +447,8 @@ public class Wine {
         recommendedBackend: GraphicsBackend = GraphicsBackendResolver.resolve(),
         builtinD3D12IsD3DMetal: Bool = GPTKImporter.isDeployed(),
         overrideWriter: DLLOverrideWriter = { try await syncDLLOverrides(bottle: $0, scopes: $1) },
-        importer: RegistryImporter = { try await importRegistry(document: $0, bottle: $1) }
+        importer: RegistryImporter = { try await importRegistry(document: $0, bottle: $1) },
+        virtualDesktopQuery: VirtualDesktopQuery = { try await isVirtualDesktopEnabled(bottle: $0) }
     ) async throws -> PreparedLaunch {
         // Font aliases first, before any setting is read: their import can take
         // a few seconds, and a setting changed during it would leave this launch
@@ -538,10 +541,10 @@ public class Wine {
             writer: overrideWriter
         )
 
-        return PreparedLaunch(
-            environment: wineEnvironment,
-            arguments: launchArguments(for: url, args: args, programOverrides: programOverrides, bottle: bottle)
+        let arguments = await launchArguments(
+            for: url, args: args, programOverrides: programOverrides, bottle: bottle, query: virtualDesktopQuery
         )
+        return PreparedLaunch(environment: wineEnvironment, arguments: arguments)
     }
 
     /// The `wine64` arguments for a launch, honoring a program's virtual desktop override.
@@ -553,15 +556,22 @@ public class Wine {
     /// while the bottle is running; its child processes inherit that desktop.
     /// Off only takes the `root` route when the bottle's virtual desktop is on,
     /// so on a bottle without one the program launches exactly as it would with
-    /// no override, on the same desktop as the bottle's other programs.
+    /// no override, on the same desktop as the bottle's other programs. Whether
+    /// it is on comes from the registry, which is what Wine reads; the bottle's
+    /// setting only mirrors it, and is only refreshed when its Display section
+    /// is shown, so it is the fallback when the registry cannot be read.
     ///
-    /// `start /unix` stays inside the explorer command in both cases: explorer
-    /// would otherwise start the program in Wine's working directory rather
-    /// than the program's own folder.
+    /// The explorer command is itself run through `start`: explorer stays up
+    /// until the last program on its desktop quits, and `start` returns once it
+    /// has started explorer, the way it returns once it has started a program.
+    /// Run directly, the launch would last the whole session. `start /unix`
+    /// stays inside the explorer command: explorer would otherwise start the
+    /// program in Wine's working directory rather than the program's own folder.
     @MainActor
     private static func launchArguments(
-        for url: URL, args: [String], programOverrides: ProgramOverrides?, bottle: Bottle
-    ) -> [String] {
+        for url: URL, args: [String], programOverrides: ProgramOverrides?, bottle: Bottle,
+        query virtualDesktopQuery: VirtualDesktopQuery
+    ) async -> [String] {
         let start = ["start", "/unix", url.path(percentEncoded: false)] + args
         guard let overrides = programOverrides, let enabled = overrides.virtualDesktopEnabled else {
             return start
@@ -569,10 +579,16 @@ public class Wine {
         if enabled {
             let resolution = Self.resolveVirtualDesktopResolution(from: overrides)
             let desktopName = url.lastPathComponent.replacingOccurrences(of: " ", with: "_")
-            return ["explorer", "/desktop=\(desktopName),\(resolution)"] + start
+            return ["start", "explorer", "/desktop=\(desktopName),\(resolution)"] + start
         }
-        return bottle.settings.virtualDesktopEnabled ? ["explorer", "/desktop=root"] + start : start
+        let bottleHasVirtualDesktop = await (try? virtualDesktopQuery(bottle))
+            ?? bottle.settings.virtualDesktopEnabled
+        return bottleHasVirtualDesktop ? ["start", "explorer", "/desktop=root"] + start : start
     }
+
+    /// Whether a bottle's virtual desktop is on: ``isVirtualDesktopEnabled(bottle:)``
+    /// outside of tests.
+    typealias VirtualDesktopQuery = @MainActor (_ bottle: Bottle) async throws -> Bool
 
     /// Resolves the virtual desktop resolution string from per-program overrides.
     ///

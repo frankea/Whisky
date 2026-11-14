@@ -35,13 +35,23 @@ final class ProgramLaunchVirtualDesktopTests {
         try? FileManager.default.removeItem(at: tempRoot)
     }
 
-    /// Prepares `Games/My Game.exe` with `-x` on a bottle whose virtual desktop is
-    /// `bottleEnabled`. The program's overrides set `programEnabled` and
-    /// `resolution`; with `withOverrides` false the program has none at all.
+    private struct QueryFailed: Error {}
+
+    private struct Prepared {
+        let arguments: [String]
+        let path: String
+        let queried: Int
+    }
+
+    /// Prepares `Games/My Game.exe` with `-x` on a bottle whose virtual desktop
+    /// setting is `bottleEnabled` and whose registry answers `registryEnabled`
+    /// (`nil` makes the registry query fail). The program's overrides set
+    /// `programEnabled` and `resolution`; with `withOverrides` false the program
+    /// has none at all. `queried` counts the registry queries.
     private func prepare(
-        bottleEnabled: Bool, programEnabled: Bool?, resolution: ResolutionPreset? = nil,
-        withOverrides: Bool = true
-    ) async throws -> (arguments: [String], path: String) {
+        bottleEnabled: Bool, registryEnabled: Bool? = nil, programEnabled: Bool?,
+        resolution: ResolutionPreset? = nil, withOverrides: Bool = true
+    ) async throws -> Prepared {
         let bottleURL = tempRoot.appending(path: "Bottle")
         try FileManager.default.createDirectory(
             at: bottleURL.appending(path: "drive_c/windows/system32"), withIntermediateDirectories: true
@@ -59,42 +69,80 @@ final class ProgramLaunchVirtualDesktopTests {
         overrides.virtualDesktopEnabled = programEnabled
         overrides.resolutionPreset = resolution
 
+        var queried = 0
         let launch = try await Wine.prepareProgramLaunch(
             at: url, args: ["-x"], bottle: bottle, programOverrides: withOverrides ? overrides : nil,
-            overrideWriter: { _, _ in }, importer: { _, _ in }
+            overrideWriter: { _, _ in }, importer: { _, _ in },
+            virtualDesktopQuery: { _ in
+                queried += 1
+                guard let registryEnabled else { throw QueryFailed() }
+                return registryEnabled
+            }
         )
-        return (launch.arguments, url.path(percentEncoded: false))
+        return Prepared(arguments: launch.arguments, path: url.path(percentEncoded: false), queried: queried)
     }
 
     @Test("A program set to a virtual desktop is prepared to run in one, from its own folder")
     func virtualDesktopOn() async throws {
         for bottleEnabled in [false, true] {
             let launch = try await prepare(
-                bottleEnabled: bottleEnabled, programEnabled: true, resolution: .r1280x720
+                bottleEnabled: bottleEnabled, registryEnabled: bottleEnabled, programEnabled: true,
+                resolution: .r1280x720
             )
             #expect(launch.arguments == [
-                "explorer", "/desktop=My_Game.exe,1280x720", "start", "/unix", launch.path, "-x"
+                "start", "explorer", "/desktop=My_Game.exe,1280x720", "start", "/unix", launch.path, "-x"
             ])
+            #expect(launch.queried == 0)
         }
     }
 
     @Test("A program set to run without a virtual desktop leaves the bottle's")
     func virtualDesktopOffLeavesTheBottles() async throws {
-        let launch = try await prepare(bottleEnabled: true, programEnabled: false)
-        #expect(launch.arguments == ["explorer", "/desktop=root", "start", "/unix", launch.path, "-x"])
+        let launch = try await prepare(bottleEnabled: true, registryEnabled: true, programEnabled: false)
+        #expect(launch.arguments == [
+            "start", "explorer", "/desktop=root", "start", "/unix", launch.path, "-x"
+        ])
     }
 
     @Test("Without the bottle's virtual desktop, turning it off changes nothing")
     func virtualDesktopOffWithoutTheBottles() async throws {
-        let launch = try await prepare(bottleEnabled: false, programEnabled: false)
+        let launch = try await prepare(bottleEnabled: false, registryEnabled: false, programEnabled: false)
         #expect(launch.arguments == ["start", "/unix", launch.path, "-x"])
+    }
+
+    @Test("Turning it off follows the registry when the bottle's setting disagrees")
+    func virtualDesktopOffFollowsTheRegistry() async throws {
+        let turnedOnElsewhere = try await prepare(
+            bottleEnabled: false, registryEnabled: true, programEnabled: false
+        )
+        #expect(turnedOnElsewhere.arguments == [
+            "start", "explorer", "/desktop=root", "start", "/unix", turnedOnElsewhere.path, "-x"
+        ])
+        #expect(turnedOnElsewhere.queried == 1)
+
+        let turnedOffElsewhere = try await prepare(
+            bottleEnabled: true, registryEnabled: false, programEnabled: false
+        )
+        #expect(turnedOffElsewhere.arguments == ["start", "/unix", turnedOffElsewhere.path, "-x"])
+    }
+
+    @Test("Turning it off falls back to the bottle's setting when the registry cannot be read")
+    func virtualDesktopOffFallsBackToTheSetting() async throws {
+        let launch = try await prepare(bottleEnabled: true, registryEnabled: nil, programEnabled: false)
+        #expect(launch.arguments == [
+            "start", "explorer", "/desktop=root", "start", "/unix", launch.path, "-x"
+        ])
+        #expect(launch.queried == 1)
     }
 
     @Test("A program without a display override joins the bottle's virtual desktop")
     func virtualDesktopInheritedFromTheBottle() async throws {
         for withOverrides in [true, false] {
-            let launch = try await prepare(bottleEnabled: true, programEnabled: nil, withOverrides: withOverrides)
+            let launch = try await prepare(
+                bottleEnabled: true, registryEnabled: true, programEnabled: nil, withOverrides: withOverrides
+            )
             #expect(launch.arguments == ["start", "/unix", launch.path, "-x"])
+            #expect(launch.queried == 0)
         }
     }
 }

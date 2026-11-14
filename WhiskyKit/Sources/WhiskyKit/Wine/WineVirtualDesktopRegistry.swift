@@ -24,17 +24,21 @@ import Foundation
 /// `virtualDesktopEnabled` setting only mirrors it, and goes stale when the
 /// registry changes elsewhere, for example in winecfg.
 public extension Wine {
-    private enum VirtualDesktopRegistryKey: String {
+    internal enum VirtualDesktopRegistryKey: String {
         case explorer = #"HKCU\Software\Wine\Explorer"#
         case desktops = #"HKCU\Software\Wine\Explorer\Desktops"#
     }
+
+    /// Reads one registry string value: `(key, value name)` to its data, or
+    /// `nil` when the value is missing.
+    typealias RegistryStringQuery = @MainActor (_ key: String, _ name: String) async throws -> String?
 
     /// Whether the bottle's registry turns Wine's virtual desktop on.
     ///
     /// - Throws: An error if `reg query` cannot be run.
     @MainActor
     static func isVirtualDesktopEnabled(bottle: Bottle) async throws -> Bool {
-        try await virtualDesktopName(bottle: bottle) != nil
+        try await virtualDesktopName(query: registryQuery(for: bottle)) != nil
     }
 
     /// The bottle's virtual desktop as its registry has it.
@@ -44,35 +48,45 @@ public extension Wine {
     /// - Throws: An error if `reg query` cannot be run.
     @MainActor
     static func virtualDesktop(bottle: Bottle) async throws -> (enabled: Bool, resolution: String?) {
-        guard let name = try await virtualDesktopName(bottle: bottle) else {
+        try await virtualDesktop(query: registryQuery(for: bottle))
+    }
+
+    /// ``virtualDesktop(bottle:)`` over any registry, so the decision is
+    /// testable without Wine.
+    @MainActor
+    internal static func virtualDesktop(
+        query: RegistryStringQuery
+    ) async throws -> (enabled: Bool, resolution: String?) {
+        guard let name = try await virtualDesktopName(query: query) else {
             return (false, nil)
         }
-        let resolution = try await queryValue(VirtualDesktopRegistryKey.desktops, name: name, bottle: bottle)
+        let resolution = try await query(VirtualDesktopRegistryKey.desktops.rawValue, name)
         return (true, resolution)
     }
 
-    /// The name of the bottle's virtual desktop, or `nil` without one.
+    /// The name of the virtual desktop the registry turns on, or `nil` without one.
     @MainActor
-    private static func virtualDesktopName(bottle: Bottle) async throws -> String? {
-        let desktop = try await queryValue(VirtualDesktopRegistryKey.explorer, name: "Desktop", bottle: bottle)
+    internal static func virtualDesktopName(query: RegistryStringQuery) async throws -> String? {
+        let desktop = try await query(VirtualDesktopRegistryKey.explorer.rawValue, "Desktop")
         return desktop.flatMap { namesVirtualDesktop($0) ? $0 : nil }
     }
 
-    /// A string value, queried without a log file: these are polls whose
-    /// output is parsed, and a log file each would bury the launch logs.
+    /// String values read with `reg query`, without a log file: these are
+    /// polls whose output is parsed, and a log file each would bury the
+    /// launch logs.
     @MainActor
-    private static func queryValue(
-        _ key: VirtualDesktopRegistryKey, name: String, bottle: Bottle
-    ) async throws -> String? {
-        let output = try await runWineWithBottle(
-            ["reg", "query", key.rawValue, "-v", name], bottle: bottle, createsLogFile: false
-        )
-        return registryValue(fromQueryOutput: output, type: .string)
+    private static func registryQuery(for bottle: Bottle) -> RegistryStringQuery {
+        { key, name in
+            let output = try await runWineWithBottle(
+                ["reg", "query", key, "-v", name], bottle: bottle, createsLogFile: false
+            )
+            return registryValue(fromQueryOutput: output, type: .string)
+        }
     }
 
     /// Whether a `Desktop` value names a virtual desktop: `root` is Wine's
     /// name for the desktop without one.
-    private static func namesVirtualDesktop(_ desktop: String) -> Bool {
+    internal static func namesVirtualDesktop(_ desktop: String) -> Bool {
         !desktop.isEmpty && desktop.caseInsensitiveCompare("root") != .orderedSame
     }
 }

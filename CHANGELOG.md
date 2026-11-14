@@ -7,10 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- A bottle's Pinned output device can now be chosen from the Mac's output
+  devices, and Wine sends that bottle's sound to it, falling back to the
+  macOS default output when the device isn't connected (#354).
+- Bottle settings gain "When Leaving a Running Bottle" in the Cleanup
+  section: Ask Each Time, Keep Running or Stop Processes (#353).
+
 ### Changed
-- The "when switching away with running processes" setting now takes
-  effect. Its default is Ask, so switching bottles while a program Whisky
-  launched is still running now asks whether to keep it running (#352).
+- Leaving a bottle while a program Whisky launched is still running keeps
+  it running by default. The "when switching away with running processes"
+  setting now takes effect and can be changed in the bottle's Cleanup
+  settings (#352, #353).
+
+### Removed
+- The Network Timeout slider in a bottle's Launcher settings. Wine never
+  read the timeout it set, so it had no effect; the Steam and Ubisoft
+  launcher fixes, diagnostics and the Steam download stall advice no
+  longer claim it helps (#356).
 
 ### Fixed
 - Guided troubleshooting: "No, still broken" moves on to the next check
@@ -46,6 +60,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   successfully (#351).
 - Saving diagnostics as a ZIP reports failures and no longer deletes the
   file being replaced when the save fails (#351).
+- A program's Display override with Virtual Desktop turned off now runs it
+  outside the bottle's virtual desktop, even while the bottle is running.
+  Programs given their own virtual desktop start in their own folder, and
+  launching one no longer waits for the program to exit (#355).
+- "Include remediation history" in a diagnostics export now includes the
+  fixes applied from a program's crash diagnosis cards, in both the saved
+  ZIP and Copy Report, with home paths redacted (#357).
 
 ## [3.9.2] - 2026-11-13 (App)
 

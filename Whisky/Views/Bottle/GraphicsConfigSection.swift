@@ -34,6 +34,8 @@ struct GraphicsConfigSection: View {
 
     var body: some View {
         Section("config.title.graphics") {
+            let d3dMetalReadiness = D3DMetalReadiness.current()
+
             // Simple/Advanced segmented control
             Picker("", selection: $advancedMode) {
                 Text("config.graphics.simple").tag(false)
@@ -48,7 +50,8 @@ struct GraphicsConfigSection: View {
                 resolvedBackend: resolvedBackend,
                 isBackendAvailable: { backend in
                     WhiskyWineInstaller.isBackendAvailable(backend)
-                }
+                },
+                d3dMetalReadiness: d3dMetalReadiness
             )
 
             // Said once, after an update put a bottle the old Steam profile had
@@ -57,11 +60,14 @@ struct GraphicsConfigSection: View {
                 launcherBackendResetNotice
             }
 
-            // A bottle explicitly set to D3DMetal without its payload silently
-            // degrades to WineD3D at launch — say so instead (issue #146).
-            if bottle.settings.graphicsBackend == .d3dMetal,
-               !WhiskyWineInstaller.isBackendAvailable(.d3dMetal) {
-                d3dMetalMissingWarning
+            // A bottle explicitly set to D3DMetal that can't run it silently
+            // degrades to WineD3D at launch, so say so (issue #146). An imported
+            // payload the engine can't run is explained whatever the bottle is
+            // set to, since importing it looks like it should have been enough
+            // (#358).
+            if (bottle.settings.graphicsBackend == .d3dMetal && !d3dMetalReadiness.isAvailable)
+                || d3dMetalReadiness == .engineNotCapable {
+                d3dMetalNotice(d3dMetalReadiness)
             }
 
             // Running process warning banner
@@ -187,15 +193,37 @@ struct GraphicsConfigSection: View {
         }
     }
 
-    // MARK: - D3DMetal Missing Warning
+    // MARK: - D3DMetal Notice
 
-    private var d3dMetalMissingWarning: some View {
-        HStack {
-            Image(systemName: "exclamationmark.triangle")
-                .foregroundStyle(.orange)
-            Text("config.graphics.backend.d3dMetal.missingWarning")
-                .font(.caption)
+    /// A warning when this bottle is set to D3DMetal and can't run it, or a
+    /// note when it is set to something else; either way it names what is
+    /// missing and, when that is the engine, links to the engine releases.
+    private func d3dMetalNotice(_ readiness: D3DMetalReadiness) -> some View {
+        let isWarning = bottle.settings.graphicsBackend == .d3dMetal
+        return HStack(alignment: .top) {
+            Image(systemName: isWarning ? "exclamationmark.triangle" : "info.circle")
+                .foregroundStyle(isWarning ? Color.orange : Color.blue)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(d3dMetalNoticeKey(readiness, isWarning: isWarning))
+                    .font(.caption)
+                if readiness.needsCapableEngine, let url = D3DMetalReadiness.engineReleasesURL {
+                    Link("gptk.engineReleases", destination: url)
+                        .font(.caption)
+                }
+            }
             Spacer()
+        }
+    }
+
+    private func d3dMetalNoticeKey(_ readiness: D3DMetalReadiness, isWarning: Bool) -> LocalizedStringKey {
+        guard isWarning else { return "config.graphics.backend.d3dMetal.engineNote" }
+        switch readiness {
+        case .engineNotCapable:
+            return "config.graphics.backend.d3dMetal.warning.needsEngine"
+        case .payloadAndEngineMissing:
+            return "config.graphics.backend.d3dMetal.warning.needsPayloadAndEngine"
+        case .payloadMissing, .available:
+            return "config.graphics.backend.d3dMetal.warning.needsPayload"
         }
     }
 

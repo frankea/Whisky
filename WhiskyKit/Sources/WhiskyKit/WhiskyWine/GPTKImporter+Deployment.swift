@@ -37,7 +37,14 @@ extension GPTKImporter {
     /// no. This is a build property (exception-unwind support), not something
     /// the payload or the app can add.
     public static func isRuntimeGPTKCapable() -> Bool {
-        WhiskyWineInstaller.whiskyWineInfo()?.gptkCapable == true
+        isRuntimeGPTKCapable(inLibraryFolder: WhiskyWineInstaller.libraryFolder)
+    }
+
+    /// Testable seam for ``isRuntimeGPTKCapable()``: reads the version plist
+    /// of the runtime under `folder`.
+    static func isRuntimeGPTKCapable(inLibraryFolder folder: URL) -> Bool {
+        let plist = folder.appending(path: "WhiskyWineVersion").appendingPathExtension("plist")
+        return WhiskyWineInstaller.whiskyWineInfo(at: plist)?.gptkCapable == true
     }
 
     // MARK: - Deployment

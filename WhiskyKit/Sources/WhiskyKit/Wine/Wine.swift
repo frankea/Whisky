@@ -223,8 +223,9 @@ public class Wine {
         /// process this launch spawns: preparation moved the launch's own
         /// overrides into the prefix registry, where no child inherits them.
         let environment: [String: String]
-        /// The arguments `wine64` runs with: `start /unix` and the program, or
-        /// `explorer /desktop=...` for a program that runs in a virtual desktop.
+        /// The arguments `wine64` runs with: `start /unix` and the program,
+        /// preceded by `explorer /desktop=...` for a program given its own
+        /// virtual desktop or kept out of the bottle's.
         let arguments: [String]
     }
 
@@ -539,25 +540,38 @@ public class Wine {
 
         return PreparedLaunch(
             environment: wineEnvironment,
-            arguments: launchArguments(for: url, args: args, programOverrides: programOverrides)
+            arguments: launchArguments(for: url, args: args, programOverrides: programOverrides, bottle: bottle)
         )
     }
 
-    /// The `wine64` arguments for a launch, with an optional per-program virtual desktop.
+    /// The `wine64` arguments for a launch, honoring a program's virtual desktop override.
+    ///
+    /// `explorer /desktop=<name>` starts the program on the named desktop. A
+    /// program set to On gets its own virtual desktop at its resolution. `root`
+    /// is Wine's name for a desktop with no virtual desktop (Wine 9 and later),
+    /// so a program set to Off runs outside the bottle's virtual desktop, even
+    /// while the bottle is running; its child processes inherit that desktop.
+    /// Off only takes the `root` route when the bottle's virtual desktop is on,
+    /// so on a bottle without one the program launches exactly as it would with
+    /// no override, on the same desktop as the bottle's other programs.
+    ///
+    /// `start /unix` stays inside the explorer command in both cases: explorer
+    /// would otherwise start the program in Wine's working directory rather
+    /// than the program's own folder.
+    @MainActor
     private static func launchArguments(
-        for url: URL, args: [String], programOverrides: ProgramOverrides?
+        for url: URL, args: [String], programOverrides: ProgramOverrides?, bottle: Bottle
     ) -> [String] {
-        guard let overrides = programOverrides,
-              let vdEnabled = overrides.virtualDesktopEnabled, vdEnabled
-        else {
-            return ["start", "/unix", url.path(percentEncoded: false)] + args
+        let start = ["start", "/unix", url.path(percentEncoded: false)] + args
+        guard let overrides = programOverrides, let enabled = overrides.virtualDesktopEnabled else {
+            return start
         }
-        let resolution = Self.resolveVirtualDesktopResolution(from: overrides)
-        let desktopName = url.lastPathComponent.replacingOccurrences(of: " ", with: "_")
-        return [
-            "explorer", "/desktop=\(desktopName),\(resolution)",
-            url.path(percentEncoded: false)
-        ] + args
+        if enabled {
+            let resolution = Self.resolveVirtualDesktopResolution(from: overrides)
+            let desktopName = url.lastPathComponent.replacingOccurrences(of: " ", with: "_")
+            return ["explorer", "/desktop=\(desktopName),\(resolution)"] + start
+        }
+        return bottle.settings.virtualDesktopEnabled ? ["explorer", "/desktop=root"] + start : start
     }
 
     /// Resolves the virtual desktop resolution string from per-program overrides.

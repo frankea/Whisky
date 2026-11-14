@@ -299,7 +299,7 @@ public enum DiagnosticExporter {
         guard options.includeRemediationHistory, let timeline, !timeline.isEmpty else { return "" }
         let formatter = ISO8601DateFormatter()
         var section = "### Remediation History\n\n"
-        for entry in timeline.entries.reversed() {
+        for entry in exportedTimeline(timeline, options: options).entries.reversed() {
             section += "- \(formatter.string(from: entry.timestamp)): **\(entry.actionTitle)** (`\(entry.actionId)`)"
             switch (entry.beforeValue, entry.afterValue) {
             case let (before?, after?): section += " \(before) -> \(after)"
@@ -479,12 +479,31 @@ extension DiagnosticExporter {
             )
 
             if context.options.includeRemediationHistory, let timeline = context.timeline {
-                try remediationHistoryJSON(timeline)
+                try remediationHistoryJSON(exportedTimeline(timeline, options: context.options))
                     .write(to: contentDir.appendingPathComponent("remediation-history.json"))
             }
         } catch {
             // Best effort
         }
+    }
+
+    /// The timeline as it goes into an export: before and after values pass
+    /// through ``Redactor`` like the logs do, unless sensitive details were
+    /// asked for. Values are recorded redacted already; this keeps an export
+    /// safe whatever a future remediation records.
+    static func exportedTimeline(_ timeline: RemediationTimeline, options: ExportOptions) -> RemediationTimeline {
+        guard !options.includeSensitiveDetails else { return timeline }
+        var redacted = RemediationTimeline()
+        for entry in timeline.entries {
+            redacted.record(RemediationTimelineEntry(
+                timestamp: entry.timestamp,
+                actionId: entry.actionId,
+                actionTitle: entry.actionTitle,
+                beforeValue: entry.beforeValue.map(Redactor.redactLogText),
+                afterValue: entry.afterValue.map(Redactor.redactLogText)
+            ))
+        }
+        return redacted
     }
 
     /// The `remediation-history.json` written into the ZIP.

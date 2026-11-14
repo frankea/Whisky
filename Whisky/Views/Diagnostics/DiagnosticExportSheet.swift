@@ -109,7 +109,7 @@ extension DiagnosticExportSheet {
 
             Toggle(isOn: $includeRemediationHistory) {
                 VStack(alignment: .leading) {
-                    Text("diagnostics.export.includeRemediationHistory")
+                    Text("Include remediation history")
                     Text("diagnostics.export.includeRemediationHistory.detail")
                         .font(.caption)
                         .foregroundStyle(.secondary)

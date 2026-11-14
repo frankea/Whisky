@@ -150,4 +150,39 @@ final class RemediationHistoryExportTests: XCTestCase {
         let history = content.appending(path: "remediation-history.json")
         XCTAssertFalse(FileManager.default.fileExists(atPath: history.path(percentEncoded: false)))
     }
+
+    func testHistoryValuesAreRedactedUnlessSensitiveDetailsAreAsked() throws {
+        let logPath = FileManager.default.homeDirectoryForCurrentUser
+            .appending(path: "Library/winetricks.log").path(percentEncoded: false)
+        var timeline = RemediationTimeline()
+        timeline.record(RemediationTimelineEntry(
+            timestamp: Date(timeIntervalSince1970: 1_700_000_000),
+            actionId: "install-vcrun2019",
+            actionTitle: "Install Visual C++ 2019",
+            beforeValue: nil,
+            afterValue: "failed: \(logPath)"
+        ))
+        let redactedValue = "failed: /Users/<redacted>/Library/winetricks.log"
+
+        let section = DiagnosticExporter.generateRemediationHistorySection(
+            timeline: timeline,
+            options: ExportOptions(includeRemediationHistory: true)
+        )
+        XCTAssertFalse(section.contains(logPath))
+        XCTAssertTrue(section.contains(redactedValue))
+
+        let json = try DiagnosticExporter.remediationHistoryJSON(
+            DiagnosticExporter.exportedTimeline(timeline, options: ExportOptions())
+        )
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let exported = try decoder.decode(RemediationTimeline.self, from: json)
+        XCTAssertEqual(exported.entries.first?.afterValue, redactedValue)
+
+        let sensitive = DiagnosticExporter.exportedTimeline(
+            timeline,
+            options: ExportOptions(includeSensitiveDetails: true)
+        )
+        XCTAssertEqual(sensitive.entries.first?.afterValue, "failed: \(logPath)")
+    }
 }

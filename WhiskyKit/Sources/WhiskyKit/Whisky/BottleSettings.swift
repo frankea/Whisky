@@ -604,14 +604,6 @@ public struct BottleSettings: Codable, Equatable {
         set { launcherConfig.gpuVendor = newValue }
     }
 
-    /// Network timeout in milliseconds for launcher downloads.
-    ///
-    /// Addresses Steam download stalls and connection timeouts.
-    public var networkTimeout: Int {
-        get { launcherConfig.networkTimeout }
-        set { launcherConfig.networkTimeout = newValue }
-    }
-
     /// Whether to force DXVK in a bottle whose launcher requires it.
     ///
     /// Only Rockstar Games Launcher does (``LauncherType/requiresDXVK``): it
@@ -1028,7 +1020,6 @@ public struct BottleSettings: Codable, Equatable {
     /// - Merges launcher-specific environment overrides
     /// - Applies the bottle's explicit Locale Override over any preset locale
     /// - Configures GPU spoofing for launcher checks
-    /// - Sets network timeouts for download reliability
     ///
     /// - Parameters:
     ///   - builder: The environment builder to populate.
@@ -1087,15 +1078,6 @@ public struct BottleSettings: Codable, Equatable {
                     builder.set(key, value, layer: .launcherManaged)
                 }
             }
-        }
-
-        // Network timeout configuration
-        // Applied if user customized timeout (including launcher-set values)
-        // Launcher-specific timeouts are set via bottle.settings.networkTimeout by
-        // LauncherFixes.apply(), giving users control via UI slider
-        if networkTimeout != 60_000 { // If not default (60s)
-            builder.set("WINHTTP_CONNECT_TIMEOUT", String(networkTimeout), layer: .launcherManaged)
-            builder.set("WINHTTP_RECEIVE_TIMEOUT", String(networkTimeout * 2), layer: .launcherManaged)
         }
 
         // The connection-pooling and SSL variables that used to be set here

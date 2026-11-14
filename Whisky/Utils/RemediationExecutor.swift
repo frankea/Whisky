@@ -92,11 +92,6 @@ enum RemediationExecutor {
         switch action.settingKeyPath {
         case "metalConfig.dxrEnabled":
             bottle.settings.dxrEnabled = action.settingValue == "true"
-        case "networkTimeout":
-            guard let value = action.settingValue.flatMap(Int.init) else {
-                return String(localized: "remediation.unsupported")
-            }
-            bottle.settings.networkTimeout = value
         default:
             let keyPath = action.settingKeyPath ?? "nil"
             logger.error(

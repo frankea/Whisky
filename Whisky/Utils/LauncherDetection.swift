@@ -168,8 +168,7 @@ enum LauncherDetection {
         let gpuStatus = bottle.settings.gpuSpoofing
             ? "✅ Enabled (\(bottle.settings.gpuVendor.rawValue))"
             : "❌ Disabled"
-        summary += "GPU Spoofing: \(gpuStatus)\n"
-        summary += "Network Timeout: \(bottle.settings.networkTimeout)ms\n\n"
+        summary += "GPU Spoofing: \(gpuStatus)\n\n"
 
         summary += "Fixes Applied:\n\(launcher.fixesDescription)\n\n"
 

@@ -80,7 +80,6 @@ The implementation follows a layered architecture with clear separation of conce
 Steam:
 - No locale (on Auto, the Mac's language and region)
 - STEAM_DISABLE_CEF_SANDBOX=1 (Wine compatibility)
-- WINHTTP_CONNECT_TIMEOUT=90000 (download reliability)
 
 Rockstar:
 - WINE_LARGE_ADDRESS_AWARE=1 (launcher initialization)
@@ -120,7 +119,6 @@ are read by no shipped runtime.
 - `launcherLocale: Locales` - Locale override
 - `gpuSpoofing: Bool` - GPU spoofing enable
 - `gpuVendor: GPUVendor` - Vendor selection
-- `networkTimeout: Int` - Connection timeout
 - `autoEnableDXVK: Bool` - Force DXVK in a bottle whose launcher requires it (Rockstar only)
 
 **Serialization:** Fully Codable with PropertyListEncoder
@@ -285,22 +283,17 @@ Epic Games:
    - Model name display
    - Compatibility explanation
 
-7. **Network Configuration**
-   - Timeout slider (30-180 seconds)
-   - Current value display
-   - Download fix explanation
-
-8. **Use DXVK for Rockstar Games Launcher**
+7. **Use DXVK for Rockstar Games Launcher**
    - Rockstar is the only launcher with `requiresDXVK`; other launchers get DXVK from the Recommended backend
 
-9. **Diagnostics Button**
+8. **Diagnostics Button**
    - One-click report generation
    - Sheet presentation
 
-10. **Configuration Warnings**
-    - Real-time validation
-    - Color-coded warnings
-    - Specific recommendations
+9. **Configuration Warnings**
+   - Real-time validation
+   - Color-coded warnings
+   - Specific recommendations
 
 **State Management:**
 - `@ObservedObject var bottle: Bottle`
@@ -392,7 +385,6 @@ if bottle.settings.launcherCompatibilityMode &&
 ✅ `testBottleSettingsLauncherConfigModification`
 ✅ `testEnvironmentVariablesWithLauncherCompatibility`
 ✅ `testEnvironmentVariablesWithoutLauncherCompatibility`
-✅ `testNetworkTimeoutConfiguration`
 ✅ `testAutoEnableDXVKForRockstar`
 ✅ `testSSLTLSConfiguration`
 
@@ -418,7 +410,6 @@ Total time: 0.523 seconds
 - [x] Auto-enable DXVK for Rockstar
 - [x] GPU spoofing environment validation
 - [x] Locale override application
-- [x] Network timeout slider behavior
 - [x] Detection mode switching (Auto/Manual)
 
 ## Known Issues & Limitations
@@ -433,10 +424,10 @@ Total time: 0.523 seconds
 **Mitigation:** Clearly documented in help text  
 **Impact:** Low - launchers only check capabilities at startup
 
-### 3. Network Timeout Defaults
-**Issue:** Single timeout value for all operations  
-**Mitigation:** Configurable slider (30-180s)  
-**Future:** Per-operation timeout configuration
+### 3. No Control Over Network Timeouts
+**Issue:** Wine's WinHTTP and WinINet read no environment variable or registry value for timeouts; only the program's own option calls set them, and Steam's content downloads use neither library  
+**Mitigation:** Download stalls are fixed in the launcher's own settings (for Steam: Settings → Downloads → Clear Download Cache or another Download Region)  
+**Impact:** Whisky offers no network timeout setting
 
 ### 4. macOS Version Support
 **Issue:** Pre-15.0 systems get limited benefit  

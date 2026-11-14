@@ -329,14 +329,18 @@ extension ConsoleLogView {
             let handle = try FileHandle(forReadingFrom: logURL)
             defer { try? handle.close() }
 
-            handle.seek(toFileOffset: lastFileOffset)
-            guard let newData = try handle.readToEnd(), !newData.isEmpty else { return }
-
-            lastFileOffset += UInt64(newData.count)
-
-            if let newContent = String(data: newData, encoding: .utf8) {
-                let newLines = classifyLines(newContent)
-                logLines.append(contentsOf: newLines)
+            if try handle.seekToEnd() < lastFileOffset {
+                // The log reached its size cap and was cut back to its head
+                // with the newest output after it; read it again from the top.
+                loadLog()
+            } else {
+                try handle.seek(toOffset: lastFileOffset)
+                if let newData = try handle.readToEnd(), !newData.isEmpty {
+                    lastFileOffset += UInt64(newData.count)
+                    if let newContent = String(data: newData, encoding: .utf8) {
+                        logLines.append(contentsOf: classifyLines(newContent))
+                    }
+                }
             }
         } catch {
             // Best-effort: ignore read errors during live tailing

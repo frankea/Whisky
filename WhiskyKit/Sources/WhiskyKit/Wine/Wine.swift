@@ -1451,10 +1451,23 @@ public extension Wine {
     /// Policy: cap total disk usage of Whisky's log directory at 200 MiB.
     static let maxLogsFolderBytes: Int64 = 200 * 1_024 * 1_024
 
-    /// Marker appended once when file logging begins truncation.
+    /// How much of the start of a log, the launch header and the early output
+    /// after it, survives when the log reaches ``maxLogFileBytes``.
+    static let logHeadBytes = 256 * 1_024
+
+    /// How much of the newest output a log keeps after its truncation marker
+    /// when it reaches ``maxLogFileBytes``. More than crash classification reads
+    /// of a log's tail.
+    static let logTailBytes = 1_024 * 1_024
+
+    /// Marker written between a log's head and its newest output once the log
+    /// has reached its cap.
     ///
-    /// - Important: This marker is written at most once per log file and counts toward `maxLogFileBytes`.
-    static let logTruncationMarker = "\n[Whisky] Log truncated: reached 20 MiB cap; further output discarded.\n"
+    /// - Important: A truncated log holds this marker exactly once: each truncation cuts the
+    ///   file back to its head, which ends before the marker. It counts toward `maxLogFileBytes`.
+    static let logTruncationMarker =
+        "\n[Whisky] Log truncated: output between the start of the log and the lines below "
+            + "was dropped to keep the log under 20 MiB.\n"
 
     /// The URL to the directory where Wine process logs are stored.
     ///

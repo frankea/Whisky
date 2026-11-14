@@ -34,6 +34,10 @@ struct DiagnosticsView: View {
     /// ``RemediationExecutor`` and report inline. A caller-provided
     /// `onAction` still wins. Without either, the cards have no Apply.
     var applyBottle: Bottle?
+    /// The program whose diagnosis is shown. Cards applied through
+    /// ``RemediationExecutor`` are added to its remediation history, which
+    /// the diagnostic export can include.
+    var applyProgramURL: URL?
 
     @Environment(\.dismiss) private var dismiss
 
@@ -50,7 +54,7 @@ struct DiagnosticsView: View {
         }
         guard let applyBottle else { return nil }
         return { action in
-            RemediationExecutor.apply(action, to: applyBottle) { message in
+            RemediationExecutor.apply(action, to: applyBottle, programURL: applyProgramURL) { message in
                 withAnimation { applyFeedback = message }
             }
         }

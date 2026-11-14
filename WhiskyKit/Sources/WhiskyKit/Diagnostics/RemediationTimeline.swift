@@ -17,11 +17,14 @@
 //
 
 import Foundation
+import os.log
 
 /// A single entry in the remediation timeline.
 ///
-/// Records one remediation action that was applied, with optional
-/// before/after values to show what changed.
+/// Records one remediation card that was applied from a program's crash
+/// diagnosis, with optional before/after values to show what changed.
+/// The timeline file is already per program, so an entry carries no path:
+/// nothing in it points into the user's home folder.
 public struct RemediationTimelineEntry: Codable, Sendable {
     /// When the remediation action was applied.
     public let timestamp: Date
@@ -38,36 +41,27 @@ public struct RemediationTimelineEntry: Codable, Sendable {
     /// The value after the remediation was applied, if applicable.
     public let afterValue: String?
 
-    /// Identifier for the bottle where the action was applied.
-    public let bottleIdentifier: String
-
-    /// Path to the program executable the action targets.
-    public let programPath: String
-
     public init(
         timestamp: Date,
         actionId: String,
         actionTitle: String,
         beforeValue: String?,
-        afterValue: String?,
-        bottleIdentifier: String,
-        programPath: String
+        afterValue: String?
     ) {
         self.timestamp = timestamp
         self.actionId = actionId
         self.actionTitle = actionTitle
         self.beforeValue = beforeValue
         self.afterValue = afterValue
-        self.bottleIdentifier = bottleIdentifier
-        self.programPath = programPath
     }
 }
 
-/// Bounded timeline of remediation actions applied per bottle/program.
+/// Bounded timeline of the remediation cards applied for one program.
 ///
-/// Tracks the last ``maxEntries`` remediation actions with timestamps
-/// and before/after values for export in diagnostic reports.
-/// Follows the same persistence pattern as ``DiagnosisHistory``.
+/// Tracks the last ``maxEntries`` cards applied from the program's crash
+/// diagnosis, with timestamps and before/after values, for the "remediation
+/// history" part of a diagnostic export. Stored next to the program's
+/// settings at ``url(forProgramAt:inBottleAt:)``.
 public struct RemediationTimeline: Codable, Sendable {
     /// Maximum number of entries retained.
     public static let maxEntries = 10
@@ -100,6 +94,22 @@ public struct RemediationTimeline: Codable, Sendable {
         entries.isEmpty
     }
 
+    /// Where the timeline for the program at `programURL` lives.
+    ///
+    /// `<bottle>/Program Settings/<program file name>.remediation-timeline.plist`,
+    /// next to the program's settings and diagnosis history.
+    ///
+    /// - Parameters:
+    ///   - programURL: The program's executable.
+    ///   - bottleURL: The bottle the program belongs to.
+    /// - Returns: The URL of the timeline plist.
+    public static func url(forProgramAt programURL: URL, inBottleAt bottleURL: URL) -> URL {
+        bottleURL
+            .appending(path: "Program Settings")
+            .appending(path: programURL.lastPathComponent)
+            .appendingPathExtension("remediation-timeline.plist")
+    }
+
     /// Loads a remediation timeline from a plist file.
     ///
     /// Returns an empty timeline if the file does not exist or cannot be decoded.
@@ -119,7 +129,7 @@ public struct RemediationTimeline: Codable, Sendable {
         }
     }
 
-    /// Saves the timeline to a plist file.
+    /// Saves the timeline to a plist file, creating its folder when needed.
     ///
     /// - Parameter url: The URL where the timeline should be saved.
     /// - Throws: An error if encoding or writing fails.
@@ -127,6 +137,36 @@ public struct RemediationTimeline: Codable, Sendable {
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .xml
         let data = try encoder.encode(self)
-        try data.write(to: url)
+        try FileManager.default.createDirectory(
+            at: url.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try data.write(to: url, options: .atomic)
+    }
+
+    /// Appends `entry` to the stored timeline of the program at `programURL`.
+    ///
+    /// Loads the timeline from ``url(forProgramAt:inBottleAt:)``, records the
+    /// entry and saves it back. A failure is logged, never thrown: the
+    /// remediation itself has already been applied.
+    ///
+    /// - Parameters:
+    ///   - entry: The applied remediation card.
+    ///   - programURL: The program whose diagnosis offered the card.
+    ///   - bottleURL: The bottle the program belongs to.
+    public static func record(
+        _ entry: RemediationTimelineEntry,
+        forProgramAt programURL: URL,
+        inBottleAt bottleURL: URL
+    ) {
+        let url = url(forProgramAt: programURL, inBottleAt: bottleURL)
+        var timeline = load(from: url)
+        timeline.record(entry)
+        do {
+            try timeline.save(to: url)
+        } catch {
+            Logger(subsystem: "com.franke.Whisky", category: "RemediationTimeline")
+                .error("Failed to save remediation timeline: \(error.localizedDescription)")
+        }
     }
 }

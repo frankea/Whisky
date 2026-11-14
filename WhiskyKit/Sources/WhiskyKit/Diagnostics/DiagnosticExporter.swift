@@ -137,19 +137,24 @@ public enum DiagnosticExporter {
     ///
     /// The report is always redacted (no sensitive details in clipboard copy).
     /// Includes system info, bottle config, diagnosis summary, matched patterns,
-    /// suggested remediations, and environment keys (keys only, no values).
+    /// suggested remediations, the remediation history, and environment keys
+    /// (keys only, no values).
     ///
     /// - Parameters:
     ///   - diagnosis: The crash diagnosis to report.
     ///   - bottle: The bottle that was analyzed.
     ///   - program: The program that was analyzed.
-    ///   - options: Export options (only `includeSensitiveDetails` is relevant; defaults to always-redacted).
+    ///   - timeline: The remediation cards already applied for `program`, if any.
+    ///   - options: Export options. `includeRemediationHistory` decides whether
+    ///     `timeline` is listed; `includeSensitiveDetails` and `includeFullLog`
+    ///     are ignored because the copy is always redacted.
     /// - Returns: A Markdown string ready for pasting.
     @MainActor
     public static func generateMarkdownReport(
         diagnosis: CrashDiagnosis,
         bottle: Bottle,
         program: Program,
+        timeline: RemediationTimeline? = nil,
         options: ExportOptions = ExportOptions()
     ) async -> String {
         // Markdown copy is always redacted regardless of options
@@ -163,6 +168,7 @@ public enum DiagnosticExporter {
             diagnosis: diagnosis,
             bottle: bottle,
             program: program,
+            timeline: timeline,
             options: redactedOptions
         )
     }
@@ -175,6 +181,7 @@ public enum DiagnosticExporter {
         diagnosis: CrashDiagnosis,
         bottle: Bottle,
         program: Program,
+        timeline: RemediationTimeline? = nil,
         options: ExportOptions
     ) -> String {
         var markdown = "## Whisky Diagnostic Report\n\n"
@@ -185,6 +192,7 @@ public enum DiagnosticExporter {
         markdown += generateDiagnosisSummarySection(diagnosis: diagnosis)
         markdown += generateMatchedPatternsSection(diagnosis: diagnosis)
         markdown += generateSuggestedRemediationsSection(diagnosis: diagnosis)
+        markdown += generateRemediationHistorySection(timeline: timeline, options: options)
         markdown += generateEnvironmentKeysSection(bottle: bottle)
 
         return markdown
@@ -275,6 +283,31 @@ public enum DiagnosticExporter {
         var section = "### Suggested Remediations\n\n"
         for action in resolved {
             section += "- **\(action.title)** [\(action.risk) risk]: \(action.whatWillChange)\n"
+        }
+        section += "\n"
+        return section
+    }
+
+    /// Lists the remediation cards already applied for the program, newest first.
+    ///
+    /// Empty unless ``ExportOptions/includeRemediationHistory`` is set and
+    /// `timeline` has entries.
+    static func generateRemediationHistorySection(
+        timeline: RemediationTimeline?,
+        options: ExportOptions
+    ) -> String {
+        guard options.includeRemediationHistory, let timeline, !timeline.isEmpty else { return "" }
+        let formatter = ISO8601DateFormatter()
+        var section = "### Remediation History\n\n"
+        for entry in timeline.entries.reversed() {
+            section += "- \(formatter.string(from: entry.timestamp)): **\(entry.actionTitle)** (`\(entry.actionId)`)"
+            switch (entry.beforeValue, entry.afterValue) {
+            case let (before?, after?): section += " \(before) -> \(after)"
+            case let (nil, after?): section += " \(after)"
+            case let (before?, nil): section += " \(before) -> unset"
+            case (nil, nil): break
+            }
+            section += "\n"
         }
         section += "\n"
         return section
@@ -396,6 +429,7 @@ extension DiagnosticExporter {
                 diagnosis: context.diagnosis,
                 bottle: context.bottle,
                 program: context.program,
+                timeline: context.timeline,
                 options: context.options
             ),
             bottleSummary: bottleSettingsSummary(bottle: context.bottle),
@@ -445,15 +479,20 @@ extension DiagnosticExporter {
             )
 
             if context.options.includeRemediationHistory, let timeline = context.timeline {
-                let timelineEncoder = JSONEncoder()
-                timelineEncoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-                timelineEncoder.dateEncodingStrategy = .iso8601
-                let timelineData = try timelineEncoder.encode(timeline)
-                try timelineData.write(to: contentDir.appendingPathComponent("remediation-history.json"))
+                try remediationHistoryJSON(timeline)
+                    .write(to: contentDir.appendingPathComponent("remediation-history.json"))
             }
         } catch {
             // Best effort
         }
+    }
+
+    /// The `remediation-history.json` written into the ZIP.
+    static func remediationHistoryJSON(_ timeline: RemediationTimeline) throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        return try encoder.encode(timeline)
     }
 
     fileprivate static func writeLogFiles(contentDir: URL, context: ZIPExportContext) {

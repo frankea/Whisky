@@ -113,12 +113,13 @@ final class LauncherFixesGatingTests: LauncherFixesTestCase {
         let bottle = makeBottle()
         bottle.settings.launcherCompatibilityMode = true
         bottle.settings.detectedLauncher = .epicGames
+        bottle.settings.gpuSpoofing = false
 
         XCTAssertTrue(LauncherFixes.detectAndApply(from: steamExe, for: bottle))
 
         XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
         // Steam's fix set was applied along with the replacement.
-        XCTAssertEqual(bottle.settings.networkTimeout, 90_000)
+        XCTAssertTrue(bottle.settings.gpuSpoofing)
         XCTAssertEqual(try persistedSettings().detectedLauncher, .steam)
     }
 
@@ -162,7 +163,6 @@ final class LauncherFixesApplyTests: LauncherFixesTestCase {
         XCTAssertTrue(bottle.settings.dxvk)
         XCTAssertTrue(bottle.settings.dxvkAsync)
         XCTAssertTrue(bottle.settings.gpuSpoofing)
-        XCTAssertEqual(bottle.settings.networkTimeout, 90_000)
 
         // Saved synchronously so Wine reads the new values.
         let persisted = try persistedSettings()
@@ -172,7 +172,6 @@ final class LauncherFixesApplyTests: LauncherFixesTestCase {
         XCTAssertTrue(persisted.dxvk)
         XCTAssertTrue(persisted.dxvkAsync)
         XCTAssertTrue(persisted.gpuSpoofing)
-        XCTAssertEqual(persisted.networkTimeout, 90_000)
     }
 
     @MainActor
@@ -238,7 +237,6 @@ final class LauncherFixesScopingTests: LauncherFixesTestCase {
         XCTAssertTrue(bottle.settings.launcherCompatibilityMode)
         XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
         XCTAssertEqual(bottle.settings.launcherLocale, .auto)
-        XCTAssertEqual(bottle.settings.networkTimeout, 90_000)
     }
 
     @MainActor

@@ -98,9 +98,6 @@ extension LauncherConfigSection {
 
         Divider()
 
-        // Network configuration
-        networkControls
-
         // Rockstar is the only launcher that requires DXVK; every launcher
         // already resolves to DXVK under the Recommended backend
         Toggle("Use DXVK for Rockstar Games Launcher", isOn: $bottle.settings.autoEnableDXVK)
@@ -249,30 +246,6 @@ extension LauncherConfigSection {
                 }
             }
             .help("NVIDIA (recommended) provides best compatibility across launchers")
-        }
-    }
-
-    private var networkControls: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text("Network Timeout:")
-                Spacer()
-                Text("\(bottle.settings.networkTimeout / 1_000)s")
-                    .foregroundColor(.secondary)
-            }
-
-            Slider(
-                value: Binding(
-                    get: { Double(bottle.settings.networkTimeout) },
-                    set: { bottle.settings.networkTimeout = Int($0) }
-                ),
-                in: 30_000 ... 180_000,
-                step: 15_000
-            )
-
-            Text("Fixes Steam download stalls and connection timeouts")
-                .font(.caption)
-                .foregroundColor(.secondary)
         }
     }
 

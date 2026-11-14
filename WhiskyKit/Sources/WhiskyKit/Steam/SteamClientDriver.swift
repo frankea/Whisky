@@ -60,7 +60,7 @@ public protocol SteamClientDriver: AnyObject {
 /// The production driver: Wine, `tasklist.exe`, `ps`, and ``SteamLauncher``.
 ///
 /// `open` so the app can layer session-scoped behavior on the two lifecycle
-/// hooks (download monitoring) without the kit knowing about it.
+/// hooks without the kit knowing about it.
 @MainActor
 open class WineSteamClientDriver: SteamClientDriver {
     public let bottle: Bottle

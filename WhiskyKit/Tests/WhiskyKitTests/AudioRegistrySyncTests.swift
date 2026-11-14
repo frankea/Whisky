@@ -68,6 +68,64 @@ struct AudioRegistrySyncTests {
         #expect(desired.helBuflen == AudioLatencyPreset.stable.helBuflenValue)
     }
 
+    @Test("A pinned device with a UID becomes the desired default output")
+    @MainActor
+    func desiredPinsDeviceUID() {
+        let (dir, cleanup) = makeBottleDir()
+        defer { cleanup() }
+
+        let bottle = Bottle(bottleUrl: dir, inFlight: false, isAvailable: true)
+        bottle.settings.outputDeviceMode = .pinned
+        bottle.settings.pinnedDeviceUID = "BuiltInSpeakerDevice"
+
+        #expect(AudioRegistryState.desired(for: bottle).outputDeviceUID == "BuiltInSpeakerDevice")
+    }
+
+    @Test("No default output is desired without a pinned UID")
+    @MainActor
+    func desiredFollowsSystemWithoutPin() {
+        let (dir, cleanup) = makeBottleDir()
+        defer { cleanup() }
+
+        let bottle = Bottle(bottleUrl: dir, inFlight: false, isAvailable: true)
+        bottle.settings.outputDeviceMode = .pinned
+        #expect(AudioRegistryState.desired(for: bottle).outputDeviceUID == nil)
+
+        // A UID left over from an earlier pin is ignored once the mode follows the system.
+        bottle.settings.pinnedDeviceUID = "BuiltInSpeakerDevice"
+        bottle.settings.outputDeviceMode = .followSystem
+        #expect(AudioRegistryState.desired(for: bottle).outputDeviceUID == nil)
+        #expect(AudioRegistryState.desired(for: bottle) == .factoryDefault)
+    }
+
+    @Test("A marker written before the output device field still loads")
+    func legacyMarkerLoads() throws {
+        let (dir, cleanup) = makeBottleDir()
+        defer { cleanup() }
+
+        let legacy: [String: Any] = [
+            "driver": AudioDriverMode.auto.rawValue,
+            "helBuflen": AudioLatencyPreset.defaultPreset.helBuflenValue
+        ]
+        let data = try PropertyListSerialization.data(fromPropertyList: legacy, format: .xml, options: 0)
+        try data.write(to: AudioRegistryState.markerURL(in: dir))
+
+        let loaded = try #require(AudioRegistryState.load(from: dir))
+        #expect(loaded.outputDeviceUID == nil)
+        #expect(loaded == .factoryDefault)
+    }
+
+    @Test("The output device UID round-trips through the marker")
+    func markerRoundTripsOutputDevice() throws {
+        let (dir, cleanup) = makeBottleDir()
+        defer { cleanup() }
+
+        let state = AudioRegistryState(driver: "auto", helBuflen: 65_536, outputDeviceUID: "BuiltInSpeakerDevice")
+        try state.save(to: dir)
+
+        #expect(AudioRegistryState.load(from: dir) == state)
+    }
+
     @Test("Factory settings stamp the marker without booting wineserver")
     @MainActor
     func factoryDefaultsStampWithoutWine() async {

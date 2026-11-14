@@ -26,13 +26,18 @@ private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: 
 struct AudioRegistryState: Codable, Equatable {
     var driver: String
     var helBuflen: Int
+    /// The CoreAudio UID written as Wine's default output, or `nil` when the
+    /// bottle follows the macOS default. Markers written before this field
+    /// existed decode with `nil`.
+    var outputDeviceUID: String?
 
     /// What the bottle's current settings ask the registry to contain.
     @MainActor
     static func desired(for bottle: Bottle) -> AudioRegistryState {
         AudioRegistryState(
             driver: bottle.settings.audioDriver.rawValue,
-            helBuflen: bottle.settings.audioLatencyPreset.helBuflenValue
+            helBuflen: bottle.settings.audioLatencyPreset.helBuflenValue,
+            outputDeviceUID: bottle.settings.outputDeviceMode == .pinned ? bottle.settings.pinnedDeviceUID : nil
         )
     }
 
@@ -155,6 +160,68 @@ public extension Wine {
         )
     }
 
+    /// Points Wine's default audio output at a CoreAudio device, or back at
+    /// the macOS default.
+    ///
+    /// Writes `DefaultOutput` under the CoreAudio driver key as the device's
+    /// endpoint ID. The device's endpoint GUID is read from the registry, or
+    /// seeded when Wine has not stored one yet; an existing GUID is never
+    /// replaced, since programs may have saved the endpoint ID it forms.
+    /// Wine ignores the value while the device is disconnected.
+    ///
+    /// - Parameters:
+    ///   - bottle: The bottle whose registry to modify.
+    ///   - uid: The CoreAudio device UID, or `nil` to follow the macOS default.
+    @MainActor
+    static func setDefaultOutputDevice(bottle: Bottle, uid: String?) async throws {
+        guard let uid, let deviceKey = WineAudioEndpoint.renderDeviceKey(uid: uid) else {
+            do {
+                try await deleteRegistryValue(
+                    bottle: bottle,
+                    key: WineAudioEndpoint.driverKey,
+                    name: WineAudioEndpoint.defaultOutputValue
+                )
+            } catch {
+                // The value might not exist; this is expected
+                logger.info("Default output device not pinned, nothing to remove")
+            }
+            return
+        }
+
+        let guid = try await endpointGUID(bottle: bottle, deviceKey: deviceKey)
+        try await addRegistryKey(
+            bottle: bottle,
+            key: WineAudioEndpoint.driverKey,
+            name: WineAudioEndpoint.defaultOutputValue,
+            data: WineAudioEndpoint.endpointID(for: guid),
+            type: .string
+        )
+    }
+
+    /// The endpoint GUID Wine uses for a device, seeding one if none is stored.
+    @MainActor
+    private static func endpointGUID(bottle: Bottle, deviceKey: String) async throws -> UUID {
+        let existing = try? await queryRegistryKey(
+            bottle: bottle,
+            key: deviceKey,
+            name: WineAudioEndpoint.guidValue,
+            type: .binary
+        )
+        if let guid = existing.flatMap(WineAudioEndpoint.uuid(fromRegistryHex:)) {
+            return guid
+        }
+
+        let guid = UUID()
+        try await addRegistryKey(
+            bottle: bottle,
+            key: deviceKey,
+            name: WineAudioEndpoint.guidValue,
+            data: WineAudioEndpoint.registryHex(for: guid),
+            type: .binary
+        )
+        return guid
+    }
+
     /// Brings the bottle's Wine registry in line with its audio settings.
     ///
     /// The settings UI and the troubleshooting fixes only mutate
@@ -179,6 +246,9 @@ public extension Wine {
             }
             if applied?.helBuflen != desired.helBuflen {
                 try await setDirectSoundBuffer(bottle: bottle, helBuflen: desired.helBuflen)
+            }
+            if applied?.outputDeviceUID != desired.outputDeviceUID {
+                try await setDefaultOutputDevice(bottle: bottle, uid: desired.outputDeviceUID)
             }
             try desired.save(to: bottle.url)
         } catch {

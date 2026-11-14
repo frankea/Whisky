@@ -467,19 +467,29 @@ public struct BottleSettings: Codable, Equatable {
     /// The output device routing mode for this bottle.
     ///
     /// Controls whether Wine follows the macOS default output device
-    /// or is pinned to a specific device by name.
+    /// or is pinned to the device named by ``pinnedDeviceUID``.
     public var outputDeviceMode: OutputDeviceMode {
         get { audioConfig.outputDeviceMode }
         set { audioConfig.outputDeviceMode = newValue }
     }
 
-    /// The name of the pinned audio output device, if any.
+    /// The display name of the pinned audio output device, if any.
     ///
-    /// Only meaningful when ``outputDeviceMode`` is `.pinned`.
-    /// Set to `nil` to clear the pin and follow the system default.
+    /// Kept only so the settings can still name the device while it is
+    /// disconnected; Wine matches on ``pinnedDeviceUID``.
     public var pinnedDeviceName: String? {
         get { audioConfig.pinnedDeviceName }
         set { audioConfig.pinnedDeviceName = newValue }
+    }
+
+    /// The CoreAudio UID of the pinned audio output device, if any.
+    ///
+    /// Only meaningful when ``outputDeviceMode`` is `.pinned`. This is the
+    /// identifier Wine's CoreAudio driver matches when picking the default
+    /// output; `nil` leaves Wine on the macOS default output.
+    public var pinnedDeviceUID: String? {
+        get { audioConfig.pinnedDeviceUID }
+        set { audioConfig.pinnedDeviceUID = newValue }
     }
 
     // MARK: - Display settings

@@ -48,6 +48,10 @@ struct ProgramOverrideSettingsView: View {
     /// once its sheet is gone so the navigation is not lost to the dismissal.
     @State private var openAdvancedAudioAfterWizard = false
     @AppStorage("audioAdvancedMode") private var audioAdvancedMode = false
+    /// The bottle's virtual desktop as its registry has it, once read. The
+    /// bottle's setting only mirrors the registry and misses changes made
+    /// outside its Display section, such as in winecfg.
+    @State private var bottleVirtualDesktopInRegistry: (enabled: Bool, resolution: String?)?
 
     var body: some View {
         dependencyBadgeSection
@@ -438,20 +442,37 @@ struct ProgramOverrideSettingsView: View {
             if hasDisplayOverride {
                 displayControls
             } else {
-                if bottle.settings.virtualDesktopEnabled {
-                    let preset = bottle.settings.resolutionPreset
-                    let resText = preset.dimensions.map { "\($0.width)x\($0.height)" }
-                        ?? (preset == .custom
-                            ? "\(bottle.settings.customResolutionWidth)x\(bottle.settings.customResolutionHeight)"
-                            : String(localized: "config.virtualDesktop.matchDisplay.label"))
+                if bottleVirtualDesktopEnabled {
                     inheritedSummary(
-                        String(localized: "program.overrides.display.enabledSummary \(resText)")
+                        String(localized: "program.overrides.display.enabledSummary \(bottleVirtualDesktopSize)")
                     )
                 } else {
                     inheritedSummary(String(localized: "config.virtualDesktop.off"))
                 }
             }
         }
+        .task(id: bottle.url) {
+            bottleVirtualDesktopInRegistry = try? await Wine.virtualDesktop(bottle: bottle)
+        }
+    }
+
+    /// Whether the bottle runs its programs in a virtual desktop: the registry's
+    /// answer once read, the bottle's setting until then.
+    private var bottleVirtualDesktopEnabled: Bool {
+        bottleVirtualDesktopInRegistry?.enabled ?? bottle.settings.virtualDesktopEnabled
+    }
+
+    /// The size of the bottle's virtual desktop, from its settings, or from the
+    /// registry when the settings do not know it is on.
+    private var bottleVirtualDesktopSize: String {
+        if !bottle.settings.virtualDesktopEnabled, let resolution = bottleVirtualDesktopInRegistry?.resolution {
+            return resolution
+        }
+        let preset = bottle.settings.resolutionPreset
+        return preset.dimensions.map { "\($0.width)x\($0.height)" }
+            ?? (preset == .custom
+                ? "\(bottle.settings.customResolutionWidth)x\(bottle.settings.customResolutionHeight)"
+                : String(localized: "config.virtualDesktop.matchDisplay.label"))
     }
 
     @ViewBuilder
@@ -741,7 +762,7 @@ struct ProgramOverrideSettingsView: View {
             set: { isOn in
                 ensureOverrides()
                 if isOn {
-                    program.settings.overrides?.virtualDesktopEnabled = bottle.settings.virtualDesktopEnabled
+                    program.settings.overrides?.virtualDesktopEnabled = bottleVirtualDesktopEnabled
                     program.settings.overrides?.resolutionPreset = bottle.settings.resolutionPreset
                     program.settings.overrides?.customResolutionWidth = bottle.settings.customResolutionWidth
                     program.settings.overrides?.customResolutionHeight = bottle.settings.customResolutionHeight

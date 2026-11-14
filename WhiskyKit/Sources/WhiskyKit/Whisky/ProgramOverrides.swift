@@ -85,7 +85,8 @@ public struct ProgramOverrides: Codable, Equatable, Sendable {
 
     // MARK: - Display
 
-    /// Whether Wine's virtual desktop mode is enabled. `nil` inherits from bottle.
+    /// `true` runs the program in its own virtual desktop, `false` runs it outside the
+    /// bottle's virtual desktop, `nil` inherits from the bottle.
     public var virtualDesktopEnabled: Bool?
     /// The display resolution preset. `nil` inherits from bottle.
     public var resolutionPreset: ResolutionPreset?

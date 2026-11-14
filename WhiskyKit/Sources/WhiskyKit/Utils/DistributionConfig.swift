@@ -28,6 +28,10 @@ public enum DistributionConfig {
     /// Base URL for GitHub Releases downloads
     public static let releasesBaseURL = "https://github.com/frankea/Whisky/releases/download"
 
+    /// The GitHub Releases page, where GPTK-capable engine builds are
+    /// published (issue #358: users had no in-app pointer to them).
+    public static let releasesPageURL = "https://github.com/frankea/Whisky/releases"
+
     /// URL for the Sparkle appcast feed
     public static let appcastURL = "\(baseURL)/appcast.xml"
 

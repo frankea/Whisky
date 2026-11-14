@@ -235,6 +235,62 @@ final class WhiskyWineInstallerTests: XCTestCase {
         }
     }
 
+    // MARK: - d3dMetalUnavailableReason (issue #358)
+
+    func testD3DMetalReasonNilWhenPayloadDeployed() {
+        let runtime = WhiskyWineVersion(version: SemanticVersion(3, 1, 1), dxmtVersion: "0.80")
+
+        XCTAssertNil(WhiskyWineInstaller.d3dMetalUnavailableReason(
+            runtimeInfo: runtime, d3dMetalInstalled: true, gptkPayloadStored: true
+        ))
+    }
+
+    func testD3DMetalReasonEngineWhenStoredButFlagAbsent() {
+        // The issue #358 case: an import stored a payload, and every surface
+        // still blamed the payload. Absent `gptkCapable` means not capable.
+        let runtime = WhiskyWineVersion(version: SemanticVersion(3, 1, 1), dxmtVersion: "0.80")
+
+        XCTAssertEqual(WhiskyWineInstaller.d3dMetalUnavailableReason(
+            runtimeInfo: runtime, d3dMetalInstalled: false, gptkPayloadStored: true
+        ), .engineNotGPTKCapable)
+    }
+
+    func testD3DMetalReasonEngineWhenStoredAndFlagFalse() {
+        let runtime = WhiskyWineVersion(
+            version: SemanticVersion(3, 1, 1), dxmtVersion: "0.80", gptkCapable: false
+        )
+
+        XCTAssertEqual(WhiskyWineInstaller.d3dMetalUnavailableReason(
+            runtimeInfo: runtime, d3dMetalInstalled: false, gptkPayloadStored: true
+        ), .engineNotGPTKCapable)
+    }
+
+    func testD3DMetalReasonEngineWhenNoRuntimeInstalled() {
+        XCTAssertEqual(WhiskyWineInstaller.d3dMetalUnavailableReason(
+            runtimeInfo: nil, d3dMetalInstalled: false, gptkPayloadStored: true
+        ), .engineNotGPTKCapable)
+    }
+
+    func testD3DMetalReasonPayloadMissingWhenNothingStored() {
+        let runtime = WhiskyWineVersion(version: SemanticVersion(3, 1, 1), dxmtVersion: "0.80")
+
+        XCTAssertEqual(WhiskyWineInstaller.d3dMetalUnavailableReason(
+            runtimeInfo: runtime, d3dMetalInstalled: false, gptkPayloadStored: false
+        ), .payloadMissing)
+    }
+
+    func testD3DMetalReasonPayloadMissingWhenCapableEngineHasNotDeployed() {
+        // A capable engine whose stored payload failed verification (or was
+        // never deployed) reads the same to a picker as no import at all.
+        let runtime = WhiskyWineVersion(
+            version: SemanticVersion(4, 6, 4), dxmtVersion: "0.80", gptkCapable: true
+        )
+
+        XCTAssertEqual(WhiskyWineInstaller.d3dMetalUnavailableReason(
+            runtimeInfo: runtime, d3dMetalInstalled: false, gptkPayloadStored: true
+        ), .payloadMissing)
+    }
+
     func testRuntimeNotPresentWhenFolderEmpty() {
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         XCTAssertFalse(WhiskyWineInstaller.isRuntimePresent(inLibraryFolder: tempDir))

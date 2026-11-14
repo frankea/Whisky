@@ -73185,6 +73185,22 @@
         }
       }
     },
+    "settings.gptk.capability.releasesLink" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get a GPTK-capable engine build on the Releases page"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get a GPTK-capable engine build on the Releases page"
+          }
+        }
+      }
+    },
     "settings.gptk.import" : {
       "localizations" : {
         "ar" : {
@@ -73329,6 +73345,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "從 Game Porting Toolkit 匯入…"
+          }
+        }
+      }
+    },
+    "settings.gptk.import.capabilityNotice.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The installed engine (%@) can't run the Game Porting Toolkit yet, so D3DMetal stays unavailable. Your payload is kept and deploys automatically once a GPTK-capable engine is installed."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The installed engine (%@) can't run the Game Porting Toolkit yet, so D3DMetal stays unavailable. Your payload is kept and deploys automatically once a GPTK-capable engine is installed."
+          }
+        }
+      }
+    },
+    "settings.gptk.import.capabilityNotice.open" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Engine Builds"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Engine Builds"
+          }
+        }
+      }
+    },
+    "settings.gptk.import.capabilityNotice.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payload stored — D3DMetal still unavailable"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payload stored — D3DMetal still unavailable"
           }
         }
       }
@@ -104212,6 +104276,22 @@
         }
       }
     },
+    "config.graphics.backend.d3dMetal.missingWarning.engineNotCapable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This bottle is set to D3DMetal, which the installed engine build can't run yet. Games fall back to WineD3D, which can't run DirectX 11 titles — switch to DXMT or DXVK until a GPTK-capable engine is installed."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This bottle is set to D3DMetal, which the installed engine build can't run yet. Games fall back to WineD3D, which can't run DirectX 11 titles — switch to DXMT or DXVK until a GPTK-capable engine is installed."
+          }
+        }
+      }
+    },
     "config.graphics.backend.d3dMetal.summary" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -104505,6 +104585,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已安裝的引擎未包含 — 需要 Game Porting Toolkit 執行階段"
+          }
+        }
+      }
+    },
+    "config.graphics.backend.d3dMetal.unavailable.engineNotCapable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The installed engine build can't run D3DMetal yet — needs a GPTK-capable engine build"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The installed engine build can't run D3DMetal yet — needs a GPTK-capable engine build"
           }
         }
       }

@@ -378,6 +378,12 @@ final class DistributionConfigTests: XCTestCase {
         XCTAssertNotNil(appcastURL, "Appcast URL should be valid")
         XCTAssertEqual(appcastURL?.scheme, "https")
         XCTAssertEqual(appcastURL?.host, "frankea.github.io")
+
+        // Releases page URL (issue #358)
+        let releasesPageURL = URL(string: DistributionConfig.releasesPageURL)
+        XCTAssertNotNil(releasesPageURL, "Releases page URL should be valid")
+        XCTAssertEqual(releasesPageURL?.scheme, "https")
+        XCTAssertEqual(releasesPageURL?.host, "github.com")
     }
 }
 

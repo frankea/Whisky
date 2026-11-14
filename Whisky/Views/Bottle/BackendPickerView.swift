@@ -26,6 +26,10 @@ struct BackendPickerView: View {
     /// production callers gate payload-dependent backends (DXMT) on the
     /// installed runtime.
     var isBackendAvailable: (GraphicsBackend) -> Bool = { _ in true }
+    /// Why D3DMetal is unavailable, when it is: a stored payload the
+    /// installed engine build can't run reads differently from a payload
+    /// never imported (issue #358). Defaults to the import prompt.
+    var d3dMetalUnavailableReason: D3DMetalUnavailableReason = .payloadMissing
 
     private let columns = [GridItem(.flexible()), GridItem(.flexible())]
 
@@ -37,6 +41,7 @@ struct BackendPickerView: View {
                         backend: backend,
                         isSelected: selection == backend,
                         isAvailable: isBackendAvailable(backend),
+                        d3dMetalUnavailableReason: d3dMetalUnavailableReason,
                         resolvedBackend: backend == .recommended ? resolvedBackend : nil
                     ) {
                         selection = backend
@@ -71,6 +76,9 @@ private struct BackendCard: View {
     let backend: GraphicsBackend
     let isSelected: Bool
     let isAvailable: Bool
+    /// Why D3DMetal is unavailable, when it is (issue #358); ignored for
+    /// every other backend.
+    var d3dMetalUnavailableReason: D3DMetalUnavailableReason = .payloadMissing
     let resolvedBackend: GraphicsBackend?
     let action: () -> Void
 
@@ -156,11 +164,16 @@ private struct BackendCard: View {
     // MARK: - Unavailability
 
     /// Only payload-dependent backends (DXMT, D3DMetal) can be unavailable;
-    /// each explains what the installed engine is missing (issue #146).
+    /// each explains what the installed engine is missing (issue #146), and
+    /// D3DMetal distinguishes a payload the engine build can't run from one
+    /// never imported (issue #358).
     private var unavailableReasonKey: LocalizedStringKey {
-        backend == .d3dMetal
-            ? "config.graphics.backend.d3dMetal.unavailable"
-            : "config.graphics.backend.dxmt.unavailable"
+        if backend == .d3dMetal {
+            return d3dMetalUnavailableReason == .engineNotGPTKCapable
+                ? "config.graphics.backend.d3dMetal.unavailable.engineNotCapable"
+                : "config.graphics.backend.d3dMetal.unavailable"
+        }
+        return "config.graphics.backend.dxmt.unavailable"
     }
 
     // MARK: - Icon

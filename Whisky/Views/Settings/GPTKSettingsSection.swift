@@ -16,6 +16,7 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import SemanticVersion
 import SwiftUI
 import UniformTypeIdentifiers
 import WhiskyKit
@@ -29,6 +30,9 @@ struct GPTKSettingsSection: View {
     @State private var importing = false
     @State private var showImporter = false
     @State private var importError: String?
+    /// Says, after an import the engine build can't run, that D3DMetal stays
+    /// unavailable and where a capable engine comes from (issue #358).
+    @State private var showCapabilityNotice = false
     /// Why the stored payload failed the checks it was given before its first
     /// deploy, which keeps it out of the runtime until it is imported again.
     @State private var storeFailure: String?
@@ -72,9 +76,18 @@ struct GPTKSettingsSection: View {
         } header: {
             Text("settings.gptk")
         } footer: {
-            Text(runtimeCapable ? "settings.gptk.capability.ok" : "settings.gptk.capability.blocked")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(runtimeCapable ? "settings.gptk.capability.ok" : "settings.gptk.capability.blocked")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                // Where the capable engines live, so the blocked case ends in a
+                // next step instead of research (issue #358).
+                if !runtimeCapable,
+                   let releasesURL = URL(string: DistributionConfig.releasesPageURL) {
+                    Link("settings.gptk.capability.releasesLink", destination: releasesURL)
+                        .font(.caption)
+                }
+            }
         }
         .task {
             // Checked whether or not the engine can run the payload, so a store
@@ -109,6 +122,22 @@ struct GPTKSettingsSection: View {
             Button("button.ok", role: .cancel) {}
         } message: {
             Text(importError ?? "")
+        }
+        .alert(
+            "settings.gptk.import.capabilityNotice.title",
+            isPresented: $showCapabilityNotice
+        ) {
+            Button("settings.gptk.import.capabilityNotice.open") {
+                if let url = URL(string: DistributionConfig.releasesPageURL) {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+            Button("button.ok", role: .cancel) {}
+        } message: {
+            Text(String(
+                format: String(localized: "settings.gptk.import.capabilityNotice.message"),
+                String(WhiskyWineInstaller.whiskyWineVersion() ?? SemanticVersion(0, 0, 0))
+            ))
         }
     }
 
@@ -146,6 +175,12 @@ struct GPTKSettingsSection: View {
                     importing = false
                     storeFailure = nil
                     refresh()
+                    // An import onto an engine build that can't run the payload
+                    // used to look like D3DMetal would just work; say what
+                    // actually holds it back (issue #358).
+                    if !GPTKImporter.isRuntimeGPTKCapable() {
+                        showCapabilityNotice = true
+                    }
                     // D3DMetal may be installed now: bottles Steam's profile
                     // had to switch to DXVK can go back to Recommended.
                     BottleVM.shared.migrateLauncherBackends()

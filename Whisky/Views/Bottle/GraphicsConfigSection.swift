@@ -32,6 +32,13 @@ struct GraphicsConfigSection: View {
         return bottle.settings.graphicsBackend
     }
 
+    /// Why D3DMetal can't be picked, when it can't (issue #358): a stored
+    /// payload the engine build can't run says so, instead of claiming the
+    /// Game Porting Toolkit was never imported.
+    private var d3dMetalUnavailableReason: D3DMetalUnavailableReason {
+        WhiskyWineInstaller.d3dMetalUnavailableReason()
+    }
+
     var body: some View {
         Section("config.title.graphics") {
             // Simple/Advanced segmented control
@@ -48,7 +55,8 @@ struct GraphicsConfigSection: View {
                 resolvedBackend: resolvedBackend,
                 isBackendAvailable: { backend in
                     WhiskyWineInstaller.isBackendAvailable(backend)
-                }
+                },
+                d3dMetalUnavailableReason: d3dMetalUnavailableReason
             )
 
             // Said once, after an update put a bottle the old Steam profile had
@@ -189,14 +197,24 @@ struct GraphicsConfigSection: View {
 
     // MARK: - D3DMetal Missing Warning
 
+    /// A bottle explicitly set to D3DMetal without a usable payload silently
+    /// degrades to WineD3D at launch — say why: a stored payload the engine
+    /// build can't run reads differently from one never imported
+    /// (issues #146 and #358).
     private var d3dMetalMissingWarning: some View {
         HStack {
             Image(systemName: "exclamationmark.triangle")
                 .foregroundStyle(.orange)
-            Text("config.graphics.backend.d3dMetal.missingWarning")
+            Text(d3dMetalMissingWarningKey)
                 .font(.caption)
             Spacer()
         }
+    }
+
+    private var d3dMetalMissingWarningKey: LocalizedStringKey {
+        d3dMetalUnavailableReason == .engineNotGPTKCapable
+            ? "config.graphics.backend.d3dMetal.missingWarning.engineNotCapable"
+            : "config.graphics.backend.d3dMetal.missingWarning"
     }
 
     // MARK: - Running Process Warning

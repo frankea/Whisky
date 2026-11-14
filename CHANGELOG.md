@@ -46,6 +46,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   successfully (#351).
 - Saving diagnostics as a ZIP reports failures and no longer deletes the
   file being replaced when the save fails (#351).
+- D3DMetal no longer claims the Game Porting Toolkit is missing after it
+  was imported: the backend card, the bottle-config warning and the import
+  flow now say when the installed engine build itself can't run it, where
+  GPTK-capable engine builds come from, and that the stored payload
+  deploys automatically once one is installed (#358).
 
 ## [3.9.2] - 2026-11-13 (App)
 

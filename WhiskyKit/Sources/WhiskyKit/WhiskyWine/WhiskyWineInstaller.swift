@@ -38,6 +38,20 @@ public enum WhiskyWineInstallError: LocalizedError, Equatable {
     }
 }
 
+/// Why D3DMetal cannot be picked right now, when it can't (issue #358):
+/// the installed engine build can't execute the payload — distinct from
+/// the payload never having been imported, which the backend card blamed
+/// even after an import stored one.
+public enum D3DMetalUnavailableReason: Equatable, Sendable {
+    /// A payload is stored, but the runtime's Wine build lacks the
+    /// exception-unwind support running it requires; D3DMetal stays
+    /// unavailable until a `gptkCapable` engine is installed.
+    case engineNotGPTKCapable
+    /// No payload has been imported (or a capable engine has one stored
+    /// but not deployed, which reads the same to a picker).
+    case payloadMissing
+}
+
 /// Manages the installation and updates of the WhiskyWine runtime.
 ///
 /// `WhiskyWineInstaller` handles downloading, installing, and managing the
@@ -432,6 +446,35 @@ public class WhiskyWineInstaller {
         case .recommended, .dxvk, .wined3d:
             return versionAvailable
         }
+    }
+
+    /// Why D3DMetal is unavailable against the installed runtime, or `nil`
+    /// when it is available. Callers gate on
+    /// ``isBackendAvailable(_:)``; this only supplies the reason to show
+    /// (issue #358).
+    public static func d3dMetalUnavailableReason() -> D3DMetalUnavailableReason {
+        d3dMetalUnavailableReason(
+            runtimeInfo: whiskyWineInfo(),
+            d3dMetalInstalled: isD3DMetalInstalled(),
+            gptkPayloadStored: GPTKImporter.storedRecord() != nil
+        ) ?? .payloadMissing
+    }
+
+    /// Pure reason logic behind ``d3dMetalUnavailableReason()``, with every
+    /// machine-dependent input injected so tests answer the same on every
+    /// machine. `nil` means D3DMetal is available — the payload is on disk.
+    static func d3dMetalUnavailableReason(
+        runtimeInfo: WhiskyWineVersion?,
+        d3dMetalInstalled: Bool,
+        gptkPayloadStored: Bool
+    ) -> D3DMetalUnavailableReason? {
+        if d3dMetalInstalled {
+            return nil
+        }
+        if gptkPayloadStored, runtimeInfo?.gptkCapable != true {
+            return .engineNotGPTKCapable
+        }
+        return .payloadMissing
     }
 
     /// Reads the full version record from the installed WhiskyWine runtime.

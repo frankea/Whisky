@@ -221,8 +221,33 @@ public final class AudioDeviceMonitor: @unchecked Sendable {
             transportType: transportType,
             sampleRate: sampleRate,
             outputChannelCount: channelCount,
-            isDefault: isDefault
+            isDefault: isDefault,
+            uid: queryDeviceUID(deviceID)
         )
+    }
+
+    /// Queries the persistent CoreAudio UID of an audio device.
+    private func queryDeviceUID(_ deviceID: AudioDeviceID) -> String? {
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioDevicePropertyDeviceUID,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+
+        // The property hands back a retained CFString the caller owns.
+        var uid: Unmanaged<CFString>?
+        var size = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
+        let status = withUnsafeMutablePointer(to: &uid) { pointer in
+            AudioObjectGetPropertyData(deviceID, &address, 0, nil, &size, pointer)
+        }
+
+        guard status == noErr, let uid else {
+            logger.error("Failed to query device UID for \(deviceID): \(status)")
+            return nil
+        }
+
+        let value = uid.takeRetainedValue() as String
+        return value.isEmpty ? nil : value
     }
 
     /// Queries the display name of an audio device.

@@ -281,7 +281,11 @@ public class Wine {
         onOutput: (@MainActor (ProcessOutput) -> Void)? = nil
     ) async throws -> ProgramRunResult {
         try await runProgram(at: url, bottle: bottle, programSettings: programSettings, onOutput: onOutput) {
-            try await prepareProgramLaunch(
+            // Run... and opening a file with Whisky launch through here, so the
+            // audio settings (the pinned output device among them) reach the
+            // registry on these launches too.
+            await syncAudioRegistry(bottle: bottle)
+            return try await prepareProgramLaunch(
                 at: url, args: args, bottle: bottle, environment: environment,
                 programOverrides: programOverrides, programSettings: programSettings,
                 gameProfileEnvironment: gameProfileEnvironment,
@@ -876,6 +880,7 @@ public class Wine {
     public static func runBatchFile(url: URL, bottle: Bottle) async throws -> String {
         // A script can start a launcher too, so it gets the aliases a program launch gets.
         await syncCJKFontReplacements(bottle: bottle)
+        await syncAudioRegistry(bottle: bottle)
         // Whatever it starts runs under the bottle's wineserver, which is then Whisky's doing.
         noteUserLaunch(in: bottle)
         return try await runWine(["cmd", "/c", url.path(percentEncoded: false)], bottle: bottle)

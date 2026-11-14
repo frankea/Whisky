@@ -43,17 +43,26 @@ public struct AudioDeviceInfo: Sendable, Codable, Equatable, Identifiable {
     /// Whether this device is the current system default output device.
     public let isDefault: Bool
 
+    /// The CoreAudio device UID (`kAudioDevicePropertyDeviceUID`).
+    ///
+    /// Stable across reboots and reconnects, and the string Wine's CoreAudio
+    /// driver uses to identify the device. Optional so device history saved
+    /// before the field existed still decodes.
+    public let uid: String?
+
     public init(
         name: String,
         transportType: AudioTransportType,
         sampleRate: Double,
         outputChannelCount: Int,
-        isDefault: Bool
+        isDefault: Bool,
+        uid: String? = nil
     ) {
         self.name = name
         self.transportType = transportType
         self.sampleRate = sampleRate
         self.outputChannelCount = outputChannelCount
         self.isDefault = isDefault
+        self.uid = uid
     }
 }

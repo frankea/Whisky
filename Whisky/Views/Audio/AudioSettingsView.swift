@@ -32,6 +32,7 @@ struct AudioSettingsView: View {
     @State private var isWritingLatency: Bool = false
     @State private var isResettingAudioState: Bool = false
     @State private var showResetConfirmation: Bool = false
+    @State private var outputDevices: [AudioDeviceInfo] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -120,16 +121,47 @@ struct AudioSettingsView: View {
                 }
             }
             if bottle.settings.outputDeviceMode == .pinned {
-                HStack {
-                    Text("config.audio.device.pinnedLabel")
+                pinnedDevicePicker
+                if bottle.settings.pinnedDeviceUID != nil {
+                    Text("config.audio.device.pinned.footer")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text(bottle.settings.pinnedDeviceName ?? String(localized: "config.buildVersion.notSet"))
-                        .font(.caption)
-                        .foregroundStyle(bottle.settings.pinnedDeviceName != nil ? .primary : .tertiary)
                 }
             }
         }
+        .onAppear {
+            outputDevices = AudioDeviceMonitor().allOutputDevices().filter { $0.uid != nil }
+        }
+    }
+
+    private var pinnedDevicePicker: some View {
+        Picker("config.audio.device.pinnedLabel", selection: pinnedUIDBinding) {
+            Text("config.buildVersion.notSet").tag(String?.none)
+            ForEach(outputDevices, id: \.uid) { device in
+                Text(device.name).tag(device.uid)
+            }
+            if let storedUID = bottle.settings.pinnedDeviceUID,
+               !outputDevices.contains(where: { $0.uid == storedUID }) {
+                let storedName = bottle.settings.pinnedDeviceName ?? storedUID
+                Text(String(format: String(localized: "config.audio.device.disconnected"), storedName))
+                    .tag(String?.some(storedUID))
+            }
+        }
+    }
+
+    /// Selects a device by CoreAudio UID, keeping its name for display while disconnected.
+    private var pinnedUIDBinding: Binding<String?> {
+        Binding(
+            get: { bottle.settings.pinnedDeviceUID },
+            set: { newUID in
+                if let device = outputDevices.first(where: { $0.uid == newUID }) {
+                    bottle.settings.pinnedDeviceName = device.name
+                } else if newUID == nil {
+                    bottle.settings.pinnedDeviceName = nil
+                }
+                bottle.settings.pinnedDeviceUID = newUID
+            }
+        )
     }
 
     // MARK: - Reset Audio State

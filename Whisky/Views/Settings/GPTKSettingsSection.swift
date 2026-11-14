@@ -136,9 +136,11 @@ struct GPTKSettingsSection: View {
     }
 
     /// Says the engine, not the payload, is what D3DMetal is waiting on, and
-    /// links to the GPTK-capable engine builds.
+    /// links to the GPTK-capable engine builds. A stored payload that failed
+    /// its checks never deploys, so it gets the wording about a payload
+    /// imported again rather than the promise that this one will deploy.
     private var engineNeededNote: some View {
-        let message: LocalizedStringKey = readiness == .engineNotCapable
+        let message: LocalizedStringKey = readiness == .engineNotCapable && storeFailure == nil
             ? "settings.gptk.engine.needed"
             : "settings.gptk.engine.alsoNeeded"
         return VStack(alignment: .leading, spacing: 4) {

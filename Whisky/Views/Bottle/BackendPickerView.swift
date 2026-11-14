@@ -171,6 +171,8 @@ private struct BackendCard: View {
             return "config.graphics.backend.d3dMetal.needsEngine"
         case .payloadAndEngineMissing:
             return "config.graphics.backend.d3dMetal.needsPayloadAndEngine"
+        case .payloadNotDeployed:
+            return "config.graphics.backend.d3dMetal.needsSetup"
         case .payloadMissing, .available:
             return "config.graphics.backend.d3dMetal.needsPayload"
         }

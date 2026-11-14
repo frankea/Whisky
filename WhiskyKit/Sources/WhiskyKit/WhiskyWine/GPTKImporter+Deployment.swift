@@ -105,6 +105,36 @@ extension GPTKImporter {
         )
     }
 
+    /// Deploys the stored payload into a GPTK-capable runtime that has no
+    /// D3DMetal yet, reporting whether it deployed. Run at launch.
+    ///
+    /// GPTK-capable engines are beta releases installed by hand, with Whisky
+    /// quit, so nothing in the app sees the install happen. Without this the
+    /// stored payload would wait for Settings to be opened, while the bottle
+    /// views said D3DMetal was not set up (#358). A runtime that already holds
+    /// D3DMetal is left as it is, so launch does not copy the payload again.
+    @discardableResult
+    public static func deployStoredPayloadIfMissing() -> Bool {
+        deployStoredPayloadIfMissing(
+            fromStore: storeFolder,
+            intoLibraryFolder: WhiskyWineInstaller.libraryFolder,
+            isAppleSigned: isAppleSigned(_:identifier:)
+        )
+    }
+
+    /// Testable seam for ``deployStoredPayloadIfMissing()``.
+    @discardableResult
+    static func deployStoredPayloadIfMissing(
+        fromStore store: URL,
+        intoLibraryFolder folder: URL,
+        isAppleSigned: (_ code: URL, _ identifier: String) -> Bool
+    ) -> Bool {
+        guard isRuntimeGPTKCapable(inLibraryFolder: folder),
+              !WhiskyWineInstaller.isD3DMetalPresent(inLibraryFolder: folder)
+        else { return false }
+        return deployStoredPayloadIfPresent(fromStore: store, intoLibraryFolder: folder, isAppleSigned: isAppleSigned)
+    }
+
     /// Testable seam for ``deployStoredPayloadIfCapable()``, past the runtime
     /// capability check.
     @discardableResult

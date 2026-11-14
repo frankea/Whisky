@@ -30,9 +30,13 @@ import Foundation
 public enum D3DMetalReadiness: Equatable, Sendable, CaseIterable {
     /// D3DMetal is in the runtime and can be selected.
     case available
-    /// The installed engine can run D3DMetal, but no usable payload is
-    /// imported.
+    /// The installed engine can run D3DMetal, but no payload is imported.
     case payloadMissing
+    /// The payload is imported and the installed engine can run it, but it is
+    /// not in the runtime yet: the engine was installed while Whisky was
+    /// running, or the stored payload failed the checks a deploy applies.
+    /// Opening Settings deploys it or says why it can't (#358).
+    case payloadNotDeployed
     /// The payload is imported, but the installed engine cannot run it.
     case engineNotCapable
     /// No payload is imported and the installed engine cannot run one.
@@ -53,14 +57,16 @@ public enum D3DMetalReadiness: Equatable, Sendable, CaseIterable {
     /// A payload in the runtime counts as available whatever the other two
     /// say, as backend availability already treats it: one copied in by hand
     /// has no store record. An imported payload on a capable engine that is
-    /// still not in the runtime failed the checks its deploy applies (Settings
-    /// reports why), and importing it again is the fix, so that reads as
-    /// ``payloadMissing``.
+    /// not in the runtime is ``payloadNotDeployed``, never ``payloadMissing``:
+    /// a GPTK-capable engine installed by hand gets the stored payload at the
+    /// next launch (``GPTKImporter/deployStoredPayloadIfMissing()``), and
+    /// until then the payload is imported, so asking for it would blame it
+    /// for a step the app has not taken yet.
     public init(payloadImported: Bool, engineCapable: Bool, payloadInRuntime: Bool) {
         if payloadInRuntime {
             self = .available
         } else if engineCapable {
-            self = .payloadMissing
+            self = payloadImported ? .payloadNotDeployed : .payloadMissing
         } else {
             self = payloadImported ? .engineNotCapable : .payloadAndEngineMissing
         }

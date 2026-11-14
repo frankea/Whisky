@@ -222,6 +222,8 @@ struct GraphicsConfigSection: View {
             return "config.graphics.backend.d3dMetal.warning.needsEngine"
         case .payloadAndEngineMissing:
             return "config.graphics.backend.d3dMetal.warning.needsPayloadAndEngine"
+        case .payloadNotDeployed:
+            return "config.graphics.backend.d3dMetal.warning.needsSetup"
         case .payloadMissing, .available:
             return "config.graphics.backend.d3dMetal.warning.needsPayload"
         }

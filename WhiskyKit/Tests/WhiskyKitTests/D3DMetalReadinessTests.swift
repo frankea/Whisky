@@ -76,10 +76,13 @@ struct D3DMetalReadinessTests {
         }
     }
 
-    @Test("An imported payload a capable engine did not take reads as needing the payload again")
+    @Test("An imported payload not yet in a capable engine is not reported as missing")
     func undeployedPayloadOnCapableEngine() {
         let readiness = D3DMetalReadiness(payloadImported: true, engineCapable: true, payloadInRuntime: false)
-        #expect(readiness == .payloadMissing)
+        #expect(readiness == .payloadNotDeployed)
+        #expect(!readiness.needsPayload)
+        #expect(!readiness.needsCapableEngine)
+        #expect(!readiness.isAvailable)
     }
 
     @Test("Available exactly when the backend picker offers D3DMetal")
@@ -156,6 +159,43 @@ struct D3DMetalReadinessTests {
         try GPTKImporter.deploy(fromStore: store, intoLibraryFolder: runtime)
 
         #expect(D3DMetalReadiness.current(store: store, libraryFolder: runtime) == .available)
+    }
+
+    @Test("A capable engine installed by hand after the import gets the payload at launch")
+    func capableEngineInstalledAfterImportOnDisk() throws {
+        let tempDir = try makeGPTKTempDir()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let store = try makeImportedStore(in: tempDir)
+        let runtime = tempDir.appending(path: "Libraries")
+        try makeRuntime(at: runtime)
+        try writeCapableRuntimeVersion(at: runtime)
+
+        #expect(D3DMetalReadiness.current(store: store, libraryFolder: runtime) == .payloadNotDeployed)
+
+        #expect(GPTKImporter.deployStoredPayloadIfMissing(
+            fromStore: store, intoLibraryFolder: runtime, isAppleSigned: { _, _ in true }
+        ))
+        #expect(D3DMetalReadiness.current(store: store, libraryFolder: runtime) == .available)
+        // Already there: launch leaves it alone instead of copying it again.
+        #expect(!GPTKImporter.deployStoredPayloadIfMissing(
+            fromStore: store, intoLibraryFolder: runtime, isAppleSigned: { _, _ in true }
+        ))
+    }
+
+    @Test("Launch never deploys the stored payload into an engine that can't run it")
+    func launchLeavesStockEngineAlone() throws {
+        let tempDir = try makeGPTKTempDir()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let store = try makeImportedStore(in: tempDir)
+        let runtime = tempDir.appending(path: "Libraries")
+        try makeRuntime(at: runtime)
+        try writeRuntimeVersion(at: runtime, 3, 1, 1)
+
+        #expect(!GPTKImporter.deployStoredPayloadIfMissing(
+            fromStore: store, intoLibraryFolder: runtime, isAppleSigned: { _, _ in true }
+        ))
+        #expect(!GPTKImporter.isDeployed(inLibraryFolder: runtime))
+        #expect(D3DMetalReadiness.current(store: store, libraryFolder: runtime) == .engineNotCapable)
     }
 
     private func writeCapableRuntimeVersion(at libraryFolder: URL) throws {

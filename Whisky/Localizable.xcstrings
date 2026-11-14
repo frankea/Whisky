@@ -103024,6 +103024,22 @@
         }
       }
     },
+    "config.graphics.backend.d3dMetal.needsSetup" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GPTK imported. Open Settings to finish setting it up"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GPTK imported. Open Settings to finish setting it up"
+          }
+        }
+      }
+    },
     "config.graphics.backend.d3dMetal.summary" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -103217,6 +103233,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This bottle is set to D3DMetal, which needs Game Porting Toolkit and a GPTK-capable Whisky engine, currently a beta release. Without them games fall back to WineD3D, which can't run DirectX 11 titles, so switch to DXMT or DXVK for now."
+          }
+        }
+      }
+    },
+    "config.graphics.backend.d3dMetal.warning.needsSetup" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This bottle is set to D3DMetal. Game Porting Toolkit is imported but isn't set up in the installed engine yet, so games fall back to WineD3D, which can't run DirectX 11 titles. Open Game Porting Toolkit in Settings to finish setting it up."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This bottle is set to D3DMetal. Game Porting Toolkit is imported but isn't set up in the installed engine yet, so games fall back to WineD3D, which can't run DirectX 11 titles. Open Game Porting Toolkit in Settings to finish setting it up."
           }
         }
       }

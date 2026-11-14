@@ -174,7 +174,6 @@ final class BottleLauncherConfigDetailedTests: XCTestCase {
         XCTAssertEqual(config.launcherLocale, .auto)
         XCTAssertTrue(config.gpuSpoofing)
         XCTAssertEqual(config.gpuVendor, .nvidia)
-        XCTAssertEqual(config.networkTimeout, 60_000)
         XCTAssertTrue(config.autoEnableDXVK)
     }
 
@@ -186,7 +185,6 @@ final class BottleLauncherConfigDetailedTests: XCTestCase {
         original.launcherLocale = .english
         original.gpuSpoofing = true
         original.gpuVendor = .amd
-        original.networkTimeout = 30_000
         original.autoEnableDXVK = false
 
         let encoder = PropertyListEncoder()
@@ -201,7 +199,6 @@ final class BottleLauncherConfigDetailedTests: XCTestCase {
         XCTAssertEqual(decoded.launcherLocale, .english)
         XCTAssertTrue(decoded.gpuSpoofing)
         XCTAssertEqual(decoded.gpuVendor, .amd)
-        XCTAssertEqual(decoded.networkTimeout, 30_000)
         XCTAssertFalse(decoded.autoEnableDXVK)
     }
 }

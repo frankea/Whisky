@@ -146,9 +146,6 @@ public enum LauncherFixes {
             // GPU spoofing helps with game compatibility checks
             bottle.settings.gpuSpoofing = true
 
-            // Longer network timeout for downloads
-            bottle.settings.networkTimeout = 90_000 // 90 seconds
-
         case .rockstar:
             // Rockstar REQUIRES DXVK to display logo and UI. Still bottle-wide
             // (the launcher layer adds the preset too): only Launcher.exe and
@@ -174,9 +171,6 @@ public enum LauncherFixes {
                 bottle.settings.dxvk = true
                 bottle.settings.dxvkAsync = true
             }
-
-            // Longer timeout for Ubisoft's servers
-            bottle.settings.networkTimeout = 90_000
 
         case .battleNet:
             bottle.settings.gpuSpoofing = true

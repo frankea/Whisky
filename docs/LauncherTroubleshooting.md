@@ -62,23 +62,18 @@ Earlier versions forced `LC_ALL=en_US.UTF-8` for Steam to avoid this crash. That
 
 **Solution:**
 
-1. **Increase Network Timeout:**
-   - Open bottle → Config → Launcher Compatibility
-   - Enable Launcher Compatibility Mode
-   - Adjust "Network Timeout" slider to **90 seconds** or higher
+The fix is in Steam's own settings; Whisky has no setting that affects Steam downloads.
 
-2. **Verify Network Settings:**
-   - Generate diagnostics report
-   - Check `WINHTTP_CONNECT_TIMEOUT=90000`
-   - Check `WINE_FORCE_HTTP11=1`
+1. **Clear Download Cache:**
+   - In Steam, Settings → Downloads → Clear Download Cache
 
-3. **Force Download Region:**
-   - In Steam, Settings → Downloads
-   - Change download region to one geographically close
-   - Pause and resume download
+2. **Change Download Region:**
+   - In the same pane, pick a different download region close to you
+
+3. **Restart Steam** and resume the download. Check it is not just paused or queued in Steam → Downloads.
 
 **Why This Happens:**
-Wine's HTTP/2 implementation has issues. Forcing HTTP/1.1 and increasing timeouts resolves connection stability problems.
+Stalls usually come from a damaged download cache or a busy content server. Steam's content downloads do not go through Wine's WinHTTP or WinINet, and Wine reads no environment variable or registry value for network timeouts.
 
 **Related Upstream Issues:**
 - whisky-app/whisky#1148 (Downloads stall)
@@ -196,13 +191,6 @@ Epic's Chromium Embedded Framework conflicts with Wine's threading model. Disabl
    - Enable DXVK
    - Toggle "DXVK Async" ON
 
-2. **Increase Network Timeout:**
-   - Config → Launcher Compatibility
-   - Adjust timeout to **90 seconds**
-
-**Why This Happens:**
-Ubisoft's servers can be slow, requiring higher timeouts.
-
 **Related Upstream Issues:**
 - whisky-app/whisky#1004 (Beta update issues)
 - whisky-app/whisky#879 (Anno 1800 won't launch)
@@ -316,7 +304,6 @@ GPU Spoofing: ✅ Enabled (NVIDIA)
 Look for:
 - `STEAM_DISABLE_CEF_SANDBOX=1` (CEF fix)
 - `MESA_GL_VERSION_OVERRIDE=4.6` (GPU spoofing)
-- `WINHTTP_CONNECT_TIMEOUT=90000` (network timeout)
 
 **Validation Results:**
 - ✅ Configuration is optimal
@@ -414,7 +401,6 @@ Isolate launcher issues:
 
 **Recommended:**
 - ✅ DXVK (improves UI performance)
-- ✅ Network timeout: 90s
 - ✅ Locale: Auto (your Mac's language and region; the Steam preset sets no locale)
 
 **Critical Settings:**
@@ -471,7 +457,6 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 
 **Recommended:**
 - ✅ DXVK + DXVK Async
-- ✅ Network timeout: 90s
 
 **Critical Settings:**
 - `DXVK_ASYNC=1` (game compatibility)

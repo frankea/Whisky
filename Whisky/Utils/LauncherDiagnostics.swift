@@ -152,7 +152,6 @@ enum LauncherDiagnostics {
         if bottle.settings.gpuSpoofing {
             config += "GPU Vendor: \(bottle.settings.gpuVendor.rawValue)\n"
         }
-        config += "Network Timeout: \(bottle.settings.networkTimeout)ms\n"
         config += "DXVK for Rockstar: \(bottle.settings.autoEnableDXVK ? "✅ Yes" : "❌ No")\n\n"
 
         // Graphics Settings
@@ -276,10 +275,6 @@ enum LauncherDiagnostics {
             case .steam:
                 if !bottle.settings.dxvk {
                     recommendations += "💡 Enable DXVK for better Steam performance\n"
-                    hasRecommendations = true
-                }
-                if bottle.settings.networkTimeout < 90_000 {
-                    recommendations += "💡 Increase network timeout to 90000ms for Steam downloads\n"
                     hasRecommendations = true
                 }
 

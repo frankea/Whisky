@@ -86,7 +86,7 @@
       "type": "fix",
       "phase": "fix",
       "title": "Reapply launcher compatibility fixes",
-      "description": "Applies Whisky's known fixes for the detected launcher again, even if they were applied before: DXVK, GPU visibility, and network timeout adjustments.",
+      "description": "Applies Whisky's known fixes for the detected launcher again, even if they were applied before: DXVK and GPU visibility.",
       "fixId": "apply-launcher-fixes",
       "isReversible": true,
       "requiresConfirmation": false,

@@ -62,11 +62,7 @@ Steam is the most widely used game launcher in Whisky, but also has the most com
    - Setting the whole bottle to DXVK turns d3d12 off for every game when the
      payload is deployed; only do it for a bottle whose games all want DXVK.
 
-2. **Adjust Network Timeout:**
-   - Config → Launcher Compatibility
-   - Set timeout to **90 seconds** (recommended for Steam)
-
-3. **Enable GPU Spoofing:**
+2. **Enable GPU Spoofing:**
    - Config → Launcher Compatibility
    - GPU Spoofing: **ON**
    - Vendor: **NVIDIA** (best compatibility)
@@ -148,33 +144,16 @@ Override to English (en_US) and please report it.
 - Happens with multiple games
 
 #### Root Cause:
-Wine's HTTP/2 implementation has connection pooling issues. Downloads use persistent connections that timeout incorrectly.
+A stall is usually on Steam's side: a damaged download cache, or a busy content server in the selected download region. Steam's content downloads do not go through Wine's WinHTTP or WinINet, and Wine reads no environment variable or registry value for network timeouts, so there is no Whisky setting that changes them.
 
 #### Solution:
 
-**Primary Fix:**
-1. Config → Launcher Compatibility
-2. Network Timeout → **90 seconds** (or higher)
-3. Restart Steam
+Fix it in Steam's own settings:
+1. Steam → Settings → Downloads → **Clear Download Cache**
+2. If the stall comes back, choose a different **Download Region** in the same pane
+3. Restart Steam and resume the download
 
-**In-Steam Workaround:**
-1. Steam → Settings → Downloads
-2. Change "Download Region" to different location
-3. Pause and resume download
-4. Clear download cache
-
-**Verify Environment:**
-```
-WINHTTP_CONNECT_TIMEOUT = 90000
-WINHTTP_RECEIVE_TIMEOUT = 180000
-WINE_FORCE_HTTP11 = 1
-WINE_MAX_CONNECTIONS_PER_SERVER = 10
-```
-
-**Why This Works:**
-- Longer timeouts prevent premature connection closure
-- HTTP/1.1 fallback avoids Wine's HTTP/2 bugs
-- Connection pooling limits prevent resource exhaustion
+Also check that the download is not just paused or waiting in the queue (Steam → Downloads), which looks the same as a stall.
 
 **Related Issues:**
 - whisky-app/whisky#1148 (Downloads stall)
@@ -197,15 +176,7 @@ Network keepalive timeouts and SSL handshake issues.
 
 #### Solution:
 
-1. **Increase Timeout:**
-   - Network Timeout → 120 seconds or higher
-
-2. **Verify SSL Settings:**
-   - Generate diagnostics
-   - Check `WINE_ENABLE_SSL=1`
-   - Check `WINE_SSL_VERSION_MIN=TLS1.2`
-
-3. **Check macOS Network:**
+1. **Check macOS Network:**
    - System Settings → Network
    - Verify stable connection
    - Disable any VPN temporarily (test)
@@ -353,7 +324,7 @@ For specific games launched through Steam:
 **Status:** Should work with compatibility mode
 
 **If Workshop Fails:**
-- Increase network timeout to 180s
+- Clear Steam's download cache (Steam → Settings → Downloads)
 - Check firewall isn't blocking downloads
 - Try manual mod installation as fallback
 
@@ -393,10 +364,9 @@ For specific games launched through Steam:
 
 ### For Best Download Speed
 
-1. **Network Timeout:** 120-180 seconds
-2. **Download Region:** Choose geographically close server
-3. **Clear Download Cache:** Steam → Settings → Downloads → Clear Cache
-4. **Wired Connection:** Wi-Fi can cause issues
+1. **Download Region:** Choose geographically close server
+2. **Clear Download Cache:** Steam → Settings → Downloads → Clear Download Cache
+3. **Wired Connection:** Wi-Fi can cause issues
 
 ---
 
@@ -407,7 +377,6 @@ Before reporting Steam issues, verify:
 - [ ] Launcher Compatibility Mode enabled
 - [ ] Locale Override on Auto (or the language you want Steam in)
 - [ ] DXVK enabled
-- [ ] Network timeout at least 90 seconds
 - [ ] Sequoia Compat Mode (macOS 15+)
 - [ ] Generated diagnostic report
 - [ ] Checked configuration warnings
@@ -507,7 +476,6 @@ Before reporting Steam issues, verify:
 
 **Configuration:**
 - Launcher Compatibility: Enabled
-- Network Timeout: 60 seconds
 - DXVK: Enabled
 
 **Steps to Reproduce:**
@@ -520,7 +488,6 @@ Before reporting Steam issues, verify:
 
 **Attempted Fixes:**
 - Changed download region - no change
-- Increased timeout to 90s - still stalls
 - Cleared download cache - no change
 ```
 
@@ -555,7 +522,7 @@ Before reporting Steam issues, verify:
 
 **Game Downloads:**
 - ✅ Small-medium games (<20GB): Excellent
-- ✅ Large games (20-100GB): Good with proper timeout
+- ✅ Large games (20-100GB): Good
 - ✅ Massive games (>100GB): Works but may need monitoring
 
 **Game Launches:**
@@ -597,7 +564,7 @@ Before reporting Steam issues, verify:
 **A:** No, Steam reports you as playing on Windows via Wine.
 
 ### Q: Can I use Steam Workshop?
-**A:** Yes, generally works. Increase network timeout for large workshop items.
+**A:** Yes, generally works. If a large workshop item stalls, clear Steam's download cache.
 
 ### Q: Does Steam overlay work in games?
 **A:** Game-dependent. Many games support it, some don't render correctly.
@@ -636,7 +603,6 @@ Mode: Enabled
 Detection: Automatic
 Locale: Auto (your Mac's language and region)
 GPU Spoofing: Enabled (NVIDIA)
-Network Timeout: 90 seconds
 DXVK for Rockstar: Yes
 ```
 
@@ -740,13 +706,11 @@ Based on upstream issue resolution:
 
 **Expected Success Rate with Launcher Compatibility:**
 - ✅ Steam Client: ~95% (steamwebhelper fix is very effective)
-- ✅ Downloads: ~90% (timeout fixes resolve most issues)
 - ✅ Games: Varies by game (check ProtonDB)
 - ⚠️ Special Features: 50-70% (overlay, streaming, etc.)
 
 **Without Launcher Compatibility:**
 - ❌ Steam Client: ~50% (steamwebhelper crashes common)
-- ❌ Downloads: ~70% (frequent stalls)
 
 **Improvement:** ~80% reduction in launcher issues
 

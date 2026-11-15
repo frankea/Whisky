@@ -106,13 +106,16 @@ public enum WindowsShortcuts {
     /// Only shortcuts to `.exe` files outside `C:\windows` qualify, and not
     /// uninstallers, documentation or web links. Squirrel-style shortcuts that
     /// target `Update.exe` are skipped as well: the arguments that make them
-    /// start the real program are not carried over to a pin.
+    /// start the real program are not carried over to a pin. So are the helpers
+    /// and crash reporters the program list hides
+    /// (``Bottle/noiseExecutableNames``).
     public static func isProgramShortcut(name: String, targetPath: String) -> Bool {
         let target = targetPath.lowercased()
         let executable = (target as NSString).lastPathComponent
         guard executable.hasSuffix(".exe") else { return false }
         guard !target.contains("/drive_c/windows/") else { return false }
         guard !nonProgramExecutables.contains(executable), !executable.hasPrefix("unins") else { return false }
+        guard !Bottle.noiseExecutableNames.contains(executable) else { return false }
 
         let lowered = name.lowercased()
         guard !nonProgramNamePhrases.contains(where: { lowered.contains($0) }) else { return false }

@@ -22,15 +22,16 @@ public extension BottleSettings {
     /// Which of a Start Menu scan's findings should be pinned.
     ///
     /// The scan runs every time a bottle screen opens and after every launch,
-    /// so this has to be idempotent. It leaves out anything already pinned and
-    /// anything the user unpinned. Paths compare case-insensitively, the way
-    /// Windows and the default macOS volume format treat them.
+    /// so this has to be idempotent. It leaves out anything already pinned,
+    /// anything the user unpinned and anything on the blocklist, which the
+    /// program list hides. Paths compare case-insensitively, the way Windows
+    /// and the default macOS volume format treat them.
     ///
     /// - Parameter candidates: Program URLs the scan wants to pin.
     /// - Returns: The candidates that should actually be pinned, in order and
     ///   without duplicates.
     func startMenuPinsToAdd(candidates: [URL]) -> [URL] {
-        let refused = Set(unpinnedPrograms.map(Self.pinKey))
+        let refused = Set((unpinnedPrograms + blocklist).map(Self.pinKey))
         var seen = Set(pins.compactMap { $0.url.map(Self.pinKey) })
         return candidates.filter { candidate in
             let key = Self.pinKey(candidate)

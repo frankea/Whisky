@@ -131,6 +131,14 @@ struct WindowsShortcutsTests {
         #expect(!WindowsShortcuts.isProgramShortcut(name: "Discord", targetPath: "/b/drive_c/Discord/Update.exe"))
     }
 
+    @Test("Helpers and crash reporters the program list hides are not programs")
+    func noiseExecutableShortcuts() {
+        let steam = "/b/drive_c/Program Files (x86)/Steam/bin/cef/cef.win7x64/steamwebhelper.exe"
+        #expect(!WindowsShortcuts.isProgramShortcut(name: "Steam Web Helper", targetPath: steam))
+        let reporter = "/b/drive_c/Game/CrashReporter.exe"
+        #expect(!WindowsShortcuts.isProgramShortcut(name: "Crash Reporter", targetPath: reporter))
+    }
+
     // MARK: - Handled shortcuts record
 
     @Test("The record matches shortcuts case-insensitively, relative to drive_c")

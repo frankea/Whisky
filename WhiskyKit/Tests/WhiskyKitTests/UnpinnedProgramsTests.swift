@@ -66,6 +66,14 @@ final class UnpinnedProgramsSettingsTests: XCTestCase {
         XCTAssertEqual(settings.startMenuPinsToAdd(candidates: [game, tool, other]), [other])
     }
 
+    func testStartMenuPinsToAddSkipsBlocklistedPrograms() {
+        var settings = BottleSettings()
+        settings.blocklist = [tool]
+        let upperTool = URL(filePath: "/Bottles/A/drive_c/PROGRAM FILES/Tool/TOOL.EXE")
+
+        XCTAssertEqual(settings.startMenuPinsToAdd(candidates: [upperTool, game]), [game])
+    }
+
     func testStartMenuPinsToAddComparesCaseInsensitivelyAndDropsDuplicates() {
         var settings = BottleSettings()
         settings.unpinnedPrograms = [tool]

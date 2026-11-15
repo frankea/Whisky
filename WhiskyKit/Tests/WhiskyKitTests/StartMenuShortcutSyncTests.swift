@@ -180,6 +180,26 @@ final class StartMenuShortcutSyncTests: XCTestCase {
         ))
     }
 
+    func testBlocklistedProgramIsRecordedButNotPinned() throws {
+        // The scan leaves blocklisted programs out of `programs`, so neither
+        // one is found there.
+        let hidden = try makeExe("Program Files/Hidden/hidden.exe")
+        let tool = try makeExe("Tools/tool.exe")
+        let menuLink = startMenu.appending(path: "Hidden.lnk")
+        try writeShortcut(menuLink, to: #"C:\Program Files\Hidden\hidden.exe"#)
+        try writeShortcut(desktop.appending(path: "Tool.lnk"), to: #"C:\TOOLS\TOOL.EXE"#)
+        let bottle = Bottle(bottleUrl: bottleURL)
+        bottle.settings.blocklist = [hidden, tool]
+
+        XCTAssertFalse(sync(bottle))
+
+        XCTAssertTrue(bottle.settings.pins.isEmpty)
+        XCTAssertTrue(HandledShortcuts.load(from: bottleURL).contains(
+            menuLink,
+            driveC: bottleURL.appending(path: "drive_c")
+        ))
+    }
+
     func testTwoShortcutsToOneProgramPinItOnce() throws {
         try makeExe("Games/Racer/racer.exe")
         try writeShortcut(startMenu.appending(path: "Racer.lnk"), to: #"C:\Games\Racer\racer.exe"#)

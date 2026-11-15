@@ -41,7 +41,7 @@ Whisky provides a clean and easy-to-use graphical wrapper for Wine built in nati
 
 ## Key Features
 
-- **Wine 11.0** - Latest stable Wine with improved compatibility and networking
+- **Wine 11.19 engine** - Built from CrossOver's sources, and able to run Apple's D3DMetal from the Game Porting Toolkit
 - **DXMT & DXVK Graphics** - DirectX 11 through native Metal translation (DXMT) out of the box, with DXVK over MoltenVK as the universal fallback
 - **Launcher Compatibility** - Built-in support for Steam, Epic, EA App, Rockstar, Battle.net, and more
 - **Controller Support** - SDL environment variable controls for gamepad detection and mapping issues

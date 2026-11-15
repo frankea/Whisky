@@ -90,7 +90,9 @@ public enum SteamLauncher {
         }
 
         if record {
-            GameRouting().record(appId: appId, bottleURL: bottle.url)
+            let now = Date()
+            GameRouting().record(appId: appId, bottleURL: bottle.url, at: now)
+            RecordedLaunch(bottleURL: bottle.url, target: .steam(appID: appId), date: now).post()
         }
 
         let installURL = installURL ?? SteamLibrary.enumerate(bottleURL: bottle.url)

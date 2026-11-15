@@ -80,7 +80,7 @@ extension FileHandle {
         let macOSVersionString =
             "\(macOSVersion.majorVersion).\(macOSVersion.minorVersion).\(macOSVersion.patchVersion)"
 
-        header += "Whisky Version: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] ?? "")\n"
+        header += "Whisky Version: \(WhiskyAppVersion.current)\n"
         header += "Date: \(ISO8601DateFormatter().string(from: Date.now))\n"
         header += "macOS Version: \(macOSVersionString)\n\n"
         writeWineLog(line: header)

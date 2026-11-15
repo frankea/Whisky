@@ -215,7 +215,7 @@ extension Wine {
         case absent
         /// Whisky's copy, as recorded.
         case placed
-        /// Not recorded, but the payload's own bytes: adopted, and from then on Whisky's.
+        /// Not recorded, but the payload's own bytes: adopted once the whole trio is in place.
         case identical
         /// The game's own, or anything else Whisky did not place.
         case foreign
@@ -279,7 +279,7 @@ extension Wine {
             guard copyState != .foreign else {
                 Logger.wineKit.info("Not placing DXMT beside a game that ships its own \(dll, privacy: .public)")
                 state.record.copies[folder.key(for: dll)] = nil
-                removeDXMTCopies(in: folder, state: &state)
+                removeDXMTCopies(in: folder, state: &state, takingBackLostCopies: false)
                 return
             }
             writes.append(DXMTCopyWrite(
@@ -293,6 +293,7 @@ extension Wine {
 
     /// Writes a deploy's trio files, or, when one fails, takes back every copy
     /// of the folder that is Whisky's, so the folder never keeps a partial set.
+    /// An adopted file predates this deploy and stays, untracked as it was.
     private static func writeDXMTTrio(
         _ writes: [DXMTCopyWrite], into folder: DXMTGameFolder, state: inout DXMTReconcileState
     ) {
@@ -315,7 +316,8 @@ extension Wine {
             for write in writes {
                 let destination = folder.url.appending(path: write.dll)
                 let hashes = Set([write.hash, write.recorded].compactMap { $0 })
-                if write.wasAbsent || fileHash(destination).map(hashes.contains) == true {
+                let wasWhiskys = write.recorded != nil && fileHash(destination).map(hashes.contains) == true
+                if write.wasAbsent || wasWhiskys {
                     try? FileManager.default.removeItem(at: destination)
                 }
                 state.record.copies[folder.key(for: write.dll)] = nil
@@ -325,8 +327,12 @@ extension Wine {
 
     /// Removes the folder's recorded copies whose content still matches the
     /// record and, in a Steam game's folders, where Whisky places the trio,
-    /// unrecorded files that are the payload's own bytes.
-    private static func removeDXMTCopies(in folder: DXMTGameFolder, state: inout DXMTReconcileState) {
+    /// unrecorded files that are the payload's own bytes, as copies the record
+    /// lost. A deploy leaving the folder to the game passes `false` for
+    /// `takingBackLostCopies`: it cannot tell those from files someone else put there.
+    private static func removeDXMTCopies(
+        in folder: DXMTGameFolder, state: inout DXMTReconcileState, takingBackLostCopies: Bool = true
+    ) {
         let entries = folderEntries(folder.url)
         for dll in dxmtGameFolderDLLs {
             let key = folder.key(for: dll)
@@ -341,7 +347,7 @@ extension Wine {
             let isWhiskys = if let recorded = state.record.copies[key] {
                 hash == recorded
             } else {
-                DXMTGameFolder.steamInstallKey(of: folder.key) != nil
+                takingBackLostCopies && DXMTGameFolder.steamInstallKey(of: folder.key) != nil
                     && isPayloadCopy(of: dll, hash: hash, payloadRoot: state.payloadRoot)
             }
             guard isWhiskys else {

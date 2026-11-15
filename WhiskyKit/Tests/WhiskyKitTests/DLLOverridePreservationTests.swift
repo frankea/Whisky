@@ -199,6 +199,59 @@ final class DLLOverridePreservationTests {
         #expect(record.names(for: otherKey) == ["version"])
     }
 
+    @Test("A launch that starts during another's import takes back the name that import wrote")
+    func overlappingLaunchesOfOneProgramTakeBackStaleNames() async throws {
+        let (bottle, _) = try makeBottle(.d3dMetal)
+        var releaseFirst: CheckedContinuation<Void, Never>?
+        var held = false
+        let importer: Wine.RegistryImporter = { document, _ in
+            if !held {
+                held = true
+                await withCheckedContinuation { releaseFirst = $0 }
+            }
+            self.registry.apply(document)
+        }
+        func sync(_ overrides: String) async throws {
+            try await Wine.syncDLLOverrides(
+                bottle: bottle, scopes: [(scope: .program("Game.exe"), overrides: overrides)], importer: importer
+            )
+        }
+
+        // The first launch's import is still running when the user swaps the
+        // custom override and launches again.
+        let first = Task { try await sync("aaa=n") }
+        while releaseFirst == nil {
+            await Task.yield()
+        }
+        let second = Task { try await sync("bbb=n") }
+        for _ in 0 ..< 20 {
+            await Task.yield()
+        }
+        releaseFirst?.resume()
+        try await first.value
+        try await second.value
+
+        #expect(registry.values(gameKey) == ["bbb": "n"])
+        #expect(DLLOverrideRecord.load(from: bottle.url).names(for: gameKey) == ["bbb"])
+    }
+
+    @Test("A program name that would break the key header gets no entry")
+    func unsafeExecutableNamesAreSkipped() {
+        #expect(Wine.DLLOverrideScopes.isKeySegment("Game [v1.2].exe"))
+        #expect(!Wine.DLLOverrideScopes.isKeySegment("New\nline.exe"))
+        #expect(!Wine.DLLOverrideScopes.isKeySegment("Sub\\Key.exe"))
+        #expect(!Wine.DLLOverrideScopes.isKeySegment(""))
+
+        var scopes = Wine.DLLOverrideScopes(bottle: "dxgi=n,b")
+        scopes.add(["a\n[HKEY_CURRENT_USER\\Software\\Injected]\n.exe", "Game.exe"], "d3d11=n,b")
+        let document = Wine.registryDocument(
+            for: scopes.entries.map { (key: $0.scope.registryKey, overrides: Wine.parseDLLOverrides($0.overrides)) }
+        )
+        #expect(scopes.entries.count == 2)
+        #expect(!document.contains("Injected"))
+        #expect(document.contains("AppDefaults\\Game.exe\\DllOverrides"))
+    }
+
     @Test("The record survives a save and load")
     func recordRoundTrips() throws {
         let (bottle, _) = try makeBottle(.d3dMetal)

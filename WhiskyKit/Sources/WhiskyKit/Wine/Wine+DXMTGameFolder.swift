@@ -279,7 +279,7 @@ extension Wine {
             guard copyState != .foreign else {
                 Logger.wineKit.info("Not placing DXMT beside a game that ships its own \(dll, privacy: .public)")
                 state.record.copies[folder.key(for: dll)] = nil
-                removeDXMTCopies(in: folder, state: &state, takingBackLostCopies: false)
+                removeDXMTCopies(in: folder, state: &state)
                 return
             }
             writes.append(DXMTCopyWrite(
@@ -326,13 +326,10 @@ extension Wine {
     }
 
     /// Removes the folder's recorded copies whose content still matches the
-    /// record and, in a Steam game's folders, where Whisky places the trio,
-    /// unrecorded files that are the payload's own bytes, as copies the record
-    /// lost. A deploy leaving the folder to the game passes `false` for
-    /// `takingBackLostCopies`: it cannot tell those from files someone else put there.
-    private static func removeDXMTCopies(
-        in folder: DXMTGameFolder, state: inout DXMTReconcileState, takingBackLostCopies: Bool = true
-    ) {
+    /// record. A file the record does not name stays, even with the payload's
+    /// bytes: Whisky cannot tell a copy whose record was lost from one the
+    /// user put there, and a lost record's copies are adopted by the next deploy.
+    private static func removeDXMTCopies(in folder: DXMTGameFolder, state: inout DXMTReconcileState) {
         let entries = folderEntries(folder.url)
         for dll in dxmtGameFolderDLLs {
             let key = folder.key(for: dll)
@@ -344,13 +341,7 @@ extension Wine {
                 state.record.copies[key] = nil
                 continue
             }
-            let isWhiskys = if let recorded = state.record.copies[key] {
-                hash == recorded
-            } else {
-                takingBackLostCopies && DXMTGameFolder.steamInstallKey(of: folder.key) != nil
-                    && isPayloadCopy(of: dll, hash: hash, payloadRoot: state.payloadRoot)
-            }
-            guard isWhiskys else {
+            guard state.record.copies[key] == hash else {
                 // No longer what Whisky wrote: not Whisky's to remove.
                 state.record.copies[key] = nil
                 continue
@@ -365,11 +356,6 @@ extension Wine {
                 )
             }
         }
-    }
-
-    /// Whether `hash` is that of the payload's `dll` for either architecture.
-    private static func isPayloadCopy(of dll: String, hash: String, payloadRoot: URL) -> Bool {
-        ["x64", "x32"].contains { fileHash(payloadRoot.appending(path: $0).appending(path: dll)) == hash }
     }
 
     /// The names in `folder`, as stored, or none when it cannot be read.

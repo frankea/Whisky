@@ -165,8 +165,8 @@ final class DXMTGameFolderRecoveryTests {
         #expect(Fixture.holdsNoTrio(stub.deletingLastPathComponent()))
     }
 
-    @Test("Removal in a Steam game takes back the payload's bytes the record lost, and keeps the game's own")
-    func removalInSteamGameTakesBackUnrecordedPayloadCopies() throws {
+    @Test("Removal in a Steam game keeps files the record does not name, even with the payload's bytes")
+    func removalInSteamGameKeepsUnrecordedPayloadCopies() throws {
         let bottle = try fixture.makeBottle()
         let game = try fixture.makeGame(in: bottle)
         let own = Fixture.nativeFake("the game's own dxgi")
@@ -176,9 +176,11 @@ final class DXMTGameFolderRecoveryTests {
 
         try reconcile(.remove, [game], bottle, payload: fixture.makeDXMTPayload())
 
+        // Whisky cannot tell a copy whose record was lost from one the user put
+        // there, so neither goes.
         let folder = game.deletingLastPathComponent()
-        #expect(!FileManager.default.fileExists(atPath: folder.appending(path: "d3d11.dll").path))
-        #expect(!FileManager.default.fileExists(atPath: folder.appending(path: "d3d10core.dll").path))
+        #expect(Fixture.contents(folder.appending(path: "d3d11.dll")) == Fixture.dxmtFake("x64", "d3d11.dll"))
+        #expect(Fixture.contents(folder.appending(path: "d3d10core.dll")) == Fixture.dxmtFake("x32", "d3d10core.dll"))
         #expect(Fixture.contents(folder.appending(path: "dxgi.dll")) == own)
     }
 

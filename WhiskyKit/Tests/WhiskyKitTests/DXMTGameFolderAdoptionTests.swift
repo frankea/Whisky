@@ -30,7 +30,7 @@ final class DXMTGameFolderAdoptionTests {
     private let fixture: DXMTGameFolderFixture
     private typealias Fixture = DXMTGameFolderFixture
 
-    /// A game folder outside Steam, where removal never takes back unrecorded files.
+    /// A game folder outside Steam.
     private static let otherFolder = "Games/Other"
 
     init() throws {

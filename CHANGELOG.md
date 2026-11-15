@@ -11,133 +11,133 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The RSI Launcher (Star Citizen) now draws its window on the Recommended
   graphics backend: Whisky recognizes it as a launcher and runs it on DXVK,
   the only backend its window draws on. Star Citizen launched from Whisky
-  keeps the bottle's backend (#374, #168).
+  keeps the bottle's backend ([#374], [#168]).
 
 ## [3.10.0] - 2026-11-14 (App)
 
 ### Added
 - A bottle's Pinned output device can now be chosen from the Mac's output
   devices, and Wine sends that bottle's sound to it, falling back to the
-  macOS default output when the device isn't connected (#354).
+  macOS default output when the device isn't connected ([#354]).
 - Bottle settings gain "When Leaving a Running Bottle" in the Cleanup
-  section: Ask Each Time, Keep Running or Stop Processes (#353).
-- Game Configurations for Trine 4, Screw Drivers and BeamNG.drive (#364).
+  section: Ask Each Time, Keep Running or Stop Processes ([#353]).
+- Game Configurations for Trine 4, Screw Drivers and BeamNG.drive ([#364]).
 
 ### Changed
 - The default Wine engine is now 4.8.3 (Wine 11.19, built from CrossOver's
   sources), which can run D3DMetal: import Apple's Game Porting Toolkit in
   Settings and it deploys automatically. Installs on the stock 3.1.1
   engine are offered the update at launch, and new installs get 4.8.3.
-  Whisky versions before 3.10.0 stay on 3.1.1 (#371, #163).
+  Whisky versions before 3.10.0 stay on 3.1.1 ([#371], [#163]).
 - Leaving a bottle while a program Whisky launched is still running keeps
   it running by default. The "when switching away with running processes"
   setting now takes effect and can be changed in the bottle's Cleanup
-  settings (#352, #353).
+  settings ([#352], [#353]).
 
 ### Removed
 - The Network Timeout slider in a bottle's Launcher settings. Wine never
   read the timeout it set, so it had no effect; the Steam and Ubisoft
   launcher fixes, diagnostics and the Steam download stall advice no
-  longer claim it helps (#356).
+  longer claim it helps ([#356]).
 
 ### Fixed
 - Guided troubleshooting: "No, still broken" moves on to the next check
   instead of giving up after the first fix, launcher-specific steps follow
   the detected launcher, and checks use the bottle's real audio device,
   launcher, graphics backend and latest log instead of placeholder data
-  (#349).
+  ([#349]).
 - Guided troubleshooting no longer shows "Problem resolved" when stepping
   past the escalation screen, Undo works for the network DNS fix, and
-  several flows no longer dead-end or check the wrong setting (#349).
+  several flows no longer dead-end or check the wrong setting ([#349]).
 - Applying a Game Configuration now installs its components, with
   progress and a Cancel button, and its environment variables apply to
   every launch of the game rather than only Steam launches. "Don't show
   this again" on the preview is honored; hold Option when clicking Apply
-  to see the preview again (#350).
+  to see the preview again ([#350]).
 - While a game Whisky launched was running, the sidebar could show the
   orange leftover-processes button, which stops the bottle. Running games
-  now show as running, and the Processes tab reflects them (#352).
+  now show as running, and the Processes tab reflects them ([#352]).
 - Launcher fixes and the clipboard setting now apply however a program is
   started, including pins, the Dock and menu bar, and the context menu
-  (#352).
-- "Automatically check for WhiskyWine updates" is honored (#351).
+  ([#352]).
+- "Automatically check for WhiskyWine updates" is honored ([#351]).
 - "Install VC++ Runtime" only shows as installed once the runtime is
-  actually found in the bottle (#351).
+  actually found in the bottle ([#351]).
 - A program's "Match Display" virtual desktop uses the display's size
-  instead of always 1920x1080 (#351).
+  instead of always 1920x1080 ([#351]).
 - The Rockstar "DXVK required" warning only shows when DXVK won't be used
-  (#351).
+  ([#351]).
 - "Troubleshoot Audio..." on a program page opens the audio troubleshooter
-  (#351).
+  ([#351]).
 - `whisky add` works with real bottles and refuses paths that aren't one,
   and `whisky delete` reports a failed deletion instead of exiting
-  successfully (#351).
+  successfully ([#351]).
 - Saving diagnostics as a ZIP reports failures and no longer deletes the
-  file being replaced when the save fails (#351).
+  file being replaced when the save fails ([#351]).
 - A program's Display override with Virtual Desktop turned off now runs it
   outside the bottle's virtual desktop, even while the bottle is running.
   Programs given their own virtual desktop start in their own folder, and
-  launching one no longer waits for the program to exit (#355).
+  launching one no longer waits for the program to exit ([#355]).
 - "Include remediation history" in a diagnostics export now includes the
   fixes applied from a program's crash diagnosis cards, in both the saved
-  ZIP and Copy Report, with home paths redacted (#357).
+  ZIP and Copy Report, with home paths redacted ([#357]).
 - Launching a program from Whisky returns as soon as Wine has started it,
   instead of when the bottle's whole Wine session ends. The Library
   spinner and "launched" toast no longer wait for the game to quit, and
-  the crash watcher now watches the running game (#361).
+  the crash watcher now watches the running game ([#361]).
 - A long session's log keeps its newest output once it reaches the 20 MiB
   cap, so crash lines at the end reach the log and the crash diagnosis.
   The log keeps its start and says where it was cut. Thanks to
-  @jaxjixmix for the report (#361, from #360).
+  [@jaxjixmix] for the report ([#361], from [#360]).
 - After a crash, "View Latest Diagnosis" and "Export Diagnostic Report"
   stay available; another view of the same program could overwrite the
-  crash record (#361).
+  crash record ([#361]).
 - Whisky's own tasklist, taskkill and reg helpers no longer show in
-  Running Processes as untracked apps (#361).
+  Running Processes as untracked apps ([#361]).
 - `whisky run --follow` and `--tail-log` keep printing output that arrives
   after the launch and cope with a truncated log, and `whisky run` and
   `whisky launch` wait for the program's output so its log is complete
-  (#361).
+  ([#361]).
 - Importing the Game Porting Toolkit on an engine that can't run D3DMetal
   now says the engine is the reason, in the D3DMetal card, the bottle's
   graphics settings and Settings, with a link to the engine releases.
   Installing a capable engine later deploys the stored payload at launch
-  (#362, from #358).
+  ([#362], from [#358]).
 - Unpinning a Start Menu program sticks; the Start Menu scan no longer
   pins it again. Opening a bottle no longer deletes its Start Menu
   shortcuts, programs installed outside Program Files and Desktop
-  shortcuts get pinned, and uninstallers, docs and links don't (#363).
+  shortcuts get pinned, and uninstallers, docs and links don't ([#363]).
 - Shortcut apps, including ones made with `whisky shortcut`, show the
-  program's own icon (#363).
+  program's own icon ([#363]).
 - Steam games launch with the Game Configuration variant you applied
   instead of the recommended one, and `-applaunch` is sent after a cold
-  Steam start (#364, #368).
+  Steam start ([#364], [#368]).
 - Winetricks installs from Game Configurations, troubleshooting fixes and
   the dependency sheet run unattended instead of waiting on a hidden
-  dialog (#364).
+  dialog ([#364]).
 - Game Configurations that turn sync off (Battlefield 2042, Destiny 2,
-  Fortnite, PUBG, Valorant) now do (#364).
+  Fortnite, PUBG, Valorant) now do ([#364]).
 - With redaction on, diagnostic exports hide the Windows account name in
-  Wine profile paths (#365).
+  Wine profile paths ([#365]).
 - Uninstall All removes the default bottles it lists, opening a bottle's
   config no longer writes DPI and retina mode, setup opens at launch when
   Rosetta 2 is missing, and a failed bottle move or removal shows an
-  alert instead of failing silently (#365).
+  alert instead of failing silently ([#365]).
 - Launches keep DLL overrides that winetricks or winecfg wrote, and a
   program's own `WINEDLLOVERRIDES` environment variable takes effect
-  (#366). Overlapping launches in one bottle no longer leave behind
+  ([#366]). Overlapping launches in one bottle no longer leave behind
   overrides Whisky wrote, and a program whose file name contains a line
-  break no longer misplaces its overrides (#369, #370).
+  break no longer misplaces its overrides ([#369], [#370]).
 - Turning the shader cache off works on DXMT, Metal trace captures
   outside Xcode and under DXMT, and DXVK compiles Metal shaders
-  concurrently (#366).
+  concurrently ([#366]).
 - Korean text draws with Apple SD Gothic Neo when no CJK fonts are
-  installed (#367).
+  installed ([#367]).
 - The Enhanced Sync setting says when the installed Wine runtime ignores
-  it, and no longer claims MSync is fastest (#367).
-- Several fixes in #363 to #367 are based on work in forks by
-  @ellomehllo, @RodrigoLScorza, @EwoudVV, @furknataman, @Dunn-Kim,
-  @rolling7ho, @daydalek and @adurham.
+  it, and no longer claims MSync is fastest ([#367]).
+- Several fixes in [#363] to [#367] are based on work in forks by
+  [@ellomehllo], [@RodrigoLScorza], [@EwoudVV], [@furknataman], [@Dunn-Kim],
+  [@rolling7ho], [@daydalek] and [@adurham].
 
 ## [3.9.2] - 2026-11-13 (App)
 
@@ -148,27 +148,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Strings in the controller, dependency, audio, install, import and
   troubleshooting screens that showed in English whatever the app's
   language now use their existing translations, and about 85 more are
-  available to translators. Thanks to @PolarisSdesu for finding them
-  (#345, from #339).
+  available to translators. Thanks to [@PolarisSdesu] for finding them
+  ([#345], from [#339]).
 - Parts of the audio screens showed raw identifiers such as
   `audio.findings.fix` in Spanish, French, Italian, Portuguese and
   Romanian. They show English until translated, and translation updates
-  can no longer bring the identifiers back (#346).
+  can no longer bring the identifiers back ([#346]).
 - Text the app assembles itself, such as setting summaries, troubleshooting
   results, audio findings, fix previews and error messages, is now
   translatable instead of always English. Diagnostics exports stay in
-  English so reports read the same everywhere (#346).
+  English so reports read the same everywhere ([#346]).
 - The crash step in troubleshooting shows its result in the app's
   language, and shortcut launchers show their "Whisky not found" alert in
-  it too (#346).
+  it too ([#346]).
 - The Fix buttons on audio findings did nothing, and Apply Fix in Audio
   Troubleshooting only recorded the attempt. They now apply their fix:
   re-enabling the audio driver, restoring the latency preset, clearing
   Wine's cached audio devices, or opening Sound settings. Fixes that
   restart the bottle say so first, and findings that are advice only no
-  longer show a button (#347).
+  longer show a button ([#347]).
 - Audio checks could not detect a disabled audio driver, and registry
-  values containing spaces were read back cut short (#347).
+  values containing spaces were read back cut short ([#347]).
 
 ## [3.9.1] - 2026-11-12 (App)
 
@@ -179,7 +179,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   region, for example) see the right one. The old workaround for Steam's
   web helper isn't needed on current engines. Launcher bottles that earlier
   versions set to English are put back on Auto once; Steam's own interface
-  language is still set in Steam's settings (#340, closes #330).
+  language is still set in Steam's settings ([#340], closes [#330]).
 
 ### Fixed
 - Applying a Game Configuration no longer sets a graphics backend this Mac
@@ -187,12 +187,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Baldur's Gate 3 and The Witcher 3, choose D3DMetal; without the GPTK
   payload that left the bottle falling back to WineD3D, which can't start
   Direct3D 11 games. Such a backend now becomes Recommended, and the preview
-  shows what will actually be set (#337).
+  shows what will actually be set ([#337]).
 - The Binding of Isaac's Game Configuration no longer switches the bottle to
   WineD3D. The game renders through OpenGL, which no backend setting
   reaches, so the change only affected the bottle's other programs. The
-  entry now lists the black post-process effects as a known issue (#338,
-  part of #200).
+  entry now lists the black post-process effects as a known issue ([#338],
+  part of [#200]).
 
 ## [3.9.0] - 2026-11-12 (App)
 
@@ -201,32 +201,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Metal renderer in the bottle, Steam's store and overlay included, so a
   program can now turn it on for itself alone, or turn the bottle's HUD off
   for itself. It applies to programs started from Whisky; a game a launcher
-  starts follows the launcher's setting (#313).
+  starts follows the launcher's setting ([#313]).
 - On launch, Whisky offers once to import bottles from the original Whisky
   when it finds any that aren't registered yet. File > Migrate from the
-  Original Whisky still does it any time (#323, fixes #321).
+  Original Whisky still does it any time ([#323], fixes [#321]).
 - On macOS 26 the app icon renders as Liquid Glass and has a dark
   appearance, in the Dock, the app switcher and Whisky's own dialogs. macOS
-  15 keeps the existing icon (#310).
+  15 keeps the existing icon ([#310]).
 
 ### Fixed
 - `.cmd` scripts run through the command interpreter like `.bat` files,
   from the Run panel, the bottle's Run button, and by opening them from
   Finder. Upper-case extensions such as `SETUP.BAT` are recognized too; they
-  previously launched as programs and failed (#331).
+  previously launched as programs and failed ([#331]).
 - Locale Override in Launcher Compatibility now works for Steam, EA App,
   Epic Games, Battle.net and Rockstar bottles. Their presets forced US
   English on every game they start, and the picker had no effect; a game
   that takes its region or language from the Windows locale can now get the
-  one chosen there. Auto still uses US English for those launchers (#332,
-  part of #330).
+  one chosen there. Auto still uses US English for those launchers ([#332],
+  part of [#330]).
 
 ### Security
 - The Sparkle updater is updated to 2.10.1. It fixes two Sparkle
   advisories: while an update installed, another local process could send
   the installer forged update details (GHSA-g3hp-f6mg-559v), and a crafted
   delta update could write outside the app (GHSA-hg88-v3cw-3qrh; Whisky
-  ships full updates only, so this one wasn't reachable) (#336).
+  ships full updates only, so this one wasn't reachable) ([#336]).
 
 ## [3.8.0] - 2026-11-12 (App)
 
@@ -234,8 +234,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A game database entry for Solarpunk. It sets DXMT, installs the VC++
   runtime with winetricks, and keeps the runtime's DLLs on native through
   the bottle's own overrides. Without them, the game's Unreal Engine
-  bootstrap refuses to start with a Visual C++ Redistributable error (#307,
-  fixes #306).
+  bootstrap refuses to start with a Visual C++ Redistributable error ([#307],
+  fixes [#306]).
 
 ### Fixed
 - Warframe's launcher shows its page again instead of a white window. It is
@@ -244,7 +244,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   window's own process. Started from Steam, the launcher now gets
   `--in-process-gpu` from the game database, which keeps the painting in
   its own process. Game database entries can carry launch arguments for
-  this (#318).
+  this ([#318]).
 - Removing a stale native dxgi.dll from a bottle now puts Wine's own marked
   builtin copy back in its place. Wine's loader only finds a builtin through
   its system32 placeholder, so an empty slot made `dxgi.dll` unloadable and
@@ -252,12 +252,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Steam's Store, Community and Profile pages black. It only surfaced on a
   runtime whose wine.inf matched the bottle's update stamp, because every
   other runtime triggers a prefix update that silently reinstalls the
-  placeholder. That is why it looked like a wine 11.16 regression (#251).
+  placeholder. That is why it looked like a wine 11.16 regression ([#251]).
 - The Recommended graphics backend now resolves launchers (Steam and other
   Chromium-based clients) to DXVK on every runtime. Previously a runtime
   without the D3DMetal payload resolved launchers to DXMT, whose Direct3D
   layer launcher UIs cannot render on, leaving the client running with no
-  window (#163).
+  window ([#163]).
 - Starting Steam no longer turns d3d12 off for every game in the bottle.
   Play's Steam profile switched the whole bottle to DXVK so the client could
   draw, which wrote DXVK's overrides, d3d12 disabled included, into the
@@ -280,7 +280,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   launch of the app or right after importing GPTK, and its graphics settings
   say so. A DXVK you picked yourself is left alone. Bottles set to another
   backend explicitly, Ubisoft Connect, Battle.net and the standalone Rockstar
-  Games Launcher still switch the bottle to DXVK as before (#302, fixes #276).
+  Games Launcher still switch the bottle to DXVK as before ([#302], fixes [#276]).
 
   In WhiskyKit, `SteamLauncher.launch` gains a `clientIsRunning` parameter
   and starts the client with `-silent` when it is not running, and
@@ -294,18 +294,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   executables, which also replaces a d3d12 that 3.7.0 turned off there when
   the game was started directly. The game database no longer recommends DXVK
   for Red Dead Redemption 2, a DirectX 12 game; that was meant for the
-  Rockstar launcher, which gets it on its own (#302).
+  Rockstar launcher, which gets it on its own ([#302]).
 - Game database entries for DirectX 12 only games (including Cyberpunk
   2077's fallback, both Horizon games, Monster Hunter Wilds, Street
   Fighter 6 and Starfield) no longer recommend DXVK, which cannot run them
   and kept them from starting once a game's settings applied on every Steam
   launch. Several DirectX 11/12 games whose DXVK advice was unrelated to
-  DirectX 11 now use the recommended backend too (#302).
+  DirectX 11 now use the recommended backend too ([#302]).
 - The game database entry for Train Sim World 5 now matches the game. It
   carried the Steam App ID of an unrelated playtest, so its settings never
-  applied (#303).
+  applied ([#303]).
 - The warnings in a bottle's launcher settings can now be translated; they
-  were shown in English in every language (#303).
+  were shown in English in every language ([#303]).
 - Enabling DXVK now reconciles the bottle's dxgi.dll against the D3DMetal
   payload. With the payload deployed, the builtin dxgi is Apple's forwarder,
   which DXVK's d3d11 cannot pair with, so Wine's own backed-up dxgi is
@@ -317,7 +317,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   dxgi, which cannot create window swapchains, leaving Chromium-based
   launchers such as Steam running with no window after a switch from DXMT
   to DXVK, and with the payload deployed it made the Steam client crash-loop
-  (#251, #295, fixes #248).
+  ([#251], [#295], fixes [#248]).
 - A Visual C++ Runtime whose installer hung under wine after installing
   successfully is now detected. The winetricks.log entry is only written once
   the installer exits, so the Dependencies panel kept saying "Not Installed"
@@ -325,7 +325,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the presence of mfc140.dll in system32 -- the x64 redist's payload on the
   default win64 bottles, which Wine does not ship as a builtin -- now counts
   as installed, reported with heuristic confidence; a bottle whose log
-  already says installed is never probed (#233).
+  already says installed is never probed ([#233]).
 - The runtime's GPTK interposers, the D3D12 video processor and the DXGI
   driver version fix, now only go in front of GPTK 4.0 beta 2, the build
   they were validated on. With GPTK 3.0 they crash Red Dead Redemption 2 at
@@ -335,33 +335,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   other build they are already in front of, imported or copied into the
   runtime by hand, and puts Apple's d3d12.dll and dxgi.dll back exactly as
   they were, so a runtime an earlier version swapped recovers on its own
-  (#276).
+  ([#276]).
 - Opening the app or Settings no longer writes over a GPTK payload copied
   into the runtime by hand. When a payload had been imported as well, launch
   installed the imported payload's NVAPI and MetalFX bridges into the
   runtime, setting the hand-placed nvapi64.dll aside and deleting nvngx.dll,
   and Settings deployed the imported payload over the whole runtime. Both
   now only act on the payload the importer deployed; importing a payload
-  still replaces one copied in by hand (#276).
+  still replaces one copied in by hand ([#276]).
 - Launcher compatibility mode no longer turns DirectX Raytracing on for every
   game in the bottle. Its GPU spoof, which Play switches on when it sets a
   bottle up for Steam, carried `D3DM_SUPPORT_DXR=1`, which D3DMetal reads and
   every game inherits from the launcher. It overrode the bottle's own ray
   tracing toggle (off by default, and not offered on Macs without hardware
   ray tracing) and the troubleshooter's Disable Ray Tracing fix, which now
-  decide it alone (#276).
+  decide it alone ([#276]).
 - The terminal environment (Open in Terminal and `WhiskyCmd shellenv`) now
   puts the real Wine bin directory on `PATH`. The path was backslash-escaped
   inside double quotes, so the entry kept a literal backslash before the
-  space in "Application Support" and `wine64` was not found (#270, fixes
-  #269).
+  space in "Application Support" and `wine64` was not found ([#270], fixes
+  [#269]).
 - Open in Terminal and `WhiskyCmd shellenv` now export every variable with
   its real value. Each value was escaped for a bare shell word and then put
   inside double quotes, where most of those backslashes stay, so every `=`
   and `;` in `WINEDLLOVERRIDES` came out with a backslash in front
   (`d3d11\=n,b\;...`) and `WINEPREFIX` kept one before each space in a
   custom bottle location. Values are now single-quoted, which zsh, bash and
-  fish read back verbatim (#280, fixes #267).
+  fish read back verbatim ([#280], fixes [#267]).
 - Every `WhiskyCmd run` mode now prepares the bottle and applies the
   program's settings the way a launch from the app does. `run --command`
   printed a command that still set `WINEDLLOVERRIDES`, which Wine reads
@@ -373,20 +373,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   bottle's overrides (after `WhiskyCmd shellenv` or Open in Terminal) cannot
   bring the shadowing back. `run --follow` skipped the registry step
   altogether, and every mode ignored the program's own overrides and its
-  WINEDEBUG preset. Like every launch from the app since #185,
+  WINEDEBUG preset. Like every launch from the app since [#185],
   `run --command` and `run --follow` now replace the bottle's DllOverrides
   registry key with Whisky's set, which drops overrides added there with
-  winetricks or winecfg (#281, fixes #266).
+  winetricks or winecfg ([#281], fixes [#266]).
 - Run in a program's context menu now applies the bottle's audio settings.
   It skipped the audio registry sync every other launch runs, so a changed
-  driver or latency setting never reached programs started that way (#281).
+  driver or latency setting never reached programs started that way ([#281]).
 - `WhiskyCmd launch` now starts the game. It printed its confirmation and
   exited while the launch was still preparing the bottle, which ended the
   process after the registry import and before Steam was started. Shortcuts
   to Steam games run the same command and failed the same way. The command
   now confirms once Wine is running the Steam client, waits for that
   invocation the way `run` waits for its program, and passes a failing exit
-  code through along with the path of its log (#281, part of #276).
+  code through along with the path of its log ([#281], part of [#276]).
 
   This changes `SteamLauncher.launch` in WhiskyKit's public API: the task it
   returns is now a `Task<Wine.ProgramRunResult, any Error>` instead of a
@@ -402,7 +402,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the matching Source Han Sans faces when the fonts are present, also in
   bottles set up before this release, and leave any value already set alone.
   A launcher that is already running sees the aliases only after a full
-  restart (#283, #289, fixes #278).
+  restart ([#283], [#289], fixes [#278]).
 - Unity 6000.3 games start again in bottles on DXVK or DXMT, which on the
   standard engine is every bottle left on Recommended. 3.7.0 turned d3d12
   off under both backends so that a DirectX 12 game could not hand one
@@ -411,12 +411,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   which turns such a game away cleanly and lets it fall back to DirectX 11.
   Turned off, the DLL could not load at all, and Unity 6000.3 loads it at
   startup, so those games crashed with exception 0xC06D007E. d3d12 is now
-  only turned off when the payload is deployed (#285, fixes #255 and #257, part of
-  #258).
+  only turned off when the payload is deployed ([#285], fixes [#255] and [#257], part of
+  [#258]).
 
   The disabled d3d12 that 3.7.0 wrote into the registry entry of a game
   started directly is cleared the next time the game is started from
-  Whisky, directly or with Play (#302). A disabled d3d12 entry in a bottle's
+  Whisky, directly or with Play ([#302]). A disabled d3d12 entry in a bottle's
   DLL Overrides, which Presets > DXVK (D3D9/10/11) added on 3.7.0, still
   keeps the DLL off until it is removed.
 
@@ -425,7 +425,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   D3DMetal's, which changes their public signatures.
 - The conflict warning in a DXMT bottle's DLL Overrides section now names
   DXMT. It said every managed entry overrode a DXVK setting, whichever
-  backend had applied it (#285).
+  backend had applied it ([#285]).
 - A launch's log holds the program's output again. Since 3.6.1 every launch
   first imports the bottle's DLL overrides into the registry, and the import
   opens a log of its own a few milliseconds after the launch's. Log names
@@ -436,62 +436,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   output. Export Diagnostic Report, View Latest Diagnosis, crash
   classification and the run history all read that log. Log names now go
   to the millisecond, and a log file is only ever created, never replaced
-  (#281, #286, part of #256, #260 and #261).
+  ([#281], [#286], part of [#256], [#260] and [#261]).
 - Listing a bottle's processes no longer writes a log file. The Running
   Processes page lists them every few seconds, as does the Steam
   integration while it watches Steam, so the logs folder filled up with
   `tasklist.exe` logs and the newest file there was rarely the program's
-  (#286).
+  ([#286]).
 - Start Guided Troubleshooting in Bottle Configuration now opens on the
   symptom picker. It opened on a "Running checks…" spinner with nothing
   behind it: that entry point never picked a symptom or started a check,
   and with Skip and Back disabled, Close was the only way out. The wizard
-  now shows that spinner only while a check is running (#287, part of #261).
+  now shows that spinner only while a check is running ([#287], part of [#261]).
 - Loading a bottle no longer rewrites its Metadata.plist when nothing has
   changed. `WhiskyCmd list` and `shellenv` (which Open in Terminal runs)
   load every registered bottle, so each run rewrote all of their settings
   files, and opening a terminal while the app was saving a bottle's
   settings could overwrite that change. Apart from repairs such as
   replacing a missing or damaged file, loading now saves only when it
-  removes a stale or duplicate pin (#288).
+  removes a stale or duplicate pin ([#288]).
 - Pinning a program that is already pinned no longer adds a second pin. The
   start menu scan did this whenever it found another shortcut to a pinned
   program, and the duplicate was written back on every settings save and
   removed again on the next bottle load. Every start menu shortcut to a program
-  is now cleaned up, not just the first one (#296).
+  is now cleaned up, not just the first one ([#296]).
 - Strings that have not been translated yet now show their English text in
   every language instead of a raw identifier such as `library.title` or
   `sidebar.bottles`. About 130 strings per language were affected, including
   the Library and sidebar titles. A build step fills each compiled language
   from English for any key it lacks, so the catalog and Crowdin stay as they
-  are (#297, fixes #291).
+  are ([#297], fixes [#291]).
 - Guided Troubleshooting's "Switch to DXVK" fix (Graphics problems and
   graphics-related launch crashes) now switches the bottle to DXVK. It used
-  to preview Recommended to Recommended and leave the bottle unchanged (#298).
+  to preview Recommended to Recommended and leave the bottle unchanged ([#298]).
 - The crash diagnosis card that resets the graphics backend is now titled
   "Reset Graphics Backend to Recommended" and describes that reset, and it
-  no longer appears for a bottle that is already on Recommended (#298, fixes #294).
+  no longer appears for a bottle that is already on Recommended ([#298], fixes [#294]).
 - A Game Porting Toolkit payload imported before Whisky checked Apple's
   signature is now checked once before it is deployed again, and again
   whenever the stored payload changes. One that fails is no longer
   deployed (a copy already in the engine stays until it is imported
   again), and the Game Porting Toolkit section in Settings asks you to
   import Apple's disk image again. Payloads copied into the engine by hand
-  are left alone (#299).
+  are left alone ([#299]).
 - `whisky run` (default, `--follow` and `--command`) and `whisky launch` now
   set up a bottle's Wine prefix before preparing the launch when it doesn't
   have one yet, the same way the app does when it creates a bottle. A bottle
   made with `whisky create` previously failed its first run with "The file
   d3d11.dll doesn't exist", because preparation deployed the graphics
   backend's files into a system32 that wasn't there. When the prefix can't be
-  set up, the error now says so instead of naming a DLL (#300, fixes #293).
+  set up, the error now says so instead of naming a DLL ([#300], fixes [#293]).
 - Shift-clicking Run (Run in Terminal) now prepares the bottle before the
   terminal opens, like `whisky run --command`: the program's DLL overrides go
   into the bottle's registry, the graphics backend's files and any missing
   CJK font aliases are put in place, and a missing Wine prefix is created.
   Previously the terminal ran the program without any of that. A failure to
   prepare the bottle or open the terminal is now reported instead of opening
-  nothing (#300).
+  nothing ([#300]).
 
 ### Security
 - A bottle name, bottle path or DLL override name can no longer run
@@ -500,7 +500,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   early, because fish reads a backslash inside single quotes as an escape
   there, and in any shell a quote with a combining mark on it was left
   unescaped. Backslashes and quotes now always sit outside the quoted
-  text, which zsh, bash and fish all read the same way (#280).
+  text, which zsh, bash and fish all read the same way ([#280]).
 - Importing a Game Porting Toolkit payload now verifies the code it puts in
   every bottle's Wine tree, the D3DMetal framework and its shared library.
   Each must carry Apple's signature for the identifier Apple gives it, on
@@ -511,17 +511,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fails is refused with the offending file named. The Windows DLLs cannot
   carry an Apple signature: the D3D forwarders keep their builtin-marker
   check, which a hand-made DLL can also pass, and the NVIDIA bridges are
-  not checked (#265).
+  not checked ([#265]).
 
 ### Changed
 - The "Auto-Enable DXVK for Launchers" toggle is now "Use DXVK for Rockstar
   Games Launcher", with help text that says what it does: Rockstar is the
   only launcher it applies to, and every other launcher already runs on
-  DXVK under the Recommended backend (#298, part of #260).
+  DXVK under the Recommended backend ([#298], part of [#260]).
 
 ### Removed
 - ClickOnce support. Games do not arrive as `.appref-ms` deployments, and
-  nobody spoke up for it during the window on #215. The manager, its
+  nobody spoke up for it during the window on [#215]. The manager, its
   detection pass in the program scan, the badge, the context menu, the
   .NET auto-recommendation and the `.appref-ms` file type in the run
   panels are all gone. The ClickOnce cache filter in the executable scan
@@ -529,19 +529,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   This removes `ClickOnceManager` and the `Program(appRefURL:bottle:displayName:)`
   initializer from WhiskyKit's public API, along with the `isClickOnce`
-  property, so the kit needs a major version bump (#215).
+  property, so the kit needs a major version bump ([#215]).
 - The performance presets (Balanced, Performance, Quality and Unity). No
   runtime Whisky ships reads most of what they set, and the Unity preset's
   `MONO_THREADS_SUSPEND=1` is an invalid value that makes Mono abort at
-  startup, the likely cause of the Unity game crashes reported in #271. If
+  startup, the likely cause of the Unity game crashes reported in [#271]. If
   you used the Performance preset with DXVK Async turned off, async shader
   compilation now follows the DXVK Async toggle, and Metal Validation now
   takes effect in a bottle that also had the Performance preset, which used
-  to switch it off (#272, fixes #271).
+  to switch it off ([#272], fixes [#271]).
 
   This removes `PerformancePreset` and the `performancePreset` properties of
   `BottleSettings`, `ProgramOverrides` and `GameConfigVariantSettings` from
-  WhiskyKit's public API (#272).
+  WhiskyKit's public API ([#272]).
 - The Force DirectX 11 toggle, from both the Graphics and Performance
   sections of the bottle settings and from the per-program overrides. It
   only set `D3DM_FORCE_D3D11` and `D3DM_FEATURE_LEVEL_12_0`, and neither
@@ -553,13 +553,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Switch Graphics Backend for D3D12 errors instead of the old "Force
   DirectX 11 Mode" fix. Saved bottles, program overrides and game configs
   that still carry the setting load as before and drop it on the next save
-  (#292, fixes #284).
+  ([#292], fixes [#284]).
 
   This removes the `forceD3D11` properties of `BottleSettings`,
   `ProgramOverrides` and `GameConfigVariantSettings` (and the matching
   `GameConfigVariantSettings` initializer parameter) from WhiskyKit's
   public API, and `GPUDetection.validateSpoofingEnvironment` no longer
-  requires `D3DM_FEATURE_LEVEL_12_1` (#292).
+  requires `D3DM_FEATURE_LEVEL_12_1` ([#292]).
 - Environment variables Whisky set that no runtime it ships reads. On
   macOS 15.3 and later every launch carried eleven of them, among them
   `D3DM_VALIDATION`, `WINE_CPU_TOPOLOGY`, `WINE_DISABLE_FAST_PATH` and the
@@ -570,7 +570,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `D3DM_SHADER_MODEL`. They no longer appear in the Active Environment
   Overrides list or in launch logs. Rockstar still gets DXVK, the Paradox
   preset now has no environment fix, and `WINEESYNC` and `WINEFSYNC` stay
-  because the v2.5.0 runtime reads them (#301).
+  because the v2.5.0 runtime reads them ([#301]).
 
 ## [3.7.0] - 2026-08-29 (App)
 
@@ -578,7 +578,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Failed dependency installs now record the last few KB of winetricks output
   in dependency-history.plist alongside the exit code, so the reason for a
   failure (such as a vc_redist checksum mismatch) is on disk next to the
-  attempt instead of lost with the process (#233).
+  attempt instead of lost with the process ([#233]).
 - Ways into a game from outside the window. A whisky:// URL scheme launches a
   Steam game (whisky://launch?steam=<appid>) or a pinned program
   (whisky://launch?pin=<name>), optionally scoped to a bottle. Only games
@@ -588,33 +588,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   dialog does not nag on repeat. The Dock menu lists your pins and launches
   them without confirming, since you are already in the app, and dropping an
   executable anywhere on the window opens the same run-this-file sheet as
-  opening it from Finder (#226, part of #172).
+  opening it from Finder ([#226], part of [#172]).
 - Discord integration, off by default and per bottle: Whisky can publish the
   running program as your Discord presence, and games that speak Discord's
   IPC themselves are bridged from inside the bottle to the host client, so
-  their own rich presence works (#203, fixes #201).
+  their own rich presence works ([#203], fixes [#201]).
 - Metal 4 command encoding can be turned off for a single program. The
   bottle-wide default stays on; a toggle in the program's settings masks it
   for D3D12 titles whose renderer wedges on the Metal 4 submission
-  path (#230).
+  path ([#230]).
 - Whisky now opens onto a library of your games and pinned programs instead
   of a sidebar of bottles. Steam games show their own store artwork from the
   client's cache, other programs get a backdrop derived from their icon, and
   cards show running state and last-played times. Bottles are one click away
-  under their own heading (#206).
+  under their own heading ([#206]).
 - D3DMetal now uses its Metal 4 command encoding backend by default, with a
   toggle beside MetalFX for titles it does not suit. The engine ignores the
   setting on macOS versions without Metal 4 and on Direct3D 11 titles, so it
-  is inert where it cannot help (#205).
+  is inert where it cannot help ([#205]).
 - MetalFX upscaling via the DLSS bridge, on by default for D3DMetal bottles.
   The bridge DLL Apple ships was never deployed, so the MetalFX switch had
-  nothing to act on (#204). Apple's NVAPI is deployed alongside it so games
+  nothing to act on ([#204]). Apple's NVAPI is deployed alongside it so games
   using NVIDIA Streamline actually offer the DLSS option, with launcher
   helper processes exempted per executable so their embedded browsers stay
-  up (#222, fixes #198).
+  up ([#222], fixes #198).
 - British English localization, generated from the English strings and kept
   complete by a CI check, so systems set to English (UK) see proper spellings
-  instead of raw localization keys (#208).
+  instead of raw localization keys ([#208]).
 
 ### Changed
 - DLSS frame generation is now its own bottle setting, off by default, instead
@@ -624,15 +624,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in the GPU driver until its watchdog killed it. Upscaling is unaffected and
   stays on. Some NVIDIA Streamline titles refuse to start with frame generation
   off, Deep Rock Galactic among them, so those need the toggle flipped for that
-  bottle (#231).
+  bottle ([#231]).
 - The per-bottle Steam library screen has been removed; the library on the
-  landing screen does that job for every bottle at once (#206).
+  landing screen does that job for every bottle at once ([#206]).
 - The bottle action bar now emphasizes Run as its primary control, with
   Liquid Glass styling on macOS 26 and bordered buttons on earlier
-  releases (#210).
+  releases ([#210]).
 - The Sequoia Compatibility Mode toggle has been removed. The fixes it
   claimed to control ship unconditionally, so the switch changed nothing in
-  either position (#216).
+  either position ([#216]).
 
 ### Fixed
 - Installing the Visual C++ Runtime no longer stalls on an invisible install
@@ -641,7 +641,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Dependencies panel prompts for -- the process never exited, the
   winetricks.log entry was never written, and the panel stayed on "Not
   Installed" even after a successful install. The vcrun verbs now run
-  unattended (#233).
+  unattended ([#233]).
 - Five labels showed their raw localization key instead of text: the
   "currently using" line on the Recommended graphics card and the helper
   under it, the detected display size next to Virtual Desktop, and the exit
@@ -727,7 +727,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   binaries in place, so the SHA256 sums pinned in the bundled winetricks go
   stale between releases and the unattended install aborted with exit 1,
   leaving the panel on "Not Installed" with no hint why. The vcrun verbs now
-  run with --force; every other verb keeps checksum enforcement (#233).
+  run with --force; every other verb keeps checksum enforcement ([#233]).
 - A bottle opened on a runtime from the other Wine lineage no longer starts
   with an empty profile. Every Wine build names the profile after your Unix
   user, but CrossOver-lineage builds (the GPTK-capable v4 engines) hardcode
@@ -749,7 +749,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   carries the DXGI interposer is now deployed with it, answering the same version
   Wine already publishes for the adapter so the two agree. It has to be its own
   module rather than part of the D3D12 one, because the check happens before a
-  game touches D3D12 at all. Runtimes without it are skipped as before (#227).
+  game touches D3D12 at all. Runtimes without it are skipped as before ([#227]).
 - DLSS frame generation is offered to games Steam launches. Whisky steers Steam
   itself onto DXVK so its Chromium helper paints, and it was stripping
   CX_ACTIVE_GRAPHICS_BACKEND along with the rest of the DXVK-versus-D3DMetal
@@ -760,39 +760,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reporting that frame generation needs GPU hardware scheduling turned on. It
   now survives the DXVK and DXMT overrides, and is still dropped for wined3d,
   which is the one path with no D3DMetal behind it. The variable is only set
-  at all when the bottle's frame generation toggle is on (#225, #231).
+  at all when the bottle's frame generation toggle is on ([#225], [#231]).
 - Games that decode video themselves no longer fall back to a broken
   half-resolution path under D3DMetal: when the runtime ships the D3D12
   video processor interposer, it is installed automatically alongside the
-  GPTK payload (#197).
+  GPTK payload ([#197]).
 - The Play Test Tone button now actually plays a tone. The test executable
   was never included in any build, so the button silently did nothing and
   then asked whether you heard it. The tone is also gentler: 600ms with
-  fades instead of a 100ms full-scale click (#209).
+  fades instead of a 100ms full-scale click ([#209]).
 - Audio settings, the console, and program overrides no longer show raw
   localization keys in place of text on English systems: the English source
-  strings were missing from the catalog and have been restored (#207).
+  strings were missing from the catalog and have been restored ([#207]).
 - Troubleshooting fixes now do what their cards say: the crash banner's
   buttons open the diagnosis they promise, remediation cards actually apply
   (winetricks installs run and report their real outcome, and a fix that
   cannot be performed is recorded as failed rather than applied), and the
-  troubleshooting wizard is localized (#213).
+  troubleshooting wizard is localized ([#213]).
 - The shader cache toggle now controls the cache DXVK actually reads, and a
   dxvk.conf file placed in the bottle root is picked up at launch. The
   Recommended backend applies the same availability check as the backend
   picker, so it can no longer select a backend whose payload is missing and
-  then fail at launch (#216).
+  then fail at launch ([#216]).
 - The audio driver and latency settings now actually take effect: they are
   written to the bottle's Wine registry at launch, which nothing did before,
-  so the options were recorded but never applied (#214).
+  so the options were recorded but never applied ([#214]).
 - Crash diagnosis now covers games that die later in a session, not just at
   launch: classification runs when the bottle's Wine session actually ends,
   and it reads the start of the log as well as the end, which is where
-  missing-DLL and backend failures appear (#217).
+  missing-DLL and backend failures appear ([#217]).
 - A D3DMetal bottle answers when a game asks whether hardware accelerated GPU
   scheduling is available. Wine only answers that query for a caller that says
   it is running on D3DMetal, and nothing said so, so the answer was always that
-  the feature is not implemented. Since #231 the bottle says so only when its
+  the feature is not implemented. Since [#231] the bottle says so only when its
   frame generation toggle is on.
 - DirectX 12 games run again in a bottle set to DXVK or DXMT. Neither ships a
   d3d12 of its own and neither said so, so that one DLL quietly fell through to
@@ -811,22 +811,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - With D3DMetal installed, the Recommended graphics backend now resolves
   launchers to DXVK, since their Chromium-based clients cannot render on
   D3DMetal, while the games they start still resolve to D3DMetal. Bottles
-  without D3DMetal installed behave exactly as before (#188).
+  without D3DMetal installed behave exactly as before ([#188]).
 - Interrupted runtime downloads now resume where they left off and retry
   transient failures automatically instead of restarting the full archive
   from zero. Partial downloads survive quitting the app, the Retry button
   continues rather than starts over, and a completed archive left behind by
   an interrupted setup is verified and reused. The SHA-256 integrity check
-  before install is unchanged (#174).
+  before install is unchanged ([#174]).
 - Pressing Play on a Steam game no longer creates settings files for every
   executable near the game's install folder: only the program that actually
   launches is materialized, so Play is snappier for games that ship many
   helper executables and bottles stop accumulating unused settings plists
-  (#181).
+  ([#181]).
 - Waiting for a cold Steam client no longer spawns a Wine tasklist process
   every two seconds: a host-side process check answers the common
   nothing-running-yet case, so cold starts stop competing with the client
-  they are waiting for (#189).
+  they are waiting for ([#189]).
 
 ### Added
 - Creating a bottle on an external or network volume now checks the location
@@ -834,54 +834,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Files and Folders access, the sheet says so and offers a direct route to
   the privacy settings instead of failing later with a cryptic prefix error.
   The default location is checked on submit too, and creation stays disabled
-  until the location is usable (#190, #191).
+  until the location is usable ([#190], [#191]).
 - Community translations from Crowdin for the new interrupted-setup message,
-  covering all 22 supported languages (#195).
+  covering all 22 supported languages ([#195]).
 
 ### Fixed
 - The external-volume checks above now actually engage on disk images and
   other removable volumes that macOS cannot place on a bus: those volumes
   answer nil rather than false to the internal-volume query, so both the
   consent check and the capacity fallback had classified them as internal
-  and never ran (#193).
+  and never ran ([#193]).
 - Bottles on non-APFS removable drives are no longer refused as "full" when
   the drive has plenty of space: the capacity check now falls back to the
   standard figure on external volumes, where the purgeable-space service
-  behind the preferred figure has no backing and reports zero (#192).
+  behind the preferred figure has no backing and reports zero ([#192]).
 - DLL overrides now reach Wine through the prefix registry instead of the
   WINEDLLOVERRIDES environment variable: the bottle's set goes to the prefix
   default and the launched program's resolved set to its own AppDefaults
   entry (helper processes like steamwebhelper.exe included). A launcher's
   graphics backend no longer silently becomes every game's backend, and
   per-program backend overrides now take effect instead of being masked by
-  the inherited variable (#184, #185).
+  the inherited variable ([#184], [#185]).
 - The DLL Overrides section now lists the managed overrides of the graphics
   backend actually in effect: a DXMT bottle shows the four entries it applies
   at launch instead of none, and a stale legacy DXVK flag no longer credits a
-  D3DMetal bottle with overrides that are never applied (#186).
+  D3DMetal bottle with overrides that are never applied ([#186]).
 - Program override settings now resolve Recommended before reporting: the
   DXVK sub-controls appear for a program that resolves to DXVK, and the
   inherited summary names the backend that actually runs instead of reading
-  "Recommended" (#187).
+  "Recommended" ([#187]).
 - A bottle no longer shows up twice in the bottle list and `whisky list`
   when the registry holds the same path in two URL forms (with and without
   a trailing slash). The registry now compares canonical paths everywhere
   entries are added, and a registry already carrying duplicates is healed
-  on first load (#183).
+  on first load ([#183]).
 - `whisky run` now passes options it doesn't recognize through to the
   program, so `whisky run MyBottle app.exe --disable-gpu` works without a
   bare `--` separator. A program option that shares a name with one of
   run's own options still goes after `--`, which the help text now
-  explains (#183).
+  explains ([#183]).
 - The command line tool now uses consistent exit codes: 64 with a usage
   block only for malformed invocations, and 1 with a plain error on stderr
   for well-formed commands that fail (no such bottle, game not found). The
   convention is documented in `whisky --help`, and `run` and `launch` still
-  pass through the launched program's own exit code (#182).
+  pass through the launched program's own exit code ([#182]).
 - Steam game routes are now forgotten when their bottle is deleted instead
   of lingering in the routing store; removing a bottle from the list while
   keeping its files preserves the routes so a re-imported bottle picks them
-  back up (#180).
+  back up ([#180]).
 - Output from very short-lived Wine processes is no longer occasionally
   lost: a race between the pipe reader and the termination drain could
   finish the process stream before the final chunk was delivered, dropping
@@ -896,58 +896,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   volume) and the D3DMetal payload is validated and imported. Imported
   payloads are stored safely across engine updates and deploy automatically
   once an engine capable of running them is installed; the section states
-  plainly whether the current engine can (#164).
+  plainly whether the current engine can ([#164]).
 - Bottles with Steam installed now show a games library: installed games are
   listed with their state (running, downloading, update stalled), and Play
   brings the client up quietly, starts the game, and applies its community
   configuration for that launch only instead of rewriting bottle settings.
   Per-program settings you have tuned yourself still win over the community
-  profile (#161).
+  profile ([#161]).
 - The command line tool gains `whisky games` (list a bottle's installed
   Steam games) and `whisky launch <appid>` (launch one), both with `--json`
   output. Launches route through the same pipeline as the app's Play
   button, remember which bottle an App ID last launched from, and need no
-  `--bottle` flag for games installed in one place (#169).
+  `--bottle` flag for games installed in one place ([#169]).
 - Whisky is now fully translated in all 22 supported languages: Arabic,
   Chinese (Simplified and Traditional), Czech, Danish, Dutch, Finnish,
   French, German, Italian, Japanese, Korean, Polish, Portuguese (Brazil
   and Portugal), Romanian, Russian, Spanish, Swedish, Turkish, Ukrainian,
   and Vietnamese. Translations are managed on Crowdin, where corrections
-  and improvements from native speakers are welcome (#177).
+  and improvements from native speakers are welcome ([#177]).
 
 ### Changed
 - Program shortcuts now launch through the live pipeline instead of baking
   the environment in when the shortcut is created: a shortcut made today
   picks up tomorrow's graphics, GameDB, and override changes. Existing
   shortcuts keep working; recreate a shortcut to adopt the new behavior
-  (#169).
+  ([#169]).
 
 ### Fixed
 - The sidebar's running-status check no longer writes a log file per probe:
   at one probe per minute per visible bottle, the old path accumulated
   ~1440 stray log files per idle bottle per day and rescanned the whole log
   folder each time, all on the main thread. The probe now asks wineserver
-  directly, with no logging side effects (#153).
+  directly, with no logging side effects ([#153]).
 - A failed bottle move no longer corrupts the bottle's state. Previously the
   pin and blocklist paths were rewritten (and saved) to point at the new
   location before the move was attempted, and the bottle stayed marked busy
   until the app restarted; both are now rolled back when the move fails
-  (#154).
+  ([#154]).
 - Bottle actions no longer re-enable mid-operation: a bottle that is
   exporting, duplicating, or moving keeps its busy state even when the
   bottle list reloads (previously any registry reload, such as creating a
   bottle or re-importing an orphan, dropped the guard and let conflicting
-  actions run against files still being copied) (#155).
+  actions run against files still being copied) ([#155]).
 - Games installed in a Steam library are no longer mistaken for the Steam
   client: executables under `steamapps/common` stop inheriting the client's
   compatibility profile and get their own launcher detection instead (a
   Rockstar title bought on Steam now detects the Rockstar launcher).
   Launches from the program list and pins also run launcher detection now,
-  matching every other launch path (#160).
+  matching every other launch path ([#160]).
 - Two programs sharing a filename (the classic `Launch.exe` case) no longer
   share one settings file. Settings are now keyed by the program's location
   inside the bottle, existing settings migrate automatically, and the old
-  files are kept so downgrading loses nothing (#162).
+  files are kept so downgrading loses nothing ([#162]).
 
 ## [3.5.2] - 2026-07-30 (App)
 
@@ -955,43 +955,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bottles on disk that aren't in the library — created by an older version,
   left behind by a reset registry, or restored from a backup of the Bottles
   folder — are now detected at startup and offered for one-click re-import
-  (Closes #145).
+  (Closes [#145]).
 
 ### Changed
 - Engine archive extraction is now staged: the archive is unpacked and its
   symlinks audited in a temporary directory, and only content that passes
   every safety check is moved into place. A rejected archive leaves the
-  existing installation completely untouched (Closes #147).
+  existing installation completely untouched (Closes [#147]).
 
 ### Fixed
 - The backend picker no longer offers D3DMetal when the installed engine
   doesn't include it, and bottles already configured for D3DMetal show a
   warning explaining the WineD3D fallback instead of games failing silently
-  at launch (Closes #146).
+  at launch (Closes [#146]).
 - The "Recommended" graphics backend now resolves to one the installed
   runtime actually provides: DXMT when the runtime bundles it, otherwise
   DXVK, and D3DMetal only when its payload is present. Previously it always
   chose D3DMetal, which the runtime doesn't ship, so fresh bottles silently
   fell back to wined3d and DirectX 11 games failed to launch out of the box
-  (Fixes #141).
+  (Fixes [#141]).
 - First-run engine setup no longer fails with "Archive contains unsafe path"
   on systems whose language formats dates day-first (e.g. UK or French
   locales). The archive safety check parsed tar's localized listing and
   wrongly rejected every entry; the listing now runs with a pinned locale so
-  it reads the same everywhere (Fixes #139).
+  it reads the same everywhere (Fixes [#139]).
 - An unreadable bottle registry no longer silently wipes the bottle list. On
   startup the corrupt file is moved aside (an alert says where) and, when the
   file is in the older paths-only fallback format, the bottle paths are
-  recovered instead of being overwritten with an empty list (Refs #61).
+  recovered instead of being overwritten with an empty list (Refs [#61]).
 - Bottle creation now fails loudly when the new bottle can't be saved to the
   registry: the save is verified on disk and the existing failure alert (with
   copyable diagnostics) fires. Previously the error case existed but was never
-  raised, so the bottle silently vanished on the next launch (Refs #61).
+  raised, so the bottle silently vanished on the next launch (Refs [#61]).
 - Creating a bottle while the Wine runtime (WhiskyWine) isn't installed now
   shows a clear "runtime missing" error with a Run Setup button instead of a
-  low-level file-not-found failure (Refs #61).
+  low-level file-not-found failure (Refs [#61]).
 - The Winetricks button now shows an error when the bundled winetricks
-  resources can't be found, instead of silently doing nothing (Refs #134).
+  resources can't be found, instead of silently doing nothing (Refs [#134]).
 
 ## [3.5.1] - 2026-07-24 (App)
 
@@ -1001,7 +1001,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   downloaded Wine runtime but was never shipped there, so dependency installs
   failed with a missing-file error and the verb list showed empty. `winetricks`
   (and its verb catalog) are now bundled in the app itself, so they work on a
-  clean install with no extra setup (Closes #134).
+  clean install with no extra setup (Closes [#134]).
 
 ## [3.5.0] - 2026-06-14 (App)
 
@@ -1010,25 +1010,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   they do. The Wine section (Windows version, build, enhanced sync, DPI, Retina
   mode) and the DXVK section (DXVK, async, HUD) previously had no explanation;
   each now shows a one-line caption so you can make an informed choice without
-  hunting through docs (Closes whisky-app/whisky#807).
+  hunting through docs (Closes [whisky-app/whisky#807](https://github.com/whisky-app/whisky/issues/807)).
 - Optional menu-bar extra (**Settings → General → "Show Whisky in the menu
   bar"**, off by default). When enabled, a menu-bar item lets you launch a
   bottle's pinned programs, reopen Whisky, or quit without the main window
   focused — and Whisky keeps running after the window is closed, so it stays
   reachable from the menu bar and running Wine processes aren't terminated.
-  When disabled, behaviour is unchanged (Closes whisky-app/whisky#571).
+  When disabled, behaviour is unchanged (Closes [whisky-app/whisky#571](https://github.com/whisky-app/whisky/issues/571)).
 
 ### Changed
 - Scanning a bottle for installed programs now runs off the main thread —
   walking the `Program Files` trees and parsing each executable's metadata no
   longer blocks the UI, so opening or switching to a bottle with many installed
   programs no longer hitches. The programs list shows a progress indicator while
-  the scan runs (Closes whisky-app/whisky#574).
+  the scan runs (Closes [whisky-app/whisky#574](https://github.com/whisky-app/whisky/issues/574)).
 - Update checks are now gentler: a scheduled background check that finds a new
   version no longer interrupts you with a focus-stealing dialog. Instead a Dock
   badge appears and the "Check for Updates" menu item reads "Install Update…",
   so you can apply it when ready. User-initiated checks and the install itself
-  are unchanged (Closes whisky-app/whisky#765).
+  are unchanged (Closes [whisky-app/whisky#765](https://github.com/whisky-app/whisky/issues/765)).
 
 ## [3.4.0] - 2026-06-13 (App)
 
@@ -1122,7 +1122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the folder isn't writable or the disk is nearly full, you get a clear,
   actionable error up front instead of the bottle silently disappearing after a
   cryptic Wine failure. Builds on the bottle-creation diagnostics added for
-  issue #61.
+  issue [#61].
 - Runtime installation failures now surface their cause. `install(from:)`
   propagates the underlying error (missing tarball, disk full, archive
   extraction failure) instead of swallowing it, so the setup screen shows the
@@ -1153,61 +1153,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   app keeps working, replacing the previous manual export/import dance.
 - Bottle creation now copies host fonts (Arial Unicode, Arial, Tahoma) into
   `drive_c/windows/Fonts` so Unity titles render fallback glyphs instead of
-  empty boxes (Closes whisky-app/whisky#1050).
+  empty boxes (Closes [whisky-app/whisky#1050](https://github.com/whisky-app/whisky/issues/1050)).
 - File pickers for "Run" and "Pin Program" now accept `.msix`, `.appx`,
   `.appref-ms`, and `.url` files in addition to `.exe`/`.msi`/`.bat`. Steam
   desktop shortcuts (`.url`) launch correctly via Wine's `start` handler
-  (Closes whisky-app/whisky#756, whisky-app/whisky#815, whisky-app/whisky#826).
+  (Closes [whisky-app/whisky#756](https://github.com/whisky-app/whisky/issues/756), [whisky-app/whisky#815](https://github.com/whisky-app/whisky/issues/815), [whisky-app/whisky#826](https://github.com/whisky-app/whisky/issues/826)).
 - Winetricks verb browser is searchable: filter the verb table by name or
-  description (Closes whisky-app/whisky#763).
+  description (Closes [whisky-app/whisky#763](https://github.com/whisky-app/whisky/issues/763)).
 - Wine inherits the host timezone (`TZ`) so games keying off date/time render
   correctly instead of treating the bottle as UTC
-  (Closes whisky-app/whisky#1001).
+  (Closes [whisky-app/whisky#1001](https://github.com/whisky-app/whisky/issues/1001)).
 - PE icon extraction returns a generic Windows-executable system icon when
   parsing fails, so program tiles and pins never render blank
-  (Closes whisky-app/whisky#687).
+  (Closes [whisky-app/whisky#687](https://github.com/whisky-app/whisky/issues/687)).
 - Display sleep / screen saver is now suppressed via an `IOPMAssertion` for
   as long as any Wine process is registered. Controllers don't generate user
   activity events on macOS, so without this, gaming with only a controller
   would still trigger the screen saver
-  (Closes whisky-app/whisky#547).
+  (Closes [whisky-app/whisky#547](https://github.com/whisky-app/whisky/issues/547)).
 - Bundled GameDB ships 29 new per-game entries with curated configs that
   GAME-02/GAME-03 surface as one-click recommendations:
   - Diablo IV, Skyrim Special Edition, Warhammer 40,000: Space Marine
-    (Closes whisky-app/whisky#813, whisky-app/whisky#1125, whisky-app/whisky#1246).
+    (Closes [whisky-app/whisky#813](https://github.com/whisky-app/whisky/issues/813), [whisky-app/whisky#1125](https://github.com/whisky-app/whisky/issues/1125), [whisky-app/whisky#1246](https://github.com/whisky-app/whisky/issues/1246)).
   - AVX-off recipes for Granblue Fantasy: Relink, Turtle WoW
-    (Closes whisky-app/whisky#508, whisky-app/whisky#805).
+    (Closes [whisky-app/whisky#508](https://github.com/whisky-app/whisky/issues/508), [whisky-app/whisky#805](https://github.com/whisky-app/whisky/issues/805)).
   - DXVK + runtime recipes for Age of Empires II DE, Bannerlord II,
     Warframe, Thunderstore Mod Manager, Animal Well, Supermarket Together,
     Talos Principle 2, Street Fighter 6, PS Plus PC App, Fields of Mistria,
     Horizon Forbidden West, Injustice 2, Monster Hunter Wilds, Trackmania
     2020, Trackmania Nations Forever, Team Fortress 2, Potion Craft,
     TMNT: Shredder's Revenge, Assetto Corsa, Futureport 82
-    (Closes whisky-app/whisky#314, whisky-app/whisky#524, whisky-app/whisky#548,
-    whisky-app/whisky#594, whisky-app/whisky#647, whisky-app/whisky#679,
-    whisky-app/whisky#699, whisky-app/whisky#757, whisky-app/whisky#769,
-    whisky-app/whisky#782, whisky-app/whisky#845, whisky-app/whisky#867,
-    whisky-app/whisky#880, whisky-app/whisky#891, whisky-app/whisky#982,
-    whisky-app/whisky#1026, whisky-app/whisky#1037, whisky-app/whisky#1105,
-    whisky-app/whisky#1192, whisky-app/whisky#1236, whisky-app/whisky#1281,
-    whisky-app/whisky#1350).
+    (Closes [whisky-app/whisky#314](https://github.com/whisky-app/whisky/issues/314), [whisky-app/whisky#524](https://github.com/whisky-app/whisky/issues/524), [whisky-app/whisky#548](https://github.com/whisky-app/whisky/issues/548),
+    [whisky-app/whisky#594](https://github.com/whisky-app/whisky/issues/594), [whisky-app/whisky#647](https://github.com/whisky-app/whisky/issues/647), [whisky-app/whisky#679](https://github.com/whisky-app/whisky/issues/679),
+    [whisky-app/whisky#699](https://github.com/whisky-app/whisky/issues/699), [whisky-app/whisky#757](https://github.com/whisky-app/whisky/issues/757), [whisky-app/whisky#769](https://github.com/whisky-app/whisky/issues/769),
+    [whisky-app/whisky#782](https://github.com/whisky-app/whisky/issues/782), [whisky-app/whisky#845](https://github.com/whisky-app/whisky/issues/845), [whisky-app/whisky#867](https://github.com/whisky-app/whisky/issues/867),
+    [whisky-app/whisky#880](https://github.com/whisky-app/whisky/issues/880), [whisky-app/whisky#891](https://github.com/whisky-app/whisky/issues/891), [whisky-app/whisky#982](https://github.com/whisky-app/whisky/issues/982),
+    [whisky-app/whisky#1026](https://github.com/whisky-app/whisky/issues/1026), [whisky-app/whisky#1037](https://github.com/whisky-app/whisky/issues/1037), [whisky-app/whisky#1105](https://github.com/whisky-app/whisky/issues/1105),
+    [whisky-app/whisky#1192](https://github.com/whisky-app/whisky/issues/1192), [whisky-app/whisky#1236](https://github.com/whisky-app/whisky/issues/1236), [whisky-app/whisky#1281](https://github.com/whisky-app/whisky/issues/1281),
+    [whisky-app/whisky#1350](https://github.com/whisky-app/whisky/issues/1350)).
   - D3DMetal-preferred recipe for Among Us (DXVK shadow glitch)
-    (Closes whisky-app/whisky#1123).
+    (Closes [whisky-app/whisky#1123](https://github.com/whisky-app/whisky/issues/1123)).
   - "Broken/unplayable" entries for Cities: Skylines II and Metal Gear Solid
     Master Collection Vol. 1 with diagnostic notes
-    (Closes whisky-app/whisky#1032, whisky-app/whisky#1268).
+    (Closes [whisky-app/whisky#1032](https://github.com/whisky-app/whisky/issues/1032), [whisky-app/whisky#1268](https://github.com/whisky-app/whisky/issues/1268)).
   - Classic-DDraw recipe (wineD3D + WinXP) for Zuma Deluxe
-    (Closes whisky-app/whisky#484).
+    (Closes [whisky-app/whisky#484](https://github.com/whisky-app/whisky/issues/484)).
 - Input config gains "Map Command Key to Windows Ctrl" toggle (under
   Controller Compatibility Mode). Writes
   `HKCU\Software\Wine\Mac Driver\{Left,Right}CommandIsCtrl` so common
   Cmd+A/C/V/S keystrokes register inside Wine apps as Ctrl+A/C/V/S
-  (Closes whisky-app/whisky#1060).
+  (Closes [whisky-app/whisky#1060](https://github.com/whisky-app/whisky/issues/1060)).
 - Setup/Welcome view's "Uninstall" button now offers two options: remove the
   WhiskyWine runtime only (preserves bottles for later reinstall) or remove
   everything (runtime + default bottles directory + BottleData registry).
   Bottles at custom paths outside the default directory are preserved
-  (Closes whisky-app/whisky#411).
+  (Closes [whisky-app/whisky#411](https://github.com/whisky-app/whisky/issues/411)).
 - The bundled DXVK version is now tracked alongside the runtime version. The
   WhiskyWine version record carries an optional `dxvkVersion`, and the setup
   diagnostics report gained a `[VERSION]` section listing the installed runtime
@@ -1222,8 +1222,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bundled GameDB grows by 4 more entries from the third-pass retriage:
   DJMAX RESPECT V (Korean fonts + DXVK), They Are Billions (vcrun + DXVK),
   SpellForce 3 (corefonts + d3dcompiler), Fallout 4 (Sequoia compat + xact)
-  (Closes whisky-app/whisky#748, whisky-app/whisky#890,
-  whisky-app/whisky#980, whisky-app/whisky#1312).
+  (Closes [whisky-app/whisky#748](https://github.com/whisky-app/whisky/issues/748), [whisky-app/whisky#890](https://github.com/whisky-app/whisky/issues/890),
+  [whisky-app/whisky#980](https://github.com/whisky-app/whisky/issues/980), [whisky-app/whisky#1312](https://github.com/whisky-app/whisky/issues/1312)).
 - Bundled GameDB gains 20 more entries from the fourth-pass retriage —
   full coverage of the long tail of mainstream titles in the upstream
   backlog: Jusant, Ready or Not, Persona 3 Reload, Binding of Isaac,
@@ -1231,29 +1231,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Psychonauts 2, Assassin's Creed Odyssey, killer7, Train Sim World 5,
   Black Mesa, Far Cry 4, Severed Steel, Halo: Master Chief Collection,
   Mortal Kombat Komplete Edition, YS X: Nordics, Slime Rancher 2,
-  Monster Hunter: World (Iceborne) (Closes whisky-app/whisky#279,
-  whisky-app/whisky#631, whisky-app/whisky#694, whisky-app/whisky#727,
-  whisky-app/whisky#829, whisky-app/whisky#1025, whisky-app/whisky#1108,
-  whisky-app/whisky#1119, whisky-app/whisky#1124, whisky-app/whisky#1137,
-  whisky-app/whisky#1157, whisky-app/whisky#1160, whisky-app/whisky#1162,
-  whisky-app/whisky#1180, whisky-app/whisky#1190, whisky-app/whisky#1208,
-  whisky-app/whisky#1214, whisky-app/whisky#1235, whisky-app/whisky#1258,
-  whisky-app/whisky#1320). The bundled DB now covers 79 titles.
+  Monster Hunter: World (Iceborne) (Closes [whisky-app/whisky#279](https://github.com/whisky-app/whisky/issues/279),
+  [whisky-app/whisky#631](https://github.com/whisky-app/whisky/issues/631), [whisky-app/whisky#694](https://github.com/whisky-app/whisky/issues/694), [whisky-app/whisky#727](https://github.com/whisky-app/whisky/issues/727),
+  [whisky-app/whisky#829](https://github.com/whisky-app/whisky/issues/829), [whisky-app/whisky#1025](https://github.com/whisky-app/whisky/issues/1025), [whisky-app/whisky#1108](https://github.com/whisky-app/whisky/issues/1108),
+  [whisky-app/whisky#1119](https://github.com/whisky-app/whisky/issues/1119), [whisky-app/whisky#1124](https://github.com/whisky-app/whisky/issues/1124), [whisky-app/whisky#1137](https://github.com/whisky-app/whisky/issues/1137),
+  [whisky-app/whisky#1157](https://github.com/whisky-app/whisky/issues/1157), [whisky-app/whisky#1160](https://github.com/whisky-app/whisky/issues/1160), [whisky-app/whisky#1162](https://github.com/whisky-app/whisky/issues/1162),
+  [whisky-app/whisky#1180](https://github.com/whisky-app/whisky/issues/1180), [whisky-app/whisky#1190](https://github.com/whisky-app/whisky/issues/1190), [whisky-app/whisky#1208](https://github.com/whisky-app/whisky/issues/1208),
+  [whisky-app/whisky#1214](https://github.com/whisky-app/whisky/issues/1214), [whisky-app/whisky#1235](https://github.com/whisky-app/whisky/issues/1235), [whisky-app/whisky#1258](https://github.com/whisky-app/whisky/issues/1258),
+  [whisky-app/whisky#1320](https://github.com/whisky-app/whisky/issues/1320)). The bundled DB now covers 79 titles.
 - Diagnostic system-info reports use sysctl-based hardware detection
   (`hw.optional.arm64`) instead of the `#if arch(arm64)` compile-time
   macro, so a universal binary running its x86_64 slice through Rosetta
   no longer misreports the host as Intel
-  (Closes whisky-app/whisky#1097).
+  (Closes [whisky-app/whisky#1097](https://github.com/whisky-app/whisky/issues/1097)).
 - Installed-programs list filters out known launcher helpers and crash
   reporters (steamerrorreporter, steamservice, steamwebhelper, GameOverlayUI,
   vc_redist, UEPrereqSetup, the CrossOver HTML engine helper, etc.) so the
   visible list stays clean by default while leaving the user blocklist for
   app-specific filtering
-  (Closes whisky-app/whisky#432, whisky-app/whisky#1215).
+  (Closes [whisky-app/whisky#432](https://github.com/whisky-app/whisky/issues/432), [whisky-app/whisky#1215](https://github.com/whisky-app/whisky/issues/1215)).
 - WhiskyWine download survives transient Wi-Fi/Ethernet/VPN disconnects via
   `waitsForConnectivity` and bounded request/resource timeouts so a stalled
   download surfaces an error instead of hanging forever
-  (Closes whisky-app/whisky#293, whisky-app/whisky#995, whisky-app/whisky#1020, whisky-app/whisky#1070).
+  (Closes [whisky-app/whisky#293](https://github.com/whisky-app/whisky/issues/293), [whisky-app/whisky#995](https://github.com/whisky-app/whisky/issues/995), [whisky-app/whisky#1020](https://github.com/whisky-app/whisky/issues/1020), [whisky-app/whisky#1070](https://github.com/whisky-app/whisky/issues/1070)).
 
 ### Fixed
 - Wine no longer pegs a CPU core when a running process goes quiet. After a
@@ -1261,16 +1261,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   handler fired continuously on the permanently-readable EOF condition. The
   handler now removes itself on EOF (the final bytes are still drained when the
   process exits), so an idle Wine process no longer spins
-  (Closes whisky-app/whisky#917, whisky-app/whisky#1010).
+  (Closes [whisky-app/whisky#917](https://github.com/whisky-app/whisky/issues/917), [whisky-app/whisky#1010](https://github.com/whisky-app/whisky/issues/1010)).
 - Moving a bottle no longer wipes its pinned-program list. The `move()` loop
   was shadowing the bottle's `url` with `pin.url`, causing
   `updateParentBottle` to compare a pin path against itself instead of the
   bottle root. Pin paths are now correctly rewritten to point at the new
-  bottle location (Closes whisky-app/whisky#830).
+  bottle location (Closes [whisky-app/whisky#830](https://github.com/whisky-app/whisky/issues/830)).
 - Right-click "Add to blocklist" no longer creates duplicate entries. The
   context-menu actions dedupe against the existing blocklist before
   appending, both for single-row and multi-selection cases
-  (Closes whisky-app/whisky#431).
+  (Closes [whisky-app/whisky#431](https://github.com/whisky-app/whisky/issues/431)).
 - DXVK installation no longer stops short when the bundle directory contains a
   non-DLL file. The copy loop returned on the first non-`.dll` entry (e.g. a
   stray `.DS_Store`), which could leave some DXVK DLLs uninstalled; it now skips
@@ -1308,23 +1308,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 First app release of the active community fork of [whisky-app/whisky](https://github.com/whisky-app/whisky)
 (archived April 2025). Resolves all 54 v1.0 milestone requirements covering 10 categories of
-upstream issues (#40, #41, #42, #43, #44, #45, #47, #48, #49, #50). Bumps the macOS minimum
+upstream issues ([#40], [#41], [#42], [#43], [#44], [#45], [#47], [#48], [#49], [#50]). Bumps the macOS minimum
 to 15 (Sequoia).
 
 ### Added
-- Guided troubleshooting wizard with step-by-step diagnostic flows for 8 issue categories (Issue #50)
-- Terminal application selection: choose between Terminal, iTerm2, or Warp (Refs #47, upstream #911)
-- Duplicate bottle feature for cloning bottles without export/import (Refs #47, upstream #822)
-- App Nap management: disable macOS process throttling for better game performance (Refs #47, upstream #1297)
-- Controller & Input Compatibility settings for game controller detection issues (Issue #42)
-- Toast notifications showing launch success/failure feedback (Refs #49)
-- Archive progress indicator with toast notifications for bottle export (Refs #49, upstream #827)
-- Icon caching for faster program list loading (Refs #49, upstream #941)
-- Improved UX for unavailable bottles with warning icon and quick remove button (Refs #49, upstream #1039)
-- Retry button for failed config values (Build Version, Retina Mode, DPI) (Refs #49, upstream #967)
+- Guided troubleshooting wizard with step-by-step diagnostic flows for 8 issue categories (Issue [#50])
+- Terminal application selection: choose between Terminal, iTerm2, or Warp (Refs [#47], upstream [#911](https://github.com/whisky-app/whisky/issues/911))
+- Duplicate bottle feature for cloning bottles without export/import (Refs [#47], upstream [#822](https://github.com/whisky-app/whisky/issues/822))
+- App Nap management: disable macOS process throttling for better game performance (Refs [#47], upstream [#1297](https://github.com/whisky-app/whisky/issues/1297))
+- Controller & Input Compatibility settings for game controller detection issues (Issue [#42])
+- Toast notifications showing launch success/failure feedback (Refs [#49])
+- Archive progress indicator with toast notifications for bottle export (Refs [#49], upstream [#827](https://github.com/whisky-app/whisky/issues/827))
+- Icon caching for faster program list loading (Refs [#49], upstream [#941](https://github.com/whisky-app/whisky/issues/941))
+- Improved UX for unavailable bottles with warning icon and quick remove button (Refs [#49], upstream [#1039](https://github.com/whisky-app/whisky/issues/1039))
+- Retry button for failed config values (Build Version, Retina Mode, DPI) (Refs [#49], upstream [#967](https://github.com/whisky-app/whisky/issues/967))
 - Comprehensive Launcher Compatibility System including detection, diagnostics, and configuration
-- Stability diagnostics export for crash/freeze reports (Refs #40)
-- WhiskyWine download/install diagnostics with copy-to-clipboard workflow (Issue #63)
+- Stability diagnostics export for crash/freeze reports (Refs [#40])
+- WhiskyWine download/install diagnostics with copy-to-clipboard workflow (Issue [#63])
 - SwiftFormat integration for automated code formatting
 - DocC documentation for WhiskyKit public API
 - Code coverage reporting and badges
@@ -1333,7 +1333,7 @@ to 15 (Sequoia).
 - Dependabot configuration for dependency updates
 
 ### Changed
-- Refactored shared program launch logic into reusable `LaunchResult` and `launchWithUserMode()` (Issue #68)
+- Refactored shared program launch logic into reusable `LaunchResult` and `launchWithUserMode()` (Issue [#68])
 - Refactored `BottleSettings` and `Wine` modules into smaller, focused components
 - Replaced `print()` statements with `os.log` Logger for better debugging
 - Consolidated CI workflows for improved efficiency
@@ -1342,13 +1342,13 @@ to 15 (Sequoia).
 - AVX toggle and Sequoia compatibility mode are now always visible (no longer gated by OS version)
 
 ### Fixed
-- Fixed Terminal launch (shift-click) producing malformed commands due to double-escaping (Issue #71)
-- Fixed localization fallback showing raw keys to non-English users (Refs #49)
-- Fixed WhiskyCmd `run` command not launching programs (now uses Wine directly) (Refs #49, upstream #1088, #1140)
+- Fixed Terminal launch (shift-click) producing malformed commands due to double-escaping (Issue [#71])
+- Fixed localization fallback showing raw keys to non-English users (Refs [#49])
+- Fixed WhiskyCmd `run` command not launching programs (now uses Wine directly) (Refs [#49], upstream [#1088](https://github.com/whisky-app/whisky/issues/1088), [#1140](https://github.com/whisky-app/whisky/issues/1140))
 - Corrected Dependabot Swift configuration
-- Capped Wine process logs and pruned old logs to prevent excessive disk usage (Issue #46)
-- Surface bottle creation failures with diagnostic information (Issue #61)
-- Fixed winetricks dependency installs failing when %AppData% is empty (Issue #64)
+- Capped Wine process logs and pruned old logs to prevent excessive disk usage (Issue [#46])
+- Surface bottle creation failures with diagnostic information (Issue [#61])
+- Fixed winetricks dependency installs failing when %AppData% is empty (Issue [#64])
 - Fixed hardcoded "crossover" username in user profile path detection
 - Added Wine prefix validation before running winetricks with repair option
 
@@ -1372,7 +1372,7 @@ to 15 (Sequoia).
 - Updated DXVK to macOS-compatible v1.10.3
 
 ### Fixed
-- Steam "steamwebhelper is not responding" error caused by stubbed WSALookupServiceBegin (Issue #72)
+- Steam "steamwebhelper is not responding" error caused by stubbed WSALookupServiceBegin (Issue [#72])
 - Improved networking stack for better launcher compatibility
 
 ## [2.5.0] - 2026-01-10
@@ -1407,6 +1407,192 @@ When adding entries to this changelog, use the following categories:
 - **Security** - Vulnerability fixes
 - **Documentation** - Documentation-only changes
 
-[Unreleased]: https://github.com/frankea/Whisky/compare/v3.0.0...HEAD
-[3.0.0]: https://github.com/frankea/Whisky/releases/tag/v3.0.0
+Write references as plain `#123` and `@user`, then run `scripts/changelog-links.py`,
+which turns them into links and keeps the link list at the end of this file
+up to date.
+
+<!-- Links below are generated by scripts/changelog-links.py. -->
+
+[Unreleased]: https://github.com/frankea/Whisky/compare/app-v3.10.0...HEAD
+[3.10.0]: https://github.com/frankea/Whisky/releases/tag/app-v3.10.0
+[3.9.2]: https://github.com/frankea/Whisky/releases/tag/app-v3.9.2
+[3.9.1]: https://github.com/frankea/Whisky/releases/tag/app-v3.9.1
+[3.9.0]: https://github.com/frankea/Whisky/releases/tag/app-v3.9.0
+[3.8.0]: https://github.com/frankea/Whisky/releases/tag/app-v3.8.0
+[3.7.0]: https://github.com/frankea/Whisky/releases/tag/app-v3.7.0
+[3.6.1]: https://github.com/frankea/Whisky/releases/tag/app-v3.6.1
+[3.6.0]: https://github.com/frankea/Whisky/releases/tag/app-v3.6.0
+[3.5.2]: https://github.com/frankea/Whisky/releases/tag/app-v3.5.2
+[3.5.1]: https://github.com/frankea/Whisky/releases/tag/app-v3.5.1
+[3.5.0]: https://github.com/frankea/Whisky/releases/tag/app-v3.5.0
+[3.4.0]: https://github.com/frankea/Whisky/releases/tag/app-v3.4.0
+[3.3.0]: https://github.com/frankea/Whisky/releases/tag/app-v3.3.0
+[3.2.0]: https://github.com/frankea/Whisky/releases/tag/app-v3.2.0
+[3.1.0]: https://github.com/frankea/Whisky/releases/tag/app-v3.1.0
+[3.0.1]: https://github.com/frankea/Whisky/releases/tag/app-v3.0.1
+[3.0.0]: https://github.com/frankea/Whisky/releases/tag/app-v3.0.0
 [2.5.0]: https://github.com/frankea/Whisky/releases/tag/v2.5.0
+[#40]: https://github.com/frankea/Whisky/issues/40
+[#41]: https://github.com/frankea/Whisky/issues/41
+[#42]: https://github.com/frankea/Whisky/issues/42
+[#43]: https://github.com/frankea/Whisky/issues/43
+[#44]: https://github.com/frankea/Whisky/issues/44
+[#45]: https://github.com/frankea/Whisky/issues/45
+[#46]: https://github.com/frankea/Whisky/issues/46
+[#47]: https://github.com/frankea/Whisky/issues/47
+[#48]: https://github.com/frankea/Whisky/issues/48
+[#49]: https://github.com/frankea/Whisky/issues/49
+[#50]: https://github.com/frankea/Whisky/issues/50
+[#61]: https://github.com/frankea/Whisky/issues/61
+[#63]: https://github.com/frankea/Whisky/issues/63
+[#64]: https://github.com/frankea/Whisky/issues/64
+[#68]: https://github.com/frankea/Whisky/issues/68
+[#71]: https://github.com/frankea/Whisky/issues/71
+[#72]: https://github.com/frankea/Whisky/issues/72
+[#134]: https://github.com/frankea/Whisky/issues/134
+[#139]: https://github.com/frankea/Whisky/issues/139
+[#141]: https://github.com/frankea/Whisky/issues/141
+[#145]: https://github.com/frankea/Whisky/issues/145
+[#146]: https://github.com/frankea/Whisky/issues/146
+[#147]: https://github.com/frankea/Whisky/issues/147
+[#153]: https://github.com/frankea/Whisky/issues/153
+[#154]: https://github.com/frankea/Whisky/issues/154
+[#155]: https://github.com/frankea/Whisky/issues/155
+[#160]: https://github.com/frankea/Whisky/issues/160
+[#161]: https://github.com/frankea/Whisky/issues/161
+[#162]: https://github.com/frankea/Whisky/issues/162
+[#163]: https://github.com/frankea/Whisky/issues/163
+[#164]: https://github.com/frankea/Whisky/issues/164
+[#168]: https://github.com/frankea/Whisky/issues/168
+[#169]: https://github.com/frankea/Whisky/issues/169
+[#172]: https://github.com/frankea/Whisky/issues/172
+[#174]: https://github.com/frankea/Whisky/issues/174
+[#177]: https://github.com/frankea/Whisky/issues/177
+[#180]: https://github.com/frankea/Whisky/issues/180
+[#181]: https://github.com/frankea/Whisky/issues/181
+[#182]: https://github.com/frankea/Whisky/issues/182
+[#183]: https://github.com/frankea/Whisky/issues/183
+[#184]: https://github.com/frankea/Whisky/issues/184
+[#185]: https://github.com/frankea/Whisky/issues/185
+[#186]: https://github.com/frankea/Whisky/issues/186
+[#187]: https://github.com/frankea/Whisky/issues/187
+[#188]: https://github.com/frankea/Whisky/issues/188
+[#189]: https://github.com/frankea/Whisky/issues/189
+[#190]: https://github.com/frankea/Whisky/issues/190
+[#191]: https://github.com/frankea/Whisky/issues/191
+[#192]: https://github.com/frankea/Whisky/issues/192
+[#193]: https://github.com/frankea/Whisky/issues/193
+[#195]: https://github.com/frankea/Whisky/issues/195
+[#197]: https://github.com/frankea/Whisky/issues/197
+[#200]: https://github.com/frankea/Whisky/issues/200
+[#201]: https://github.com/frankea/Whisky/issues/201
+[#203]: https://github.com/frankea/Whisky/issues/203
+[#204]: https://github.com/frankea/Whisky/issues/204
+[#205]: https://github.com/frankea/Whisky/issues/205
+[#206]: https://github.com/frankea/Whisky/issues/206
+[#207]: https://github.com/frankea/Whisky/issues/207
+[#208]: https://github.com/frankea/Whisky/issues/208
+[#209]: https://github.com/frankea/Whisky/issues/209
+[#210]: https://github.com/frankea/Whisky/issues/210
+[#213]: https://github.com/frankea/Whisky/issues/213
+[#214]: https://github.com/frankea/Whisky/issues/214
+[#215]: https://github.com/frankea/Whisky/issues/215
+[#216]: https://github.com/frankea/Whisky/issues/216
+[#217]: https://github.com/frankea/Whisky/issues/217
+[#222]: https://github.com/frankea/Whisky/issues/222
+[#225]: https://github.com/frankea/Whisky/issues/225
+[#226]: https://github.com/frankea/Whisky/issues/226
+[#227]: https://github.com/frankea/Whisky/issues/227
+[#230]: https://github.com/frankea/Whisky/issues/230
+[#231]: https://github.com/frankea/Whisky/issues/231
+[#233]: https://github.com/frankea/Whisky/issues/233
+[#248]: https://github.com/frankea/Whisky/issues/248
+[#251]: https://github.com/frankea/Whisky/issues/251
+[#255]: https://github.com/frankea/Whisky/issues/255
+[#256]: https://github.com/frankea/Whisky/issues/256
+[#257]: https://github.com/frankea/Whisky/issues/257
+[#258]: https://github.com/frankea/Whisky/issues/258
+[#260]: https://github.com/frankea/Whisky/issues/260
+[#261]: https://github.com/frankea/Whisky/issues/261
+[#265]: https://github.com/frankea/Whisky/issues/265
+[#266]: https://github.com/frankea/Whisky/issues/266
+[#267]: https://github.com/frankea/Whisky/issues/267
+[#269]: https://github.com/frankea/Whisky/issues/269
+[#270]: https://github.com/frankea/Whisky/issues/270
+[#271]: https://github.com/frankea/Whisky/issues/271
+[#272]: https://github.com/frankea/Whisky/issues/272
+[#276]: https://github.com/frankea/Whisky/issues/276
+[#278]: https://github.com/frankea/Whisky/issues/278
+[#280]: https://github.com/frankea/Whisky/issues/280
+[#281]: https://github.com/frankea/Whisky/issues/281
+[#283]: https://github.com/frankea/Whisky/issues/283
+[#284]: https://github.com/frankea/Whisky/issues/284
+[#285]: https://github.com/frankea/Whisky/issues/285
+[#286]: https://github.com/frankea/Whisky/issues/286
+[#287]: https://github.com/frankea/Whisky/issues/287
+[#288]: https://github.com/frankea/Whisky/issues/288
+[#289]: https://github.com/frankea/Whisky/issues/289
+[#291]: https://github.com/frankea/Whisky/issues/291
+[#292]: https://github.com/frankea/Whisky/issues/292
+[#293]: https://github.com/frankea/Whisky/issues/293
+[#294]: https://github.com/frankea/Whisky/issues/294
+[#295]: https://github.com/frankea/Whisky/issues/295
+[#296]: https://github.com/frankea/Whisky/issues/296
+[#297]: https://github.com/frankea/Whisky/issues/297
+[#298]: https://github.com/frankea/Whisky/issues/298
+[#299]: https://github.com/frankea/Whisky/issues/299
+[#300]: https://github.com/frankea/Whisky/issues/300
+[#301]: https://github.com/frankea/Whisky/issues/301
+[#302]: https://github.com/frankea/Whisky/issues/302
+[#303]: https://github.com/frankea/Whisky/issues/303
+[#306]: https://github.com/frankea/Whisky/issues/306
+[#307]: https://github.com/frankea/Whisky/issues/307
+[#310]: https://github.com/frankea/Whisky/issues/310
+[#313]: https://github.com/frankea/Whisky/issues/313
+[#318]: https://github.com/frankea/Whisky/issues/318
+[#321]: https://github.com/frankea/Whisky/issues/321
+[#323]: https://github.com/frankea/Whisky/issues/323
+[#330]: https://github.com/frankea/Whisky/issues/330
+[#331]: https://github.com/frankea/Whisky/issues/331
+[#332]: https://github.com/frankea/Whisky/issues/332
+[#336]: https://github.com/frankea/Whisky/issues/336
+[#337]: https://github.com/frankea/Whisky/issues/337
+[#338]: https://github.com/frankea/Whisky/issues/338
+[#339]: https://github.com/frankea/Whisky/issues/339
+[#340]: https://github.com/frankea/Whisky/issues/340
+[#345]: https://github.com/frankea/Whisky/issues/345
+[#346]: https://github.com/frankea/Whisky/issues/346
+[#347]: https://github.com/frankea/Whisky/issues/347
+[#349]: https://github.com/frankea/Whisky/issues/349
+[#350]: https://github.com/frankea/Whisky/issues/350
+[#351]: https://github.com/frankea/Whisky/issues/351
+[#352]: https://github.com/frankea/Whisky/issues/352
+[#353]: https://github.com/frankea/Whisky/issues/353
+[#354]: https://github.com/frankea/Whisky/issues/354
+[#355]: https://github.com/frankea/Whisky/issues/355
+[#356]: https://github.com/frankea/Whisky/issues/356
+[#357]: https://github.com/frankea/Whisky/issues/357
+[#358]: https://github.com/frankea/Whisky/issues/358
+[#360]: https://github.com/frankea/Whisky/issues/360
+[#361]: https://github.com/frankea/Whisky/issues/361
+[#362]: https://github.com/frankea/Whisky/issues/362
+[#363]: https://github.com/frankea/Whisky/issues/363
+[#364]: https://github.com/frankea/Whisky/issues/364
+[#365]: https://github.com/frankea/Whisky/issues/365
+[#366]: https://github.com/frankea/Whisky/issues/366
+[#367]: https://github.com/frankea/Whisky/issues/367
+[#368]: https://github.com/frankea/Whisky/issues/368
+[#369]: https://github.com/frankea/Whisky/issues/369
+[#370]: https://github.com/frankea/Whisky/issues/370
+[#371]: https://github.com/frankea/Whisky/issues/371
+[#374]: https://github.com/frankea/Whisky/issues/374
+[@adurham]: https://github.com/adurham
+[@daydalek]: https://github.com/daydalek
+[@Dunn-Kim]: https://github.com/Dunn-Kim
+[@ellomehllo]: https://github.com/ellomehllo
+[@EwoudVV]: https://github.com/EwoudVV
+[@furknataman]: https://github.com/furknataman
+[@jaxjixmix]: https://github.com/jaxjixmix
+[@PolarisSdesu]: https://github.com/PolarisSdesu
+[@RodrigoLScorza]: https://github.com/RodrigoLScorza
+[@rolling7ho]: https://github.com/rolling7ho

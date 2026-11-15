@@ -48,13 +48,41 @@ struct DLLOverrideMergeTests {
         #expect(DLLOverrideResolver.parse("dinput8=Builtin") == [DLLOverrideEntry(dllName: "dinput8", mode: .builtin)])
     }
 
-    @Test("Whitespace is tolerated and malformed entries are skipped, not fatal")
+    @Test("Whitespace is tolerated and entries without a DLL or an = are skipped, not fatal")
     func skipsMalformedEntries() {
         #expect(DLLOverrideResolver.parse(" d3d11 = b ") == [DLLOverrideEntry(dllName: "d3d11", mode: .builtin)])
         #expect(DLLOverrideResolver.parse("nonsense").isEmpty)
-        #expect(DLLOverrideResolver.parse("d3d11=zzz").isEmpty)
+        #expect(DLLOverrideResolver.parse("=n").isEmpty)
         #expect(DLLOverrideResolver.parse("").isEmpty)
         #expect(DLLOverrideResolver.parse("bogus;d3d9=n") == [DLLOverrideEntry(dllName: "d3d9", mode: .native)])
+    }
+
+    @Test("A mode with no n or b disables the DLL, as in Wine", arguments: ["d", "disabled", "zzz", "", " "])
+    func modeWithoutNativeOrBuiltinDisables(mode: String) {
+        #expect(DLLOverrideResolver.parse("winemenubuilder.exe=\(mode)") == [
+            DLLOverrideEntry(dllName: "winemenubuilder.exe", mode: .disabled)
+        ])
+    }
+
+    @Test("Modes follow Wine's loader: unknown words are ignored and the first pair decides")
+    func modesFollowWinesLoader() {
+        #expect(DLLOverrideResolver.mode("n,b") == .nativeThenBuiltin)
+        #expect(DLLOverrideResolver.mode("b,n") == .builtinThenNative)
+        #expect(DLLOverrideResolver.mode("x,n") == .native)
+        #expect(DLLOverrideResolver.mode("n,n") == .native)
+        #expect(DLLOverrideResolver.mode("b,x,n,b") == .builtinThenNative)
+        #expect(DLLOverrideResolver.mode("native builtin") == .nativeThenBuiltin)
+    }
+
+    @Test("A program's own disable reaches the composed value in a bottle with overrides")
+    func programDisableSurvives() throws {
+        let bottle = try makeBottle(.dxvk)
+        let env = Wine.constructWineEnvironment(
+            for: bottle, environment: ["WINEDLLOVERRIDES": "winemenubuilder.exe=d"], builtinD3D12IsD3DMetal: false
+        )
+        let overrides = Wine.parseDLLOverrides(env["WINEDLLOVERRIDES"] ?? "")
+        #expect(overrides["winemenubuilder.exe"] == "")
+        #expect(overrides["d3d11"] == "n,b")
     }
 
     @Test("A program's own WINEDLLOVERRIDES survives and beats the backend preset")

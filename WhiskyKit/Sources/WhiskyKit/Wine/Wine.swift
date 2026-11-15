@@ -84,7 +84,7 @@ public class Wine {
     static let dxvkFolder: URL = WhiskyWineInstaller.libraryFolder.appending(path: "DXVK")
     /// URL to the installed DXMT payload containing Direct3D-11-to-Metal translation libraries.
     /// Absent on runtimes older than Wine Libraries 3.1.0.
-    private static let dxmtFolder: URL = WhiskyWineInstaller.libraryFolder.appending(path: "DXMT")
+    static let dxmtFolder: URL = WhiskyWineInstaller.libraryFolder.appending(path: "DXMT")
     /// The URL to the `wine64` binary executable.
     ///
     /// This is the main Wine binary used to execute Windows applications.
@@ -442,6 +442,8 @@ public class Wine {
     ///     Only asked for a program whose override turns the virtual desktop off. Tests pin it.
     ///   - dxvkFolder: The DXVK payload a launch on DXVK copies into the prefix. Defaults to
     ///     the installed one; tests pass their own, to see which files the prefix ends up with.
+    ///   - dxmtFolder: The DXMT payload a launch on DXMT copies into the prefix. Defaults to
+    ///     the installed one; tests pass their own.
     /// - Returns: The environment and `wine64` arguments the launch runs with.
     /// - Throws: An error if a backend's files cannot be deployed or the DLL override import
     ///   cannot be started. A failed font alias import is only logged.
@@ -459,7 +461,8 @@ public class Wine {
         overrideWriter: DLLOverrideWriter = { try await syncDLLOverrides(bottle: $0, scopes: $1) },
         importer: RegistryImporter = { try await importRegistry(document: $0, bottle: $1) },
         virtualDesktopQuery: VirtualDesktopQuery = { try await isVirtualDesktopEnabled(bottle: $0) },
-        dxvkFolder: URL = Wine.dxvkFolder
+        dxvkFolder: URL = Wine.dxvkFolder,
+        dxmtFolder: URL = Wine.dxmtFolder
     ) async throws -> PreparedLaunch {
         // Font aliases first, before any setting is read: their import can take
         // a few seconds, and a setting changed during it would leave this launch
@@ -502,7 +505,7 @@ public class Wine {
         // before anything in the bottle starts, or the app boots into an empty one.
         WineUserProfile.reconcile(bottleURL: bottle.url)
 
-        try prepareBackendPrefix(effectiveBackend, bottle: bottle)
+        try prepareBackendPrefix(effectiveBackend, bottle: bottle, dxmtFolder: dxmtFolder)
 
         // The MetalFX placeholder serves the bottle's games, and only D3DMetal
         // answers it. A launcher's own launch says nothing about them, so it is
@@ -1369,10 +1372,12 @@ public class Wine {
     /// file copy deterministically wins, matching the override-layer order where
     /// launcher-managed entries land after bottle-managed ones.
     @MainActor
-    private static func prepareBackendPrefix(_ backend: GraphicsBackend, bottle: Bottle) throws {
+    private static func prepareBackendPrefix(
+        _ backend: GraphicsBackend, bottle: Bottle, dxmtFolder: URL = Wine.dxmtFolder
+    ) throws {
         switch backend {
         case .dxmt:
-            try enableDXMT(bottle: bottle)
+            try enableDXMT(payloadRoot: dxmtFolder, prefixRoot: bottle.url)
         case .d3dMetal, .dxvk, .wined3d, .recommended:
             break
         }

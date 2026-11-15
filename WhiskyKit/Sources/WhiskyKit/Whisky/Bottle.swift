@@ -201,6 +201,12 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
         if validPins != self.settings.pins {
             self.settings.pins = validPins
         }
+
+        // Unpin records for uninstalled programs have nothing left to protect.
+        let validUnpins = self.settings.prunedUnpinnedPrograms()
+        if validUnpins != self.settings.unpinnedPrograms {
+            self.settings.unpinnedPrograms = validUnpins
+        }
     }
 
     /// Manually saves the bottle settings to disk synchronously.

@@ -114,6 +114,8 @@ extension Whisky {
                     atPath: bottleURL.path(percentEncoded: false),
                     withIntermediateDirectories: true
                 )
+                // So the app's first scan of the bottle pins its first install.
+                try? HandledShortcuts.startRecord(in: bottleURL)
                 let bottle = Bottle(bottleUrl: bottleURL, inFlight: true)
                 bottle.settings.windowsVersion = .win10
                 bottle.settings.name = trimmed
@@ -479,10 +481,8 @@ extension Whisky {
                 }
             }
 
-            // Generate launch script and create the bundle
-            let target = ShortcutCreator.liveTarget(for: program.url, bottle: program.bottle)
-            let launchScript = ShortcutCreator.liveLaunchScript(for: target)
-            try ShortcutCreator.createShortcutBundle(at: appURL, launchScript: launchScript, name: shortcutName)
+            // Generate the launch script and create the bundle with the program's icon
+            try ShortcutCreator.createShortcut(for: program, at: appURL, name: shortcutName)
 
             print("Created \(appURL.path(percentEncoded: false))")
         }

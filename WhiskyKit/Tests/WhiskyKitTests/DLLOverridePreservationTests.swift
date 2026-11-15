@@ -179,6 +179,26 @@ final class DLLOverridePreservationTests {
         #expect(!document.contains("dinput8"))
     }
 
+    @Test("A launch that finishes during another's import keeps its recorded names")
+    func overlappingLaunchesKeepEachOthersNames() async throws {
+        let (bottle, _) = try makeBottle(.d3dMetal)
+        let otherKey = Wine.DLLOverrideScope.program("Other.exe").registryKey
+        // Launch B saves its names while launch A's import is still running.
+        let importer: Wine.RegistryImporter = { document, bottle in
+            self.registry.apply(document)
+            try DLLOverrideRecord.load(from: bottle.url)
+                .updated(with: [(key: otherKey, overrides: ["version": "n,b"])])
+                .save(to: bottle.url)
+        }
+        try await Wine.syncDLLOverrides(
+            bottle: bottle, scopes: [(scope: .program("Game.exe"), overrides: "dinput8=n")], importer: importer
+        )
+
+        let record = DLLOverrideRecord.load(from: bottle.url)
+        #expect(record.names(for: gameKey) == ["dinput8"])
+        #expect(record.names(for: otherKey) == ["version"])
+    }
+
     @Test("The record survives a save and load")
     func recordRoundTrips() throws {
         let (bottle, _) = try makeBottle(.d3dMetal)

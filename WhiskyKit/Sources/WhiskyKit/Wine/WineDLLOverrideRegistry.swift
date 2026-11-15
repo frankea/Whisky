@@ -79,12 +79,15 @@ public extension Wine {
         importer: RegistryImporter
     ) async throws {
         let planned = scopes.map { (key: $0.scope.registryKey, overrides: parseDLLOverrides($0.overrides)) }
-        let record = DLLOverrideRecord.load(from: bottle.url)
-        try await importer(registryDocument(for: planned, record: record), bottle)
+        let snapshot = DLLOverrideRecord.load(from: bottle.url)
+        try await importer(registryDocument(for: planned, record: snapshot), bottle)
         // Only after the import: a failed one leaves the old names recorded, so
-        // the next launch still takes them back.
+        // the next launch still takes them back. Read again rather than saving
+        // `snapshot`: another launch in the bottle may have saved its names
+        // while this import ran, and the stale copy would forget them. Nothing
+        // suspends between this load and the save.
         do {
-            try record.updated(with: planned).save(to: bottle.url)
+            try DLLOverrideRecord.load(from: bottle.url).updated(with: planned).save(to: bottle.url)
         } catch {
             dllOverrideLogger.error("Could not record the DLL overrides written: \(error.localizedDescription)")
         }

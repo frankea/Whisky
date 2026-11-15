@@ -109,6 +109,35 @@ final class WineLogCapTests: XCTestCase {
         )
     }
 
+    func testReaderThatSawTheLogShrinkResumesAtTheMarker() throws {
+        let (handle, url) = try makeLog()
+        handle.writeWineLog(line: header, limits: limits)
+        var written = header.utf8.count
+        var index = 0
+        while true {
+            let line = "fixme:spam line \(index)\n"
+            guard written + line.utf8.count <= Int(limits.maxBytes) else { break }
+            handle.writeWineLog(line: line, limits: limits)
+            written += line.utf8.count
+            index += 1
+        }
+        // Everything up to here has been read by someone following the log.
+        let readerOffset = try XCTUnwrap(try FileManager.default.attributesOfItem(
+            atPath: url.path(percentEncoded: false)
+        )[.size] as? UInt64)
+        XCTAssertNil(Wine.truncationMarkerOffset(inLogAt: url), "a log under its cap has no marker")
+
+        handle.writeWineLog(line: "the write that overflowed the log\n", limits: limits)
+        try handle.closeWineLog()
+
+        let data = try Data(contentsOf: url)
+        XCTAssertLessThan(UInt64(data.count), readerOffset, "the log shrank")
+        let markerOffset = try XCTUnwrap(Wine.truncationMarkerOffset(inLogAt: url))
+        let resumed = try XCTUnwrap(String(data: data.dropFirst(Int(markerOffset)), encoding: .utf8))
+        XCTAssertTrue(resumed.hasPrefix(Wine.logTruncationMarker))
+        XCTAssertTrue(resumed.hasSuffix("the write that overflowed the log\n"))
+    }
+
     func testSealedHeadLengthStopsAfterTheLastFullLine() {
         XCTAssertEqual(WineLogCapRegistry.sealedHeadLength(of: Data("one\ntwo\nthr".utf8)), 8)
         XCTAssertEqual(WineLogCapRegistry.sealedHeadLength(of: Data("no newline".utf8)), 10)

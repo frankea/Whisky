@@ -409,8 +409,10 @@ extension Whisky {
                 let outputClosed = outputCompletion.isComplete
                 let size = (try? handle.seekToEnd()) ?? offset
                 if size < offset {
-                    // The log reached its size cap and was cut back to its head.
-                    offset = size
+                    // The log reached its size cap: everything after its head was
+                    // rewritten, the output that overflowed it included. Go on from
+                    // the truncation marker, which repeats some lines but drops none.
+                    offset = Wine.truncationMarkerOffset(inLogAt: logFileURL) ?? size
                 }
                 try? handle.seek(toOffset: offset)
                 let data = (try? handle.readToEnd()) ?? Data()

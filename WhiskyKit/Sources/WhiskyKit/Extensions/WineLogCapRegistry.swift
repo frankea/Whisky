@@ -227,3 +227,26 @@ final class WineLogCapRegistry: @unchecked Sendable {
         }
     }
 }
+
+public extension Wine {
+    /// Where a log's truncation marker starts, for a reader following a log
+    /// that has just shrunk.
+    ///
+    /// A truncation rewrites everything after the log's head: the marker, then
+    /// the newest output, the write that made the log overflow included. A
+    /// reader that goes on from the marker repeats lines it may already have
+    /// shown, but misses none.
+    ///
+    /// - Parameter logFileURL: The log to look in.
+    /// - Returns: The marker's offset in the file, or `nil` when the log holds no marker.
+    static func truncationMarkerOffset(inLogAt logFileURL: URL) -> UInt64? {
+        guard let handle = try? FileHandle(forReadingFrom: logFileURL) else { return nil }
+        defer { try? handle.close() }
+        let marker = Data(logTruncationMarker.utf8)
+        // The marker directly follows the head, which is never longer than this.
+        guard let start = try? handle.read(upToCount: logHeadBytes + marker.count),
+              let range = start.range(of: marker)
+        else { return nil }
+        return UInt64(start.distance(from: start.startIndex, to: range.lowerBound))
+    }
+}

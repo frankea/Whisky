@@ -193,6 +193,10 @@ struct InstallStatusView: View {
             WhiskyWineInstaller.uninstall()
         case .alertSecondButtonReturn:
             WhiskyWineInstaller.uninstallAll()
+            // The in-memory registry still lists the deleted bottles and would
+            // write them back on its next save; re-read it from disk.
+            BottleVM.shared.bottlesList = BottleData()
+            BottleVM.shared.loadBottles()
         default:
             break
         }

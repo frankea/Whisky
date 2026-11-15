@@ -310,6 +310,8 @@ public enum GPTKImporter {
         intoStore store: URL,
         revalidatingWith isAppleSigned: ((_ code: URL, _ identifier: String) -> Bool)? = nil
     ) throws -> GPTKStoreRecord {
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
         let fileManager = FileManager.default
         let libDest = store.appending(path: "lib")
         let staging = store.appending(path: "lib.staging")
@@ -383,9 +385,7 @@ public enum GPTKImporter {
 
     /// Deletes the store, payload and record together.
     public static func removeStore() throws {
-        let store = storeFolder
-        guard FileManager.default.fileExists(atPath: store.path(percentEncoded: false)) else { return }
-        try FileManager.default.removeItem(at: store)
+        try removeStore(at: storeFolder)
     }
 
     static func recordURL(inStore store: URL) -> URL {

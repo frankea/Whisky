@@ -76,6 +76,10 @@ struct WhiskyApp: App {
     /// - The stored payload is checked first if nothing has checked it as it
     ///   is now (a store imported before imports verified Apple's signature),
     ///   and a deployment of a store that fails is taken back out.
+    /// - A stored payload goes into a GPTK-capable engine that has no D3DMetal
+    ///   yet. Those engines are installed by hand with Whisky quit, so this is
+    ///   the first chance to deploy into one (#358). Bottles Steam's profile
+    ///   had to switch to DXVK can then go back to Recommended.
     /// - The MetalFX and NVAPI bridges and the D3D12 video processor go into
     ///   runtimes that already hold the payload. Deploying does this too, but
     ///   an install set up before they existed never deploys again, so without
@@ -86,6 +90,11 @@ struct WhiskyApp: App {
         let bottles = data.loadBottles().map(\.url)
         Task.detached(priority: .background) {
             GPTKImporter.verifyStoredPayload()
+            if GPTKImporter.deployStoredPayloadIfMissing() {
+                await MainActor.run {
+                    BottleVM.shared.migrateLauncherBackends()
+                }
+            }
             GPTKImporter.ensureMetalFXBridgeInstalled()
             GPTKImporter.ensureNVAPIBridgeInstalled()
             GPTKImporter.ensureVideoProcessorInstalled(bottles: bottles)

@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   bottle's stability report when no crash has been diagnosed, instead of
   doing nothing. The Diagnostics section's buttons do the same when a
   diagnosis's log is no longer available ([#384], [#382]).
+- 3DMark's window draws on the Recommended graphics backend instead of
+  staying black: Whisky runs its Chromium-based front end on DXVK, while the
+  benchmarks themselves keep the bottle's backend. A program's settings page
+  says when Recommended picks DXVK for it, and why ([#380], [#372]).
 
 ## [3.10.0] - 2026-11-14 (App)
 
@@ -1599,10 +1603,12 @@ up to date.
 [#369]: https://github.com/frankea/Whisky/issues/369
 [#370]: https://github.com/frankea/Whisky/issues/370
 [#371]: https://github.com/frankea/Whisky/issues/371
+[#372]: https://github.com/frankea/Whisky/issues/372
 [#373]: https://github.com/frankea/Whisky/issues/373
 [#374]: https://github.com/frankea/Whisky/issues/374
 [#375]: https://github.com/frankea/Whisky/issues/375
 [#376]: https://github.com/frankea/Whisky/issues/376
+[#380]: https://github.com/frankea/Whisky/issues/380
 [#382]: https://github.com/frankea/Whisky/issues/382
 [#384]: https://github.com/frankea/Whisky/issues/384
 [@adurham]: https://github.com/adurham

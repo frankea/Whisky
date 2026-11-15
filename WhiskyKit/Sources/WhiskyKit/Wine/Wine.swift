@@ -299,22 +299,17 @@ public class Wine {
         descendantLaunchers: [LauncherType] = [],
         onOutput: (@MainActor (ProcessOutput) -> Void)? = nil
     ) async throws -> ProgramRunResult {
-        try await runProgram(at: url, bottle: bottle, programSettings: programSettings, onOutput: onOutput) {
-            // Run... and opening a file with Whisky launch through here, so the
-            // audio settings (the pinned output device among them) reach the
-            // registry on these launches too.
-            await syncAudioRegistry(bottle: bottle)
-            return try await prepareProgramLaunch(
-                at: url, args: args, bottle: bottle, environment: environment,
-                programOverrides: programOverrides, programSettings: programSettings,
-                gameProfileEnvironment: gameProfileEnvironment,
-                overridesApplyToDescendants: overridesApplyToDescendants,
-                descendantExecutables: descendantExecutables,
-                descendantExecutableURLs: descendantExecutableURLs,
-                ownSettingsExecutables: ownSettingsExecutables,
-                descendantLaunchers: descendantLaunchers
-            )
-        }
+        let request = ProgramLaunchRequest(
+            args: args, environment: environment,
+            programOverrides: programOverrides, programSettings: programSettings,
+            gameProfileEnvironment: gameProfileEnvironment,
+            overridesApplyToDescendants: overridesApplyToDescendants,
+            descendantExecutables: descendantExecutables,
+            descendantExecutableURLs: descendantExecutableURLs,
+            ownSettingsExecutables: ownSettingsExecutables,
+            descendantLaunchers: descendantLaunchers
+        )
+        return try await runProgram(at: url, bottle: bottle, request: request, onOutput: onOutput)
     }
 
     /// Runs a program once `prepare` has prepared the bottle for it.
@@ -450,8 +445,9 @@ public class Wine {
     ///     Only asked for a program whose override turns the virtual desktop off. Tests pin it.
     ///   - dxvkFolder: The DXVK payload a launch on DXVK copies into the prefix. Defaults to
     ///     the installed one; tests pass their own, to see which files the prefix ends up with.
-    ///   - dxmtFolder: The DXMT payload a launch on DXMT copies into the prefix. Defaults to
-    ///     the installed one; tests pass their own.
+    ///   - dxmtFolder: The DXMT payload a launch on DXMT copies into the prefix and, for a
+    ///     launcher carrying a DXMT plan or a game with copies already recorded, beside the
+    ///     game's executables. Defaults to the installed one; tests pass their own.
     /// - Returns: The environment and `wine64` arguments the launch runs with.
     /// - Throws: An error if a backend's files cannot be deployed or the DLL override import
     ///   cannot be started. A failed font alias import is only logged.
@@ -528,6 +524,7 @@ public class Wine {
             bottle: bottle, effectiveBackend: effectiveBackend, programOverrides: programOverrides,
             launcherCarriesDescendantPlan: overridesApplyToDescendants && launcher != nil,
             gameExecutables: overridesApplyToDescendants ? descendantExecutableURLs : [url],
+            steamGamesBackend: launcher == .steam ? recommendedBackend : nil,
             dxvkFolder: dxvkFolder, dxmtFolder: dxmtFolder
         )
 

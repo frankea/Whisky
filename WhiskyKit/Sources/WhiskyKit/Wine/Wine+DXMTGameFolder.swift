@@ -20,100 +20,13 @@ import CryptoKit
 import Foundation
 import os.log
 
-/// What a launch does with the DXMT copies Whisky keeps beside a game's executables.
-///
-/// A launcher that carries a game's plan, such as `steam.exe -applaunch`, keeps
-/// DXVK in `system32`, since its own Chromium processes need it, and one
-/// `system32` cannot hold both layers: both ship `d3d11.dll`. A game whose plan
-/// is DXMT gets DXMT's trio in its own folder instead, which Wine's loader
-/// searches before `system32` for a native DLL (#378).
-enum DXMTGameFolderAction: Equatable {
-    /// A launcher carries the game's DXMT plan: the trio goes beside each of
-    /// the game's executables, and copies already there are kept current.
-    case deploy
-    /// The game itself starts on DXMT, which `system32` serves: copies already
-    /// beside it are kept current, and none are added.
-    case refresh
-    /// The launch's plan is not DXMT: the copies Whisky placed beside the
-    /// game are removed, so they cannot take over from the plan's layer.
-    case remove
-
-    /// The action for a launch.
-    ///
-    /// - Parameters:
-    ///   - effectiveBackend: The launch's backend after overrides and `.recommended` resolution.
-    ///   - launcherCarriesDescendantPlan: Whether a launcher is started to carry a game's plan.
-    init(effectiveBackend: GraphicsBackend, launcherCarriesDescendantPlan: Bool) {
-        if effectiveBackend == .dxmt {
-            self = launcherCarriesDescendantPlan ? .deploy : .refresh
-        } else {
-            self = .remove
-        }
-    }
-}
-
-/// The DXMT copies Whisky placed in a bottle's game folders, each with the
-/// SHA-256 of what it wrote, so a copy is only ever replaced or removed while
-/// it is still exactly what Whisky put there.
-struct DXMTGameFolderRecord: Codable, Equatable {
-    /// Each copy's path relative to the bottle's `drive_c`, to its lowercase hex SHA-256.
-    var copies: [String: String] = [:]
-
-    static func url(in bottleURL: URL) -> URL {
-        bottleURL.appending(path: ".dxmt-game-folder-copies.plist")
-    }
-
-    /// The bottle's record, or an empty one when there is none or it cannot be read.
-    static func load(from bottleURL: URL) -> DXMTGameFolderRecord {
-        guard let data = try? Data(contentsOf: url(in: bottleURL)),
-              let record = try? PropertyListDecoder().decode(DXMTGameFolderRecord.self, from: data)
-        else { return DXMTGameFolderRecord() }
-        return record
-    }
-
-    /// Writes the record, or removes the file once no copy is left.
-    func save(to bottleURL: URL) throws {
-        let url = Self.url(in: bottleURL)
-        guard !copies.isEmpty else {
-            if FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) {
-                try FileManager.default.removeItem(at: url)
-            }
-            return
-        }
-        let encoder = PropertyListEncoder()
-        encoder.outputFormat = .xml
-        try encoder.encode(self).write(to: url, options: .atomic)
-    }
-
-    /// Whether any copy is recorded in the folder with the given key.
-    func hasCopies(inFolder key: String) -> Bool {
-        Wine.dxmtGameFolderDLLs.contains { copies[DXMTGameFolder.key(key, $0)] != nil }
-    }
-}
-
-/// A folder holding game executables, once it is known to be one Whisky may write into.
-struct DXMTGameFolder {
-    /// The folder with its symbolic links resolved.
-    let url: URL
-    /// Its path relative to the bottle's `drive_c`.
-    let key: String
-    /// The executables the launch named in it.
-    var executables: [URL]
-
-    /// The record key of `dll` in the folder with key `folder`.
-    static func key(_ folder: String, _ dll: String) -> String {
-        folder.isEmpty ? dll : "\(folder)/\(dll)"
-    }
-
-    func key(for dll: String) -> String {
-        Self.key(key, dll)
-    }
-}
-
 extension Wine {
     /// DXMT's trio as a game folder gets it. `winemetal.dll` stays in
     /// `system32` only, where its builtin redirect already serves the trio.
     static let dxmtGameFolderDLLs = ["d3d11.dll", "d3d10core.dll", "dxgi.dll"]
+
+    /// Copies one trio file from the payload (the second URL) into a game folder (the first).
+    typealias DXMTFileInstaller = (_ destination: URL, _ source: URL) throws -> Void
 
     /// Places, refreshes or removes DXMT's trio beside a game's executables.
     ///
@@ -123,81 +36,177 @@ extension Wine {
     /// Only folders inside the bottle's `drive_c` are written, with symbolic
     /// links resolved, and never one under `drive_c/windows`. A folder gets
     /// the whole trio or none of it: when the game ships one of the three
-    /// itself, the folder is left to the game, and so is anything Whisky did
-    /// not place there. A copy is removed or replaced only while its content
-    /// still matches what the bottle's record says Whisky wrote.
+    /// itself, under any spelling, the folder is left to the game. A copy is
+    /// removed or replaced only while its content still matches what the
+    /// bottle's record says Whisky wrote, or the payload's own bytes.
+    ///
+    /// Besides the folders of `executables`, the folders of the same game
+    /// that hold recorded copies follow the action too, so a launch of an
+    /// Unreal game's root stub also keeps its `Binaries/Win64` in step.
     ///
     /// - Parameters:
     ///   - action: What this launch does with the copies.
     ///   - executables: The game's executables, or the program being launched.
     ///   - bottleURL: The bottle they are in.
     ///   - payloadRoot: The DXMT payload, with an `x64` and an `x32` folder.
+    ///   - folders: Folders of the game named without an executable, such as its install folder.
+    ///     They get no trio of their own, having no executable to choose its architecture.
+    ///   - installer: What copies a trio file into place. Tests make it fail.
     static func reconcileDXMTGameFolders(
-        _ action: DXMTGameFolderAction, executables: [URL], bottleURL: URL, payloadRoot: URL
+        _ action: DXMTGameFolderAction, executables: [URL], bottleURL: URL, payloadRoot: URL,
+        folders: [URL] = [],
+        installer: @escaping DXMTFileInstaller = installDXMTFile(at:from:)
     ) {
-        let original = DXMTGameFolderRecord.load(from: bottleURL)
-        // Only a deploy places copies; without any recorded, nothing else has work to do.
-        guard action == .deploy || !original.copies.isEmpty else { return }
-        var record = original
-        var placed: [URL] = []
-        for folder in dxmtGameFolders(for: executables, bottleURL: bottleURL) {
-            switch action {
-            case .deploy:
-                deployDXMTTrio(into: folder, payloadRoot: payloadRoot, record: &record, placed: &placed)
-            case .refresh where record.hasCopies(inFolder: folder.key):
-                deployDXMTTrio(into: folder, payloadRoot: payloadRoot, record: &record, placed: &placed)
-            case .refresh:
-                continue
-            case .remove:
-                removeDXMTCopies(in: folder, record: &record)
+        DXMTGameFolderRecord.withLock(in: bottleURL) {
+            let original = DXMTGameFolderRecord.load(from: bottleURL)
+            // A refresh only touches recorded copies; without any, it has nothing to do.
+            guard action != .refresh || !original.copies.isEmpty else { return }
+            let driveC = dxmtDriveC(bottleURL)
+            var state = DXMTReconcileState(payloadRoot: payloadRoot, installer: installer, record: original)
+            // A folder that is gone took its copies with it.
+            state.record.copies = original.copies.filter { key, _ in
+                isDirectory(driveC.appending(path: DXMTGameFolder.folderKey(ofCopy: key)))
             }
-        }
-        guard record != original else { return }
-        do {
-            try record.save(to: bottleURL)
-        } catch {
-            // Untracked copies could never be taken back, so they go now.
-            Logger.wineKit.warning(
-                "Could not save the DXMT game folder record: \(error.localizedDescription, privacy: .public)"
-            )
-            for url in placed {
-                try? FileManager.default.removeItem(at: url)
+
+            let named = namedDXMTGameFolders(executables: executables, folders: folders, bottleURL: bottleURL)
+            for folder in named {
+                applyDXMTAction(action, to: folder, state: &state)
+            }
+            // Every one of these holds recorded copies, so refreshing them is what a deploy does too.
+            for folder in sameGameRecordedFolders(of: named, record: state.record, bottleURL: bottleURL) {
+                applyDXMTAction(action == .remove ? .remove : .refresh, to: folder, state: &state)
+            }
+
+            guard state.record != original else { return }
+            do {
+                try state.record.save(to: bottleURL)
+            } catch {
+                // Untracked copies could never be taken back, so they go now.
+                Logger.wineKit.warning(
+                    "Could not save the DXMT game folder record: \(error.localizedDescription, privacy: .public)"
+                )
+                for url in state.placed {
+                    try? FileManager.default.removeItem(at: url)
+                }
             }
         }
     }
 
+    /// The folders of `executables`, then those of `folders` not already among them.
+    private static func namedDXMTGameFolders(
+        executables: [URL], folders: [URL], bottleURL: URL
+    ) -> [DXMTGameFolder] {
+        let driveC = dxmtDriveC(bottleURL)
+        var named = dxmtGameFolders(for: executables, bottleURL: bottleURL)
+        for folder in folders {
+            guard let (url, key) = dxmtWritableFolder(folder, driveC: driveC),
+                  !named.contains(where: { $0.key.lowercased() == key.lowercased() })
+            else { continue }
+            named.append(DXMTGameFolder(url: url, key: key, executables: []))
+        }
+        return named
+    }
+
+    private static func applyDXMTAction(
+        _ action: DXMTGameFolderAction, to folder: DXMTGameFolder, state: inout DXMTReconcileState
+    ) {
+        switch action {
+        case .deploy:
+            deployDXMTTrio(into: folder, state: &state)
+        case .refresh where state.record.hasCopies(inFolder: folder.key):
+            deployDXMTTrio(into: folder, state: &state)
+        case .refresh:
+            break
+        case .remove:
+            removeDXMTCopies(in: folder, state: &state)
+        }
+    }
+
+    /// Copies a trio file into a game folder, unless it already holds the same bytes.
+    static func installDXMTFile(at destination: URL, from source: URL) throws {
+        _ = try FileManager.default.installFileIfContentDiffers(at: destination, from: source)
+    }
+
     /// The folders of `executables` Whisky may write into, each once, in the order given.
     static func dxmtGameFolders(for executables: [URL], bottleURL: URL) -> [DXMTGameFolder] {
-        let driveC = bottleURL.appending(path: "drive_c").standardizedFileURL.resolvingSymlinksInPath()
-        let driveCComponents = driveC.pathComponents.map { $0.lowercased() }
+        let driveC = dxmtDriveC(bottleURL)
         var folders: [DXMTGameFolder] = []
         for executable in executables {
-            let folder = executable.deletingLastPathComponent().standardizedFileURL.resolvingSymlinksInPath()
-            let components = folder.pathComponents
-            guard components.count >= driveCComponents.count,
-                  components.prefix(driveCComponents.count).map({ $0.lowercased() }) == driveCComponents
-            else {
-                Logger.wineKit.debug("Leaving the folder of an executable outside drive_c alone")
-                continue
-            }
-            let relative = Array(components.dropFirst(driveCComponents.count))
-            guard relative.first?.lowercased() != "windows", isDirectory(folder) else { continue }
-            let key = relative.joined(separator: "/")
+            guard let (folderURL, key) = dxmtWritableFolder(executable.deletingLastPathComponent(), driveC: driveC)
+            else { continue }
             if let index = folders.firstIndex(where: { $0.key.lowercased() == key.lowercased() }) {
                 folders[index].executables.append(executable)
             } else {
-                folders.append(DXMTGameFolder(url: folder, key: key, executables: [executable]))
+                folders.append(DXMTGameFolder(url: folderURL, key: key, executables: [executable]))
             }
         }
         return folders
     }
 
-    /// The one architecture the folder's executables share, or `nil` when they
-    /// disagree or none can be read.
+    /// The key of `folder` relative to the bottle's `drive_c`, when Whisky may write into it.
+    static func dxmtGameFolderKey(_ folder: URL, bottleURL: URL) -> String? {
+        dxmtWritableFolder(folder, driveC: dxmtDriveC(bottleURL))?.1
+    }
+
+    /// The architecture of the folder's largest readable executable, which is
+    /// the game rather than a helper beside it, or `nil` when none can be read.
+    ///
+    /// A trio of the other architecture is harmless to a helper: Wine's loader
+    /// skips a native DLL whose machine does not match and keeps searching.
     static func dxmtGameFolderArchitecture(_ folder: DXMTGameFolder) -> Architecture? {
-        let architectures = Set(folder.executables.compactMap { try? PEFile(url: $0).architecture })
-            .subtracting([.unknown])
-        return architectures.count == 1 ? architectures.first : nil
+        let candidates = folder.executables.compactMap { url -> (architecture: Architecture, size: Int)? in
+            guard let architecture = try? PEFile(url: url).architecture, architecture != .unknown else { return nil }
+            return (architecture, (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0)
+        }
+        return candidates.max { $0.size < $1.size }?.architecture
+    }
+
+    /// The bottle's `drive_c` with its symbolic links resolved.
+    private static func dxmtDriveC(_ bottleURL: URL) -> URL {
+        bottleURL.appending(path: "drive_c").standardizedFileURL.resolvingSymlinksInPath()
+    }
+
+    /// `folder` resolved, and its key, when it is a folder inside `drive_c` and outside `drive_c/windows`.
+    private static func dxmtWritableFolder(_ folder: URL, driveC: URL) -> (URL, String)? {
+        let driveCComponents = driveC.pathComponents.map { $0.lowercased() }
+        let resolved = folder.standardizedFileURL.resolvingSymlinksInPath()
+        let components = resolved.pathComponents
+        guard components.count >= driveCComponents.count,
+              components.prefix(driveCComponents.count).map({ $0.lowercased() }) == driveCComponents
+        else {
+            Logger.wineKit.debug("Leaving the folder of an executable outside drive_c alone")
+            return nil
+        }
+        let relative = Array(components.dropFirst(driveCComponents.count))
+        guard relative.first?.lowercased() != "windows", isDirectory(resolved) else { return nil }
+        return (resolved, relative.joined(separator: "/"))
+    }
+
+    /// The folders holding recorded copies that belong to the same game as
+    /// one of `named`, other than `named` themselves, with the executables in each.
+    private static func sameGameRecordedFolders(
+        of named: [DXMTGameFolder], record: DXMTGameFolderRecord, bottleURL: URL
+    ) -> [DXMTGameFolder] {
+        let driveC = dxmtDriveC(bottleURL)
+        let namedKeys = Set(named.map { $0.key.lowercased() })
+        return record.folderKeys.sorted().compactMap { key in
+            guard !namedKeys.contains(key.lowercased()), named.contains(where: { $0.belongsToSameGame(key) }),
+                  let (url, resolvedKey) = dxmtWritableFolder(driveC.appending(path: key), driveC: driveC),
+                  resolvedKey.lowercased() == key.lowercased()
+            else { return nil }
+            let entries = folderEntries(url)
+            let executables = entries.filter { $0.lowercased().hasSuffix(".exe") }.map { url.appending(path: $0) }
+            return DXMTGameFolder(url: url, key: key, executables: executables)
+        }
+    }
+
+    /// What one reconcile carries from folder to folder.
+    private struct DXMTReconcileState {
+        let payloadRoot: URL
+        let installer: DXMTFileInstaller
+        var record: DXMTGameFolderRecord
+        /// The files this reconcile placed, which go again if the record cannot be saved.
+        var placed: [URL] = []
     }
 
     /// What a trio file in a game folder is, as far as a deploy is concerned.
@@ -206,7 +215,7 @@ extension Wine {
         case absent
         /// Whisky's copy, as recorded.
         case placed
-        /// Not Whisky's, but the payload's own bytes: left in place and not recorded.
+        /// Not recorded, but the payload's own bytes: adopted, and from then on Whisky's.
         case identical
         /// The game's own, or anything else Whisky did not place.
         case foreign
@@ -224,7 +233,14 @@ extension Wine {
         let recorded: String?
     }
 
-    private static func dxmtCopyState(of url: URL, recorded: String?, source: Data) -> DXMTCopyState {
+    private static func dxmtCopyState(
+        of dll: String, in folder: DXMTGameFolder, entries: [String], recorded: String?, source: Data
+    ) -> DXMTCopyState {
+        // On a case-sensitive volume `DXGI.dll` is a file of its own, and still the game's.
+        if entries.contains(where: { $0.lowercased() == dll && $0 != dll }) {
+            return .foreign
+        }
+        let url = folder.url.appending(path: dll)
         if isSymbolicLink(url) {
             return .foreign
         }
@@ -238,14 +254,12 @@ extension Wine {
 
     /// Places the payload's trio for the folder's architecture, or leaves the
     /// folder as it was.
-    private static func deployDXMTTrio(
-        into folder: DXMTGameFolder, payloadRoot: URL, record: inout DXMTGameFolderRecord, placed: inout [URL]
-    ) {
+    private static func deployDXMTTrio(into folder: DXMTGameFolder, state: inout DXMTReconcileState) {
         guard let architecture = dxmtGameFolderArchitecture(folder) else {
-            Logger.wineKit.info("Not placing DXMT in a game folder whose executables have no single architecture")
+            Logger.wineKit.info("Not placing DXMT in a game folder with no readable executable")
             return
         }
-        let payload = payloadRoot.appending(path: architecture == .x32 ? "x32" : "x64")
+        let payload = state.payloadRoot.appending(path: architecture == .x32 ? "x32" : "x64")
         let sources = dxmtGameFolderDLLs.map { payload.appending(path: $0) }
         let sourceData = sources.compactMap { url in
             (try? isNativePE(url)) == true ? try? Data(contentsOf: url) : nil
@@ -255,46 +269,45 @@ extension Wine {
             return
         }
 
+        let entries = folderEntries(folder.url)
         var writes: [DXMTCopyWrite] = []
         for (index, dll) in dxmtGameFolderDLLs.enumerated() {
-            let destination = folder.url.appending(path: dll)
-            let recorded = record.copies[folder.key(for: dll)]
-            let state = dxmtCopyState(of: destination, recorded: recorded, source: sourceData[index])
-            switch state {
-            case .absent, .placed:
-                writes.append(DXMTCopyWrite(
-                    dll: dll, source: sources[index], hash: sha256(sourceData[index]),
-                    wasAbsent: state == .absent, recorded: state == .placed ? recorded : nil
-                ))
-            case .identical:
-                record.copies[folder.key(for: dll)] = nil
-            case .foreign:
+            let recorded = state.record.copies[folder.key(for: dll)]
+            let copyState = dxmtCopyState(
+                of: dll, in: folder, entries: entries, recorded: recorded, source: sourceData[index]
+            )
+            guard copyState != .foreign else {
                 Logger.wineKit.info("Not placing DXMT beside a game that ships its own \(dll, privacy: .public)")
-                record.copies[folder.key(for: dll)] = nil
-                removeDXMTCopies(in: folder, record: &record)
+                state.record.copies[folder.key(for: dll)] = nil
+                removeDXMTCopies(in: folder, state: &state)
                 return
             }
+            writes.append(DXMTCopyWrite(
+                dll: dll, source: sources[index], hash: sha256(sourceData[index]),
+                wasAbsent: copyState == .absent, recorded: copyState == .placed ? recorded : nil
+            ))
         }
 
-        placed += writeDXMTTrio(writes, into: folder, record: &record)
+        writeDXMTTrio(writes, into: folder, state: &state)
     }
 
     /// Writes a deploy's trio files, or, when one fails, takes back every copy
     /// of the folder that is Whisky's, so the folder never keeps a partial set.
-    ///
-    /// - Returns: The files written.
     private static func writeDXMTTrio(
-        _ writes: [DXMTCopyWrite], into folder: DXMTGameFolder, record: inout DXMTGameFolderRecord
-    ) -> [URL] {
+        _ writes: [DXMTCopyWrite], into folder: DXMTGameFolder, state: inout DXMTReconcileState
+    ) {
         var written: [URL] = []
         do {
             for write in writes {
                 let destination = folder.url.appending(path: write.dll)
-                try FileManager.default.installFileIfContentDiffers(at: destination, from: write.source)
-                record.copies[folder.key(for: write.dll)] = write.hash
-                written.append(destination)
+                try state.installer(destination, write.source)
+                state.record.copies[folder.key(for: write.dll)] = write.hash
+                // An adopted copy predates this reconcile, so a failed save leaves it be.
+                if write.wasAbsent || write.recorded != nil {
+                    written.append(destination)
+                }
             }
-            return written
+            state.placed += written
         } catch {
             Logger.wineKit.warning(
                 "Could not place DXMT in a game folder: \(error.localizedDescription, privacy: .public)"
@@ -305,26 +318,40 @@ extension Wine {
                 if write.wasAbsent || fileHash(destination).map(hashes.contains) == true {
                     try? FileManager.default.removeItem(at: destination)
                 }
-                record.copies[folder.key(for: write.dll)] = nil
+                state.record.copies[folder.key(for: write.dll)] = nil
             }
-            return []
         }
     }
 
-    /// Removes the folder's recorded copies whose content still matches the record.
-    private static func removeDXMTCopies(in folder: DXMTGameFolder, record: inout DXMTGameFolderRecord) {
+    /// Removes the folder's recorded copies whose content still matches the
+    /// record and, in a Steam game's folders, where Whisky places the trio,
+    /// unrecorded files that are the payload's own bytes.
+    private static func removeDXMTCopies(in folder: DXMTGameFolder, state: inout DXMTReconcileState) {
+        let entries = folderEntries(folder.url)
         for dll in dxmtGameFolderDLLs {
             let key = folder.key(for: dll)
-            guard let recorded = record.copies[key] else { continue }
             let url = folder.url.appending(path: dll)
-            guard !isSymbolicLink(url), fileHash(url) == recorded else {
-                // Gone, or no longer what Whisky wrote: not Whisky's to remove.
-                record.copies[key] = nil
+            // Only the exact spelling Whisky writes: on a case-insensitive volume
+            // `DXGI.dll` answers to `dxgi.dll` too, and is still the game's.
+            guard entries.contains(dll), !isSymbolicLink(url), let hash = fileHash(url) else {
+                // Gone, or not Whisky's to remove.
+                state.record.copies[key] = nil
+                continue
+            }
+            let isWhiskys = if let recorded = state.record.copies[key] {
+                hash == recorded
+            } else {
+                DXMTGameFolder.steamInstallKey(of: folder.key) != nil
+                    && isPayloadCopy(of: dll, hash: hash, payloadRoot: state.payloadRoot)
+            }
+            guard isWhiskys else {
+                // No longer what Whisky wrote: not Whisky's to remove.
+                state.record.copies[key] = nil
                 continue
             }
             do {
                 try FileManager.default.removeItem(at: url)
-                record.copies[key] = nil
+                state.record.copies[key] = nil
             } catch {
                 let reason = error.localizedDescription
                 Logger.wineKit.warning(
@@ -332,6 +359,16 @@ extension Wine {
                 )
             }
         }
+    }
+
+    /// Whether `hash` is that of the payload's `dll` for either architecture.
+    private static func isPayloadCopy(of dll: String, hash: String, payloadRoot: URL) -> Bool {
+        ["x64", "x32"].contains { fileHash(payloadRoot.appending(path: $0).appending(path: dll)) == hash }
+    }
+
+    /// The names in `folder`, as stored, or none when it cannot be read.
+    private static func folderEntries(_ folder: URL) -> [String] {
+        (try? FileManager.default.contentsOfDirectory(atPath: folder.path(percentEncoded: false))) ?? []
     }
 
     private static func sha256(_ data: Data) -> String {

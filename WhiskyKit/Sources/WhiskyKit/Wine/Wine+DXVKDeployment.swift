@@ -62,6 +62,8 @@ extension Wine {
     /// The game then finds DXMT's trio in its own folder, which Wine's loader
     /// searches before `system32` (#378). Any other plan takes back the copies
     /// Whisky placed there, so they cannot take over from that plan's layer.
+    /// Starting Steam also takes back the copies of library games whose plan
+    /// moved off DXMT since, which Play in Steam's own window would otherwise load.
     ///
     /// - Parameters:
     ///   - bottle: The bottle the launch runs in.
@@ -69,13 +71,15 @@ extension Wine {
     ///   - programOverrides: The launch's program overrides, for the legacy DXVK flag.
     ///   - launcherCarriesDescendantPlan: A launcher started to carry a game's plan.
     ///   - gameExecutables: The game's executables, or the launched executable itself.
+    ///   - steamGamesBackend: When Steam is what starts, what `.recommended` resolves to for
+    ///     its library games, whose plans decide which copies stay; `nil` for anything else.
     ///   - dxvkFolder: The DXVK payload.
     ///   - dxmtFolder: The DXMT payload.
     /// - Throws: An error if DXVK's files cannot be copied. The game folders never throw.
     @MainActor
     static func deployLauncherAndGameLayers(
         bottle: Bottle, effectiveBackend: GraphicsBackend, programOverrides: ProgramOverrides?,
-        launcherCarriesDescendantPlan: Bool, gameExecutables: [URL],
+        launcherCarriesDescendantPlan: Bool, gameExecutables: [URL], steamGamesBackend: GraphicsBackend? = nil,
         dxvkFolder: URL = Wine.dxvkFolder, dxmtFolder: URL = Wine.dxmtFolder
     ) throws {
         let legacyProgramDXVK = programOverrides?.graphicsBackend == nil && programOverrides?.dxvk == true
@@ -86,6 +90,12 @@ extension Wine {
         )
         if shouldEnableDXVK {
             try enableDXVK(bottle: bottle, from: dxvkFolder)
+        }
+
+        if let steamGamesBackend {
+            SteamLauncher.retractStaleDXMTGameFolders(
+                bottle: bottle, recommendedBackend: steamGamesBackend, payloadRoot: dxmtFolder
+            )
         }
 
         reconcileDXMTGameFolders(

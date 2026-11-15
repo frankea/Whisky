@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   launching it, instead of "Never run" until the Library reloads ([#375]).
 - Logs written by the `whisky` command line tool show the Whisky version in
   their header ([#375]).
+- "View Diagnostics" in a bottle's Launcher Compatibility settings opens the
+  bottle's stability report when no crash has been diagnosed, instead of
+  doing nothing. The Diagnostics section's buttons do the same when a
+  diagnosis's log is no longer available ([#384], [#382]).
 
 ## [3.10.0] - 2026-11-14 (App)
 
@@ -1599,6 +1603,8 @@ up to date.
 [#374]: https://github.com/frankea/Whisky/issues/374
 [#375]: https://github.com/frankea/Whisky/issues/375
 [#376]: https://github.com/frankea/Whisky/issues/376
+[#382]: https://github.com/frankea/Whisky/issues/382
+[#384]: https://github.com/frankea/Whisky/issues/384
 [@adurham]: https://github.com/adurham
 [@daydalek]: https://github.com/daydalek
 [@Dunn-Kim]: https://github.com/Dunn-Kim

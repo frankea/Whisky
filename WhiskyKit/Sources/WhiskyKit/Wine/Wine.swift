@@ -274,8 +274,11 @@ public class Wine {
     ///   - descendantExecutables: The executable names of what this launch starts, when the
     ///     overrides apply to descendants.
     ///   - descendantLaunchers: Launchers what this launch starts brings up on its own.
-    ///   - onOutput: Receives each output event of the `wine64` process as it arrives,
-    ///     starting with ``ProcessOutput/started`` once the process is running.
+    ///   - onOutput: Receives the launch's output events as they arrive, starting with
+    ///     ``ProcessOutput/started`` once the `wine64` process is running. ``ProcessOutput/terminated(_:)``
+    ///     is not the last event: what the program and the bottle's processes write after the
+    ///     launcher exits keeps arriving, after this method has returned, until the result's
+    ///     `outputCompletion` completes.
     /// - Returns: The exit code and log file of the run.
     /// - Throws: An error if the program cannot be started or Wine encounters an error.
     @discardableResult
@@ -316,7 +319,8 @@ public class Wine {
     ///   - url: The URL to the Windows executable (.exe) file.
     ///   - bottle: The ``Bottle`` in which to run the program.
     ///   - programSettings: The program's settings, whose `WINEDEBUG` preset the run log records.
-    ///   - onOutput: Receives each output event of the `wine64` process as it arrives.
+    ///   - onOutput: Receives the launch's output events as they arrive, including what
+    ///     arrives after ``ProcessOutput/terminated(_:)``, until `outputCompletion` completes.
     ///   - prepare: Prepares the bottle for the launch and returns what the launch runs.
     /// - Returns: The exit code and log file of the run.
     /// - Throws: An error if the bottle cannot be prepared or the program cannot be started.

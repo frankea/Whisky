@@ -29,7 +29,9 @@ public extension Program {
     ///
     /// - Parameters:
     ///   - args: Arguments for the program, one word each.
-    ///   - onOutput: Receives each output event of the Wine process as it arrives.
+    ///   - onOutput: Receives the launch's output events as they arrive. Output the
+    ///     program writes after the launcher exits arrives after
+    ///     ``ProcessOutput/terminated(_:)``, until the result's `outputCompletion` completes.
     /// - Returns: The exit code and log file of the run.
     /// - Throws: An error if the bottle cannot be prepared or the program cannot be started.
     @discardableResult

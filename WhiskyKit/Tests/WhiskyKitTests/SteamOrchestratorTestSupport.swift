@@ -35,6 +35,9 @@ final class FakeSteamClientDriver: SteamClientDriver {
     var listDelay: Duration = .zero
     var onStartClient: (() -> Void)?
     var onLaunchGame: ((SteamGame) -> Void)?
+    /// Runs inside each process list read, after it is counted, so a test can
+    /// change what the next read sees at an exact read rather than on a timer.
+    var onProcessList: ((_ callNumber: Int) -> Void)?
     var launchFailure: Error?
 
     private(set) var listCalls = 0
@@ -68,6 +71,7 @@ final class FakeSteamClientDriver: SteamClientDriver {
 
     func processList() async -> [WineProcess] {
         listCalls += 1
+        onProcessList?(listCalls)
         if listDelay > .zero {
             try? await Task.sleep(for: listDelay)
         }

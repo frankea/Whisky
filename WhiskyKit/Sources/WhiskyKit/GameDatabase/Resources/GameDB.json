@@ -504,6 +504,79 @@
       }
     },
     {
+      "id": "beamng-drive",
+      "title": "BeamNG.drive",
+      "aliases": [
+        "BeamNG"
+      ],
+      "subtitle": "BeamNG GmbH",
+      "store": "steam",
+      "steamAppId": 284160,
+      "rating": "unverified",
+      "exeNames": [
+        "BeamNG.drive.x64.exe"
+      ],
+      "pathPatterns": [
+        "beamng.drive"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "11.0"
+      },
+      "variants": [
+        {
+          "id": "d3dmetal",
+          "label": "D3DMetal",
+          "isDefault": true,
+          "whenToUse": "Recommended configuration",
+          "rationale": [
+            "BeamNG.drive 0.40 picks DirectX 12 on its own, which D3DMetal runs",
+            "With GPU-driven drawing, GPU upload heaps, bindless resources and indirect constants on, it was reported to crash on D3DMetal while loading or right after the main menu appears",
+            "The -nogfx launch arguments turn those DirectX 12 features off"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "msync",
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "launchArguments": [
+            "-nogfxgpudriven",
+            "-nogfxgpuupload",
+            "-nogfxbindless",
+            "-nogfxbindlesscbv",
+            "-nogfxindirectconstants"
+          ]
+        }
+      ],
+      "notes": [
+        "Untested on Whisky's runtime: the launch arguments come from a report on a different Wine build"
+      ],
+      "knownIssues": [
+        {
+          "description": "Play inside Steam starts the game without Whisky's launch arguments",
+          "severity": "major",
+          "workaround": "Start BeamNG.drive from Whisky's Library, or add -nogfxgpudriven -nogfxgpuupload -nogfxbindless -nogfxbindlesscbv -nogfxindirectconstants to its launch options in Steam"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "rolling7ho",
+        "lastUpdated": "2026-10-25T00:00:00Z",
+        "referenceURL": "https://store.steampowered.com/app/284160/BeamNGdrive/"
+      }
+    },
+    {
       "id": "black-mesa",
       "title": "Black Mesa",
       "aliases": [],
@@ -3705,6 +3778,80 @@
       }
     },
     {
+      "id": "screw-drivers",
+      "title": "Screw Drivers",
+      "aliases": [],
+      "subtitle": "Creactstudios / Headup",
+      "store": "steam",
+      "steamAppId": 1279510,
+      "rating": "playable",
+      "exeNames": [
+        "Screw Drivers.exe"
+      ],
+      "pathPatterns": [
+        "screw drivers"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "11.0"
+      },
+      "variants": [
+        {
+          "id": "dxvk",
+          "label": "DXVK",
+          "isDefault": true,
+          "whenToUse": "Recommended configuration",
+          "rationale": [
+            "Direct3D 11 (Unity 6); reaches the main menu reliably on DXVK",
+            "In a 60-second sample at the main menu on an M1 Max, DXVK used about a third of the CPU DXMT did"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "testedWith": {
+            "lastTestedAt": "2026-09-05T00:00:00Z",
+            "macOSVersion": "26.5.2",
+            "wineVersion": "11.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Tested at a 1728x1117 render on a 3456x2234 display"
+      ],
+      "knownIssues": [
+        {
+          "description": "Rendering at the full resolution of a 3456x2234 display is too slow on an M1 Max",
+          "severity": "major",
+          "workaround": "Play at 1728x1117, half the display's resolution"
+        },
+        {
+          "description": "Vehicle physics and map loading are slower than expected",
+          "severity": "major",
+          "workaround": "None known yet"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "EwoudVV",
+        "lastUpdated": "2026-09-05T00:00:00Z",
+        "referenceURL": "https://github.com/EwoudVV/OpenBottle/blob/main/docs/benchmarks/screw-drivers-2026-09-05.md"
+      }
+    },
+    {
       "id": "sekiro",
       "title": "Sekiro: Shadows Die Twice",
       "aliases": [
@@ -5568,6 +5715,72 @@
         "author": "Whisky Community",
         "lastUpdated": "2026-04-30T00:00:00Z",
         "referenceURL": "https://github.com/whisky-app/whisky/issues/1124"
+      }
+    },
+    {
+      "id": "trine-4",
+      "title": "Trine 4: The Nightmare Prince",
+      "aliases": [
+        "Trine 4"
+      ],
+      "subtitle": "Frozenbyte / Modus Games",
+      "store": "steam",
+      "steamAppId": 690640,
+      "rating": "works",
+      "exeNames": [
+        "trine4_game.exe"
+      ],
+      "pathPatterns": [
+        "trine 4 the nightmare prince"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "10.0"
+      },
+      "variants": [
+        {
+          "id": "dxmt",
+          "label": "DXMT",
+          "isDefault": true,
+          "whenToUse": "Recommended configuration",
+          "rationale": [
+            "Direct3D 11; on D3DMetal the game freezes on its first loading screen",
+            "DXMT gets past it and holds 120 fps without crashing",
+            "Only the backend changes; every other setting stays as the bottle has it"
+          ],
+          "settings": {
+            "graphicsBackend": "dxmt"
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "testedWith": {
+            "lastTestedAt": "2026-10-16T00:00:00Z",
+            "macOSVersion": "27.0.1",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Steam starts trine4.exe, the launcher; the game itself is trine4_game.exe"
+      ],
+      "knownIssues": [
+        {
+          "description": "Freezes on the first loading screen on D3DMetal",
+          "severity": "major",
+          "workaround": "Use the DXMT configuration"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "furknataman",
+        "lastUpdated": "2026-10-16T00:00:00Z",
+        "referenceURL": "https://github.com/furknataman/Kadeh/commit/12c7612db4c5e2c84f06a0ab23c15adcaabd0df4"
       }
     },
     {

@@ -210,6 +210,14 @@ public class Wine {
         /// Use this to correlate the run result with the run log history
         /// entry, e.g., to open the correct log entry in the console UI.
         public let runLogEntryId: UUID
+        /// Completed once the session's output has closed: the log is then
+        /// complete, the run log entry is marked finished, and every late
+        /// output event has reached `onOutput`.
+        ///
+        /// A run returns when the `wine start` launcher exits, seconds after
+        /// launch. The program it started, and the bottle's services, keep
+        /// writing to the run's log until the bottle's session ends.
+        public let outputCompletion: ProcessOutputCompletion
     }
 
     /// What a program launch runs once its bottle has been prepared for it.
@@ -266,8 +274,11 @@ public class Wine {
     ///   - descendantExecutables: The executable names of what this launch starts, when the
     ///     overrides apply to descendants.
     ///   - descendantLaunchers: Launchers what this launch starts brings up on its own.
-    ///   - onOutput: Receives each output event of the `wine64` process as it arrives,
-    ///     starting with ``ProcessOutput/started`` once the process is running.
+    ///   - onOutput: Receives the launch's output events as they arrive, starting with
+    ///     ``ProcessOutput/started`` once the `wine64` process is running. ``ProcessOutput/terminated(_:)``
+    ///     is not the last event: what the program and the bottle's processes write after the
+    ///     launcher exits keeps arriving, after this method has returned, until the result's
+    ///     `outputCompletion` completes.
     /// - Returns: The exit code and log file of the run.
     /// - Throws: An error if the program cannot be started or Wine encounters an error.
     @discardableResult
@@ -308,7 +319,8 @@ public class Wine {
     ///   - url: The URL to the Windows executable (.exe) file.
     ///   - bottle: The ``Bottle`` in which to run the program.
     ///   - programSettings: The program's settings, whose `WINEDEBUG` preset the run log records.
-    ///   - onOutput: Receives each output event of the `wine64` process as it arrives.
+    ///   - onOutput: Receives the launch's output events as they arrive, including what
+    ///     arrives after ``ProcessOutput/terminated(_:)``, until `outputCompletion` completes.
     ///   - prepare: Prepares the bottle for the launch and returns what the launch runs.
     /// - Returns: The exit code and log file of the run.
     /// - Throws: An error if the bottle cannot be prepared or the program cannot be started.
@@ -323,20 +335,14 @@ public class Wine {
         // LauncherFixes.detectAndApply in the app's run-a-file paths
         // (FileOpenView, BottleActionBar).
 
-        // Disable App Nap if requested to prevent macOS from throttling Wine processes.
-        // Note: This token is held while the `wine start` launcher process runs. The actual
-        // game process continues as a child of wineserver after the launcher exits. Full
-        // App Nap prevention for the entire game session would require tracking wineserver,
-        // but this provides protection during the critical startup/initialization phase.
-        let activityToken: NSObjectProtocol? = bottle.settings.disableAppNap
-            ? ProcessInfo.processInfo.beginActivity(
-                options: [.userInitiated, .idleSystemSleepDisabled],
-                reason: "Wine process running for \(bottle.settings.name)"
-            )
-            : nil
+        // Disable App Nap if requested, so macOS doesn't throttle Whisky while it
+        // pumps the session's output: held until the output closes, not only
+        // while the `wine start` launcher runs.
+        let activity = LaunchActivity(bottle: bottle)
+        var sessionHoldsActivity = false
         defer {
-            if let token = activityToken {
-                ProcessInfo.processInfo.endActivity(token)
+            if !sessionHoldsActivity {
+                activity.end()
             }
         }
 
@@ -349,35 +355,24 @@ public class Wine {
         fileHandle.writeApplicationInfo()
         fileHandle.writeInfo(for: bottle)
 
-        // Create a run log entry to track this session
         let programName = url.lastPathComponent
-        var runLogEntry = RunLogEntry(programName: programName, logFileName: logFileURL.lastPathComponent)
-
-        // Record the active WINEDEBUG preset if one is set
-        if launch.environment.keys.contains("WINEDEBUG") {
-            runLogEntry.activeWineDebugPreset = programSettings?.activeWineDebugPreset?.rawValue
-        }
-
-        // Persist the "running" state immediately
-        var runLogHistory = RunLogStore.load(for: programName, in: bottle.url)
-        let prunedEntries = runLogHistory.append(runLogEntry)
-        RunLogStore.save(runLogHistory, for: programName, in: bottle.url)
-
-        // Clean up log files for pruned entries
-        for pruned in prunedEntries {
-            let prunedLogURL = Self.logsFolder.appending(path: pruned.logFileName)
-            try? FileManager.default.removeItem(at: prunedLogURL)
-        }
+        let runLogEntryId = recordRunStart(
+            programName: programName, logFileURL: logFileURL, launch: launch,
+            programSettings: programSettings, bottle: bottle
+        )
 
         // As late as possible: the bridge holds the prefix open only for a short
         // grace window before standing down, so it wants the smallest gap it can
         // get between itself and the program it is bridging for.
         DiscordIntegration.shared.programLaunching(url, bottle: bottle)
 
+        let session = ProgramSession(onOutput: onOutput)
         var exitCode: Int32 = 0
         let process = makeProcess(args: launch.arguments, environment: launch.environment, executableURL: wineBinary)
-        for await output in
-            try startTrackedProgram(process, name: programName, bottle: bottle, fileHandle: fileHandle) {
+        for await output in try startTrackedProgram(
+            process, name: programName, bottle: bottle, fileHandle: fileHandle,
+            outputCompletion: session.pipeCompletion, lateOutput: session.lateOutput
+        ) {
             onOutput?(output)
             if case let .terminated(code) = output {
                 exitCode = code
@@ -385,16 +380,17 @@ public class Wine {
         }
         launcherDidExit(process, exitCode: exitCode)
 
-        // Update the run log entry with exit information
-        var updatedHistory = RunLogStore.load(for: programName, in: bottle.url)
-        updatedHistory.markCompleted(
-            id: runLogEntry.id,
-            exitCode: exitCode,
-            hasWineDebug: launch.environment.keys.contains("WINEDEBUG")
+        sessionHoldsActivity = true
+        let completion = session.finish { [exitCode] in
+            recordRunEnd(
+                id: runLogEntryId, programName: programName, exitCode: exitCode,
+                hasWineDebug: launch.environment.keys.contains("WINEDEBUG"), bottle: bottle
+            )
+            activity.end()
+        }
+        return ProgramRunResult(
+            exitCode: exitCode, logFileURL: logFileURL, runLogEntryId: runLogEntryId, outputCompletion: completion
         )
-        RunLogStore.save(updatedHistory, for: programName, in: bottle.url)
-
-        return ProgramRunResult(exitCode: exitCode, logFileURL: logFileURL, runLogEntryId: runLogEntry.id)
     }
 
     /// Prepares a bottle to launch a program, without launching it.
@@ -1451,10 +1447,26 @@ public extension Wine {
     /// Policy: cap total disk usage of Whisky's log directory at 200 MiB.
     static let maxLogsFolderBytes: Int64 = 200 * 1_024 * 1_024
 
-    /// Marker appended once when file logging begins truncation.
+    /// How much of the start of a log, the launch header and the early output
+    /// after it, survives when the log reaches ``maxLogFileBytes``.
+    static let logHeadBytes = 256 * 1_024
+
+    /// How much of the newest output a log keeps after its truncation marker
+    /// when it reaches ``maxLogFileBytes``. More than crash classification reads
+    /// of a log's tail.
+    static let logTailBytes = 1_024 * 1_024
+
+    /// Marker written between a log's head and its newest output once the log
+    /// has reached its cap.
     ///
-    /// - Important: This marker is written at most once per log file and counts toward `maxLogFileBytes`.
-    static let logTruncationMarker = "\n[Whisky] Log truncated: reached 20 MiB cap; further output discarded.\n"
+    /// The line after it counts the log's truncations, so a reader following the log can
+    /// tell one from the next (``WineLogFollower``).
+    ///
+    /// - Important: A truncated log holds this marker exactly once: each truncation cuts the
+    ///   file back to its head, which ends before the marker. It counts toward `maxLogFileBytes`.
+    static let logTruncationMarker =
+        "\n[Whisky] Log truncated: output between the start of the log and the lines below "
+            + "was dropped to keep the log under 20 MiB.\n"
 
     /// The URL to the directory where Wine process logs are stored.
     ///
@@ -1624,13 +1636,13 @@ public extension Wine {
     ///
     /// - Parameters:
     ///   - logFileURL: URL to the Wine log file to analyze.
-    ///   - exitCode: The Wine process exit code.
+    ///   - exitCode: The Wine process exit code, or `nil` when no process has reported one.
     ///   - classifier: Optional pre-configured classifier. If `nil`, creates one
     ///     with default patterns.
     /// - Returns: A ``CrashDiagnosis`` if the log was readable, or `nil` on failure.
     static func classifyLastRun(
         logFileURL: URL,
-        exitCode: Int32,
+        exitCode: Int32?,
         classifier: CrashClassifier? = nil
     ) async -> CrashDiagnosis? {
         await Task.detached(priority: .utility) {

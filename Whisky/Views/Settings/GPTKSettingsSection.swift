@@ -24,8 +24,13 @@ import WhiskyKit
 /// user-supplied disk image, show what is stored, and deploy it only when the
 /// installed engine build can actually execute it.
 struct GPTKSettingsSection: View {
+    @Environment(\.openURL) private var openURL
     @State private var storedRecord: GPTKStoreRecord?
     @State private var runtimeCapable = false
+    @State private var readiness: D3DMetalReadiness = .available
+    /// Set after an import the installed engine can't run, which otherwise
+    /// looks like it finished the job (#358).
+    @State private var showEngineNeeded = false
     @State private var importing = false
     @State private var showImporter = false
     @State private var importError: String?
@@ -51,6 +56,10 @@ struct GPTKSettingsSection: View {
                     .foregroundStyle(.secondary)
             }
 
+            if readiness.needsCapableEngine {
+                engineNeededNote
+            }
+
             HStack {
                 Button("settings.gptk.import") {
                     showImporter = true
@@ -72,9 +81,13 @@ struct GPTKSettingsSection: View {
         } header: {
             Text("settings.gptk")
         } footer: {
-            Text(runtimeCapable ? "settings.gptk.capability.ok" : "settings.gptk.capability.blocked")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            // An engine that can't run D3DMetal is explained in the section
+            // itself, with where to get one.
+            if runtimeCapable {
+                Text("settings.gptk.capability.ok")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .task {
             // Checked whether or not the engine can run the payload, so a store
@@ -110,11 +123,40 @@ struct GPTKSettingsSection: View {
         } message: {
             Text(importError ?? "")
         }
+        .alert("settings.gptk.imported.engineNeeded.title", isPresented: $showEngineNeeded) {
+            if let url = D3DMetalReadiness.engineReleasesURL {
+                Button("gptk.engineReleases") {
+                    openURL(url)
+                }
+            }
+            Button("button.ok", role: .cancel) {}
+        } message: {
+            Text("settings.gptk.imported.engineNeeded.message")
+        }
+    }
+
+    /// Says the engine, not the payload, is what D3DMetal is waiting on, and
+    /// links to the GPTK-capable engine builds. A stored payload that failed
+    /// its checks never deploys, so it gets the wording about a payload
+    /// imported again rather than the promise that this one will deploy.
+    private var engineNeededNote: some View {
+        let message: LocalizedStringKey = readiness == .engineNotCapable && storeFailure == nil
+            ? "settings.gptk.engine.needed"
+            : "settings.gptk.engine.alsoNeeded"
+        return VStack(alignment: .leading, spacing: 4) {
+            Label(message, systemImage: "info.circle")
+                .font(.callout)
+            if let url = D3DMetalReadiness.engineReleasesURL {
+                Link("gptk.engineReleases", destination: url)
+                    .font(.callout)
+            }
+        }
     }
 
     private func refresh() {
         storedRecord = GPTKImporter.storedRecord()
         runtimeCapable = GPTKImporter.isRuntimeGPTKCapable()
+        readiness = D3DMetalReadiness.current()
     }
 
     private func importPayload(from url: URL) {
@@ -146,6 +188,7 @@ struct GPTKSettingsSection: View {
                     importing = false
                     storeFailure = nil
                     refresh()
+                    showEngineNeeded = readiness.needsCapableEngine
                     // D3DMetal may be installed now: bottles Steam's profile
                     // had to switch to DXVK can go back to Recommended.
                     BottleVM.shared.migrateLauncherBackends()
@@ -164,17 +207,29 @@ struct GPTKSettingsSection: View {
     }
 
     private func removePayload() {
-        do {
-            // Unconditional: isDeployed() reads files written late in deploy, so
-            // a half-finished deploy looks undeployed while forwarders are
-            // already swapped, and skipping cleanup would delete originals/ with
-            // the store. The removal is idempotent per file.
-            try GPTKImporter.removeDeployedPayload()
-            try GPTKImporter.removeStore()
-            storeFailure = nil
-        } catch {
-            importError = error.localizedDescription
+        // Off the main thread: removal waits for any deploy the launch-time
+        // update is running, and that can take a few seconds.
+        Task.detached(priority: .userInitiated) {
+            let failure: String?
+            do {
+                // Unconditional: isDeployed() reads files written late in deploy, so
+                // a half-finished deploy looks undeployed while forwarders are
+                // already swapped, and skipping cleanup would delete originals/ with
+                // the store. The removal is idempotent per file.
+                try GPTKImporter.removeDeployedPayload()
+                try GPTKImporter.removeStore()
+                failure = nil
+            } catch {
+                failure = error.localizedDescription
+            }
+            await MainActor.run {
+                if let failure {
+                    importError = failure
+                } else {
+                    storeFailure = nil
+                }
+                refresh()
+            }
         }
-        refresh()
     }
 }

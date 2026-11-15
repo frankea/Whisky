@@ -71,6 +71,8 @@ public struct BottleInfo: Codable, Equatable {
     var pins: [PinnedProgram] = []
     /// URLs of programs that should be hidden from the program list.
     var blocklist: [URL] = []
+    /// Programs the user unpinned, which the Start Menu scan must not pin again.
+    var unpinnedPrograms: [URL] = []
 
     /// Creates a new BottleInfo with default values.
     public init() {}
@@ -80,6 +82,7 @@ public struct BottleInfo: Codable, Equatable {
         self.name = try container.decodeIfPresent(String.self, forKey: .name) ?? "Bottle"
         self.pins = try container.decodeIfPresent([PinnedProgram].self, forKey: .pins) ?? []
         self.blocklist = try container.decodeIfPresent([URL].self, forKey: .blocklist) ?? []
+        self.unpinnedPrograms = try container.decodeIfPresent([URL].self, forKey: .unpinnedPrograms) ?? []
     }
 }
 
@@ -293,6 +296,17 @@ public struct BottleSettings: Codable, Equatable {
     public var blocklist: [URL] {
         get { info.blocklist }
         set { info.blocklist = newValue }
+    }
+
+    /// Programs the user unpinned by hand.
+    ///
+    /// The Start Menu scan runs every time a bottle screen opens and after
+    /// every launch, so without a record of the decision an unpin was undone
+    /// within seconds. Pinning the program again clears its entry. See
+    /// ``startMenuPinsToAdd(candidates:)``.
+    public var unpinnedPrograms: [URL] {
+        get { info.unpinnedPrograms }
+        set { info.unpinnedPrograms = newValue }
     }
 
     /// The synchronization mode for Wine.

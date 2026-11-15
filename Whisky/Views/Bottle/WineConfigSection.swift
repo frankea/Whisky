@@ -39,6 +39,10 @@ struct WineConfigSection: View {
     var onRetryBuildVersion: (() -> Void)?
     var onRetryRetinaMode: (() -> Void)?
     var onRetryDpi: (() -> Void)?
+    /// Read from the runtime's version plist when the picker appears, not on
+    /// every redraw. Assumed until then, so a runtime that implements it never
+    /// shows the caption, even for a frame.
+    @State private var runtimeImplementsEnhancedSync = true
 
     var body: some View {
         Section("config.title.wine", isExpanded: $isExpanded) {
@@ -107,10 +111,19 @@ struct WineConfigSection: View {
                     Text("config.enhancedSync.esync").tag(EnhancedSync.esync)
                     Text("config.enhancedSync.msync").tag(EnhancedSync.msync)
                 }
-                Text("config.enhancedSync.info")
+                Text("config.enhancedSync.description")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                if !runtimeImplementsEnhancedSync {
+                    Text("config.enhancedSync.runtimeUnsupported")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .task {
+                runtimeImplementsEnhancedSync = WhiskyWineInstaller.runtimeImplementsEnhancedSync()
             }
             SettingItemView(
                 title: "config.dpi",

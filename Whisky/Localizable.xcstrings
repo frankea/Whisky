@@ -34144,6 +34144,22 @@
         }
       }
     },
+    "config.enhancedSync.description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How Wine threads wait for each other. MSync and ESync can lower CPU overhead in some games, but only on a Wine runtime built with them. On macOS 15.4 and later, None turns on ESync as well, for stability."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How Wine threads wait for each other. MSync and ESync can lower CPU overhead in some games, but only on a Wine runtime built with them. On macOS 15.4 and later, None turns on ESync as well, for stability."
+          }
+        }
+      }
+    },
     "config.enhancedSync.esync" : {
       "localizations" : {
         "ar" : {
@@ -34288,154 +34304,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ESync"
-          }
-        }
-      }
-    },
-    "config.enhancedSync.info" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مزامنة داخل العملية لخيوط Wine. MSync هي الأسرع على macOS، وESync بديل احتياطي، وبلا هي الأكثر توافقًا."
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Synchronizace vláken Wine v procesu. MSync je na macOS nejrychlejší, ESync je záloha, „Žádná“ je nejkompatibilnější."
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Synkronisering af Wine-tråde. MSync er hurtigst på macOS, ESync er reserveløsningen, og Ingen er mest kompatibel."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Synchronisierung von Wine-Threads. MSync ist am schnellsten, ESync die Ausweichoption, „Keine“ am kompatibelsten."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In-process synchronization for Wine threads. MSync is fastest on macOS; ESync is a fallback; None is most compatible."
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In-process synchronisation for Wine threads. MSync is fastest on macOS; ESync is a fallback; None is most compatible."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sincronización interna de hilos de Wine. MSync: la más rápida en macOS; ESync: alternativa; Ninguna: la más compatible."
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wine-säikeiden sisäinen synkronointi. MSync on nopein macOS:ssä, ESync varavaihtoehto, Ei mitään yhteensopivin."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Synchronisation interne des threads Wine. MSync : le plus rapide sur macOS ; ESync : repli ; Aucun : le plus compatible."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sincronizzazione interna dei thread Wine. MSync: più veloce su macOS; ESync: alternativa; Nessuno: più compatibile."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wine のスレッド同期をプロセス内で行います。macOS では MSync が最速、ESync は代替手段、なしが最も互換性に優れます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wine 스레드를 프로세스 내에서 동기화합니다. macOS에서는 MSync가 가장 빠르고, ESync는 대체 수단이며, 없음이 가장 호환성이 좋습니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Synchronisatie van Wine-threads. MSync is het snelst op macOS, ESync is de terugvaloptie en Geen het meest compatibel."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Synchronizacja wątków Wine w procesie. MSync jest najszybszy na macOS, ESync to rezerwa, „Brak” jest najzgodniejszy."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sincronização interna das threads do Wine. MSync: mais rápida no macOS; ESync: alternativa; Nenhum: mais compatível."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sincronização interna das threads do Wine. MSync: mais rápida no macOS; ESync: alternativa; Nenhum: mais compatível."
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sincronizare internă a firelor Wine. MSync: cea mai rapidă pe macOS; ESync: alternativă; Niciunul: cel mai compatibil."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Синхронизация потоков Wine в процессе. MSync быстрее на macOS, ESync — запасной вариант, «Нет» — самый совместимый."
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Synkronisering av Wine-trådar. MSync är snabbast på macOS, ESync är reservalternativet och Ingen är mest kompatibel."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wine iş parçacıkları için işlem içi eşitleme. macOS'te MSync en hızlısı, ESync yedektir; Yok en uyumlusudur."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Синхронізація потоків Wine у процесі. MSync найшвидша на macOS, ESync — запасний варіант, «Немає» — найсумісніший."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đồng bộ trong tiến trình cho luồng Wine. MSync nhanh nhất trên macOS, ESync dự phòng, Không là tương thích nhất."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "为 Wine 线程提供进程内同步。在 macOS 上 MSync 最快，ESync 为备选，“无”兼容性最好。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "為 Wine 執行緒提供程序內同步。在 macOS 上 MSync 最快，ESync 為備援，「無」相容性最佳。"
           }
         }
       }
@@ -34732,6 +34600,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無"
+          }
+        }
+      }
+    },
+    "config.enhancedSync.runtimeUnsupported" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The installed Wine runtime does not support MSync or ESync, so this setting can only affect D3DMetal."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The installed Wine runtime does not support MSync or ESync, so this setting can only affect D3DMetal."
           }
         }
       }
@@ -55610,6 +55494,22 @@
         }
       }
     },
+    "gptk.engineReleases" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View Engine Releases"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View Engine Releases"
+          }
+        }
+      }
+    },
     "gptk.error.attachFailed" : {
       "localizations" : {
         "ar" : {
@@ -72493,154 +72393,6 @@
         }
       }
     },
-    "settings.gptk.capability.blocked" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لا يستطيع إصدار المحرك المثبت تشغيل D3DMetal بعد. تُحفظ الحزم المستوردة وتُنشر تلقائيًا بمجرد تثبيت محرك يدعم GPTK."
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nainstalované sestavení prostředí zatím neumí spustit D3DMetal. Importované balíčky zůstanou uložené a nasadí se automaticky, jakmile bude nainstalováno prostředí s podporou GPTK."
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Det installerede engine-build kan ikke køre D3DMetal endnu. Importerede payloads bevares og installeres automatisk, når der er installeret en engine, der understøtter GPTK."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Der installierte Engine-Build kann D3DMetal noch nicht ausführen. Importierte Payloads bleiben erhalten und werden automatisch bereitgestellt, sobald eine GPTK-fähige Engine installiert ist."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The installed engine build cannot run D3DMetal yet. Imported payloads are kept and deploy automatically once a GPTK-capable engine is installed."
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The installed engine build cannot run D3DMetal yet. Imported payloads are kept and deploy automatically once a GPTK-capable engine is installed."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La versión del motor instalada aún no puede ejecutar D3DMetal. Los paquetes importados se conservan y se despliegan automáticamente en cuanto se instale un motor compatible con GPTK."
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Asennettu moottoriversio ei vielä pysty ajamaan D3DMetalia. Tuodut paketit säilytetään ja otetaan automaattisesti käyttöön, kun GPTK-yhteensopiva moottori asennetaan."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La version du moteur installée ne peut pas encore exécuter D3DMetal. Les contenus importés sont conservés et se déploieront automatiquement dès qu'un moteur compatible GPTK sera installé."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La build del motore installata non può ancora eseguire D3DMetal. I pacchetti importati vengono conservati e distribuiti automaticamente non appena viene installato un motore compatibile con GPTK."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "インストール済みのエンジンビルドではまだ D3DMetal を実行できません。読み込んだペイロードは保持され、GPTK に対応したエンジンがインストールされると自動的に配置されます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "설치된 엔진 빌드는 아직 D3DMetal을 실행할 수 없습니다. 가져온 페이로드는 유지되며, GPTK를 지원하는 엔진이 설치되면 자동으로 배포됩니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "De geïnstalleerde engine-build kan D3DMetal nog niet draaien. Geïmporteerde payloads blijven bewaard en worden automatisch uitgerold zodra er een GPTK-geschikte engine is geïnstalleerd."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zainstalowana wersja silnika nie obsługuje jeszcze D3DMetal. Zaimportowane pakiety są zachowywane i wdrożą się automatycznie po zainstalowaniu silnika zgodnego z GPTK."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A versão do motor instalada ainda não roda o D3DMetal. Os pacotes importados são mantidos e implantados automaticamente assim que um motor compatível com o GPTK for instalado."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A versão do motor instalada ainda não consegue executar o D3DMetal. Os pacotes importados são mantidos e implementados automaticamente assim que for instalado um motor compatível com o GPTK."
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Versiunea de motor instalată nu poate rula încă D3DMetal. Pachetele importate sunt păstrate și se instalează automat imediat ce este instalat un motor compatibil cu GPTK."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Установленная сборка среды пока не может запускать D3DMetal. Импортированные пакеты сохраняются и развернутся автоматически, когда появится среда с поддержкой GPTK."
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Det installerade motorbygget kan inte köra D3DMetal ännu. Importerade payloads sparas och installeras automatiskt när en GPTK-kompatibel motor har installerats."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Yüklü motor sürümü henüz D3DMetal'i çalıştıramıyor. İçe aktarılan paketler saklanır ve GPTK uyumlu bir motor yüklendiğinde otomatik olarak dağıtılır."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Встановлена збірка рушія поки не може запускати D3DMetal. Імпортовані пакети зберігаються й розгорнуться автоматично, коли з'явиться рушій із підтримкою GPTK."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bản dựng engine đã cài chưa chạy được D3DMetal. Các gói đã nhập vẫn được giữ và tự động triển khai khi cài engine hỗ trợ GPTK."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已安装的引擎版本尚无法运行 D3DMetal。已导入的负载会保留，并在安装支持 GPTK 的引擎后自动部署。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已安裝的引擎版本尚無法執行 D3DMetal。已匯入的酬載會保留，並在安裝支援 GPTK 的引擎後自動部署。"
-          }
-        }
-      }
-    },
     "settings.gptk.capability.ok" : {
       "localizations" : {
         "ar" : {
@@ -72785,6 +72537,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已安裝的引擎可以執行 D3DMetal。已匯入的酬載會自動部署。"
+          }
+        }
+      }
+    },
+    "settings.gptk.engine.alsoNeeded" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "D3DMetal also needs a GPTK-capable Whisky engine, currently a beta release, because the installed engine can't run it. A payload imported now is kept and deploys automatically once one is installed."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "D3DMetal also needs a GPTK-capable Whisky engine, currently a beta release, because the installed engine can't run it. A payload imported now is kept and deploys automatically once one is installed."
+          }
+        }
+      }
+    },
+    "settings.gptk.engine.needed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imported. D3DMetal also needs a GPTK-capable Whisky engine, currently a beta release, because the installed engine can't run it. The payload is kept and deploys automatically once one is installed."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imported. D3DMetal also needs a GPTK-capable Whisky engine, currently a beta release, because the installed engine can't run it. The payload is kept and deploys automatically once one is installed."
           }
         }
       }
@@ -73081,6 +72865,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "匯入失敗"
+          }
+        }
+      }
+    },
+    "settings.gptk.imported.engineNeeded.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "D3DMetal also needs a GPTK-capable Whisky engine, which is currently a beta release. The installed engine can't run it yet, so the payload is kept and deploys automatically once one is installed."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "D3DMetal also needs a GPTK-capable Whisky engine, which is currently a beta release. The installed engine can't run it yet, so the payload is kept and deploys automatically once one is installed."
+          }
+        }
+      }
+    },
+    "settings.gptk.imported.engineNeeded.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Game Porting Toolkit Imported"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Game Porting Toolkit Imported"
           }
         }
       }
@@ -103076,150 +102892,82 @@
         }
       }
     },
-    "config.graphics.backend.d3dMetal.missingWarning" : {
+    "config.graphics.backend.d3dMetal.engineNote" : {
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "هذه الزجاجة مضبوطة على D3DMetal، وهو غير مضمّن في المحرك المثبت. ستعود الألعاب إلى WineD3D الذي لا يستطيع تشغيل ألعاب DirectX 11 — بدّل إلى DXMT أو DXVK."
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tato láhev má nastavený D3DMetal, který nainstalované prostředí neobsahuje. Hry přejdou na WineD3D, který neumí hry s DirectX 11 — přepněte na DXMT nebo DXVK."
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Denne flaske er indstillet til D3DMetal, som ikke findes i den installerede engine. Spil falder tilbage til WineD3D, der ikke kan køre DirectX 11-titler — skift til DXMT eller DXVK."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Für diese Flasche ist D3DMetal eingestellt, das in der installierten Engine nicht enthalten ist. Spiele weichen auf WineD3D aus, das keine DirectX-11-Titel ausführen kann – wechsle zu DXMT oder DXVK."
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This bottle is set to D3DMetal, which the installed engine doesn't include. Games will fall back to WineD3D, which can't run DirectX 11 titles — switch to DXMT or DXVK."
+            "value" : "Game Porting Toolkit is imported, but the installed engine can't run D3DMetal. It needs a GPTK-capable Whisky engine, which is currently a beta release."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This bottle is set to D3DMetal, which the installed engine doesn't include. Games will fall back to WineD3D, which can't run DirectX 11 titles — switch to DXMT or DXVK."
+            "value" : "Game Porting Toolkit is imported, but the installed engine can't run D3DMetal. It needs a GPTK-capable Whisky engine, which is currently a beta release."
           }
-        },
-        "es" : {
+        }
+      }
+    },
+    "config.graphics.backend.d3dMetal.needsEngine" : {
+      "localizations" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Esta botella usa D3DMetal, que el motor instalado no incluye. Los juegos recurrirán a WineD3D, que no puede ejecutar títulos DirectX 11: cambia a DXMT o DXVK."
+            "value" : "GPTK imported. Needs a GPTK-capable engine (beta)"
           }
         },
-        "fi" : {
+        "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tämä pullo on asetettu käyttämään D3DMetalia, jota asennettu moottori ei sisällä. Pelit siirtyvät WineD3D:hen, joka ei pysty ajamaan DirectX 11 -pelejä — vaihda DXMT:hen tai DXVK:hon."
+            "value" : "GPTK imported. Needs a GPTK-capable engine (beta)"
+          }
+        }
+      }
+    },
+    "config.graphics.backend.d3dMetal.needsPayload" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import Game Porting Toolkit in Settings to use it"
           }
         },
-        "fr" : {
+        "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cette bouteille utilise D3DMetal, absent du moteur installé. Les jeux basculeront sur WineD3D, qui ne peut pas exécuter les titres DirectX 11 — passez à DXMT ou DXVK."
+            "value" : "Import Game Porting Toolkit in Settings to use it"
+          }
+        }
+      }
+    },
+    "config.graphics.backend.d3dMetal.needsPayloadAndEngine" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Needs Game Porting Toolkit and a GPTK-capable engine (beta)"
           }
         },
-        "it" : {
+        "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Questa bottiglia è impostata su D3DMetal, che il motore installato non include. I giochi useranno WineD3D, che non può eseguire i titoli DirectX 11: passa a DXMT o DXVK."
+            "value" : "Needs Game Porting Toolkit and a GPTK-capable engine (beta)"
+          }
+        }
+      }
+    },
+    "config.graphics.backend.d3dMetal.needsSetup" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GPTK imported. Open Settings to finish setting it up"
           }
         },
-        "ja" : {
+        "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "この Bottle は D3DMetal に設定されていますが、インストール済みのエンジンには含まれていません。ゲームは WineD3D にフォールバックし、DirectX 11 のタイトルは実行できません。DXMT または DXVK に切り替えてください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 Bottle은 D3DMetal로 설정되어 있지만 설치된 엔진에는 포함되어 있지 않습니다. 게임은 WineD3D로 대체 실행되어 DirectX 11 타이틀을 실행할 수 없습니다. DXMT 또는 DXVK로 전환하십시오."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deze fles is ingesteld op D3DMetal, dat niet in de geïnstalleerde engine zit. Games vallen terug op WineD3D, dat geen DirectX 11-titels kan draaien — schakel over naar DXMT of DXVK."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ta butelka ma ustawiony D3DMetal, którego nie zawiera zainstalowany silnik. Gry przełączą się na WineD3D, który nie obsługuje DirectX 11 — wybierz DXMT lub DXVK."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esta Bottle está definida para D3DMetal, que o motor instalado não inclui. Os jogos vão recorrer ao WineD3D, que não roda títulos DirectX 11 — mude para DXMT ou DXVK."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esta Bottle está definida para D3DMetal, que o motor instalado não inclui. Os jogos vão recorrer ao WineD3D, que não consegue executar títulos DirectX 11 — mude para DXMT ou DXVK."
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Această sticlă este setată pe D3DMetal, care nu este inclus în motorul instalat. Jocurile vor folosi WineD3D, care nu poate rula titluri DirectX 11 — treci la DXMT sau DXVK."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Для этой бутылки выбран D3DMetal, которого нет в установленной среде. Игры переключатся на WineD3D, который не поддерживает DirectX 11 — выберите DXMT или DXVK."
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Den här flaskan är inställd på D3DMetal, som inte ingår i den installerade motorn. Spel faller tillbaka på WineD3D, som inte kan köra DirectX 11-titlar — byt till DXMT eller DXVK."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bu şişe D3DMetal olarak ayarlı, ancak yüklü motor bunu içermiyor. Oyunlar WineD3D'ye geri döner ve DirectX 11 oyunları çalışmaz — DXMT veya DXVK'ya geçin."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Для цієї пляшки вибрано D3DMetal, якого немає у встановленому рушії. Ігри перейдуть на WineD3D, що не підтримує DirectX 11 — виберіть DXMT або DXVK."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bottle này được đặt dùng D3DMetal, nhưng engine đã cài không có sẵn. Game sẽ lùi về WineD3D, vốn không chạy được game DirectX 11 — hãy chuyển sang DXMT hoặc DXVK."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此 Bottle 设为使用 D3DMetal，但已安装的引擎并不包含它。游戏会回退到 WineD3D，而它无法运行 DirectX 11 游戏 — 请改用 DXMT 或 DXVK。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此 Bottle 設為使用 D3DMetal，但已安裝的引擎並未包含它。遊戲會退回使用 WineD3D，而它無法執行 DirectX 11 遊戲 — 請改用 DXMT 或 DXVK。"
+            "value" : "GPTK imported. Open Settings to finish setting it up"
           }
         }
       }
@@ -103373,150 +103121,66 @@
         }
       }
     },
-    "config.graphics.backend.d3dMetal.unavailable" : {
+    "config.graphics.backend.d3dMetal.warning.needsEngine" : {
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "غير مضمّن في المحرك المثبت — يتطلب بيئة تشغيل Game Porting Toolkit"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Není v nainstalovaném prostředí — vyžaduje prostředí Game Porting Toolkit"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Findes ikke i den installerede engine — kræver en Game Porting Toolkit-runtime"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In der installierten Engine nicht enthalten – benötigt eine Game-Porting-Toolkit-Runtime"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not included in the installed engine — needs a Game Porting Toolkit runtime"
+            "value" : "This bottle is set to D3DMetal. Game Porting Toolkit is imported, but the installed engine can't run it, so games fall back to WineD3D, which can't run DirectX 11 titles. D3DMetal needs a GPTK-capable Whisky engine, currently a beta release; until one is installed, switch to DXMT or DXVK."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not included in the installed engine — needs a Game Porting Toolkit runtime"
+            "value" : "This bottle is set to D3DMetal. Game Porting Toolkit is imported, but the installed engine can't run it, so games fall back to WineD3D, which can't run DirectX 11 titles. D3DMetal needs a GPTK-capable Whisky engine, currently a beta release; until one is installed, switch to DXMT or DXVK."
           }
-        },
-        "es" : {
+        }
+      }
+    },
+    "config.graphics.backend.d3dMetal.warning.needsPayload" : {
+      "localizations" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No se incluye en el motor instalado: necesita un runtime de Game Porting Toolkit"
+            "value" : "This bottle is set to D3DMetal, but Game Porting Toolkit isn't imported, so games fall back to WineD3D, which can't run DirectX 11 titles. Import it in Settings, or switch to DXMT or DXVK."
           }
         },
-        "fi" : {
+        "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ei sisälly asennettuun moottoriin — vaatii Game Porting Toolkit -ajoympäristön"
+            "value" : "This bottle is set to D3DMetal, but Game Porting Toolkit isn't imported, so games fall back to WineD3D, which can't run DirectX 11 titles. Import it in Settings, or switch to DXMT or DXVK."
+          }
+        }
+      }
+    },
+    "config.graphics.backend.d3dMetal.warning.needsPayloadAndEngine" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This bottle is set to D3DMetal, which needs Game Porting Toolkit and a GPTK-capable Whisky engine, currently a beta release. Without them games fall back to WineD3D, which can't run DirectX 11 titles, so switch to DXMT or DXVK for now."
           }
         },
-        "fr" : {
+        "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Absent du moteur installé — nécessite un runtime Game Porting Toolkit"
+            "value" : "This bottle is set to D3DMetal, which needs Game Porting Toolkit and a GPTK-capable Whisky engine, currently a beta release. Without them games fall back to WineD3D, which can't run DirectX 11 titles, so switch to DXMT or DXVK for now."
+          }
+        }
+      }
+    },
+    "config.graphics.backend.d3dMetal.warning.needsSetup" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This bottle is set to D3DMetal. Game Porting Toolkit is imported but isn't set up in the installed engine yet, so games fall back to WineD3D, which can't run DirectX 11 titles. Open Game Porting Toolkit in Settings to finish setting it up."
           }
         },
-        "it" : {
+        "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Non incluso nel motore installato: richiede un runtime Game Porting Toolkit"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "インストール済みのエンジンには含まれていません。Game Porting Toolkit のランタイムが必要です"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "설치된 엔진에 포함되어 있지 않음 — Game Porting Toolkit 런타임이 필요합니다"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Niet inbegrepen in de geïnstalleerde engine — vereist een Game Porting Toolkit-runtime"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Brak w zainstalowanym silniku — wymaga środowiska Game Porting Toolkit"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não incluído no motor instalado — precisa de um runtime do Game Porting Toolkit"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não incluído no motor instalado — precisa de um runtime Game Porting Toolkit"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nu este inclus în motorul instalat — necesită un runtime Game Porting Toolkit"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Нет в установленной среде — нужна среда Game Porting Toolkit"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ingår inte i den installerade motorn — kräver en Game Porting Toolkit-runtime"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Yüklü motorda bulunmuyor — Game Porting Toolkit çalışma zamanı gerekir"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Немає у встановленому рушії — потрібен рушій Game Porting Toolkit"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không có trong engine đã cài — cần runtime Game Porting Toolkit"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已安装的引擎不包含 — 需要 Game Porting Toolkit 运行时"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已安裝的引擎未包含 — 需要 Game Porting Toolkit 執行階段"
+            "value" : "This bottle is set to D3DMetal. Game Porting Toolkit is imported but isn't set up in the installed engine yet, so games fall back to WineD3D, which can't run DirectX 11 titles. Open Game Porting Toolkit in Settings to finish setting it up."
           }
         }
       }

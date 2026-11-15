@@ -123,9 +123,9 @@ public final class WineHelperActivity: @unchecked Sendable {
         return true
     }
 
-    /// Whether a listed process is a program rather than Wine's own or the listing's.
+    /// Whether a listed process is a program rather than Wine's own or Whisky's.
     static func isProgram(_ process: WineProcess) -> Bool {
-        process.kind == .app && process.imageName.lowercased() != "tasklist.exe"
+        process.kind == .app && !Wine.isWhiskyHelper(process)
     }
 
     /// Forgets all activity. For testing purposes only.

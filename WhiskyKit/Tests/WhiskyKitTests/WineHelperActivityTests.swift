@@ -179,4 +179,24 @@ final class WineHelperActivityTests: XCTestCase {
 
         XCTAssertEqual(processes, [])
     }
+
+    /// The listing finds its own `tasklist.exe`, and Whisky's other helpers when
+    /// they happen to run; none of them is a program the user runs.
+    func testWhiskyHelpersAreLeftOutOfTheListing() {
+        let output = """
+        "Image Name","PID","Session Name","Session#","Mem Usage"
+        "services.exe","32","Console","0","1024 K"
+        "game.exe","104","Console","0","824000 K"
+        "tasklist.exe","220","Console","0","2048 K"
+        "TaskKill.exe","224","Console","0","2048 K"
+        "reg.exe","228","Console","0","2048 K"
+        "regedit.exe","232","Console","0","4096 K"
+        """
+
+        let processes = Wine.withoutWhiskyHelpers(Wine.parseTasklistOutput(output))
+
+        XCTAssertEqual(processes.map(\.imageName), ["services.exe", "game.exe", "regedit.exe"])
+        XCTAssertFalse(WineHelperActivity.isProgram(listed("taskkill.exe")[0]))
+        XCTAssertTrue(WineHelperActivity.isProgram(listed("regedit.exe")[0]))
+    }
 }

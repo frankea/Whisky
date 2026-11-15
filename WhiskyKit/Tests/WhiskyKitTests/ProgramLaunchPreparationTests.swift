@@ -203,8 +203,8 @@ final class ProgramLaunchPreparationTests {
         #expect(recorder.imports == [CJKFontReplacements.registryDocument(for: CJKFontReplacements.replacements)])
     }
 
-    @Test("No run mode imports font aliases into a bottle without Source Han Sans")
-    func launchWithoutSourceHanSansImportsNoAliases() async throws {
+    @Test("No run mode imports Noto aliases into a bottle without Source Han Sans, only the Korean fallback")
+    func launchWithoutSourceHanSansImportsOnlyTheKoreanFallback() async throws {
         let bottle = try makeBottle()
         try addCJKFonts(to: bottle, collection: false)
         let program = try Program(url: makeExecutable("Games/Game.exe", in: bottle), bottle: bottle)
@@ -212,7 +212,11 @@ final class ProgramLaunchPreparationTests {
 
         _ = try await program.prepareLaunch(args: [], overrideWriter: recorder.writer, importer: recorder.importer)
 
-        #expect(recorder.imports.isEmpty)
+        // Every Mac has Apple SD Gothic Neo; the check keeps the test honest on one that does not.
+        let expected = KoreanFontFallback.isInstalledOnHost
+            ? [CJKFontReplacements.registryDocument(for: KoreanFontFallback.replacements)]
+            : []
+        #expect(recorder.imports == expected)
     }
 
     @Test("A launch without a Program adds the font aliases before it reads a bottle setting")

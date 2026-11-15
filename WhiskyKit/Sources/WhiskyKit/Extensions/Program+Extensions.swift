@@ -124,7 +124,7 @@ public extension Program {
                     exitCode: result.exitCode
                 )
             } else {
-                watchForLateCrash(logFileURL: result.logFileURL)
+                watchForLateCrash(logFileURL: result.logFileURL, outputCompletion: result.outputCompletion)
             }
 
             return .launchedSuccessfully(programName: self.name)
@@ -133,27 +133,28 @@ public extension Program {
         }
     }
 
-    /// Watches for the session actually ending, then classifies its log.
+    /// Scans the run's log while the program runs, and once more when its
+    /// output has closed.
     ///
-    /// The bottle's wineserver going idle is the end-of-session signal, the
-    /// same one Discord presence uses, and this run's log keeps growing until
-    /// then because Wine's children inherit its file descriptor. Each launch
-    /// has its own log file, so concurrent watchers never double-report one
-    /// run. The probe is deliberately one interval late; the wineserver may
-    /// not be up yet at the moment of launch.
-    private func watchForLateCrash(logFileURL: URL) {
-        let bottle = self.bottle
+    /// The launch returns when `wine start` exits; the program it started,
+    /// and everything else that inherited the launch's output, go on writing
+    /// to this run's log until they exit, which `outputCompletion` reports.
+    /// Each launch has its own log file, so concurrent watchers never
+    /// double-report one run. The first scan is one interval after launch.
+    private func watchForLateCrash(logFileURL: URL, outputCompletion: ProcessOutputCompletion) {
         Task {
             while true {
                 try? await Task.sleep(for: .seconds(30))
+                // Read before the scan: once the output has closed, that scan
+                // sees the whole log, so it is the last one.
+                let outputClosed = outputCompletion.isComplete
                 if logContainsCrashSignatures(logFileURL) {
-                    triggerCrashClassification(logFileURL: logFileURL, exitCode: 1)
+                    // The program may still be running, and the only exit code
+                    // there is, the launcher's, was 0, so the diagnosis has none.
+                    triggerCrashClassification(logFileURL: logFileURL, exitCode: nil)
                     return
                 }
-                // Checked after the scan, so a crash written between the last
-                // scan and the wineserver going down still gets one look.
-                let running = await Wine.isWineserverRunning(for: bottle)
-                if !running {
+                if outputClosed {
                     return
                 }
             }
@@ -186,7 +187,7 @@ public extension Program {
     /// Classification runs on a background task (`.utility` priority) to avoid
     /// blocking the main thread. On completion, persists a ``DiagnosisHistoryEntry``
     /// and posts ``Notification.Name.crashDiagnosisAvailable``.
-    private func triggerCrashClassification(logFileURL: URL, exitCode: Int32) {
+    private func triggerCrashClassification(logFileURL: URL, exitCode: Int32?) {
         let programPath = self.url.path(percentEncoded: false)
         let programName = self.name
         let bottleName = self.bottle.settings.name

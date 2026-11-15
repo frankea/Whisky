@@ -236,13 +236,48 @@ public final class SteamClientOrchestrator: ObservableObject {
         if Self.shouldApplyLauncherFixes(settings: bottle.settings) {
             driver.applyLauncherFixes()
         }
+        // Other bottles' clients, so the wait can tell a new one from them.
+        let hostClientsBeforeStart = await driver.hostSteamPIDs()
         driver.startClient(steamExe: steamExe)
 
-        if await watch.waitForAny(of: ["steam.exe"], timeout: timing.clientReadyTimeout) {
+        if await waitForStartedClient(excluding: hostClientsBeforeStart) {
             driver.clientDidBecomeReady()
             return
         }
         throw SteamOrchestratorError.clientTimeout
+    }
+
+    /// Waits for the client this started, watching the host's process list
+    /// until a `steam.exe` that wasn't running before the start shows up, and
+    /// only then asking the bottle.
+    ///
+    /// On a cold prefix the client starts once Wine's boot has settled, and a
+    /// `tasklist.exe` every poll kept the boot busy: the wait ran out first and
+    /// `-applaunch` was never sent, while Steam came up after. Reading `ps`
+    /// starts no Wine process. It isn't scoped to the bottle, though, so each
+    /// new `steam.exe` gets one look at the bottle's own list to confirm it is
+    /// this one. A client already running in another bottle is in the
+    /// `excluding` set, so it neither ends the wait nor turns it back into
+    /// polling the bottle.
+    ///
+    /// - Parameter running: Host PIDs of `steam.exe` from before the start.
+    private func waitForStartedClient(excluding running: Set<Int32>) async -> Bool {
+        let deadline = Date(timeIntervalSinceNow: timing.clientReadyTimeout)
+        var checked = running
+        repeat {
+            let new = await driver.hostSteamPIDs().subtracting(checked)
+            if !new.isEmpty {
+                checked.formUnion(new)
+                // The snapshot from before the start can't have this client in it.
+                processSnapshot = nil
+                if await isClientRunning() {
+                    return true
+                }
+            }
+            try? await Task.sleep(for: timing.pollInterval)
+            guard !Task.isCancelled else { return false }
+        } while Date() < deadline
+        return false
     }
 
     private func isClientRunning() async -> Bool {

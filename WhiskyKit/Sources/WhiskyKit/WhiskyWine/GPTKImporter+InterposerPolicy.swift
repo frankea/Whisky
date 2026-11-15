@@ -116,6 +116,8 @@ extension GPTKImporter {
 
     /// Testable seam for ``ensureVideoProcessorInstalled(bottles:)``.
     static func ensureVideoProcessorInstalled(bottles: [URL], inLibraryFolder folder: URL, usingStore store: URL) {
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
         guard isDeployed(inLibraryFolder: folder) else {
             return
         }

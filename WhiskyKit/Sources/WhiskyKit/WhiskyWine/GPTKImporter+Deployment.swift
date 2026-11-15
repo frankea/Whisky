@@ -37,7 +37,14 @@ extension GPTKImporter {
     /// no. This is a build property (exception-unwind support), not something
     /// the payload or the app can add.
     public static func isRuntimeGPTKCapable() -> Bool {
-        WhiskyWineInstaller.whiskyWineInfo()?.gptkCapable == true
+        isRuntimeGPTKCapable(inLibraryFolder: WhiskyWineInstaller.libraryFolder)
+    }
+
+    /// Testable seam for ``isRuntimeGPTKCapable()``: reads the version plist
+    /// of the runtime under `folder`.
+    static func isRuntimeGPTKCapable(inLibraryFolder folder: URL) -> Bool {
+        let plist = folder.appending(path: "WhiskyWineVersion").appendingPathExtension("plist")
+        return WhiskyWineInstaller.whiskyWineInfo(at: plist)?.gptkCapable == true
     }
 
     // MARK: - Deployment
@@ -98,6 +105,38 @@ extension GPTKImporter {
         )
     }
 
+    /// Deploys the stored payload into a GPTK-capable runtime that has no
+    /// D3DMetal yet, reporting whether it deployed. Run at launch.
+    ///
+    /// GPTK-capable engines are beta releases installed by hand, with Whisky
+    /// quit, so nothing in the app sees the install happen. Without this the
+    /// stored payload would wait for Settings to be opened, while the bottle
+    /// views said D3DMetal was not set up (#358). A runtime that already holds
+    /// D3DMetal is left as it is, so launch does not copy the payload again.
+    @discardableResult
+    public static func deployStoredPayloadIfMissing() -> Bool {
+        deployStoredPayloadIfMissing(
+            fromStore: storeFolder,
+            intoLibraryFolder: WhiskyWineInstaller.libraryFolder,
+            isAppleSigned: isAppleSigned(_:identifier:)
+        )
+    }
+
+    /// Testable seam for ``deployStoredPayloadIfMissing()``.
+    @discardableResult
+    static func deployStoredPayloadIfMissing(
+        fromStore store: URL,
+        intoLibraryFolder folder: URL,
+        isAppleSigned: (_ code: URL, _ identifier: String) -> Bool
+    ) -> Bool {
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
+        guard isRuntimeGPTKCapable(inLibraryFolder: folder),
+              !WhiskyWineInstaller.isD3DMetalPresent(inLibraryFolder: folder)
+        else { return false }
+        return deployStoredPayloadIfPresent(fromStore: store, intoLibraryFolder: folder, isAppleSigned: isAppleSigned)
+    }
+
     /// Testable seam for ``deployStoredPayloadIfCapable()``, past the runtime
     /// capability check.
     @discardableResult
@@ -106,6 +145,8 @@ extension GPTKImporter {
         intoLibraryFolder folder: URL,
         isAppleSigned: (_ code: URL, _ identifier: String) -> Bool
     ) -> Bool {
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
         guard storedRecord(inStore: store) != nil else { return false }
         let verdict = verifyStoredPayload(inStore: store, libraryFolder: folder, isAppleSigned: isAppleSigned)
         guard verdict == .verified else {
@@ -165,6 +206,8 @@ extension GPTKImporter {
 
     /// Testable seam for ``deployStoredPayload()``.
     static func deploy(fromStore store: URL, intoLibraryFolder folder: URL) throws {
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
         guard storedRecord(inStore: store) != nil else {
             throw GPTKImportError.storeEmpty
         }
@@ -251,6 +294,8 @@ extension GPTKImporter {
 
     /// Testable seam for ``removeDeployedPayload()``.
     static func remove(fromLibraryFolder folder: URL, usingStore store: URL) throws {
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
         let fileManager = FileManager.default
         let wineLib = folder.appending(path: "Wine").appending(path: "lib")
         let peDir = wineLib.appending(path: "wine").appending(path: "x86_64-windows")

@@ -96,28 +96,59 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
     /// Changes to settings are automatically persisted to disk.
     /// These settings can override bottle-level defaults for locale
     /// and environment variables.
+    ///
+    /// A change also reaches every other live ``Program`` for the same
+    /// executable. Launch paths build their own when the bottle's list has no
+    /// entry yet (the Library, the Dock and the menu bar), and settings are
+    /// saved whole, so a copy that missed a change would write its stale
+    /// fields back over it on its next save.
     @Published public var settings: ProgramSettings {
-        didSet { saveSettings() }
+        didSet {
+            guard !isAdoptingSettings else { return }
+            saveSettings()
+            shareSettings()
+        }
     }
+
+    /// Set while this copy takes on settings another copy saved, which are
+    /// already on disk.
+    private var isAdoptingSettings = false
+
+    /// A program held without keeping it alive.
+    private struct LiveCopy {
+        weak var program: Program?
+    }
+
+    /// The live programs, by settings file.
+    private static var liveCopies: [URL: [LiveCopy]] = [:]
 
     /// Whether this program is pinned for quick access.
     ///
     /// Setting this property automatically updates the bottle's pin list.
     /// Pinned programs appear in a separate section of the UI.
     ///
-    /// Setting `true` on a program the bottle already pins is a no-op: pins are
-    /// keyed by URL (the same identity the load-time cleanup in ``Bottle`` uses),
-    /// so the pin list is not modified and Metadata.plist is not rewritten.
+    /// Setting `true` on a program the bottle already pins does not add a second
+    /// pin: pins are keyed by URL (the same identity the load-time cleanup in
+    /// ``Bottle`` uses). Setting `false` records the unpin in
+    /// ``BottleSettings/unpinnedPrograms`` so the Start Menu scan leaves the
+    /// program alone, and pinning again clears that record.
     @Published public var pinned: Bool {
         didSet {
             if pinned {
+                // Cleared before the already-pinned check: a program can be both
+                // pinned and recorded as unpinned when its pin was re-added by
+                // hand, and the record must not outlive a deliberate pin. Checked
+                // first because any mutating call saves Metadata.plist.
+                if bottle.settings.isUnpinned(url) {
+                    bottle.settings.clearUnpin(url)
+                }
                 guard !bottle.settings.pins.contains(where: { $0.url == url }) else { return }
                 bottle.settings.pins.append(PinnedProgram(
                     name: name.replacingOccurrences(of: ".exe", with: ""),
                     url: url
                 ))
             } else {
-                bottle.settings.pins.removeAll(where: { $0.url == url })
+                bottle.settings.unpin(url)
             }
         }
     }
@@ -268,6 +299,9 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
         }
 
         self.peFile = peFile
+        let key = settingsUrl.standardizedFileURL
+        Self.liveCopies[key] = Self.liveCopies[key, default: []].filter { $0.program != nil }
+            + [LiveCopy(program: self)]
     }
 
     /// Generates the environment variables for running this program.
@@ -291,6 +325,19 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
             try settings.encode(to: settingsURL)
         } catch {
             Logger.wineKit.error("Failed to save settings for `\(self.name)`: \(error)")
+        }
+    }
+
+    /// Hands this copy's settings to every other live copy of the program.
+    private func shareSettings() {
+        let key = settingsURL.standardizedFileURL
+        let copies = Self.liveCopies[key, default: []].filter { $0.program != nil }
+        Self.liveCopies[key] = copies.isEmpty ? nil : copies
+        for copy in copies {
+            guard let other = copy.program, other !== self else { continue }
+            other.isAdoptingSettings = true
+            other.settings = settings
+            other.isAdoptingSettings = false
         }
     }
 

@@ -25,8 +25,12 @@ public enum DistributionConfig {
     /// URL for the WhiskyWine version plist file
     public static let versionPlistURL = "\(baseURL)/WhiskyWineVersion.plist"
 
+    /// The GitHub Releases page, which lists app releases and the Wine
+    /// Libraries engine builds, the GPTK-capable beta engines among them.
+    public static let releasesPageURL = "https://github.com/frankea/Whisky/releases"
+
     /// Base URL for GitHub Releases downloads
-    public static let releasesBaseURL = "https://github.com/frankea/Whisky/releases/download"
+    public static let releasesBaseURL = "\(releasesPageURL)/download"
 
     /// URL for the Sparkle appcast feed
     public static let appcastURL = "\(baseURL)/appcast.xml"

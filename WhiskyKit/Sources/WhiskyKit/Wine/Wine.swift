@@ -273,6 +273,9 @@ public class Wine {
     ///     one spawns rather than to `url` itself, as when `steam.exe` launches a game.
     ///   - descendantExecutables: The executable names of what this launch starts, when the
     ///     overrides apply to descendants.
+    ///   - descendantExecutableURLs: Where the executables of what this launch starts are, when
+    ///     the overrides apply to descendants. A launcher carrying a DXMT plan places DXMT's
+    ///     trio beside them, since its own `system32` keeps DXVK.
     ///   - ownSettingsExecutables: Executables among what this launch starts that keep their
     ///     own settings instead of the descendants' overrides, when those apply to descendants.
     ///   - descendantLaunchers: Launchers what this launch starts brings up on its own.
@@ -291,6 +294,7 @@ public class Wine {
         gameProfileEnvironment: [String: String] = [:],
         overridesApplyToDescendants: Bool = false,
         descendantExecutables: [String] = [],
+        descendantExecutableURLs: [URL] = [],
         ownSettingsExecutables: [URL] = [],
         descendantLaunchers: [LauncherType] = [],
         onOutput: (@MainActor (ProcessOutput) -> Void)? = nil
@@ -306,6 +310,7 @@ public class Wine {
                 gameProfileEnvironment: gameProfileEnvironment,
                 overridesApplyToDescendants: overridesApplyToDescendants,
                 descendantExecutables: descendantExecutables,
+                descendantExecutableURLs: descendantExecutableURLs,
                 ownSettingsExecutables: ownSettingsExecutables,
                 descendantLaunchers: descendantLaunchers
             )
@@ -425,6 +430,9 @@ public class Wine {
     ///   - descendantExecutables: The executable names of what this launch starts, when the
     ///     overrides apply to descendants. The overrides go into their `AppDefaults` entries,
     ///     replacing whatever an earlier launch or version left there.
+    ///   - descendantExecutableURLs: Where those executables are. A launcher carrying a DXMT
+    ///     plan keeps DXVK in `system32` for itself, so DXMT's trio goes beside each of them,
+    ///     where Wine's loader finds it first; a later launch on another plan takes it back.
     ///   - ownSettingsExecutables: Executables among what this launch starts that keep their
     ///     own settings: each one the user has tuned gets an entry from its own overrides, as a
     ///     launch of it from the Programs tab writes, and the descendants' overrides skip it.
@@ -454,6 +462,7 @@ public class Wine {
         gameProfileEnvironment: [String: String] = [:],
         overridesApplyToDescendants: Bool = false,
         descendantExecutables: [String] = [],
+        descendantExecutableURLs: [URL] = [],
         ownSettingsExecutables: [URL] = [],
         descendantLaunchers: [LauncherType] = [],
         recommendedBackend: GraphicsBackend = GraphicsBackendResolver.resolve(),
@@ -515,22 +524,12 @@ public class Wine {
             ? recommendedBackend : bottle.settings.graphicsBackend
         applyMetalFX(bottle: bottle, backend: steeredLauncher == nil ? effectiveBackend : gamesBackend)
 
-        // Enable DXVK if needed: effective backend, the legacy program-level
-        // flag (honored only without a backend override, mirroring
-        // applyProgramOverrides), or launcher auto-enable. A launcher that only
-        // carries a game's plan still runs, and its helpers keep restarting, on
-        // DXVK: its files stay in place, and are copied after a DXMT plan's, so
-        // the launcher keeps working when the two share a file.
-        let legacyProgramDXVK = programOverrides?.graphicsBackend == nil && programOverrides?.dxvk == true
-        let shouldEnableDXVK = deploysDXVK(
-            effectiveBackend: effectiveBackend, legacyProgramDXVK: legacyProgramDXVK,
+        try deployLauncherAndGameLayers(
+            bottle: bottle, effectiveBackend: effectiveBackend, programOverrides: programOverrides,
             launcherCarriesDescendantPlan: overridesApplyToDescendants && launcher != nil,
-            autoEnableDXVK: bottle.settings.autoEnableDXVK, detectedLauncher: bottle.settings.detectedLauncher
+            gameExecutables: overridesApplyToDescendants ? descendantExecutableURLs : [url],
+            dxvkFolder: dxvkFolder, dxmtFolder: dxmtFolder
         )
-
-        if shouldEnableDXVK {
-            try enableDXVK(bottle: bottle, from: dxvkFolder)
-        }
 
         var wineEnvironment = launchEnvironment(
             for: url, bottle: bottle, backend: effectiveBackend, environment: environment,
@@ -1371,6 +1370,8 @@ public class Wine {
     /// DXMT goes first: if launcher auto-DXVK also fires in `runProgram`, DXVK's
     /// file copy deterministically wins, matching the override-layer order where
     /// launcher-managed entries land after bottle-managed ones.
+    /// A game whose DXMT plan a launcher carries then gets DXMT's trio in its own
+    /// folder (``reconcileDXMTGameFolders(_:executables:bottleURL:payloadRoot:)``).
     @MainActor
     private static func prepareBackendPrefix(
         _ backend: GraphicsBackend, bottle: Bottle, dxmtFolder: URL = Wine.dxmtFolder

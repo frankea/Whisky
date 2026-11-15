@@ -107,6 +107,8 @@ public enum SteamLauncher {
         let steamExe = steamRoot.appending(path: "steam.exe")
         let gameExecutables = gameExecutables(scanned: scan?.planExecutables ?? [], plan: plan)
         let chromiumHosts = scan?.chromiumHosts ?? []
+        // Where the plan's executables are, so a DXMT plan can go beside them.
+        let gameExecutableURLs = scan?.planExecutables ?? []
 
         return Task {
             try await Wine.prepareBottlePrefix(bottle: bottle)
@@ -129,6 +131,7 @@ public enum SteamLauncher {
                 // when this invocation is what brings it up.
                 overridesApplyToDescendants: true,
                 descendantExecutables: gameExecutables,
+                descendantExecutableURLs: gameExecutableURLs,
                 ownSettingsExecutables: chromiumHosts,
                 descendantLaunchers: plan.startsLaunchers,
                 onOutput: onOutput

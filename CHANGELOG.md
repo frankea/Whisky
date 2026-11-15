@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Library shows such a game as running while its executable runs. A
   program that draws with Chromium, like 3DMark's own window, keeps its own
   settings instead of the game's (#376, #373).
+- A Library tile shows when a program or game was last run right after
+  launching it, instead of "Never run" until the Library reloads (#375).
+- Logs written by the `whisky` command line tool show the Whisky version in
+  their header (#375).
 
 ## [3.10.0] - 2026-11-14 (App)
 

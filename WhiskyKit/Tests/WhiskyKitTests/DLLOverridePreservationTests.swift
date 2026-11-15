@@ -137,6 +137,20 @@ final class DLLOverridePreservationTests {
         #expect(registry.values(gameKey)["dinput8"] == "native")
     }
 
+    @Test("Winetricks' starred backend overrides go on a D3DMetal launch, its others stay")
+    func starredBackendOverridesGo() async throws {
+        let (bottle, game) = try makeBottle(.d3dMetal)
+        // What `winetricks dxvk d3dx9` writes: every name with a leading `*`.
+        registry.set(bottleKey, [
+            "*d3d11": "native", "*dxgi": "native", "*d3d12": "native", "*d3dx9_43": "native"
+        ])
+        registry.set(gameKey, ["*d3d9": "native", "*xaudio2_7": "native"])
+
+        try await launch(game, in: bottle)
+        #expect(registry.values(bottleKey) == ["*d3dx9_43": "native"])
+        #expect(registry.values(gameKey) == ["*xaudio2_7": "native"])
+    }
+
     @Test("A deleted custom override is taken back, and only that one")
     func removedCustomOverrideIsTakenBack() async throws {
         let (bottle, game) = try makeBottle(.d3dMetal)

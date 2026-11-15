@@ -132,16 +132,18 @@ final class DLLOverrideRegistryTests: XCTestCase {
     }
 
     /// An empty scope still takes back what Whisky wrote, since clearing a
-    /// backend has to remove what the previous one wrote.
+    /// backend has to remove what the previous one wrote, and winetricks'
+    /// starred spelling of the translation layers.
     func testEmptyScopeRemovesOnlyManagedNames() {
         let doc = Wine.registryDocument(for: [(key: #"HKCU\X"#, overrides: [:])])
-        for dll in Wine.managedDLLNames {
+        for dll in Wine.managedDLLNames.union(Wine.starredBackendDLLNames) {
             XCTAssertTrue(doc.contains("\"\(dll)\"=-"), dll)
         }
         XCTAssertFalse(doc.contains("[-"))
+        XCTAssertFalse(doc.contains(#""*nvapi64"=-"#), "only translation layers are starred")
         XCTAssertEqual(
             doc.components(separatedBy: "\r\n").filter { $0.hasPrefix("\"") }.count,
-            Wine.managedDLLNames.count
+            Wine.managedDLLNames.count + Wine.starredBackendDLLNames.count
         )
     }
 

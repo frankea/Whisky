@@ -27,7 +27,9 @@ but not in a rendered Markdown file. This rewrites them:
 - `owner/repo#123` and `upstream #123` (the archived whisky-app/whisky) become
   inline links, since their numbers would collide with this repository's.
 - The version headings get release links (`app-vX.Y.Z` tags), and
-  `[Unreleased]` compares the newest app tag with HEAD.
+  `[Unreleased]` compares the newest app release with HEAD. A heading marked
+  `(App)` links to its `app-v` tag even before the tag is pushed, so the
+  release commit already carries the right links.
 
 Text inside backticks is left alone, and so are references listed in
 UNLINKED (issues that no longer exist). Running it again changes nothing.
@@ -124,12 +126,14 @@ def build(text: str) -> str:
     # Drop hand-written version link definitions; they are regenerated.
     body = re.sub(r"(?m)^\[(Unreleased|\d+\.\d+\.\d+)\]: \S+\n?", "", body).rstrip("\n")
 
-    issues, users, versions = set(), set(), []
+    issues, users, versions, app_versions = set(), set(), [], set()
     out_lines = []
     for line in body.split("\n"):
         heading = HEADING_RE.match(line)
         if heading:
             versions.append(heading.group(1))
+            if "(App)" in line:
+                app_versions.add(heading.group(1))
             out_lines.append(line)
             continue
         if line.startswith("[") and "]: http" in line:
@@ -142,14 +146,17 @@ def build(text: str) -> str:
 
     tags = app_tags()
     definitions = []
-    if "Unreleased" in versions and tags:
-        definitions.append(f"[Unreleased]: {REPO}/compare/{tags[-1]}...HEAD")
+    # Headings run newest first, so the first app heading is the newest release.
+    newest_app = next((f"app-v{v}" for v in versions if v in app_versions), tags[-1] if tags else None)
+    if "Unreleased" in versions and newest_app:
+        definitions.append(f"[Unreleased]: {REPO}/compare/{newest_app}...HEAD")
     seen = set()
     for version in versions:
         if version == "Unreleased" or version in seen:
             continue
         seen.add(version)
-        tag = f"app-v{version}" if f"app-v{version}" in tags else f"v{version}"
+        is_app = version in app_versions or f"app-v{version}" in tags
+        tag = f"app-v{version}" if is_app else f"v{version}"
         definitions.append(f"[{version}]: {REPO}/releases/tag/{tag}")
     definitions += [f"[#{number}]: {REPO}/issues/{number}" for number in sorted(issues)]
     definitions += [f"[@{name}]: https://github.com/{name}" for name in sorted(users, key=str.lower)]

@@ -480,9 +480,10 @@ public class Wine {
         // set, `d3d12=` included (#276). The launcher keeps DXVK through its own
         // `AppDefaults` entry, written from the launcher's set. A Chromium front
         // end from the curated table (3DMark) is steered the same way, while
-        // the benchmarks and games it starts keep the bottle's backend (#372).
+        // the benchmarks and games it starts keep the bottle's backend, and so
+        // is an Electron or NW.js app found by its files (#372).
         let launcher = LauncherType.detect(from: url)
-        let steering = overridesApplyToDescendants ? nil : DXVKSteering.detect(executable: url)
+        let steering = overridesApplyToDescendants ? nil : DXVKSteering.inspect(executable: url)
         let effectiveBackendChoice = programOverrides?.graphicsBackend ?? bottle.settings.graphicsBackend
         let effectiveBackend = effectiveBackend(
             for: url, choice: effectiveBackendChoice, steering: steering, recommendedBackend: recommendedBackend
@@ -556,8 +557,9 @@ public class Wine {
     }
 
     /// The concrete backend a launch runs on: an explicit choice as is, and
-    /// Recommended resolved for what is launched, which steers a launcher or a
-    /// Chromium front end to DXVK. A steered pick is logged with its evidence.
+    /// Recommended resolved for what is launched, which steers a launcher, a
+    /// Chromium front end, or an Electron or NW.js app to DXVK. A steered pick
+    /// is logged with its evidence.
     ///
     /// - Parameters:
     ///   - url: The executable being launched.

@@ -55,8 +55,9 @@ struct ProgramOverrideSettingsView: View {
     /// Read from the runtime's version plist when the sync group appears, not
     /// on every redraw, and assumed until then.
     @State private var runtimeImplementsEnhancedSync = true
-    /// Whether `libcef.dll` sits beside the program, read once when the page
-    /// appears rather than on every redraw.
+    /// Whether the program ships CEF and imports it, with no graphics import
+    /// of its own: read off the main actor once when the page appears, rather
+    /// than on every redraw.
     @State private var shipsCEF = false
 
     var body: some View {
@@ -75,7 +76,10 @@ struct ProgramOverrideSettingsView: View {
         diagnosticsSection
         audioTroubleshootingSection
             .task {
-                shipsCEF = ChromiumFrontEnd.shipsCEF(beside: program.url)
+                let url = program.url
+                shipsCEF = await Task.detached(priority: .utility) {
+                    ChromiumRuntimeDetector.suggestsCEF(for: url)
+                }.value
                 await loadGameMatch()
                 await loadRecommendedDependencies()
             }
@@ -679,10 +683,11 @@ struct ProgramOverrideSettingsView: View {
         program.settings.overrides?.graphicsBackend != nil
     }
 
-    /// Why Recommended runs this program on DXVK, if it does: a launcher, or
-    /// a Chromium front end from the table. String matching only.
+    /// Why Recommended runs this program on DXVK, if it does: a launcher, a
+    /// Chromium front end from the table, or an Electron or NW.js app. Read
+    /// from the program's scan, never from its files.
     private var dxvkSteering: DXVKSteering? {
-        DXVKSteering.detect(executable: program.url)
+        program.dxvkSteering
     }
 
     /// The backend this program's launches choose, before Recommended resolves.

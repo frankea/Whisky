@@ -131,25 +131,30 @@ extension Bottle {
             let driveC = url.appending(path: "drive_c")
             // Snapshot main-actor state before crossing to the background task.
             let blocklist = Set(settings.blocklist)
+            let pinURLs = settings.pins.compactMap(\.url)
 
-            // Walk Program Files and parse each PE off the main actor (PEFile is Sendable).
-            let scanned: [(url: URL, peFile: PEFile?)] = await Task.detached(priority: .userInitiated) {
-                Bottle.discoverInstalledExecutables(driveC: driveC, blocklist: blocklist)
-                    .map { (url: $0, peFile: try? PEFile(url: $0)) }
+            // Walk Program Files, parse each PE, and classify each executable's
+            // DXVK steering off the main actor (both are Sendable). Pinned
+            // programs outside Program Files are read there too, so a view never
+            // looks at a program's files (#372).
+            let scanned: [ScannedProgram] = await Task.detached(priority: .userInitiated) {
+                let found = Bottle.discoverInstalledExecutables(driveC: driveC, blocklist: blocklist)
+                let foundSet = Set(found)
+                return (found + pinURLs.filter { !foundSet.contains($0) }).map {
+                    ScannedProgram(
+                        url: $0,
+                        peFile: try? PEFile(url: $0),
+                        steering: DXVKSteering.inspect(executable: $0)
+                    )
+                }
             }.value
 
-            var foundURLS: Set<URL> = []
             var programs: [Program] = []
-            for entry in scanned {
-                foundURLS.insert(entry.url)
-                programs.append(Program(url: entry.url, bottle: self, peFile: entry.peFile))
-            }
-
-            // Add missing programs from pins
-            for pin in settings.pins {
-                guard let url = pin.url else { continue }
-                guard !foundURLS.contains(url) else { continue }
-                programs.append(Program(url: url, bottle: self))
+            var added: Set<URL> = []
+            for entry in scanned where added.insert(entry.url).inserted {
+                programs.append(
+                    Program(url: entry.url, bottle: self, peFile: entry.peFile, dxvkSteering: entry.steering)
+                )
             }
 
             self.programs = programs.sorted { $0.name.lowercased() < $1.name.lowercased() }
@@ -266,4 +271,12 @@ extension BottleVM: BottleRegistry {
     func bottle(for url: URL) -> Bottle? {
         bottles.first(where: { $0.url == url })
     }
+}
+
+/// An executable as the background scan in ``Bottle/updateInstalledPrograms()``
+/// read it.
+private struct ScannedProgram: Sendable {
+    let url: URL
+    let peFile: PEFile?
+    let steering: DXVKSteering?
 }

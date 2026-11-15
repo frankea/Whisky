@@ -508,8 +508,14 @@ Some programs that are not launchers draw their own window with Chromium (CEF or
 - A DXVK override set on `3DMark.exe` stays on the front end and no longer becomes the backend of 3DMark's benchmarks on Steam launches
 - In a bottle without Game Porting Toolkit (DXMT), DXVK and DXMT share system files, so what the front end starts also runs on DXVK until a DXMT program is next started from Whisky
 
+**Electron and NW.js apps:**
+- An Electron app (its folder holds `resources/app.asar` or `resources/app/package.json`, `icudtl.dat`, and a V8 snapshot, and the executable imports `ffmpeg.dll`) or an NW.js app (`nw.dll` and `icudtl.dat` beside it, and the executable imports `nw.dll` or `nw_elf.dll`) runs on DXVK under Recommended, the same way as a known front end. Its settings page names the file that identified it
+- An executable that imports Direct3D, DXGI, Vulkan or OpenGL itself is never matched, nor is anything under `drive_c/windows` or in a folder with more than 2,000 files. The uninstaller and helper programs beside an Electron app keep the bottle's backend
+- A Squirrel install (`Update.exe` beside the app, the app itself in an `app-x.y.z` folder) is matched through the app the stub starts
+- The entry is written when Whisky launches the app, and stays in the registry for later starts from elsewhere. Wine keys it on the file name alone, so a generic name such as `Game.exe` also reaches another `Game.exe` started outside Whisky, until Whisky launches that one and writes its own entry
+
 **Other Chromium apps:**
-- If a program's settings page finds `libcef.dll` beside it, it offers **Use DXVK** for that program only. Whisky never switches such a program by itself: games ship CEF too, for overlays and in-game browsers, and DXVK has no Direct3D 12 on macOS
+- If a program's settings page finds `libcef.dll` beside it, and the program loads `libcef.dll` itself without importing a graphics API, it offers **Use DXVK** for that program only. Whisky never switches such a program by itself: games ship CEF too, for overlays and in-game browsers, and DXVK has no Direct3D 12 on macOS
 - If a program's window stays black and it is a Chromium app, set its graphics backend to DXVK on its settings page, and please report it so it can be added to the list
 
 ---

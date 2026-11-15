@@ -342,12 +342,13 @@ struct GraphicsConfigSection: View {
 // MARK: - Chromium Programs
 
 extension GraphicsConfigSection {
-    /// The launchers and Chromium front ends among the bottle's programs, by
-    /// name, each once: the programs Recommended runs on DXVK (#372).
+    /// The launchers, Chromium front ends, and Electron and NW.js apps among
+    /// the bottle's programs, by name, each once: the programs Recommended
+    /// runs on DXVK (#372). Read from each program's scan, not its files.
     var chromiumProgramNames: [String] {
         var seen = Set<String>()
         return bottle.programs
-            .compactMap { DXVKSteering.detect(executable: $0.url)?.displayName }
+            .compactMap { program in program.dxvkSteering?.listedName(executable: program.url) }
             .filter { seen.insert($0).inserted }
     }
 

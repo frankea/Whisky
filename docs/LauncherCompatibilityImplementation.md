@@ -106,6 +106,23 @@ EA App:
 - Ahead of time: every launch in a bottle whose games run on something other than DXVK writes the entry for each installed front end whose own choice (its override, else the bottle's backend) is Recommended or DXVK (registry only, DXVK is not deployed), so a program-level Recommended routes the same on every path
 - A program with `libcef.dll` beside it that is not in the table only gets a one-click suggestion on its settings page
 
+#### ChromiumRuntimeDetector.swift
+**Purpose:** Electron and NW.js apps found by their files, steered like a table row (#372)
+
+**Rule:**
+- Electron: the folder holds `resources/app.asar` (or `resources/app/package.json`), `icudtl.dat`, and `v8_context_snapshot.bin` or `snapshot_blob.bin`, and the executable imports `ffmpeg.dll` from either import table (Electron 45 delay-loads it)
+- NW.js: the folder holds `nw.dll` and `icudtl.dat`, and the executable imports `nw.dll` or `nw_elf.dll`
+- Guard: no `d3d9`, `d3d11`, `d3d12`, `dxgi`, `vulkan-1` or `opengl32` among the normal imports. Delay imports do not veto, since Chromium delay-loads Direct3D
+- Skipped: launchers and table rows (they keep their own path), `drive_c/windows`, folders with more than 2,000 entries. A Squirrel stub is classified by the `app-x.y.z` app it starts
+- `PE/ImportTable.swift` reads the normal (data directory 1) and delay-load (data directory 13) tables apart: names only, 256-byte names, at most 1,024 descriptors, stopping at the first offset outside the file
+- Results are cached per process, keyed on the path, size and modification date of the executable and its folder's modification date
+
+**Routing:**
+- `DXVKSteering.inspect(executable:)` puts launchers and the table first; `prepareProgramLaunch` and the preflight use it. `DXVKSteering.detect(executable:)` stays name-only
+- `Program.dxvkSteering` is classified off the main actor in `updateInstalledPrograms`, so views never read a program's files
+- No entry is written ahead of time for a match: it is written when Whisky launches the app
+- The CEF suggestion uses the same parser: `libcef.dll` beside the executable, imported by it, and no graphics import
+
 #### GPUDetection.swift (180 lines)
 **Purpose:** GPU capability spoofing for launcher compatibility checks
 

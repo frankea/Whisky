@@ -144,6 +144,39 @@ public struct DLLOverrideResolver: Sendable {
         self.programCustom = programCustom
     }
 
+    /// Parses a `WINEDLLOVERRIDES` value into entries, the way Wine reads it.
+    ///
+    /// Entries are separated by `;`, and each is `dll[,dll...]=mode`: one mode
+    /// can name several DLLs. A mode is matched without case, and its words
+    /// may be spelled out (`native,builtin` is `n,b`), since Wine reads only
+    /// the first letter of each. An empty mode disables the DLLs. Names are
+    /// lowercased, as Wine compares them without case. An entry that does not
+    /// parse is skipped, so one typo does not cost the rest of the value.
+    ///
+    /// - Parameter value: A `WINEDLLOVERRIDES`-syntax string.
+    /// - Returns: One entry per DLL named, in order.
+    public static func parse(_ value: String) -> [DLLOverrideEntry] {
+        value.split(separator: ";").flatMap { clause -> [DLLOverrideEntry] in
+            let halves = clause.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
+            guard halves.count == 2, let mode = mode(String(halves[1])) else { return [] }
+            return halves[0]
+                .split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespaces).lowercased() }
+                .filter { !$0.isEmpty }
+                .map { DLLOverrideEntry(dllName: $0, mode: mode) }
+        }
+    }
+
+    /// The mode a `WINEDLLOVERRIDES` mode string names, or `nil` when it names none.
+    private static func mode(_ text: String) -> DLLOverrideMode? {
+        let words = text.lowercased().split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+        let letters = words.compactMap(\.first).filter { $0 == "n" || $0 == "b" }
+        guard letters.count == words.count else { return nil }
+        return DLLOverrideMode(rawValue: letters.map(String.init).joined(separator: ","))
+    }
+
     /// The standard DXVK DLL override preset.
     ///
     /// Applies `n,b` (native then builtin) to the four core DXVK DLLs, and

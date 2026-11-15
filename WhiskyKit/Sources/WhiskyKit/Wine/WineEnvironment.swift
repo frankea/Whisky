@@ -155,6 +155,16 @@ extension Wine {
             )
         }
 
+        // The program's own WINEDLLOVERRIDES, merged rather than replaced: the
+        // composed value used to be assigned over it, so it did nothing whenever
+        // the bottle had any override at all. Program-custom, after the program's
+        // overrides, so the DLLs it names beat every preset and the rest of the
+        // composition stands. Only the program's own value: a GameDB profile's
+        // must not outrank the user's bottle overrides.
+        if let programValue = environment["WINEDLLOVERRIDES"] {
+            dllResolver.programCustom.append(contentsOf: DLLOverrideResolver.parse(programValue))
+        }
+
         // Layer 8: featureRuntime -- diagnostic WINEDEBUG preset override
         if let preset = programSettings?.activeWineDebugPreset, preset != .normal {
             builder.set("WINEDEBUG", preset.winedebugValue, layer: .featureRuntime)

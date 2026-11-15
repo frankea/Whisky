@@ -88,7 +88,11 @@ struct RedactorSecretTests {
         (#"c:\\users\\carol\\x.ini"#, #"c:\\users\\<redacted>\\x.ini"#),
         ("prefix/drive_c/users/dave/Documents", "prefix/drive_c/users/<redacted>/Documents"),
         (#"open "C:\users\erin""#, #"open "C:\users\<redacted>""#),
-        (#"C:\users\Publicity\x"#, #"C:\users\<redacted>\x"#)
+        (#"C:\users\Publicity\x"#, #"C:\users\<redacted>\x"#),
+        (#"C:\users\alice,next"#, #"C:\users\<redacted>,next"#),
+        (#"open (C:\users\alice) ok"#, #"open (C:\users\<redacted>) ok"#),
+        (#"C:\users\bob;D:\x"#, #"C:\users\<redacted>;D:\x"#),
+        ("[drive_c/users/carol]", "[drive_c/users/<redacted>]")
     ])
     func wineProfilePaths(input: String, expected: String) {
         #expect(Redactor.redactHomePaths(input) == expected)
@@ -99,7 +103,13 @@ struct RedactorSecretTests {
         #"C:\Users\Public\Documents"#,
         "drive_c/users/Shared/Steam",
         "drive_c/users/crossover",
-        #"C:\users\"#
+        #"C:\users\"#,
+        #"(C:\users\crossover)"#,
+        #"(C:\users\Public)"#,
+        #"C:\users\Public;D:\x"#,
+        #"C:\users\crossover;C:\windows"#,
+        #"dir C:\users\Public, done"#,
+        "[drive_c/users/crossover]"
     ])
     func sharedProfilesKept(input: String) {
         #expect(Redactor.redactHomePaths(input) == input)

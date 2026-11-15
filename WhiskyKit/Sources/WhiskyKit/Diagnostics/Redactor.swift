@@ -72,10 +72,13 @@ public enum Redactor {
 
     /// Keeps the profiles that are the same on every machine readable. The name
     /// has to end there, so `Publicity` is still redacted.
-    private static let sharedProfileLookahead = #"(?!(?:crossover|public|shared)(?:[\\/\s"'<>]|$))"#
+    private static let sharedProfileLookahead = #"(?!(?:crossover|public|shared)(?:[\\/\s"'<>;,:)\]|]|$))"#
 
-    /// One path component: anything up to a separator, whitespace, quote or angle bracket.
-    private static let profileName = #"[^\\/\s"'<>]+"#
+    /// One path component: anything up to a separator, whitespace, quote, angle
+    /// bracket, or the punctuation that ends a path in a list or parentheses.
+    /// Windows does not allow `; , : ] |` in an account name, and a `)` there
+    /// almost always closes a parenthesised path.
+    private static let profileName = #"[^\\/\s"'<>;,:)\]|]+"#
 
     /// Windows-side profile paths that Wine prints in its logs.
     private static let profilePathPatterns: [String] = [

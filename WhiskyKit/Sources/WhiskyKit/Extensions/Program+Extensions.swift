@@ -149,7 +149,9 @@ public extension Program {
                 // sees the whole log, so it is the last one.
                 let outputClosed = outputCompletion.isComplete
                 if logContainsCrashSignatures(logFileURL) {
-                    triggerCrashClassification(logFileURL: logFileURL, exitCode: 1)
+                    // The program may still be running, and the only exit code
+                    // there is, the launcher's, was 0, so the diagnosis has none.
+                    triggerCrashClassification(logFileURL: logFileURL, exitCode: nil)
                     return
                 }
                 if outputClosed {
@@ -185,7 +187,7 @@ public extension Program {
     /// Classification runs on a background task (`.utility` priority) to avoid
     /// blocking the main thread. On completion, persists a ``DiagnosisHistoryEntry``
     /// and posts ``Notification.Name.crashDiagnosisAvailable``.
-    private func triggerCrashClassification(logFileURL: URL, exitCode: Int32) {
+    private func triggerCrashClassification(logFileURL: URL, exitCode: Int32?) {
         let programPath = self.url.path(percentEncoded: false)
         let programName = self.name
         let bottleName = self.bottle.settings.name

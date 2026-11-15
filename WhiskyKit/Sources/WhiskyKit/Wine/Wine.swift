@@ -1629,13 +1629,13 @@ public extension Wine {
     ///
     /// - Parameters:
     ///   - logFileURL: URL to the Wine log file to analyze.
-    ///   - exitCode: The Wine process exit code.
+    ///   - exitCode: The Wine process exit code, or `nil` when no process has reported one.
     ///   - classifier: Optional pre-configured classifier. If `nil`, creates one
     ///     with default patterns.
     /// - Returns: A ``CrashDiagnosis`` if the log was readable, or `nil` on failure.
     static func classifyLastRun(
         logFileURL: URL,
-        exitCode: Int32,
+        exitCode: Int32?,
         classifier: CrashClassifier? = nil
     ) async -> CrashDiagnosis? {
         await Task.detached(priority: .utility) {

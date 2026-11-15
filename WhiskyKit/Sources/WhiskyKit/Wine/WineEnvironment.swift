@@ -374,12 +374,14 @@ extension Wine {
             }
         }
 
-        // Shader cache override, on the variable DXVK actually reads.
+        // Shader cache override, on the variables DXVK and DXMT actually read.
         if let shaderCache = overrides.shaderCacheEnabled {
             if !shaderCache {
                 builder.set("DXVK_STATE_CACHE", "0", layer: .programUser)
+                builder.set("DXMT_SHADER_CACHE", "0", layer: .programUser)
             } else {
                 builder.remove("DXVK_STATE_CACHE", layer: .programUser)
+                builder.remove("DXMT_SHADER_CACHE", layer: .programUser)
             }
         }
 

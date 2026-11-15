@@ -1013,11 +1013,15 @@ public struct BottleSettings: Codable, Equatable {
         // toggle's off position changed nothing and its on position only hid
         // the provenance.
 
-        // Shader cache control. DXVK_STATE_CACHE is the variable DXVK actually
-        // reads; the previous pair (a compile-thread throttle and an NVIDIA GL
-        // driver variable) changed nothing on this platform.
+        // Shader cache control. DXVK_STATE_CACHE and DXMT_SHADER_CACHE are the
+        // variables DXVK and DXMT actually read (DXMT skips its cache only for
+        // "0"); the previous pair (a compile-thread throttle and an NVIDIA GL
+        // driver variable) changed nothing on this platform. Each backend
+        // ignores the other's variable, so both go out whatever the backend,
+        // and a program moved onto the other one still finds its own.
         if !shaderCacheEnabled {
             builder.set("DXVK_STATE_CACHE", "0", layer: .bottleManaged)
+            builder.set("DXMT_SHADER_CACHE", "0", layer: .bottleManaged)
         }
 
         return managedDLLOverrides

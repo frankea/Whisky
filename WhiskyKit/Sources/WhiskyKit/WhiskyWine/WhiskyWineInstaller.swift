@@ -397,6 +397,14 @@ public class WhiskyWineInstaller {
         whiskyWineInfo()?.dxmtVersion
     }
 
+    /// Whether the installed runtime's Wine applies the Enhanced Sync setting
+    /// (see ``WhiskyWineVersion/msyncCapable``). `false` when WhiskyWine is not
+    /// installed or its plist does not advertise it. Reads the plist on every
+    /// call, so a view reads it once and keeps the answer.
+    public static func runtimeImplementsEnhancedSync() -> Bool {
+        whiskyWineInfo()?.implementsEnhancedSync ?? false
+    }
+
     /// Whether `backend` can actually be selected against the currently
     /// installed runtime. Extends the pure
     /// ``GraphicsBackend/isAvailable(runtimeInfo:)`` version gate with the

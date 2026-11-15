@@ -99,14 +99,9 @@ public enum SteamLauncher {
             .first { $0.appId == appId }?.installURL
         // One scan for both uses: it runs on the main actor.
         let scan = installURL.map { SteamLibrary.scanExecutables(under: $0) }
-        let plan = LaunchResolver.plan(
-            steamAppId: appId,
-            userOverrides: scan.flatMap { userOverrides(forExecutables: $0.planExecutables, bottle: bottle) },
-            appliedConfiguration: GameConfigSnapshot.load(from: bottle.url)
-        )
+        let plan = launchPlan(appId: appId, scan: scan, bottle: bottle)
+        let request = appLaunchRequest(appId: appId, scan: scan, plan: plan)
         let steamExe = steamRoot.appending(path: "steam.exe")
-        let gameExecutables = gameExecutables(scanned: scan?.planExecutables ?? [], plan: plan)
-        let ownSettingsExecutables = scan?.ownSettingsExecutables ?? []
 
         return Task {
             try await Wine.prepareBottlePrefix(bottle: bottle)
@@ -119,20 +114,7 @@ public enum SteamLauncher {
                     hasStarted: { await !hostSteamPIDs().subtracting(running).isEmpty }
                 )
             }
-            let result = try await Wine.runProgram(
-                at: steamExe, args: ["-applaunch", String(appId)] + plan.launchArguments, bottle: bottle,
-                programOverrides: plan.overrides,
-                gameProfileEnvironment: plan.gameProfileEnvironment,
-                // The plan is the game's; steam.exe is only the vehicle. It goes
-                // into the game executables' own entries, so it reaches the game
-                // whichever process starts it, and the client keeps DXVK even
-                // when this invocation is what brings it up.
-                overridesApplyToDescendants: true,
-                descendantExecutables: gameExecutables,
-                ownSettingsExecutables: ownSettingsExecutables,
-                descendantLaunchers: plan.startsLaunchers,
-                onOutput: onOutput
-            )
+            let result = try await Wine.runProgram(at: steamExe, bottle: bottle, request: request, onOutput: onOutput)
             return result.includingOutput(of: clientRun)
         }
     }

@@ -47,6 +47,64 @@ extension Wine {
             || launcherCarriesDescendantPlan
             || (autoEnableDXVK && detectedLauncher?.requiresDXVK == true)
     }
+
+    /// Copies DXVK in when the launch needs it, then places or takes back
+    /// DXMT's trio beside the game's executables.
+    ///
+    /// DXVK is needed for the effective backend, the legacy program-level flag
+    /// (honored only without a backend override, mirroring
+    /// `applyProgramOverrides`), or launcher auto-enable. A launcher that only
+    /// carries a game's plan still runs, and its helpers keep restarting, on
+    /// DXVK: its files stay in place, and are copied after a DXMT plan's, so
+    /// the launcher keeps working when the two share a file. DXMT's
+    /// `winemetal.dll`, which DXVK does not ship, stays in `system32`.
+    ///
+    /// The game then finds DXMT's trio in its own folder, which Wine's loader
+    /// searches before `system32` (#378). Any other plan takes back the copies
+    /// Whisky placed there, so they cannot take over from that plan's layer.
+    /// Starting Steam also takes back the copies of library games whose plan
+    /// moved off DXMT since, which Play in Steam's own window would otherwise load.
+    ///
+    /// - Parameters:
+    ///   - bottle: The bottle the launch runs in.
+    ///   - effectiveBackend: The launch's backend after overrides and `.recommended` resolution.
+    ///   - programOverrides: The launch's program overrides, for the legacy DXVK flag.
+    ///   - launcherCarriesDescendantPlan: A launcher started to carry a game's plan.
+    ///   - gameExecutables: The game's executables, or the launched executable itself.
+    ///   - steamGamesBackend: When Steam is what starts, what `.recommended` resolves to for
+    ///     its library games, whose plans decide which copies stay; `nil` for anything else.
+    ///   - dxvkFolder: The DXVK payload.
+    ///   - dxmtFolder: The DXMT payload.
+    /// - Throws: An error if DXVK's files cannot be copied. The game folders never throw.
+    @MainActor
+    static func deployLauncherAndGameLayers(
+        bottle: Bottle, effectiveBackend: GraphicsBackend, programOverrides: ProgramOverrides?,
+        launcherCarriesDescendantPlan: Bool, gameExecutables: [URL], steamGamesBackend: GraphicsBackend? = nil,
+        dxvkFolder: URL = Wine.dxvkFolder, dxmtFolder: URL = Wine.dxmtFolder
+    ) throws {
+        let legacyProgramDXVK = programOverrides?.graphicsBackend == nil && programOverrides?.dxvk == true
+        let shouldEnableDXVK = deploysDXVK(
+            effectiveBackend: effectiveBackend, legacyProgramDXVK: legacyProgramDXVK,
+            launcherCarriesDescendantPlan: launcherCarriesDescendantPlan,
+            autoEnableDXVK: bottle.settings.autoEnableDXVK, detectedLauncher: bottle.settings.detectedLauncher
+        )
+        if shouldEnableDXVK {
+            try enableDXVK(bottle: bottle, from: dxvkFolder)
+        }
+
+        if let steamGamesBackend {
+            SteamLauncher.retractStaleDXMTGameFolders(
+                bottle: bottle, recommendedBackend: steamGamesBackend, payloadRoot: dxmtFolder
+            )
+        }
+
+        reconcileDXMTGameFolders(
+            DXMTGameFolderAction(
+                effectiveBackend: effectiveBackend, launcherCarriesDescendantPlan: launcherCarriesDescendantPlan
+            ),
+            executables: gameExecutables, bottleURL: bottle.url, payloadRoot: dxmtFolder
+        )
+    }
 }
 
 extension BottleSettings {

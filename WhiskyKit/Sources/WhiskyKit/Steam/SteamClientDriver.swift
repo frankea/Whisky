@@ -29,7 +29,9 @@ public protocol SteamClientDriver: AnyObject {
     ///
     /// Not bottle-scoped, so the orchestrator only uses it to short-circuit
     /// the negative case: an empty answer means nothing is running anywhere,
-    /// and the bottle's own process list is not consulted.
+    /// and the bottle's own process list is not consulted. The wait for a
+    /// client it started watches it too, and asks the bottle's own list only
+    /// once a `steam.exe` is in it.
     func hostWineImageNames() async -> Set<String>
 
     /// The bottle's process list, as `tasklist.exe` reports it.

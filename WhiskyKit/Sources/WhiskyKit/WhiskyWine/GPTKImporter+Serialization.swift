@@ -19,13 +19,21 @@
 import Foundation
 
 public extension GPTKImporter {
-    /// Held by every public entry point that writes the payload store or the
-    /// runtime's payload files: import, verify (which takes a failing store
-    /// back out), deploy, remove, and the bridge and interposer installs.
+    /// Held by everything that writes the payload store or the runtime's
+    /// payload files: import, verify (which takes a failing store back out),
+    /// deploy, remove, and the bridge and interposer installs.
     ///
     /// The launch-time update runs on a background task while Settings can
     /// verify, deploy, import or remove at the same moment, and two of those
     /// copying into the same runtime folders at once leave a half-written
     /// payload. Recursive, because some entry points call others.
     internal static let mutationLock = NSRecursiveLock()
+
+    /// Testable seam for ``removeStore()``.
+    internal static func removeStore(at store: URL) throws {
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
+        guard FileManager.default.fileExists(atPath: store.path(percentEncoded: false)) else { return }
+        try FileManager.default.removeItem(at: store)
+    }
 }

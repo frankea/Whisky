@@ -198,13 +198,13 @@ extension GPTKImporter {
     /// backup, which would also put the store's bridge in front of another
     /// build's dylib.
     public static func ensureMetalFXBridgeInstalled() {
-        mutationLock.lock()
-        defer { mutationLock.unlock() }
         ensureMetalFXBridgeInstalled(inLibraryFolder: WhiskyWineInstaller.libraryFolder, usingStore: storeFolder)
     }
 
     /// Testable seam for ``ensureMetalFXBridgeInstalled()``.
     static func ensureMetalFXBridgeInstalled(inLibraryFolder folder: URL, usingStore store: URL) {
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
         guard isDeployed(inLibraryFolder: folder),
               isStorePayloadDeployed(inLibraryFolder: folder, usingStore: store)
         else {

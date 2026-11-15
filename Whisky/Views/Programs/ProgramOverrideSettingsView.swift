@@ -52,6 +52,9 @@ struct ProgramOverrideSettingsView: View {
     /// bottle's setting only mirrors the registry and misses changes made
     /// outside its Display section, such as in winecfg.
     @State private var bottleVirtualDesktopInRegistry: (enabled: Bool, resolution: String?)?
+    /// Read from the runtime's version plist when the sync group appears, not
+    /// on every redraw, and assumed until then.
+    @State private var runtimeImplementsEnhancedSync = true
 
     var body: some View {
         dependencyBadgeSection
@@ -373,9 +376,17 @@ struct ProgramOverrideSettingsView: View {
                     Text("config.enhancedSync.esync").tag(EnhancedSync.esync)
                     Text("config.enhancedSync.msync").tag(EnhancedSync.msync)
                 }
+                if !runtimeImplementsEnhancedSync {
+                    Text("config.enhancedSync.runtimeUnsupported")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             } else {
                 inheritedSummary(syncDescription(bottle.settings.enhancedSync))
             }
+        }
+        .task {
+            runtimeImplementsEnhancedSync = WhiskyWineInstaller.runtimeImplementsEnhancedSync()
         }
     }
 

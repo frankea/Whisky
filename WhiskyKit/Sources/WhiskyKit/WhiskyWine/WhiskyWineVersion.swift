@@ -62,12 +62,42 @@ public struct WhiskyWineVersion: Codable {
     /// advertises `true` here.
     public var gptkCapable: Bool?
 
+    /// Whether this runtime's Wine implements msync and esync.
+    ///
+    /// Wine only takes either path when its own `ntdll.so` and `wineserver`
+    /// read `WINEMSYNC` and `WINEESYNC`. In Wine Libraries 3.1.1 (upstream
+    /// Wine 11.0) neither name appears in either binary, so Wine ignores the
+    /// Enhanced Sync setting. Whisky still sets the variables, because
+    /// D3DMetal checks `WINEESYNC` itself (the enhanced sync block of
+    /// `BottleSettings.populateBottleManagedLayer`).
+    ///
+    /// A runtime whose Wine carries the msync patches advertises `true` here.
+    /// No published plist sets it yet, so ``implementsEnhancedSync`` decides
+    /// an absent key by lineage. To check a build, run `strings` on its
+    /// `ntdll.so` and `wineserver` and look for `WINEMSYNC` and `WINEESYNC`.
+    public var msyncCapable: Bool?
+
+    /// Whether the Enhanced Sync setting changes how this runtime's Wine
+    /// synchronizes threads, rather than only how D3DMetal behaves.
+    ///
+    /// An explicit ``msyncCapable`` wins. Without it, the runtime counts as
+    /// capable when it is ``gptkCapable``: only the CrossOver-based v4
+    /// engines set that key, and they implement msync and esync, while the
+    /// stock 3.x runtimes set neither key and implement neither. The v4
+    /// betas installed by hand carry plists written before `msyncCapable`
+    /// existed, so this keeps them from being told their engine ignores the
+    /// setting.
+    public var implementsEnhancedSync: Bool {
+        msyncCapable ?? (gptkCapable == true)
+    }
+
     enum CodingKeys: String, CodingKey {
         case version
         case dxvkVersion
         case dxmtVersion
         case sha256
         case gptkCapable
+        case msyncCapable
     }
 
     public init(
@@ -75,13 +105,15 @@ public struct WhiskyWineVersion: Codable {
         dxvkVersion: String? = nil,
         dxmtVersion: String? = nil,
         sha256: String? = nil,
-        gptkCapable: Bool? = nil
+        gptkCapable: Bool? = nil,
+        msyncCapable: Bool? = nil
     ) {
         self.version = version
         self.dxvkVersion = Self.normalized(dxvkVersion)
         self.dxmtVersion = Self.normalized(dxmtVersion)
         self.sha256 = Self.normalizedDigest(sha256)
         self.gptkCapable = gptkCapable
+        self.msyncCapable = msyncCapable
     }
 
     public init(from decoder: Decoder) throws {
@@ -95,6 +127,7 @@ public struct WhiskyWineVersion: Codable {
         dxmtVersion = try Self.normalized(container.decodeIfPresent(String.self, forKey: .dxmtVersion))
         sha256 = try Self.normalizedDigest(container.decodeIfPresent(String.self, forKey: .sha256))
         gptkCapable = try container.decodeIfPresent(Bool.self, forKey: .gptkCapable)
+        msyncCapable = try container.decodeIfPresent(Bool.self, forKey: .msyncCapable)
     }
 
     /// Collapses an empty string to `nil` so "absent" and "blank" map to the
@@ -133,6 +166,7 @@ public struct WhiskyWineVersion: Codable {
         try container.encodeIfPresent(dxmtVersion, forKey: .dxmtVersion)
         try container.encodeIfPresent(sha256, forKey: .sha256)
         try container.encodeIfPresent(gptkCapable, forKey: .gptkCapable)
+        try container.encodeIfPresent(msyncCapable, forKey: .msyncCapable)
     }
 
     private enum VersionKeys: String, CodingKey {

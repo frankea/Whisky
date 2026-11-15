@@ -100,7 +100,8 @@ final class StaleD3D12OverrideTests {
         try await prepareGameLaunch(bottle, recorder: recorder)
 
         // Written as scopes, so the document deletes each key before writing it.
-        #expect(recorder.imports.isEmpty)
+        // The only import is the Korean font fallback the hive has no aliases for.
+        #expect(!recorder.imports.contains { $0.contains("DllOverrides") })
         for game in ["RDR2.exe", "PlayRDR2.exe"] {
             let entry = recorder.overrides(for: .program(game))
             #expect(entry != nil, "\(game) gets its entry rewritten")

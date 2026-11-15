@@ -34112,6 +34112,22 @@
         }
       }
     },
+    "config.enhancedSync.description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How Wine threads wait for each other. MSync and ESync can lower CPU overhead in some games, but only on a Wine runtime built with them. On macOS 15.4 and later, None turns on ESync as well, for stability."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How Wine threads wait for each other. MSync and ESync can lower CPU overhead in some games, but only on a Wine runtime built with them. On macOS 15.4 and later, None turns on ESync as well, for stability."
+          }
+        }
+      }
+    },
     "config.enhancedSync.esync" : {
       "localizations" : {
         "ar" : {
@@ -34256,154 +34272,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ESync"
-          }
-        }
-      }
-    },
-    "config.enhancedSync.info" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مزامنة داخل العملية لخيوط Wine. MSync هي الأسرع على macOS، وESync بديل احتياطي، وبلا هي الأكثر توافقًا."
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Synchronizace vláken Wine v procesu. MSync je na macOS nejrychlejší, ESync je záloha, „Žádná“ je nejkompatibilnější."
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Synkronisering af Wine-tråde. MSync er hurtigst på macOS, ESync er reserveløsningen, og Ingen er mest kompatibel."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Synchronisierung von Wine-Threads. MSync ist am schnellsten, ESync die Ausweichoption, „Keine“ am kompatibelsten."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In-process synchronization for Wine threads. MSync is fastest on macOS; ESync is a fallback; None is most compatible."
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In-process synchronisation for Wine threads. MSync is fastest on macOS; ESync is a fallback; None is most compatible."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sincronización interna de hilos de Wine. MSync: la más rápida en macOS; ESync: alternativa; Ninguna: la más compatible."
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wine-säikeiden sisäinen synkronointi. MSync on nopein macOS:ssä, ESync varavaihtoehto, Ei mitään yhteensopivin."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Synchronisation interne des threads Wine. MSync : le plus rapide sur macOS ; ESync : repli ; Aucun : le plus compatible."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sincronizzazione interna dei thread Wine. MSync: più veloce su macOS; ESync: alternativa; Nessuno: più compatibile."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wine のスレッド同期をプロセス内で行います。macOS では MSync が最速、ESync は代替手段、なしが最も互換性に優れます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wine 스레드를 프로세스 내에서 동기화합니다. macOS에서는 MSync가 가장 빠르고, ESync는 대체 수단이며, 없음이 가장 호환성이 좋습니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Synchronisatie van Wine-threads. MSync is het snelst op macOS, ESync is de terugvaloptie en Geen het meest compatibel."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Synchronizacja wątków Wine w procesie. MSync jest najszybszy na macOS, ESync to rezerwa, „Brak” jest najzgodniejszy."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sincronização interna das threads do Wine. MSync: mais rápida no macOS; ESync: alternativa; Nenhum: mais compatível."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sincronização interna das threads do Wine. MSync: mais rápida no macOS; ESync: alternativa; Nenhum: mais compatível."
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sincronizare internă a firelor Wine. MSync: cea mai rapidă pe macOS; ESync: alternativă; Niciunul: cel mai compatibil."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Синхронизация потоков Wine в процессе. MSync быстрее на macOS, ESync — запасной вариант, «Нет» — самый совместимый."
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Synkronisering av Wine-trådar. MSync är snabbast på macOS, ESync är reservalternativet och Ingen är mest kompatibel."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wine iş parçacıkları için işlem içi eşitleme. macOS'te MSync en hızlısı, ESync yedektir; Yok en uyumlusudur."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Синхронізація потоків Wine у процесі. MSync найшвидша на macOS, ESync — запасний варіант, «Немає» — найсумісніший."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đồng bộ trong tiến trình cho luồng Wine. MSync nhanh nhất trên macOS, ESync dự phòng, Không là tương thích nhất."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "为 Wine 线程提供进程内同步。在 macOS 上 MSync 最快，ESync 为备选，“无”兼容性最好。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "為 Wine 執行緒提供程序內同步。在 macOS 上 MSync 最快，ESync 為備援，「無」相容性最佳。"
           }
         }
       }
@@ -34700,6 +34568,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無"
+          }
+        }
+      }
+    },
+    "config.enhancedSync.runtimeUnsupported" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The installed Wine runtime does not support MSync or ESync, so this setting can only affect D3DMetal."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The installed Wine runtime does not support MSync or ESync, so this setting can only affect D3DMetal."
           }
         }
       }

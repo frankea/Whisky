@@ -235,6 +235,14 @@ public extension Wine {
             scopes.add(["steam.exe"], own)
         }
 
+        // Chromium front ends (3DMark's) get the launcher set: among what a Steam
+        // launch starts, and wherever one is installed, since Steam's own Play
+        // button or a shortcut starts it without Whisky (#372).
+        addFrontEndScopes(
+            ownSettingsExecutables + frontEndExecutables(bottleURL: bottle.url, steamRoot: steamRoot),
+            to: &scopes, bottle: bottle, recommendedBackend: recommendedBackend, launcherSet: launcherSet
+        )
+
         // The game's plan, in the entries of the executables it runs as. After
         // Steam's own, which a game executable never displaces.
         if let gamePlan {
@@ -349,15 +357,6 @@ public extension Wine {
             let folder = driveC.appending(path: programFiles).appending(path: "Rockstar Games")
             return FileManager.default.fileExists(atPath: folder.path(percentEncoded: false))
         }
-    }
-
-    /// The launcher helpers that must share `url`'s DLL overrides.
-    ///
-    /// Detected from the executable, not the bottle's recorded launcher: they
-    /// need the entry because of how wine resolves `AppDefaults`, not because
-    /// the user enabled launcher fixes.
-    static func helperExecutables(for url: URL) -> [String] {
-        LauncherType.detect(from: url)?.helperExecutables ?? []
     }
 
     /// Adds `nvapi64=`, `nvapi=`, and `nvngx=` to an override string, keeping whatever else it holds.

@@ -59925,6 +59925,54 @@
         }
       }
     },
+    "program.overrides.graphics.alreadyDXVK" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended already runs this program on DXVK."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended already runs this program on DXVK."
+          }
+        }
+      }
+    },
+    "program.overrides.graphics.cefSuggestion" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This program ships Chromium (libcef.dll beside it). If its window stays black, use DXVK for it."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This program ships Chromium (libcef.dll beside it). If its window stays black, use DXVK for it."
+          }
+        }
+      }
+    },
+    "program.overrides.graphics.chromiumHint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This program draws its window with Chromium. If the window stays black, choose DXVK or Recommended."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This program draws its window with Chromium. If the window stays black, choose DXVK or Recommended."
+          }
+        }
+      }
+    },
     "program.overrides.graphics.summary %@ %@ %@" : {
       "localizations" : {
         "en" : {
@@ -59937,6 +59985,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@, DXVK Async %2$@, HUD %3$@"
+          }
+        }
+      }
+    },
+    "program.overrides.graphics.useDXVK" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use DXVK"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use DXVK"
+          }
+        }
+      }
+    },
+    "program.overrides.graphics.useRecommended" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use Recommended"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use Recommended"
           }
         }
       }
@@ -60215,6 +60295,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dismiss"
+          }
+        }
+      }
+    },
+    "config.graphics.chromiumOnExplicitBackend %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chromium draws the windows of %@. They may stay black on this backend; Recommended draws them with DXVK."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chromium draws the windows of %@. They may stay black on this backend; Recommended draws them with DXVK."
           }
         }
       }
@@ -102623,6 +102719,73 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "建議"
+          }
+        }
+      }
+    },
+    "config.graphics.backend.recommended.dxmtCaveat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DXVK and DXMT share system files, so what this program starts by itself may also run on DXVK until a DXMT program is next started from Whisky."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DXVK and DXMT share system files, so what this program starts by itself may also run on DXVK until a DXMT program is next started from Whisky."
+          }
+        }
+      }
+    },
+    "config.graphics.backend.recommended.exceptions %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In this bottle, Recommended runs %1$@ on DXVK, because Chromium draws those windows. Games keep %2$@."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In this bottle, Recommended runs %1$@ on DXVK, because Chromium draws those windows. Games keep %2$@."
+          }
+        }
+      }
+    },
+    "config.graphics.backend.recommended.frontEnd %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended uses DXVK for this program. Its window is drawn by Chromium, which stays black on D3DMetal and DXMT. Programs it starts keep %@."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended uses DXVK for this program. Its window is drawn by Chromium, which stays black on D3DMetal and DXMT. Programs it starts keep %@."
+          }
+        }
+      }
+    },
+    "config.graphics.backend.recommended.launcher %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended uses DXVK for launchers. Their windows are drawn by Chromium, which stays black on D3DMetal and DXMT. Games they start keep %@."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended uses DXVK for launchers. Their windows are drawn by Chromium, which stays black on D3DMetal and DXMT. Games they start keep %@."
           }
         }
       }

@@ -91,6 +91,21 @@ EA App:
 - CEF_DISABLE_SANDBOX=1 (launcher UI)
 ```
 
+#### ChromiumFrontEnd.swift
+**Purpose:** Curated table of programs whose own window is drawn by Chromium but that are not launchers (#372)
+
+**Key Features:**
+- One row per front end: executable names, helper executables, install locations, Steam App ID, and the issue its layout was verified in (v1: `3DMark.exe`, App 223850)
+- Matched by file name only, without case, after `LauncherType.detect(from:)`, so every launcher keeps its own path
+- Tests reject generic names (`AppDefaults` is keyed on the file name alone) and names shared with a launcher or a GameDB game
+- `DXVKSteering` (launcher or front end), `RecommendedReason` and `BackendResolution` in `GraphicsBackendResolver` say why Recommended picked a backend; `resolve(for:)` stays as a wrapper
+
+**Routing:**
+- Direct launch: `prepareProgramLaunch` steers Recommended to DXVK and pins it into the program's own `AppDefaults` entry; the bottle scope and the MetalFX placeholder follow the games' backend
+- Steam `-applaunch`: front ends among the scanned executables leave the game's plan (as #376's Chromium hosts do) and get the launcher set, unless their own override picks another backend
+- Ahead of time: every launch in a bottle whose games run on something other than DXVK writes the entry for each installed front end whose own choice (its override, else the bottle's backend) is Recommended or DXVK (registry only, DXVK is not deployed), so a program-level Recommended routes the same on every path
+- A program with `libcef.dll` beside it that is not in the table only gets a one-click suggestion on its settings page
+
 #### GPUDetection.swift (180 lines)
 **Purpose:** GPU capability spoofing for launcher compatibility checks
 

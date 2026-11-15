@@ -76,6 +76,11 @@ public struct PreflightData: Codable, Sendable {
     /// overrides. `nil` in snapshots taken before this was recorded.
     public let bottleGraphicsBackend: String?
 
+    /// Why Recommended picked ``graphicsBackend`` (a Chromium window steered to
+    /// DXVK, say), when the launch is on Recommended. `nil` for an explicit
+    /// choice and in snapshots taken before this was recorded.
+    public let graphicsBackendReason: String?
+
     /// When this preflight data was collected.
     public let collectedAt: Date
 
@@ -95,6 +100,7 @@ public struct PreflightData: Codable, Sendable {
         audioSampleRate: Double? = nil,
         graphicsBackend: String,
         bottleGraphicsBackend: String? = nil,
+        graphicsBackendReason: String? = nil,
         collectedAt: Date = Date()
     ) {
         self.bottleURL = bottleURL
@@ -112,6 +118,7 @@ public struct PreflightData: Codable, Sendable {
         self.audioSampleRate = audioSampleRate
         self.graphicsBackend = graphicsBackend
         self.bottleGraphicsBackend = bottleGraphicsBackend
+        self.graphicsBackendReason = graphicsBackendReason
         self.collectedAt = collectedAt
     }
 }

@@ -99,16 +99,19 @@ final class SteamExecutableScanCallerTests {
     }
 
     /// A bottle with Steam and 3DMark, whose front end can carry the user's settings.
-    private func make3DMarkBottle(tuning frontEnd: ProgramOverrides?) throws -> ThreeDMarkBottle {
+    /// `frontEndName` stands in for a Chromium host outside the front-end table.
+    private func make3DMarkBottle(
+        tuning frontEnd: ProgramOverrides?, frontEndName: String = "3DMark.exe"
+    ) throws -> ThreeDMarkBottle {
         let bottleURL = tempRoot.appending(path: "Bottle")
         let install = bottleURL.appending(path: "drive_c/Games/3DMark")
         try touch(
             ["windows/system32/.keep", "Program Files (x86)/Steam/steam.exe"], in: bottleURL.appending(path: "drive_c")
         )
-        try touch(["bin/x64/3DMark.exe", "bin/x64/libcef.dll", "bin/x64/workloads/Workload.exe"], in: install)
+        try touch(["bin/x64/\(frontEndName)", "bin/x64/libcef.dll", "bin/x64/workloads/Workload.exe"], in: install)
         let bottle = Bottle(bottleUrl: bottleURL)
         if let frontEnd {
-            Program(url: install.appending(path: "bin/x64/3DMark.exe"), bottle: bottle, peFile: nil)
+            Program(url: install.appending(path: "bin/x64/\(frontEndName)"), bottle: bottle, peFile: nil)
                 .settings.overrides = frontEnd
         }
         return ThreeDMarkBottle(
@@ -148,9 +151,9 @@ final class SteamExecutableScanCallerTests {
         #expect(recorder.overrides(for: .program("Workload.exe"))?["d3d11"] != "n,b")
     }
 
-    @Test("A Chromium front end nobody tuned gets no entry from a Steam launch")
+    @Test("A Chromium host outside the front-end table nobody tuned gets no entry from a Steam launch")
     func untunedChromiumHostIsLeftAlone() async throws {
-        let fixture = try make3DMarkBottle(tuning: nil)
+        let fixture = try make3DMarkBottle(tuning: nil, frontEndName: "Benchmark.exe")
         let (bottle, install, steamExe) = (fixture.bottle, fixture.install, fixture.steamExe)
         let recorder = ScopeRecorder()
 
@@ -162,7 +165,7 @@ final class SteamExecutableScanCallerTests {
             overrideWriter: recorder.writer, importer: recorder.importer
         )
 
-        #expect(!recorder.programScopes.contains("3DMark.exe"))
+        #expect(!recorder.programScopes.contains("Benchmark.exe"))
         #expect(recorder.programScopes.contains("Workload.exe"))
     }
 

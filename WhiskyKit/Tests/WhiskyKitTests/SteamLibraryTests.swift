@@ -213,22 +213,24 @@ struct SteamLibraryTests {
         #expect(!games.contains { $0.appId == 228_980 })
     }
 
-    @Test("Collects executable names at root and one level deep")
+    @Test("Collects executable names from the root down to the scan depth")
     func collectsExecutableNames() throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: tempDir) }
         let bin = tempDir.appending(path: "bin")
-        let deep = tempDir.appending(path: "bin").appending(path: "too-deep")
-        try FileManager.default.createDirectory(at: deep, withIntermediateDirectories: true)
+        let deepest = bin.appending(path: "a/b/c")
+        let tooDeep = deepest.appending(path: "d")
+        try FileManager.default.createDirectory(at: tooDeep, withIntermediateDirectories: true)
 
         try Data().write(to: tempDir.appending(path: "Game.exe"))
         try Data().write(to: tempDir.appending(path: "readme.txt"))
         try Data().write(to: bin.appending(path: "Helper.EXE"))
-        try Data().write(to: deep.appending(path: "ignored.exe"))
+        try Data().write(to: deepest.appending(path: "Deepest.exe"))
+        try Data().write(to: tooDeep.appending(path: "ignored.exe"))
 
         let names = SteamLibrary.executableNames(under: tempDir)
 
-        #expect(names == ["game.exe", "helper.exe"])
+        #expect(names == ["game.exe", "helper.exe", "deepest.exe"])
     }
 
     @Test("Maps Windows paths through the prefix")
@@ -293,6 +295,21 @@ struct SteamLibraryTests {
         ]
 
         #expect(SteamLibrary.preferredOverrides(among: candidates) == shallow)
+    }
+
+    @Test("Preferred overrides between two same-named executables at one depth go by path, in any order")
+    func preferredOverridesTieBreakByPath() {
+        var x64 = ProgramOverrides()
+        x64.dxvk = true
+        var x86 = ProgramOverrides()
+        x86.shaderCacheEnabled = false
+        let candidates = [
+            ProgramOverrideCandidate(url: URL(fileURLWithPath: "/g/bin/x86/Game.exe"), overrides: x86),
+            ProgramOverrideCandidate(url: URL(fileURLWithPath: "/g/bin/x64/Game.exe"), overrides: x64)
+        ]
+
+        #expect(SteamLibrary.preferredOverrides(among: candidates) == x64)
+        #expect(SteamLibrary.preferredOverrides(among: candidates.reversed()) == x64)
     }
 
     @Test("Preferred overrides are nil when no executable carries any")

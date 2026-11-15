@@ -95,13 +95,15 @@ public enum SteamLauncher {
 
         let installURL = installURL ?? SteamLibrary.enumerate(bottleURL: bottle.url)
             .first { $0.appId == appId }?.installURL
+        // One scan for both uses: it runs on the main actor.
+        let scanned = installURL.map { SteamLibrary.executableURLs(under: $0) }
         let plan = LaunchResolver.plan(
             steamAppId: appId,
-            userOverrides: installURL.flatMap { userOverrides(forInstallURL: $0, bottle: bottle) },
+            userOverrides: scanned.flatMap { userOverrides(forExecutables: $0, bottle: bottle) },
             appliedConfiguration: GameConfigSnapshot.load(from: bottle.url)
         )
         let steamExe = steamRoot.appending(path: "steam.exe")
-        let gameExecutables = gameExecutables(installURL: installURL, plan: plan)
+        let gameExecutables = gameExecutables(scanned: scanned ?? [], plan: plan)
 
         return Task {
             try await Wine.prepareBottlePrefix(bottle: bottle)
@@ -151,9 +153,14 @@ public enum SteamLauncher {
     /// The executable names a game launch scopes the game's plan to: what the
     /// install folder holds, then what the GameDB lists, each name once.
     static func gameExecutables(installURL: URL?, plan: LaunchPlan) -> [String] {
-        let found = installURL.map { SteamLibrary.executableURLs(under: $0).map(\.lastPathComponent) } ?? []
+        gameExecutables(scanned: installURL.map { SteamLibrary.executableURLs(under: $0) } ?? [], plan: plan)
+    }
+
+    /// ``gameExecutables(installURL:plan:)`` from an install folder's scan.
+    static func gameExecutables(scanned: [URL], plan: LaunchPlan) -> [String] {
         var seen = Set<String>()
-        return (found + plan.gameExecutables).filter { seen.insert($0.lowercased()).inserted }
+        let names = scanned.map(\.lastPathComponent) + plan.gameExecutables
+        return names.filter { seen.insert($0.lowercased()).inserted }
     }
 
     /// Starts the client when it isn't running, then waits until it is.
@@ -245,13 +252,19 @@ public enum SteamLauncher {
     /// plists changes nothing for the winner.
     @MainActor
     static func userOverrides(forInstallURL installURL: URL, bottle: Bottle) -> ProgramOverrides? {
+        userOverrides(forExecutables: SteamLibrary.executableURLs(under: installURL), bottle: bottle)
+    }
+
+    /// ``userOverrides(forInstallURL:bottle:)`` from an install folder's scan.
+    @MainActor
+    static func userOverrides(forExecutables executables: [URL], bottle: Bottle) -> ProgramOverrides? {
         let scanned = Dictionary(
             bottle.programs.compactMap { program in
                 program.settings.overrides.map { (program.url.standardizedFileURL, $0) }
             },
             uniquingKeysWith: { first, _ in first }
         )
-        let candidates = SteamLibrary.executableURLs(under: installURL).map { url in
+        let candidates = executables.map { url in
             // Falls back to a plist read for executables the bottle scan has
             // not reached, so Play works before the Programs tab is opened.
             let overrides = scanned[url.standardizedFileURL]

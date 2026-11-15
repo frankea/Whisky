@@ -177,15 +177,12 @@ struct SteamClientOrchestratorLaunchTests {
         driver.onStartClient = {
             let listsAtStart = driver.listCalls
             driver.hostOverride = ["steam.exe"]
-            Task { @MainActor in
-                // A second read shows the wait is retrying; then the client goes.
-                let giveUp = Date(timeIntervalSinceNow: 3)
-                while driver.listCalls < listsAtStart + 2, Date() < giveUp {
-                    try? await Task.sleep(for: .milliseconds(1))
-                }
-                guard driver.listCalls >= listsAtStart + 2 else { return }
+            // A second read shows the wait is retrying; the client goes during
+            // that read, so the result doesn't depend on how fast the runner is.
+            driver.onProcessList = { call in
+                guard call == listsAtStart + 2 else { return }
                 driver.hostOverride = ["services.exe"]
-                listsAtExit = driver.listCalls
+                listsAtExit = call
             }
         }
 

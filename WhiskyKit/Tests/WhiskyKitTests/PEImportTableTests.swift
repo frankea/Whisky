@@ -82,6 +82,22 @@ final class PEImportTableTests {
         #expect(imports.delayImports.isEmpty)
     }
 
+    @Test("Directories past the header's count are not read, even when the slots hold tables")
+    func directoriesPastTheCount() throws {
+        var fixture = PEImportFixture(
+            normalImports: ["ffmpeg.dll"], delayImports: ["d3d11.dll"], numberOfRvaAndSizes: 0
+        )
+        fixture.directoriesPastCount = true
+        let none = try #require(try table(fixture))
+        #expect(none.allImports.isEmpty)
+
+        // The import directory is index 1, the delay-load directory 13.
+        fixture.numberOfRvaAndSizes = 2
+        let normalOnly = try #require(try table(fixture))
+        #expect(normalOnly.normalImports == ["ffmpeg.dll"])
+        #expect(normalOnly.delayImports.isEmpty)
+    }
+
     @Test("A directory cut short by the end of the file keeps what was read")
     func truncatedDirectory() throws {
         let fixture = PEImportFixture(normalImports: ["kernel32.dll", "user32.dll", "ffmpeg.dll"])
@@ -95,6 +111,14 @@ final class PEImportTableTests {
     @Test("A name outside the file is skipped, and the rest are read")
     func namePastEndOfFile() throws {
         let fixture = PEImportFixture(normalImports: ["kernel32.dll"], danglingNormalName: true)
+        let imports = try #require(try table(fixture))
+        #expect(imports.normalImports == ["kernel32.dll"])
+    }
+
+    @Test("A name in the section's zero-filled tail is skipped, though the file goes on past the section")
+    func nameInZeroFilledTail() throws {
+        var fixture = PEImportFixture(normalImports: ["kernel32.dll"], danglingNormalName: true)
+        fixture.bytesBehindDanglingName = true
         let imports = try #require(try table(fixture))
         #expect(imports.normalImports == ["kernel32.dll"])
     }

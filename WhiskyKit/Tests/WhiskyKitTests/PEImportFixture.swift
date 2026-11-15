@@ -35,6 +35,13 @@ struct PEImportFixture {
     /// Adds a first normal descriptor whose name lies in the section's
     /// zero-filled tail, outside the file.
     var danglingNormalName = false
+    /// Continues the file past the section with `ghost.dll` where the
+    /// dangling name would land if the tail were read from the file, so only
+    /// the section's raw size keeps it out.
+    var bytesBehindDanglingName = false
+    /// Writes all 16 data directories whatever ``numberOfRvaAndSizes`` says,
+    /// so only the count keeps the ones past it out.
+    var directoriesPastCount = false
 
     static let sectionRVA: UInt32 = 0x1000
     static let sectionOffset = 0x400
@@ -57,9 +64,10 @@ struct PEImportFixture {
         let normalRVA = Self.sectionRVA + UInt32(section.count)
         let rawSizeEstimate = section.count + (normalImports.count + 2) * Self.normalDescriptorSize
             + (delayImports.count + 1) * Self.delayDescriptorSize
+        let danglingDelta = rawSizeEstimate + 0x800
         if danglingNormalName {
             // Past the raw data, inside the virtual size.
-            section.append(normalDescriptor(nameRVA: Self.sectionRVA + UInt32(rawSizeEstimate) + 0x800))
+            section.append(normalDescriptor(nameRVA: Self.sectionRVA + UInt32(danglingDelta)))
         }
         for name in normalImports {
             section.append(normalDescriptor(nameRVA: Self.sectionRVA + UInt32(names.offsets[name] ?? 0)))
@@ -91,6 +99,11 @@ struct PEImportFixture {
         image.append(sectionHeader(rawSize: rawSize))
         image.append(Data(count: Self.sectionOffset - image.count))
         image.append(section)
+        if bytesBehindDanglingName {
+            image.append(Data(count: Self.sectionOffset + danglingDelta - image.count))
+            image.append(contentsOf: Array("ghost.dll".utf8) + [0])
+            image.append(Data(count: 0x200))
+        }
         return image
     }
 
@@ -166,7 +179,8 @@ struct PEImportFixture {
         data.replaceLE(UInt16(2), at: 68) // Subsystem: GUI
         let countOffset = pe32Plus ? 108 : 92
         data.replaceLE(numberOfRvaAndSizes, at: countOffset)
-        for (index, directory) in directories.enumerated() where index < Int(numberOfRvaAndSizes) {
+        for (index, directory) in directories.enumerated()
+            where directoriesPastCount || index < Int(numberOfRvaAndSizes) {
             data.replaceLE(directory.0, at: countOffset + 4 + index * 8)
             data.replaceLE(directory.1, at: countOffset + 8 + index * 8)
         }

@@ -270,10 +270,15 @@ public extension Wine {
             type: .dword
         )
         else { return nil }
+        return dpiResolution(fromRegistryData: output)
+    }
 
-        let noPrefix = output.replacingOccurrences(of: "0x", with: "")
-        let int = Int(noPrefix, radix: 16)
-        guard let int else { return nil }
+    /// Parses a `LogPixels` DWORD such as `0x90`. A stored 0 counts as unset:
+    /// Wine falls back to 96 DPI for it, and older versions of the config view
+    /// wrote 0 into bottles whose key was missing.
+    static func dpiResolution(fromRegistryData data: String) -> Int? {
+        let noPrefix = data.replacingOccurrences(of: "0x", with: "")
+        guard let int = Int(noPrefix, radix: 16), int > 0 else { return nil }
         return int
     }
 

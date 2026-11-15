@@ -366,8 +366,9 @@ extension ConfigView {
         Task(priority: .userInitiated) {
             do {
                 // Wine.dpiResolution returns nil if the registry key doesn't exist (expected for
-                // unedited DPI), where Wine uses its default of 96. The key stays absent until the
-                // user picks a value. It throws only on actual Wine/registry errors.
+                // unedited DPI) or holds the 0 that older versions wrote here; Wine uses its default
+                // of 96 for both. Nothing is written until the user picks a value. It throws only on
+                // actual Wine/registry errors.
                 dpiConfig = try await Wine.dpiResolution(bottle: bottle) ?? 96
                 dpiConfigLoadingState = .success
             } catch {

@@ -89,4 +89,17 @@ final class RegistryQueryParsingTests: XCTestCase {
         )
         XCTAssertEqual(value, "data")
     }
+
+    func testDpiResolutionParsesTheStoredValue() {
+        XCTAssertEqual(Wine.dpiResolution(fromRegistryData: "0x90"), 144)
+        XCTAssertEqual(Wine.dpiResolution(fromRegistryData: "0x60"), 96)
+    }
+
+    func testStoredZeroDpiCountsAsUnset() {
+        // Older config views wrote LogPixels=0 into bottles that had no key, and
+        // Wine falls back to 96 for it, so it must not show up as 0 DPI.
+        XCTAssertNil(Wine.dpiResolution(fromRegistryData: "0x0"))
+        XCTAssertNil(Wine.dpiResolution(fromRegistryData: "0x00000000"))
+        XCTAssertNil(Wine.dpiResolution(fromRegistryData: "garbage"))
+    }
 }

@@ -35,8 +35,8 @@ struct BackendEnvironmentTests {
             builder: &builder, resolvedBackend: .d3dMetal, builtinD3D12IsD3DMetal: false
         )
         Wine.applyProgramOverrides(
-            overrides, recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: false,
-            builder: &builder, dllResolver: &dllResolver
+            overrides, dxvkAsync: settings.dxvkAsync, recommendedBackend: .d3dMetal,
+            builtinD3D12IsD3DMetal: false, builder: &builder, dllResolver: &dllResolver
         )
         return builder.resolve().environment
     }
@@ -134,5 +134,66 @@ struct BackendEnvironmentTests {
         #expect(named(.dxvk, trace: true) == nil)
         #expect(named(.d3dMetal, trace: true) == nil)
         #expect(named(.dxmt, trace: true, env: ["DXMT_CAPTURE_EXECUTABLE": "Launcher"]) == "Launcher")
+    }
+
+    // MARK: - Shader compilation under DXVK
+
+    private static let concurrentCompile = "MVK_CONFIG_SHOULD_MAXIMIZE_CONCURRENT_COMPILATION"
+
+    @Test("A DXVK bottle compiles Metal shaders concurrently, and no other backend sets it")
+    func dxvkBottleCompilesConcurrently() {
+        var settings = BottleSettings()
+        settings.graphicsBackend = .dxvk
+        #expect(environment(settings)[Self.concurrentCompile] == "1")
+
+        for backend in [GraphicsBackend.d3dMetal, .dxmt, .wined3d] {
+            settings.graphicsBackend = backend
+            #expect(environment(settings)[Self.concurrentCompile] == nil, "\(backend)")
+        }
+    }
+
+    @Test(
+        "A program moved onto DXVK gets the bottle's DXVK compile settings",
+        arguments: [(true, false), (false, false), (true, true)]
+    )
+    func programMovedOntoDXVKGetsCompileSettings(dxvkAsync: Bool, legacyFlag: Bool) {
+        var settings = BottleSettings()
+        settings.graphicsBackend = .dxmt
+        settings.dxvkAsync = dxvkAsync
+        var overrides = ProgramOverrides()
+        if legacyFlag {
+            overrides.dxvk = true
+        } else {
+            overrides.graphicsBackend = .dxvk
+        }
+
+        let env = environment(settings, overrides)
+        #expect(env["DXVK_ASYNC"] == (dxvkAsync ? "1" : nil))
+        #expect(env[Self.concurrentCompile] == "1")
+    }
+
+    @Test("A program's own async setting still beats the bottle's")
+    func programAsyncOverrideWins() {
+        var settings = BottleSettings()
+        settings.graphicsBackend = .d3dMetal
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = .dxvk
+        overrides.dxvkAsync = false
+
+        #expect(environment(settings, overrides)["DXVK_ASYNC"] == "0")
+    }
+
+    @Test("A program moved off DXVK loses the compile setting with DXVK_ASYNC", arguments: [
+        GraphicsBackend.d3dMetal, .dxmt
+    ])
+    func programMovedOffDXVKLosesCompileSettings(backend: GraphicsBackend) {
+        var settings = BottleSettings()
+        settings.graphicsBackend = .dxvk
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = backend
+
+        let env = environment(settings, overrides)
+        #expect(env["DXVK_ASYNC"] == nil)
+        #expect(env[Self.concurrentCompile] == nil)
     }
 }

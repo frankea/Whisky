@@ -952,6 +952,13 @@ public struct BottleSettings: Codable, Equatable {
             if dxvkAsync {
                 builder.set("DXVK_ASYNC", "1", layer: .bottleManaged)
             }
+            // DXVK renders through MoltenVK, which compiles Metal shaders one at
+            // a time unless told otherwise; Apple Silicon has the cores to spread
+            // the compile across.
+            builder.set(
+                "MVK_CONFIG_SHOULD_MAXIMIZE_CONCURRENT_COMPILATION", "1",
+                layer: .bottleManaged, reason: "Parallel Metal shader compilation for DXVK"
+            )
 
         case .dxmt:
             // DXMT: native overrides for the D3D11 trio plus the builtin

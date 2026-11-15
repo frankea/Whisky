@@ -102740,6 +102740,23 @@
         }
       }
     },
+    "config.graphics.backend.recommended.electron %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended uses DXVK for this program. It is an Electron app (%@ found beside it), and Chromium windows stay black on D3DMetal and DXMT."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended uses DXVK for this program. It is an Electron app (%@ found beside it), and Chromium windows stay black on D3DMetal and DXMT."
+          }
+        }
+      }
+    },
     "config.graphics.backend.recommended.exceptions %@ %@" : {
       "localizations" : {
         "en" : {
@@ -102786,6 +102803,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Recommended uses DXVK for launchers. Their windows are drawn by Chromium, which stays black on D3DMetal and DXMT. Games they start keep %@."
+          }
+        }
+      }
+    },
+    "config.graphics.backend.recommended.nwjs %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended uses DXVK for this program. It is an NW.js app (%@ found beside it), and Chromium windows stay black on D3DMetal and DXMT."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended uses DXVK for this program. It is an NW.js app (%@ found beside it), and Chromium windows stay black on D3DMetal and DXMT."
           }
         }
       }

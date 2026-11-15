@@ -159,6 +159,14 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
     /// and icon. May be `nil` if the file couldn't be parsed.
     public let peFile: PEFile?
 
+    /// Why Recommended runs this program on DXVK, if it does: a launcher, a
+    /// Chromium front end from the table, or an Electron or NW.js app.
+    ///
+    /// Classified off the main actor when the bottle's programs are scanned,
+    /// so a view reads it rather than looking at the program's files. A
+    /// program made without a scan knows launchers and the table only.
+    public let dxvkSteering: DXVKSteering?
+
     // MARK: - Cross-actor access (nonisolated members on @MainActor type)
 
     /// The unique identifier for this program.
@@ -278,7 +286,10 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
     ///   - url: The URL to the Windows executable (.exe) file.
     ///   - bottle: The ``Bottle`` that contains this program.
     ///   - peFile: The pre-parsed PE metadata, or `nil` if it couldn't be parsed.
-    public init(url: URL, bottle: Bottle, peFile: PEFile?) {
+    ///   - dxvkSteering: The program's steering, classified off the main actor
+    ///     with ``DXVKSteering/inspect(executable:)``. `nil` falls back to the
+    ///     name alone (``DXVKSteering/detect(executable:)``), which reads nothing.
+    public init(url: URL, bottle: Bottle, peFile: PEFile?, dxvkSteering: DXVKSteering? = nil) {
         let name = url.lastPathComponent
         self.bottle = bottle
         self.url = url
@@ -299,6 +310,7 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
         }
 
         self.peFile = peFile
+        self.dxvkSteering = dxvkSteering ?? DXVKSteering.detect(executable: url)
         let key = settingsUrl.standardizedFileURL
         Self.liveCopies[key] = Self.liveCopies[key, default: []].filter { $0.program != nil }
             + [LiveCopy(program: self)]

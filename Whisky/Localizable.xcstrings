@@ -20752,6 +20752,22 @@
         }
       }
     },
+    "bottle.move.failed.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bottle Move Failed"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bottle Move Failed"
+          }
+        }
+      }
+    },
     "bottle.orphan.stop" : {
       "localizations" : {
         "en" : {
@@ -21664,6 +21680,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法讀取 Bottle 列表"
+          }
+        }
+      }
+    },
+    "bottle.remove.failed.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bottle Removal Failed"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bottle Removal Failed"
           }
         }
       }

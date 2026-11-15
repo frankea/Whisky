@@ -168,8 +168,12 @@ struct BottleListEntry: View {
                             let newBottePath = url
                                 .appending(path: bottle.url.lastPathComponent)
 
-                            bottle.move(destination: newBottePath)
-                            selected = newBottePath
+                            do {
+                                try bottle.move(destination: newBottePath)
+                                selected = newBottePath
+                            } catch {
+                                showOperationFailure(String(localized: "bottle.move.failed.title"), error: error)
+                            }
                         }
                     }
                 }
@@ -325,13 +329,33 @@ extension BottleListEntry {
 
         if response == .alertFirstButtonReturn {
             Task(priority: .userInitiated) {
-                if selected == bottle.url {
+                let wasSelected = selected == bottle.url
+                if wasSelected {
                     selected = nil
                 }
 
-                await bottle.remove(delete: checkbox.state == .on)
+                do {
+                    try await bottle.remove(delete: checkbox.state == .on)
+                } catch {
+                    // The bottle is still in the list, so put the selection back.
+                    if wasSelected {
+                        selected = bottle.url
+                    }
+                    showOperationFailure(String(localized: "bottle.remove.failed.title"), error: error)
+                }
             }
         }
+    }
+
+    /// Tells the user a move or remove failed instead of failing silently.
+    @MainActor
+    func showOperationFailure(_ title: String, error: Error) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = error.localizedDescription
+        alert.alertStyle = .critical
+        alert.addButton(withTitle: String(localized: "button.ok"))
+        alert.runModal()
     }
 }
 

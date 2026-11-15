@@ -71,8 +71,10 @@ public enum BottleOperations {
     ///   - url: The bottle's current directory.
     ///   - destination: The directory the bottle should move to.
     ///   - registry: The registry that owns the bottle list.
+    /// - Throws: The file move's error, after the settings are restored, so the
+    ///   caller can tell the user and keep the old path selected.
     @MainActor
-    public static func move(bottleAt url: URL, to destination: URL, registry: BottleRegistry) {
+    public static func move(bottleAt url: URL, to destination: URL, registry: BottleRegistry) throws {
         let bottle = registry.bottle(for: url)
         // The URL rewrite must happen before the move so the persisted settings
         // travel with the bottle, so keep a snapshot to restore on failure.
@@ -119,6 +121,7 @@ public enum BottleOperations {
                 }
             }
             Logger.wineKit.error("Failed to move bottle: \(error.localizedDescription)")
+            throw error
         }
     }
 
@@ -301,18 +304,20 @@ public enum BottleOperations {
     ///   - deleteFiles: Whether to delete the bottle directory from disk.
     ///   - registry: The registry that owns the bottle list.
     ///   - routing: The Steam route store to prune. Defaults to the real one.
+    /// - Throws: The deletion's error. The bottle stays registered and its
+    ///   `inFlight` flag is cleared, so it is usable again without a relaunch.
     @MainActor
     public static func remove(
         bottleAt url: URL,
         deleteFiles: Bool,
         registry: BottleRegistry,
         routing: GameRouting = GameRouting()
-    ) {
-        do {
-            if let bottle = registry.bottle(for: url) {
-                bottle.inFlight = true
-            }
+    ) throws {
+        let bottle = registry.bottle(for: url)
+        bottle?.inFlight = true
+        defer { bottle?.inFlight = false }
 
+        do {
             if deleteFiles {
                 try FileManager.default.removeItem(at: url)
                 routing.removeRoutes(toBottle: url)
@@ -324,6 +329,7 @@ public enum BottleOperations {
             registry.loadBottles()
         } catch {
             Logger.wineKit.error("Failed to remove bottle: \(error.localizedDescription)")
+            throw error
         }
     }
 

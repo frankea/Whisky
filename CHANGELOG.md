@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   macOS default output when the device isn't connected (#354).
 - Bottle settings gain "When Leaving a Running Bottle" in the Cleanup
   section: Ask Each Time, Keep Running or Stop Processes (#353).
+- Game Configurations for Trine 4, Screw Drivers and BeamNG.drive (#364).
 
 ### Changed
 - Leaving a bottle while a program Whisky launched is still running keeps
@@ -67,6 +68,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "Include remediation history" in a diagnostics export now includes the
   fixes applied from a program's crash diagnosis cards, in both the saved
   ZIP and Copy Report, with home paths redacted (#357).
+- Launching a program from Whisky returns as soon as Wine has started it,
+  instead of when the bottle's whole Wine session ends. The Library
+  spinner and "launched" toast no longer wait for the game to quit, and
+  the crash watcher now watches the running game (#361).
+- A long session's log keeps its newest output once it reaches the 20 MiB
+  cap, so crash lines at the end reach the log and the crash diagnosis.
+  The log keeps its start and says where it was cut. Thanks to
+  @jaxjixmix for the report (#361, from #360).
+- After a crash, "View Latest Diagnosis" and "Export Diagnostic Report"
+  stay available; another view of the same program could overwrite the
+  crash record (#361).
+- Whisky's own tasklist, taskkill and reg helpers no longer show in
+  Running Processes as untracked apps (#361).
+- `whisky run --follow` and `--tail-log` keep printing output that arrives
+  after the launch and cope with a truncated log, and `whisky run` and
+  `whisky launch` wait for the program's output so its log is complete
+  (#361).
+- Importing the Game Porting Toolkit on an engine that can't run D3DMetal
+  now says the engine is the reason, in the D3DMetal card, the bottle's
+  graphics settings and Settings, with a link to the engine releases.
+  Installing a capable engine later deploys the stored payload at launch
+  (#362, from #358).
+- Unpinning a Start Menu program sticks; the Start Menu scan no longer
+  pins it again. Opening a bottle no longer deletes its Start Menu
+  shortcuts, programs installed outside Program Files and Desktop
+  shortcuts get pinned, and uninstallers, docs and links don't (#363).
+- Shortcut apps, including ones made with `whisky shortcut`, show the
+  program's own icon (#363).
+- Steam games launch with the Game Configuration variant you applied
+  instead of the recommended one, and `-applaunch` is sent after a cold
+  Steam start (#364, #368).
+- Winetricks installs from Game Configurations, troubleshooting fixes and
+  the dependency sheet run unattended instead of waiting on a hidden
+  dialog (#364).
+- Game Configurations that turn sync off (Battlefield 2042, Destiny 2,
+  Fortnite, PUBG, Valorant) now do (#364).
+- With redaction on, diagnostic exports hide the Windows account name in
+  Wine profile paths (#365).
+- Uninstall All removes the default bottles it lists, opening a bottle's
+  config no longer writes DPI and retina mode, setup opens at launch when
+  Rosetta 2 is missing, and a failed bottle move or removal shows an
+  alert instead of failing silently (#365).
+- Launches keep DLL overrides that winetricks or winecfg wrote, and a
+  program's own `WINEDLLOVERRIDES` environment variable takes effect
+  (#366).
+- Turning the shader cache off works on DXMT, Metal trace captures
+  outside Xcode and under DXMT, and DXVK compiles Metal shaders
+  concurrently (#366).
+- Korean text draws with Apple SD Gothic Neo when no CJK fonts are
+  installed (#367).
+- The Enhanced Sync setting says when the installed Wine runtime ignores
+  it, and no longer claims MSync is fastest (#367).
+- Several fixes in #363 to #367 are based on work in forks by
+  @ellomehllo, @RodrigoLScorza, @EwoudVV, @furknataman, @Dunn-Kim,
+  @rolling7ho, @daydalek and @adurham.
 
 ## [3.9.2] - 2026-11-13 (App)
 

@@ -55,6 +55,9 @@ struct ProgramOverrideSettingsView: View {
     /// Read from the runtime's version plist when the sync group appears, not
     /// on every redraw, and assumed until then.
     @State private var runtimeImplementsEnhancedSync = true
+    /// Whether `libcef.dll` sits beside the program, read once when the page
+    /// appears rather than on every redraw.
+    @State private var shipsCEF = false
 
     var body: some View {
         dependencyBadgeSection
@@ -72,6 +75,7 @@ struct ProgramOverrideSettingsView: View {
         diagnosticsSection
         audioTroubleshootingSection
             .task {
+                shipsCEF = ChromiumFrontEnd.shipsCEF(beside: program.url)
                 await loadGameMatch()
                 await loadRecommendedDependencies()
             }
@@ -348,7 +352,56 @@ struct ProgramOverrideSettingsView: View {
                     String(localized: "program.overrides.graphics.summary \(backendName) \(asyncState) \(hudState)")
                 )
             }
+
+            chromiumCaption
         }
+    }
+
+    /// What Recommended does for a program whose window Chromium draws, or a
+    /// suggestion for an unlisted one that ships CEF (#372).
+    @ViewBuilder
+    private var chromiumCaption: some View {
+        if let steering = dxvkSteering {
+            switch effectiveBackendChoice {
+            case .recommended:
+                // Nothing to explain where the games already run on DXVK.
+                if gamesBackend != .dxvk {
+                    graphicsCaption(
+                        GraphicsBackendResolver.resolution(for: steering).rationale(gamesBackend: gamesBackend)
+                    )
+                }
+            case .dxvk where hasGraphicsOverride:
+                HStack {
+                    graphicsCaption(String(localized: "program.overrides.graphics.alreadyDXVK"))
+                    Button("program.overrides.graphics.useRecommended") {
+                        program.settings.overrides?.graphicsBackend = .recommended
+                    }
+                    .controlSize(.small)
+                }
+            case .dxvk:
+                EmptyView()
+            default:
+                graphicsCaption(String(localized: "program.overrides.graphics.chromiumHint"))
+            }
+        } else if shipsCEF, effectiveResolvedBackend != .dxvk {
+            HStack {
+                graphicsCaption(String(localized: "program.overrides.graphics.cefSuggestion"))
+                Button("program.overrides.graphics.useDXVK") {
+                    if !hasGraphicsOverride {
+                        graphicsOverrideBinding.wrappedValue = true
+                    }
+                    program.settings.overrides?.graphicsBackend = .dxvk
+                }
+                .controlSize(.small)
+            }
+        }
+    }
+
+    private func graphicsCaption(_ text: String) -> some View {
+        Text(text)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     @ViewBuilder
@@ -626,16 +679,40 @@ struct ProgramOverrideSettingsView: View {
         program.settings.overrides?.graphicsBackend != nil
     }
 
-    /// The backend this program actually launches with.
-    private var resolvedOverriddenBackend: GraphicsBackend {
-        let backend = program.settings.overrides?.graphicsBackend ?? .recommended
-        return backend == .recommended ? GraphicsBackendResolver.resolve() : backend
+    /// Why Recommended runs this program on DXVK, if it does: a launcher, or
+    /// a Chromium front end from the table. String matching only.
+    private var dxvkSteering: DXVKSteering? {
+        DXVKSteering.detect(executable: program.url)
     }
 
-    /// The bottle's backend, resolved, for the inherited summary.
-    private var resolvedBottleBackend: GraphicsBackend {
+    /// The backend this program's launches choose, before Recommended resolves.
+    private var effectiveBackendChoice: GraphicsBackend {
+        program.settings.overrides?.graphicsBackend ?? bottle.settings.graphicsBackend
+    }
+
+    /// What the bottle's games run on, which the programs a steered one starts keep.
+    private var gamesBackend: GraphicsBackend {
         bottle.settings.graphicsBackend == .recommended
             ? GraphicsBackendResolver.resolve()
+            : bottle.settings.graphicsBackend
+    }
+
+    /// The backend this program actually launches with, with or without an override.
+    private var effectiveResolvedBackend: GraphicsBackend {
+        hasGraphicsOverride ? resolvedOverriddenBackend : resolvedBottleBackend
+    }
+
+    /// The backend this program actually launches with. Recommended resolves
+    /// for the program, so a launcher or front end reports DXVK.
+    private var resolvedOverriddenBackend: GraphicsBackend {
+        let backend = program.settings.overrides?.graphicsBackend ?? .recommended
+        return backend == .recommended ? GraphicsBackendResolver.resolution(for: dxvkSteering).backend : backend
+    }
+
+    /// The bottle's backend, resolved for this program, for the inherited summary.
+    private var resolvedBottleBackend: GraphicsBackend {
+        bottle.settings.graphicsBackend == .recommended
+            ? GraphicsBackendResolver.resolution(for: dxvkSteering).backend
             : bottle.settings.graphicsBackend
     }
 

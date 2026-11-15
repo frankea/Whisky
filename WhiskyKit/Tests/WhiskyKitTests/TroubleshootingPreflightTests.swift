@@ -58,6 +58,8 @@ final class TroubleshootingPreflightTests: XCTestCase {
         name: "Test Speakers", transportType: .usb, sampleRate: 48_000, outputChannelCount: 2, isDefault: true
     )
 
+    private static let d3dMetal = BackendResolution(backend: .d3dMetal, reason: .d3dMetal)
+
     // MARK: - Collection
 
     func testInputsTakeTheLauncherFromTheBottleWhenTheProgramIsNone() throws {
@@ -96,7 +98,7 @@ final class TroubleshootingPreflightTests: XCTestCase {
 
         let inputs = PreflightCollector.inputs(bottle: bottle, program: game, programURL: nil)
         let preflight = PreflightCollector.gather(
-            inputs, logsFolder: logsFolder, audioDevice: { Self.fakeDevice }, recommendedBackend: { _ in .d3dMetal }
+            inputs, logsFolder: logsFolder, audioDevice: { Self.fakeDevice }, recommendedBackend: { _ in Self.d3dMetal }
         )
 
         XCTAssertEqual(preflight.launcherType, LauncherType.steam.rawValue)
@@ -117,7 +119,7 @@ final class TroubleshootingPreflightTests: XCTestCase {
 
         let inputs = PreflightCollector.inputs(bottle: bottle, program: nil, programURL: game.url)
         let preflight = PreflightCollector.gather(
-            inputs, logsFolder: tempDir, audioDevice: { nil }, recommendedBackend: { _ in .d3dMetal }
+            inputs, logsFolder: tempDir, audioDevice: { nil }, recommendedBackend: { _ in Self.d3dMetal }
         )
 
         XCTAssertEqual(preflight.graphicsBackend, "wined3d")
@@ -149,7 +151,9 @@ final class TroubleshootingPreflightTests: XCTestCase {
     }
 
     func testResolvedBackendsFollowTheLaunch() {
-        let recommended: (LauncherType?) -> GraphicsBackend = { $0 == nil ? .d3dMetal : .dxvk }
+        let recommended: (DXVKSteering?) -> BackendResolution = { steering in
+            steering.map { BackendResolution(backend: .dxvk, reason: .steered($0)) } ?? Self.d3dMetal
+        }
         let game = URL(filePath: "/b/drive_c/Games/game.exe")
         let steam = URL(filePath: "/b/drive_c/Program Files (x86)/Steam/steam.exe")
 
@@ -163,12 +167,22 @@ final class TroubleshootingPreflightTests: XCTestCase {
             bottle: .recommended, programOverride: nil, programURL: steam, recommended: recommended
         )
         XCTAssertEqual(launcher.effective, .dxvk, "Recommended steers a launcher to DXVK")
+        XCTAssertEqual(launcher.reason, .steered(.launcher(.steam)))
+
+        let frontEnd = PreflightCollector.resolvedBackends(
+            bottle: .recommended, programOverride: nil,
+            programURL: URL(filePath: "/b/drive_c/Games/3DMark/bin/x64/3DMark.exe"), recommended: recommended
+        )
+        XCTAssertEqual(frontEnd.effective, .dxvk, "Recommended steers a Chromium front end to DXVK")
+        XCTAssertEqual(frontEnd.bottle, .d3dMetal)
+        XCTAssertEqual(frontEnd.reason, .steered(.chromiumFrontEnd(.threeDMark)))
 
         let overridden = PreflightCollector.resolvedBackends(
             bottle: .dxmt, programOverride: .wined3d, programURL: game, recommended: recommended
         )
         XCTAssertEqual(overridden.effective, .wined3d)
         XCTAssertEqual(overridden.bottle, .dxmt)
+        XCTAssertNil(overridden.reason, "an explicit choice has no Recommended reason")
     }
 
     func testWineserverStateReplacesOnlyThatField() {

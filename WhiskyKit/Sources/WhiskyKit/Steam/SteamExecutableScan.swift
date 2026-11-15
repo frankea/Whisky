@@ -28,12 +28,27 @@ struct SteamExecutableScan: Equatable {
     /// They are in ``executables`` too.
     var chromiumHosts: [URL] = []
 
+    /// The executables from the ``ChromiumFrontEnd`` table, at any depth.
+    var frontEnds: [URL] {
+        executables.filter { ChromiumFrontEnd.match(url: $0) != nil }
+    }
+
     /// The executables the game's plan goes to: all of them but the Chromium
-    /// hosts. A host keeps its own settings: the plan is the game's, and the
-    /// workloads beside it run on a backend Chromium cannot draw on (#372).
+    /// hosts and the table's front ends. A host keeps its own settings: the
+    /// plan is the game's, and the workloads beside it run on a backend
+    /// Chromium cannot draw on (#372).
     var planExecutables: [URL] {
-        let hosts = Set(chromiumHosts)
+        let hosts = Set(ownSettingsExecutables)
         return executables.filter { !hosts.contains($0) }
+    }
+
+    /// The executables a launch leaves on their own settings: the Chromium
+    /// hosts, then the table's front ends the scan did not count as hosts.
+    /// Under Recommended a front end among them gets DXVK's set instead
+    /// (``Wine/addFrontEndScopes(_:to:bottle:recommendedBackend:launcherSet:)``).
+    var ownSettingsExecutables: [URL] {
+        let hosts = Set(chromiumHosts)
+        return chromiumHosts + frontEnds.filter { !hosts.contains($0) }
     }
 }
 

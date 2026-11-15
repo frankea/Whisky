@@ -198,22 +198,13 @@ struct BottleView: View {
 }
 
 extension BottleView {
+    /// Rescans the bottle and pins the programs of shortcuts that installers
+    /// added since the last check (see ``StartMenuShortcutSync``).
     private func updateStartMenu() async {
         await bottle.updateInstalledPrograms()
-
-        let startMenuPrograms = bottle.getStartMenuPrograms()
-        let matched = bottle.programs.filter { program in
-            startMenuPrograms.contains { shortcut in
-                // For some godforsaken reason "foo/bar" != "foo/Bar" so...
-                program.url.path().caseInsensitiveCompare(shortcut.url.path()) == .orderedSame
-            }
-        }
-        // Leaves out programs that are already pinned and programs the user
-        // unpinned, so an unpin is not undone on the next visit.
-        let toPin = Set(bottle.settings.startMenuPinsToAdd(candidates: matched.map(\.url)))
-        for program in matched where toPin.contains(program.url) {
-            // Setting `pinned` appends the pin to the bottle's settings.
-            program.pinned = true
+        if StartMenuShortcutSync.sync(bottle: bottle, wineUsername: bottle.wineUsername) {
+            // Pins outside Program Files only show up once the list is rebuilt.
+            await bottle.updateInstalledPrograms()
         }
     }
 }

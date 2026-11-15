@@ -124,6 +124,79 @@ final class ChromiumRuntimeLaunchTests {
         #expect(!dxvkDeployed)
     }
 
+    // MARK: - Steam launch
+
+    /// An NW.js game in the bottle's Steam library, `Game.exe` at its root,
+    /// with a tool beside it that draws with Direct3D itself.
+    func installSteamNWjsGame() throws -> URL {
+        let driveC = bottleURL.appending(path: "drive_c")
+        try touch(["Program Files (x86)/Steam/steam.exe"], in: driveC)
+        let install = driveC.appending(path: "Program Files (x86)/Steam/steamapps/common/RPG")
+        try touch(["nw.dll", "icudtl.dat", "package.nw"], in: install)
+        try PEImportFixture(normalImports: ["nw.dll", "KERNEL32.dll"]).write(to: install.appending(path: "Game.exe"))
+        try PEImportFixture(normalImports: ["d3d11.dll", "KERNEL32.dll"])
+            .write(to: install.appending(path: "Tool.exe"))
+        return install
+    }
+
+    /// What SteamLauncher.launch hands Wine for `-applaunch`.
+    func steamLaunch(_ bottle: Bottle, install: URL, recorder: ScopeRecorder) async throws {
+        let scan = SteamLibrary.scanExecutables(under: install)
+        let plan = LaunchResolver.plan(
+            steamAppId: 1,
+            userOverrides: SteamLauncher.userOverrides(forExecutables: scan.planExecutables, bottle: bottle),
+            appliedConfiguration: nil, entries: []
+        )
+        _ = try await Wine.prepareProgramLaunch(
+            at: bottleURL.appending(path: "drive_c/Program Files (x86)/Steam/steam.exe"),
+            args: ["-applaunch", "1"], bottle: bottle,
+            programOverrides: plan.overrides, overridesApplyToDescendants: true,
+            descendantExecutables: SteamLauncher.gameExecutables(scanned: scan.planExecutables, plan: plan),
+            ownSettingsExecutables: scan.ownSettingsExecutables,
+            recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: true,
+            overrideWriter: recorder.writer, importer: recorder.importer, dxvkFolder: dxvkFolder
+        )
+    }
+
+    @Test("On a Library Play an NW.js game gets DXVK in its own entry, and the tool beside it the game's plan")
+    func steamLaunchSteersTheApp() async throws {
+        let install = try installSteamNWjsGame()
+        let bottle = makeBottle()
+        let recorder = ScopeRecorder()
+
+        try await steamLaunch(bottle, install: install, recorder: recorder)
+
+        let game = recorder.overrides(for: .program("Game.exe"))
+        #expect(game?["d3d11"] == "n,b")
+        #expect(game?["dxgi"] == "n,b")
+        let tool = recorder.overrides(for: .program("Tool.exe"))
+        #expect(tool != nil, "the tool gets the plan")
+        #expect(tool?["d3d11"] != "n,b")
+    }
+
+    @Test("On a Library Play the app's own settings still shape the plan, and an explicit backend is kept")
+    func steamLaunchKeepsTheAppsSettings() async throws {
+        let install = try installSteamNWjsGame()
+        let game = install.appending(path: "Game.exe")
+        let scan = SteamLibrary.scanExecutables(under: install)
+        #expect(scan.chromiumRuntimes.map(\.lastPathComponent) == ["Game.exe"])
+        #expect(scan.planExecutables.map(\.lastPathComponent) == ["Game.exe", "Tool.exe"])
+        #expect(scan.ownSettingsExecutables.map(\.lastPathComponent) == ["Game.exe"])
+
+        let bottle = makeBottle()
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = .d3dMetal
+        Program(url: game, bottle: bottle, peFile: nil).settings.overrides = overrides
+        #expect(SteamLauncher.userOverrides(forInstallURL: install, bottle: bottle)?.graphicsBackend == .d3dMetal)
+        let recorder = ScopeRecorder()
+
+        try await steamLaunch(bottle, install: install, recorder: recorder)
+
+        let entry = recorder.overrides(for: .program("Game.exe"))
+        #expect(entry != nil, "its own settings are written")
+        #expect(entry?["d3d11"] != "n,b")
+    }
+
     @Test("A program carries the steering it was scanned with, and falls back to its name")
     func programSteering() {
         let bottle = makeBottle()

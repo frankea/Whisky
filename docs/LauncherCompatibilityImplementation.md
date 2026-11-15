@@ -121,6 +121,7 @@ EA App:
 - `DXVKSteering.inspect(executable:)` puts launchers and the table first; `prepareProgramLaunch` and the preflight use it. `DXVKSteering.detect(executable:)` stays name-only
 - `Program.dxvkSteering` is classified off the main actor in `updateInstalledPrograms`, so views never read a program's files
 - No entry is written ahead of time for a match: it is written when Whisky launches the app
+- On a Whisky Library Play (`steam.exe -applaunch`), a match in the game's folder gets the launcher set in its own entry, ahead of the game's plan, like a table row. It stays among the plan's executables, since it is often the game itself and its settings still shape the plan
 - The CEF suggestion uses the same parser: `libcef.dll` beside the executable, imported by it, and no graphics import
 
 #### GPUDetection.swift (180 lines)

@@ -33,22 +33,33 @@ struct SteamExecutableScan: Equatable {
         executables.filter { ChromiumFrontEnd.match(url: $0) != nil }
     }
 
+    /// The Electron and NW.js apps among the executables, found by their files
+    /// (``ChromiumRuntimeDetector``). Reads each one's folder the first time.
+    var chromiumRuntimes: [URL] {
+        executables.filter { ChromiumRuntimeDetector.detect(executable: $0) != nil }
+    }
+
     /// The executables the game's plan goes to: all of them but the Chromium
     /// hosts and the table's front ends. A host keeps its own settings: the
     /// plan is the game's, and the workloads beside it run on a backend
     /// Chromium cannot draw on (#372).
+    ///
+    /// An Electron or NW.js app stays among them: it is often the game itself
+    /// (an RPG Maker `Game.exe`), so its settings still shape the plan.
     var planExecutables: [URL] {
-        let hosts = Set(ownSettingsExecutables)
+        let hosts = Set(chromiumHosts + frontEnds)
         return executables.filter { !hosts.contains($0) }
     }
 
     /// The executables a launch leaves on their own settings: the Chromium
-    /// hosts, then the table's front ends the scan did not count as hosts.
-    /// Under Recommended a front end among them gets DXVK's set instead
-    /// (``Wine/addFrontEndScopes(_:to:bottle:recommendedBackend:launcherSet:)``).
+    /// hosts, then the table's front ends the scan did not count as hosts,
+    /// then the Electron and NW.js apps. Under Recommended a front end or an
+    /// app among them gets DXVK's set instead
+    /// (``Wine/addFrontEndScopes(_:to:bottle:recommendedBackend:launcherSet:)``),
+    /// as it does when the Programs tab starts it.
     var ownSettingsExecutables: [URL] {
-        let hosts = Set(chromiumHosts)
-        return chromiumHosts + frontEnds.filter { !hosts.contains($0) }
+        var seen = Set<URL>()
+        return (chromiumHosts + frontEnds + chromiumRuntimes).filter { seen.insert($0).inserted }
     }
 }
 

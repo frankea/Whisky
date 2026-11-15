@@ -490,7 +490,8 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 - ✅ Graphics backend: Recommended or DXVK (the launcher's window stays blank white on D3DMetal and DXMT)
 
 **Critical Settings:**
-- None bottle-wide. On Recommended, Whisky runs `RSI Launcher.exe` (and the Chromium processes it starts as the same executable) on DXVK, while Star Citizen keeps the bottle's backend
+- None bottle-wide. On Recommended, Whisky runs `RSI Launcher.exe` (and the Chromium processes it starts as the same executable) on DXVK
+- Star Citizen launched from Whisky keeps the bottle's backend. Started from the launcher, it keeps D3DMetal when Game Porting Toolkit is imported; without it, the game runs on DXVK, because the launcher's DXVK files replace DXMT's in the bottle until a game is next launched from Whisky
 
 ---
 

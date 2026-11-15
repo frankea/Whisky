@@ -81,7 +81,7 @@ private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: 
 /// - ``generateTerminalEnvironmentCommand(bottle:)``
 public class Wine {
     /// URL to the installed DXVK folder containing Direct3D-to-Vulkan translation libraries.
-    private static let dxvkFolder: URL = WhiskyWineInstaller.libraryFolder.appending(path: "DXVK")
+    static let dxvkFolder: URL = WhiskyWineInstaller.libraryFolder.appending(path: "DXVK")
     /// URL to the installed DXMT payload containing Direct3D-11-to-Metal translation libraries.
     /// Absent on runtimes older than Wine Libraries 3.1.0.
     private static let dxmtFolder: URL = WhiskyWineInstaller.libraryFolder.appending(path: "DXMT")
@@ -433,6 +433,8 @@ public class Wine {
     ///     recorder here too.
     ///   - virtualDesktopQuery: Whether the bottle's registry turns its virtual desktop on.
     ///     Only asked for a program whose override turns the virtual desktop off. Tests pin it.
+    ///   - dxvkFolder: The DXVK payload a launch on DXVK copies into the prefix. Defaults to
+    ///     the installed one; tests pass their own, to see which files the prefix ends up with.
     /// - Returns: The environment and `wine64` arguments the launch runs with.
     /// - Throws: An error if a backend's files cannot be deployed or the DLL override import
     ///   cannot be started. A failed font alias import is only logged.
@@ -448,7 +450,8 @@ public class Wine {
         builtinD3D12IsD3DMetal: Bool = GPTKImporter.isDeployed(),
         overrideWriter: DLLOverrideWriter = { try await syncDLLOverrides(bottle: $0, scopes: $1) },
         importer: RegistryImporter = { try await importRegistry(document: $0, bottle: $1) },
-        virtualDesktopQuery: VirtualDesktopQuery = { try await isVirtualDesktopEnabled(bottle: $0) }
+        virtualDesktopQuery: VirtualDesktopQuery = { try await isVirtualDesktopEnabled(bottle: $0) },
+        dxvkFolder: URL = Wine.dxvkFolder
     ) async throws -> PreparedLaunch {
         // Font aliases first, before any setting is read: their import can take
         // a few seconds, and a setting changed during it would leave this launch
@@ -515,7 +518,7 @@ public class Wine {
         )
 
         if shouldEnableDXVK {
-            try enableDXVK(bottle: bottle)
+            try enableDXVK(bottle: bottle, from: dxvkFolder)
         }
 
         var wineEnvironment = launchEnvironment(
@@ -1073,13 +1076,20 @@ public class Wine {
     ///   when DXVK is enabled in the bottle settings.
     @MainActor
     public static func enableDXVK(bottle: Bottle) throws {
+        try enableDXVK(bottle: bottle, from: dxvkFolder)
+    }
+
+    /// Installs the DXVK libraries in `dxvkFolder` into a bottle's Windows
+    /// system directories. Tests pass a folder of their own.
+    @MainActor
+    static func enableDXVK(bottle: Bottle, from dxvkFolder: URL) throws {
         try FileManager.default.replaceDLLs(
             in: bottle.url.appending(path: "drive_c").appending(path: "windows").appending(path: "system32"),
-            withContentsIn: Wine.dxvkFolder.appending(path: "x64")
+            withContentsIn: dxvkFolder.appending(path: "x64")
         )
         try FileManager.default.replaceDLLs(
             in: bottle.url.appending(path: "drive_c").appending(path: "windows").appending(path: "syswow64"),
-            withContentsIn: Wine.dxvkFolder.appending(path: "x32")
+            withContentsIn: dxvkFolder.appending(path: "x32")
         )
         reconcileDXGIForDXVK(prefixRoot: bottle.url)
     }

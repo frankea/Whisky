@@ -24,6 +24,8 @@ import Testing
 /// The RSI Launcher draws its window only on DXVK (#168). It is detected as a
 /// launcher so Recommended steers it there, while Star Citizen, the game it
 /// starts from the folder beside it, resolves the way the bottle's games do.
+/// Started by the launcher over DXMT, the game still loads the DXVK files the
+/// launcher's launch left in the prefix.
 @Suite("RSI Launcher")
 @MainActor
 final class RSILauncherTests {
@@ -145,7 +147,7 @@ final class RSILauncherTests {
         }
     }
 
-    @Test("Star Citizen resolves the way the bottle's games do")
+    @Test("Star Citizen on its own resolves the way the bottle's games do")
     func gameResolvesAsAGame() {
         let url = URL(fileURLWithPath: "C:/\(Self.gameFolder)/StarCitizen.exe")
         let runtime = WhiskyWineVersion(version: SemanticVersion(3, 1, 1), dxmtVersion: "0.80")
@@ -196,6 +198,44 @@ final class RSILauncherTests {
 
         expectNoTranslationLayer(recorder.overrides(for: .program("StarCitizen.exe")), "StarCitizen.exe")
         #expect(launch.environment["WINEDLLOVERRIDES"] == nil)
+    }
+
+    @Test("Over DXMT, Star Citizen started by the launcher loads the DXVK files the launcher's launch leaves")
+    func launcherLeavesDXVKWhereTheGameLoadsIt() async throws {
+        let bottle = try makeBottle()
+        let system32 = bottle.url.appending(path: "drive_c/windows/system32")
+        let dlls = ["d3d10core.dll", "d3d11.dll"]
+        // An earlier launch from Whisky left DXMT's files.
+        for dll in dlls {
+            try Data("DXMT \(dll)".utf8).write(to: system32.appending(path: dll))
+        }
+        let dxvkFolder = tempRoot.appending(path: "DXVK")
+        for arch in ["x64", "x32"] {
+            let folder = dxvkFolder.appending(path: arch)
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            for dll in dlls {
+                try Data("DXVK \(dll)".utf8).write(to: folder.appending(path: dll))
+            }
+        }
+        let recorder = ScopeRecorder()
+
+        _ = try await Wine.prepareProgramLaunch(
+            at: rsiLauncher(in: bottle), bottle: bottle,
+            recommendedBackend: .dxmt, builtinD3D12IsD3DMetal: false,
+            overrideWriter: recorder.writer, importer: recorder.importer, dxvkFolder: dxvkFolder
+        )
+
+        expectDXVK(recorder.overrides(for: .program("RSI Launcher.exe")), "RSI Launcher.exe")
+        // DXVK's files replaced DXMT's, and the bottle scope, which Star Citizen
+        // reads when the launcher starts it, prefers the native ones: the game
+        // runs on DXVK. The bottle itself stays on Recommended.
+        for dll in dlls {
+            #expect(try Data(contentsOf: system32.appending(path: dll)) == Data("DXVK \(dll)".utf8), "\(dll)")
+        }
+        let bottleScope = recorder.overrides(for: .bottle)
+        #expect(bottleScope?["d3d11"] == "n,b")
+        #expect(bottleScope?["d3d10core"] == "n,b")
+        #expect(bottle.settings.graphicsBackend == .recommended)
     }
 
     // MARK: - Launcher fixes

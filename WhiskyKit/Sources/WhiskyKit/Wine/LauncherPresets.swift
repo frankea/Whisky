@@ -256,8 +256,10 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     /// This is the bottle-wide requirement: it puts the DXVK preset into the
     /// overrides every program in the bottle runs with. Launchers whose own
     /// executables carry DXVK through the resolver (the RSI Launcher, whose
-    /// Chromium children run as the same executable) stay `false`, so the games
-    /// they start keep the bottle's backend.
+    /// Chromium children run as the same executable) stay `false`, so the
+    /// bottle's overrides stay the games'. A game such a launcher starts itself
+    /// still loads the DXVK files its launch left in the prefix wherever those
+    /// overrides prefer native DLLs, as DXMT's do (see `LauncherFixes.apply`).
     public var requiresDXVK: Bool {
         switch self {
         case .rockstar:

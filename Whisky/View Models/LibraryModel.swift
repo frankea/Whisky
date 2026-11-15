@@ -83,6 +83,10 @@ final class LibraryModel: ObservableObject {
     /// otherwise put the old date back when it finishes.
     private var reloadsInFlight = 0
     private var launchesDuringReload: [RecordedLaunch] = []
+    /// Counts reloads as they start. Each one awaits the Steam scan, so an
+    /// older reload can finish after a newer one; only the newest assigns its
+    /// rows, or the older one would put back what the newer one replaced.
+    private var reloadGeneration = 0
 
     /// - Parameter notificationCenter: Where launches are announced. Every
     ///   launch path records its run before the program starts, and the cards
@@ -128,6 +132,8 @@ final class LibraryModel: ObservableObject {
     /// it inside a card turns scrolling into disk traffic.
     func reload(bottles: [Bottle]) async {
         reloadsInFlight += 1
+        reloadGeneration += 1
+        let generation = reloadGeneration
         defer {
             reloadsInFlight -= 1
             if reloadsInFlight == 0 {
@@ -159,6 +165,7 @@ final class LibraryModel: ObservableObject {
             trackSteam(in: bottle)
         }
 
+        guard generation == reloadGeneration else { return }
         for launch in launchesDuringReload {
             built = applying(launch, to: built)
         }

@@ -202,17 +202,18 @@ extension BottleView {
         await bottle.updateInstalledPrograms()
 
         let startMenuPrograms = bottle.getStartMenuPrograms()
-        for startMenuProgram in startMenuPrograms {
-            for program in bottle.programs where
+        let matched = bottle.programs.filter { program in
+            startMenuPrograms.contains { shortcut in
                 // For some godforsaken reason "foo/bar" != "foo/Bar" so...
-                program.url.path().caseInsensitiveCompare(startMenuProgram.url.path()) == .orderedSame {
-                // Skip programs that are already pinned, but keep processing the
-                // rest. Using `return` here would stop pinning every remaining
-                // start-menu program after the first already-pinned one.
-                guard !bottle.settings.pins.contains(where: { $0.url == program.url }) else { continue }
-                // Setting `pinned` appends the pin to the bottle's settings.
-                program.pinned = true
+                program.url.path().caseInsensitiveCompare(shortcut.url.path()) == .orderedSame
             }
+        }
+        // Leaves out programs that are already pinned and programs the user
+        // unpinned, so an unpin is not undone on the next visit.
+        let toPin = Set(bottle.settings.startMenuPinsToAdd(candidates: matched.map(\.url)))
+        for program in matched where toPin.contains(program.url) {
+            // Setting `pinned` appends the pin to the bottle's settings.
+            program.pinned = true
         }
     }
 }

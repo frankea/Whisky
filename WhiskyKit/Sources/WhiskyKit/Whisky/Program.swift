@@ -105,19 +105,28 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable 
     /// Setting this property automatically updates the bottle's pin list.
     /// Pinned programs appear in a separate section of the UI.
     ///
-    /// Setting `true` on a program the bottle already pins is a no-op: pins are
-    /// keyed by URL (the same identity the load-time cleanup in ``Bottle`` uses),
-    /// so the pin list is not modified and Metadata.plist is not rewritten.
+    /// Setting `true` on a program the bottle already pins does not add a second
+    /// pin: pins are keyed by URL (the same identity the load-time cleanup in
+    /// ``Bottle`` uses). Setting `false` records the unpin in
+    /// ``BottleSettings/unpinnedPrograms`` so the Start Menu scan leaves the
+    /// program alone, and pinning again clears that record.
     @Published public var pinned: Bool {
         didSet {
             if pinned {
+                // Cleared before the already-pinned check: a program can be both
+                // pinned and recorded as unpinned when its pin was re-added by
+                // hand, and the record must not outlive a deliberate pin. Checked
+                // first because any mutating call saves Metadata.plist.
+                if bottle.settings.isUnpinned(url) {
+                    bottle.settings.clearUnpin(url)
+                }
                 guard !bottle.settings.pins.contains(where: { $0.url == url }) else { return }
                 bottle.settings.pins.append(PinnedProgram(
                     name: name.replacingOccurrences(of: ".exe", with: ""),
                     url: url
                 ))
             } else {
-                bottle.settings.pins.removeAll(where: { $0.url == url })
+                bottle.settings.unpin(url)
             }
         }
     }

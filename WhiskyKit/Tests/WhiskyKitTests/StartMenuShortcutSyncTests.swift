@@ -26,6 +26,7 @@ final class StartMenuShortcutSyncTests: XCTestCase {
     private var bottleURL: URL!
     private var startMenu: URL!
     private var desktop: URL!
+    private var publicDesktop: URL!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -37,6 +38,8 @@ final class StartMenuShortcutSyncTests: XCTestCase {
         }
         startMenu = folders[0].url.appending(path: "Programs")
         desktop = folders[2].url
+        publicDesktop = folders[3].url
+        try HandledShortcuts.startRecord(in: bottleURL)
     }
 
     override func tearDown() async throws {
@@ -218,6 +221,40 @@ final class StartMenuShortcutSyncTests: XCTestCase {
             menuLink,
             driveC: bottleURL.appending(path: "drive_c")
         ))
+    }
+
+    func testFirstScanOfAnOlderBottleOnlyPinsTargetsOutsideTheScan() throws {
+        // An older version kept no record, and the user unpinned this one.
+        try FileManager.default.removeItem(at: bottleURL.appending(path: HandledShortcuts.fileName))
+        let game = try makeExe("Program Files/Game/game.exe")
+        let gameLink = publicDesktop.appending(path: "Game.lnk")
+        try writeShortcut(gameLink, to: #"C:\Program Files\Game\game.exe"#)
+        try makeExe("Games/Racer/racer.exe")
+        try writeShortcut(desktop.appending(path: "Racer.lnk"), to: #"C:\Games\Racer\racer.exe"#)
+        let bottle = Bottle(bottleUrl: bottleURL)
+        bottle.programs = [Program(url: game, bottle: bottle)]
+
+        XCTAssertTrue(sync(bottle))
+
+        XCTAssertEqual(bottle.settings.pins.map(\.name), ["Racer"])
+        XCTAssertFalse(bottle.programs[0].pinned)
+        XCTAssertTrue(HandledShortcuts.load(from: bottleURL).contains(
+            gameLink,
+            driveC: bottleURL.appending(path: "drive_c")
+        ))
+
+        // From then on, a new shortcut to a scanned program pins it.
+        try writeShortcut(startMenu.appending(path: "Game.lnk"), to: #"C:\Program Files\Game\game.exe"#)
+        XCTAssertFalse(sync(bottle))
+        XCTAssertTrue(bottle.programs[0].pinned)
+    }
+
+    func testFirstScanWithoutShortcutsStartsTheRecord() throws {
+        try FileManager.default.removeItem(at: bottleURL.appending(path: HandledShortcuts.fileName))
+        let bottle = Bottle(bottleUrl: bottleURL)
+
+        XCTAssertFalse(sync(bottle))
+        XCTAssertTrue(HandledShortcuts.exists(in: bottleURL))
     }
 
     func testTwoShortcutsToOneProgramPinItOnce() throws {

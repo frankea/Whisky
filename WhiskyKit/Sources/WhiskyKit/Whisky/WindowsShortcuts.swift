@@ -141,6 +141,21 @@ public struct HandledShortcuts: Codable, Equatable, Sendable {
         self.links = links
     }
 
+    /// Whether the bottle has a record, even an empty or unreadable one.
+    ///
+    /// A bottle without one was last opened by a version that deleted each
+    /// Start Menu shortcut it read and kept no record (see
+    /// ``StartMenuShortcutSync``).
+    public static func exists(in bottleURL: URL) -> Bool {
+        FileManager.default.fileExists(atPath: bottleURL.appending(path: fileName).path(percentEncoded: false))
+    }
+
+    /// Starts an empty record for a new bottle, so that the first program
+    /// installed in it is pinned like any later one.
+    public static func startRecord(in bottleURL: URL) throws {
+        try HandledShortcuts().save(to: bottleURL)
+    }
+
     /// The bottle's record, or an empty one when it has none or it can't be read.
     public static func load(from bottleURL: URL) -> HandledShortcuts {
         guard let data = try? Data(contentsOf: bottleURL.appending(path: fileName)),

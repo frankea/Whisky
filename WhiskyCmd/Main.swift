@@ -114,6 +114,8 @@ extension Whisky {
                     atPath: bottleURL.path(percentEncoded: false),
                     withIntermediateDirectories: true
                 )
+                // So the app's first scan of the bottle pins its first install.
+                try? HandledShortcuts.startRecord(in: bottleURL)
                 let bottle = Bottle(bottleUrl: bottleURL, inFlight: true)
                 bottle.settings.windowsVersion = .win10
                 bottle.settings.name = trimmed

@@ -45,8 +45,17 @@ public enum StartMenuShortcutSync {
     /// A target the bottle scan found (under Program Files) is pinned in place,
     /// matching paths case-insensitively like Windows does. Anything else, such
     /// as a launcher installed under AppData or `C:\Games`, gets a new pin.
-    /// Programs already pinned, or unpinned by the user, are left alone (see
-    /// ``BottleSettings/startMenuPinsToAdd(candidates:)``).
+    /// Programs already pinned, unpinned by the user or blocklisted are left
+    /// alone (see ``BottleSettings/startMenuPinsToAdd(candidates:)``).
+    ///
+    /// A bottle without a record was last opened by a version that deleted
+    /// each Start Menu shortcut once it pinned the program, and that recorded
+    /// no unpins. Its first scan records the shortcuts to programs the bottle
+    /// scan found without pinning them: those programs were already in the
+    /// list, and one that isn't pinned may have been unpinned on purpose.
+    /// Targets outside the scan are still pinned. A new bottle starts with an
+    /// empty record (``HandledShortcuts/startRecord(in:)``), so its first
+    /// install is pinned as usual.
     ///
     /// - Parameters:
     ///   - bottle: The bottle to scan. Its ``Bottle/programs`` should be loaded.
@@ -57,6 +66,7 @@ public enum StartMenuShortcutSync {
     @discardableResult
     public static func sync(bottle: Bottle, wineUsername: String) -> Bool {
         let driveC = bottle.url.appending(path: "drive_c")
+        let firstScan = !HandledShortcuts.exists(in: bottle.url)
         let handled = HandledShortcuts.load(from: bottle.url)
         let links = WindowsShortcuts.findShortcuts(driveC: driveC, wineUsername: wineUsername)
         // Forget shortcuts that are gone: a reinstall that writes one again
@@ -67,9 +77,9 @@ public enum StartMenuShortcutSync {
             bottle: bottle,
             record: &updated
         )
-        let pinnedOutsideScan = pin(candidates, in: bottle)
+        let pinnedOutsideScan = pin(firstScan ? candidates.filter { $0.scanned == nil } : candidates, in: bottle)
 
-        if updated != handled {
+        if firstScan || updated != handled {
             do {
                 try updated.save(to: bottle.url)
             } catch {

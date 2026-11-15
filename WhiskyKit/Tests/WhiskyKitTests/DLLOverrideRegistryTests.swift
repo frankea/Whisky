@@ -117,28 +117,51 @@ final class DLLOverrideRegistryTests: XCTestCase {
 
     // MARK: - Registry document
 
-    func testDocumentReplacesEachKey() {
+    func testDocumentWritesEachKeyWithoutDeletingIt() {
         let doc = Wine.registryDocument(for: [
             (key: #"HKCU\Software\Wine\DllOverrides"#, overrides: ["d3d11": "n,b"])
         ])
         XCTAssertTrue(doc.hasPrefix("Windows Registry Editor Version 5.00"))
-        // the delete has to come before the write, or it removes what it just wrote
-        let deleteAt = doc.range(of: #"[-HKCU\Software\Wine\DllOverrides]"#)
-        let writeAt = doc.range(of: #"[HKCU\Software\Wine\DllOverrides]"#)
-        XCTAssertNotNil(deleteAt)
-        XCTAssertNotNil(writeAt)
-        if let deleteAt, let writeAt {
-            XCTAssertLessThan(deleteAt.lowerBound, writeAt.lowerBound)
-        }
+        // Deleting the key also took every value winetricks or winecfg wrote.
+        XCTAssertFalse(doc.contains("[-"))
+        XCTAssertTrue(doc.contains(#"[HKCU\Software\Wine\DllOverrides]"#))
         XCTAssertTrue(doc.contains(#""d3d11"="n,b""#))
+        // The managed names it does not set are taken back one by one.
+        XCTAssertTrue(doc.contains(#""dxgi"=-"#))
+        XCTAssertFalse(doc.contains(#""d3d11"=-"#))
     }
 
-    /// An empty scope must still be deleted, since clearing a backend has to
-    /// remove what the previous one wrote.
-    func testEmptyScopeDeletesWithoutRewriting() {
+    /// An empty scope still takes back what Whisky wrote, since clearing a
+    /// backend has to remove what the previous one wrote, and winetricks'
+    /// starred spelling of the translation layers.
+    func testEmptyScopeRemovesOnlyManagedNames() {
         let doc = Wine.registryDocument(for: [(key: #"HKCU\X"#, overrides: [:])])
-        XCTAssertTrue(doc.contains(#"[-HKCU\X]"#))
-        XCTAssertFalse(doc.contains("\r\n[HKCU\\X]"))
+        for dll in Wine.managedDLLNames.union(Wine.starredBackendDLLNames) {
+            XCTAssertTrue(doc.contains("\"\(dll)\"=-"), dll)
+        }
+        XCTAssertFalse(doc.contains("[-"))
+        XCTAssertFalse(doc.contains(#""*nvapi64"=-"#), "only translation layers are starred")
+        XCTAssertEqual(
+            doc.components(separatedBy: "\r\n").filter { $0.hasPrefix("\"") }.count,
+            Wine.managedDLLNames.count + Wine.starredBackendDLLNames.count
+        )
+    }
+
+    func testManagedNamesCoverEveryPresetAndTheNVIDIABridges() {
+        for payload in [true, false] {
+            let presets = DLLOverrideResolver.dxvkPreset(builtinD3D12IsD3DMetal: payload)
+                + DLLOverrideResolver.dxmtPreset(builtinD3D12IsD3DMetal: payload)
+            for entry in presets {
+                XCTAssertTrue(Wine.managedDLLNames.contains(entry.dllName), entry.dllName)
+            }
+        }
+        for dll in ["nvapi", "nvapi64", "nvngx"] {
+            XCTAssertTrue(Wine.managedDLLNames.contains(dll), dll)
+        }
+        // Names only other tools write must never be swept up.
+        for dll in ["d3dx9_43", "mscoree", "winemenubuilder", "xaudio2_7", "msvcp140"] {
+            XCTAssertFalse(Wine.managedDLLNames.contains(dll), dll)
+        }
     }
 
     func testAllScopesLandInOneDocument() {
@@ -223,12 +246,13 @@ final class DLLOverrideRegistryTests: XCTestCase {
         XCTAssertTrue(doc.contains(#""d3d11"="native,builtin""#), "the good override must survive")
         XCTAssertFalse(doc.contains("bad"), "the unrenderable one must be dropped")
         // Exactly one value line, so nothing was left half-written.
-        XCTAssertEqual(doc.components(separatedBy: "\r\n").filter { $0.hasPrefix("\"") }.count, 1)
+        let values = doc.components(separatedBy: "\r\n").filter { $0.hasPrefix("\"") && !$0.hasSuffix("=-") }
+        XCTAssertEqual(values.count, 1)
     }
 
     func testScopeWhoseOverridesAreAllUnrenderableIsStillPruned() {
         let doc = Wine.registryDocument(for: [(key: #"HKCU\A"#, overrides: [#"bad"name"#: "native"])])
-        XCTAssertTrue(doc.contains(#"[-HKCU\A]"#), "the prune must still be emitted")
-        XCTAssertFalse(doc.contains(#"[HKCU\A]"#), "no empty key should be recreated")
+        XCTAssertTrue(doc.contains(#""dxgi"=-"#), "the prune must still be emitted")
+        XCTAssertFalse(doc.contains("bad"))
     }
 }

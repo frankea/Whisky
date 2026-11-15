@@ -328,7 +328,10 @@ public struct BottleSettings: Codable, Equatable {
 
     /// Whether to enable Metal GPU trace capture.
     ///
-    /// Useful for debugging graphics issues with Xcode's GPU debugger.
+    /// Useful for debugging graphics issues with Xcode's GPU debugger. Sets
+    /// `MTL_CAPTURE_ENABLED` and the older `METAL_CAPTURE_ENABLED`; under DXMT
+    /// the launch also names the executable in `DXMT_CAPTURE_EXECUTABLE`,
+    /// without which DXMT captures nothing.
     public var metalTrace: Bool {
         get { metalConfig.metalTrace }
         set { metalConfig.metalTrace = newValue }
@@ -963,6 +966,13 @@ public struct BottleSettings: Codable, Equatable {
             if dxvkAsync {
                 builder.set("DXVK_ASYNC", "1", layer: .bottleManaged)
             }
+            // DXVK renders through MoltenVK, which compiles Metal shaders one at
+            // a time unless told otherwise; Apple Silicon has the cores to spread
+            // the compile across.
+            builder.set(
+                "MVK_CONFIG_SHOULD_MAXIMIZE_CONCURRENT_COMPILATION", "1",
+                layer: .bottleManaged, reason: "Parallel Metal shader compilation for DXVK"
+            )
 
         case .dxmt:
             // DXMT: native overrides for the D3D11 trio plus the builtin
@@ -1004,7 +1014,12 @@ public struct BottleSettings: Codable, Equatable {
             builder.set("MTL_HUD_ENABLED", "1", layer: .bottleManaged)
         }
 
+        // MTL_CAPTURE_ENABLED is the name Apple documents for capturing outside
+        // Xcode and the one DXMT checks; Metal.framework still reads the older
+        // METAL_CAPTURE_ENABLED as well. DXMT also needs the executable named,
+        // which only the launch knows (`Wine.dxmtCaptureExecutable`).
         if metalTrace {
+            builder.set("MTL_CAPTURE_ENABLED", "1", layer: .bottleManaged)
             builder.set("METAL_CAPTURE_ENABLED", "1", layer: .bottleManaged)
         }
 
@@ -1027,11 +1042,15 @@ public struct BottleSettings: Codable, Equatable {
         // toggle's off position changed nothing and its on position only hid
         // the provenance.
 
-        // Shader cache control. DXVK_STATE_CACHE is the variable DXVK actually
-        // reads; the previous pair (a compile-thread throttle and an NVIDIA GL
-        // driver variable) changed nothing on this platform.
+        // Shader cache control. DXVK_STATE_CACHE and DXMT_SHADER_CACHE are the
+        // variables DXVK and DXMT actually read (DXMT skips its cache only for
+        // "0"); the previous pair (a compile-thread throttle and an NVIDIA GL
+        // driver variable) changed nothing on this platform. Each backend
+        // ignores the other's variable, so both go out whatever the backend,
+        // and a program moved onto the other one still finds its own.
         if !shaderCacheEnabled {
             builder.set("DXVK_STATE_CACHE", "0", layer: .bottleManaged)
+            builder.set("DXMT_SHADER_CACHE", "0", layer: .bottleManaged)
         }
 
         return managedDLLOverrides

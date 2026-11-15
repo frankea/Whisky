@@ -49,27 +49,58 @@ public extension Wine {
         _ bottle: Bottle, _ scopes: [(scope: DLLOverrideScope, overrides: String)]
     ) async throws -> Void
 
-    /// Replaces the DLL overrides at each scope, in one import.
+    /// Writes the DLL overrides at each scope, in one import.
     ///
     /// One import rather than a `reg` call per value: each of those is a whole
     /// wine process, and a launch syncing a bottle plus a launcher and its
     /// helpers spent twenty-odd of them before starting anything.
     ///
+    /// Values another tool wrote are left alone: only names Whisky could have
+    /// written are removed (``registryDocument(for:record:)``).
+    ///
     /// - Parameters:
     ///   - bottle: The bottle whose prefix registry is written.
     ///   - scopes: Each scope and the `WINEDLLOVERRIDES`-syntax string it
-    ///     should hold. An empty string clears that scope.
+    ///     should hold. An empty string takes back what Whisky wrote there.
     @MainActor
     static func syncDLLOverrides(
         bottle: Bottle, scopes: [(scope: DLLOverrideScope, overrides: String)]
     ) async throws {
-        let document = registryDocument(
-            for: scopes.map { (key: $0.scope.registryKey, overrides: parseDLLOverrides($0.overrides)) }
-        )
+        try await syncDLLOverrides(bottle: bottle, scopes: scopes) { document, bottle in
+            try await importDLLOverrideDocument(document, bottle: bottle)
+        }
+    }
+
+    /// ``syncDLLOverrides(bottle:scopes:)`` with the import itself supplied, so
+    /// tests can run it against a simulated registry.
+    @MainActor
+    internal static func syncDLLOverrides(
+        bottle: Bottle, scopes: [(scope: DLLOverrideScope, overrides: String)],
+        importer: RegistryImporter
+    ) async throws {
+        let planned = scopes.map { (key: $0.scope.registryKey, overrides: parseDLLOverrides($0.overrides)) }
+        let snapshot = DLLOverrideRecord.load(from: bottle.url)
+        try await importer(registryDocument(for: planned, record: snapshot), bottle)
+        // Only after the import: a failed one leaves the old names recorded, so
+        // the next launch still takes them back. Read again rather than saving
+        // `snapshot`: another launch in the bottle may have saved its names
+        // while this import ran, and the stale copy would forget them. Nothing
+        // suspends between this load and the save.
+        do {
+            try DLLOverrideRecord.load(from: bottle.url).updated(with: planned).save(to: bottle.url)
+        } catch {
+            dllOverrideLogger.error("Could not record the DLL overrides written: \(error.localizedDescription)")
+        }
+        dllOverrideLogger.debug("Synced DLL overrides for \(scopes.count) scope(s) in one import")
+    }
+
+    /// Runs `reg import` on a DLL override document in the bottle.
+    @MainActor
+    private static func importDLLOverrideDocument(_ document: String, bottle: Bottle) async throws {
         let url = FileManager.default.temporaryDirectory
             .appending(path: "whisky-dll-overrides-\(UUID().uuidString).reg")
         // Wine detects a Unicode .reg by its BOM alone, and `.utf16LittleEndian`
-        // writes none — the file parses as ANSI, matches no header, and imports
+        // writes none: the file parses as ANSI, matches no header, and imports
         // nothing while exiting 0. Written explicitly rather than via `.utf16`,
         // whose BOM follows platform endianness.
         try ("\u{FEFF}" + document).write(to: url, atomically: true, encoding: .utf16LittleEndian)
@@ -78,7 +109,6 @@ public extension Wine {
         // `reg import`, not `regedit`: regedit has no silent switch, so it puts up
         // the import confirmation and never exits.
         try await runWine(["reg", "import", url.path(percentEncoded: false)], bottle: bottle)
-        dllOverrideLogger.debug("Synced DLL overrides for \(scopes.count) scope(s) in one import")
     }
 
     /// Moves this launch's DLL overrides from the environment into the registry.
@@ -139,8 +169,8 @@ public extension Wine {
         // asks it about the GPU before it will consider DLSS at all, so it is
         // disabled per helper rather than withheld from the bottle.
         //
-        // The helpers are written on a Steam game launch too. The sync
-        // *replaces* each key it writes, so leaving them out did not merely skip
+        // The helpers are written on a Steam game launch too. The sync used to
+        // *replace* each key it wrote, so leaving them out did not merely skip
         // them, it cleared any entry they already had and handed Chromium
         // nvapi64 again. The overrides on such a launch are the game's, so the
         // launcher and its helpers get the launcher's own set instead: the
@@ -266,43 +296,6 @@ public extension Wine {
             let folder = driveC.appending(path: programFiles).appending(path: "Rockstar Games")
             return FileManager.default.fileExists(atPath: folder.path(percentEncoded: false))
         }
-    }
-
-    /// Renders a `.reg` leaving each key holding exactly `overrides`.
-    ///
-    /// `[-Key]` then `[Key]` is a replace, since `.reg` runs in order. That is
-    /// what prunes stale values without reading the key back first.
-    static func registryDocument(for scopes: [(key: String, overrides: [String: String])]) -> String {
-        var lines = ["Windows Registry Editor Version 5.00", ""]
-        for scope in scopes {
-            lines.append("[-\(scope.key)]")
-            lines.append("")
-            let renderable = scope.overrides
-                .filter { isRenderable(dll: $0.key, mode: $0.value) }
-                .sorted { $0.key < $1.key }
-            guard !renderable.isEmpty else { continue }
-            lines.append("[\(scope.key)]")
-            for (dll, mode) in renderable {
-                lines.append("\"\(dll)\"=\"\(mode)\"")
-            }
-            lines.append("")
-        }
-        return lines.joined(separator: "\r\n")
-    }
-
-    /// Whether an override can be rendered without corrupting the document.
-    ///
-    /// Custom overrides are user-typed, and a quote or backslash in a name would
-    /// terminate the value early and take every later scope down with it. A DLL
-    /// name is a filename and a mode is a list of known words, so anything
-    /// outside these sets could not have loaded regardless — dropping it costs
-    /// nothing and contains the blast radius to the one bad entry.
-    static func isRenderable(dll: String, mode: String) -> Bool {
-        let name = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz0123456789._-+")
-        let modes = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz,")
-        guard !dll.isEmpty else { return false }
-        return dll.lowercased().unicodeScalars.allSatisfy(name.contains)
-            && mode.lowercased().unicodeScalars.allSatisfy(modes.contains)
     }
 
     /// The launcher helpers that must share `url`'s DLL overrides.

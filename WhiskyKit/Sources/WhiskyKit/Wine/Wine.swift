@@ -518,15 +518,10 @@ public class Wine {
             try enableDXVK(bottle: bottle)
         }
 
-        // A game configuration applied before the game was in the bottle keeps
-        // its variables in the bottle settings, scoped to the game's executables.
-        // The caller's profile (a Steam launch plan) wins where both set one.
-        let gameProfileEnvironment = bottle.settings.gameConfigProfile(launching: url, caller: gameProfileEnvironment)
-
-        // Build the Wine environment with program overrides flowing through the programUser layer
-        var wineEnvironment = constructWineEnvironment(
-            for: bottle, environment: environment, programOverrides: programOverrides,
-            programSettings: programSettings, gameProfileEnvironment: gameProfileEnvironment,
+        var wineEnvironment = launchEnvironment(
+            for: url, bottle: bottle, backend: effectiveBackend, environment: environment,
+            programOverrides: programOverrides, programSettings: programSettings, callerProfile: gameProfileEnvironment,
+            descendantExecutables: overridesApplyToDescendants ? descendantExecutables : nil,
             recommendedBackend: recommendedBackend, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
         )
 
@@ -545,6 +540,110 @@ public class Wine {
             for: url, args: args, programOverrides: programOverrides, bottle: bottle, query: virtualDesktopQuery
         )
         return PreparedLaunch(environment: wineEnvironment, arguments: arguments)
+    }
+
+    /// The environment a launch runs with: `constructWineEnvironment` with the
+    /// game's stored GameDB profile, plus the executable DXMT's Metal capture
+    /// needs named.
+    ///
+    /// - Parameters:
+    ///   - url: The executable being launched.
+    ///   - bottle: The bottle it runs in.
+    ///   - backend: The launch's effective graphics backend.
+    ///   - environment: The program's own environment variables.
+    ///   - programOverrides: The program's setting overrides.
+    ///   - programSettings: The program's settings.
+    ///   - callerProfile: The caller's GameDB profile environment (a Steam launch
+    ///     plan's), which wins over a profile stored in the bottle settings.
+    ///   - descendantExecutables: The game's executables when the launch only
+    ///     carries their plan, or `nil` when `url` is what renders.
+    ///   - recommendedBackend: What `.recommended` resolves to for the bottle.
+    ///   - builtinD3D12IsD3DMetal: Whether the runtime's builtin `d3d12` is D3DMetal's.
+    @MainActor
+    static func launchEnvironment(
+        for url: URL, bottle: Bottle, backend: GraphicsBackend,
+        environment: [String: String] = [:],
+        programOverrides: ProgramOverrides? = nil, programSettings: ProgramSettings? = nil,
+        callerProfile: [String: String] = [:],
+        descendantExecutables: [String]? = nil,
+        recommendedBackend: GraphicsBackend? = nil,
+        builtinD3D12IsD3DMetal: Bool = GPTKImporter.isDeployed()
+    ) -> [String: String] {
+        // A game configuration applied before the game was in the bottle keeps
+        // its variables in the bottle settings, scoped to the game's executables.
+        // The caller's profile (a Steam launch plan) wins where both set one.
+        let gameProfileEnvironment = bottle.settings.gameConfigProfile(launching: url, caller: callerProfile)
+
+        // Program overrides flow through the programUser layer.
+        var wineEnvironment = constructWineEnvironment(
+            for: bottle, environment: environment, programOverrides: programOverrides,
+            programSettings: programSettings, gameProfileEnvironment: gameProfileEnvironment,
+            recommendedBackend: recommendedBackend, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
+        )
+        nameDXMTCaptureExecutable(
+            in: &wineEnvironment, backend: backend, metalTrace: bottle.settings.metalTrace,
+            url: url, descendantExecutables: descendantExecutables
+        )
+        return wineEnvironment
+    }
+
+    /// Names the executable for DXMT's Metal capture, which DXMT ignores the
+    /// capture switch without.
+    ///
+    /// Only when the launch runs on DXMT with Metal trace on, and never over a
+    /// value the user set in the program's environment.
+    static func nameDXMTCaptureExecutable(
+        in environment: inout [String: String], backend: GraphicsBackend, metalTrace: Bool,
+        url: URL, descendantExecutables: [String]?
+    ) {
+        guard backend == .dxmt, metalTrace, environment["DXMT_CAPTURE_EXECUTABLE"] == nil,
+              let executable = dxmtCaptureExecutable(for: url, descendantExecutables: descendantExecutables)
+        else { return }
+        environment["DXMT_CAPTURE_EXECUTABLE"] = executable
+    }
+
+    /// The name DXMT's `DXMT_CAPTURE_EXECUTABLE` has to hold for a launch's
+    /// Metal capture to happen: the executable that renders, without `.exe`.
+    ///
+    /// DXMT captures only when the variable equals the name of the executable
+    /// it is loaded into. On `steam.exe -applaunch` that is the game, not the
+    /// launcher. The game's executables come from a scan of its install folder
+    /// in no particular order, with a crash handler or uninstaller among them,
+    /// so one is named only when it is the only candidate left once those are
+    /// set aside; otherwise naming the wrong one would capture nothing, and
+    /// nothing is named.
+    ///
+    /// Even then it reaches the game only when this `-applaunch` brings up
+    /// the Steam client itself: a running client starts the game with its own
+    /// environment. Metal trace under DXMT is dependable on a direct launch.
+    ///
+    /// - Parameters:
+    ///   - url: The executable being launched.
+    ///   - descendantExecutables: The game's executables when the launch only
+    ///     carries their plan, or `nil` when `url` is what renders.
+    /// - Returns: The name to set, or `nil` when no single executable is known.
+    static func dxmtCaptureExecutable(for url: URL, descendantExecutables: [String]?) -> String? {
+        let name: String?
+        if let descendantExecutables {
+            var seen = Set<String>()
+            let candidates = descendantExecutables.filter {
+                !$0.isEmpty && !isAuxiliaryExecutable($0) && seen.insert($0.lowercased()).inserted
+            }
+            name = candidates.count == 1 ? candidates.first : nil
+        } else {
+            name = url.lastPathComponent
+        }
+        guard let name, !name.isEmpty else { return nil }
+        return name.lowercased().hasSuffix(".exe") ? String(name.dropLast(4)) : name
+    }
+
+    /// Whether an executable in a game's folder is one that never renders the
+    /// game: a crash handler or reporter, an uninstaller, a redistributable or
+    /// prerequisite setup, or a launcher.
+    static func isAuxiliaryExecutable(_ name: String) -> Bool {
+        let lowercased = name.lowercased()
+        let markers = ["crashhandler", "crashreport", "redist", "prereq", "setup", "launcher", "cefsubprocess"]
+        return lowercased.hasPrefix("unins") || markers.contains { lowercased.contains($0) }
     }
 
     /// The `wine64` arguments for a launch, honoring a program's virtual desktop override.

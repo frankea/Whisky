@@ -161,9 +161,11 @@ extension Bottle {
     /// Thin adapter over `BottleOperations.move`, which owns the
     /// rewrite-before-move and rollback-on-failure semantics for pins and
     /// blocklist URLs.
+    ///
+    /// - Throws: The file move's error, so the caller can tell the user.
     @MainActor
-    func move(destination: URL) {
-        BottleOperations.move(bottleAt: url, to: destination, registry: BottleVM.shared)
+    func move(destination: URL) throws {
+        try BottleOperations.move(bottleAt: url, to: destination, registry: BottleVM.shared)
     }
 
     /// Exports the bottle as a gzip-compressed tar archive.
@@ -199,8 +201,14 @@ extension Bottle {
         )
     }
 
-    @MainActor
-    func remove(delete: Bool) async {
+    /// Removes the bottle from the list, optionally deleting its files, after
+    /// offering to stop any running processes.
+    ///
+    /// - Returns: `false` when the user cancels that prompt and nothing was
+    ///   removed.
+    /// - Throws: The deletion's error, so the caller can tell the user.
+    @MainActor @discardableResult
+    func remove(delete: Bool) async throws -> Bool {
         // Check for running processes before deletion
         let isRunning = await Wine.isWineserverRunning(for: self)
         let trackedCount = ProcessRegistry.shared.getProcessCount(for: self)
@@ -217,14 +225,15 @@ extension Bottle {
             alert.addButton(withTitle: String(localized: "bottle.remove.hasProcesses.cancel"))
 
             let response = alert.runModal()
-            guard response == .alertFirstButtonReturn else { return }
+            guard response == .alertFirstButtonReturn else { return false }
 
             Wine.killBottle(bottle: self)
             try? await Task.sleep(for: .seconds(2))
             ProcessRegistry.shared.clearRegistry(for: url)
         }
 
-        BottleOperations.remove(bottleAt: url, deleteFiles: delete, registry: BottleVM.shared)
+        try BottleOperations.remove(bottleAt: url, deleteFiles: delete, registry: BottleVM.shared)
+        return true
     }
 
     @MainActor

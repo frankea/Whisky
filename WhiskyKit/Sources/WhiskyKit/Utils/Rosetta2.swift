@@ -20,9 +20,18 @@ import Foundation
 import os.log
 
 public class Rosetta2 {
-    private static let rosetta2RuntimeBin = "/Library/Apple/usr/libexec/oah/libRosettaRuntime"
+    static let rosetta2RuntimeBin = "/Library/Apple/usr/libexec/oah/libRosettaRuntime"
 
-    public static let isRosettaInstalled: Bool = FileManager.default.fileExists(atPath: rosetta2RuntimeBin)
+    /// Where ``isRosettaInstalled`` looks for the runtime library. Tests point
+    /// it at a temporary file; the app never changes it.
+    nonisolated(unsafe) static var runtimePath = rosetta2RuntimeBin
+
+    /// Checked live, not cached at launch: a major macOS update can remove
+    /// Rosetta, and a value frozen at launch would keep reporting it missing
+    /// (and keep reopening setup) after it is reinstalled.
+    public static var isRosettaInstalled: Bool {
+        FileManager.default.fileExists(atPath: runtimePath)
+    }
 
     public static func installRosetta() async throws -> Bool {
         let process = Process()

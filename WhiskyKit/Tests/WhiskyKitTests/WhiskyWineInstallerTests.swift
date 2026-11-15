@@ -38,6 +38,40 @@ final class WhiskyWineInstallerTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: tarURL.path))
     }
 
+    func testRemoveBottleStorageDeletesDefaultBottlesAndRegistryOnly() throws {
+        let tempDir = try makeTempDir()
+        let bottles = tempDir.appending(path: "Bottles")
+        let registry = tempDir.appending(path: "BottleVM.plist")
+        let custom = tempDir.appending(path: "elsewhere")
+        for dir in [bottles.appending(path: "one"), custom] {
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        }
+        try Data("x".utf8).write(to: registry)
+
+        WhiskyWineInstaller.removeBottleStorage(defaultBottlesDir: bottles, registryFile: registry)
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: bottles.path(percentEncoded: false)))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: registry.path(percentEncoded: false)))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: custom.path(percentEncoded: false)))
+
+        // Running again with nothing left must not fail.
+        WhiskyWineInstaller.removeBottleStorage(defaultBottlesDir: bottles, registryFile: registry)
+    }
+
+    func testRemovedRegistryReloadsAsEmpty() throws {
+        let tempDir = try makeTempDir()
+        let registry = tempDir.appending(path: "BottleVM.plist")
+        var data = BottleData(entriesFile: registry)
+        data.paths = [tempDir.appending(path: "Bottles/one")]
+        XCTAssertEqual(BottleData(entriesFile: registry).paths.count, 1)
+
+        WhiskyWineInstaller.removeBottleStorage(
+            defaultBottlesDir: tempDir.appending(path: "Bottles"), registryFile: registry
+        )
+
+        XCTAssertTrue(BottleData(entriesFile: registry).paths.isEmpty)
+    }
+
     func testCleanupTarballIgnoresMissingFile() {
         let missingURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)

@@ -156,7 +156,9 @@ public struct PEFile: Hashable, Equatable, Sendable {
         self.coffFileHeader = coffFileHeader
 
         if coffFileHeader.sizeOfOptionalHeader > 0 {
-            self.optionalHeader = OptionalHeader(handle: fileHandle, offset: offset)
+            self.optionalHeader = OptionalHeader(
+                handle: fileHandle, offset: offset, size: coffFileHeader.sizeOfOptionalHeader
+            )
             offset += UInt64(coffFileHeader.sizeOfOptionalHeader)
         } else {
             self.optionalHeader = nil

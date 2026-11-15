@@ -5571,6 +5571,72 @@
       }
     },
     {
+      "id": "trine-4",
+      "title": "Trine 4: The Nightmare Prince",
+      "aliases": [
+        "Trine 4"
+      ],
+      "subtitle": "Frozenbyte / Modus Games",
+      "store": "steam",
+      "steamAppId": 690640,
+      "rating": "works",
+      "exeNames": [
+        "trine4_game.exe"
+      ],
+      "pathPatterns": [
+        "trine 4 the nightmare prince"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "10.0"
+      },
+      "variants": [
+        {
+          "id": "dxmt",
+          "label": "DXMT",
+          "isDefault": true,
+          "whenToUse": "Recommended configuration",
+          "rationale": [
+            "Direct3D 11; on D3DMetal the game freezes on its first loading screen",
+            "DXMT gets past it and holds 120 fps without crashing",
+            "Only the backend changes; every other setting stays as the bottle has it"
+          ],
+          "settings": {
+            "graphicsBackend": "dxmt"
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "testedWith": {
+            "lastTestedAt": "2026-10-16T00:00:00Z",
+            "macOSVersion": "27.0.1",
+            "wineVersion": "10.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Steam starts trine4.exe, the launcher; the game itself is trine4_game.exe"
+      ],
+      "knownIssues": [
+        {
+          "description": "Freezes on the first loading screen on D3DMetal",
+          "severity": "major",
+          "workaround": "Use the DXMT configuration"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "furknataman",
+        "lastUpdated": "2026-10-16T00:00:00Z",
+        "referenceURL": "https://github.com/furknataman/Kadeh/commit/12c7612db4c5e2c84f06a0ab23c15adcaabd0df4"
+      }
+    },
+    {
       "id": "turtle-wow",
       "title": "Turtle WoW",
       "aliases": [],

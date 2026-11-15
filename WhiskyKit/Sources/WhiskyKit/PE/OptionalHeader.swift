@@ -54,10 +54,12 @@ extension PEFile {
         public let checkSum: UInt32
         public let subsystem: UInt16
         public let dllCharacteristics: UInt16
-        public let sizeOfStackReserve: UInt32
-        public let sizeOfStackCommit: UInt32
-        public let sizeOfHeapReserve: UInt32
-        public let sizeOfHeapCommit: UInt32
+        /// The reserve and commit sizes are 8 bytes wide in a PE32+ image and
+        /// 4 in a PE32 one, so they are held at the wider size for both.
+        public let sizeOfStackReserve: UInt64
+        public let sizeOfStackCommit: UInt64
+        public let sizeOfHeapReserve: UInt64
+        public let sizeOfHeapCommit: UInt64
         public let loaderFlags: UInt32
         public let numberOfRvaAndSizes: UInt32
 
@@ -130,17 +132,29 @@ extension PEFile {
             offset += 2
             self.dllCharacteristics = handle.extract(UInt16.self, offset: offset) ?? 0
             offset += 2
-            self.sizeOfStackReserve = handle.extract(UInt32.self, offset: offset) ?? 0
-            offset += 4
-            self.sizeOfStackCommit = handle.extract(UInt32.self, offset: offset) ?? 0
-            offset += 4
-            self.sizeOfHeapReserve = handle.extract(UInt32.self, offset: offset) ?? 0
-            offset += 4
-            self.sizeOfHeapCommit = handle.extract(UInt32.self, offset: offset) ?? 0
-            offset += 4
+            // PE32+ widens these four to 8 bytes. Read as 4, they put LoaderFlags,
+            // NumberOfRvaAndSizes and the data directories 16 bytes early.
+            let wideSizes = magic == .pe32Plus
+            let sizeWidth: UInt64 = wideSizes ? 8 : 4
+            self.sizeOfStackReserve = Self.sizeField(handle: handle, offset: offset, wide: wideSizes)
+            offset += sizeWidth
+            self.sizeOfStackCommit = Self.sizeField(handle: handle, offset: offset, wide: wideSizes)
+            offset += sizeWidth
+            self.sizeOfHeapReserve = Self.sizeField(handle: handle, offset: offset, wide: wideSizes)
+            offset += sizeWidth
+            self.sizeOfHeapCommit = Self.sizeField(handle: handle, offset: offset, wide: wideSizes)
+            offset += sizeWidth
             self.loaderFlags = handle.extract(UInt32.self, offset: offset) ?? 0
             offset += 4
             self.numberOfRvaAndSizes = handle.extract(UInt32.self, offset: offset) ?? 0
+        }
+
+        /// A stack or heap size field: 8 bytes in a PE32+ image, 4 otherwise.
+        private static func sizeField(handle: FileHandle, offset: UInt64, wide: Bool) -> UInt64 {
+            if wide {
+                return handle.extract(UInt64.self, offset: offset) ?? 0
+            }
+            return UInt64(handle.extract(UInt32.self, offset: offset) ?? 0)
         }
     }
 }

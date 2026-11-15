@@ -267,10 +267,13 @@ public extension Wine {
         /// file name can hold a line break, which ends the header early in
         /// the `.reg` document: Wine drops it, and that program's values land
         /// in the key before it. A backslash would make a subkey. Neither can
-        /// be a Windows image name, so no process would match the entry.
+        /// be a Windows image name, so no process would match the entry. Only
+        /// control codes count, not format characters: a zero-width non-joiner
+        /// is an ordinary part of Persian words, and a file name with one is a
+        /// real program.
         static func isKeySegment(_ executable: String) -> Bool {
             !executable.isEmpty && !executable.contains("\\")
-                && !executable.unicodeScalars.contains { CharacterSet.controlCharacters.contains($0) }
+                && !executable.unicodeScalars.contains { $0.properties.generalCategory == .control }
         }
     }
 

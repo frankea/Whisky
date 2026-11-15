@@ -155,6 +155,26 @@ final class StartMenuShortcutSyncTests: XCTestCase {
         XCTAssertTrue(bottle.settings.pins.isEmpty)
     }
 
+    func testReinstallWithTheSameShortcutPinsAgain() throws {
+        let exe = try makeExe("Games/Racer/racer.exe")
+        let link = desktop.appending(path: "Racer.lnk")
+        try writeShortcut(link, to: #"C:\Games\Racer\racer.exe"#)
+        let bottle = Bottle(bottleUrl: bottleURL)
+        XCTAssertTrue(sync(bottle))
+
+        // The uninstaller removes both; the next load drops the dead pin.
+        try FileManager.default.removeItem(at: link)
+        try FileManager.default.removeItem(at: exe)
+        bottle.settings.pins = []
+        XCTAssertFalse(sync(bottle))
+        XCTAssertEqual(HandledShortcuts.load(from: bottleURL), HandledShortcuts())
+
+        try makeExe("Games/Racer/racer.exe")
+        try writeShortcut(link, to: #"C:\Games\Racer\racer.exe"#)
+        XCTAssertTrue(sync(bottle))
+        XCTAssertEqual(bottle.settings.pins.map(\.name), ["Racer"])
+    }
+
     func testNewShortcutLeavesAnUnpinnedProgramAlone() throws {
         let exe = try makeExe("Games/Racer/racer.exe")
         let bottle = Bottle(bottleUrl: bottleURL)

@@ -26,6 +26,7 @@ import os.log
 /// `.lnk` files themselves are left alone. A shortcut is recorded only after
 /// it parses and its target exists, so one an installer is still writing, or
 /// one whose program isn't extracted yet, is tried again on the next scan.
+/// A shortcut that disappears is dropped from the record.
 @MainActor
 public enum StartMenuShortcutSync {
     /// A shortcut that should pin its program.
@@ -57,16 +58,43 @@ public enum StartMenuShortcutSync {
     public static func sync(bottle: Bottle, wineUsername: String) -> Bool {
         let driveC = bottle.url.appending(path: "drive_c")
         let handled = HandledShortcuts.load(from: bottle.url)
-        var updated = handled
+        let links = WindowsShortcuts.findShortcuts(driveC: driveC, wineUsername: wineUsername)
+        // Forget shortcuts that are gone: a reinstall that writes one again
+        // gets its program pinned again, as after a first install.
+        var updated = handled.keeping(links, driveC: driveC)
+        let candidates = newCandidates(
+            from: links.filter { !handled.contains($0, driveC: driveC) },
+            bottle: bottle,
+            record: &updated
+        )
+        let pinnedOutsideScan = pin(candidates, in: bottle)
+
+        if updated != handled {
+            do {
+                try updated.save(to: bottle.url)
+            } catch {
+                Logger.wineKit.error("Failed to save handled shortcuts: \(error.localizedDescription)")
+            }
+        }
+        return pinnedOutsideScan
+    }
+
+    /// The programs `links` stand for, each recorded in `record` once it
+    /// parses and its target exists.
+    private static func newCandidates(
+        from links: [URL],
+        bottle: Bottle,
+        record: inout HandledShortcuts
+    ) -> [Candidate] {
+        let driveC = bottle.url.appending(path: "drive_c")
         var seenTargets: Set<String> = []
         var candidates: [Candidate] = []
 
-        for link in WindowsShortcuts.findShortcuts(driveC: driveC, wineUsername: wineUsername)
-            where !handled.contains(link, driveC: driveC) {
+        for link in links {
             guard let target = targetURL(of: link, bottle: bottle) else { continue }
             let targetPath = target.path(percentEncoded: false)
             guard FileManager.default.fileExists(atPath: targetPath) else { continue }
-            updated.insert(link, driveC: driveC)
+            record.insert(link, driveC: driveC)
 
             let name = link.deletingPathExtension().lastPathComponent
             guard WindowsShortcuts.isProgramShortcut(name: name, targetPath: targetPath),
@@ -78,7 +106,14 @@ public enum StartMenuShortcutSync {
             }
             candidates.append(Candidate(url: scanned?.url ?? target, name: name, scanned: scanned))
         }
+        return candidates
+    }
 
+    /// Pins the `candidates` that ``BottleSettings/startMenuPinsToAdd(candidates:)``
+    /// lets through.
+    ///
+    /// - Returns: Whether any pin is for a program the bottle scan didn't find.
+    private static func pin(_ candidates: [Candidate], in bottle: Bottle) -> Bool {
         let toPin = Set(bottle.settings.startMenuPinsToAdd(candidates: candidates.map(\.url)))
         var pinnedOutsideScan = false
         for candidate in candidates where toPin.contains(candidate.url) {
@@ -88,14 +123,6 @@ public enum StartMenuShortcutSync {
             } else {
                 bottle.settings.pins.append(PinnedProgram(name: candidate.name, url: candidate.url))
                 pinnedOutsideScan = true
-            }
-        }
-
-        if updated != handled {
-            do {
-                try updated.save(to: bottle.url)
-            } catch {
-                Logger.wineKit.error("Failed to save handled shortcuts: \(error.localizedDescription)")
             }
         }
         return pinnedOutsideScan

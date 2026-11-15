@@ -141,6 +141,21 @@ struct WindowsShortcutsTests {
 
     // MARK: - Handled shortcuts record
 
+    @Test("Keeping only present shortcuts forgets the removed ones")
+    func recordKeepsPresentShortcuts() {
+        let driveC = URL(fileURLWithPath: "/tmp/bottle/drive_c")
+        let kept = driveC.appending(path: "users/Public/Desktop/Game.lnk")
+        let removed = driveC.appending(path: "users/crossover/Desktop/Old.lnk")
+        var record = HandledShortcuts()
+        record.insert(kept, driveC: driveC)
+        record.insert(removed, driveC: driveC)
+
+        let pruned = record.keeping([driveC.appending(path: "users/Public/Desktop/GAME.LNK")], driveC: driveC)
+
+        #expect(pruned.contains(kept, driveC: driveC))
+        #expect(!pruned.contains(removed, driveC: driveC))
+    }
+
     @Test("The record matches shortcuts case-insensitively, relative to drive_c")
     func recordKeys() {
         let driveC = URL(fileURLWithPath: "/tmp/bottle/drive_c")

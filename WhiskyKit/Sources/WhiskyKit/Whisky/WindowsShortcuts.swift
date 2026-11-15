@@ -177,4 +177,11 @@ public struct HandledShortcuts: Codable, Equatable, Sendable {
     public mutating func insert(_ link: URL, driveC: URL) {
         links.insert(Self.key(for: link, driveC: driveC))
     }
+
+    /// The record without the shortcuts that are no longer among `present`,
+    /// so a shortcut an uninstaller removed and a reinstall wrote again is
+    /// handled like a new one.
+    public func keeping(_ present: [URL], driveC: URL) -> HandledShortcuts {
+        HandledShortcuts(links: links.intersection(present.map { Self.key(for: $0, driveC: driveC) }))
+    }
 }

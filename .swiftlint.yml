@@ -6,6 +6,8 @@ excluded:
   - .build
   - WhiskyKit/.build
   - build
+  # Local agent worktrees and their build products (gitignored).
+  - .claude
 
 file_header:
     severity: error

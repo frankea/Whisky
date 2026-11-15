@@ -188,7 +188,7 @@ final class UnpinnedProgramsBottleTests: BottleOperationsTestCase {
         bottle.settings.unpinnedPrograms = [exeURL]
         let destination = tempDir.appending(path: "Moved")
 
-        BottleOperations.move(bottleAt: bottleURL, to: destination, registry: registry)
+        try BottleOperations.move(bottleAt: bottleURL, to: destination, registry: registry)
 
         XCTAssertEqual(
             try persistedSettings(at: destination).unpinnedPrograms.map { $0.path(percentEncoded: false) },
@@ -202,7 +202,11 @@ final class UnpinnedProgramsBottleTests: BottleOperationsTestCase {
         let bottle = makeRegisteredBottle(in: registry)
         bottle.settings.unpinnedPrograms = [exeURL]
 
-        BottleOperations.move(bottleAt: bottleURL, to: tempDir.appending(path: "missing/Moved"), registry: registry)
+        XCTAssertThrowsError(
+            try BottleOperations.move(
+                bottleAt: bottleURL, to: tempDir.appending(path: "missing/Moved"), registry: registry
+            )
+        )
 
         XCTAssertEqual(bottle.settings.unpinnedPrograms, [exeURL])
         XCTAssertEqual(try persistedSettings(at: bottleURL).unpinnedPrograms, [exeURL])

@@ -176,12 +176,12 @@ struct CJKFontReplacementTests {
         #expect(pending.map(\.alias) == ["Noto Sans CJK TC", "Noto Sans CJK JP", "Noto Sans CJK KR"])
     }
 
-    @Test("A prefix without the collection needs nothing")
+    @Test("A prefix without the collection, on a Mac without the Korean fallback, needs nothing")
     func noCollectionNeedsNothing() throws {
         let bottle = try makeBottle(collection: false, userReg: Self.userReg())
         defer { try? FileManager.default.removeItem(at: bottle) }
 
-        #expect(CJKFontReplacements.pending(bottleURL: bottle).isEmpty)
+        #expect(CJKFontReplacements.pending(bottleURL: bottle, koreanFallbackInstalled: false).isEmpty)
     }
 
     @Test("A missing Replacements key means every alias is needed")
@@ -257,7 +257,9 @@ struct CJKFontReplacementTests {
         let recorder = ImportRecorder()
 
         await Wine.syncCJKFontReplacements(bottle: complete, importer: recorder.importer)
-        await Wine.syncCJKFontReplacements(bottle: fontless, importer: recorder.importer)
+        await Wine.syncCJKFontReplacements(
+            bottle: fontless, koreanFallbackInstalled: false, importer: recorder.importer
+        )
 
         #expect(recorder.imports.isEmpty)
     }

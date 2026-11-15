@@ -156,7 +156,8 @@ public enum PreflightCollector {
     ///
     /// Mirrors the launch: the program's override wins over the bottle's
     /// setting, and Recommended resolves for what is launched, which steers
-    /// a launcher or a Chromium front end to DXVK. The reason is the
+    /// a launcher, a Chromium front end, or an Electron or NW.js app to DXVK.
+    /// Reads the executable's files the way a launch does. The reason is the
     /// Recommended pick's, and `nil` for an explicit choice.
     static func resolvedBackends(
         bottle: GraphicsBackend,
@@ -169,7 +170,7 @@ public enum PreflightCollector {
         guard choice == .recommended else {
             return ResolvedBackends(effective: choice, bottle: bottleResolved, reason: nil)
         }
-        let resolution = recommended(programURL.flatMap { DXVKSteering.detect(executable: $0) })
+        let resolution = recommended(programURL.flatMap { DXVKSteering.inspect(executable: $0) })
         return ResolvedBackends(effective: resolution.backend, bottle: bottleResolved, reason: resolution.reason)
     }
 

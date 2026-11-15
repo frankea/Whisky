@@ -63,7 +63,7 @@ public enum GraphicsBackendResolver {
     ///
     /// - Parameters:
     ///   - steering: Why the executable being launched needs DXVK, if it does
-    ///     (``DXVKSteering/detect(executable:)``). A steered executable always
+    ///     (``DXVKSteering/inspect(executable:)``). A steered executable always
     ///     resolves to DXVK: its window is drawn by Chromium, which cannot
     ///     render on D3DMetal or DXMT.
     ///   - macOSVersion: The macOS version to consider. Defaults to the running system.
@@ -125,10 +125,15 @@ public enum DXVKSteering: Sendable, Equatable {
     case launcher(LauncherType)
     /// A program from the curated ``ChromiumFrontEnd`` table.
     case chromiumFrontEnd(ChromiumFrontEnd)
+    /// An Electron or NW.js app, found by its files (``ChromiumRuntimeDetector``).
+    /// `evidence` is the file beside it that identified it, such as
+    /// `resources/app.asar`.
+    case chromiumRuntime(kind: ChromiumRuntimeKind, evidence: String)
 
     /// Detects the steering for an executable: a launcher first, so every
     /// launcher keeps its own path, then the front-end table. String matching
-    /// only, so it is safe in a view body.
+    /// only, so it is safe in a view body. Electron and NW.js apps need their
+    /// files read: ``inspect(executable:)``.
     public static func detect(executable url: URL) -> DXVKSteering? {
         if let launcher = LauncherType.detect(from: url) {
             return .launcher(launcher)
@@ -136,14 +141,23 @@ public enum DXVKSteering: Sendable, Equatable {
         return ChromiumFrontEnd.match(url: url).map { .chromiumFrontEnd($0) }
     }
 
-    /// The launcher's or front end's name, as shown in the UI.
+    /// The launcher's or front end's name, or the runtime's, as shown in the UI.
     public var displayName: String {
         switch self {
         case let .launcher(launcher):
             launcher.displayName
         case let .chromiumFrontEnd(frontEnd):
             frontEnd.displayName
+        case let .chromiumRuntime(kind, _):
+            kind.displayName
         }
+    }
+
+    /// The name a steered program is listed under: the launcher's or front
+    /// end's, and an Electron or NW.js app's own, from its executable.
+    public func listedName(executable url: URL) -> String {
+        guard case .chromiumRuntime = self else { return displayName }
+        return url.deletingPathExtension().lastPathComponent
     }
 
     /// Separate executables that share the steered executable's set, with the
@@ -154,6 +168,9 @@ public enum DXVKSteering: Sendable, Equatable {
             launcher.helperExecutables
         case let .chromiumFrontEnd(frontEnd):
             frontEnd.helperExecutables
+        case .chromiumRuntime:
+            // Its Chromium children run as the same executable.
+            []
         }
     }
 
@@ -164,6 +181,8 @@ public enum DXVKSteering: Sendable, Equatable {
             "launcher: \(launcher.rawValue)"
         case let .chromiumFrontEnd(frontEnd):
             "Chromium front end: \(frontEnd.displayName)"
+        case let .chromiumRuntime(kind, evidence):
+            "\(kind.displayName) app: \(evidence)"
         }
     }
 }
@@ -220,6 +239,10 @@ public struct BackendResolution: Sendable, Equatable {
             String(localized: "config.graphics.backend.recommended.launcher \(games)")
         case .chromiumFrontEnd:
             String(localized: "config.graphics.backend.recommended.frontEnd \(games)")
+        case let .chromiumRuntime(.electron, evidence):
+            String(localized: "config.graphics.backend.recommended.electron \(evidence)")
+        case let .chromiumRuntime(.nwjs, evidence):
+            String(localized: "config.graphics.backend.recommended.nwjs \(evidence)")
         }
         // DXVK and DXMT share d3d11 and d3d10core in system32, so the last
         // deploy wins for whatever the steered program starts by itself.

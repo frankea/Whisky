@@ -29,8 +29,9 @@ extension Wine {
         DXVKSteering.detect(executable: url)?.helperExecutables ?? []
     }
 
-    /// Gives each ``ChromiumFrontEnd`` among `executables` the launcher set,
-    /// in its own `AppDefaults` entry, when Recommended should steer it.
+    /// Gives each ``ChromiumFrontEnd`` among `executables`, and each Electron
+    /// or NW.js app (``ChromiumRuntimeDetector``), the launcher set, in its own
+    /// `AppDefaults` entry, when Recommended should steer it.
     ///
     /// Only where the front end's own choice, its override or else the
     /// bottle's backend, is Recommended or DXVK, and the bottle's games run on
@@ -65,15 +66,28 @@ extension Wine {
             : bottle.settings.graphicsBackend
         guard gamesBackend != .dxvk else { return }
         for url in executables() {
-            guard let frontEnd = ChromiumFrontEnd.match(url: url) else { continue }
+            guard let steering = frontEndSteering(for: url) else { continue }
             let persisted = Program.persistedOverrides(for: url, bottleURL: bottle.url)
             guard frontEndWantsDXVK(choice: persisted?.graphicsBackend ?? bottle.settings.graphicsBackend)
             else { continue }
             let own = launcherSet(persisted)
-            scopes.add(frontEnd.helperExecutables, disablingNVAPI(in: own))
+            scopes.add(steering.helperExecutables, disablingNVAPI(in: own))
             // nvapi stays reachable on the front end's own entry, the layout
             // measured working with a manual DXVK override on 3DMark.exe.
             scopes.add([url.lastPathComponent], own)
+        }
+    }
+
+    /// Why `url` is steered as a front end: a row of the table, or an Electron
+    /// or NW.js app found by its files. A launcher is not one; its entry is
+    /// written as a launcher's.
+    static func frontEndSteering(for url: URL) -> DXVKSteering? {
+        let steering = DXVKSteering.inspect(executable: url)
+        switch steering {
+        case .chromiumFrontEnd, .chromiumRuntime:
+            return steering
+        case .launcher, nil:
+            return nil
         }
     }
 

@@ -30,6 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   staying black: Whisky runs its Chromium-based front end on DXVK, while the
   benchmarks themselves keep the bottle's backend. A program's settings page
   says when Recommended picks DXVK for it, and why ([#380], [#372]).
+- Electron and NW.js apps and games draw their windows on the Recommended
+  graphics backend instead of staying black: Whisky recognizes them by their
+  files and runs them on DXVK, including when started from the Library
+  ([#381], [#372]).
 
 ## [3.10.0] - 2026-11-14 (App)
 
@@ -1609,6 +1613,7 @@ up to date.
 [#375]: https://github.com/frankea/Whisky/issues/375
 [#376]: https://github.com/frankea/Whisky/issues/376
 [#380]: https://github.com/frankea/Whisky/issues/380
+[#381]: https://github.com/frankea/Whisky/issues/381
 [#382]: https://github.com/frankea/Whisky/issues/382
 [#384]: https://github.com/frankea/Whisky/issues/384
 [@adurham]: https://github.com/adurham

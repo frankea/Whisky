@@ -119,11 +119,36 @@ struct BackendEnvironmentTests {
         #expect(Wine.dxmtCaptureExecutable(for: URL(filePath: "/B/tool.com"), descendantExecutables: nil) == "tool.com")
     }
 
-    @Test("On a Steam launch DXMT is told the game, not steam.exe")
+    @Test("On a Steam launch DXMT is told the game, not steam.exe, once it is the only candidate")
     func captureNamesTheGameOnApplaunch() {
         let steam = URL(filePath: "/Bottle/drive_c/Program Files (x86)/Steam/steam.exe")
-        #expect(Wine.dxmtCaptureExecutable(for: steam, descendantExecutables: ["Game.exe", "Other.exe"]) == "Game")
-        #expect(Wine.dxmtCaptureExecutable(for: steam, descendantExecutables: []) == nil)
+        func named(_ executables: [String]) -> String? {
+            Wine.dxmtCaptureExecutable(for: steam, descendantExecutables: executables)
+        }
+        #expect(named(["UnityCrashHandler64.exe", "Game.exe"]) == "Game")
+        #expect(named(["unins000.exe", "Game.exe", "GameLauncher.exe", "CrashReportClient.exe"]) == "Game")
+        #expect(named(["Game.exe", "game.exe"]) == "Game", "the scan and the GameDB name the same file")
+        #expect(named(["Game.exe", "Editor.exe"]) == nil, "no guess between two games")
+        #expect(named(["UnityCrashHandler64.exe"]) == nil)
+        #expect(named([]) == nil)
+    }
+
+    @Test("A Steam launch's install scan with two root executables names the game, whatever the order")
+    func captureNamesTheGameFromAnInstallScan() throws {
+        let install = FileManager.default.temporaryDirectory.appending(path: "capture_scan_\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: install, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: install) }
+        for name in ["UnityCrashHandler64.exe", "Game.exe"] {
+            try Data("MZ".utf8).write(to: install.appending(path: name))
+        }
+        let steam = URL(filePath: "/Bottle/drive_c/Program Files (x86)/Steam/steam.exe")
+
+        let plan = LaunchPlan(overrides: ProgramOverrides(), gameProfileEnvironment: [:], provenance: [])
+        let scanned = SteamLauncher.gameExecutables(installURL: install, plan: plan)
+        #expect(Set(scanned) == ["UnityCrashHandler64.exe", "Game.exe"])
+        for order in [scanned, scanned.reversed()] {
+            #expect(Wine.dxmtCaptureExecutable(for: steam, descendantExecutables: order) == "Game")
+        }
     }
 
     @Test("The executable is named only for DXMT with Metal trace on, and never over the user's value")

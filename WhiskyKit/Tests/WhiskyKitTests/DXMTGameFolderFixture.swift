@@ -77,16 +77,38 @@ struct DXMTGameFolderFixture {
         return url
     }
 
-    /// A game executable with a real PE header of the given architecture.
+    /// A game executable with a real PE header of the given architecture,
+    /// `padding` bytes larger than the minimal image.
     @MainActor
     func makeGame(
-        in bottle: Bottle, folder: String = gameFolder, name: String = "Game.exe", arch: Architecture = .x64
+        in bottle: Bottle, folder: String = gameFolder, name: String = "Game.exe", arch: Architecture = .x64,
+        padding: Int = 0
     ) throws -> URL {
         let url = bottle.url.appending(path: "drive_c").appending(path: folder).appending(path: name)
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         let image = arch == .x32 ? PEBuilder.createMinimalPE32() : PEBuilder.createMinimalPE32Plus()
-        try image.write(to: url)
+        try (image + Data(count: padding)).write(to: url)
         return url
+    }
+
+    /// Lists the test game in the bottle's Steam library under `appId`, with
+    /// ``gameFolder`` as its install folder, so `SteamLibrary.enumerate` finds it.
+    @MainActor
+    func registerSteamGame(in bottle: Bottle, appId: Int) throws {
+        let steamApps = bottle.url.appending(path: "drive_c/Program Files (x86)/Steam/steamapps")
+        try FileManager.default.createDirectory(at: steamApps, withIntermediateDirectories: true)
+        let manifest = """
+        "AppState"
+        {
+            "appid"        "\(appId)"
+            "name"        "Game"
+            "installdir"        "Game"
+            "StateFlags"        "4"
+        }
+        """
+        try manifest.write(
+            to: steamApps.appending(path: "appmanifest_\(appId).acf"), atomically: true, encoding: .utf8
+        )
     }
 
     /// DXVK-macOS ships d3d10core and d3d11 (and d3d9), never dxgi.

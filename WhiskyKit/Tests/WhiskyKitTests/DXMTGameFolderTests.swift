@@ -81,19 +81,30 @@ final class DXMTGameFolderTests {
         #expect(Fixture.holdsNoTrio(game.deletingLastPathComponent()))
     }
 
-    @Test("A folder whose executables disagree on architecture, or have none, is left alone")
-    func ambiguousArchitectureSkipsTheFolder() throws {
+    @Test("A folder whose executables disagree on architecture gets the largest one's")
+    func mixedArchitectureFollowsTheLargestExecutable() throws {
         let bottle = try fixture.makeBottle()
-        let game = try fixture.makeGame(in: bottle, arch: .x64)
-        let tool = try fixture.makeGame(in: bottle, name: "Tool.exe", arch: .x32)
-        let stub = bottle.url.appending(path: "drive_c/Games/Stub/Stub.exe")
-        try FileManager.default.createDirectory(at: stub.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try Data("MZ".utf8).write(to: stub)
+        let game = try fixture.makeGame(in: bottle, arch: .x64, padding: 4_096)
+        _ = try fixture.makeGame(in: bottle, name: "Launcher.exe", arch: .x32)
+        let tool = try fixture.makeGame(in: bottle, folder: "Games/Tools", name: "Tool.exe", arch: .x32, padding: 4_096)
+        _ = try fixture.makeGame(in: bottle, folder: "Games/Tools", name: "Helper.exe", arch: .x64)
+        let payload = try fixture.makeDXMTPayload()
 
-        try reconcile(.deploy, [game, tool, stub], bottle, payload: fixture.makeDXMTPayload())
+        reconcile(
+            .deploy,
+            [bottle.url.appending(path: "drive_c/\(Fixture.gameFolder)/Launcher.exe"), game],
+            bottle,
+            payload: payload
+        )
+        reconcile(
+            .deploy,
+            [tool, tool.deletingLastPathComponent().appending(path: "Helper.exe")],
+            bottle,
+            payload: payload
+        )
 
-        #expect(Fixture.holdsNoTrio(game.deletingLastPathComponent()))
-        #expect(Fixture.holdsNoTrio(stub.deletingLastPathComponent()))
+        #expect(Fixture.holdsDXMT(game.deletingLastPathComponent(), arch: "x64"))
+        #expect(Fixture.holdsDXMT(tool.deletingLastPathComponent(), arch: "x32"))
     }
 
     // MARK: - The game's own files
@@ -128,8 +139,8 @@ final class DXMTGameFolderTests {
         #expect(!FileManager.default.fileExists(atPath: folder.appending(path: "d3d10core.dll").path))
     }
 
-    @Test("A copy of DXMT someone else put there is used, but never taken away")
-    func identicalUntrackedCopyIsLeftInPlace() throws {
+    @Test("A copy of DXMT already there is adopted, and taken back with the rest")
+    func identicalCopyIsAdopted() throws {
         let bottle = try fixture.makeBottle()
         let game = try fixture.makeGame(in: bottle)
         let payload = try fixture.makeDXMTPayload()
@@ -138,10 +149,10 @@ final class DXMTGameFolderTests {
         reconcile(.deploy, [game], bottle, payload: payload)
         let folder = game.deletingLastPathComponent()
         #expect(Fixture.holdsDXMT(folder))
+        #expect(DXMTGameFolderRecord.load(from: bottle.url).copies.count == 3)
 
         reconcile(.remove, [game], bottle, payload: payload)
-        #expect(Fixture.contents(folder.appending(path: "d3d11.dll")) == Fixture.dxmtFake("x64", "d3d11.dll"))
-        #expect(!FileManager.default.fileExists(atPath: folder.appending(path: "dxgi.dll").path))
+        #expect(Fixture.holdsNoTrio(folder))
     }
 
     @Test("When a game update replaces one copy, the rest of Whisky's copies go and the game's file stays")
@@ -195,10 +206,10 @@ final class DXMTGameFolderTests {
         #expect(DXMTGameFolderRecord.load(from: bottle.url).copies.isEmpty)
     }
 
-    @Test("Removal leaves an untracked folder alone")
-    func removalWithoutARecordTouchesNothing() throws {
+    @Test("Removal outside a Steam game leaves an untracked trio alone")
+    func removalWithoutARecordOutsideSteamTouchesNothing() throws {
         let bottle = try fixture.makeBottle()
-        let game = try fixture.makeGame(in: bottle)
+        let game = try fixture.makeGame(in: bottle, folder: "Games/Other")
         for dll in Fixture.trio {
             try write(Fixture.dxmtFake("x64", dll), dll, besides: game)
         }
@@ -298,8 +309,9 @@ final class DXMTGameFolderTests {
     func symlinkedDLLIsNeverWrittenThrough() throws {
         let bottle = try fixture.makeBottle()
         let game = try fixture.makeGame(in: bottle)
+        // The payload's own bytes, so only the link itself marks it as not Whisky's.
         let target = fixture.root.appending(path: "target.dll")
-        let original = Fixture.nativeFake("a file outside the bottle")
+        let original = Fixture.dxmtFake("x64", "dxgi.dll")
         try original.write(to: target)
         try FileManager.default.createSymbolicLink(
             at: game.deletingLastPathComponent().appending(path: "dxgi.dll"), withDestinationURL: target
@@ -307,9 +319,11 @@ final class DXMTGameFolderTests {
 
         try reconcile(.deploy, [game], bottle, payload: fixture.makeDXMTPayload())
 
+        let folder = game.deletingLastPathComponent()
         #expect(Fixture.contents(target) == original)
-        #expect(!FileManager.default
-            .fileExists(atPath: game.deletingLastPathComponent().appending(path: "d3d11.dll").path))
+        #expect(!FileManager.default.fileExists(atPath: folder.appending(path: "d3d11.dll").path))
+        #expect(!FileManager.default.fileExists(atPath: folder.appending(path: "d3d10core.dll").path))
+        #expect(DXMTGameFolderRecord.load(from: bottle.url).copies.isEmpty)
     }
 
     @Test("A folder that cannot be written leaves no partial set and no record")

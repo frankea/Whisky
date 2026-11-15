@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.10.0] - 2026-11-14 (App)
+
 ### Added
 - A bottle's Pinned output device can now be chosen from the Mac's output
   devices, and Wine sends that bottle's sound to it, falling back to the

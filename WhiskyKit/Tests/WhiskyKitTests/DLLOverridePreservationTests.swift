@@ -241,6 +241,12 @@ final class DLLOverridePreservationTests {
         #expect(!Wine.DLLOverrideScopes.isKeySegment("New\nline.exe"))
         #expect(!Wine.DLLOverrideScopes.isKeySegment("Sub\\Key.exe"))
         #expect(!Wine.DLLOverrideScopes.isKeySegment(""))
+        #expect(!Wine.DLLOverrideScopes.isKeySegment("Tab\tName.exe"))
+        #expect(!Wine.DLLOverrideScopes.isKeySegment("C1\u{85}Line.exe"))
+        // Format characters are not control codes: a ZWNJ is part of Persian words.
+        let persian = "\u{0645}\u{06CC}\u{200C}\u{062E}\u{0648}\u{0627}\u{0647}\u{0645}.exe"
+        #expect(Wine.DLLOverrideScopes.isKeySegment(persian))
+        #expect(Wine.DLLOverrideScopes.isKeySegment("Game\u{200D}.exe"))
 
         var scopes = Wine.DLLOverrideScopes(bottle: "dxgi=n,b")
         scopes.add(["a\n[HKEY_CURRENT_USER\\Software\\Injected]\n.exe", "Game.exe"], "d3d11=n,b")

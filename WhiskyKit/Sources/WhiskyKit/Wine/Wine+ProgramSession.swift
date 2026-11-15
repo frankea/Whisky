@@ -88,8 +88,10 @@ struct ProgramSession {
 }
 
 extension Wine {
-    /// Records a program launch in its run log history, marked running, and
-    /// removes the logs of the entries the history drops.
+    /// Records a program launch in its run log history, marked running,
+    /// removes the logs of the entries the history drops, and posts
+    /// ``RecordedLaunch/didRecordNotification`` so a last played date on screen
+    /// updates.
     ///
     /// - Returns: The ID of the new entry.
     @MainActor
@@ -109,6 +111,7 @@ extension Wine {
         for pruned in prunedEntries {
             try? FileManager.default.removeItem(at: logsFolder.appending(path: pruned.logFileName))
         }
+        RecordedLaunch(bottleURL: bottle.url, target: .program(name: programName), date: entry.startTime).post()
         return entry.id
     }
 

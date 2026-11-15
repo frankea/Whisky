@@ -151,7 +151,7 @@ final class StaleD3D12OverrideTests {
         )
 
         // Written as a scope, so the document takes back the d3d12 it does not set.
-        #expect(recorder.programScopes == ["RDR2.exe"])
+        #expect(recorder.programScopes == ["DXSETUP.exe", "RDR2.exe"])
         #expect(recorder.overrides(for: .program("RDR2.exe"))?["d3d12"] == nil)
         let document = Wine.registryDocument(for: [
             (key: Wine.DLLOverrideScope.program("RDR2.exe").registryKey, overrides: [:])

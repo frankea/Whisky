@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Game Configurations for Trine 4, Screw Drivers and BeamNG.drive (#364).
 
 ### Changed
+- The default Wine engine is now 4.8.3 (Wine 11.19, built from CrossOver's
+  sources), which can run D3DMetal: import Apple's Game Porting Toolkit in
+  Settings and it deploys automatically. Installs on the stock 3.1.1
+  engine are offered the update at launch, and new installs get 4.8.3.
+  Whisky versions before 3.10.0 stay on 3.1.1 (#371, #163).
 - Leaving a bottle while a program Whisky launched is still running keeps
   it running by default. The "when switching away with running processes"
   setting now takes effect and can be changed in the bottle's Cleanup
@@ -114,7 +119,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   program's own `WINEDLLOVERRIDES` environment variable takes effect
   (#366). Overlapping launches in one bottle no longer leave behind
   overrides Whisky wrote, and a program whose file name contains a line
-  break no longer misplaces its overrides (#369).
+  break no longer misplaces its overrides (#369, #370).
 - Turning the shader cache off works on DXMT, Metal trace captures
   outside Xcode and under DXMT, and DXVK compiles Metal shaders
   concurrently (#366).

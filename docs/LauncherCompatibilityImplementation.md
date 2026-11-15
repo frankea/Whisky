@@ -115,7 +115,7 @@ EA App:
 - Guard: no `d3d9`, `d3d11`, `d3d12`, `dxgi`, `vulkan-1` or `opengl32` among the normal imports. Delay imports do not veto, since Chromium delay-loads Direct3D
 - Skipped: launchers and table rows (they keep their own path), `drive_c/windows`, folders with more than 2,000 entries. A Squirrel stub is classified by the `app-x.y.z` app it starts
 - `PE/ImportTable.swift` reads the normal (data directory 1) and delay-load (data directory 13) tables apart: names only, 256-byte names, at most 1,024 descriptors, stopping at the first offset outside the file
-- Results are cached per process, keyed on the path, size and modification date of the executable and its folder's modification date
+- Results are cached per process, keyed on the path, size and modification date of the executable and its folder's modification date. A miss is not cached when the files that decide it sit a folder down (`resources` beside `icudtl.dat`, or `Update.exe` beside a Squirrel stub), so an install that is still extracting is looked at again on the next scan
 
 **Routing:**
 - `DXVKSteering.inspect(executable:)` puts launchers and the table first; `prepareProgramLaunch` and the preflight use it. `DXVKSteering.detect(executable:)` stays name-only

@@ -57,7 +57,8 @@ public enum ChromiumRuntimeKind: String, Sendable, Equatable {
 ///
 /// Results are cached for the process, keyed on the executable's path, size
 /// and modification date and its folder's modification date, so an update
-/// reclassifies it.
+/// reclassifies it. A miss whose deciding files sit a folder down is not
+/// cached (``Outcome/isFinal``).
 public enum ChromiumRuntimeDetector {
     /// Folders with more entries are not read: a Downloads or Desktop folder.
     public static let maxFolderEntries = 2_000
@@ -83,9 +84,11 @@ public enum ChromiumRuntimeDetector {
         if let cached = cache.result(for: key) {
             return cached
         }
-        let result = classify(executable: url)
-        cache.store(result, for: key)
-        return result
+        let outcome = evaluate(executable: url)
+        if outcome.isFinal {
+            cache.store(outcome.steering, for: key)
+        }
+        return outcome.steering
     }
 
     /// Whether to offer DXVK for a program that ships CEF: `libcef.dll` sits
@@ -106,8 +109,27 @@ public enum ChromiumRuntimeDetector {
     ///     the app in an `app-x.y.z` folder) is classified by the app it starts,
     ///     which runs under the same name and so reads the same entry.
     static func classify(executable url: URL, followSquirrel: Bool = true) -> DXVKSteering? {
+        evaluate(executable: url, followSquirrel: followSquirrel).steering
+    }
+
+    /// A result of the rule, and whether the cache can keep it.
+    struct Outcome: Equatable {
+        var steering: DXVKSteering?
+        /// Whether no file can change the result without changing the
+        /// ``CacheKey``. A match is final. A miss is not when the files that
+        /// decide it are a folder down, where the executable's folder keeps
+        /// its date: the app's code in `resources` beside Chromium's ICU data,
+        /// or a Squirrel app in its `app-x.y.z` folder. An install that is
+        /// still extracting then gets another look on the next scan.
+        var isFinal: Bool
+    }
+
+    /// ``classify(executable:followSquirrel:)``, with whether its result can be cached.
+    static func evaluate(executable url: URL, followSquirrel: Bool = true) -> Outcome {
         let folder = url.deletingLastPathComponent()
-        guard let names = entryNames(in: folder) else { return nil }
+        guard let names = entryNames(in: folder) else { return Outcome(steering: nil, isFinal: true) }
+        let appCodeIsAFolderDown = names["icudtl.dat"] != nil && names["resources"] != nil
+        let missIsFinal = !appCodeIsAFolderDown && names["update.exe"] == nil
         var imports: PEFile.ImportTable??
         func readImports() -> PEFile.ImportTable? {
             if let imports { return imports }
@@ -118,17 +140,18 @@ public enum ChromiumRuntimeDetector {
 
         if let marker = electronMarker(in: folder, names: names), let table = readImports(),
            drawsOnlyThroughChromium(table), table.allImports.contains("ffmpeg.dll") {
-            return .chromiumRuntime(kind: .electron, evidence: marker)
+            return Outcome(steering: .chromiumRuntime(kind: .electron, evidence: marker), isFinal: true)
         }
         if let marker = nwjsMarker(names: names), let table = readImports(), drawsOnlyThroughChromium(table),
            !table.allImports.isDisjoint(with: ["nw.dll", "nw_elf.dll"]) {
-            return .chromiumRuntime(kind: .nwjs, evidence: marker)
+            return Outcome(steering: .chromiumRuntime(kind: .nwjs, evidence: marker), isFinal: true)
         }
-        guard followSquirrel, let app = squirrelApp(for: url, names: names) else { return nil }
+        let miss = Outcome(steering: nil, isFinal: missIsFinal)
+        guard followSquirrel, let app = squirrelApp(for: url, names: names) else { return miss }
         guard case let .chromiumRuntime(kind, evidence)? = classify(executable: app, followSquirrel: false)
-        else { return nil }
+        else { return miss }
         let appFolder = app.deletingLastPathComponent().lastPathComponent
-        return .chromiumRuntime(kind: kind, evidence: "\(appFolder)/\(evidence)")
+        return Outcome(steering: .chromiumRuntime(kind: kind, evidence: "\(appFolder)/\(evidence)"), isFinal: true)
     }
 
     /// No graphics DLL among the normal imports. The delay-load table is not

@@ -237,6 +237,48 @@ final class ChromiumRuntimeDetectorTests {
         #expect(ChromiumRuntimeDetector.detect(executable: exe) == nil)
     }
 
+    @Test("A miss is looked at again when the app's code lands in a resources folder that already existed")
+    func appCodeArrivingLater() throws {
+        let folder = root.appending(path: "drive_c/Program Files/Extracting")
+        try touch(["icudtl.dat", "v8_context_snapshot.bin"], in: folder)
+        try FileManager.default.createDirectory(
+            at: folder.appending(path: "resources"), withIntermediateDirectories: true
+        )
+        let exe = folder.appending(path: "Late.exe")
+        try Self.electron45.write(to: exe)
+        let folderStamp = Date(timeIntervalSince1970: 1_700_000_000)
+        try FileManager.default.setAttributes(
+            [.modificationDate: folderStamp], ofItemAtPath: folder.path(percentEncoded: false)
+        )
+
+        #expect(ChromiumRuntimeDetector.detect(executable: exe) == nil)
+        #expect(ChromiumRuntimeDetector.evaluate(executable: exe) == .init(steering: nil, isFinal: false))
+
+        // The installer writes the archive last; the executable's folder keeps its date.
+        try touch(["resources/app.asar"], in: folder)
+        try FileManager.default.setAttributes(
+            [.modificationDate: folderStamp], ofItemAtPath: folder.path(percentEncoded: false)
+        )
+        #expect(ChromiumRuntimeDetector.detect(executable: exe) == .chromiumRuntime(
+            kind: .electron, evidence: "resources/app.asar"
+        ))
+    }
+
+    @Test("A miss is cached when every file that decides it sits in the executable's folder")
+    func finalMisses() throws {
+        let plain = root.appending(path: "Plain")
+        try touch(["data.pak"], in: plain)
+        let tool = plain.appending(path: "Tool.exe")
+        try Self.uninstaller.write(to: tool)
+        #expect(ChromiumRuntimeDetector.evaluate(executable: tool) == .init(steering: nil, isFinal: true))
+
+        let squirrel = root.appending(path: "Squirrel")
+        try touch(["Update.exe"], in: squirrel)
+        let stub = squirrel.appending(path: "Chat.exe")
+        try Self.uninstaller.write(to: stub)
+        #expect(ChromiumRuntimeDetector.evaluate(executable: stub).isFinal == false, "the app folder can still land")
+    }
+
     // MARK: - CEF suggestion
 
     @Test("CEF is suggested only when the executable imports libcef.dll and no graphics DLL")

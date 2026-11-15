@@ -51,6 +51,9 @@ public enum SteamLauncher {
     /// The plan's launch arguments follow the App ID, and the client passes them
     /// on to the game.
     ///
+    /// The plan follows the GameDB variant the user applied to the bottle, when
+    /// it is this game's, rather than the recommended one.
+    ///
     /// Starts the client first when it isn't running, the way Play does: with
     /// `-silent`, as a launch of its own, and only then hands over `-applaunch`,
     /// so the client never inherits the game's environment variables. The
@@ -94,7 +97,8 @@ public enum SteamLauncher {
             .first { $0.appId == appId }?.installURL
         let plan = LaunchResolver.plan(
             steamAppId: appId,
-            userOverrides: installURL.flatMap { userOverrides(forInstallURL: $0, bottle: bottle) }
+            userOverrides: installURL.flatMap { userOverrides(forInstallURL: $0, bottle: bottle) },
+            appliedConfiguration: GameConfigSnapshot.load(from: bottle.url)
         )
         let steamExe = steamRoot.appending(path: "steam.exe")
         let gameExecutables = gameExecutables(installURL: installURL, plan: plan)

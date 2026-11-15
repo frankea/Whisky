@@ -242,6 +242,18 @@ final class GameDatabaseTests: XCTestCase {
         XCTAssertEqual(settings.sequoiaCompatMode, true)
     }
 
+    /// "none" turns sync off. Decoded as nil it would mean "leave the setting
+    /// alone", and the bottle would keep whatever sync it already had.
+    func testEnhancedSyncNoneDecodesAsSyncOff() throws {
+        let decode = { (json: String) throws -> EnhancedSync? in
+            try JSONDecoder().decode(GameConfigVariantSettings.self, from: Data(json.utf8)).enhancedSync
+        }
+
+        XCTAssertEqual(try decode(#"{"enhancedSync": "none"}"#), EnhancedSync.none)
+        XCTAssertEqual(try decode(#"{"enhancedSync": "msync"}"#), .msync)
+        XCTAssertNil(try decode(#"{"enhancedSync": "fsync"}"#))
+    }
+
     // MARK: - Test 6: Default Variant Returns First isDefault
 
     func testDefaultVariantReturnsFirstIsDefault() {

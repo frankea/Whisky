@@ -160,7 +160,8 @@ final class SteamGameLaunchScopingTests {
         // the plan reaches the game, DXVK would turn d3d12 off for a DX12 title.
         let bottle = try makeBottle()
         let recorder = ScopeRecorder()
-        let plan = LaunchResolver.plan(steamAppId: 1_174_180)
+        // As on a Mac with the GPTK payload, so the plan keeps the entry's D3DMetal.
+        let plan = LaunchResolver.plan(steamAppId: 1_174_180, isBackendAvailable: { _ in true })
 
         _ = try await prepareGameLaunch(
             bottle,

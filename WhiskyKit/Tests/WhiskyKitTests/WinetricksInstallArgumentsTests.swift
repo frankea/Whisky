@@ -1,0 +1,37 @@
+//
+//  WinetricksInstallArgumentsTests.swift
+//  WhiskyKit
+//
+//  This file is part of Whisky.
+//
+//  Whisky is free software: you can redistribute it and/or modify it under the terms
+//  of the GNU General Public License as published by the Free Software Foundation,
+//  either version 3 of the License, or (at your option) any later version.
+//
+//  Whisky is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+//  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+//  See the GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License along with Whisky.
+//  If not, see https://www.gnu.org/licenses/.
+//
+
+import Testing
+@testable import WhiskyKit
+
+@Suite("Winetricks install arguments")
+struct WinetricksInstallArgumentsTests {
+    private let script = "/Resources/winetricks"
+
+    @Test("Every verb runs unattended", arguments: ["xact", "dotnet48", "d3dcompiler_47", "corefonts"])
+    func everyVerbIsUnattended(_ verb: String) {
+        #expect(WinetricksInstallArguments.arguments(verb: verb, winetricksPath: script)
+            == ["bash", script, "-q", verb])
+    }
+
+    @Test("The vcrun verbs are also forced past stale checksums")
+    func vcrunIsForced() {
+        #expect(WinetricksInstallArguments.arguments(verb: "vcrun2022", winetricksPath: script)
+            == ["bash", script, "--force", "-q", "vcrun2022"])
+    }
+}

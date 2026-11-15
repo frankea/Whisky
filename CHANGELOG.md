@@ -112,7 +112,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   alert instead of failing silently (#365).
 - Launches keep DLL overrides that winetricks or winecfg wrote, and a
   program's own `WINEDLLOVERRIDES` environment variable takes effect
-  (#366).
+  (#366). Overlapping launches in one bottle no longer leave behind
+  overrides Whisky wrote, and a program whose file name contains a line
+  break no longer misplaces its overrides (#369).
 - Turning the shader cache off works on DXMT, Metal trace captures
   outside Xcode and under DXMT, and DXVK compiles Metal shaders
   concurrently (#366).

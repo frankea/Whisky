@@ -34117,13 +34117,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "How Wine threads wait for each other. MSync and ESync can lower CPU overhead in some games, but only on a Wine runtime built with them. None is the most compatible."
+            "value" : "How Wine threads wait for each other. MSync and ESync can lower CPU overhead in some games, but only on a Wine runtime built with them. On macOS 15.4 and later, None turns on ESync as well, for stability."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "How Wine threads wait for each other. MSync and ESync can lower CPU overhead in some games, but only on a Wine runtime built with them. None is the most compatible."
+            "value" : "How Wine threads wait for each other. MSync and ESync can lower CPU overhead in some games, but only on a Wine runtime built with them. On macOS 15.4 and later, None turns on ESync as well, for stability."
           }
         }
       }

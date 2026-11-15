@@ -71,10 +71,40 @@ public extension Wine {
         }
     }
 
+    /// The last sync started in each bottle, for the next one to wait on.
+    @MainActor private static var syncTails: [URL: Task<Void, Never>] = [:]
+
     /// ``syncDLLOverrides(bottle:scopes:)`` with the import itself supplied, so
     /// tests can run it against a simulated registry.
+    ///
+    /// Syncs in one bottle run one at a time. Each builds its document from the
+    /// names the record holds when it starts, so one that started during
+    /// another's import missed that import's names: neither document removed
+    /// them, and the record then forgot them, leaving overrides Whisky wrote
+    /// that it would never take back.
     @MainActor
     internal static func syncDLLOverrides(
+        bottle: Bottle, scopes: [(scope: DLLOverrideScope, overrides: String)],
+        importer: @escaping RegistryImporter
+    ) async throws {
+        let key = bottle.url.standardizedFileURL
+        let previous = syncTails[key]
+        let sync = Task { @MainActor in
+            await previous?.value
+            try await syncDLLOverridesNow(bottle: bottle, scopes: scopes, importer: importer)
+        }
+        let tail = Task { @MainActor in _ = try? await sync.value }
+        syncTails[key] = tail
+        defer {
+            if syncTails[key] == tail {
+                syncTails[key] = nil
+            }
+        }
+        try await sync.value
+    }
+
+    @MainActor
+    private static func syncDLLOverridesNow(
         bottle: Bottle, scopes: [(scope: DLLOverrideScope, overrides: String)],
         importer: RegistryImporter
     ) async throws {
@@ -83,9 +113,9 @@ public extension Wine {
         try await importer(registryDocument(for: planned, record: snapshot), bottle)
         // Only after the import: a failed one leaves the old names recorded, so
         // the next launch still takes them back. Read again rather than saving
-        // `snapshot`: another launch in the bottle may have saved its names
-        // while this import ran, and the stale copy would forget them. Nothing
-        // suspends between this load and the save.
+        // `snapshot`, so names saved some other way during the import (the
+        // record is one file per bottle) are kept. Nothing suspends between
+        // this load and the save.
         do {
             try DLLOverrideRecord.load(from: bottle.url).updated(with: planned).save(to: bottle.url)
         } catch {
@@ -227,9 +257,20 @@ public extension Wine {
         }
 
         mutating func add(_ executables: [String], _ overrides: String) {
-            for executable in executables where taken.insert(executable.lowercased()).inserted {
+            for executable in executables
+                where Self.isKeySegment(executable) && taken.insert(executable.lowercased()).inserted {
                 entries.append((scope: .program(executable), overrides: overrides))
             }
+        }
+
+        /// Whether the name can go into an `AppDefaults` key header. A macOS
+        /// file name can hold a line break, which ends the header early in
+        /// the `.reg` document: Wine drops it, and that program's values land
+        /// in the key before it. A backslash would make a subkey. Neither can
+        /// be a Windows image name, so no process would match the entry.
+        static func isKeySegment(_ executable: String) -> Bool {
+            !executable.isEmpty && !executable.contains("\\")
+                && !executable.unicodeScalars.contains { CharacterSet.controlCharacters.contains($0) }
         }
     }
 

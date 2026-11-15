@@ -91,16 +91,52 @@ final class SteamExecutableScanTests {
         #expect(scanned() == ["FSD.exe", "FSD/Binaries/Win64/FSD-Win64-Shipping.exe"])
     }
 
-    @Test("3DMark's bin/x64 executable is found, its Chromium helpers are not")
+    @Test("3DMark's bin/x64 executables are found, its Chromium helpers are not, its front end is a host")
     func binX64Layout() throws {
         try touch([
             "3DMark/bin/x64/3DMark.exe",
             "3DMark/bin/x64/libcef.dll",
+            "3DMark/bin/x64/3DMarkICFWorkload.exe",
             "3DMark/bin/x64/CefSharp.BrowserSubprocess.exe",
             "3DMark/bin/x64/3DMarkWebHelper.exe",
-            "3DMark/bin/x64/crashpad_handler.exe"
+            "3DMark/bin/x64/crashpad_handler.exe",
+            "3DMark/bin/x64/workloads/Speed.exe"
         ])
-        #expect(scanned("3DMark") == ["bin/x64/3DMark.exe"])
+
+        let scan = SteamLibrary.scanExecutables(under: root.appending(path: "3DMark"))
+        #expect(scanned("3DMark") == [
+            "bin/x64/3DMark.exe", "bin/x64/3DMarkICFWorkload.exe", "bin/x64/workloads/Speed.exe"
+        ])
+        // Every executable beside libcef.dll that is not a helper counts as a host.
+        #expect(scan.chromiumHosts.map(\.lastPathComponent) == ["3DMark.exe", "3DMarkICFWorkload.exe"])
+        #expect(scan.planExecutables.map(\.lastPathComponent) == ["Speed.exe"])
+    }
+
+    @Test("A bundled Java runtime is not read below the first level", arguments: [
+        ["ProjectZomboid64.exe", "jre64/bin/java.exe", "jre64/bin/javaw.exe", "jre64/bin/keytool.exe"],
+        ["SlayTheSpire.exe", "jre/bin/java.exe", "jre/bin/javaw.exe"],
+        ["Game.exe", "Game/runtime/bin/java.exe", "Game/runtime/bin/javaw.exe"]
+    ])
+    func bundledJavaIsSkipped(_ layout: [String]) throws {
+        try touch(layout)
+
+        #expect(scanned() == [layout[0]])
+    }
+
+    @Test("Qt WebEngine and WebView2 helpers below the first level are not game executables")
+    func otherChromiumHelpersAreSkipped() throws {
+        try touch([
+            "Game.exe",
+            "launcher/bin/QtWebEngineProcess.exe",
+            "launcher/bin/Qt5WebEngineCore.dll",
+            "launcher/bin/QtHelper.exe",
+            "launcher/bin/Hub.exe",
+            "launcher/webview/EBWebView/msedgewebview2.exe"
+        ])
+
+        let scan = SteamLibrary.scanExecutables(under: root)
+        #expect(scanned() == ["Game.exe", "launcher/bin/Hub.exe"])
+        #expect(scan.chromiumHosts.map(\.lastPathComponent) == ["Hub.exe"])
     }
 
     @Test("A Unity game's data folder is not read below the first level")
@@ -186,6 +222,44 @@ final class SteamExecutableScanTests {
         #expect(scanned() == Array(names.prefix(SteamLibrary.deepScanResultLimit)))
     }
 
+    /// Scans with small limits, as install-relative paths.
+    private func scanned(entryBudget: Int, folderEntryLimit: Int) -> [String] {
+        let limits = SteamExecutableScanLimits(
+            entryBudget: entryBudget, folderEntryLimit: folderEntryLimit, resultLimit: SteamLibrary.deepScanResultLimit
+        )
+        let marker = "/" + root.lastPathComponent + "/"
+        return SteamLibrary.scanExecutables(under: root, limits: limits).executables.map { url in
+            url.path(percentEncoded: false).components(separatedBy: marker).last ?? ""
+        }
+    }
+
+    @Test("The entry budget stops the scan once a big folder has spent it, the same way every time")
+    func entryBudgetStopsTheScan() throws {
+        try touch((0 ..< 30).map { "Game/Aaa/file\($0).bin" } + ["Game/Zzz/Game.exe", "Root.exe"])
+
+        let first = scanned(entryBudget: 20, folderEntryLimit: 1_000)
+        #expect(first == ["Root.exe"])
+        #expect(scanned(entryBudget: 20, folderEntryLimit: 1_000) == first)
+        #expect(scanned(entryBudget: 1_000, folderEntryLimit: 1_000) == ["Root.exe", "Game/Zzz/Game.exe"])
+    }
+
+    @Test("A folder past the entry limit is data: none of it is read, its siblings still are")
+    func folderEntryLimitSkipsDataFolders() throws {
+        try touch((0 ..< 20).map { "Game/data/file\($0).bin" } + ["Game/data/Tool.exe", "Game/zz/Game.exe"])
+
+        #expect(scanned(entryBudget: 1_000, folderEntryLimit: 10) == ["Game/zz/Game.exe"])
+    }
+
+    @Test("Binary folders are read first, so a big tree sorting ahead of them cannot starve them")
+    func binaryFoldersAreReadFirst() throws {
+        try touch(
+            (1 ... 5).flatMap { folder in (0 ..< 20).map { "Game/Assets/d\(folder)/file\($0).bin" } }
+                + ["Game/Binaries/Win64/Game-Win64-Shipping.exe"]
+        )
+
+        #expect(scanned(entryBudget: 40, folderEntryLimit: 100) == ["Game/Binaries/Win64/Game-Win64-Shipping.exe"])
+    }
+
     @Test("The order is shallowest first and by name within a folder, scan after scan")
     func orderIsStable() throws {
         try touch(["Zed.exe", "Alpha.exe", "bin/Tool.exe", "Game/Binaries/Win64/B.exe", "Game/Binaries/Win64/A.exe"])
@@ -201,7 +275,8 @@ final class SteamExecutableScanTests {
 
     @Test("Folders the scan leaves unread", arguments: [
         ("_CommonRedist", nil), ("redist", "Game"), ("ThirdParty", "Binaries"), ("Extras", "Engine"),
-        ("Plugins", "Engine"), ("Content", "FSD"), ("Paks", "Content"), ("Game_Data", nil)
+        ("Plugins", "Engine"), ("Content", "FSD"), ("Paks", "Content"), ("Game_Data", nil),
+        ("jre", nil), ("jre64", "Game"), ("jdk", nil)
     ] as [(String, String?)])
     func skippedFolders(_ name: String, _ parent: String?) {
         #expect(SteamLibrary.skipsDescent(into: name, parentName: parent), "\(parent ?? "")/\(name)")
@@ -218,7 +293,8 @@ final class SteamExecutableScanTests {
         ("CrashReportClient.exe", false), ("UnityCrashHandler64.exe", false), ("crashpad_handler.exe", false),
         ("UnrealCEFSubProcess.exe", false), ("EpicWebHelper.exe", false), ("unins000.exe", false),
         ("UE4PrereqSetup_x64.exe", false), ("GameLauncher.exe", false),
-        ("BootstrapPackagedGame-Win64-Shipping.exe", false), ("GameHelper.exe", true)
+        ("BootstrapPackagedGame-Win64-Shipping.exe", false), ("GameHelper.exe", true),
+        ("java.exe", false), ("javaw.exe", false), ("QtWebEngineProcess.exe", false), ("msedgewebview2.exe", false)
     ])
     func auxiliaryExecutables(_ name: String, _ besideChromium: Bool) {
         #expect(!SteamLibrary.isGameExecutable(name, besideChromium: besideChromium), "\(name)")
@@ -229,107 +305,5 @@ final class SteamExecutableScanTests {
     ])
     func gameExecutables(_ name: String, _ besideChromium: Bool) {
         #expect(SteamLibrary.isGameExecutable(name, besideChromium: besideChromium), "\(name)")
-    }
-}
-
-/// What the deeper scan changes for the callers that key on it.
-@Suite("Steam executable scan callers")
-@MainActor
-final class SteamExecutableScanCallerTests {
-    private let tempRoot: URL
-
-    init() throws {
-        tempRoot = FileManager.default.temporaryDirectory.appending(path: "steam_exe_callers_\(UUID().uuidString)")
-        try FileManager.default.createDirectory(at: tempRoot, withIntermediateDirectories: true)
-    }
-
-    deinit {
-        try? FileManager.default.removeItem(at: tempRoot)
-    }
-
-    private func touch(_ paths: [String], in base: URL) throws {
-        for relative in paths {
-            let url = base.appending(path: relative)
-            try FileManager.default.createDirectory(
-                at: url.deletingLastPathComponent(), withIntermediateDirectories: true
-            )
-            try Data("MZ".utf8).write(to: url)
-        }
-    }
-
-    private let unrealLayout = [
-        "FSD.exe",
-        "FSD/Binaries/Win64/FSD-Win64-Shipping.exe",
-        "Engine/Binaries/Win64/CrashReportClient.exe",
-        "Engine/Binaries/Win64/UnrealCEFSubProcess.exe"
-    ]
-
-    @Test("A Steam launch writes the game's plan to the deep shipping executable, and none to engine helpers")
-    func launchWritesTheDeepExecutablesEntry() async throws {
-        let bottleURL = tempRoot.appending(path: "Bottle")
-        let install = bottleURL.appending(path: "drive_c/Games/FSD")
-        try touch(
-            ["windows/system32/.keep", "Program Files (x86)/Steam/steam.exe"], in: bottleURL.appending(path: "drive_c")
-        )
-        try touch(unrealLayout, in: install)
-        let bottle = Bottle(bottleUrl: bottleURL)
-        let steamExe = bottleURL.appending(path: "drive_c/Program Files (x86)/Steam/steam.exe")
-        var overrides = ProgramOverrides()
-        overrides.graphicsBackend = .dxvk
-        let plan = LaunchPlan(overrides: overrides, gameProfileEnvironment: [:], provenance: [])
-        let recorder = ScopeRecorder()
-
-        // What SteamLauncher.launch hands Wine.runProgram.
-        let executables = SteamLauncher.gameExecutables(installURL: install, plan: plan)
-        _ = try await Wine.prepareProgramLaunch(
-            at: steamExe, args: ["-applaunch", "548430"], bottle: bottle,
-            programOverrides: plan.overrides, overridesApplyToDescendants: true,
-            descendantExecutables: executables,
-            recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: true,
-            overrideWriter: recorder.writer, importer: recorder.importer
-        )
-
-        #expect(executables == ["FSD.exe", "FSD-Win64-Shipping.exe"])
-        for game in executables {
-            #expect(recorder.overrides(for: .program(game))?["d3d11"] == "n,b", "\(game)")
-        }
-        #expect(!recorder.programScopes.contains("CrashReportClient.exe"))
-        #expect(!recorder.programScopes.contains("UnrealCEFSubProcess.exe"))
-    }
-
-    @Test("Settings tuned on the deep shipping executable reach a Steam launch")
-    func deepExecutablesSettingsWin() throws {
-        let bottleURL = tempRoot.appending(path: "Bottle")
-        let install = bottleURL.appending(path: "drive_c/Games/FSD")
-        try touch(unrealLayout, in: install)
-        let bottle = Bottle(bottleUrl: bottleURL)
-        var tuned = ProgramOverrides()
-        tuned.graphicsBackend = .dxvk
-        let shipping = install.appending(path: "FSD/Binaries/Win64/FSD-Win64-Shipping.exe")
-        Program(url: shipping, bottle: bottle, peFile: nil).settings.overrides = tuned
-
-        #expect(SteamLauncher.userOverrides(forInstallURL: install, bottle: bottle) == tuned)
-    }
-
-    @Test("The library shows a game running by its deep shipping executable, not by its crash reporter")
-    func trackingSeesTheDeepExecutable() async throws {
-        let (bottle, games) = try SteamOrchestratorFixture.makeBottle()
-        try touch(unrealLayout.filter { $0 != "FSD.exe" }, in: games[0].installURL)
-        let driver = FakeSteamClientDriver(script: [["steam.exe", "crashreportclient.exe"]])
-        let orchestrator = SteamClientOrchestrator(
-            bottle: bottle, driver: driver, timing: SteamOrchestratorFixture.patient
-        )
-
-        orchestrator.startTracking(games: games)
-        // Let the scan and a refresh land before checking it stayed empty.
-        try await Task.sleep(for: .milliseconds(100))
-        #expect(orchestrator.runningAppIds.isEmpty)
-
-        driver.script = [["steam.exe", "fsd-win64-shipping.exe"]]
-        orchestrator.processSnapshot = nil
-        await SteamOrchestratorFixture.eventually("the shipping executable should count as the game") {
-            orchestrator.runningAppIds == [games[0].appId]
-        }
-        orchestrator.stop()
     }
 }

@@ -18,6 +18,41 @@
 
 import Foundation
 
+/// What a scan of a game's install folder found.
+struct SteamExecutableScan: Equatable {
+    /// Every executable found, shallowest first.
+    var executables: [URL] = []
+
+    /// The executables below the first folder level that ship a Chromium UI
+    /// (`libcef.dll` or Qt WebEngine beside them), such as 3DMark's front end.
+    /// They are in ``executables`` too.
+    var chromiumHosts: [URL] = []
+
+    /// The executables the game's plan goes to: all of them but the Chromium
+    /// hosts. A host keeps its own settings: the plan is the game's, and the
+    /// workloads beside it run on a backend Chromium cannot draw on (#372).
+    var planExecutables: [URL] {
+        let hosts = Set(chromiumHosts)
+        return executables.filter { !hosts.contains($0) }
+    }
+}
+
+/// How much of a game's install folder the scan reads below the first folder level.
+struct SteamExecutableScanLimits: Equatable {
+    /// Directory entries the scan reads in all before it stops.
+    var entryBudget: Int
+    /// Entries past which a folder counts as data and is left unread.
+    var folderEntryLimit: Int
+    /// Executables the scan returns.
+    var resultLimit: Int
+
+    static let standard = SteamExecutableScanLimits(
+        entryBudget: SteamLibrary.deepScanEntryBudget,
+        folderEntryLimit: SteamLibrary.deepScanFolderEntryLimit,
+        resultLimit: SteamLibrary.deepScanResultLimit
+    )
+}
+
 extension SteamLibrary {
     /// The deepest folder, counted from the install folder (0), whose
     /// executables the scan collects.
@@ -32,10 +67,15 @@ extension SteamLibrary {
     static let executableScanDepth = 4
 
     /// How many directory entries the scan reads below the first folder level
-    /// before it stops descending. A typical Unreal install needs a few
-    /// hundred, and a game shipping loose files cannot turn a Play press on
-    /// the main actor into a walk of its whole tree.
+    /// in all. A typical Unreal install needs a few hundred, and a game
+    /// shipping loose files cannot turn a Play press on the main actor into a
+    /// walk of its whole tree.
     static let deepScanEntryBudget = 5_000
+
+    /// How many entries a folder below the first level can hold and still be
+    /// read. A binaries folder holds tens; one with thousands is data, and the
+    /// scan stops reading it there instead of listing it in full.
+    static let deepScanFolderEntryLimit = 2_000
 
     /// How many executables the scan returns from below the first folder
     /// level, shallowest first.
@@ -43,17 +83,26 @@ extension SteamLibrary {
 
     /// Folders the scan never descends into below the install folder:
     /// redistributables and installers, anti-cheat installers, third-party
-    /// runtimes, and the big data trees no game executable lives in.
-    /// Compared lowercased.
+    /// runtimes (bundled Java among them, whose generic `java.exe` would tie
+    /// every game shipping one to every other), and the big data trees no
+    /// game executable lives in. Compared lowercased.
     static let skippedFolderNames: Set<String> = [
         "_commonredist", "commonredist", "redist", "redists", "redistributable", "redistributables",
         "directx", "dxsetup", "vcredist", "vc_redist", "dotnet", "dotnetfx", "netfx",
         "installer", "installers", "__installer", "install", "setup", "uninstall",
         "support", "prerequisites", "prereqs", "prereq",
         "thirdparty", "third_party", "extras", "physx",
+        "jre", "jre32", "jre64", "jdk", "java", "jvm",
         "easyanticheat", "battleye",
         "crashreporter", "crashreportclient",
         "content", "paks", "movies", "saved", "logs", "localization", "shadercache"
+    ]
+
+    /// Folders read first at each level, so a big tree that sorts ahead of
+    /// them cannot spend the entry budget before the game's binaries are
+    /// reached. Compared lowercased.
+    static let binaryFolderNames: Set<String> = [
+        "binaries", "bin", "bin32", "bin64", "win32", "win64", "x64", "x86", "x86_64"
     ]
 
     /// Name fragments of executables below the first folder level that are
@@ -61,13 +110,21 @@ extension SteamLibrary {
     /// launchers. Compared lowercased.
     static let auxiliaryExecutableMarkers = [
         "crashreport", "crashhandler", "crashpad", "crashsender", "bugsplat",
-        "cefsubprocess", "browsersubprocess", "webhelper",
+        "cefsubprocess", "browsersubprocess", "webhelper", "qtwebengineprocess", "msedgewebview",
         "redist", "prereq", "setup", "dotnetfx", "bootstrappackagedgame",
         "launcher"
     ]
 
+    /// Runtime executables below the first folder level whose names are the
+    /// same in every game that bundles them. Compared lowercased.
+    static let auxiliaryExecutableNames: Set<String> = ["java.exe", "javaw.exe", "javaws.exe"]
+
+    /// Libraries whose presence in a folder marks it as shipping a Chromium UI.
+    /// Compared lowercased.
+    static let chromiumLibraryNames: Set<String> = ["libcef.dll", "qt5webenginecore.dll", "qt6webenginecore.dll"]
+
     /// Further name fragments that mark a Chromium helper in a folder that
-    /// ships `libcef.dll`. The executable hosting the browser keeps its place:
+    /// ships Chromium. The executable hosting the browser keeps its place:
     /// it can be the program itself, whose settings must still reach it.
     static let chromiumHelperMarkers = ["helper", "subprocess", "renderer", "browser", "cef", "webview"]
 
@@ -80,70 +137,76 @@ extension SteamLibrary {
     /// watches for them in the process list. So below the first folder level
     /// the scan leaves out what must not get the game's overrides or pass for
     /// the game running: crash reporters, Chromium helpers (CEF draws nothing
-    /// on D3DMetal), redistributables and installers, Unreal's engine tree
-    /// except its `Binaries`, and anything behind a symbolic link. It reads no
-    /// further than ``executableScanDepth`` and ``deepScanEntryBudget``.
+    /// on D3DMetal), redistributables and installers, bundled runtimes,
+    /// Unreal's engine tree except its `Binaries`, and anything behind a
+    /// symbolic link. It reads no further than ``executableScanDepth``, and
+    /// within ``deepScanEntryBudget`` and ``deepScanFolderEntryLimit``.
     ///
     /// The root and the first folder level are listed as they always were,
     /// whatever they hold, so nothing an existing install relied on changes.
     ///
-    /// The order is fixed: shallowest first, each folder's entries by name.
+    /// The order is fixed: shallowest first; within a level, the folders
+    /// named like binary folders (``binaryFolderNames``) first, then the rest,
+    /// each folder's entries by name.
     public static func executableURLs(under installURL: URL) -> [URL] {
-        var executables: [URL] = []
-        var firstLevel: [URL] = []
+        scanExecutables(under: installURL).executables
+    }
 
-        for item in sortedContents(of: installURL) {
-            if isExecutable(item) {
-                executables.append(item)
-            } else if isDirectory(item) {
-                firstLevel.append(item)
-            }
-        }
+    /// ``executableURLs(under:)``, with the Chromium hosts among them told apart.
+    static func scanExecutables(
+        under installURL: URL, limits: SteamExecutableScanLimits = .standard
+    ) -> SteamExecutableScan {
+        var scan = SteamExecutableScan()
+        let root = listing(of: installURL)
+        scan.executables = root.executables
 
         var frontier: [URL] = []
-        for folder in firstLevel {
-            let items = sortedContents(of: folder)
-            executables.append(contentsOf: items.filter(isExecutable))
+        for folder in root.folders {
+            let firstLevel = listing(of: folder)
+            scan.executables.append(contentsOf: firstLevel.executables)
             guard !skipsDescent(into: folder.lastPathComponent, parentName: nil) else { continue }
-            frontier.append(contentsOf: items.filter { isDirectory($0) && !isSymbolicLink($0) })
+            frontier.append(contentsOf: firstLevel.folders.filter { !isSymbolicLink($0) })
         }
 
-        executables.append(contentsOf: deepExecutables(startingAt: frontier))
-        return executables
+        collectDeepExecutables(startingAt: frontier, limits: limits, into: &scan)
+        return scan
     }
 
     /// The game executables from the second folder level down to
     /// ``executableScanDepth``, breadth first.
-    private static func deepExecutables(startingAt secondLevel: [URL]) -> [URL] {
-        var found: [URL] = []
-        var budget = deepScanEntryBudget
-        var frontier = secondLevel.filter { !skipsDescent(into: $0) }
+    private static func collectDeepExecutables(
+        startingAt secondLevel: [URL], limits: SteamExecutableScanLimits, into scan: inout SteamExecutableScan
+    ) {
+        var budget = limits.entryBudget
+        var found = 0
+        var frontier = binaryFoldersFirst(secondLevel.filter { !skipsDescent(into: $0) })
         var depth = 2
 
         while !frontier.isEmpty, depth <= executableScanDepth {
             var next: [URL] = []
             for folder in frontier {
-                guard budget > 0 else { return found }
-                let items = sortedContents(of: folder)
-                budget -= items.count
-                let shipsChromium = items.contains { $0.lastPathComponent.lowercased() == "libcef.dll" }
+                guard budget > 0 else { return }
+                let (listing, read) = deepListing(of: folder, limit: min(limits.folderEntryLimit, budget))
+                budget -= read
+                // Too big to be a binaries folder, or past what is left of the budget.
+                guard let listing else { continue }
 
-                for item in items where !isSymbolicLink(item) {
-                    if isDirectory(item) {
-                        if depth < executableScanDepth, !skipsDescent(into: item) {
-                            next.append(item)
-                        }
-                    } else if isExecutable(item), isRegularFile(item),
-                              isGameExecutable(item.lastPathComponent, besideChromium: shipsChromium) {
-                        found.append(item)
-                        if found.count == deepScanResultLimit { return found }
+                for item in listing.executables
+                    where isGameExecutable(item.lastPathComponent, besideChromium: listing.shipsChromium) {
+                    scan.executables.append(item)
+                    if listing.shipsChromium {
+                        scan.chromiumHosts.append(item)
                     }
+                    found += 1
+                    if found == limits.resultLimit { return }
+                }
+                if depth < executableScanDepth {
+                    next.append(contentsOf: listing.folders.filter { !skipsDescent(into: $0) })
                 }
             }
-            frontier = next
+            frontier = binaryFoldersFirst(next)
             depth += 1
         }
-        return found
     }
 
     /// Whether the scan leaves a folder below the first level unread.
@@ -172,18 +235,82 @@ extension SteamLibrary {
     /// Whether an executable below the first folder level can be the game.
     static func isGameExecutable(_ name: String, besideChromium: Bool) -> Bool {
         let lowercased = name.lowercased()
-        if lowercased.hasPrefix("unins") || auxiliaryExecutableMarkers.contains(where: { lowercased.contains($0) }) {
+        if lowercased.hasPrefix("unins") || auxiliaryExecutableNames.contains(lowercased)
+            || auxiliaryExecutableMarkers.contains(where: { lowercased.contains($0) }) {
             return false
         }
         return !besideChromium || !chromiumHelperMarkers.contains { lowercased.contains($0) }
     }
 
-    /// A folder's entries sorted by name, so every scan sees them in the same order.
-    private static func sortedContents(of folder: URL) -> [URL] {
+    /// The folders named like binary folders first, each group in its own order.
+    private static func binaryFoldersFirst(_ folders: [URL]) -> [URL] {
+        let isBinary = { (folder: URL) in binaryFolderNames.contains(folder.lastPathComponent.lowercased()) }
+        return folders.filter(isBinary) + folders.filter { !isBinary($0) }
+    }
+
+    /// What one folder holds that the scan uses: its executables and its
+    /// folders, each by name. Nothing else is sorted or kept, so a folder of
+    /// loose files costs its listing and no more.
+    private struct Listing {
+        var executables: [URL] = []
+        var folders: [URL] = []
+        var shipsChromium = false
+    }
+
+    private static let listingKeys: [URLResourceKey] = [.isDirectoryKey, .isSymbolicLinkKey, .isRegularFileKey]
+
+    /// The root or a first-level folder, listed in full the way the scan always
+    /// listed them: an executable by its extension alone.
+    private static func listing(of folder: URL) -> Listing {
         let items = (try? FileManager.default.contentsOfDirectory(
-            at: folder, includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey, .isRegularFileKey]
+            at: folder, includingPropertiesForKeys: listingKeys
         )) ?? []
-        return items.sorted { $0.lastPathComponent < $1.lastPathComponent }
+        var listing = Listing()
+        for item in items {
+            if isExecutable(item) {
+                listing.executables.append(item)
+            } else if isDirectory(item) {
+                listing.folders.append(item)
+            }
+        }
+        listing.executables = sortedByName(listing.executables)
+        listing.folders = sortedByName(listing.folders)
+        return listing
+    }
+
+    /// A folder below the first level, read up to `limit` entries: no symbolic
+    /// links, and `nil` when it holds more, along with how many were read.
+    private static func deepListing(of folder: URL, limit: Int) -> (listing: Listing?, read: Int) {
+        guard let enumerator = FileManager.default.enumerator(
+            at: folder, includingPropertiesForKeys: listingKeys, options: [.skipsSubdirectoryDescendants]
+        )
+        else { return (nil, 0) }
+
+        var listing = Listing()
+        var read = 0
+        for case let item as URL in enumerator {
+            read += 1
+            if read > limit { return (nil, read) }
+            let name = item.lastPathComponent.lowercased()
+            if chromiumLibraryNames.contains(name) {
+                listing.shipsChromium = true
+            }
+            if isExecutable(item) {
+                if isRegularFile(item), !isSymbolicLink(item) {
+                    listing.executables.append(item)
+                }
+            } else if isDirectory(item), !isSymbolicLink(item) {
+                listing.folders.append(item)
+            }
+        }
+        listing.executables = sortedByName(listing.executables)
+        listing.folders = sortedByName(listing.folders)
+        return (listing, read)
+    }
+
+    /// URLs by file name, each name computed once.
+    private static func sortedByName(_ urls: [URL]) -> [URL] {
+        urls.map { ($0.lastPathComponent, $0) }.sorted { $0.0 < $1.0 }.map(\.1)
     }
 
     private static func isExecutable(_ url: URL) -> Bool {

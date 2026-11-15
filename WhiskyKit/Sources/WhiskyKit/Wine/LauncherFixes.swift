@@ -184,6 +184,13 @@ public enum LauncherFixes {
         case .paradox:
             // Paradox's fix is environment-only (see LauncherPresets)
             break
+
+        case .rsiLauncher:
+            // Nothing bottle-wide. The launcher draws only on DXVK, and gets it
+            // per executable: Recommended resolves it to DXVK and the launch
+            // writes that into its own `AppDefaults` entry. Switching the bottle
+            // would put Star Citizen, the game it starts, on DXVK too (#168).
+            break
         }
 
         // Save settings synchronously to disk

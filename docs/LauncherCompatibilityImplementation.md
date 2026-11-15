@@ -60,7 +60,7 @@ The implementation follows a layered architecture with clear separation of conce
 **Purpose:** Defines launcher-specific environment configurations
 
 **Key Features:**
-- Enum-based launcher types (7 supported launchers)
+- Enum-based launcher types (8 supported launchers)
 - Environment override methods per launcher
 - DXVK requirement flags
 - Recommended locale settings
@@ -74,6 +74,7 @@ The implementation follows a layered architecture with clear separation of conce
 - Ubisoft Connect
 - Battle.net
 - Paradox Launcher
+- RSI Launcher (Star Citizen)
 
 **Sample Environment Overrides:**
 ```swift

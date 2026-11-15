@@ -118,6 +118,20 @@ final class LauncherPresetTests: XCTestCase {
         XCTAssertTrue(LauncherType.paradox.fixDetails().isEmpty)
     }
 
+    func testRSILauncherPreset() {
+        // The RSI Launcher's fix is DXVK for its own executable (#168). Nothing
+        // goes into the environment or the bottle, which Star Citizen shares.
+        let launcher = LauncherType.rsiLauncher
+        XCTAssertTrue(launcher.environmentOverrides().isEmpty)
+        XCTAssertTrue(launcher.fixDetails().isEmpty)
+        XCTAssertFalse(launcher.requiresDXVK, "a bottle-wide DXVK requirement would reach Star Citizen")
+        XCTAssertEqual(launcher.recommendedLocale, .auto)
+        XCTAssertFalse(launcher.usesClipboard)
+        XCTAssertEqual(launcher.helperExecutables, [])
+        XCTAssertEqual(launcher.chainExecutables, [])
+        XCTAssertEqual(launcher.displayName, "RSI Launcher")
+    }
+
     func testFixDetailsMatchEnvironmentOverrides() {
         for launcher in LauncherType.allCases {
             let details = Dictionary(uniqueKeysWithValues: launcher.fixDetails().map { ($0.key, $0.value) })

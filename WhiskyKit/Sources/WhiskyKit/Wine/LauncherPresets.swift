@@ -108,6 +108,7 @@ public struct LauncherFixDetail: Sendable {
 /// - ``ubisoft``
 /// - ``battleNet``
 /// - ``paradox``
+/// - ``rsiLauncher``
 ///
 /// ### Configuration
 /// - ``environmentOverrides()``
@@ -128,6 +129,8 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     case battleNet = "Battle.net"
     /// Paradox Launcher
     case paradox = "Paradox Launcher"
+    /// RSI Launcher (Cloud Imperium's Electron launcher for Star Citizen)
+    case rsiLauncher = "RSI Launcher"
 
     public var id: String {
         rawValue
@@ -150,6 +153,8 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             "Battle.net"
         case .paradox:
             "Paradox Launcher"
+        case .rsiLauncher:
+            "RSI Launcher"
         }
     }
 
@@ -233,6 +238,12 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             // No environment fix: the old resource lookup workaround
             // (whisky-app/whisky#1091) set a variable no runtime reads.
             break
+
+        case .rsiLauncher:
+            // No environment fix: what the launcher needs is DXVK, which the
+            // resolver gives it per executable (#168). Anything set here would
+            // reach the bottle's environment, and so Star Citizen as well.
+            break
         }
 
         return env
@@ -241,6 +252,12 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     /// Indicates whether this launcher requires DXVK to function.
     ///
     /// Some launchers (notably Rockstar) will not render their UI without DXVK enabled.
+    ///
+    /// This is the bottle-wide requirement: it puts the DXVK preset into the
+    /// overrides every program in the bottle runs with. Launchers whose own
+    /// executables carry DXVK through the resolver (the RSI Launcher, whose
+    /// Chromium children run as the same executable) stay `false`, so the games
+    /// they start keep the bottle's backend.
     public var requiresDXVK: Bool {
         switch self {
         case .rockstar:
@@ -273,6 +290,11 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             ["Battle.net Helper.exe"]
         case .rockstar, .ubisoft, .paradox:
             []
+        case .rsiLauncher:
+            // Its Chromium processes (gpu-process, renderer, utility) run as
+            // `RSI Launcher.exe` itself, so the launched executable's own entry
+            // covers them. StarCitizen.exe is a game, and stays off the list.
+            []
         }
     }
 
@@ -291,7 +313,7 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
         switch self {
         case .rockstar:
             ["Launcher.exe", "SocialClubHelper.exe"]
-        case .steam, .epicGames, .eaApp, .battleNet, .ubisoft, .paradox:
+        case .steam, .epicGames, .eaApp, .battleNet, .ubisoft, .paradox, .rsiLauncher:
             []
         }
     }
@@ -342,6 +364,8 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             String(localized: "launcher.fixes.description.battleNet")
         case .paradox:
             String(localized: "launcher.fixes.description.paradox")
+        case .rsiLauncher:
+            String(localized: "launcher.fixes.description.rsiLauncher")
         }
     }
 }

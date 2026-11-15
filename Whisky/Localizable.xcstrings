@@ -58567,6 +58567,23 @@
         }
       }
     },
+    "launcher.fixes.description.rsiLauncher" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runs the launcher on DXVK so its window draws"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runs the launcher on DXVK so its window draws"
+          }
+        }
+      }
+    },
     "launcher.fixes.description.steam" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -19,6 +19,8 @@
 import Foundation
 
 public extension LauncherType {
+    // swiftlint:disable function_body_length
+
     /// Detects a known launcher from an executable's filename and path.
     ///
     /// Detection is case-insensitive and purely string-based. Executables
@@ -32,6 +34,17 @@ public extension LauncherType {
     static func detect(from url: URL) -> LauncherType? {
         let filename = url.lastPathComponent.lowercased()
         let path = url.path.lowercased()
+
+        // RSI Launcher detection, first: the checks below match loose fragments
+        // ("/steam/", "/origin/", "/ubisoft") that the bottle's own location on
+        // the Mac can contain. Only the launcher's executable or its install
+        // folder count. Star Citizen itself lives beside it, under
+        // `Roberts Space Industries/StarCitizen`, and is a game.
+        if filename == "rsi launcher.exe" ||
+            path.contains("roberts space industries/rsi launcher/") ||
+            path.contains("roberts space industries\\rsi launcher\\") {
+            return .rsiLauncher
+        }
 
         // Steam detection: the client's own executables or anything else at
         // the Steam root — but never the games in its libraries.
@@ -99,4 +112,6 @@ public extension LauncherType {
 
         return nil
     }
+
+    // swiftlint:enable function_body_length
 }

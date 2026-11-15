@@ -441,6 +441,7 @@ public class Wine {
     /// - Throws: An error if a backend's files cannot be deployed or the DLL override import
     ///   cannot be started. A failed font alias import is only logged.
     @MainActor
+    // swiftlint:disable:next function_body_length
     static func prepareProgramLaunch(
         at url: URL, args: [String] = [], bottle: Bottle, environment: [String: String] = [:],
         programOverrides: ProgramOverrides? = nil, programSettings: ProgramSettings? = nil,
@@ -534,6 +535,11 @@ public class Wine {
             recommendedBackend: recommendedBackend, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
         )
 
+        nameDXMTCaptureExecutable(
+            in: &wineEnvironment, backend: effectiveBackend, metalTrace: bottle.settings.metalTrace,
+            url: url, descendantExecutables: overridesApplyToDescendants ? descendantExecutables : nil
+        )
+
         try await applyDLLOverrides(
             for: url, bottle: bottle,
             wineEnvironment: &wineEnvironment,
@@ -549,6 +555,44 @@ public class Wine {
             for: url, args: args, programOverrides: programOverrides, bottle: bottle, query: virtualDesktopQuery
         )
         return PreparedLaunch(environment: wineEnvironment, arguments: arguments)
+    }
+
+    /// Names the executable for DXMT's Metal capture, which DXMT ignores the
+    /// capture switch without.
+    ///
+    /// Only when the launch runs on DXMT with Metal trace on, and never over a
+    /// value the user set in the program's environment.
+    static func nameDXMTCaptureExecutable(
+        in environment: inout [String: String], backend: GraphicsBackend, metalTrace: Bool,
+        url: URL, descendantExecutables: [String]?
+    ) {
+        guard backend == .dxmt, metalTrace, environment["DXMT_CAPTURE_EXECUTABLE"] == nil,
+              let executable = dxmtCaptureExecutable(for: url, descendantExecutables: descendantExecutables)
+        else { return }
+        environment["DXMT_CAPTURE_EXECUTABLE"] = executable
+    }
+
+    /// The name DXMT's `DXMT_CAPTURE_EXECUTABLE` has to hold for a launch's
+    /// Metal capture to happen: the executable that renders, without `.exe`.
+    ///
+    /// DXMT captures only when the variable equals the name of the executable
+    /// it is loaded into. On `steam.exe -applaunch` that is the game, not the
+    /// launcher, so the first of the game's executables is named; with none
+    /// known there is nothing to name.
+    ///
+    /// - Parameters:
+    ///   - url: The executable being launched.
+    ///   - descendantExecutables: The game's executables when the launch only
+    ///     carries their plan, or `nil` when `url` is what renders.
+    /// - Returns: The name to set, or `nil` when no executable is known.
+    static func dxmtCaptureExecutable(for url: URL, descendantExecutables: [String]?) -> String? {
+        let name: String? = if let descendantExecutables {
+            descendantExecutables.first
+        } else {
+            url.lastPathComponent
+        }
+        guard let name, !name.isEmpty else { return nil }
+        return name.lowercased().hasSuffix(".exe") ? String(name.dropLast(4)) : name
     }
 
     /// The `wine64` arguments for a launch, honoring a program's virtual desktop override.

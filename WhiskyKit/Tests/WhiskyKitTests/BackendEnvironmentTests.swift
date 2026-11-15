@@ -90,4 +90,49 @@ struct BackendEnvironmentTests {
 
         #expect(environment(settings, overrides)["DXMT_SHADER_CACHE"] == "0")
     }
+
+    // MARK: - Metal capture
+
+    @Test("Metal trace sets the documented capture variable and the older one")
+    func metalTraceSetsBothCaptureVariables() {
+        var settings = BottleSettings()
+        settings.metalTrace = true
+        let env = environment(settings)
+        #expect(env["MTL_CAPTURE_ENABLED"] == "1")
+        #expect(env["METAL_CAPTURE_ENABLED"] == "1")
+
+        settings.metalTrace = false
+        #expect(environment(settings)["MTL_CAPTURE_ENABLED"] == nil)
+    }
+
+    @Test("DXMT is told the launched executable, without its extension")
+    func captureNamesTheLaunchedExecutable() {
+        let url = URL(filePath: "/Bottle/drive_c/Games/Game/Game.EXE")
+        #expect(Wine.dxmtCaptureExecutable(for: url, descendantExecutables: nil) == "Game")
+        #expect(Wine.dxmtCaptureExecutable(for: URL(filePath: "/B/tool.com"), descendantExecutables: nil) == "tool.com")
+    }
+
+    @Test("On a Steam launch DXMT is told the game, not steam.exe")
+    func captureNamesTheGameOnApplaunch() {
+        let steam = URL(filePath: "/Bottle/drive_c/Program Files (x86)/Steam/steam.exe")
+        #expect(Wine.dxmtCaptureExecutable(for: steam, descendantExecutables: ["Game.exe", "Other.exe"]) == "Game")
+        #expect(Wine.dxmtCaptureExecutable(for: steam, descendantExecutables: []) == nil)
+    }
+
+    @Test("The executable is named only for DXMT with Metal trace on, and never over the user's value")
+    func captureIsNamedOnlyWhenItApplies() {
+        let url = URL(filePath: "/Bottle/drive_c/Games/Game/Game.exe")
+        func named(_ backend: GraphicsBackend, trace: Bool, env: [String: String] = [:]) -> String? {
+            var environment = env
+            Wine.nameDXMTCaptureExecutable(
+                in: &environment, backend: backend, metalTrace: trace, url: url, descendantExecutables: nil
+            )
+            return environment["DXMT_CAPTURE_EXECUTABLE"]
+        }
+        #expect(named(.dxmt, trace: true) == "Game")
+        #expect(named(.dxmt, trace: false) == nil)
+        #expect(named(.dxvk, trace: true) == nil)
+        #expect(named(.d3dMetal, trace: true) == nil)
+        #expect(named(.dxmt, trace: true, env: ["DXMT_CAPTURE_EXECUTABLE": "Launcher"]) == "Launcher")
+    }
 }

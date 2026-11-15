@@ -314,7 +314,10 @@ public struct BottleSettings: Codable, Equatable {
 
     /// Whether to enable Metal GPU trace capture.
     ///
-    /// Useful for debugging graphics issues with Xcode's GPU debugger.
+    /// Useful for debugging graphics issues with Xcode's GPU debugger. Sets
+    /// `MTL_CAPTURE_ENABLED` and the older `METAL_CAPTURE_ENABLED`; under DXMT
+    /// the launch also names the executable in `DXMT_CAPTURE_EXECUTABLE`,
+    /// without which DXMT captures nothing.
     public var metalTrace: Bool {
         get { metalConfig.metalTrace }
         set { metalConfig.metalTrace = newValue }
@@ -990,7 +993,12 @@ public struct BottleSettings: Codable, Equatable {
             builder.set("MTL_HUD_ENABLED", "1", layer: .bottleManaged)
         }
 
+        // MTL_CAPTURE_ENABLED is the name Apple documents for capturing outside
+        // Xcode and the one DXMT checks; Metal.framework still reads the older
+        // METAL_CAPTURE_ENABLED as well. DXMT also needs the executable named,
+        // which only the launch knows (`Wine.dxmtCaptureExecutable`).
         if metalTrace {
+            builder.set("MTL_CAPTURE_ENABLED", "1", layer: .bottleManaged)
             builder.set("METAL_CAPTURE_ENABLED", "1", layer: .bottleManaged)
         }
 

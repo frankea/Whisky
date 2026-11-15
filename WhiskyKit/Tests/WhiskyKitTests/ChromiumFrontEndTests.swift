@@ -186,4 +186,17 @@ struct ChromiumFrontEndTests {
         }
         #expect(RecommendedReason.steered(.chromiumFrontEnd(.threeDMark)).exportName.contains("3DMark"))
     }
+
+    @Test("A steering names what it steers and carries its helpers")
+    func steeringDescribesItself() {
+        let launcher = DXVKSteering.launcher(.steam)
+        #expect(launcher.displayName == LauncherType.steam.displayName)
+        #expect(launcher.helperExecutables == LauncherType.steam.helperExecutables)
+        #expect(launcher.evidence == "launcher: \(LauncherType.steam.rawValue)")
+
+        let frontEnd = DXVKSteering.chromiumFrontEnd(.threeDMark)
+        #expect(frontEnd.displayName == "3DMark")
+        #expect(frontEnd.helperExecutables == ChromiumFrontEnd.threeDMark.helperExecutables)
+        #expect(frontEnd.evidence == "Chromium front end: 3DMark")
+    }
 }

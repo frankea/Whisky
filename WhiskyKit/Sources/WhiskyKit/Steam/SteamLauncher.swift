@@ -139,8 +139,9 @@ public enum SteamLauncher {
     /// The executable names a game launch scopes the game's plan to: what the
     /// install folder holds, then what the GameDB lists, each name once.
     ///
-    /// A Chromium host below the first folder level is not among them: it
-    /// keeps its own settings (see ``SteamExecutableScan/chromiumHosts``).
+    /// A Chromium host below the first folder level and a front end from the
+    /// ``ChromiumFrontEnd`` table are not among them: they keep their own
+    /// settings (see ``SteamExecutableScan/ownSettingsExecutables``).
     static func gameExecutables(installURL: URL?, plan: LaunchPlan) -> [String] {
         gameExecutables(
             scanned: installURL.map { SteamLibrary.scanExecutables(under: $0).planExecutables } ?? [], plan: plan
@@ -242,9 +243,10 @@ public enum SteamLauncher {
     /// executable with persisted overrides can win, so skipping the default
     /// plists changes nothing for the winner.
     ///
-    /// A Chromium host below the first folder level never wins: what the user
-    /// set on a front end such as 3DMark's is for the front end, not for the
-    /// workloads it starts. The launch writes it into the host's own entry.
+    /// A Chromium host below the first folder level, or a front end from the
+    /// ``ChromiumFrontEnd`` table, never wins: what the user set on a front end
+    /// such as 3DMark's is for the front end, not for the workloads it starts.
+    /// The launch writes it into the host's own entry.
     @MainActor
     static func userOverrides(forInstallURL installURL: URL, bottle: Bottle) -> ProgramOverrides? {
         userOverrides(forExecutables: SteamLibrary.scanExecutables(under: installURL).planExecutables, bottle: bottle)

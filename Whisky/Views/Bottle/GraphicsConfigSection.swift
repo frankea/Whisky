@@ -51,8 +51,11 @@ struct GraphicsConfigSection: View {
                 isBackendAvailable: { backend in
                     WhiskyWineInstaller.isBackendAvailable(backend)
                 },
-                d3dMetalReadiness: d3dMetalReadiness
+                d3dMetalReadiness: d3dMetalReadiness,
+                chromiumPrograms: chromiumProgramNames
             )
+
+            chromiumOnExplicitBackendNotice
 
             // Said once, after an update put a bottle the old Steam profile had
             // switched to DXVK back on Recommended (#276).
@@ -330,6 +333,30 @@ struct GraphicsConfigSection: View {
                 }
             }
             Text("config.graphics.programOverrides.hint")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+// MARK: - Chromium Programs
+
+extension GraphicsConfigSection {
+    /// The launchers and Chromium front ends among the bottle's programs, by
+    /// name, each once: the programs Recommended runs on DXVK (#372).
+    var chromiumProgramNames: [String] {
+        var seen = Set<String>()
+        return bottle.programs
+            .compactMap { DXVKSteering.detect(executable: $0.url)?.displayName }
+            .filter { seen.insert($0).inserted }
+    }
+
+    /// Recommended would run these on DXVK; an explicit D3DMetal or DXMT does not.
+    @ViewBuilder
+    var chromiumOnExplicitBackendNotice: some View {
+        let names = chromiumProgramNames
+        if [.d3dMetal, .dxmt].contains(bottle.settings.graphicsBackend), !names.isEmpty {
+            Text("config.graphics.chromiumOnExplicitBackend \(ListFormatter.localizedString(byJoining: names))")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

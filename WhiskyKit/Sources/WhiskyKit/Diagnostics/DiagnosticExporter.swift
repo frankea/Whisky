@@ -358,6 +358,17 @@ public enum DiagnosticExporter {
             ? program.settings.arguments
             : Redactor.redactLogText(program.settings.arguments)
         info["hasOverrides"] = "\(program.settings.overrides != nil)"
+        // Why Recommended picked what it did, so a black-window report shows
+        // whether the program was steered to DXVK (#372).
+        let backends = PreflightCollector.resolvedBackends(
+            bottle: program.bottle.settings.graphicsBackend,
+            programOverride: program.settings.overrides?.graphicsBackend,
+            programURL: program.url,
+            recommended: { GraphicsBackendResolver.resolution(for: $0) }
+        )
+        info["graphicsBackend"] = backends.effective.rawValue
+        info["graphicsBackendReason"] = backends.reason?.exportName ?? "explicit choice"
+        info["libcefBesideExecutable"] = ChromiumFrontEnd.shipsCEF(beside: program.url) ? "yes" : "no"
 
         return dictionaryToJSON(info)
     }

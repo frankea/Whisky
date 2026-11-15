@@ -61,7 +61,7 @@ extension SteamLauncher {
             overridesApplyToDescendants: true,
             descendantExecutables: gameExecutables(scanned: scan?.planExecutables ?? [], plan: plan),
             descendantExecutableURLs: scan?.planExecutables ?? [],
-            ownSettingsExecutables: scan?.chromiumHosts ?? [],
+            ownSettingsExecutables: scan?.ownSettingsExecutables ?? [],
             descendantLaunchers: plan.startsLaunchers
         )
     }

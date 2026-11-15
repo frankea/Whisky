@@ -486,15 +486,15 @@ public class Wine {
         // vehicle there and the plan is the game's, so the game resolves the way
         // the bottle's games do. Steered, every game started that way got DXVK's
         // set, `d3d12=` included (#276). The launcher keeps DXVK through its own
-        // `AppDefaults` entry, written from the launcher's set.
+        // `AppDefaults` entry, written from the launcher's set. A Chromium front
+        // end from the curated table (3DMark) is steered the same way, while
+        // the benchmarks and games it starts keep the bottle's backend (#372).
         let launcher = LauncherType.detect(from: url)
-        let steeredLauncher = overridesApplyToDescendants ? nil : launcher
+        let steering = overridesApplyToDescendants ? nil : DXVKSteering.detect(executable: url)
         let effectiveBackendChoice = programOverrides?.graphicsBackend ?? bottle.settings.graphicsBackend
-        let effectiveBackend = if effectiveBackendChoice == .recommended {
-            steeredLauncher.map { GraphicsBackendResolver.resolve(for: $0) } ?? recommendedBackend
-        } else {
-            effectiveBackendChoice
-        }
+        let effectiveBackend = effectiveBackend(
+            for: url, choice: effectiveBackendChoice, steering: steering, recommendedBackend: recommendedBackend
+        )
 
         // The bottle composes its overrides from its own resolution, which does
         // not know what is being launched, so pin the decision here or a
@@ -513,12 +513,13 @@ public class Wine {
         try prepareBackendPrefix(effectiveBackend, bottle: bottle, dxmtFolder: dxmtFolder)
 
         // The MetalFX placeholder serves the bottle's games, and only D3DMetal
-        // answers it. A launcher's own launch says nothing about them, so it is
-        // keyed on what they resolve to: keyed on the launcher's DXVK, every
-        // Steam start took away the placeholder its games need (#276).
+        // answers it. A launcher's or front end's own launch says nothing about
+        // them, so it is keyed on what they resolve to: keyed on the launcher's
+        // DXVK, every Steam start took away the placeholder its games need
+        // (#276), and 3DMark's DLSS feature test is a D3DMetal workload.
         let gamesBackend = bottle.settings.graphicsBackend == .recommended
             ? recommendedBackend : bottle.settings.graphicsBackend
-        applyMetalFX(bottle: bottle, backend: steeredLauncher == nil ? effectiveBackend : gamesBackend)
+        applyMetalFX(bottle: bottle, backend: steering == nil ? effectiveBackend : gamesBackend)
 
         try deployLauncherAndGameLayers(
             bottle: bottle, effectiveBackend: effectiveBackend, programOverrides: programOverrides,
@@ -551,6 +552,26 @@ public class Wine {
             for: url, args: args, programOverrides: programOverrides, bottle: bottle, query: virtualDesktopQuery
         )
         return PreparedLaunch(environment: wineEnvironment, arguments: arguments)
+    }
+
+    /// The concrete backend a launch runs on: an explicit choice as is, and
+    /// Recommended resolved for what is launched, which steers a launcher or a
+    /// Chromium front end to DXVK. A steered pick is logged with its evidence.
+    ///
+    /// - Parameters:
+    ///   - url: The executable being launched.
+    ///   - choice: The program's backend override, else the bottle's backend.
+    ///   - steering: Why `url` needs DXVK, when it does and its overrides are its own.
+    ///   - recommendedBackend: What `.recommended` resolves to for the bottle's games.
+    static func effectiveBackend(
+        for url: URL, choice: GraphicsBackend, steering: DXVKSteering?, recommendedBackend: GraphicsBackend
+    ) -> GraphicsBackend {
+        guard choice == .recommended else { return choice }
+        guard let steering else { return recommendedBackend }
+        let executable = url.lastPathComponent
+        let evidence = steering.evidence
+        logger.info("Recommended -> DXVK for \(executable, privacy: .public) (\(evidence, privacy: .public))")
+        return .dxvk
     }
 
     /// The environment a launch runs with: `constructWineEnvironment` with the

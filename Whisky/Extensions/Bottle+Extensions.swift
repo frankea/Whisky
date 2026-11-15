@@ -202,12 +202,13 @@ extension Bottle {
     }
 
     /// Removes the bottle from the list, optionally deleting its files, after
-    /// offering to stop any running processes. Returns without removing if
-    /// the user cancels that prompt.
+    /// offering to stop any running processes.
     ///
+    /// - Returns: `false` when the user cancels that prompt and nothing was
+    ///   removed.
     /// - Throws: The deletion's error, so the caller can tell the user.
-    @MainActor
-    func remove(delete: Bool) async throws {
+    @MainActor @discardableResult
+    func remove(delete: Bool) async throws -> Bool {
         // Check for running processes before deletion
         let isRunning = await Wine.isWineserverRunning(for: self)
         let trackedCount = ProcessRegistry.shared.getProcessCount(for: self)
@@ -224,7 +225,7 @@ extension Bottle {
             alert.addButton(withTitle: String(localized: "bottle.remove.hasProcesses.cancel"))
 
             let response = alert.runModal()
-            guard response == .alertFirstButtonReturn else { return }
+            guard response == .alertFirstButtonReturn else { return false }
 
             Wine.killBottle(bottle: self)
             try? await Task.sleep(for: .seconds(2))
@@ -232,6 +233,7 @@ extension Bottle {
         }
 
         try BottleOperations.remove(bottleAt: url, deleteFiles: delete, registry: BottleVM.shared)
+        return true
     }
 
     @MainActor

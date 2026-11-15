@@ -335,7 +335,11 @@ extension BottleListEntry {
                 }
 
                 do {
-                    try await bottle.remove(delete: checkbox.state == .on)
+                    let removed = try await bottle.remove(delete: checkbox.state == .on)
+                    // Cancelled at the running-processes prompt: still listed.
+                    if !removed, wasSelected {
+                        selected = bottle.url
+                    }
                 } catch {
                     // The bottle is still in the list, so put the selection back.
                     if wasSelected {

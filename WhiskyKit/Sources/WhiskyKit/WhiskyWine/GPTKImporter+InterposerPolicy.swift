@@ -109,6 +109,8 @@ extension GPTKImporter {
     ///   deploy leaves behind. A slot holding anything else was changed on
     ///   purpose.
     public static func ensureVideoProcessorInstalled(bottles: [URL]) {
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
         ensureVideoProcessorInstalled(
             bottles: bottles, inLibraryFolder: WhiskyWineInstaller.libraryFolder, usingStore: storeFolder
         )

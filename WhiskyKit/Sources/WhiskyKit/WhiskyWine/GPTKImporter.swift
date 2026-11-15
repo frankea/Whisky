@@ -296,7 +296,9 @@ public enum GPTKImporter {
     /// the framework.
     @discardableResult
     public static func importPayload(_ payload: GPTKPayload) throws -> GPTKStoreRecord {
-        try importPayload(payload, intoStore: storeFolder, revalidatingWith: isAppleSigned(_:identifier:))
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
+        return try importPayload(payload, intoStore: storeFolder, revalidatingWith: isAppleSigned(_:identifier:))
     }
 
     /// Testable seam for ``importPayload(_:)``.
@@ -383,6 +385,8 @@ public enum GPTKImporter {
 
     /// Deletes the store, payload and record together.
     public static func removeStore() throws {
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
         let store = storeFolder
         guard FileManager.default.fileExists(atPath: store.path(percentEncoded: false)) else { return }
         try FileManager.default.removeItem(at: store)

@@ -207,17 +207,29 @@ struct GPTKSettingsSection: View {
     }
 
     private func removePayload() {
-        do {
-            // Unconditional: isDeployed() reads files written late in deploy, so
-            // a half-finished deploy looks undeployed while forwarders are
-            // already swapped, and skipping cleanup would delete originals/ with
-            // the store. The removal is idempotent per file.
-            try GPTKImporter.removeDeployedPayload()
-            try GPTKImporter.removeStore()
-            storeFailure = nil
-        } catch {
-            importError = error.localizedDescription
+        // Off the main thread: removal waits for any deploy the launch-time
+        // update is running, and that can take a few seconds.
+        Task.detached(priority: .userInitiated) {
+            let failure: String?
+            do {
+                // Unconditional: isDeployed() reads files written late in deploy, so
+                // a half-finished deploy looks undeployed while forwarders are
+                // already swapped, and skipping cleanup would delete originals/ with
+                // the store. The removal is idempotent per file.
+                try GPTKImporter.removeDeployedPayload()
+                try GPTKImporter.removeStore()
+                failure = nil
+            } catch {
+                failure = error.localizedDescription
+            }
+            await MainActor.run {
+                if let failure {
+                    importError = failure
+                } else {
+                    storeFailure = nil
+                }
+                refresh()
+            }
         }
-        refresh()
     }
 }

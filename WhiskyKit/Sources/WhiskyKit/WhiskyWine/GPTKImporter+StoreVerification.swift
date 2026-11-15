@@ -57,7 +57,9 @@ extension GPTKImporter {
     /// - Returns: the verdict, or `nil` when there is no stored payload.
     @discardableResult
     public static func verifyStoredPayload() -> GPTKStoreVerdict? {
-        verifyStoredPayload(
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
+        return verifyStoredPayload(
             inStore: storeFolder,
             libraryFolder: WhiskyWineInstaller.libraryFolder,
             isAppleSigned: isAppleSigned(_:identifier:)

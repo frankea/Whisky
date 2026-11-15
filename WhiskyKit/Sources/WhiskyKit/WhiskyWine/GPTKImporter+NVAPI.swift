@@ -134,6 +134,8 @@ extension GPTKImporter {
     /// owner's: install would set the owner's `nvapi64.dll` aside as if it were
     /// Wine's placeholder and put the store's in front of another build's dylib.
     public static func ensureNVAPIBridgeInstalled() {
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
         ensureNVAPIBridgeInstalled(inLibraryFolder: WhiskyWineInstaller.libraryFolder, usingStore: storeFolder)
     }
 

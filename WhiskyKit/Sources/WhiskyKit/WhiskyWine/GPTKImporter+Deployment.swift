@@ -75,6 +75,8 @@ extension GPTKImporter {
     /// - Throws: ``GPTKImportError/storeNotVerified(_:)`` when the store fails
     ///   the checks an import applies (see ``verifyStoredPayload()``).
     public static func deployStoredPayload() throws {
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
         let store = storeFolder
         if case let .failed(reason) = storeVerdict(inStore: store, isAppleSigned: isAppleSigned(_:identifier:)) {
             throw GPTKImportError.storeNotVerified(reason)
@@ -97,6 +99,8 @@ extension GPTKImporter {
     /// (see ``verifyStoredPayload()``).
     @discardableResult
     public static func deployStoredPayloadIfCapable() -> Bool {
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
         guard isRuntimeGPTKCapable() else { return false }
         return deployStoredPayloadIfPresent(
             fromStore: storeFolder,
@@ -115,7 +119,9 @@ extension GPTKImporter {
     /// D3DMetal is left as it is, so launch does not copy the payload again.
     @discardableResult
     public static func deployStoredPayloadIfMissing() -> Bool {
-        deployStoredPayloadIfMissing(
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
+        return deployStoredPayloadIfMissing(
             fromStore: storeFolder,
             intoLibraryFolder: WhiskyWineInstaller.libraryFolder,
             isAppleSigned: isAppleSigned(_:identifier:)
@@ -283,6 +289,8 @@ extension GPTKImporter {
     /// Removes the payload from the runtime tree and restores the backed-up
     /// Wine originals.
     public static func removeDeployedPayload() throws {
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
         try remove(fromLibraryFolder: WhiskyWineInstaller.libraryFolder, usingStore: storeFolder)
     }
 

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- The RSI Launcher (Star Citizen) now draws its window on the Recommended
+  graphics backend: Whisky recognizes it as a launcher and runs it on DXVK,
+  the only backend its window draws on, while Star Citizen keeps the
+  bottle's backend (#374, #168).
+
 ## [3.10.0] - 2026-11-14 (App)
 
 ### Added

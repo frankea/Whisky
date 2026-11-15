@@ -254,25 +254,32 @@ public final class SteamClientOrchestrator: ObservableObject {
     /// On a cold prefix the client starts once Wine's boot has settled, and a
     /// `tasklist.exe` every poll kept the boot busy: the wait ran out first and
     /// `-applaunch` was never sent, while Steam came up after. Reading `ps`
-    /// starts no Wine process. It isn't scoped to the bottle, though, so each
-    /// new `steam.exe` gets one look at the bottle's own list to confirm it is
-    /// this one. A client already running in another bottle is in the
-    /// `excluding` set, so it neither ends the wait nor turns it back into
-    /// polling the bottle.
+    /// starts no Wine process. It isn't scoped to the bottle, though, so once
+    /// a new `steam.exe` is up the bottle's own list confirms it is this one.
+    /// That check repeats, at most once per snapshot, while the new client is
+    /// still running: the first look can come back without it (a list read
+    /// that started just before it registered), and giving up there ran the
+    /// wait out with Steam already up. A client already running in another
+    /// bottle is in the `excluding` set, so it neither ends the wait nor turns
+    /// it back into polling the bottle.
     ///
     /// - Parameter running: Host PIDs of `steam.exe` from before the start.
     private func waitForStartedClient(excluding running: Set<Int32>) async -> Bool {
         let deadline = Date(timeIntervalSinceNow: timing.clientReadyTimeout)
-        var checked = running
+        var seen = running
+        // New host clients not yet confirmed in this bottle, while they run.
+        var unconfirmed = Set<Int32>()
         repeat {
-            let new = await driver.hostSteamPIDs().subtracting(checked)
+            let host = await driver.hostSteamPIDs()
+            let new = host.subtracting(seen)
+            seen.formUnion(host)
+            unconfirmed = unconfirmed.union(new).intersection(host)
             if !new.isEmpty {
-                checked.formUnion(new)
                 // The snapshot from before the start can't have this client in it.
                 processSnapshot = nil
-                if await isClientRunning() {
-                    return true
-                }
+            }
+            if !unconfirmed.isEmpty, await isClientRunning() {
+                return true
             }
             try? await Task.sleep(for: timing.pollInterval)
             guard !Task.isCancelled else { return false }

@@ -143,6 +143,62 @@ struct SteamClientOrchestratorLaunchTests {
         #expect(listsAtLaunch == listsAtStart + 1)
     }
 
+    @Test("A bottle list that misses the new client is read again until it shows up")
+    func clientWaitRetriesAfterAMissedList() async throws {
+        let (bottle, games) = try Fixture.makeBottle()
+        let driver = FakeSteamClientDriver(script: [[]])
+        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: Fixture.patient)
+        driver.onStartClient = {
+            // The host sees the client before the bottle's list does: the
+            // first two reads after it appears still come back without it.
+            driver.hostOverride = ["steam.exe"]
+            driver.script = [[], [], ["steam.exe"]]
+        }
+        driver.onLaunchGame = { _ in
+            driver.script = [["steam.exe", "game1.exe"]]
+        }
+
+        orchestrator.launch(games[0])
+        await Fixture.awaitIdle(orchestrator)
+
+        #expect(orchestrator.launchError == nil)
+        #expect(driver.launched == [games[0].appId])
+    }
+
+    @Test("A new client that exits before the bottle lists it stops the bottle reads")
+    func clientWaitStopsReadingWhenTheNewClientExits() async throws {
+        let (bottle, games) = try Fixture.makeBottle()
+        let driver = FakeSteamClientDriver(script: [[]])
+        // Long enough for the reads below even on a loaded runner.
+        var timing = Fixture.fast
+        timing.clientReadyTimeout = 3
+        let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: timing)
+        var listsAtExit: Int?
+        driver.onStartClient = {
+            let listsAtStart = driver.listCalls
+            driver.hostOverride = ["steam.exe"]
+            Task { @MainActor in
+                // A second read shows the wait is retrying; then the client goes.
+                let giveUp = Date(timeIntervalSinceNow: 3)
+                while driver.listCalls < listsAtStart + 2, Date() < giveUp {
+                    try? await Task.sleep(for: .milliseconds(1))
+                }
+                guard driver.listCalls >= listsAtStart + 2 else { return }
+                driver.hostOverride = ["services.exe"]
+                listsAtExit = driver.listCalls
+            }
+        }
+
+        orchestrator.launch(games[0])
+        await Fixture.awaitIdle(orchestrator)
+
+        #expect(orchestrator.launchError == SteamOrchestratorError.clientTimeout.errorDescription)
+        let exit = try #require(listsAtExit)
+        // At most the read already under way when the client went.
+        #expect(driver.listCalls <= exit + 1)
+        #expect(driver.launched.isEmpty)
+    }
+
     @Test("Concurrent launches share one client startup")
     func singleFlightStartup() async throws {
         let (bottle, games) = try Fixture.makeBottle(games: [1_086_940, 1_245_620])

@@ -6,6 +6,28 @@
         <description>Whisky update feed</description>
         <language>en</language>
         <item>
+            <title>Whisky 3.10.0</title>
+            <pubDate>Sun, 15 Nov 2026 03:25:08 +0000</pubDate>
+            <sparkle:version>60</sparkle:version>
+            <sparkle:shortVersionString>3.10.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <p>Whisky 3.10.0 brings a new default engine that runs Apple's D3DMetal, so DirectX 12 games can run with the Game Porting Toolkit you import.</p>
+                <ul>
+                    <li><strong>New engine, 4.8.3 (Wine 11.19)</strong>: Whisky offers it at launch. Import Apple's Game Porting Toolkit in Settings and "Recommended" uses D3DMetal. Your bottles keep working.</li>
+                    <li><strong>Launches return as soon as the game starts</strong>, and long logs keep their newest output.</li>
+                    <li><strong>Start Menu unpins stick</strong>, and launches keep DLL overrides set by winetricks or winecfg.</li>
+                    <li><strong>Steam games use the Game Configuration you applied</strong>, and guided troubleshooting checks the bottle's real settings.</li>
+                </ul>
+                <p>See the <a href="https://github.com/frankea/Whisky/releases/tag/app-v3.10.0">release notes</a> for the full changelog.</p>
+            ]]></description>
+            <enclosure
+                url="https://github.com/frankea/Whisky/releases/download/app-v3.10.0/Whisky-3.10.0.dmg"
+                sparkle:edSignature="D2uZBHMDp5qjrqwDTr74fTqczPx0+EaHozA+f+/EeerWRXbjecCVLZAFjoZgLtdgGHUCiNvrN7RqfH5SJ0iNBQ=="
+                length="12234223"
+                type="application/octet-stream" />
+        </item>
+        <item>
             <title>Whisky 3.9.2</title>
             <pubDate>Fri, 13 Nov 2026 16:18:14 +0000</pubDate>
             <sparkle:version>59</sparkle:version>

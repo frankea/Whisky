@@ -398,9 +398,9 @@ public class WhiskyWineInstaller {
     }
 
     /// Whether the installed runtime's Wine applies the Enhanced Sync setting
-    /// (see ``WhiskyWineVersion/msyncCapable``). `false` when WhiskyWine is not
-    /// installed or its plist does not advertise it. Reads the plist on every
-    /// call, so a view reads it once and keeps the answer.
+    /// (see ``WhiskyWineVersion/implementsEnhancedSync``). `false` when
+    /// WhiskyWine is not installed or its plist does not show it. Reads the
+    /// plist on every call, so a view reads it once and keeps the answer.
     public static func runtimeImplementsEnhancedSync() -> Bool {
         whiskyWineInfo()?.implementsEnhancedSync ?? false
     }

@@ -71,16 +71,24 @@ public struct WhiskyWineVersion: Codable {
     /// D3DMetal checks `WINEESYNC` itself (the enhanced sync block of
     /// `BottleSettings.populateBottleManagedLayer`).
     ///
-    /// Absent (all runtimes to date) means not capable; a runtime whose Wine
-    /// carries the msync patches advertises `true` here. To check a build,
-    /// run `strings` on its `ntdll.so` and `wineserver` and look for
-    /// `WINEMSYNC` and `WINEESYNC`.
+    /// A runtime whose Wine carries the msync patches advertises `true` here.
+    /// No published plist sets it yet, so ``implementsEnhancedSync`` decides
+    /// an absent key by lineage. To check a build, run `strings` on its
+    /// `ntdll.so` and `wineserver` and look for `WINEMSYNC` and `WINEESYNC`.
     public var msyncCapable: Bool?
 
     /// Whether the Enhanced Sync setting changes how this runtime's Wine
     /// synchronizes threads, rather than only how D3DMetal behaves.
+    ///
+    /// An explicit ``msyncCapable`` wins. Without it, the runtime counts as
+    /// capable when it is ``gptkCapable``: only the CrossOver-based v4
+    /// engines set that key, and they implement msync and esync, while the
+    /// stock 3.x runtimes set neither key and implement neither. The v4
+    /// betas installed by hand carry plists written before `msyncCapable`
+    /// existed, so this keeps them from being told their engine ignores the
+    /// setting.
     public var implementsEnhancedSync: Bool {
-        msyncCapable == true
+        msyncCapable ?? (gptkCapable == true)
     }
 
     enum CodingKeys: String, CodingKey {

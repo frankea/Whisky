@@ -75,6 +75,39 @@ struct EnhancedSyncRuntimeTests {
         #expect(info.implementsEnhancedSync)
     }
 
+    @Test("A hand-installed v4 beta engine without msyncCapable implements Enhanced Sync")
+    func betaEngineWithoutKeyIsCapable() throws {
+        // Shaped like the v4.6.4-beta.1 plist: version 4.x and gptkCapable,
+        // written before msyncCapable existed.
+        let plist = Self.stockPlist
+            .replacingOccurrences(
+                of: "\t<key>version</key>", with: "\t<key>gptkCapable</key>\n\t<true/>\n\t<key>version</key>"
+            )
+            .replacingOccurrences(
+                of: "<integer>3</integer>\n\t\t<key>minor</key>\n\t\t<integer>1</integer>",
+                with: "<integer>4</integer>\n\t\t<key>minor</key>\n\t\t<integer>6</integer>"
+            )
+            .replacingOccurrences(of: "<integer>1</integer>\n\t</dict>", with: "<integer>4</integer>\n\t</dict>")
+        let info = try #require(try info(fromPlist: plist))
+
+        #expect(info.version == SemanticVersion(4, 6, 4))
+        #expect(info.gptkCapable == true)
+        #expect(info.msyncCapable == nil)
+        #expect(info.implementsEnhancedSync)
+    }
+
+    @Test("An explicit msyncCapable wins over the lineage")
+    func explicitKeyWinsOverLineage() {
+        let optedOut = WhiskyWineVersion(version: SemanticVersion(4, 6, 4), gptkCapable: true, msyncCapable: false)
+        #expect(!optedOut.implementsEnhancedSync)
+
+        let optedIn = WhiskyWineVersion(version: SemanticVersion(3, 2, 0), gptkCapable: nil, msyncCapable: true)
+        #expect(optedIn.implementsEnhancedSync)
+
+        let notGPTK = WhiskyWineVersion(version: SemanticVersion(3, 1, 1), gptkCapable: false)
+        #expect(!notGPTK.implementsEnhancedSync)
+    }
+
     @Test("A runtime that says false does not implement Enhanced Sync")
     func explicitFalseIsNotCapable() {
         #expect(!WhiskyWineVersion(version: SemanticVersion(4, 0, 0), msyncCapable: false).implementsEnhancedSync)

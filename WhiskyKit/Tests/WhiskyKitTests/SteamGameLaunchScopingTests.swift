@@ -258,7 +258,7 @@ final class SteamGameLaunchScopingTests {
 
         try await prepareDirectLaunch(game, bottle, recorder: recorder)
 
-        #expect(recorder.programScopes == ["DXSETUP.exe", "Game.exe"])
+        #expect(recorder.programScopes == ["Game.exe"])
     }
 
     // MARK: - Rockstar titles (findings 6 and 7)

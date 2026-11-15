@@ -154,10 +154,6 @@ public extension Wine {
             for: bottle, recommendedBackend: recommendedBackend, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
         )["WINEDLLOVERRIDES"] ?? ""
         var scopes = DLLOverrideScopes(bottle: bottleOverrides)
-        // First, since scopes are first-wins: launched directly, DXSETUP.exe
-        // would otherwise get its own set without the mscoree it needs gone.
-        let launchedOwn = applyToDescendants ? nil : wineEnvironment["WINEDLLOVERRIDES"]
-        scopes.add([directXSetupExecutable], directXSetupOverrides(launching: url, own: launchedOwn))
         let launcher = LauncherType.detect(from: url)
         let launcherSet = { (userOverrides: ProgramOverrides?) in
             launcherDLLOverrides(
@@ -330,31 +326,6 @@ public extension Wine {
     static func disablingD3D12(in overrides: String) -> String {
         var parsed = parseDLLOverrides(overrides)
         parsed["d3d12"] = ""
-        return parsed.keys.sorted().map { "\($0)=\(parsed[$0] ?? "")" }.joined(separator: ";")
-    }
-
-    /// The DirectX End-User Runtime (June 2010) setup, which Steam, game
-    /// installers and launchers such as Gameforge's run on their own.
-    static let directXSetupExecutable = "DXSETUP.exe"
-
-    /// The overrides `DXSETUP.exe` runs with: `mscoree` disabled, on top of
-    /// its own set when it is what is being launched.
-    ///
-    /// The setup asks .NET whether Managed DirectX is in use. Wine Mono answers
-    /// `LoadLibraryShim` with an invalid handle and the setup ends with
-    /// "Internal or unsupported error" (-9), which left an installer waiting on
-    /// it for good. Without `mscoree` the check is skipped. An `AppDefaults`
-    /// entry falls back to the bottle's overrides for every other DLL, so the
-    /// entry needs nothing else when something else starts the setup.
-    ///
-    /// - Parameters:
-    ///   - url: The executable being launched.
-    ///   - own: The launched executable's own overrides, or `nil` when they
-    ///     belong to something it spawns.
-    static func directXSetupOverrides(launching url: URL, own: String?) -> String {
-        let launchedDirectly = url.lastPathComponent.caseInsensitiveCompare(directXSetupExecutable) == .orderedSame
-        var parsed = parseDLLOverrides(launchedDirectly ? own ?? "" : "")
-        parsed["mscoree"] = ""
         return parsed.keys.sorted().map { "\($0)=\(parsed[$0] ?? "")" }.joined(separator: ";")
     }
 

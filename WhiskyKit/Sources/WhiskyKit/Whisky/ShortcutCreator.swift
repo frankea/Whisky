@@ -62,6 +62,19 @@ public enum ShortcutCreator {
         return try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
     }
 
+    /// Whether `appURL` holds a shortcut bundle made by
+    /// ``createShortcutBundle(at:launchScript:name:icon:)``: one whose
+    /// executable is the `launch` script.
+    static func isShortcutBundle(at appURL: URL) -> Bool {
+        let contents = appURL.appending(path: "Contents")
+        let script = contents.appending(path: "MacOS").appending(path: "launch")
+        guard FileManager.default.fileExists(atPath: script.path(percentEncoded: false)),
+              let data = try? Data(contentsOf: contents.appending(path: "Info").appendingPathExtension("plist")),
+              let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+        else { return false }
+        return plist["CFBundleExecutable"] as? String == "launch"
+    }
+
     /// Creates a shortcut bundle that launches `program` through Whisky's live
     /// pipeline, with the program's own icon when it has one.
     ///
@@ -97,8 +110,10 @@ public enum ShortcutCreator {
     ///       AppIcon.icns    (when an icon is given)
     /// ```
     ///
-    /// An existing bundle at `appURL` is removed first, so nothing of it
+    /// An existing shortcut at `appURL` is removed first, so nothing of it
     /// survives, such as a Finder custom icon that would hide the new one.
+    /// Anything else there, such as a real app with the program's name, is
+    /// moved to the Trash instead, where it can be restored.
     ///
     /// - Parameters:
     ///   - appURL: The destination URL for the `.app` bundle.
@@ -115,7 +130,11 @@ public enum ShortcutCreator {
         icon: NSImage? = nil
     ) throws -> Bool {
         if FileManager.default.fileExists(atPath: appURL.path(percentEncoded: false)) {
-            try FileManager.default.removeItem(at: appURL)
+            if isShortcutBundle(at: appURL) {
+                try FileManager.default.removeItem(at: appURL)
+            } else {
+                try FileManager.default.trashItem(at: appURL, resultingItemURL: nil)
+            }
         }
 
         let contents = appURL.appending(path: "Contents")

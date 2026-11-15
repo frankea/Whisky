@@ -123,4 +123,27 @@ final class ShortcutBundleIconTests: XCTestCase {
         let script = try String(contentsOf: appURL.appending(path: "Contents/MacOS/launch"), encoding: .utf8)
         XCTAssertTrue(script.hasSuffix("echo new"))
     }
+
+    func testOnlyAShortcutCountsAsOneToReplaceInPlace() throws {
+        try ShortcutCreator.createShortcutBundle(at: appURL, launchScript: "echo hi", name: "Game")
+        XCTAssertTrue(ShortcutCreator.isShortcutBundle(at: appURL))
+
+        // A real app with the same name, which goes to the Trash instead.
+        let realApp = tempDir.appending(path: "Steam.app")
+        let macos = realApp.appending(path: "Contents/MacOS")
+        try FileManager.default.createDirectory(at: macos, withIntermediateDirectories: true)
+        try Data().write(to: macos.appending(path: "steam_osx"))
+        let plist = try PropertyListSerialization.data(
+            fromPropertyList: ["CFBundleExecutable": "steam_osx"],
+            format: .xml,
+            options: 0
+        )
+        try plist.write(to: realApp.appending(path: "Contents/Info.plist"))
+        XCTAssertFalse(ShortcutCreator.isShortcutBundle(at: realApp))
+
+        // Even with a file named like the script, the executable must be it.
+        try Data().write(to: macos.appending(path: "launch"))
+        XCTAssertFalse(ShortcutCreator.isShortcutBundle(at: realApp))
+        XCTAssertFalse(ShortcutCreator.isShortcutBundle(at: tempDir.appending(path: "Missing.app")))
+    }
 }

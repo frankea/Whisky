@@ -64,7 +64,9 @@ final class WineLogCapTests: XCTestCase {
         let parts = text.components(separatedBy: Wine.logTruncationMarker)
         XCTAssertEqual(parts.count, 2)
         let head = try XCTUnwrap(parts.first)
-        let tail = try XCTUnwrap(parts.last)
+        let afterMarker = try XCTUnwrap(parts.last)
+        XCTAssertTrue(afterMarker.hasPrefix(Wine.logTruncationCountPrefix), "the marker is followed by its count")
+        let tail = afterMarker.drop { $0 != "\n" }.dropFirst()
         XCTAssertTrue(head.hasPrefix(header))
         XCTAssertTrue(head.hasSuffix("\n"), "the head ends with a whole line")
         XCTAssertLessThanOrEqual(head.utf8.count, limits.headBytes)
@@ -104,7 +106,10 @@ final class WineLogCapTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(standard.headBytes, 64 * 1_024)
         XCTAssertGreaterThanOrEqual(standard.tailBytes, 256 * 1_024)
         XCTAssertLessThan(
-            Int64(standard.headBytes + standard.tailBytes + Wine.logTruncationMarker.utf8.count),
+            Int64(
+                standard.headBytes + standard.tailBytes + Wine.logTruncationMarker.utf8.count
+                    + Wine.logTruncationCountLine(Int.max).utf8.count
+            ),
             standard.maxBytes
         )
     }
@@ -125,14 +130,16 @@ final class WineLogCapTests: XCTestCase {
         let readerOffset = try XCTUnwrap(try FileManager.default.attributesOfItem(
             atPath: url.path(percentEncoded: false)
         )[.size] as? UInt64)
-        XCTAssertNil(Wine.truncationMarkerOffset(inLogAt: url), "a log under its cap has no marker")
+        XCTAssertNil(Wine.truncationMarker(inLogAt: url), "a log under its cap has no marker")
 
         handle.writeWineLog(line: "the write that overflowed the log\n", limits: limits)
         try handle.closeWineLog()
 
         let data = try Data(contentsOf: url)
         XCTAssertLessThan(UInt64(data.count), readerOffset, "the log shrank")
-        let markerOffset = try XCTUnwrap(Wine.truncationMarkerOffset(inLogAt: url))
+        let marker = try XCTUnwrap(Wine.truncationMarker(inLogAt: url))
+        XCTAssertEqual(marker.count, 1)
+        let markerOffset = marker.offset
         let resumed = try XCTUnwrap(String(data: data.dropFirst(Int(markerOffset)), encoding: .utf8))
         XCTAssertTrue(resumed.hasPrefix(Wine.logTruncationMarker))
         XCTAssertTrue(resumed.hasSuffix("the write that overflowed the log\n"))

@@ -1459,6 +1459,9 @@ public extension Wine {
     /// Marker written between a log's head and its newest output once the log
     /// has reached its cap.
     ///
+    /// The line after it counts the log's truncations, so a reader following the log can
+    /// tell one from the next (``WineLogFollower``).
+    ///
     /// - Important: A truncated log holds this marker exactly once: each truncation cuts the
     ///   file back to its head, which ends before the marker. It counts toward `maxLogFileBytes`.
     static let logTruncationMarker =

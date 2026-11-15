@@ -398,25 +398,14 @@ extension Whisky {
                 return
             }
 
-            guard let handle = try? FileHandle(forReadingFrom: logFileURL) else { return }
-            defer { try? handle.close() }
-
-            // Start at the end to only show new content
-            var offset = (try? handle.seekToEnd()) ?? 0
+            // Only what is written from now on. A truncation of the log makes the
+            // follower go on from its marker, which repeats some lines but drops none.
+            var follower = WineLogFollower(logFileURL: logFileURL, start: .end)
 
             while true {
                 // Read before the last read, so output written before the close is printed.
                 let outputClosed = outputCompletion.isComplete
-                let size = (try? handle.seekToEnd()) ?? offset
-                if size < offset {
-                    // The log reached its size cap: everything after its head was
-                    // rewritten, the output that overflowed it included. Go on from
-                    // the truncation marker, which repeats some lines but drops none.
-                    offset = Wine.truncationMarkerOffset(inLogAt: logFileURL) ?? size
-                }
-                try? handle.seek(toOffset: offset)
-                let data = (try? handle.readToEnd()) ?? Data()
-                offset += UInt64(data.count)
+                let data = (try? follower.read().data) ?? Data()
                 if !data.isEmpty {
                     FileHandle.standardOutput.write(data)
                 } else if outputClosed {

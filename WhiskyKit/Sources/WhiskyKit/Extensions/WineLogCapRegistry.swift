@@ -63,6 +63,8 @@ final class WineLogCapRegistry: @unchecked Sendable {
         /// The newest output, kept only while the file is within ``WineLogLimits/tailBytes``
         /// of its cap, so a truncation can carry it over.
         var recent = Data()
+        /// How many times the file has been truncated, written after the marker.
+        var truncations = 0
         /// Set when the file could not be truncated; further output is discarded.
         var isDisabled = false
     }
@@ -151,7 +153,7 @@ final class WineLogCapRegistry: @unchecked Sendable {
         state.headLength = headLength
         state.head = Data()
 
-        let markerData = Data(Wine.logTruncationMarker.utf8)
+        let markerData = Data((Wine.logTruncationMarker + Wine.logTruncationCountLine(state.truncations + 1)).utf8)
         let room = max(0, limits.maxBytes - headLength)
         let marker = markerData.prefix(Int(min(room, Int64(markerData.count))))
         let tailRoom = Int(min(room - Int64(marker.count), Int64(limits.tailBytes)))
@@ -165,6 +167,8 @@ final class WineLogCapRegistry: @unchecked Sendable {
             state.isDisabled = true
             return
         }
+        state.truncations += 1
+        // The marker goes first: a reader that finds new output past it also finds its new count.
         writeData(marker, to: handle)
         writeData(tail, to: handle)
         state.bytesWritten = headLength + Int64(marker.count) + Int64(tail.count)
@@ -228,25 +232,16 @@ final class WineLogCapRegistry: @unchecked Sendable {
     }
 }
 
-public extension Wine {
-    /// Where a log's truncation marker starts, for a reader following a log
-    /// that has just shrunk.
+extension Wine {
+    /// What the line after ``logTruncationMarker`` starts with, before the log's truncation count.
+    static let logTruncationCountPrefix = "[Whisky] Truncation count: "
+
+    /// The line written after ``logTruncationMarker`` by a log's `count`th truncation.
     ///
-    /// A truncation rewrites everything after the log's head: the marker, then
-    /// the newest output, the write that made the log overflow included. A
-    /// reader that goes on from the marker repeats lines it may already have
-    /// shown, but misses none.
-    ///
-    /// - Parameter logFileURL: The log to look in.
-    /// - Returns: The marker's offset in the file, or `nil` when the log holds no marker.
-    static func truncationMarkerOffset(inLogAt logFileURL: URL) -> UInt64? {
-        guard let handle = try? FileHandle(forReadingFrom: logFileURL) else { return nil }
-        defer { try? handle.close() }
-        let marker = Data(logTruncationMarker.utf8)
-        // The marker directly follows the head, which is never longer than this.
-        guard let start = try? handle.read(upToCount: logHeadBytes + marker.count),
-              let range = start.range(of: marker)
-        else { return nil }
-        return UInt64(start.distance(from: start.startIndex, to: range.lowerBound))
+    /// Each truncation rewrites everything after the log's head, and the log may grow back
+    /// past where a reader had got to before it reads again. The count tells a reader
+    /// following the log that this happened (``WineLogFollower``).
+    static func logTruncationCountLine(_ count: Int) -> String {
+        "\(logTruncationCountPrefix)\(count)\n"
     }
 }

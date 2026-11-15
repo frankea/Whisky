@@ -29,7 +29,8 @@ private let launcherConfigLogger = Logger(
 struct LauncherConfigSection: View {
     @ObservedObject var bottle: Bottle
     @Binding var isExpanded: Bool
-    /// Opens the latest diagnosis; supplied by ConfigView, which owns that sheet.
+    /// Opens the latest crash diagnosis, or the stability report when there is
+    /// none; supplied by ConfigView, which owns both sheets.
     var onViewDiagnostics: () -> Void = {}
     @State private var overridesExpanded: Bool = false
 
@@ -127,6 +128,7 @@ extension LauncherConfigSection {
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
+            .help("launcher.config.viewDiagnostics.help")
             Spacer()
         }
 

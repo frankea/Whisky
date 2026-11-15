@@ -86,7 +86,7 @@ struct ConfigView: View {
             LauncherConfigSection(
                 bottle: bottle,
                 isExpanded: $launcherSectionExpanded,
-                onViewDiagnostics: loadLatestDiagnosisAndView
+                onViewDiagnostics: { loadLatestDiagnosisAndView(onUnavailable: showStabilityReport) }
             )
             InputConfigSection(bottle: bottle, isExpanded: $inputSectionExpanded)
             GraphicsConfigSection(bottle: bottle)
@@ -114,14 +114,14 @@ struct ConfigView: View {
                 }
 
                 Button("Export Diagnostic Report\u{2026}") {
-                    loadLatestDiagnosisAndExport()
+                    loadLatestDiagnosisAndExport(onUnavailable: showStabilityReport)
                 }
-                .disabled(mostRecentlyDiagnosedProgram == nil)
+                .disabled(bottle.mostRecentlyDiagnosedProgram == nil)
 
                 Button("View Latest Diagnosis") {
-                    loadLatestDiagnosisAndView()
+                    loadLatestDiagnosisAndView(onUnavailable: showStabilityReport)
                 }
-                .disabled(mostRecentlyDiagnosedProgram == nil)
+                .disabled(bottle.mostRecentlyDiagnosedProgram == nil)
 
                 TroubleshootingHistoryView(
                     bottleURL: bottle.url,
@@ -130,10 +130,7 @@ struct ConfigView: View {
             }
             Section("Stability") {
                 Button("Generate Stability Diagnostics") {
-                    Task {
-                        stabilityDiagnosticReport = await StabilityDiagnostics.generateDiagnosticReport(for: bottle)
-                        showStabilityDiagnostics = true
-                    }
+                    showStabilityReport()
                 }
                 .help("Generates a bounded, privacy-safe report for issue triage.")
 
@@ -481,28 +478,49 @@ extension ConfigView {
 // MARK: - Diagnostics Helpers
 
 extension ConfigView {
-    var mostRecentlyDiagnosedProgram: Program? {
-        bottle.programs
-            .filter { $0.settings.lastDiagnosisDate != nil }
-            .max { ($0.settings.lastDiagnosisDate ?? .distantPast) < ($1.settings.lastDiagnosisDate ?? .distantPast) }
+    /// Builds the bottle's stability report and shows it in a sheet.
+    func showStabilityReport() {
+        Task {
+            stabilityDiagnosticReport = await StabilityDiagnostics.generateDiagnosticReport(for: bottle)
+            showStabilityDiagnostics = true
+        }
     }
 
-    func loadLatestDiagnosisAndExport() {
-        guard let program = mostRecentlyDiagnosedProgram,
+    /// Opens the export sheet for the latest crash diagnosis. Calls
+    /// `onUnavailable` instead when there is none to export: no program has a
+    /// stored diagnosis, its log was never recorded, or the log has been pruned.
+    func loadLatestDiagnosisAndExport(onUnavailable: @escaping () -> Void) {
+        guard let program = bottle.mostRecentlyDiagnosedProgram,
               let logURL = program.settings.lastLogFileURL
-        else { return }
+        else {
+            onUnavailable()
+            return
+        }
         Task {
-            guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else { return }
+            guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else {
+                onUnavailable()
+                return
+            }
             exportPresentation = ExportPresentation(diagnosis: diagnosis, program: program)
         }
     }
 
-    func loadLatestDiagnosisAndView() {
-        guard let program = mostRecentlyDiagnosedProgram,
+    /// Shows the latest crash diagnosis. Calls `onUnavailable` instead when
+    /// there is none to show: no program has a stored diagnosis (a launcher that
+    /// exits cleanly never gets one), its log was never recorded, or the log has
+    /// been pruned.
+    func loadLatestDiagnosisAndView(onUnavailable: @escaping () -> Void) {
+        guard let program = bottle.mostRecentlyDiagnosedProgram,
               let logURL = program.settings.lastLogFileURL
-        else { return }
+        else {
+            onUnavailable()
+            return
+        }
         Task {
-            guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else { return }
+            guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else {
+                onUnavailable()
+                return
+            }
             crashPresentation = BottleDiagnosisPresentation(
                 diagnosis: diagnosis,
                 program: program,

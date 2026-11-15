@@ -161,6 +161,8 @@ public extension Wine {
     ///   express overrides for an executable whose name is not known.
     /// - Parameter descendantExecutables: The executable names the overrides
     ///   belong to when they apply to descendants.
+    /// - Parameter ownSettingsExecutables: Descendants that keep their own
+    ///   settings, written ahead of the descendants' overrides.
     /// - Parameter descendantLaunchers: Launchers the descendants start on their
     ///   own, whose ``LauncherType/chainExecutables`` need entries ahead of time.
     /// - Parameter recommendedBackend: What `.recommended` resolves to for the
@@ -175,6 +177,7 @@ public extension Wine {
         wineEnvironment: inout [String: String],
         applyToDescendants: Bool,
         descendantExecutables: [String] = [],
+        ownSettingsExecutables: [URL] = [],
         descendantLaunchers: [LauncherType] = [],
         recommendedBackend: GraphicsBackend? = nil,
         builtinD3D12IsD3DMetal: Bool = GPTKImporter.isDeployed(),
@@ -235,6 +238,12 @@ public extension Wine {
         // The game's plan, in the entries of the executables it runs as. After
         // Steam's own, which a game executable never displaces.
         if let gamePlan {
+            for (executable, own) in ownSettingsDLLOverrides(
+                for: ownSettingsExecutables, bottle: bottle,
+                recommendedBackend: recommendedBackend, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
+            ) {
+                scopes.add([executable], own)
+            }
             scopes.add(descendantExecutables, gamePlan)
         }
 

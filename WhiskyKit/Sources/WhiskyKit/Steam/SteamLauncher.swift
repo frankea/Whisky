@@ -95,13 +95,16 @@ public enum SteamLauncher {
 
         let installURL = installURL ?? SteamLibrary.enumerate(bottleURL: bottle.url)
             .first { $0.appId == appId }?.installURL
+        // One scan for both uses: it runs on the main actor.
+        let scan = installURL.map { SteamLibrary.scanExecutables(under: $0) }
         let plan = LaunchResolver.plan(
             steamAppId: appId,
-            userOverrides: installURL.flatMap { userOverrides(forInstallURL: $0, bottle: bottle) },
+            userOverrides: scan.flatMap { userOverrides(forExecutables: $0.planExecutables, bottle: bottle) },
             appliedConfiguration: GameConfigSnapshot.load(from: bottle.url)
         )
         let steamExe = steamRoot.appending(path: "steam.exe")
-        let gameExecutables = gameExecutables(installURL: installURL, plan: plan)
+        let gameExecutables = gameExecutables(scanned: scan?.planExecutables ?? [], plan: plan)
+        let chromiumHosts = scan?.chromiumHosts ?? []
 
         return Task {
             try await Wine.prepareBottlePrefix(bottle: bottle)
@@ -124,6 +127,7 @@ public enum SteamLauncher {
                 // when this invocation is what brings it up.
                 overridesApplyToDescendants: true,
                 descendantExecutables: gameExecutables,
+                ownSettingsExecutables: chromiumHosts,
                 descendantLaunchers: plan.startsLaunchers,
                 onOutput: onOutput
             )
@@ -150,10 +154,20 @@ public enum SteamLauncher {
 
     /// The executable names a game launch scopes the game's plan to: what the
     /// install folder holds, then what the GameDB lists, each name once.
+    ///
+    /// A Chromium host below the first folder level is not among them: it
+    /// keeps its own settings (see ``SteamExecutableScan/chromiumHosts``).
     static func gameExecutables(installURL: URL?, plan: LaunchPlan) -> [String] {
-        let found = installURL.map { SteamLibrary.executableURLs(under: $0).map(\.lastPathComponent) } ?? []
+        gameExecutables(
+            scanned: installURL.map { SteamLibrary.scanExecutables(under: $0).planExecutables } ?? [], plan: plan
+        )
+    }
+
+    /// ``gameExecutables(installURL:plan:)`` from an install folder's scan.
+    static func gameExecutables(scanned: [URL], plan: LaunchPlan) -> [String] {
         var seen = Set<String>()
-        return (found + plan.gameExecutables).filter { seen.insert($0.lowercased()).inserted }
+        let names = scanned.map(\.lastPathComponent) + plan.gameExecutables
+        return names.filter { seen.insert($0.lowercased()).inserted }
     }
 
     /// Starts the client when it isn't running, then waits until it is.
@@ -243,15 +257,25 @@ public enum SteamLauncher {
     /// writes settings plists for the executables that don't win. Only an
     /// executable with persisted overrides can win, so skipping the default
     /// plists changes nothing for the winner.
+    ///
+    /// A Chromium host below the first folder level never wins: what the user
+    /// set on a front end such as 3DMark's is for the front end, not for the
+    /// workloads it starts. The launch writes it into the host's own entry.
     @MainActor
     static func userOverrides(forInstallURL installURL: URL, bottle: Bottle) -> ProgramOverrides? {
+        userOverrides(forExecutables: SteamLibrary.scanExecutables(under: installURL).planExecutables, bottle: bottle)
+    }
+
+    /// ``userOverrides(forInstallURL:bottle:)`` from an install folder's scan.
+    @MainActor
+    static func userOverrides(forExecutables executables: [URL], bottle: Bottle) -> ProgramOverrides? {
         let scanned = Dictionary(
             bottle.programs.compactMap { program in
                 program.settings.overrides.map { (program.url.standardizedFileURL, $0) }
             },
             uniquingKeysWith: { first, _ in first }
         )
-        let candidates = SteamLibrary.executableURLs(under: installURL).map { url in
+        let candidates = executables.map { url in
             // Falls back to a plist read for executables the bottle scan has
             // not reached, so Play works before the Programs tab is opened.
             let overrides = scanned[url.standardizedFileURL]

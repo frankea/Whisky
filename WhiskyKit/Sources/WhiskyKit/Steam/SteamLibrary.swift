@@ -247,40 +247,15 @@ public enum SteamLibrary {
         return found
     }
 
-    /// Executables at the install root and one directory deep.
-    public static func executableURLs(under installURL: URL) -> [URL] {
-        let fileManager = FileManager.default
-        var executables: [URL] = []
-        var subdirectories: [URL] = []
-
-        let top = (try? fileManager.contentsOfDirectory(
-            at: installURL, includingPropertiesForKeys: [.isDirectoryKey]
-        )) ?? []
-        for item in top {
-            if item.pathExtension.lowercased() == "exe" {
-                executables.append(item)
-            } else if (try? item.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true {
-                subdirectories.append(item)
-            }
-        }
-        for directory in subdirectories {
-            let items = (try? fileManager.contentsOfDirectory(
-                at: directory, includingPropertiesForKeys: nil
-            )) ?? []
-            executables.append(contentsOf: items.filter { $0.pathExtension.lowercased() == "exe" })
-        }
-        return executables
-    }
-
-    /// Lowercased executable names at the install root and one directory
-    /// deep. Used to match a game's processes in the bottle's task list.
+    /// Lowercased names of ``executableURLs(under:)``. Used to match a game's
+    /// processes in the bottle's task list.
     public static func executableNames(under installURL: URL) -> Set<String> {
         Set(executableURLs(under: installURL).map { $0.lastPathComponent.lowercased() })
     }
 
     /// Picks the overrides a library launch should carry from the game's
     /// executables' persisted settings: the shallowest one that has any, ties
-    /// broken by name so the pick does not move between scans.
+    /// broken by name, then by path, so the pick does not move between scans.
     ///
     /// Steam games surface as ordinary Programs, so a user can tune one in the
     /// Programs tab, and those settings have to survive the Play button.
@@ -291,8 +266,9 @@ public enum SteamLibrary {
                 let left = lhs.url.pathComponents.count
                 let right = rhs.url.pathComponents.count
                 guard left == right else { return left < right }
-                return lhs.url.lastPathComponent
-                    .localizedCaseInsensitiveCompare(rhs.url.lastPathComponent) == .orderedAscending
+                let byName = lhs.url.lastPathComponent.localizedCaseInsensitiveCompare(rhs.url.lastPathComponent)
+                guard byName == .orderedSame else { return byName == .orderedAscending }
+                return lhs.url.path(percentEncoded: false) < rhs.url.path(percentEncoded: false)
             }?
             .overrides
     }

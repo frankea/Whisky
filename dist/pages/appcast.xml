@@ -6,6 +6,28 @@
         <description>Whisky update feed</description>
         <language>en</language>
         <item>
+            <title>Whisky 3.10.1</title>
+            <pubDate>Sun, 15 Nov 2026 21:29:34 +0000</pubDate>
+            <sparkle:version>61</sparkle:version>
+            <sparkle:shortVersionString>3.10.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <p>Whisky 3.10.1 gets windows that stayed black drawing again, and runs Steam-started DXMT games on DXMT.</p>
+                <ul>
+                    <li><strong>Chromium-based windows draw on Recommended</strong>: the RSI Launcher, 3DMark, and Electron and NW.js apps now run on DXVK, the backend their windows draw on.</li>
+                    <li><strong>Steam-started DXMT games run on DXMT</strong> instead of DXVK, while Steam stays on DXVK.</li>
+                    <li><strong>Per-program settings reach a Steam game's real executable</strong>, even deep in its install folder.</li>
+                    <li><strong>Library tiles show the last run right away</strong>, and View Diagnostics opens the stability report when there is no crash to show.</li>
+                </ul>
+                <p>See the <a href="https://github.com/frankea/Whisky/releases/tag/app-v3.10.1">release notes</a> for the full changelog.</p>
+            ]]></description>
+            <enclosure
+                url="https://github.com/frankea/Whisky/releases/download/app-v3.10.1/Whisky-3.10.1.dmg"
+                sparkle:edSignature="R482A2wyx6gZl3m396qAVDY+OjAXA41YMQQM2vrR2vVX1idAPNDoENgaw/D0JjUJzT0MmKOamo0lVfwhEgusBQ=="
+                length="12559675"
+                type="application/octet-stream" />
+        </item>
+        <item>
             <title>Whisky 3.10.0</title>
             <pubDate>Sun, 15 Nov 2026 03:25:08 +0000</pubDate>
             <sparkle:version>60</sparkle:version>

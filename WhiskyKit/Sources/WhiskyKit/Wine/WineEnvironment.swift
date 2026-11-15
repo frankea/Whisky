@@ -149,6 +149,7 @@ extension Wine {
                 overrides,
                 frameGeneration: bottle.settings.frameGeneration,
                 dxvkAsync: bottle.settings.dxvkAsync,
+                programEnvironmentKeys: Set(environment.keys),
                 recommendedBackend: recommendedBackend,
                 builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal,
                 builder: &builder,
@@ -217,11 +218,13 @@ extension Wine {
     /// payload is deployed. `recommendedBackend` is what a program set to
     /// `.recommended` gets; `nil` asks ``GraphicsBackendResolver``.
     /// `dxvkAsync` is the bottle's async setting, which a program moved onto
-    /// DXVK inherits.
+    /// DXVK inherits. `programEnvironmentKeys` are the variables the program's
+    /// own environment sets, which the DXVK compile settings leave alone.
     static func applyProgramOverrides(
         _ overrides: ProgramOverrides,
         frameGeneration: Bool = false,
         dxvkAsync: Bool = true,
+        programEnvironmentKeys: Set<String> = [],
         recommendedBackend: GraphicsBackend? = nil,
         builtinD3D12IsD3DMetal: Bool = GPTKImporter.isDeployed(),
         builder: inout EnvironmentBuilder,
@@ -233,12 +236,22 @@ extension Wine {
 
         // What the bottle layer sets under DXVK, for a program moved onto DXVK
         // in a bottle running something else: without it the program compiled
-        // its shaders synchronously and one at a time.
+        // its shaders synchronously and one at a time. Both share the program's
+        // layer with its own environment, where the later write wins, so a
+        // value the user gave the program is kept.
+        let concurrentCompile = "MVK_CONFIG_SHOULD_MAXIMIZE_CONCURRENT_COMPILATION"
         func addDXVKEnvironment() {
-            if dxvkAsync {
+            if dxvkAsync, !programEnvironmentKeys.contains("DXVK_ASYNC") {
                 builder.set("DXVK_ASYNC", "1", layer: .programUser)
             }
-            builder.set("MVK_CONFIG_SHOULD_MAXIMIZE_CONCURRENT_COMPILATION", "1", layer: .programUser)
+            if !programEnvironmentKeys.contains(concurrentCompile) {
+                builder.set(concurrentCompile, "1", layer: .programUser)
+            }
+        }
+        func removeConcurrentCompile() {
+            if !programEnvironmentKeys.contains(concurrentCompile) {
+                builder.remove(concurrentCompile, layer: .programUser)
+            }
         }
 
         // Graphics backend override: replaces bottle-level backend entirely
@@ -255,7 +268,7 @@ extension Wine {
                 // Remove DXVK and wined3d env vars at program layer
                 builder.remove("DXVK_HUD", layer: .programUser)
                 builder.remove("DXVK_ASYNC", layer: .programUser)
-                builder.remove("MVK_CONFIG_SHOULD_MAXIMIZE_CONCURRENT_COMPILATION", layer: .programUser)
+                removeConcurrentCompile()
                 builder.remove("WINED3DMETAL", layer: .programUser)
                 // One program on D3DMetal inside a bottle running something else
                 // still has to claim scheduling itself; see the bottle layer.
@@ -289,7 +302,7 @@ extension Wine {
                 dllResolver.programCustom.append(contentsOf: dxmtPreset)
                 builder.remove("DXVK_HUD", layer: .programUser)
                 builder.remove("DXVK_ASYNC", layer: .programUser)
-                builder.remove("MVK_CONFIG_SHOULD_MAXIMIZE_CONCURRENT_COMPILATION", layer: .programUser)
+                removeConcurrentCompile()
                 builder.remove("WINED3DMETAL", layer: .programUser)
                 // Survives for the reason given under .dxvk: DXMT translates d3d11
                 // only, so d3d12 is still D3DMetal here.

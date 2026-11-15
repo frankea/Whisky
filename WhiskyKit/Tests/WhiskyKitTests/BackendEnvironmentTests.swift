@@ -27,16 +27,23 @@ struct BackendEnvironmentTests {
     /// The environment a program sees: the bottle layer with the program's
     /// overrides applied on top.
     private func environment(
-        _ settings: BottleSettings, _ overrides: ProgramOverrides = ProgramOverrides()
+        _ settings: BottleSettings, _ overrides: ProgramOverrides = ProgramOverrides(),
+        programEnvironment: [String: String] = [:]
     ) -> [String: String] {
         var builder = EnvironmentBuilder()
         var dllResolver = DLLOverrideResolver(managed: [], bottleCustom: [], programCustom: [])
         _ = settings.populateBottleManagedLayer(
             builder: &builder, resolvedBackend: .d3dMetal, builtinD3D12IsD3DMetal: false
         )
+        // As constructWineEnvironment does: the program's own environment
+        // goes into its layer first, then its overrides.
+        for (key, value) in programEnvironment {
+            builder.set(key, value, layer: .programUser)
+        }
         Wine.applyProgramOverrides(
-            overrides, dxvkAsync: settings.dxvkAsync, recommendedBackend: .d3dMetal,
-            builtinD3D12IsD3DMetal: false, builder: &builder, dllResolver: &dllResolver
+            overrides, dxvkAsync: settings.dxvkAsync, programEnvironmentKeys: Set(programEnvironment.keys),
+            recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: false,
+            builder: &builder, dllResolver: &dllResolver
         )
         return builder.resolve().environment
     }
@@ -181,6 +188,53 @@ struct BackendEnvironmentTests {
         overrides.dxvkAsync = false
 
         #expect(environment(settings, overrides)["DXVK_ASYNC"] == "0")
+    }
+
+    @Test("A program's own environment values for the DXVK compile settings are kept", arguments: [false, true])
+    func programEnvironmentBeatsDXVKCompileSettings(legacyFlag: Bool) {
+        var settings = BottleSettings()
+        settings.graphicsBackend = .d3dMetal
+        var overrides = ProgramOverrides()
+        if legacyFlag {
+            overrides.dxvk = true
+        } else {
+            overrides.graphicsBackend = .dxvk
+        }
+        let own = ["DXVK_ASYNC": "0", Self.concurrentCompile: "0"]
+
+        let env = environment(settings, overrides, programEnvironment: own)
+        #expect(env["DXVK_ASYNC"] == "0")
+        #expect(env[Self.concurrentCompile] == "0")
+    }
+
+    @Test("A launch keeps a program's own DXVK_ASYNC=0 when its override moves it onto DXVK")
+    @MainActor
+    func launchEnvironmentKeepsProgramAsync() throws {
+        let url = FileManager.default.temporaryDirectory.appending(path: "backend_env_\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let bottle = Bottle(bottleUrl: url, inFlight: false, isAvailable: true)
+        bottle.settings.graphicsBackend = .d3dMetal
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = .dxvk
+
+        let env = Wine.constructWineEnvironment(
+            for: bottle, environment: ["DXVK_ASYNC": "0"], programOverrides: overrides,
+            recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: false
+        )
+        #expect(env["DXVK_ASYNC"] == "0")
+        #expect(env[Self.concurrentCompile] == "1")
+    }
+
+    @Test("A program moved off DXVK keeps its own compile setting")
+    func programMovedOffDXVKKeepsOwnCompileSetting() {
+        var settings = BottleSettings()
+        settings.graphicsBackend = .dxvk
+        var overrides = ProgramOverrides()
+        overrides.graphicsBackend = .dxmt
+
+        let env = environment(settings, overrides, programEnvironment: [Self.concurrentCompile: "0"])
+        #expect(env[Self.concurrentCompile] == "0")
     }
 
     @Test("A program moved off DXVK loses the compile setting with DXVK_ASYNC", arguments: [

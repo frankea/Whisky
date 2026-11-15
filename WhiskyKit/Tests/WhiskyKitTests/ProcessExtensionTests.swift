@@ -152,14 +152,14 @@ final class ProcessOutputExtendedTests: XCTestCase {
     }
 }
 
-// MARK: - FileHandle.nextOutput Tests
+// MARK: - FileHandle.readChunk Tests
 
-final class FileHandleNextOutputTests: XCTestCase {
+final class FileHandleReadChunkTests: XCTestCase {
     var tempURL: URL!
 
     override func setUp() {
         super.setUp()
-        tempURL = FileManager.default.temporaryDirectory.appending(path: "nextoutput_\(UUID().uuidString).txt")
+        tempURL = FileManager.default.temporaryDirectory.appending(path: "readchunk_\(UUID().uuidString).txt")
     }
 
     override func tearDown() {
@@ -167,54 +167,81 @@ final class FileHandleNextOutputTests: XCTestCase {
         super.tearDown()
     }
 
-    func testReturnsTextForContent() throws {
+    func testReturnsDataForContent() throws {
         try Data("Hello, World!".utf8).write(to: tempURL)
 
         let handle = try FileHandle(forReadingFrom: tempURL)
         defer { try? handle.close() }
 
-        XCTAssertEqual(handle.nextOutput(), .text("Hello, World!"))
+        XCTAssertEqual(handle.readChunk(), .data(Data("Hello, World!".utf8)))
     }
 
-    /// The crux of the fix: an empty read is EOF, reported distinctly so the
-    /// readability handler can remove itself instead of spinning on it.
+    /// An empty read is EOF, reported distinctly so the readability handler
+    /// can remove itself instead of spinning on it (whisky-app/whisky#917).
     func testReturnsEndOfFileForEmptyRead() throws {
         try Data().write(to: tempURL)
 
         let handle = try FileHandle(forReadingFrom: tempURL)
         defer { try? handle.close() }
 
-        XCTAssertEqual(handle.nextOutput(), .endOfFile)
+        XCTAssertEqual(handle.readChunk(), .endOfFile)
     }
 
-    func testReturnsTextForMultipleLines() throws {
+    /// A pipe that is open but empty must not block a non-blocking reader, nor read as EOF.
+    func testReturnsWouldBlockForAnEmptyOpenPipe() {
+        let pipe = Pipe()
+        let descriptor = pipe.fileHandleForReading.fileDescriptor
+        _ = fcntl(descriptor, F_SETFL, fcntl(descriptor, F_GETFL) | O_NONBLOCK)
+
+        XCTAssertEqual(pipe.fileHandleForReading.readChunk(), .wouldBlock)
+
+        pipe.fileHandleForWriting.write(Data("late".utf8))
+        XCTAssertEqual(pipe.fileHandleForReading.readChunk(), .data(Data("late".utf8)))
+
+        try? pipe.fileHandleForWriting.close()
+        XCTAssertEqual(pipe.fileHandleForReading.readChunk(), .endOfFile)
+    }
+
+    func testReadsAtMostMaxCount() throws {
         try Data("Line 1\nLine 2\nLine 3".utf8).write(to: tempURL)
 
         let handle = try FileHandle(forReadingFrom: tempURL)
         defer { try? handle.close() }
 
-        // A single read returns all currently-available data as one chunk.
-        XCTAssertEqual(handle.nextOutput(), .text("Line 1\nLine 2\nLine 3"))
+        XCTAssertEqual(handle.readChunk(maxCount: 7), .data(Data("Line 1\n".utf8)))
+    }
+}
+
+// MARK: - UTF8ChunkDecoder Tests
+
+final class UTF8ChunkDecoderTests: XCTestCase {
+    func testDecodesWholeText() {
+        var decoder = UTF8ChunkDecoder()
+        XCTAssertEqual(decoder.decode(Data("日本語テスト 🍷".utf8)), "日本語テスト 🍷")
+        XCTAssertEqual(decoder.flush(), "")
     }
 
-    func testReturnsTextForUnicodeContent() throws {
-        try Data("日本語テスト 🍷".utf8).write(to: tempURL)
+    /// A character split across two reads arrives whole with the second read.
+    func testHoldsBackACharacterSplitAcrossReads() {
+        let bytes = Array("a🍷b".utf8)
+        var decoder = UTF8ChunkDecoder()
 
-        let handle = try FileHandle(forReadingFrom: tempURL)
-        defer { try? handle.close() }
-
-        XCTAssertEqual(handle.nextOutput(), .text("日本語テスト 🍷"))
+        XCTAssertEqual(decoder.decode(Data(bytes[0 ..< 3])), "a")
+        XCTAssertEqual(decoder.decode(Data(bytes[3...])), "🍷b")
+        XCTAssertEqual(decoder.flush(), "")
     }
 
-    /// A non-empty but not-yet-decodable chunk (e.g. a split multi-byte sequence)
-    /// is `.pending`, NOT `.endOfFile` — the handler must keep reading, not stop.
-    func testReturnsPendingForUndecodableData() throws {
-        try Data([0xFF, 0xFE]).write(to: tempURL)
+    /// Bytes that aren't UTF-8 become replacement characters rather than
+    /// taking the rest of their chunk with them.
+    func testKeepsTheRestOfAChunkWithInvalidBytes() {
+        var decoder = UTF8ChunkDecoder()
+        XCTAssertEqual(decoder.decode(Data([0x6F, 0x6B, 0xFF, 0x21, 0x0A])), "ok\u{FFFD}!\n")
+    }
 
-        let handle = try FileHandle(forReadingFrom: tempURL)
-        defer { try? handle.close() }
-
-        XCTAssertEqual(handle.nextOutput(), .pending)
+    func testFlushDecodesAnUnfinishedCharacter() {
+        var decoder = UTF8ChunkDecoder()
+        XCTAssertEqual(decoder.decode(Data([0x61, 0xE6, 0x97])), "a")
+        XCTAssertEqual(decoder.flush(), "\u{FFFD}")
     }
 }
 

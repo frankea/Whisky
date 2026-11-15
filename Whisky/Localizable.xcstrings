@@ -57703,6 +57703,22 @@
         }
       }
     },
+    "launcher.config.viewDiagnostics.help" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows the latest crash diagnosis, or a stability report when there is none"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows the latest crash diagnosis, or a stability report when there is none"
+          }
+        }
+      }
+    },
     "launcher.diagnostics.export.error.message" : {
       "localizations" : {
         "ar" : {

@@ -107,6 +107,10 @@ extension LauncherType {
 
         case .paradox:
             []
+
+        case .rsiLauncher:
+            // DXVK comes per executable from the resolver, not the environment.
+            []
         }
     }
 

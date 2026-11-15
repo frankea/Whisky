@@ -91,7 +91,7 @@ final class LauncherLocaleMigrationTests: LauncherFixesTestCase {
 
     @MainActor
     func testLaunchersWhoseFixesNeverWroteEnglishKeepIt() throws {
-        for launcher in [LauncherType.ubisoft, .paradox] {
+        for launcher in [LauncherType.ubisoft, .paradox, .rsiLauncher] {
             let bottle = makeLegacyBottle(launcher: launcher)
 
             XCTAssertFalse(LauncherLocaleMigration.migrateIfNeeded(bottle), "\(launcher.rawValue)")

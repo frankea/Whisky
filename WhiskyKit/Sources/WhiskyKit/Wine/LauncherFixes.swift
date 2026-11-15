@@ -184,6 +184,20 @@ public enum LauncherFixes {
         case .paradox:
             // Paradox's fix is environment-only (see LauncherPresets)
             break
+
+        case .rsiLauncher:
+            // Nothing bottle-wide. The launcher draws only on DXVK, and gets it
+            // per executable: Recommended resolves it to DXVK and the launch
+            // writes that into its own `AppDefaults` entry (#168). What Star
+            // Citizen runs on when the launcher starts it depends on the games'
+            // backend. Over D3DMetal it keeps D3DMetal: the bottle scope names
+            // none of DXVK's DLLs. Without the payload it runs on DXVK: the
+            // bottle's DXMT overrides load the native `d3d11.dll` and
+            // `d3d10core.dll`, and the launcher's launch has just put DXVK's
+            // there. The bottle still stays on Recommended, so Star Citizen
+            // launched from Whisky, like every other game, gets DXMT's files
+            // back on its own launch.
+            break
         }
 
         // Save settings synchronously to disk

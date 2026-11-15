@@ -130,18 +130,35 @@ public final class SteamClientOrchestrator: ObservableObject {
 
     /// Polls the bottle's process list so the library can show which games
     /// are running, including ones started outside Whisky.
+    ///
+    /// The games' install folders are scanned off the main actor, once each:
+    /// a library can hold dozens of games, and each scan reads several
+    /// folder levels.
     public func startTracking(games: [SteamGame]) {
         trackingTask?.cancel()
-        for game in games where executableNamesByAppId[game.appId] == nil {
-            executableNamesByAppId[game.appId] = SteamLibrary.executableNames(under: game.installURL)
-        }
+        let unscanned = games.filter { executableNamesByAppId[$0.appId] == nil }
         trackingTask = Task { [weak self] in
+            if !unscanned.isEmpty {
+                let scanned = await Self.executableNames(of: unscanned)
+                guard let self else { return }
+                executableNamesByAppId.merge(scanned) { current, _ in current }
+            }
             while !Task.isCancelled {
                 await self?.refreshRunningState()
                 guard let interval = self?.timing.trackingInterval else { return }
                 try? await Task.sleep(for: interval)
             }
         }
+    }
+
+    /// Each game's executable names, read on a background thread.
+    nonisolated static func executableNames(of games: [SteamGame]) async -> [Int: Set<String>] {
+        await Task.detached(priority: .utility) {
+            Dictionary(
+                games.map { ($0.appId, SteamLibrary.executableNames(under: $0.installURL)) },
+                uniquingKeysWith: { first, _ in first }
+            )
+        }.value
     }
 
     /// Asks the game's processes to close, then refreshes the running state.

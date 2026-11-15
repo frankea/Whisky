@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   graphics backend: Whisky recognizes it as a launcher and runs it on DXVK,
   the only backend its window draws on. Star Citizen launched from Whisky
   keeps the bottle's backend ([#374], [#168]).
+- Per-program settings and Game Configuration overrides now reach a Steam
+  game's real executable when it sits deeper in the install folder, such as
+  Unreal Engine games' `Binaries/Win64` and 3DMark's `bin/x64`, and the
+  Library shows such a game as running while its executable runs. A
+  program that draws with Chromium, like 3DMark's own window, keeps its own
+  settings instead of the game's ([#376], [#373]).
 
 ## [3.10.0] - 2026-11-14 (App)
 
@@ -1585,7 +1591,9 @@ up to date.
 [#369]: https://github.com/frankea/Whisky/issues/369
 [#370]: https://github.com/frankea/Whisky/issues/370
 [#371]: https://github.com/frankea/Whisky/issues/371
+[#373]: https://github.com/frankea/Whisky/issues/373
 [#374]: https://github.com/frankea/Whisky/issues/374
+[#376]: https://github.com/frankea/Whisky/issues/376
 [@adurham]: https://github.com/adurham
 [@daydalek]: https://github.com/daydalek
 [@Dunn-Kim]: https://github.com/Dunn-Kim

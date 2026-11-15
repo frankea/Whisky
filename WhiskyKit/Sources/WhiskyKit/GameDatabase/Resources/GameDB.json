@@ -3705,6 +3705,80 @@
       }
     },
     {
+      "id": "screw-drivers",
+      "title": "Screw Drivers",
+      "aliases": [],
+      "subtitle": "Creactstudios / Headup",
+      "store": "steam",
+      "steamAppId": 1279510,
+      "rating": "playable",
+      "exeNames": [
+        "Screw Drivers.exe"
+      ],
+      "pathPatterns": [
+        "screw drivers"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "11.0"
+      },
+      "variants": [
+        {
+          "id": "dxvk",
+          "label": "DXVK",
+          "isDefault": true,
+          "whenToUse": "Recommended configuration",
+          "rationale": [
+            "Direct3D 11 (Unity 6); reaches the main menu reliably on DXVK",
+            "In a 60-second sample at the main menu on an M1 Max, DXVK used about a third of the CPU DXMT did"
+          ],
+          "settings": {
+            "graphicsBackend": "dxvk",
+            "dxvk": true,
+            "dxvkAsync": true,
+            "enhancedSync": "msync",
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "testedWith": {
+            "lastTestedAt": "2026-09-05T00:00:00Z",
+            "macOSVersion": "26.5.2",
+            "wineVersion": "11.0",
+            "cpuArchitecture": "arm64"
+          }
+        }
+      ],
+      "notes": [
+        "Tested at a 1728x1117 render on a 3456x2234 display"
+      ],
+      "knownIssues": [
+        {
+          "description": "Rendering at the full resolution of a 3456x2234 display is too slow on an M1 Max",
+          "severity": "major",
+          "workaround": "Play at 1728x1117, half the display's resolution"
+        },
+        {
+          "description": "Vehicle physics and map loading are slower than expected",
+          "severity": "major",
+          "workaround": "None known yet"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "EwoudVV",
+        "lastUpdated": "2026-09-05T00:00:00Z",
+        "referenceURL": "https://github.com/EwoudVV/OpenBottle/blob/main/docs/benchmarks/screw-drivers-2026-09-05.md"
+      }
+    },
+    {
       "id": "sekiro",
       "title": "Sekiro: Shadows Die Twice",
       "aliases": [

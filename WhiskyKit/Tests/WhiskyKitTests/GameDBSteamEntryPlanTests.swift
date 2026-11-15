@@ -37,4 +37,15 @@ struct GameDBSteamEntryPlanTests {
         #expect(plan.gameExecutables == ["trine4_game.exe"])
         #expect(plan.launchArguments.isEmpty)
     }
+
+    @Test("Screw Drivers launches on DXVK with async shaders and msync")
+    func screwDrivers() {
+        let plan = LaunchResolver.plan(steamAppId: 1_279_510, isBackendAvailable: Self.everyBackend)
+
+        #expect(plan.overrides.graphicsBackend == .dxvk)
+        #expect(plan.overrides.dxvkAsync == true)
+        #expect(plan.overrides.enhancedSync == .msync)
+        #expect(plan.gameProfileEnvironment.isEmpty)
+        #expect(plan.gameExecutables == ["Screw Drivers.exe"])
+    }
 }

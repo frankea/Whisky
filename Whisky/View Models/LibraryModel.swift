@@ -78,6 +78,24 @@ final class LibraryModel: ObservableObject {
 
     private var orchestrators: [URL: SteamClientOrchestrator] = [:]
     private var cancellables: Set<AnyCancellable> = []
+    /// Reloads that have not assigned their rows yet, and the launches recorded
+    /// meanwhile: a reload that read a run log before a launch was written would
+    /// otherwise put the old date back when it finishes.
+    private var reloadsInFlight = 0
+    private var launchesDuringReload: [RecordedLaunch] = []
+
+    /// - Parameter notificationCenter: Where launches are announced. Every
+    ///   launch path records its run before the program starts, and the cards
+    ///   are rebuilt only on a reload, so without this a card says "Never run"
+    ///   until the library is left and reopened.
+    init(notificationCenter: NotificationCenter = .default) {
+        notificationCenter.publisher(for: RecordedLaunch.didRecordNotification)
+            .compactMap { RecordedLaunch(notification: $0) }
+            .sink { [weak self] launch in
+                self?.apply(launch)
+            }
+            .store(in: &cancellables)
+    }
 
     // MARK: - State
 
@@ -109,6 +127,13 @@ final class LibraryModel: ObservableObject {
     /// `libraryfolders.vdf` and every run log lookup is a plist read, so doing
     /// it inside a card turns scrolling into disk traffic.
     func reload(bottles: [Bottle]) async {
+        reloadsInFlight += 1
+        defer {
+            reloadsInFlight -= 1
+            if reloadsInFlight == 0 {
+                launchesDuringReload.removeAll()
+            }
+        }
         var built: [LibraryRow] = []
         let showBottleName = bottles.count > 1
         let routed = GameRouting().lastLaunches()
@@ -134,7 +159,31 @@ final class LibraryModel: ObservableObject {
             trackSteam(in: bottle)
         }
 
+        for launch in launchesDuringReload {
+            built = applying(launch, to: built)
+        }
         rows = sorted(built)
+    }
+
+    /// Moves a just-launched entry's last played date forward in place.
+    ///
+    /// The date comes with the launch rather than from a reread of its run
+    /// log, so it costs nothing to apply on every launch.
+    func apply(_ launch: RecordedLaunch) {
+        if reloadsInFlight > 0 {
+            launchesDuringReload.append(launch)
+        }
+        let updated = applying(launch, to: rows)
+        guard updated.map(\.lastPlayed) != rows.map(\.lastPlayed) else { return }
+        rows = sorted(updated)
+    }
+
+    private func applying(_ launch: RecordedLaunch, to rows: [LibraryRow]) -> [LibraryRow] {
+        rows.map { row in
+            let lastPlayed = launch.lastPlayed(row.lastPlayed, for: row.item)
+            guard lastPlayed != row.lastPlayed else { return row }
+            return LibraryRow(item: row.item, bottleName: row.bottleName, lastPlayed: lastPlayed)
+        }
     }
 
     /// When an entry was last started in Whisky.

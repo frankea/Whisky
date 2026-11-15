@@ -504,6 +504,79 @@
       }
     },
     {
+      "id": "beamng-drive",
+      "title": "BeamNG.drive",
+      "aliases": [
+        "BeamNG"
+      ],
+      "subtitle": "BeamNG GmbH",
+      "store": "steam",
+      "steamAppId": 284160,
+      "rating": "unverified",
+      "exeNames": [
+        "BeamNG.drive.x64.exe"
+      ],
+      "pathPatterns": [
+        "beamng.drive"
+      ],
+      "antiCheat": null,
+      "constraints": {
+        "cpuArchitectures": [
+          "arm64"
+        ],
+        "minMacOSVersion": "15.0.0",
+        "minWineVersion": "11.0"
+      },
+      "variants": [
+        {
+          "id": "d3dmetal",
+          "label": "D3DMetal",
+          "isDefault": true,
+          "whenToUse": "Recommended configuration",
+          "rationale": [
+            "BeamNG.drive 0.40 picks DirectX 12 on its own, which D3DMetal runs",
+            "With GPU-driven drawing, GPU upload heaps, bindless resources and indirect constants on, it was reported to crash on D3DMetal while loading or right after the main menu appears",
+            "The -nogfx launch arguments turn those DirectX 12 features off"
+          ],
+          "settings": {
+            "graphicsBackend": "d3dMetal",
+            "dxvk": false,
+            "dxvkAsync": false,
+            "enhancedSync": "msync",
+            "shaderCacheEnabled": true,
+            "avxEnabled": false,
+            "sequoiaCompatMode": false
+          },
+          "environmentVariables": {},
+          "dllOverrides": [],
+          "winetricksVerbs": [],
+          "launchArguments": [
+            "-nogfxgpudriven",
+            "-nogfxgpuupload",
+            "-nogfxbindless",
+            "-nogfxbindlesscbv",
+            "-nogfxindirectconstants"
+          ]
+        }
+      ],
+      "notes": [
+        "Untested on Whisky's runtime: the launch arguments come from a report on a different Wine build"
+      ],
+      "knownIssues": [
+        {
+          "description": "Play inside Steam starts the game without Whisky's launch arguments",
+          "severity": "major",
+          "workaround": "Start BeamNG.drive from Whisky's Library, or add -nogfxgpudriven -nogfxgpuupload -nogfxbindless -nogfxbindlesscbv -nogfxindirectconstants to its launch options in Steam"
+        }
+      ],
+      "provenance": {
+        "source": "community-reference",
+        "author": "rolling7ho",
+        "lastUpdated": "2026-10-25T00:00:00Z",
+        "referenceURL": "https://store.steampowered.com/app/284160/BeamNGdrive/"
+      }
+    },
+    {
       "id": "black-mesa",
       "title": "Black Mesa",
       "aliases": [],

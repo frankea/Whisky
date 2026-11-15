@@ -48,4 +48,23 @@ struct GameDBSteamEntryPlanTests {
         #expect(plan.gameProfileEnvironment.isEmpty)
         #expect(plan.gameExecutables == ["Screw Drivers.exe"])
     }
+
+    @Test("BeamNG.drive launches on D3DMetal with its -nogfx switches after the App ID")
+    func beamNG() {
+        let plan = LaunchResolver.plan(steamAppId: 284_160, isBackendAvailable: Self.everyBackend)
+
+        #expect(plan.overrides.graphicsBackend == .d3dMetal)
+        #expect(plan.launchArguments == [
+            "-nogfxgpudriven", "-nogfxgpuupload", "-nogfxbindless", "-nogfxbindlesscbv", "-nogfxindirectconstants"
+        ])
+        #expect(plan.gameExecutables == ["BeamNG.drive.x64.exe"])
+    }
+
+    @Test("BeamNG.drive falls back to Recommended without the GPTK payload, switches and all")
+    func beamNGWithoutD3DMetal() {
+        let plan = LaunchResolver.plan(steamAppId: 284_160, isBackendAvailable: { $0 != .d3dMetal })
+
+        #expect(plan.overrides.graphicsBackend == .recommended)
+        #expect(plan.launchArguments.count == 5)
+    }
 }

@@ -590,9 +590,9 @@ extension Whisky {
 
             The game is launched through the bottle's Steam client, which starts \
             first if it isn't running. The command confirms once Wine is running \
-            the client, then waits for that invocation to finish: a few seconds \
-            when the client was already running, the whole session when this \
-            launch started it.
+            the client, then stays until the output of what it started has \
+            closed, so their logs are complete: a few seconds when the client was \
+            already running, the whole session when this launch started it.
             """
         )
 
@@ -623,7 +623,8 @@ extension Whisky {
             // The launch happens inside the returned task. Returning before it
             // finishes ended the process while the task was still preparing the
             // bottle, so Steam never started. Confirm once Wine is running the
-            // client, then wait for that invocation the way `run` waits.
+            // client, then wait for its output the way `run` waits: this
+            // process reads it into the logs, and exiting would cut them short.
             let appId = self.appId
             let json = self.json
             let bottleName = target.settings.name
@@ -633,6 +634,9 @@ extension Whisky {
                 }
             }
             let result = try await launch.value
+            // Covers the client too when this launch started it, and is only
+            // complete once the run log entries are marked finished.
+            await result.outputCompletion.wait()
 
             if result.exitCode != 0 {
                 // The confirmation is out already, so say why this still fails.

@@ -9,7 +9,28 @@ See [`ReleaseWorkflow.md`](ReleaseWorkflow.md) for the assembly + publish proced
 [`.github/workflows/RuntimeTrack.yml`](../.github/workflows/RuntimeTrack.yml) for the automation that
 flags when a bundled component falls behind upstream.
 
-## Bundled in runtime `v3.1.1`
+## Bundled in runtime `v4.8.3` (default for app 3.10.0 and later)
+
+Built from source by CI on [frankea/winecx-gptk](https://github.com/frankea/winecx-gptk) (a mirror of
+dappermint/winecx-gptk carrying Whisky's macOS 15 floor and winebus SDL build change, plus the fiber
+fix from dappermint/winecx-gptk#25), commit `12af865`, from upstream `58b27bf`
+(the tree behind upstream's `runtime-v4.8.1`). Served by `dist/pages/WhiskyWineVersion-v4.plist`.
+
+| Component | Bundled version | Upstream source | Notes |
+|-----------|-----------------|-----------------|-------|
+| **Wine** | 11.19, CrossOver-based winecx `9f3f644` | [dappermint/winecx-gptk](https://github.com/dappermint/winecx-gptk) | Tracks upstream Wine releases with CrossOver's macOS patches rebased on top. Built at `MACOSX_DEPLOYMENT_TARGET=15.0` on a hosted macos-15 runner. Carries the fiber fix from dappermint/winecx-gptk#25 until it lands upstream. |
+| **DXVK (macOS)** | 1.10.3 | [Gcenx/DXVK-macOS](https://github.com/Gcenx/DXVK-macOS/releases) | Same frozen 1.10.x line as the 3.x engine. The runtime also ships DXVK's 32-bit `dxgi.dll`, but the app keeps Wine's builtin dxgi in `syswow64` (DXVK's d3d11 runs on it), so that file goes unused. No `d3d9` on purpose (Wine's builtin d3d9 is used). |
+| **DXMT** | 0.80 | [3Shain/dxmt](https://github.com/3Shain/dxmt/releases) | Frozen at the last MIT release, as below. |
+| **MoltenVK** | 1.4.2 | [KhronosGroup/MoltenVK](https://github.com/KhronosGroup/MoltenVK/releases) | |
+| **SDL2** | 2.32.10 | [libsdl-org/SDL](https://github.com/libsdl-org/SDL/releases) | Built from the pinned release for winebus's controller bus (nixpkgs' `sdl2` is sdl2-compat, which loads SDL3). |
+| **gstreamer / Wine Gecko / Wine Mono** | 1.26.3 / 2.47.4 / 11.3.0 | Wine's media stack and its HTML and .NET runtimes | |
+| **msync** | winecx rewrite | [dappermint/winecx-gptk](https://github.com/dappermint/winecx-gptk) | On by default. |
+| **D3DMetal** | not bundled | [Apple GPTK](https://developer.apple.com/games/game-porting-toolkit/) | The runtime is GPTK-capable (`gptkCapable`); the user imports Apple's payload, which the app deploys into the runtime. The runtime ships the `lib/gptk-video` interposers (`d3d12shim.dll`, `dxgishim.dll`). |
+
+## Bundled in runtime `v3.1.1` (frozen, for apps before 3.10.0)
+
+Served by `dist/pages/WhiskyWineVersion.plist`, which apps before 3.10.0 read. It stays on this
+engine; only a security fix should change it.
 
 | Component | Bundled version | Upstream source | Notes |
 |-----------|-----------------|-----------------|-------|
@@ -27,12 +48,14 @@ flags when a bundled component falls behind upstream.
 
 | Artifact | SHA-256 |
 |----------|---------|
+| `Libraries.tar.gz` (`v4.8.3`) | `08ffabd7b7c352470faee2b1d51061b341316e401439ca805c5302acc2fb8818` |
 | `Libraries.tar.gz` (`v3.1.1`) | `01f3a1b43b98065fe20c529c1023b61dd79a6d2ad93bba6040865f646481ccf3` |
 | `Libraries.tar.gz` (`v3.1.0`) | `86e2d54a60736f27e6ce82cacf2a91e500c20f6d32ae959a16afd912e6b03096` |
 | `Libraries.tar.gz` (`v3.0.0`) | `9c3d2a7d9bb682ae8398d8bae458e3cb52bb9f5a3345fb0830a64d9b6a1025f8` |
 
-The same digest is published in
-[`dist/pages/WhiskyWineVersion.plist`](../dist/pages/WhiskyWineVersion.plist) under the `sha256` key.
+The same digest is published under the `sha256` key of the feed that serves that engine:
+[`dist/pages/WhiskyWineVersion-v4.plist`](../dist/pages/WhiskyWineVersion-v4.plist) for 4.x, and
+[`dist/pages/WhiskyWineVersion.plist`](../dist/pages/WhiskyWineVersion.plist) for 3.1.1.
 The app verifies the downloaded archive against it before installing and **fails closed** on a
 mismatch (a corrupted or truncated download is the common cause). This is an integrity check, not a
 substitute for HTTPS transport trust. When cutting a runtime release, compute the digest of the exact
@@ -54,9 +77,10 @@ every install through a normal app update, with no runtime re-download.
 
 ## Tracking cadence
 
-- **Wine:** check each January for the new stable (next: **Wine 12, ~Jan 2027**). Test before bundling.
-- **Wine / DXVK-macOS:** `RuntimeTrack.yml` polls these GitHub release feeds weekly and opens an
-  issue when a bundled version is behind. Triage; bumping is a deliberate, tested decision, not automatic.
+- **Wine (4.x engine):** `RuntimeTrack.yml` polls dappermint/winecx-gptk's `runtime-v*` releases weekly
+  and opens an issue when upstream is ahead of the tree the current engine was built from. Rebuild on
+  the mirror, publish a beta, test, then promote (see `ReleaseWorkflow.md`).
+- **DXVK-macOS:** polled weekly the same way. Triage; bumping is a deliberate, tested decision, not automatic.
 - **DXMT:** frozen at 0.80, the last MIT-licensed release. `RuntimeTrack.yml` still lists the latest
   upstream release in its summary but never files drift for it.
 - **D3DMetal (GPTK):** Apple ships it as a Game Porting Toolkit download with no GitHub release feed, so

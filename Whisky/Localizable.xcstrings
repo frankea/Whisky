@@ -72546,13 +72546,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "D3DMetal also needs a GPTK-capable Whisky engine, currently a beta release, because the installed engine can't run it. A payload imported now is kept and deploys automatically once one is installed."
+            "value" : "D3DMetal also needs the current Whisky engine because the installed engine can't run it. A payload imported now is kept and deploys automatically once that engine is installed."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "D3DMetal also needs a GPTK-capable Whisky engine, currently a beta release, because the installed engine can't run it. A payload imported now is kept and deploys automatically once one is installed."
+            "value" : "D3DMetal also needs the current Whisky engine because the installed engine can't run it. A payload imported now is kept and deploys automatically once that engine is installed."
           }
         }
       }
@@ -72562,13 +72562,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Imported. D3DMetal also needs a GPTK-capable Whisky engine, currently a beta release, because the installed engine can't run it. The payload is kept and deploys automatically once one is installed."
+            "value" : "Imported. D3DMetal also needs the current Whisky engine because the installed engine can't run it. The payload is kept and deploys automatically once that engine is installed."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Imported. D3DMetal also needs a GPTK-capable Whisky engine, currently a beta release, because the installed engine can't run it. The payload is kept and deploys automatically once one is installed."
+            "value" : "Imported. D3DMetal also needs the current Whisky engine because the installed engine can't run it. The payload is kept and deploys automatically once that engine is installed."
           }
         }
       }
@@ -72874,13 +72874,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "D3DMetal also needs a GPTK-capable Whisky engine, which is currently a beta release. The installed engine can't run it yet, so the payload is kept and deploys automatically once one is installed."
+            "value" : "D3DMetal also needs the current Whisky engine. The installed engine can't run it yet, so the payload is kept and deploys automatically once that engine is installed."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "D3DMetal also needs a GPTK-capable Whisky engine, which is currently a beta release. The installed engine can't run it yet, so the payload is kept and deploys automatically once one is installed."
+            "value" : "D3DMetal also needs the current Whisky engine. The installed engine can't run it yet, so the payload is kept and deploys automatically once that engine is installed."
           }
         }
       }
@@ -102897,13 +102897,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Game Porting Toolkit is imported, but the installed engine can't run D3DMetal. It needs a GPTK-capable Whisky engine, which is currently a beta release."
+            "value" : "Game Porting Toolkit is imported, but the installed engine can't run D3DMetal. It needs the current Whisky engine: Whisky offers it at launch when engine update checks are on, or reinstall the engine from Whisky > Setup."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Game Porting Toolkit is imported, but the installed engine can't run D3DMetal. It needs a GPTK-capable Whisky engine, which is currently a beta release."
+            "value" : "Game Porting Toolkit is imported, but the installed engine can't run D3DMetal. It needs the current Whisky engine: Whisky offers it at launch when engine update checks are on, or reinstall the engine from Whisky > Setup."
           }
         }
       }
@@ -102913,13 +102913,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GPTK imported. Needs a GPTK-capable engine (beta)"
+            "value" : "GPTK imported. Needs the current Whisky engine"
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GPTK imported. Needs a GPTK-capable engine (beta)"
+            "value" : "GPTK imported. Needs the current Whisky engine"
           }
         }
       }
@@ -102945,13 +102945,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Needs Game Porting Toolkit and a GPTK-capable engine (beta)"
+            "value" : "Needs Game Porting Toolkit and the current Whisky engine"
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Needs Game Porting Toolkit and a GPTK-capable engine (beta)"
+            "value" : "Needs Game Porting Toolkit and the current Whisky engine"
           }
         }
       }
@@ -103126,13 +103126,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This bottle is set to D3DMetal. Game Porting Toolkit is imported, but the installed engine can't run it, so games fall back to WineD3D, which can't run DirectX 11 titles. D3DMetal needs a GPTK-capable Whisky engine, currently a beta release; until one is installed, switch to DXMT or DXVK."
+            "value" : "This bottle is set to D3DMetal. Game Porting Toolkit is imported, but the installed engine can't run it, so games fall back to WineD3D, which can't run DirectX 11 titles. D3DMetal needs the current Whisky engine; until it's installed, switch to DXMT or DXVK."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This bottle is set to D3DMetal. Game Porting Toolkit is imported, but the installed engine can't run it, so games fall back to WineD3D, which can't run DirectX 11 titles. D3DMetal needs a GPTK-capable Whisky engine, currently a beta release; until one is installed, switch to DXMT or DXVK."
+            "value" : "This bottle is set to D3DMetal. Game Porting Toolkit is imported, but the installed engine can't run it, so games fall back to WineD3D, which can't run DirectX 11 titles. D3DMetal needs the current Whisky engine; until it's installed, switch to DXMT or DXVK."
           }
         }
       }
@@ -103158,13 +103158,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This bottle is set to D3DMetal, which needs Game Porting Toolkit and a GPTK-capable Whisky engine, currently a beta release. Without them games fall back to WineD3D, which can't run DirectX 11 titles, so switch to DXMT or DXVK for now."
+            "value" : "This bottle is set to D3DMetal, which needs Game Porting Toolkit and the current Whisky engine. Without them games fall back to WineD3D, which can't run DirectX 11 titles, so switch to DXMT or DXVK for now."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This bottle is set to D3DMetal, which needs Game Porting Toolkit and a GPTK-capable Whisky engine, currently a beta release. Without them games fall back to WineD3D, which can't run DirectX 11 titles, so switch to DXMT or DXVK for now."
+            "value" : "This bottle is set to D3DMetal, which needs Game Porting Toolkit and the current Whisky engine. Without them games fall back to WineD3D, which can't run DirectX 11 titles, so switch to DXMT or DXVK for now."
           }
         }
       }

@@ -34,7 +34,7 @@ final class DistributionConfigTests: XCTestCase {
     // MARK: - Version Plist URL Tests
 
     func testVersionPlistURL() {
-        let expectedURL = "https://frankea.github.io/Whisky/WhiskyWineVersion.plist"
+        let expectedURL = "https://frankea.github.io/Whisky/WhiskyWineVersion-v4.plist"
         XCTAssertEqual(DistributionConfig.versionPlistURL, expectedURL)
     }
 
@@ -167,7 +167,7 @@ final class DistributionConfigTests: XCTestCase {
         )
         XCTAssertEqual(
             expectedURL,
-            "https://frankea.github.io/Whisky/WhiskyWineVersion.plist",
+            "https://frankea.github.io/Whisky/WhiskyWineVersion-v4.plist",
             "WhiskyWineInstaller should use GitHub Pages URL"
         )
     }

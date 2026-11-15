@@ -22,11 +22,20 @@ public enum DistributionConfig {
     /// Base URL for GitHub Pages distribution
     public static let baseURL = "https://frankea.github.io/Whisky"
 
-    /// URL for the WhiskyWine version plist file
-    public static let versionPlistURL = "\(baseURL)/WhiskyWineVersion.plist"
+    /// URL for the WhiskyWine version plist file, which names the engine to
+    /// install and offers as an update.
+    ///
+    /// Apps before 3.10.0 read `WhiskyWineVersion.plist`, which stays on the
+    /// stock 3.1.1 engine: they predate the fixes the GPTK-capable engines
+    /// need (the `users/crossover` profile reconcile among them), so they must
+    /// not be offered one. This feed is the one that moves.
+    public static let versionPlistURL = "\(baseURL)/WhiskyWineVersion-v4.plist"
+
+    /// The feed apps before 3.10.0 read, frozen on the stock 3.1.1 engine.
+    static let legacyVersionPlistURL = "\(baseURL)/WhiskyWineVersion.plist"
 
     /// The GitHub Releases page, which lists app releases and the Wine
-    /// Libraries engine builds, the GPTK-capable beta engines among them.
+    /// Libraries engine builds.
     public static let releasesPageURL = "https://github.com/frankea/Whisky/releases"
 
     /// Base URL for GitHub Releases downloads

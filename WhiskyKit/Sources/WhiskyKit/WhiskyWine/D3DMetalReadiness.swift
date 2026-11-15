@@ -102,7 +102,8 @@ public enum D3DMetalReadiness: Equatable, Sendable, CaseIterable {
         self == .payloadMissing || self == .payloadAndEngineMissing
     }
 
-    /// Where the GPTK-capable engines are published: beta Wine Libraries
-    /// releases, installed by hand until one is promoted to the stock engine.
+    /// Where the engines are published, for installing a GPTK-capable one by
+    /// hand when the installed engine can't run D3DMetal and the launch-time
+    /// update hasn't replaced it.
     public static let engineReleasesURL = URL(string: DistributionConfig.releasesPageURL)
 }

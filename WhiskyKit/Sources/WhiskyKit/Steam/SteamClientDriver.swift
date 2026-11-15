@@ -29,10 +29,15 @@ public protocol SteamClientDriver: AnyObject {
     ///
     /// Not bottle-scoped, so the orchestrator only uses it to short-circuit
     /// the negative case: an empty answer means nothing is running anywhere,
-    /// and the bottle's own process list is not consulted. The wait for a
-    /// client it started watches it too, and asks the bottle's own list only
-    /// once a `steam.exe` is in it.
+    /// and the bottle's own process list is not consulted.
     func hostWineImageNames() async -> Set<String>
+
+    /// Host process IDs of every `steam.exe`, in any bottle.
+    ///
+    /// The wait for a client the orchestrator started compares this with the
+    /// answer from before the start, and asks the bottle's own list only when
+    /// a new ID appears.
+    func hostSteamPIDs() async -> Set<Int32>
 
     /// The bottle's process list, as `tasklist.exe` reports it.
     func processList() async -> [WineProcess]
@@ -90,6 +95,11 @@ open class WineSteamClientDriver: SteamClientDriver {
             guard let output = String(bytes: data, encoding: .utf8) else { return [] }
             return Self.exeImageNames(inProcessListing: output)
         }.value
+    }
+
+    /// One `ps`, like ``hostWineImageNames()``.
+    open func hostSteamPIDs() async -> Set<Int32> {
+        await SteamLauncher.hostSteamPIDs()
     }
 
     /// The lower-cased `.exe` names in a `ps -Ao comm=` listing.

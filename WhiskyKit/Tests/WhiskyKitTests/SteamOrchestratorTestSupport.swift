@@ -28,6 +28,9 @@ final class FakeSteamClientDriver: SteamClientDriver {
     var script: [[String]]
     /// When set, what `ps` reports instead of mirroring the script.
     var hostOverride: Set<String>?
+    /// When set, the host's `steam.exe` PIDs. Otherwise one fixed PID while
+    /// `ps` reports a `steam.exe`, and none while it doesn't.
+    var hostSteamPIDOverride: Set<Int32>?
     /// Simulated `tasklist.exe` latency, for the coalescing test.
     var listDelay: Duration = .zero
     var onStartClient: (() -> Void)?
@@ -54,6 +57,13 @@ final class FakeSteamClientDriver: SteamClientDriver {
     func hostWineImageNames() async -> Set<String> {
         hostCalls += 1
         return hostOverride ?? Set(current)
+    }
+
+    func hostSteamPIDs() async -> Set<Int32> {
+        if let hostSteamPIDOverride {
+            return hostSteamPIDOverride
+        }
+        return (hostOverride ?? Set(current)).contains("steam.exe") ? [4_242] : []
     }
 
     func processList() async -> [WineProcess] {

@@ -23,13 +23,13 @@ import Testing
 /// What a launch writes for 3DMark's front end (#372): DXVK's set in its own
 /// entry under Recommended, on a direct launch, on a Steam launch, and ahead
 /// of time, while its benchmarks and the bottle keep the games' backend.
-/// The runtime is pinned to D3DMetal throughout.
+/// The runtime is pinned to D3DMetal unless a test says otherwise.
 @Suite("Chromium front end launches")
 @MainActor
 final class ChromiumFrontEndLaunchTests {
-    private let tempRoot: URL
-    private let bottleURL: URL
-    private let dxvkFolder: URL
+    let tempRoot: URL
+    let bottleURL: URL
+    let dxvkFolder: URL
 
     init() throws {
         tempRoot = FileManager.default.temporaryDirectory.appending(path: "chromium_front_end_\(UUID().uuidString)")
@@ -51,7 +51,7 @@ final class ChromiumFrontEndLaunchTests {
         try? FileManager.default.removeItem(at: tempRoot)
     }
 
-    private func touch(_ paths: [String], in base: URL) throws {
+    func touch(_ paths: [String], in base: URL) throws {
         for relative in paths {
             let url = base.appending(path: relative)
             try FileManager.default.createDirectory(
@@ -62,18 +62,18 @@ final class ChromiumFrontEndLaunchTests {
         }
     }
 
-    private func makeBottle(_ backend: GraphicsBackend = .recommended) -> Bottle {
+    func makeBottle(_ backend: GraphicsBackend = .recommended) -> Bottle {
         let bottle = Bottle(bottleUrl: bottleURL)
         bottle.settings.graphicsBackend = backend
         return bottle
     }
 
-    private var steamExe: URL {
+    var steamExe: URL {
         bottleURL.appending(path: "drive_c/Program Files (x86)/Steam/steam.exe")
     }
 
     /// Steam with 3DMark in its own library, the Steam layout of the row.
-    private func installSteam3DMark() throws -> URL {
+    func installSteam3DMark() throws -> URL {
         try touch(["Program Files (x86)/Steam/steam.exe"], in: bottleURL.appending(path: "drive_c"))
         let install = bottleURL.appending(path: "drive_c/Program Files (x86)/Steam/steamapps/common/3DMark")
         try touch(
@@ -83,22 +83,22 @@ final class ChromiumFrontEndLaunchTests {
         return install
     }
 
-    private var dxvkDeployed: Bool {
+    var dxvkDeployed: Bool {
         let dll = bottleURL.appending(path: "drive_c/windows/system32/d3d11.dll")
         return (try? Data(contentsOf: dll)) == Data("DXVK".utf8)
     }
 
-    private func expectDXVK(_ overrides: [String: String]?, _ label: String) {
+    func expectDXVK(_ overrides: [String: String]?, _ label: String) {
         #expect(overrides?["dxgi"] == "n,b", "\(label): dxgi")
         #expect(overrides?["d3d11"] == "n,b", "\(label): d3d11")
         #expect(overrides?["d3d10core"] == "n,b", "\(label): d3d10core")
     }
 
-    private func expectNotDXVK(_ overrides: [String: String]?, _ label: String) {
+    func expectNotDXVK(_ overrides: [String: String]?, _ label: String) {
         #expect(overrides?["d3d11"] != "n,b", "\(label): d3d11")
     }
 
-    private func prepare(
+    func prepare(
         _ url: URL, in bottle: Bottle, programOverrides: ProgramOverrides? = nil,
         recommendedBackend: GraphicsBackend = .d3dMetal, recorder: ScopeRecorder
     ) async throws -> Wine.PreparedLaunch {
@@ -109,7 +109,7 @@ final class ChromiumFrontEndLaunchTests {
         )
     }
 
-    private func backend(_ backend: GraphicsBackend) -> ProgramOverrides {
+    func backend(_ backend: GraphicsBackend) -> ProgramOverrides {
         var overrides = ProgramOverrides()
         overrides.graphicsBackend = backend
         return overrides
@@ -182,7 +182,7 @@ final class ChromiumFrontEndLaunchTests {
     // MARK: - Steam launch
 
     /// What SteamLauncher.launch hands Wine for `-applaunch 223850`.
-    private func steamLaunch(_ bottle: Bottle, install: URL, recorder: ScopeRecorder) async throws {
+    func steamLaunch(_ bottle: Bottle, install: URL, recorder: ScopeRecorder) async throws {
         let scan = SteamLibrary.scanExecutables(under: install)
         let plan = LaunchResolver.plan(
             steamAppId: 223_850,

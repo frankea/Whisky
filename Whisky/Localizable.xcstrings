@@ -102713,13 +102713,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "DXVK and DXMT share system files, so programs it starts also run on DXVK until a DXMT program is next started from Whisky."
+            "value" : "DXVK and DXMT share system files, so what this program starts by itself may also run on DXVK until a DXMT program is next started from Whisky."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "DXVK and DXMT share system files, so programs it starts also run on DXVK until a DXMT program is next started from Whisky."
+            "value" : "DXVK and DXMT share system files, so what this program starts by itself may also run on DXVK until a DXMT program is next started from Whisky."
           }
         }
       }

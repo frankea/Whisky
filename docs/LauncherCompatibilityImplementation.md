@@ -103,7 +103,7 @@ EA App:
 **Routing:**
 - Direct launch: `prepareProgramLaunch` steers Recommended to DXVK and pins it into the program's own `AppDefaults` entry; the bottle scope and the MetalFX placeholder follow the games' backend
 - Steam `-applaunch`: front ends among the scanned executables leave the game's plan (as #376's Chromium hosts do) and get the launcher set, unless their own override picks another backend
-- Ahead of time: every launch in a bottle on Recommended whose games resolve to something other than DXVK writes the entry for each installed front end (registry only, DXVK is not deployed)
+- Ahead of time: every launch in a bottle whose games run on something other than DXVK writes the entry for each installed front end whose own choice (its override, else the bottle's backend) is Recommended or DXVK (registry only, DXVK is not deployed), so a program-level Recommended routes the same on every path
 - A program with `libcef.dll` beside it that is not in the table only gets a one-click suggestion on its settings page
 
 #### GPUDetection.swift (180 lines)

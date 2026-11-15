@@ -504,7 +504,7 @@ Some programs that are not launchers draw their own window with Chromium (CEF or
 **How it works:**
 - Known front ends are listed by executable name: today `3DMark.exe` (3DMark, Steam App 223850). On Recommended, the front end gets DXVK in its own registry entry (`AppDefaults\3DMark.exe`), and its benchmarks keep the bottle's backend, D3DMetal when Game Porting Toolkit is imported
 - This applies when 3DMark is launched from the Programs tab, from the Whisky Library (`-applaunch 223850`), and when Steam's own Play button or a shortcut starts it: any launch in a bottle with 3DMark installed writes its entry ahead of time
-- The program's settings page says why Recommended picked DXVK. An explicit backend on the program, or on the bottle, is never changed
+- The program's settings page says why Recommended picked DXVK. An explicit backend on the program, or on the bottle, is never changed. Setting the program itself to Recommended steers it the same way in a bottle set to D3DMetal or DXMT
 - A DXVK override set on `3DMark.exe` stays on the front end and no longer becomes the backend of 3DMark's benchmarks on Steam launches
 - In a bottle without Game Porting Toolkit (DXMT), DXVK and DXMT share system files, so what the front end starts also runs on DXVK until a DXMT program is next started from Whisky
 

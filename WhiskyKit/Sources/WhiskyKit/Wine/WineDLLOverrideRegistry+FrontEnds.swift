@@ -32,16 +32,19 @@ extension Wine {
     /// Gives each ``ChromiumFrontEnd`` among `executables` the launcher set,
     /// in its own `AppDefaults` entry, when Recommended should steer it.
     ///
-    /// Only on a bottle set to Recommended whose games resolve to something
-    /// other than DXVK: there the window stays black without it. A front end
-    /// whose own override picks another backend keeps it: `ownSettingsDLLOverrides`
-    /// writes that on a Steam launch, and a launch of it from the Programs tab
-    /// writes it as the launched executable. Executables that are not front
-    /// ends are left to the caller.
+    /// Only where the front end's own choice, its override or else the
+    /// bottle's backend, is Recommended or DXVK, and the bottle's games run on
+    /// something other than DXVK: there the window stays black without it. That
+    /// is the choice a launch of it from the Programs tab steers on, so a
+    /// program-level Recommended in a bottle set to D3DMetal gets DXVK whichever
+    /// way the front end starts. A front end whose choice is another backend
+    /// keeps it: `ownSettingsDLLOverrides` writes that on a Steam launch, and a
+    /// launch of it from the Programs tab writes it as the launched executable.
+    /// Executables that are not front ends are left to the caller.
     ///
     /// - Parameters:
-    ///   - executables: Candidates, read only once the bottle qualifies, since
-    ///     the ahead-of-time ones cost a `fileExists` each.
+    ///   - executables: Candidates, read only when the games are not on DXVK,
+    ///     since the ahead-of-time ones cost a `fileExists` each.
     ///   - scopes: The launch's scopes, where the first set for an executable wins.
     ///   - bottle: The bottle being launched in.
     ///   - recommendedBackend: What `.recommended` resolves to for the bottle's
@@ -57,13 +60,15 @@ extension Wine {
         recommendedBackend: GraphicsBackend?,
         launcherSet: (ProgramOverrides?) -> String
     ) {
-        guard bottle.settings.graphicsBackend == .recommended,
-              (recommendedBackend ?? GraphicsBackendResolver.resolve()) != .dxvk
-        else { return }
+        let gamesBackend = bottle.settings.graphicsBackend == .recommended
+            ? recommendedBackend ?? GraphicsBackendResolver.resolve()
+            : bottle.settings.graphicsBackend
+        guard gamesBackend != .dxvk else { return }
         for url in executables() {
             guard let frontEnd = ChromiumFrontEnd.match(url: url) else { continue }
             let persisted = Program.persistedOverrides(for: url, bottleURL: bottle.url)
-            guard frontEndWantsDXVK(ownOverrides: persisted) else { continue }
+            guard frontEndWantsDXVK(choice: persisted?.graphicsBackend ?? bottle.settings.graphicsBackend)
+            else { continue }
             let own = launcherSet(persisted)
             scopes.add(frontEnd.helperExecutables, disablingNVAPI(in: own))
             // nvapi stays reachable on the front end's own entry, the layout
@@ -72,12 +77,12 @@ extension Wine {
         }
     }
 
-    /// Whether a front end's own overrides leave it to Recommended's DXVK:
-    /// none, Recommended, or DXVK itself. An explicit D3DMetal, DXMT or
-    /// WineD3D choice is the user's.
-    static func frontEndWantsDXVK(ownOverrides: ProgramOverrides?) -> Bool {
-        switch ownOverrides?.graphicsBackend {
-        case nil, .recommended, .dxvk:
+    /// Whether a front end's choice, its own override or else the bottle's
+    /// backend, leaves it to Recommended's DXVK: Recommended, or DXVK itself.
+    /// An explicit D3DMetal, DXMT or WineD3D choice is the user's.
+    static func frontEndWantsDXVK(choice: GraphicsBackend) -> Bool {
+        switch choice {
+        case .recommended, .dxvk:
             true
         case .d3dMetal, .dxmt, .wined3d:
             false

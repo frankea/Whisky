@@ -212,8 +212,8 @@ There are two engine lineages, each with its own update feed:
 | `dist/pages/WhiskyWineVersion-v4.plist` | app 3.10.0 and later | GPTK-capable 4.x engine, built by CI |
 | `dist/pages/WhiskyWineVersion.plist` | apps before 3.10.0 | stock 3.1.1, frozen |
 
-The old feed stays on 3.1.1 because those apps lack the fixes the 4.x engine needs (the
-`users/crossover` profile reconcile among them). Don't bump it to a 4.x engine.
+The old feed stays on 3.1.1: the 4.x engine was tested with 3.10.0 and the D3DMetal, DLL override
+and environment fixes it carries, not with older apps. Don't bump it to a 4.x engine.
 
 ### GPTK-capable 4.x engine (current)
 
@@ -222,10 +222,14 @@ Built from source by CI on the [frankea/winecx-gptk](https://github.com/frankea/
 artifact (DXVK, DXMT, payload interposers and the correct `WhiskyWineVersion.plist` inside), so there
 is no assembly step:
 
-1. Sync the mirror with upstream, keep the floor patch on top, and dispatch the hosted release build:
-   `gh workflow run build.yml -R frankea/winecx-gptk -f opt=release -f runner=hosted`.
+1. Sync the mirror with upstream and rebase the commits Whisky carries on top (don't reset them away):
+   the macOS 15 floor and winebus SDL change in `.github/workflows/build.yml`, and
+   `patches/0001-ntdll-kernelbase-keep-the-fiber-pointer-at-gs-0x20-on-macOS.patch` from
+   dappermint/winecx-gptk#25 (drop it once that lands upstream). Then dispatch the hosted release
+   build: `gh workflow run build.yml -R frankea/winecx-gptk -f opt=release -f runner=hosted`.
 2. Audit the artifact: every binary's `minos` at or below 15.0, no `_pipe2` import, no AppleDouble
-   entries, `winebus.so` without "SDL support not compiled in", `libSDL2-2.0.0.dylib` present.
+   entries, `winebus.so` without "SDL support not compiled in", `libSDL2-2.0.0.dylib` present, and the
+   build log's patch step applied the fiber patch.
 3. Publish it as a prerelease `vX.Y.Z-beta.N` first and test it (Steam's UI without a GPTK payload,
    and a DX12 title through D3DMetal). The plist self-stamps the version, so the stable tag must
    match it exactly.
@@ -235,7 +239,15 @@ is no assembly step:
    the SHA-256 of the exact published asset), the 4.x table in [`DEPENDENCIES.md`](DEPENDENCIES.md),
    and `WINE_PINNED` in `.github/workflows/RuntimeTrack.yml`.
 6. Commit and push. The Documentation workflow republishes Pages, and apps on 3.10.0 or later prompt to
-   update on their next engine check.
+   update on their next engine check. Confirm the run succeeded and that
+   `curl -fsS https://frankea.github.io/Whisky/WhiskyWineVersion-v4.plist` serves the new version and
+   digest before relying on it (an app release that needs it, or a smoke test of the update path).
+   Also update the engine facts on the website (`dist/pages/index.html`) and in `README.md`.
+
+**Rolling back.** The feed can't take an engine back: apps only update when the feed's version is
+higher than the installed one, so lowering `WhiskyWineVersion-v4.plist` changes only fresh installs.
+To pull a bad engine, publish a fixed or repacked one with a higher version (for example 4.8.4) and
+point the feed at it.
 
 ### Stock 3.x engine (apps before 3.10.0, frozen)
 

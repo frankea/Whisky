@@ -12,13 +12,14 @@ flags when a bundled component falls behind upstream.
 ## Bundled in runtime `v4.8.3` (default for app 3.10.0 and later)
 
 Built from source by CI on [frankea/winecx-gptk](https://github.com/frankea/winecx-gptk) (a mirror of
-dappermint/winecx-gptk with Whisky's macOS 15 floor patch), commit `12af865`, from upstream `58b27bf`
+dappermint/winecx-gptk carrying Whisky's macOS 15 floor and winebus SDL build change, plus the fiber
+fix from dappermint/winecx-gptk#25), commit `12af865`, from upstream `58b27bf`
 (the tree behind upstream's `runtime-v4.8.1`). Served by `dist/pages/WhiskyWineVersion-v4.plist`.
 
 | Component | Bundled version | Upstream source | Notes |
 |-----------|-----------------|-----------------|-------|
 | **Wine** | 11.19, CrossOver-based winecx `9f3f644` | [dappermint/winecx-gptk](https://github.com/dappermint/winecx-gptk) | Tracks upstream Wine releases with CrossOver's macOS patches rebased on top. Built at `MACOSX_DEPLOYMENT_TARGET=15.0` on a hosted macos-15 runner. Carries the fiber fix from dappermint/winecx-gptk#25 until it lands upstream. |
-| **DXVK (macOS)** | 1.10.3 | [Gcenx/DXVK-macOS](https://github.com/Gcenx/DXVK-macOS/releases) | Same frozen 1.10.x line as the 3.x engine, now with the 32-bit `dxgi.dll`. No `d3d9` on purpose (Wine's builtin d3d9 is used). |
+| **DXVK (macOS)** | 1.10.3 | [Gcenx/DXVK-macOS](https://github.com/Gcenx/DXVK-macOS/releases) | Same frozen 1.10.x line as the 3.x engine. The runtime also ships DXVK's 32-bit `dxgi.dll`, but the app keeps Wine's builtin dxgi in `syswow64` (DXVK's d3d11 runs on it), so that file goes unused. No `d3d9` on purpose (Wine's builtin d3d9 is used). |
 | **DXMT** | 0.80 | [3Shain/dxmt](https://github.com/3Shain/dxmt/releases) | Frozen at the last MIT release, as below. |
 | **MoltenVK** | 1.4.2 | [KhronosGroup/MoltenVK](https://github.com/KhronosGroup/MoltenVK/releases) | |
 | **SDL2** | 2.32.10 | [libsdl-org/SDL](https://github.com/libsdl-org/SDL/releases) | Built from the pinned release for winebus's controller bus (nixpkgs' `sdl2` is sdl2-compat, which loads SDL3). |

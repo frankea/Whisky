@@ -26,9 +26,10 @@ public enum DistributionConfig {
     /// install and offers as an update.
     ///
     /// Apps before 3.10.0 read `WhiskyWineVersion.plist`, which stays on the
-    /// stock 3.1.1 engine: they predate the fixes the GPTK-capable engines
-    /// need (the `users/crossover` profile reconcile among them), so they must
-    /// not be offered one. This feed is the one that moves.
+    /// stock 3.1.1 engine: the GPTK-capable engine was tested with 3.10.0 and
+    /// its D3DMetal, DLL override and environment fixes, so older apps are not
+    /// offered an engine switch nobody tested them with. This feed is the one
+    /// that moves.
     public static let versionPlistURL = "\(baseURL)/WhiskyWineVersion-v4.plist"
 
     /// The feed apps before 3.10.0 read, frozen on the stock 3.1.1 engine.

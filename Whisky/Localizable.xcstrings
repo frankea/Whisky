@@ -72546,13 +72546,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "D3DMetal also needs the current Whisky engine because the installed engine can't run it. A payload imported now is kept and deploys automatically once it's installed."
+            "value" : "D3DMetal also needs the current Whisky engine because the installed engine can't run it. A payload imported now is kept and deploys automatically once that engine is installed."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "D3DMetal also needs the current Whisky engine because the installed engine can't run it. A payload imported now is kept and deploys automatically once it's installed."
+            "value" : "D3DMetal also needs the current Whisky engine because the installed engine can't run it. A payload imported now is kept and deploys automatically once that engine is installed."
           }
         }
       }
@@ -72562,13 +72562,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Imported. D3DMetal also needs the current Whisky engine because the installed engine can't run it. The payload is kept and deploys automatically once it's installed."
+            "value" : "Imported. D3DMetal also needs the current Whisky engine because the installed engine can't run it. The payload is kept and deploys automatically once that engine is installed."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Imported. D3DMetal also needs the current Whisky engine because the installed engine can't run it. The payload is kept and deploys automatically once it's installed."
+            "value" : "Imported. D3DMetal also needs the current Whisky engine because the installed engine can't run it. The payload is kept and deploys automatically once that engine is installed."
           }
         }
       }
@@ -72874,13 +72874,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "D3DMetal also needs the current Whisky engine. The installed engine can't run it yet, so the payload is kept and deploys automatically once it's installed."
+            "value" : "D3DMetal also needs the current Whisky engine. The installed engine can't run it yet, so the payload is kept and deploys automatically once that engine is installed."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "D3DMetal also needs the current Whisky engine. The installed engine can't run it yet, so the payload is kept and deploys automatically once it's installed."
+            "value" : "D3DMetal also needs the current Whisky engine. The installed engine can't run it yet, so the payload is kept and deploys automatically once that engine is installed."
           }
         }
       }
@@ -102897,13 +102897,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Game Porting Toolkit is imported, but the installed engine can't run D3DMetal. It needs the current Whisky engine, which Whisky offers as an update when it starts."
+            "value" : "Game Porting Toolkit is imported, but the installed engine can't run D3DMetal. It needs the current Whisky engine: Whisky offers it at launch when engine update checks are on, or reinstall the engine from Whisky > Setup."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Game Porting Toolkit is imported, but the installed engine can't run D3DMetal. It needs the current Whisky engine, which Whisky offers as an update when it starts."
+            "value" : "Game Porting Toolkit is imported, but the installed engine can't run D3DMetal. It needs the current Whisky engine: Whisky offers it at launch when engine update checks are on, or reinstall the engine from Whisky > Setup."
           }
         }
       }

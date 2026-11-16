@@ -29,6 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply Launcher Fixes for the Rockstar Games Launcher in a Steam bottle
   now reapplies Steam's settings and keeps the bottle's graphics backend,
   instead of reporting fixes it never applied ([#395]).
+- Updating or reinstalling WhiskyWine no longer removes the installed
+  runtime before the new one is in place. A failed or cancelled download,
+  a full disk, a damaged archive or quitting Whisky mid-install now leaves
+  the current runtime and every bottle working, and the update is offered
+  again on the next launch. Accepting the update alert also goes straight
+  to the download, which never started for anyone who hadn't answered the
+  analytics question. Thanks to [@Legatia] for the fix ([#322], from [#320]).
 
 ## [3.10.1] - 2026-11-15 (App)
 
@@ -1603,7 +1610,9 @@ up to date.
 [#310]: https://github.com/frankea/Whisky/issues/310
 [#313]: https://github.com/frankea/Whisky/issues/313
 [#318]: https://github.com/frankea/Whisky/issues/318
+[#320]: https://github.com/frankea/Whisky/issues/320
 [#321]: https://github.com/frankea/Whisky/issues/321
+[#322]: https://github.com/frankea/Whisky/issues/322
 [#323]: https://github.com/frankea/Whisky/issues/323
 [#330]: https://github.com/frankea/Whisky/issues/330
 [#331]: https://github.com/frankea/Whisky/issues/331
@@ -1659,6 +1668,7 @@ up to date.
 [@EwoudVV]: https://github.com/EwoudVV
 [@furknataman]: https://github.com/furknataman
 [@jaxjixmix]: https://github.com/jaxjixmix
+[@Legatia]: https://github.com/Legatia
 [@PolarisSdesu]: https://github.com/PolarisSdesu
 [@RodrigoLScorza]: https://github.com/RodrigoLScorza
 [@rolling7ho]: https://github.com/rolling7ho

@@ -28,13 +28,6 @@ final class LauncherFixesRockstarTests: LauncherFixesTestCase {
     /// Rockstar's launcher, which ``LauncherType/detect(from:)`` resolves to Rockstar.
     let rockstarExe = URL(fileURLWithPath: "C:/Program Files/Rockstar Games/Launcher/Launcher.exe")
 
-    /// Puts a Steam client into the bottle, as its installer leaves it.
-    func installSteam() throws {
-        let steam = bottleURL.appending(path: "drive_c/Program Files (x86)/Steam")
-        try FileManager.default.createDirectory(at: steam, withIntermediateDirectories: true)
-        try Data("MZ".utf8).write(to: steam.appending(path: "steam.exe"))
-    }
-
     @MainActor
     func testRockstarLaunchDoesNotTakeASteamBottleOffD3DMetal() throws {
         // Rockstar's launcher from the Programs tab used to replace Steam's
@@ -120,5 +113,48 @@ final class LauncherFixesRockstarTests: LauncherFixesTestCase {
 
         XCTAssertEqual(bottle.settings.detectedLauncher, .rockstar)
         XCTAssertTrue(bottle.settings.dxvk)
+    }
+
+    @MainActor
+    func testSteamSettingsForRockstarRestoreOnlyAProfilesDXVK() throws {
+        // What Apply Launcher Fixes reapplies for Rockstar in a Steam bottle:
+        // a DXVK a profile switched to goes back to Recommended over D3DMetal.
+        try installSteam()
+        let bottle = makeBottle()
+        bottle.settings.detectedLauncher = .rockstar
+        bottle.settings.graphicsBackend = .dxvk
+        bottle.settings.launcherSwitchedBackend = true
+
+        LauncherFixes.reapplySteamSettings(to: bottle, recommendedBackend: .d3dMetal)
+
+        XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
+        XCTAssertTrue(bottle.settings.launcherCompatibilityMode)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .recommended)
+        XCTAssertTrue(bottle.settings.launcherBackendResetNotice)
+        XCTAssertEqual(try persistedSettings().graphicsBackend, .recommended)
+    }
+
+    @MainActor
+    func testSteamSettingsForRockstarKeepEveryOtherBackend() throws {
+        try installSteam()
+        let bottle = makeBottle()
+
+        // Without the payload a profile's DXVK stays, and Recommended is never
+        // moved to DXVK.
+        bottle.settings.graphicsBackend = .dxvk
+        bottle.settings.launcherSwitchedBackend = true
+        LauncherFixes.reapplySteamSettings(to: bottle, recommendedBackend: .dxmt)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
+
+        bottle.settings.graphicsBackend = .recommended
+        LauncherFixes.reapplySteamSettings(to: bottle, recommendedBackend: .dxmt)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .recommended)
+        XCTAssertFalse(bottle.settings.launcherSwitchedBackend)
+
+        // A DXVK the user picked stays over D3DMetal too.
+        bottle.settings.graphicsBackend = .dxvk
+        LauncherFixes.reapplySteamSettings(to: bottle, recommendedBackend: .d3dMetal)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
+        XCTAssertEqual(try persistedSettings().graphicsBackend, .dxvk)
     }
 }

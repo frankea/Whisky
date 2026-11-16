@@ -194,3 +194,170 @@ final class LauncherBackendMigrationTests: LauncherFixesTestCase {
         XCTAssertEqual(decoded.detectedLauncher, .steam)
     }
 }
+
+// MARK: - Steam bottles the Rockstar profile took over (#382)
+
+final class LauncherBackendRockstarRepairTests: LauncherFixesTestCase {
+    /// A Steam bottle as 3.8.0 to 3.10.1 left it after Rockstar's launcher
+    /// ran from the Programs tab: Rockstar detected, on DXVK, and nothing
+    /// marking that switch.
+    @MainActor
+    private func makeTakenOverBottle(stamp: Int = 2) throws -> Bottle {
+        try installSteam()
+        let bottle = makeBottle()
+        bottle.settings.launcherCompatibilityMode = true
+        bottle.settings.detectedLauncher = .rockstar
+        bottle.settings.graphicsBackend = .dxvk
+        bottle.settings.launcherBackendMigration = stamp
+        // Reloaded from disk, the way the app meets it after the update.
+        return Bottle(bottleUrl: bottleURL)
+    }
+
+    @MainActor
+    func testATakenOverSteamBottleGoesBackToSteamAndRecommended() throws {
+        let bottle = try makeTakenOverBottle()
+
+        XCTAssertTrue(LauncherBackendMigration.migrateIfNeeded(bottle, d3dMetalInstalled: true))
+
+        XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .recommended)
+        XCTAssertTrue(bottle.settings.launcherBackendResetNotice)
+        let persisted = try persistedSettings()
+        XCTAssertEqual(persisted.detectedLauncher, .steam)
+        XCTAssertEqual(persisted.graphicsBackend, .recommended)
+        XCTAssertTrue(persisted.launcherBackendResetNotice)
+        XCTAssertEqual(persisted.launcherBackendMigration, LauncherBackendMigration.current)
+    }
+
+    @MainActor
+    func testWithoutD3DMetalOnlyTheLauncherChangesUntilThePayloadArrives() throws {
+        let bottle = try makeTakenOverBottle()
+
+        XCTAssertFalse(LauncherBackendMigration.migrateIfNeeded(bottle, d3dMetalInstalled: false))
+
+        XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
+        XCTAssertFalse(bottle.settings.launcherBackendResetNotice)
+        let persisted = try persistedSettings()
+        XCTAssertTrue(persisted.launcherSwitchedBackend)
+        XCTAssertEqual(persisted.launcherBackendMigration, LauncherBackendMigration.current)
+
+        // GPTK imported later, or the app relaunched with it deployed.
+        let reloaded = Bottle(bottleUrl: bottleURL)
+        XCTAssertTrue(LauncherBackendMigration.migrateIfNeeded(reloaded, d3dMetalInstalled: true))
+        XCTAssertEqual(reloaded.settings.graphicsBackend, .recommended)
+        XCTAssertTrue(reloaded.settings.launcherBackendResetNotice)
+    }
+
+    @MainActor
+    func testABottleWithOnlyRockstarKeepsRockstarsProfile() throws {
+        let bottle = makeBottle()
+        bottle.settings.launcherCompatibilityMode = true
+        bottle.settings.detectedLauncher = .rockstar
+        bottle.settings.graphicsBackend = .dxvk
+        bottle.settings.launcherBackendMigration = 2
+
+        XCTAssertFalse(LauncherBackendMigration.migrateIfNeeded(bottle, d3dMetalInstalled: true))
+
+        XCTAssertEqual(bottle.settings.detectedLauncher, .rockstar)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
+        let persisted = try persistedSettings()
+        XCTAssertFalse(persisted.launcherSwitchedBackend)
+        XCTAssertFalse(persisted.launcherBackendResetNotice)
+        XCTAssertEqual(persisted.launcherBackendMigration, LauncherBackendMigration.current)
+    }
+
+    @MainActor
+    func testManualModeIsNeverTouched() throws {
+        let bottle = try makeTakenOverBottle()
+        bottle.settings.launcherMode = .manual
+
+        XCTAssertFalse(LauncherBackendMigration.migrateIfNeeded(bottle, d3dMetalInstalled: true))
+
+        XCTAssertEqual(bottle.settings.detectedLauncher, .rockstar)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
+        XCTAssertFalse(try persistedSettings().launcherSwitchedBackend)
+        XCTAssertEqual(try persistedSettings().launcherBackendMigration, LauncherBackendMigration.current)
+    }
+
+    @MainActor
+    func testADXVKPickedInASteamBottleStampedTwoIsLeftAlone() throws {
+        // Steam detected, Steam installed, DXVK: version 2 already looked at
+        // this shape, so the DXVK is the user's and is never guessed at again.
+        try installSteam()
+        let bottle = makeBottle()
+        bottle.settings.launcherCompatibilityMode = true
+        bottle.settings.detectedLauncher = .steam
+        bottle.settings.graphicsBackend = .dxvk
+        bottle.settings.launcherBackendMigration = 2
+
+        XCTAssertFalse(LauncherBackendMigration.migrateIfNeeded(bottle, d3dMetalInstalled: true))
+
+        XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
+        let persisted = try persistedSettings()
+        XCTAssertEqual(persisted.graphicsBackend, .dxvk)
+        XCTAssertFalse(persisted.launcherSwitchedBackend)
+        XCTAssertFalse(persisted.launcherBackendResetNotice)
+        XCTAssertEqual(persisted.launcherBackendMigration, LauncherBackendMigration.current)
+    }
+
+    @MainActor
+    func testWithAutoEnableDXVKOffOnlyTheLauncherGoesBack() throws {
+        // Rockstar's profile never switched the backend then, so the DXVK is
+        // the user's.
+        let bottle = try makeTakenOverBottle()
+        bottle.settings.autoEnableDXVK = false
+
+        XCTAssertFalse(LauncherBackendMigration.migrateIfNeeded(bottle, d3dMetalInstalled: true))
+
+        XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
+        XCTAssertFalse(bottle.settings.launcherBackendResetNotice)
+        XCTAssertFalse(try persistedSettings().launcherSwitchedBackend)
+        XCTAssertEqual(try persistedSettings().detectedLauncher, .steam)
+    }
+
+    @MainActor
+    func testTheRepairRunsOnce() throws {
+        let bottle = try makeTakenOverBottle()
+        XCTAssertTrue(LauncherBackendMigration.migrateIfNeeded(bottle, d3dMetalInstalled: true))
+
+        // Rockstar detected and DXVK picked again afterwards: the user's now.
+        bottle.settings.detectedLauncher = .rockstar
+        bottle.settings.graphicsBackend = .dxvk
+        try FileManager.default.removeItem(at: metadataURL)
+
+        XCTAssertFalse(LauncherBackendMigration.migrateIfNeeded(bottle, d3dMetalInstalled: true))
+
+        XCTAssertEqual(bottle.settings.detectedLauncher, .rockstar)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .dxvk)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: metadataURL.path(percentEncoded: false)))
+    }
+
+    @MainActor
+    func testABottleFromBeforeVersionTwoGetsBothSteps() throws {
+        // Never migrated, then taken over by Rockstar's profile.
+        let bottle = try makeTakenOverBottle(stamp: 0)
+
+        XCTAssertTrue(LauncherBackendMigration.migrateIfNeeded(bottle, d3dMetalInstalled: true))
+
+        XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .recommended)
+        XCTAssertEqual(try persistedSettings().launcherBackendMigration, LauncherBackendMigration.current)
+    }
+
+    @MainActor
+    func testTheSteamProfileGuessStillRunsBelowVersionTwo() throws {
+        let bottle = makeBottle()
+        bottle.settings.launcherCompatibilityMode = true
+        bottle.settings.detectedLauncher = .steam
+        bottle.settings.graphicsBackend = .dxvk
+        bottle.settings.launcherBackendMigration = 1
+        let reloaded = Bottle(bottleUrl: bottleURL)
+
+        XCTAssertTrue(LauncherBackendMigration.migrateIfNeeded(reloaded, d3dMetalInstalled: true))
+
+        XCTAssertEqual(reloaded.settings.graphicsBackend, .recommended)
+        XCTAssertTrue(reloaded.settings.launcherBackendResetNotice)
+    }
+}

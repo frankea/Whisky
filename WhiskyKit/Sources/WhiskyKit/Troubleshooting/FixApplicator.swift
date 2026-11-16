@@ -441,11 +441,26 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
             )
 
         case "apply-launcher-fixes":
-            guard let launcher = launcherForFixes(bottle: bottle, program: program) else {
+            guard let requested = requestedLauncher(bottle: bottle, program: program),
+                  let launcher = launcherForFixes(bottle: bottle, program: program)
+            else {
                 logger.info("apply-launcher-fixes: no launcher detected for this program or bottle")
                 return FixAttempt(fixId: fixId, result: .failed)
             }
-            LauncherFixes.apply(to: bottle, launcher: launcher, force: true)
+            if launcher != requested {
+                // Rockstar's in a Steam bottle, in auto mode: Steam's settings
+                // without a forced backend change, which would put an explicit
+                // backend on bottle-wide DXVK, unmarked (#382).
+                LauncherFixes.reapplySteamSettings(to: bottle)
+            } else if LauncherFixes.profileLauncher(for: launcher, in: bottle) != launcher {
+                // Rockstar picked in manual mode in a bottle with Steam: its
+                // profile never lands there (#382) and the choice is the user's,
+                // so the bottle is left as it is and nothing is reported applied.
+                logger.info("apply-launcher-fixes: kept the Steam profile over Rockstar's in manual mode")
+                return FixAttempt(fixId: fixId, result: .failed)
+            } else {
+                LauncherFixes.apply(to: bottle, launcher: launcher, force: true)
+            }
             return FixAttempt(
                 fixId: fixId,
                 beforeValue: nil,
@@ -639,8 +654,24 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
 
     /// The launcher the launcher fixes are for: the program's own when it is
     /// one, otherwise the launcher the bottle was set up for.
+    ///
+    /// In launcher mode auto, Rockstar's launcher in a Steam bottle gets
+    /// Steam's: the bottle keeps Steam's profile and Rockstar's is never
+    /// applied there, so the preview names, and Apply reapplies, the profile
+    /// that actually lands. A launcher picked in manual mode is the user's and
+    /// is never swapped for another.
     @MainActor
     private static func launcherForFixes(bottle: Bottle, program: Program?) -> LauncherType? {
+        let launcher = requestedLauncher(bottle: bottle, program: program)
+        guard bottle.settings.launcherMode == .auto else { return launcher }
+        return launcher.map { LauncherFixes.profileLauncher(for: $0, in: bottle) }
+    }
+
+    /// The program's own launcher when it is one, otherwise the launcher the
+    /// bottle was set up for, before ``launcherForFixes(bottle:program:)``
+    /// swaps Rockstar's for Steam's.
+    @MainActor
+    private static func requestedLauncher(bottle: Bottle, program: Program?) -> LauncherType? {
         program.flatMap { LauncherType.detect(from: $0.url) } ?? bottle.settings.detectedLauncher
     }
 

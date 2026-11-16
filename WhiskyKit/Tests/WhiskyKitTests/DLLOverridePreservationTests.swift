@@ -258,10 +258,36 @@ final class DLLOverridePreservationTests {
         #expect(document.contains("AppDefaults\\Game.exe\\DllOverrides"))
     }
 
+    @Test("A record saved before owned values existed still loads")
+    func oldRecordWithoutValuesDecodes() throws {
+        let (bottle, _) = try makeBottle(.d3dMetal)
+        let plist = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>names</key>
+            <dict>
+                <key>\(gameKey.lowercased())</key>
+                <array><string>dinput8</string></array>
+            </dict>
+        </dict>
+        </plist>
+        """
+        try plist.write(to: DLLOverrideRecord.url(in: bottle.url), atomically: true, encoding: .utf8)
+
+        let record = DLLOverrideRecord.load(from: bottle.url)
+
+        #expect(record.names(for: gameKey) == ["dinput8"])
+        #expect(record.values.isEmpty)
+    }
+
     @Test("The record survives a save and load")
     func recordRoundTrips() throws {
         let (bottle, _) = try makeBottle(.d3dMetal)
+        let direct3D = Wine.DLLOverrideScope.direct3D("Launcher.exe").registryKey
         let record = DLLOverrideRecord().updated(with: [(key: bottleKey, overrides: ["Version": "n,b"])])
+            .updated(with: [OwnedRegistryValueEdit(key: direct3D, name: "renderer", line: .set("gl"), owned: "gl")])
         try record.save(to: bottle.url)
         #expect(DLLOverrideRecord.load(from: bottle.url) == record)
         #expect(DLLOverrideRecord.load(from: tempRoot.appending(path: "missing")) == DLLOverrideRecord())

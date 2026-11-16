@@ -90,7 +90,9 @@ struct WhiskyWineDownloadView: View {
             }
             Spacer()
         }
-        .frame(width: 400, height: 200)
+        // Grows past the 200 point minimum so a long error message isn't cut to one line.
+        .frame(width: 400)
+        .frame(minHeight: 200)
         .onAppear {
             // Guard against multiple onAppear calls from NavigationStack so the
             // once-per-setup-attempt runtime_install_started capture holds.
@@ -118,6 +120,7 @@ extension WhiskyWineDownloadView {
             Text(error)
                 .font(.subheadline)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal)
 
             HStack(spacing: 12) {

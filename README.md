@@ -41,7 +41,7 @@ Whisky provides a clean and easy-to-use graphical wrapper for Wine built in nati
 
 ## Key Features
 
-- **Wine 11.0** - Latest stable Wine with improved compatibility and networking
+- **Wine 11.19 engine** - Built from CrossOver's sources, and able to run Apple's D3DMetal from the Game Porting Toolkit
 - **DXMT & DXVK Graphics** - DirectX 11 through native Metal translation (DXMT) out of the box, with DXVK over MoltenVK as the universal fallback
 - **Launcher Compatibility** - Built-in support for Steam, Epic, EA App, Rockstar, Battle.net, and more
 - **Controller Support** - SDL environment variable controls for gamepad detection and mapping issues
@@ -144,6 +144,17 @@ SDK's standard context — app and macOS version, hardware model, locale, and mo
 see [SECURITY.md](SECURITY.md) for the full list. Like any HTTPS request,
 PostHog's ingestion sees the connecting IP (GeoIP enrichment is disabled); none
 of this is tied to your identity.
+
+## Translations
+
+Whisky is translated into 22 languages, and translations are managed on Crowdin.
+To help translate, or to fix a translation you've spotted, join the
+[Whisky Crowdin project](https://crowdin.com/project/frankea-whisky). If Crowdin
+asks you to join, use the access request prompt on the project page. New and
+updated translations sync into the app automatically, so please contribute
+there rather than by opening a pull request; see
+[CONTRIBUTING.md](CONTRIBUTING.md#localization) for how strings get from the
+code to Crowdin and back.
 
 ## Documentation
 

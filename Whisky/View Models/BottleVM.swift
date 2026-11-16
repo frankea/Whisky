@@ -104,12 +104,12 @@ final class BottleVM: ObservableObject {
         migrateLauncherBackends()
     }
 
-    /// Runs ``LauncherBackendMigration`` on every bottle, here and not in WhiskyKit's
-    /// loader so WhiskyCmd never rewrites settings. Also run after a GPTK deploy.
+    /// Runs the launcher migrations on every bottle, here so WhiskyCmd never rewrites settings.
     func migrateLauncherBackends() {
         let d3dMetalInstalled = WhiskyWineInstaller.isD3DMetalInstalled()
         for bottle in bottles where bottle.isAvailable && !bottle.inFlight {
             LauncherBackendMigration.migrateIfNeeded(bottle, d3dMetalInstalled: d3dMetalInstalled)
+            LauncherLocaleMigration.migrateIfNeeded(bottle)
         }
     }
 
@@ -179,6 +179,8 @@ final class BottleVM: ObservableObject {
             }
 
             try createBottleDirectory(at: request.newBottleDir)
+            // Without a record, the first scan would leave its first install unpinned.
+            try? HandledShortcuts.startRecord(in: request.newBottleDir)
 
             // Create bottle on main actor (since Bottle is @MainActor)
             let createdBottle = Bottle(bottleUrl: request.newBottleDir, inFlight: true)
@@ -217,11 +219,7 @@ final class BottleVM: ObservableObject {
 
     private func createBottleDirectory(at url: URL) throws {
         let fileManager = FileManager.default
-        try fileManager.createDirectory(
-            at: url,
-            withIntermediateDirectories: true,
-            attributes: nil
-        )
+        try fileManager.createDirectory(at: url, withIntermediateDirectories: true)
         guard fileManager.fileExists(atPath: url.path(percentEncoded: false)) else {
             throw BottleCreationError.directoryCreationFailed
         }

@@ -1,6 +1,6 @@
 //
-//  AppSteamClientDriver.swift
-//  Whisky
+//  DiagnosticExportError.swift
+//  WhiskyKit
 //
 //  This file is part of Whisky.
 //
@@ -17,21 +17,20 @@
 //
 
 import Foundation
-import WhiskyKit
 
-/// The kit's Wine-backed driver plus the one thing that is the app's business:
-/// Steam download monitoring for the session, started when the client is up
-/// and stopped with the orchestrator.
-@MainActor
-final class AppSteamClientDriver: WineSteamClientDriver {
-    private let downloadMonitor = SteamDownloadMonitor()
+/// Why a diagnostics ZIP could not be produced.
+public enum DiagnosticExportError: LocalizedError, Equatable {
+    /// `ditto` exited with a nonzero status.
+    case compressionFailed(status: Int32)
+    /// No archive exists where one was expected.
+    case archiveMissing
 
-    override func clientDidBecomeReady() {
-        guard !downloadMonitor.isMonitoring else { return }
-        downloadMonitor.startMonitoring(bottleURL: bottle.url, detectedLauncher: .steam)
-    }
-
-    override func shutdown() {
-        downloadMonitor.stopMonitoring()
+    public var errorDescription: String? {
+        switch self {
+        case let .compressionFailed(status):
+            String(localized: "diagnostics.export.error.compressionFailed \(Int(status))")
+        case .archiveMissing:
+            String(localized: "diagnostics.export.error.archiveMissing")
+        }
     }
 }

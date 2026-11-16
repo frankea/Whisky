@@ -199,6 +199,9 @@ enum QuickLaunch {
     private static func launch(_ target: Target) {
         switch target {
         case let .steam(game, bottle):
+            // A pin applies the clipboard policy inside its launch; a Steam
+            // game goes to the client, so it is applied here.
+            _ = bottle.performClipboardCheck()
             do {
                 _ = try SteamLauncher.launch(
                     appId: game.appId, bottle: bottle, installURL: game.installURL

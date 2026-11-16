@@ -32,13 +32,13 @@ public enum AudioStatus: Sendable, Equatable {
     /// Audio status has not been assessed.
     case unknown
 
-    /// Human-readable display name.
+    /// Localized display name for the status line in the UI.
     public var displayName: String {
         switch self {
-        case .healthy: "OK"
-        case .degraded: "Degraded"
-        case .broken: "Broken"
-        case .unknown: "Unknown"
+        case .healthy: String(localized: "audio.status.ok")
+        case .degraded: String(localized: "audio.status.degraded")
+        case .broken: String(localized: "audio.status.broken")
+        case .unknown: String(localized: "audio.status.unknown")
         }
     }
 

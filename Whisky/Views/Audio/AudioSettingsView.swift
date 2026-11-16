@@ -32,6 +32,7 @@ struct AudioSettingsView: View {
     @State private var isWritingLatency: Bool = false
     @State private var isResettingAudioState: Bool = false
     @State private var showResetConfirmation: Bool = false
+    @State private var outputDevices: [AudioDeviceInfo] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -47,7 +48,7 @@ struct AudioSettingsView: View {
 
     private var audioDriverPicker: some View {
         HStack {
-            Picker("Audio Driver", selection: $bottle.settings.audioDriver) {
+            Picker("config.audio.driver", selection: $bottle.settings.audioDriver) {
                 if advancedMode {
                     ForEach(AudioDriverMode.allCases, id: \.self) { mode in
                         Text(mode.displayName).tag(mode)
@@ -75,7 +76,7 @@ struct AudioSettingsView: View {
 
     private var latencyPresetPicker: some View {
         HStack {
-            Picker("Latency", selection: $bottle.settings.audioLatencyPreset) {
+            Picker("config.audio.latency", selection: $bottle.settings.audioLatencyPreset) {
                 if advancedMode {
                     ForEach(AudioLatencyPreset.allCases, id: \.self) { preset in
                         Text(preset.displayName).tag(preset)
@@ -114,42 +115,73 @@ struct AudioSettingsView: View {
 
     private var outputDeviceModePicker: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Picker("Output Device", selection: $bottle.settings.outputDeviceMode) {
+            Picker("config.audio.device.output", selection: $bottle.settings.outputDeviceMode) {
                 ForEach(OutputDeviceMode.allCases, id: \.self) { mode in
                     Text(mode.displayName).tag(mode)
                 }
             }
             if bottle.settings.outputDeviceMode == .pinned {
-                HStack {
-                    Text("Pinned device:")
+                pinnedDevicePicker
+                if bottle.settings.pinnedDeviceUID != nil {
+                    Text("config.audio.device.pinned.footer")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text(bottle.settings.pinnedDeviceName ?? "Not set")
-                        .font(.caption)
-                        .foregroundStyle(bottle.settings.pinnedDeviceName != nil ? .primary : .tertiary)
                 }
             }
         }
+        .onAppear {
+            outputDevices = AudioDeviceMonitor().allOutputDevices().filter { $0.uid != nil }
+        }
+    }
+
+    private var pinnedDevicePicker: some View {
+        Picker("config.audio.device.pinnedLabel", selection: pinnedUIDBinding) {
+            Text("config.buildVersion.notSet").tag(String?.none)
+            ForEach(outputDevices, id: \.uid) { device in
+                Text(device.name).tag(device.uid)
+            }
+            if let storedUID = bottle.settings.pinnedDeviceUID,
+               !outputDevices.contains(where: { $0.uid == storedUID }) {
+                let storedName = bottle.settings.pinnedDeviceName ?? storedUID
+                Text(String(format: String(localized: "config.audio.device.disconnected"), storedName))
+                    .tag(String?.some(storedUID))
+            }
+        }
+    }
+
+    /// Selects a device by CoreAudio UID, keeping its name for display while disconnected.
+    private var pinnedUIDBinding: Binding<String?> {
+        Binding(
+            get: { bottle.settings.pinnedDeviceUID },
+            set: { newUID in
+                if let device = outputDevices.first(where: { $0.uid == newUID }) {
+                    bottle.settings.pinnedDeviceName = device.name
+                } else if newUID == nil {
+                    bottle.settings.pinnedDeviceName = nil
+                }
+                bottle.settings.pinnedDeviceUID = newUID
+            }
+        )
     }
 
     // MARK: - Reset Audio State
 
     private var resetAudioStateButton: some View {
         HStack {
-            Button("Reset Audio State") {
+            Button("config.audio.resetState") {
                 showResetConfirmation = true
             }
             .buttonStyle(.bordered)
             .tint(.red)
             .controlSize(.small)
             .disabled(isResettingAudioState)
-            .alert("Reset Audio State?", isPresented: $showResetConfirmation) {
-                Button("Cancel", role: .cancel) {}
-                Button("Reset", role: .destructive) {
+            .alert("config.audio.resetState.title", isPresented: $showResetConfirmation) {
+                Button("button.cancel", role: .cancel) {}
+                Button("config.dxvk.reset", role: .destructive) {
                     performReset()
                 }
             } message: {
-                Text("This will clear Wine cached audio device mappings and restart the Wine server.")
+                Text("config.audio.resetState.message")
             }
             if isResettingAudioState {
                 ProgressView()

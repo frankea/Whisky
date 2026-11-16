@@ -243,22 +243,13 @@ struct ProgramItemView: View {
         // Capture modifier flags synchronously before entering async context
         let useTerminal = NSEvent.modifierFlags.contains(.shift)
 
-        // Check clipboard before launch (blocking alert for needsUserDecision is handled internally)
-        let clipResult = program.performClipboardCheck()
-        if case let .autoCleared(contentType, sizeBytes) = clipResult {
-            let sizeKB = String(format: "%.1f", Double(sizeBytes) / 1_024.0)
-            withAnimation {
-                toast = ToastData(
-                    message: String(localized: "clipboard.cleared.toast")
-                        .replacingOccurrences(of: "{contentType}", with: contentType)
-                        .replacingOccurrences(of: "{sizeKB}", with: sizeKB),
-                    style: .info
-                )
-            }
-        }
-
         Task {
-            let result = await program.launchWithUserMode(useTerminal: useTerminal)
+            // The clipboard policy is applied inside the launch, once.
+            let result = await program.launchWithUserMode(useTerminal: useTerminal) { contentType, sizeBytes in
+                withAnimation {
+                    toast = .clipboardCleared(contentType: contentType, sizeBytes: sizeBytes)
+                }
+            }
             withAnimation {
                 toast = result.toastData
             }

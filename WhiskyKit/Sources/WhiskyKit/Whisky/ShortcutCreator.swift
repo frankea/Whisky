@@ -16,45 +16,86 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
+import AppKit
 import Foundation
 
 /// Creates macOS `.app` shortcut bundles for launching Windows programs via Wine.
 ///
 /// This caseless enum provides shared shortcut creation logic used by both
 /// the Whisky app and WhiskyCmd CLI. It handles bundle structure creation,
-/// launch script writing, and Info.plist generation.
+/// launch script writing, the bundle icon and Info.plist generation.
 ///
-/// Icon extraction and Finder integration remain in the app target
-/// (``ProgramShortcut``) since they require AppKit/QuickLook.
+/// The QuickLook thumbnail fallback and Finder integration remain in the app
+/// target (``ProgramShortcut``).
 ///
 /// ## Usage
 ///
 /// ```swift
 /// let appURL = URL(filePath: "~/Applications/MyGame.app")
-/// let target = ShortcutCreator.liveTarget(for: program.url, bottle: program.bottle)
-/// let script = ShortcutCreator.liveLaunchScript(for: target)
-/// try ShortcutCreator.createShortcutBundle(at: appURL, launchScript: script, name: "MyGame")
+/// try ShortcutCreator.createShortcut(for: program, at: appURL, name: "MyGame")
 /// ```
 public enum ShortcutCreator {
-    /// The Info.plist template for shortcut app bundles.
-    public static let infoPlist = """
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-        <key>CFBundleExecutable</key>
-        <string>launch</string>
-        <key>CFBundleSupportedPlatforms</key>
-        <array>
-            <string>MacOSX</string>
-        </array>
-        <key>LSMinimumSystemVersion</key>
-        <string>14.0</string>
-        <key>LSApplicationCategoryType</key>
-        <string>public.app-category.games</string>
-    </dict>
-    </plist>
-    """
+    /// The icon file a shortcut bundle carries in `Contents/Resources`,
+    /// without its `.icns` extension.
+    public static let iconFileName = "AppIcon"
+
+    /// The Info.plist of a shortcut app bundle.
+    ///
+    /// - Parameters:
+    ///   - name: The shortcut's display name, used as `CFBundleName`.
+    ///   - iconFileName: The `.icns` file in `Contents/Resources` that holds
+    ///     the shortcut's icon, without its extension, or `nil` for none.
+    /// - Returns: The property list, in XML format.
+    /// - Throws: If the property list cannot be serialized.
+    public static func infoPlist(name: String, iconFileName: String? = nil) throws -> Data {
+        var plist: [String: Any] = [
+            "CFBundleExecutable": "launch",
+            "CFBundleName": name,
+            "CFBundlePackageType": "APPL",
+            "CFBundleSupportedPlatforms": ["MacOSX"],
+            "LSMinimumSystemVersion": "14.0",
+            "LSApplicationCategoryType": "public.app-category.games"
+        ]
+        if let iconFileName {
+            plist["CFBundleIconFile"] = iconFileName
+        }
+        return try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+    }
+
+    /// Whether `appURL` holds a shortcut bundle made by
+    /// ``createShortcutBundle(at:launchScript:name:icon:)``: one whose
+    /// executable is the `launch` script.
+    static func isShortcutBundle(at appURL: URL) -> Bool {
+        let contents = appURL.appending(path: "Contents")
+        let script = contents.appending(path: "MacOS").appending(path: "launch")
+        guard FileManager.default.fileExists(atPath: script.path(percentEncoded: false)),
+              let data = try? Data(contentsOf: contents.appending(path: "Info").appendingPathExtension("plist")),
+              let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+        else { return false }
+        return plist["CFBundleExecutable"] as? String == "launch"
+    }
+
+    /// Creates a shortcut bundle that launches `program` through Whisky's live
+    /// pipeline, with the program's own icon when it has one.
+    ///
+    /// - Parameters:
+    ///   - program: The program the shortcut launches.
+    ///   - appURL: The destination URL for the `.app` bundle. Anything already
+    ///     there is replaced.
+    ///   - name: The shortcut's display name.
+    /// - Returns: Whether the bundle got the program's icon.
+    /// - Throws: An error if the bundle directories or files cannot be created.
+    @MainActor
+    @discardableResult
+    public static func createShortcut(for program: Program, at appURL: URL, name: String) throws -> Bool {
+        let target = liveTarget(for: program.url, bottle: program.bottle)
+        return try createShortcutBundle(
+            at: appURL,
+            launchScript: liveLaunchScript(for: target),
+            name: name,
+            icon: program.peFile?.bestIcon()
+        )
+    }
 
     /// Creates a macOS `.app` bundle that launches a Windows program via Wine.
     ///
@@ -65,14 +106,37 @@ public enum ShortcutCreator {
     ///     Info.plist
     ///     MacOS/
     ///       launch          (executable shell script)
+    ///     Resources/
+    ///       AppIcon.icns    (when an icon is given)
     /// ```
+    ///
+    /// An existing shortcut at `appURL` is removed first, so nothing of it
+    /// survives, such as a Finder custom icon that would hide the new one.
+    /// Anything else there, such as a real app with the program's name, is
+    /// moved to the Trash instead, where it can be restored.
     ///
     /// - Parameters:
     ///   - appURL: The destination URL for the `.app` bundle.
     ///   - launchScript: The shell command to execute when the app is launched.
-    ///   - name: The display name for the shortcut (used for logging).
+    ///   - name: The display name for the shortcut, written as `CFBundleName`.
+    ///   - icon: The image to embed as the bundle's icon, or `nil` for none.
+    /// - Returns: Whether the icon was written into the bundle.
     /// - Throws: An error if the bundle directories or files cannot be created.
-    public static func createShortcutBundle(at appURL: URL, launchScript: String, name: String) throws {
+    @discardableResult
+    public static func createShortcutBundle(
+        at appURL: URL,
+        launchScript: String,
+        name: String,
+        icon: NSImage? = nil
+    ) throws -> Bool {
+        if FileManager.default.fileExists(atPath: appURL.path(percentEncoded: false)) {
+            if isShortcutBundle(at: appURL) {
+                try FileManager.default.removeItem(at: appURL)
+            } else {
+                try FileManager.default.trashItem(at: appURL, resultingItemURL: nil)
+            }
+        }
+
         let contents = appURL.appending(path: "Contents")
         let macos = contents.appending(path: "MacOS")
 
@@ -89,11 +153,13 @@ public enum ShortcutCreator {
             ofItemAtPath: scriptUrl.path(percentEncoded: false)
         )
 
-        try infoPlist.write(
-            to: contents.appending(path: "Info").appendingPathExtension("plist"),
-            atomically: false,
-            encoding: .utf8
-        )
+        let iconURL = contents.appending(path: "Resources")
+            .appending(path: iconFileName).appendingPathExtension("icns")
+        let iconWritten = icon.map { ShortcutIcon.write($0, to: iconURL) } ?? false
+
+        try infoPlist(name: name, iconFileName: iconWritten ? iconFileName : nil)
+            .write(to: contents.appending(path: "Info").appendingPathExtension("plist"))
+        return iconWritten
     }
 }
 
@@ -142,13 +208,30 @@ public extension ShortcutCreator {
     /// instead of baking the environment at creation time: current settings,
     /// GameDB profiles, backend deployment, and run logs all apply at launch,
     /// and nothing breaks when the bottle moves or settings change.
-    static func liveLaunchScript(for target: LiveTarget) -> String {
+    ///
+    /// - Parameters:
+    ///   - target: What the shortcut launches.
+    ///   - notFoundTitle: Title of the alert shown when Whisky can't be found,
+    ///     in the language the shortcut is created in.
+    ///   - notFoundMessage: Message of that alert.
+    static func liveLaunchScript(
+        for target: LiveTarget,
+        notFoundTitle: String = String(localized: "shortcut.notFound.title", defaultValue: "Whisky not found"),
+        notFoundMessage: String = String(
+            localized: "shortcut.notFound.message",
+            defaultValue: "Install Whisky to use this shortcut."
+        )
+    ) -> String {
         let invocation = switch target {
         case let .steamGame(appId):
             "launch \(appId)"
         case let .program(bottleName, windowsPath):
             "run \(shellQuoted(bottleName)) \(shellQuoted(windowsPath))"
         }
+        // Translated text can hold quotes and backslashes: quote it for
+        // AppleScript first, then quote the whole -e argument for the shell.
+        let alert = "display alert \(appleScriptQuoted(notFoundTitle))"
+            + " message \(appleScriptQuoted(notFoundMessage))"
 
         return """
         WHISKY_CMD="/Applications/Whisky.app/Contents/Resources/WhiskyCmd"
@@ -158,7 +241,7 @@ public extension ShortcutCreator {
             WHISKY_CMD="$WHISKY_APP/Contents/Resources/WhiskyCmd"
         fi
         if [ ! -x "$WHISKY_CMD" ]; then
-            osascript -e 'display alert "Whisky not found" message "Install Whisky to use this shortcut."'
+            osascript -e \(shellQuoted(alert))
             exit 1
         fi
         exec "$WHISKY_CMD" \(invocation)
@@ -178,5 +261,15 @@ public extension ShortcutCreator {
     /// Wraps a value in single quotes for safe shell interpolation.
     static func shellQuoted(_ value: String) -> String {
         "'" + value.replacingOccurrences(of: "'", with: "'\\''") + "'"
+    }
+
+    /// Wraps a value in double quotes as an AppleScript string literal.
+    static func appleScriptQuoted(_ value: String) -> String {
+        let escaped = value
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\r", with: "\\r")
+            .replacingOccurrences(of: "\n", with: "\\n")
+        return "\"" + escaped + "\""
     }
 }

@@ -52,6 +52,9 @@ extension Wine {
         // `reg import`, not `regedit`: regedit has no silent switch, so it puts
         // up the import confirmation and never exits.
         let arguments = ["reg", "import", url.path(percentEncoded: false)]
+        let bottleURL = bottle.url
+        WineHelperActivity.shared.begin(bottleURL: bottleURL)
+        defer { WineHelperActivity.shared.end(bottleURL: bottleURL) }
         var exitCode: Int32 = -1
         for await output in try runWineProcess(args: arguments, bottle: bottle) {
             if case let .terminated(code) = output {

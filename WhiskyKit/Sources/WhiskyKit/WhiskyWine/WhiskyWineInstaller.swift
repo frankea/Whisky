@@ -321,38 +321,39 @@ public class WhiskyWineInstaller {
         }
     }
 
-    /// Removes everything Whisky has stored under Application Support: the
-    /// WhiskyWine runtime and every bottle whose plist registration lives in
-    /// the default bottles list. Caller is responsible for confirming with
-    /// the user — this is destructive and unrecoverable.
+    /// Removes the WhiskyWine runtime, the GPTK store, the default bottles
+    /// directory in the app container (``BottleData/defaultBottleDir``) and the
+    /// bottle registry (``BottleData/bottleEntriesDir``). The caller is
+    /// responsible for confirming with the user, since this is destructive and
+    /// unrecoverable, and for reloading its in-memory bottle list afterwards.
     ///
     /// Bottles stored at custom paths outside the default bottles directory
-    /// are not removed; their tracking entries are dropped from the
-    /// `BottleData` plist but the on-disk bottle directories are preserved
-    /// to avoid surprising users who relocated bottles intentionally.
+    /// are not removed; their registry entries go with the registry file but
+    /// the on-disk bottle directories are preserved to avoid surprising users
+    /// who relocated bottles intentionally.
     public static func uninstallAll() {
         // Drop the runtime first so partial failures still leave a coherent state.
         uninstall()
 
-        // Default bottles directory (matches `Bottle.defaultBottlesDirectory`).
-        let defaultBottles = applicationFolder.appending(path: "Bottles")
-        if FileManager.default.fileExists(atPath: defaultBottles.path(percentEncoded: false)) {
-            do {
-                try FileManager.default.removeItem(at: defaultBottles)
-            } catch {
-                logger.error("Failed to remove default bottles folder: \(error.localizedDescription)")
-            }
-        }
+        removeBottleStorage(defaultBottlesDir: BottleData.defaultBottleDir, registryFile: BottleData.bottleEntriesDir)
 
         // The GPTK store sits outside Libraries so it survives engine updates;
         // a full uninstall is the one case where it should not.
         try? FileManager.default.removeItem(at: GPTKImporter.storeFolder)
+    }
 
-        // BottleData.plist registers bottle paths; remove it so a reinstall
-        // starts with no orphaned entries pointing at deleted directories.
-        let bottleData = applicationFolder.appending(path: "BottleData.plist")
-        if FileManager.default.fileExists(atPath: bottleData.path(percentEncoded: false)) {
-            try? FileManager.default.removeItem(at: bottleData)
+    /// Removes the default bottles directory and the registry file that lists
+    /// bottle paths, so a reinstall starts with no orphaned entries pointing at
+    /// deleted directories. Bottles at custom paths are not touched. The
+    /// locations are parameters so tests can use temporary directories.
+    static func removeBottleStorage(defaultBottlesDir: URL, registryFile: URL) {
+        for url in [defaultBottlesDir, registryFile]
+            where FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) {
+            do {
+                try FileManager.default.removeItem(at: url)
+            } catch {
+                logger.error("Failed to remove \(url.lastPathComponent): \(error.localizedDescription)")
+            }
         }
     }
 
@@ -425,6 +426,14 @@ public class WhiskyWineInstaller {
     /// unavailable.
     public static func whiskyWineDXMTVersion() -> String? {
         whiskyWineInfo()?.dxmtVersion
+    }
+
+    /// Whether the installed runtime's Wine applies the Enhanced Sync setting
+    /// (see ``WhiskyWineVersion/implementsEnhancedSync``). `false` when
+    /// WhiskyWine is not installed or its plist does not show it. Reads the
+    /// plist on every call, so a view reads it once and keeps the answer.
+    public static func runtimeImplementsEnhancedSync() -> Bool {
+        whiskyWineInfo()?.implementsEnhancedSync ?? false
     }
 
     /// Whether `backend` can actually be selected against the currently

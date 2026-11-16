@@ -77,7 +77,7 @@ struct PinCreationView: View {
                     .keyboardShortcut(.defaultAction)
                     .disabled(newPinName.isEmpty || newPinURL == nil)
                     .alert("pin.error.title", isPresented: $isDuplicate) {} message: {
-                        Text("pin.error.duplicate.\(newPinURL?.lastPathComponent ?? "unknown")")
+                        Text("pin.error.duplicate.\(newPinURL?.lastPathComponent ?? newPinName)")
                     }
                 }
             }
@@ -111,6 +111,10 @@ struct PinCreationView: View {
         }
 
         bottle.settings.pins.append(PinnedProgram(name: newPinName, url: newPinURL))
+        // A deliberate pin outranks an earlier unpin of the same program.
+        if bottle.settings.isUnpinned(newPinURL) {
+            bottle.settings.clearUnpin(newPinURL)
+        }
 
         // Trigger a reload
         Task { await bottle.updateInstalledPrograms() }

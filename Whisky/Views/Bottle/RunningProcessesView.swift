@@ -264,7 +264,7 @@ extension RunningProcessesView {
                     detailRow(label: "process.detail.source", value: localizedSource(process.source))
                     detailRow(label: "process.detail.kind", value: localizedKind(process.kind))
                     if let commandLine = process.commandLine {
-                        detailRow(label: "process.column.name", value: commandLine)
+                        detailRow(label: "process.detail.commandLine", value: commandLine)
                     }
                 }
                 Spacer()

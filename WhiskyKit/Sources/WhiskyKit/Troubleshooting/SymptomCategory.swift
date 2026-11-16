@@ -66,7 +66,9 @@ public enum SymptomCategory: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// User-facing display title for the symptom picker.
+    /// English title for exports and support drafts, which stay English so
+    /// reports read the same in every language. Views use the catalog-backed
+    /// `localizedTitle` in the app target instead.
     public var displayTitle: String {
         switch self {
         case .launchCrash: "Won't launch / crashes immediately"

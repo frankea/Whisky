@@ -36,7 +36,7 @@ struct ConsoleLogView: View {
     @State private var showWineDebug = false
     @State private var currentExitCode: Int32?
     @State private var isStillRunning: Bool = false
-    @State private var lastFileOffset: UInt64 = 0
+    @State private var logFollower: WineLogFollower?
     @State private var refreshTimer: Timer?
 
     /// Regex patterns that indicate WINEDEBUG output.
@@ -213,7 +213,7 @@ struct ConsoleLogView: View {
         Group {
             if !isStillRunning, let exitCode = currentExitCode {
                 HStack {
-                    Text("console.exited \(exitCode)")
+                    Text("console.exited \(Int(exitCode))")
                         .font(.caption)
                         .foregroundStyle(exitCode == 0 ? .green : .red)
                     Spacer()
@@ -276,7 +276,7 @@ struct ConsoleLogView: View {
     }
 
     private func exitCodeBadge(_ exitCode: Int32) -> some View {
-        Text("console.exitCode \(exitCode)")
+        Text("console.exitCode \(Int(exitCode))")
             .font(.caption)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
@@ -292,18 +292,7 @@ struct ConsoleLogView: View {
 
 extension ConsoleLogView {
     func formattedDuration(_ interval: TimeInterval) -> String {
-        let totalSeconds = Int(interval)
-        let hours = totalSeconds / 3_600
-        let minutes = (totalSeconds % 3_600) / 60
-        let seconds = totalSeconds % 60
-
-        if hours > 0 {
-            return "\(hours)h \(minutes)m"
-        } else if minutes > 0 {
-            return "\(minutes)m \(seconds)s"
-        } else {
-            return "\(seconds)s"
-        }
+        RunDurationFormatting.string(from: interval)
     }
 
     func loadLog() {
@@ -316,14 +305,15 @@ extension ConsoleLogView {
             return
         }
 
+        // One read for the lines and the offset the live tail goes on from.
+        var follower = WineLogFollower(logFileURL: logURL, start: .beginning)
         do {
-            let content = try String(contentsOf: logURL, encoding: .utf8)
-            logLines = classifyLines(content)
-            if let attributes = try? FileManager.default.attributesOfItem(
-                atPath: logURL.path(percentEncoded: false)
-            ) {
-                lastFileOffset = (attributes[.size] as? UInt64) ?? 0
+            let chunk = try follower.read()
+            guard let content = String(data: chunk.data, encoding: .utf8) else {
+                throw CocoaError(.fileReadInapplicableStringEncoding)
             }
+            logLines = classifyLines(content)
+            logFollower = follower
         } catch {
             logLines = [ConsoleLogLine(
                 text: String(localized: "console.log.loadError"),
@@ -336,22 +326,18 @@ extension ConsoleLogView {
         let logURL = Wine.logsFolder.appending(path: runEntry.logFileName)
         guard FileManager.default.fileExists(atPath: logURL.path(percentEncoded: false)) else { return }
 
-        do {
-            let handle = try FileHandle(forReadingFrom: logURL)
-            defer { try? handle.close() }
-
-            handle.seek(toFileOffset: lastFileOffset)
-            guard let newData = try handle.readToEnd(), !newData.isEmpty else { return }
-
-            lastFileOffset += UInt64(newData.count)
-
-            if let newContent = String(data: newData, encoding: .utf8) {
-                let newLines = classifyLines(newContent)
-                logLines.append(contentsOf: newLines)
+        var follower = logFollower ?? WineLogFollower(logFileURL: logURL, start: .beginning)
+        if let chunk = try? follower.read() {
+            logFollower = follower
+            if chunk.resumedAtMarker {
+                // The log reached its size cap and was cut back to its head
+                // with the newest output after it; read it again from the top.
+                loadLog()
+            } else if !chunk.data.isEmpty, let newContent = String(data: chunk.data, encoding: .utf8) {
+                logLines.append(contentsOf: classifyLines(newContent))
             }
-        } catch {
-            // Best-effort: ignore read errors during live tailing
         }
+        // Read errors are ignored during live tailing; the next tick tries again.
 
         // Check if the process has exited
         let history = RunLogStore.load(for: runEntry.programName, in: bottle.url)

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>dxmtVersion</key>
+	<string>0.80</string>
+	<key>dxvkVersion</key>
+	<string>1.10.3</string>
+	<key>gptkCapable</key>
+	<true/>
+	<key>sha256</key>
+	<string>08ffabd7b7c352470faee2b1d51061b341316e401439ca805c5302acc2fb8818</string>
+	<key>version</key>
+	<dict>
+		<key>major</key>
+		<integer>4</integer>
+		<key>minor</key>
+		<integer>8</integer>
+		<key>patch</key>
+		<integer>3</integer>
+	</dict>
+</dict>
+</plist>

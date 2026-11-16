@@ -110,6 +110,18 @@ public struct TroubleshootingSession: Codable, Sendable {
         fixAttempts.filter { $0.result == .failed }.count
     }
 
+    /// The most recent attempt at a fix that is still in effect: applied,
+    /// and neither undone nor reported as not helping.
+    ///
+    /// - Parameter fixId: The fix identifier.
+    /// - Returns: The attempt, or `nil` when no attempt at the fix is in effect.
+    public func appliedAttempt(of fixId: String) -> FixAttempt? {
+        guard let last = fixAttempts.last(where: { $0.fixId == fixId }), last.result == .applied else {
+            return nil
+        }
+        return last
+    }
+
     // MARK: - Mutating Methods
 
     /// Records a completed step from a flow node.

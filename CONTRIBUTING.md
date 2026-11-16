@@ -77,7 +77,9 @@ Translations are managed through Crowdin and synced automatically: the
 [`Crowdin`](.github/workflows/Crowdin.yml) workflow uploads new English strings
 to the project's Crowdin, and opens a `New translations from Crowdin` pull
 request when translators add or update strings. To help translate, contribute
-through the Crowdin project rather than opening a PR here.
+through the [Whisky Crowdin project](https://crowdin.com/project/frankea-whisky)
+rather than opening a PR here. If Crowdin asks you to join, use the access
+request prompt on the project page.
 
 ## Changelog
 

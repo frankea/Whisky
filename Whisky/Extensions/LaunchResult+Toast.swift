@@ -41,3 +41,28 @@ extension LaunchResult {
         return ToastData(message: message, style: style, autoDismiss: shouldAutoDismiss)
     }
 }
+
+extension ToastData {
+    /// The toast for a launch whose clipboard policy cleared the clipboard first.
+    ///
+    /// - Parameters:
+    ///   - contentType: ClipboardManager's identifier ("text", "image", "other").
+    ///   - sizeBytes: The size of what was cleared.
+    static func clipboardCleared(contentType: String, sizeBytes: Int) -> ToastData {
+        let sizeKB = (Double(sizeBytes) / 1_024.0).formatted(.number.precision(.fractionLength(1)))
+        let contentName = switch contentType {
+        case "text":
+            String(localized: "clipboard.contentType.text")
+        case "image":
+            String(localized: "clipboard.contentType.image")
+        default:
+            String(localized: "clipboard.contentType.other")
+        }
+        return ToastData(
+            message: String(localized: "clipboard.cleared.toast")
+                .replacingOccurrences(of: "{contentType}", with: contentName)
+                .replacingOccurrences(of: "{sizeKB}", with: sizeKB),
+            style: .info
+        )
+    }
+}

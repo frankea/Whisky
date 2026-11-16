@@ -22,11 +22,25 @@ public enum DistributionConfig {
     /// Base URL for GitHub Pages distribution
     public static let baseURL = "https://frankea.github.io/Whisky"
 
-    /// URL for the WhiskyWine version plist file
-    public static let versionPlistURL = "\(baseURL)/WhiskyWineVersion.plist"
+    /// URL for the WhiskyWine version plist file, which names the engine to
+    /// install and offers as an update.
+    ///
+    /// Apps before 3.10.0 read `WhiskyWineVersion.plist`, which stays on the
+    /// stock 3.1.1 engine: the GPTK-capable engine was tested with 3.10.0 and
+    /// its D3DMetal, DLL override and environment fixes, so older apps are not
+    /// offered an engine switch nobody tested them with. This feed is the one
+    /// that moves.
+    public static let versionPlistURL = "\(baseURL)/WhiskyWineVersion-v4.plist"
+
+    /// The feed apps before 3.10.0 read, frozen on the stock 3.1.1 engine.
+    static let legacyVersionPlistURL = "\(baseURL)/WhiskyWineVersion.plist"
+
+    /// The GitHub Releases page, which lists app releases and the Wine
+    /// Libraries engine builds.
+    public static let releasesPageURL = "https://github.com/frankea/Whisky/releases"
 
     /// Base URL for GitHub Releases downloads
-    public static let releasesBaseURL = "https://github.com/frankea/Whisky/releases/download"
+    public static let releasesBaseURL = "\(releasesPageURL)/download"
 
     /// URL for the Sparkle appcast feed
     public static let appcastURL = "\(baseURL)/appcast.xml"

@@ -37,22 +37,18 @@ class ProgramShortcut {
         return thumbnail.nsImage
     }
 
-    /// Creates a shortcut `.app` bundle with icon extraction and Finder reveal.
+    /// Creates a shortcut `.app` bundle with the program's icon and reveals it in Finder.
     ///
-    /// Uses ``ShortcutCreator`` from WhiskyKit for the core bundle creation,
-    /// then adds icon extraction (QuickLook) and Finder integration (AppKit)
-    /// which are only available in the app target.
+    /// ``ShortcutCreator`` from WhiskyKit builds the bundle and embeds the
+    /// executable's own icon as `AppIcon.icns`, the same icon pinned programs
+    /// show. For an executable without a usable icon, the QuickLook thumbnail
+    /// is set as a Finder custom icon instead, which only the app target can do.
     @MainActor
     static func createShortcut(_ program: Program, app: URL, name: String) async {
         do {
-            // Core bundle creation via shared WhiskyKit logic
-            let target = ShortcutCreator.liveTarget(for: program.url, bottle: program.bottle)
-            let launchScript = ShortcutCreator.liveLaunchScript(for: target)
-            try ShortcutCreator.createShortcutBundle(at: app, launchScript: launchScript, name: name)
+            let iconWritten = try ShortcutCreator.createShortcut(for: program, at: app, name: name)
 
-            // App-specific: extract icon from PE file and set on the .app bundle
-            let programUrl = program.url
-            if let image = await generateThumbnail(for: programUrl) {
+            if !iconWritten, let image = await generateThumbnail(for: program.url) {
                 NSWorkspace.shared.setIcon(
                     image,
                     forFile: app.path(percentEncoded: false),

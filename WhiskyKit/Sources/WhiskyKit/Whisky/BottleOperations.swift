@@ -25,7 +25,7 @@ public enum DuplicationPhase: Equatable, Sendable {
     case calculatingSize
     /// Copying files. `bytesCopied` and `totalBytes` track progress.
     case copying(bytesCopied: Int64, totalBytes: Int64)
-    /// Rewriting metadata (pins, blocklist) for the new bottle.
+    /// Rewriting metadata (pins, blocklist, unpin records) for the new bottle.
     case updatingMetadata
     /// Registering the new bottle and reloading the bottle list.
     case finalizing
@@ -61,47 +61,31 @@ public enum BottleOperations {
 
     /// Moves the bottle directory at `url` to `destination`.
     ///
-    /// Pin and blocklist URLs are rewritten to `destination` *before* the file
-    /// move so the persisted settings travel with the bottle; a snapshot of
-    /// both is restored if the move throws, so a failed move never leaves
-    /// settings pointing at a path that was never created (issue #154). If no
-    /// live bottle exists for `url` the file move is still attempted.
+    /// Pin, blocklist and unpin-record URLs are rewritten to `destination`
+    /// *before* the file move so the persisted settings travel with the bottle;
+    /// a snapshot of all three is restored if the move throws, so a failed move
+    /// never leaves settings pointing at a path that was never created (issue
+    /// #154). If no live bottle exists for `url` the file move is still
+    /// attempted.
     ///
     /// - Parameters:
     ///   - url: The bottle's current directory.
     ///   - destination: The directory the bottle should move to.
     ///   - registry: The registry that owns the bottle list.
+    /// - Throws: The file move's error, after the settings are restored, so the
+    ///   caller can tell the user and keep the old path selected.
     @MainActor
-    public static func move(bottleAt url: URL, to destination: URL, registry: BottleRegistry) {
+    public static func move(bottleAt url: URL, to destination: URL, registry: BottleRegistry) throws {
         let bottle = registry.bottle(for: url)
         // The URL rewrite must happen before the move so the persisted settings
         // travel with the bottle, so keep a snapshot to restore on failure.
-        let originalPins = bottle?.settings.pins
-        let originalBlocklist = bottle?.settings.blocklist
+        let originalSettings = bottle?.settings
 
         bottle?.inFlight = true
         defer { bottle?.inFlight = false }
 
         do {
-            if let bottle {
-                for index in 0 ..< bottle.settings.pins.count {
-                    let pin = bottle.settings.pins[index]
-                    if let pinURL = pin.url {
-                        bottle.settings.pins[index].url = pinURL.updateParentBottle(
-                            old: url,
-                            new: destination
-                        )
-                    }
-                }
-
-                for index in 0 ..< bottle.settings.blocklist.count {
-                    let blockedUrl = bottle.settings.blocklist[index]
-                    bottle.settings.blocklist[index] = blockedUrl.updateParentBottle(
-                        old: url,
-                        new: destination
-                    )
-                }
-            }
+            bottle?.settings.rewriteProgramURLs(from: url, to: destination)
             try FileManager.default.moveItem(at: url, to: destination)
             if let path = registry.bottlePaths.firstIndex(of: url) {
                 registry.bottlePaths[path] = destination
@@ -110,15 +94,11 @@ public enum BottleOperations {
         } catch {
             // A failed move must not leave settings pointing at a path that
             // was never created.
-            if let bottle {
-                if let originalPins {
-                    bottle.settings.pins = originalPins
-                }
-                if let originalBlocklist {
-                    bottle.settings.blocklist = originalBlocklist
-                }
+            if let bottle, let originalSettings {
+                bottle.settings.restoreProgramURLs(from: originalSettings)
             }
             Logger.wineKit.error("Failed to move bottle: \(error.localizedDescription)")
+            throw error
         }
     }
 
@@ -216,21 +196,8 @@ public enum BottleOperations {
         let newBottle = Bottle(bottleUrl: newBottleDir)
         newBottle.settings.name = newName
 
-        // Update pin URLs to point to the new bottle
-        for index in 0 ..< newBottle.settings.pins.count {
-            if let pinURL = newBottle.settings.pins[index].url {
-                newBottle.settings.pins[index].url = pinURL.updateParentBottle(
-                    old: sourceURL,
-                    new: newBottleDir
-                )
-            }
-        }
-
-        // Update blocklist URLs to point to the new bottle
-        for index in 0 ..< newBottle.settings.blocklist.count {
-            newBottle.settings.blocklist[index] = newBottle.settings.blocklist[index]
-                .updateParentBottle(old: sourceURL, new: newBottleDir)
-        }
+        // Point pins, blocklist entries and unpin records at the new bottle
+        newBottle.settings.rewriteProgramURLs(from: sourceURL, to: newBottleDir)
 
         // Explicitly save settings to ensure all modifications are persisted
         // (modifying nested struct properties may not always trigger didSet)
@@ -251,20 +218,34 @@ public enum BottleOperations {
     /// - If no existing bottle is named "\(baseName) Copy", returns "\(baseName) Copy".
     /// - Otherwise tries "\(baseName) Copy 2", "Copy 3", etc.
     ///
+    /// The "Copy" suffix follows the app's language, as Finder's does. The English
+    /// default is what a lookup without the app's string catalog (such as the
+    /// package tests) returns.
+    ///
     /// - Parameters:
     ///   - baseName: The original bottle's name.
     ///   - existingNames: Names of all current bottles.
     /// - Returns: The next available duplicate name.
     public static func nextDuplicateName(baseName: String, existingNames: [String]) -> String {
-        let candidate = "\(baseName) Copy"
+        let candidate = String(
+            localized: "duplicate.bottle.name %@",
+            defaultValue: "\(baseName) Copy"
+        )
         if !existingNames.contains(candidate) {
             return candidate
         }
         var counter = 2
-        while existingNames.contains("\(baseName) Copy \(counter)") {
+        while existingNames.contains(numberedDuplicateName(baseName: baseName, counter: counter)) {
             counter += 1
         }
-        return "\(baseName) Copy \(counter)"
+        return numberedDuplicateName(baseName: baseName, counter: counter)
+    }
+
+    private static func numberedDuplicateName(baseName: String, counter: Int) -> String {
+        String(
+            localized: "duplicate.bottle.nameNumbered %@ %lld",
+            defaultValue: "\(baseName) Copy \(counter)"
+        )
     }
 
     // MARK: - Remove
@@ -287,18 +268,20 @@ public enum BottleOperations {
     ///   - deleteFiles: Whether to delete the bottle directory from disk.
     ///   - registry: The registry that owns the bottle list.
     ///   - routing: The Steam route store to prune. Defaults to the real one.
+    /// - Throws: The deletion's error. The bottle stays registered and its
+    ///   `inFlight` flag is cleared, so it is usable again without a relaunch.
     @MainActor
     public static func remove(
         bottleAt url: URL,
         deleteFiles: Bool,
         registry: BottleRegistry,
         routing: GameRouting = GameRouting()
-    ) {
-        do {
-            if let bottle = registry.bottle(for: url) {
-                bottle.inFlight = true
-            }
+    ) throws {
+        let bottle = registry.bottle(for: url)
+        bottle?.inFlight = true
+        defer { bottle?.inFlight = false }
 
+        do {
             if deleteFiles {
                 try FileManager.default.removeItem(at: url)
                 routing.removeRoutes(toBottle: url)
@@ -310,6 +293,7 @@ public enum BottleOperations {
             registry.loadBottles()
         } catch {
             Logger.wineKit.error("Failed to remove bottle: \(error.localizedDescription)")
+            throw error
         }
     }
 
@@ -321,7 +305,7 @@ public enum BottleOperations {
         NSError(
             domain: "com.franke.Whisky",
             code: 1,
-            userInfo: [NSLocalizedDescriptionKey: "Bottle not found"]
+            userInfo: [NSLocalizedDescriptionKey: String(localized: "bottle.error.notFound")]
         )
     }
 

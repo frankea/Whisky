@@ -28,14 +28,22 @@ final class FakeSteamClientDriver: SteamClientDriver {
     var script: [[String]]
     /// When set, what `ps` reports instead of mirroring the script.
     var hostOverride: Set<String>?
+    /// When set, the host's `steam.exe` PIDs. Otherwise one fixed PID while
+    /// `ps` reports a `steam.exe`, and none while it doesn't.
+    var hostSteamPIDOverride: Set<Int32>?
     /// Simulated `tasklist.exe` latency, for the coalescing test.
     var listDelay: Duration = .zero
     var onStartClient: (() -> Void)?
     var onLaunchGame: ((SteamGame) -> Void)?
+    /// Runs inside each process list read, after it is counted, so a test can
+    /// change what the next read sees at an exact read rather than on a timer.
+    var onProcessList: ((_ callNumber: Int) -> Void)?
     var launchFailure: Error?
 
     private(set) var listCalls = 0
     private(set) var hostCalls = 0
+    /// Reads of the host's `steam.exe` PIDs: one per pass of the client wait.
+    private(set) var hostPIDCalls = 0
     private(set) var startClientCalls = 0
     private(set) var fixesCalls = 0
     private(set) var launched: [Int] = []
@@ -56,8 +64,17 @@ final class FakeSteamClientDriver: SteamClientDriver {
         return hostOverride ?? Set(current)
     }
 
+    func hostSteamPIDs() async -> Set<Int32> {
+        hostPIDCalls += 1
+        if let hostSteamPIDOverride {
+            return hostSteamPIDOverride
+        }
+        return (hostOverride ?? Set(current)).contains("steam.exe") ? [4_242] : []
+    }
+
     func processList() async -> [WineProcess] {
         listCalls += 1
+        onProcessList?(listCalls)
         if listDelay > .zero {
             try? await Task.sleep(for: listDelay)
         }

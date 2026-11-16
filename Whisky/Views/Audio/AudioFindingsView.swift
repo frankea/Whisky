@@ -25,7 +25,9 @@ import WhiskyKit
 /// and optional fix action buttons.
 struct AudioFindingsView: View {
     let findings: [AudioFinding]
-    var onApplyFix: ((String) -> Void)?
+    /// Called with a finding that has a fix, and that fix. Without it the
+    /// findings show their advice and no Fix buttons.
+    var onApplyFix: ((AudioFinding, AudioFixAction) -> Void)?
 
     @State private var showAllFindings: Bool = false
 
@@ -38,7 +40,7 @@ struct AudioFindingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Findings")
+            Text("audio.findings.title")
                 .font(.headline)
 
             ForEach(visibleFindings) { finding in
@@ -46,7 +48,7 @@ struct AudioFindingsView: View {
             }
 
             if findings.count > 5, !showAllFindings {
-                Button("Show all findings (\(findings.count))") {
+                Button("audio.findings.showAll \(findings.count)") {
                     showAllFindings = true
                 }
                 .font(.caption)
@@ -71,7 +73,7 @@ struct AudioFindingsView: View {
             }
 
             // Expandable details
-            DisclosureGroup("Details") {
+            DisclosureGroup("audio.findings.details") {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(finding.evidence)
                         .font(.caption)
@@ -87,10 +89,16 @@ struct AudioFindingsView: View {
             .font(.caption)
             .foregroundStyle(.secondary)
 
-            // Fix button
-            if finding.suggestedAction != nil {
-                Button("Fix") {
-                    onApplyFix?(finding.id)
+            // Fix button, for findings Whisky can act on
+            if let onApplyFix, let action = AudioFixAction(findingId: finding.id) {
+                Button {
+                    onApplyFix(finding, action)
+                } label: {
+                    if action.changesBottle {
+                        Text("audio.findings.fix")
+                    } else {
+                        Text("audio.troubleshoot.openSystemSound")
+                    }
                 }
                 .controlSize(.small)
             }
@@ -115,7 +123,7 @@ struct AudioFindingsView: View {
     }
 
     private func confidenceBadge(_ tier: ConfidenceTier) -> some View {
-        Text(tier.displayName)
+        Text(tier.localizedName)
             .font(.caption2)
             .fontWeight(.medium)
             .padding(.horizontal, 8)
@@ -138,7 +146,7 @@ struct AudioFindingsView: View {
     // MARK: - Technical Details
 
     private var technicalDetailsSection: some View {
-        DisclosureGroup("Technical details") {
+        DisclosureGroup("audio.findings.technicalDetails") {
             VStack(alignment: .leading, spacing: 2) {
                 ForEach(findings) { finding in
                     Text("[\(finding.id)] \(finding.evidence)")

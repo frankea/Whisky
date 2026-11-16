@@ -169,17 +169,24 @@ struct ContentView: View {
                   let oldBottle = bottleVM.bottles.first(where: { $0.url == oldURL })
             else { return }
 
-            let count = ProcessRegistry.shared.getProcessCount(for: oldBottle)
-            guard count > 0 else { return }
+            // Only for what Whisky launched there: a game keeps running under
+            // the wineserver after its launch returns, so the registry count
+            // alone misses it, and an orphan has its own stop button.
+            Task {
+                guard await Wine.runState(for: oldBottle).isRunning else { return }
+                // The probe takes a moment; if the user came back to this
+                // bottle meanwhile, they haven't left it, so don't stop it.
+                guard selected != oldURL else { return }
 
-            switch oldBottle.settings.closeWithProcessesPolicy {
-            case .alwaysKeepRunning:
-                break
-            case .alwaysStop:
-                Wine.killBottle(bottle: oldBottle)
-                ProcessRegistry.shared.clearRegistry(for: oldBottle.url)
-            case .ask:
-                showProcessCloseAlert(for: oldBottle)
+                switch oldBottle.settings.closeWithProcessesPolicy {
+                case .alwaysKeepRunning:
+                    break
+                case .alwaysStop:
+                    Wine.killBottle(bottle: oldBottle)
+                    ProcessRegistry.shared.clearRegistry(for: oldBottle.url)
+                case .ask:
+                    showProcessCloseAlert(for: oldBottle)
+                }
             }
         }
         .handlesExternalEvents(preferring: [], allowing: ["*"])
@@ -190,7 +197,7 @@ struct ContentView: View {
         .dropDestination(for: URL.self) { urls, _ in
             // A Finder drop of anything the Run panel would accept opens the
             // same run-this-file flow, wherever on the window it lands.
-            let runnable = ["exe", "msi", "bat", "msix", "appx", "url"]
+            let runnable = ["exe", "msi", "bat", "cmd", "msix", "appx", "url"]
             guard let url = urls.first(where: { runnable.contains($0.pathExtension.lowercased()) })
             else { return false }
             openedFileURL = url
@@ -218,9 +225,14 @@ struct ContentView: View {
             // sheet over the main window and race every toolbar interaction.
             guard !WhiskyApp.isUITesting else { return }
 
-            if !WhiskyWineInstaller.isWhiskyWineInstalled() {
+            // Rosetta too: a major macOS update can remove it, and the x86_64 Wine
+            // then fails every launch with "Bad CPU type in executable".
+            if !WhiskyWineInstaller.isWhiskyWineInstalled() || !Rosetta2.isRosettaInstalled {
                 showSetup = true
             }
+            // Settings' "Automatically check for WhiskyWine updates" gates only
+            // this launch-time check.
+            guard WhiskyWineInstaller.automaticUpdateChecksEnabled() else { return }
             let task = Task.detached {
                 await WhiskyWineInstaller.shouldUpdateWhiskyWine()
             }

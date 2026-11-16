@@ -243,7 +243,7 @@ struct ConsoleRunHistoryView: View {
     private func exitCodeBadge(_ exitCode: Int32?) -> some View {
         Group {
             if let code = exitCode {
-                Text("console.exitCode \(code)")
+                Text("console.exitCode \(Int(code))")
                     .font(.caption)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
@@ -263,7 +263,7 @@ struct ConsoleRunHistoryView: View {
     }
 
     private func exitedFooter(exitCode: Int32) -> some View {
-        Text("console.exited \(exitCode)")
+        Text("console.exited \(Int(exitCode))")
             .font(.caption2)
             .foregroundStyle(exitCode == 0 ? .green : .red)
     }
@@ -271,18 +271,7 @@ struct ConsoleRunHistoryView: View {
     // MARK: - Duration Formatting
 
     private func formattedDuration(_ interval: TimeInterval) -> String {
-        let totalSeconds = Int(interval)
-        let hours = totalSeconds / 3_600
-        let minutes = (totalSeconds % 3_600) / 60
-        let seconds = totalSeconds % 60
-
-        if hours > 0 {
-            return "\(hours)h \(minutes)m"
-        } else if minutes > 0 {
-            return "\(minutes)m \(seconds)s"
-        } else {
-            return "\(seconds)s"
-        }
+        RunDurationFormatting.string(from: interval)
     }
 
     // MARK: - Data Operations
@@ -342,5 +331,35 @@ private struct PulseAnimationModifier: ViewModifier {
                 value: isPulsing
             )
             .onAppear { isPulsing = true }
+    }
+}
+
+/// Run durations in abbreviated units, worded for the user's locale.
+/// Shared by the console's run header and the run history list.
+enum RunDurationFormatting {
+    /// Hours and minutes ("1h 5m" in English).
+    private static let hoursMinutesFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.hour, .minute]
+        formatter.unitsStyle = .abbreviated
+        return formatter
+    }()
+
+    /// Minutes and seconds ("5m 3s" in English).
+    private static let minutesSecondsFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.minute, .second]
+        formatter.unitsStyle = .abbreviated
+        return formatter
+    }()
+
+    static func string(from interval: TimeInterval) -> String {
+        let totalSeconds = max(Int(interval), 0)
+        if totalSeconds >= 3_600 {
+            // Drop the seconds rather than let the formatter round them into the minutes.
+            let wholeMinutes = TimeInterval(totalSeconds / 60 * 60)
+            return hoursMinutesFormatter.string(from: wholeMinutes) ?? ""
+        }
+        return minutesSecondsFormatter.string(from: TimeInterval(totalSeconds)) ?? ""
     }
 }

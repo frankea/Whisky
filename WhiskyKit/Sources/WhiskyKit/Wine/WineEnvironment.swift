@@ -148,11 +148,23 @@ extension Wine {
             applyProgramOverrides(
                 overrides,
                 frameGeneration: bottle.settings.frameGeneration,
+                dxvkAsync: bottle.settings.dxvkAsync,
+                programEnvironmentKeys: Set(environment.keys),
                 recommendedBackend: recommendedBackend,
                 builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal,
                 builder: &builder,
                 dllResolver: &dllResolver
             )
+        }
+
+        // The program's own WINEDLLOVERRIDES, merged rather than replaced: the
+        // composed value used to be assigned over it, so it did nothing whenever
+        // the bottle had any override at all. Program-custom, after the program's
+        // overrides, so the DLLs it names beat every preset and the rest of the
+        // composition stands. Only the program's own value: a GameDB profile's
+        // must not outrank the user's bottle overrides.
+        if let programValue = environment["WINEDLLOVERRIDES"] {
+            dllResolver.programCustom.append(contentsOf: DLLOverrideResolver.parse(programValue))
         }
 
         // Layer 8: featureRuntime -- diagnostic WINEDEBUG preset override
@@ -205,9 +217,14 @@ extension Wine {
     /// and whether the reset union puts it back. Defaults to whether the GPTK
     /// payload is deployed. `recommendedBackend` is what a program set to
     /// `.recommended` gets; `nil` asks ``GraphicsBackendResolver``.
+    /// `dxvkAsync` is the bottle's async setting, which a program moved onto
+    /// DXVK inherits. `programEnvironmentKeys` are the variables the program's
+    /// own environment sets, which the DXVK compile settings leave alone.
     static func applyProgramOverrides(
         _ overrides: ProgramOverrides,
         frameGeneration: Bool = false,
+        dxvkAsync: Bool = true,
+        programEnvironmentKeys: Set<String> = [],
         recommendedBackend: GraphicsBackend? = nil,
         builtinD3D12IsD3DMetal: Bool = GPTKImporter.isDeployed(),
         builder: inout EnvironmentBuilder,
@@ -216,6 +233,26 @@ extension Wine {
         let dxvkPreset = DLLOverrideResolver.dxvkPreset(builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal)
         let dxmtPreset = DLLOverrideResolver.dxmtPreset(builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal)
         let translationReset = translationDLLResetEntries(builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal)
+
+        // What the bottle layer sets under DXVK, for a program moved onto DXVK
+        // in a bottle running something else: without it the program compiled
+        // its shaders synchronously and one at a time. Both share the program's
+        // layer with its own environment, where the later write wins, so a
+        // value the user gave the program is kept.
+        let concurrentCompile = "MVK_CONFIG_SHOULD_MAXIMIZE_CONCURRENT_COMPILATION"
+        func addDXVKEnvironment() {
+            if dxvkAsync, !programEnvironmentKeys.contains("DXVK_ASYNC") {
+                builder.set("DXVK_ASYNC", "1", layer: .programUser)
+            }
+            if !programEnvironmentKeys.contains(concurrentCompile) {
+                builder.set(concurrentCompile, "1", layer: .programUser)
+            }
+        }
+        func removeConcurrentCompile() {
+            if !programEnvironmentKeys.contains(concurrentCompile) {
+                builder.remove(concurrentCompile, layer: .programUser)
+            }
+        }
 
         // Graphics backend override: replaces bottle-level backend entirely
         if let backend = overrides.graphicsBackend {
@@ -231,6 +268,7 @@ extension Wine {
                 // Remove DXVK and wined3d env vars at program layer
                 builder.remove("DXVK_HUD", layer: .programUser)
                 builder.remove("DXVK_ASYNC", layer: .programUser)
+                removeConcurrentCompile()
                 builder.remove("WINED3DMETAL", layer: .programUser)
                 // One program on D3DMetal inside a bottle running something else
                 // still has to claim scheduling itself; see the bottle layer.
@@ -243,6 +281,7 @@ extension Wine {
             case .dxvk:
                 // Enable DXVK DLLs at program level
                 dllResolver.programCustom.append(contentsOf: dxvkPreset)
+                addDXVKEnvironment()
                 builder.remove("WINED3DMETAL", layer: .programUser)
                 // CX_ACTIVE_GRAPHICS_BACKEND deliberately survives. It selects no
                 // backend: win32u is the only thing in the runtime that reads it,
@@ -263,6 +302,7 @@ extension Wine {
                 dllResolver.programCustom.append(contentsOf: dxmtPreset)
                 builder.remove("DXVK_HUD", layer: .programUser)
                 builder.remove("DXVK_ASYNC", layer: .programUser)
+                removeConcurrentCompile()
                 builder.remove("WINED3DMETAL", layer: .programUser)
                 // Survives for the reason given under .dxvk: DXMT translates d3d11
                 // only, so d3d12 is still D3DMetal here.
@@ -286,6 +326,7 @@ extension Wine {
             if dxvk {
                 // Program forces DXVK on -- add DXVK preset to program custom DLLs
                 dllResolver.programCustom.append(contentsOf: dxvkPreset)
+                addDXVKEnvironment()
             } else {
                 // Program forces DXVK off -- override each DXVK DLL to builtin
                 for entry in dxvkPreset {
@@ -348,12 +389,30 @@ extension Wine {
             }
         }
 
-        // Shader cache override, on the variable DXVK actually reads.
+        // Metal HUD override. The bottle value lands in the bottleManaged layer
+        // and reaches every process in the prefix, launcher windows included, so
+        // a program that wants the HUD to itself sets it here.
+        //
+        // Removal rather than "0": the resolved environment must not carry the
+        // variable at all -- absence is off to the HUD, and a removal also
+        // shadows the bottle's value instead of contradicting it. (Verified on
+        // macOS 27.2: MTL_HUD_ENABLED=1 draws the HUD; =0 and absent do not.)
+        if let metalHud = overrides.metalHud {
+            if metalHud {
+                builder.set("MTL_HUD_ENABLED", "1", layer: .programUser)
+            } else {
+                builder.remove("MTL_HUD_ENABLED", layer: .programUser)
+            }
+        }
+
+        // Shader cache override, on the variables DXVK and DXMT actually read.
         if let shaderCache = overrides.shaderCacheEnabled {
             if !shaderCache {
                 builder.set("DXVK_STATE_CACHE", "0", layer: .programUser)
+                builder.set("DXMT_SHADER_CACHE", "0", layer: .programUser)
             } else {
                 builder.remove("DXVK_STATE_CACHE", layer: .programUser)
+                builder.remove("DXMT_SHADER_CACHE", layer: .programUser)
             }
         }
 

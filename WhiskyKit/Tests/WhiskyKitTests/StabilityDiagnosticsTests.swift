@@ -114,4 +114,71 @@ final class StabilityDiagnosticsTests: XCTestCase {
         XCTAssertTrue(report.contains("Architecture: Intel (x86_64)"))
         #endif
     }
+
+    /// A Rockstar bottle on Recommended gets DXVK for its launcher launches, as
+    /// the launcher summary says; the report must not call DXVK disabled.
+    func testReportShowsLauncherDXVKFromTheLaunchCondition() async throws {
+        let bottleURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: bottleURL, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: bottleURL) }
+
+        let bottle = Bottle(bottleUrl: bottleURL, inFlight: false, isAvailable: true)
+        bottle.settings.graphicsBackend = .recommended
+        bottle.settings.autoEnableDXVK = false
+        bottle.settings.detectedLauncher = .rockstar
+
+        let report = await StabilityDiagnostics.generateDiagnosticReport(
+            for: bottle,
+            config: Self.config(for: bottleURL)
+        )
+
+        XCTAssertTrue(report.contains("Graphics Backend: recommended"))
+        XCTAssertTrue(report.contains("DXVK for Launcher Launches: ✅ Enabled"))
+        XCTAssertFalse(report.contains("DXVK: ❌ Disabled"))
+    }
+
+    func testReportShowsLauncherDXVKDisabledWhenTheLaunchSkipsIt() async throws {
+        let bottleURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: bottleURL, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: bottleURL) }
+
+        let bottle = Bottle(bottleUrl: bottleURL, inFlight: false, isAvailable: true)
+        bottle.settings.graphicsBackend = .d3dMetal
+        bottle.settings.autoEnableDXVK = false
+        bottle.settings.detectedLauncher = .rockstar
+
+        let report = await StabilityDiagnostics.generateDiagnosticReport(
+            for: bottle,
+            config: Self.config(for: bottleURL)
+        )
+
+        XCTAssertTrue(report.contains("Graphics Backend: d3dMetal"))
+        XCTAssertTrue(report.contains("DXVK for Launcher Launches: ❌ Disabled"))
+    }
+
+    func testReportOmitsLauncherDXVKWithoutADetectedLauncher() async throws {
+        let bottleURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: bottleURL, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: bottleURL) }
+
+        let bottle = Bottle(bottleUrl: bottleURL, inFlight: false, isAvailable: true)
+        bottle.settings.graphicsBackend = .dxvk
+
+        let report = await StabilityDiagnostics.generateDiagnosticReport(
+            for: bottle,
+            config: Self.config(for: bottleURL)
+        )
+
+        XCTAssertTrue(report.contains("Graphics Backend: dxvk"))
+        XCTAssertTrue(report.contains("Detected Launcher: None"))
+        XCTAssertFalse(report.contains("DXVK for Launcher Launches"))
+    }
+
+    private static func config(for bottleURL: URL) -> StabilityDiagnostics.Configuration {
+        StabilityDiagnostics.Configuration(
+            bundle: Bundle(for: StabilityDiagnosticsTests.self),
+            logsFolder: bottleURL.appendingPathComponent("does-not-exist"),
+            now: Date.init
+        )
+    }
 }

@@ -103,7 +103,8 @@ final class LauncherScopingTests {
             at: steam(in: bottle), args: applaunch ? ["-applaunch", "1174180"] : ["-silent"], bottle: bottle,
             programOverrides: plan, overridesApplyToDescendants: applaunch,
             recommendedBackend: recommended, builtinD3D12IsD3DMetal: payload,
-            overrideWriter: recorder.writer, importer: recorder.importer
+            overrideWriter: recorder.writer, importer: recorder.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
     }
 
@@ -243,13 +244,11 @@ final class LauncherScopingTests {
         _ = try makeExecutable("Program Files/Rockstar Games/Launcher/Launcher.exe", in: bottle)
         let recorder = ScopeRecorder()
 
-        _ = try await prepareSteam(bottle, applaunch: applaunch, recorder: recorder)
+        // Without the payload the runtime holds Wine's own d3d11 and dxgi, so
+        // Launcher.exe gets them (#382); Social Club's helper stays on DXVK.
+        _ = try await prepareSteam(bottle, applaunch: applaunch, payload: false, recorder: recorder)
 
-        for executable in ["Launcher.exe", "SocialClubHelper.exe"] {
-            let entry = recorder.overrides(for: .program(executable))
-            expectDXVK(entry, executable)
-            #expect(entry?["d3d12"] == "", "\(executable) must not reach D3DMetal's d3d12")
-        }
+        recorder.expectRockstarChain(layout: .builtin)
         expectNoTranslationLayer(recorder.overrides(for: .bottle))
     }
 
@@ -272,7 +271,8 @@ final class LauncherScopingTests {
 
         _ = try await Wine.prepareProgramLaunch(
             at: launcher, bottle: bottle, recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: true,
-            overrideWriter: recorder.writer, importer: recorder.importer
+            overrideWriter: recorder.writer, importer: recorder.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
 
         #expect(recorder.programScopes.filter { $0.lowercased() == "launcher.exe" }.count == 1)

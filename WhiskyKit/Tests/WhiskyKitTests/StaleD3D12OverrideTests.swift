@@ -100,7 +100,8 @@ final class StaleD3D12OverrideTests {
         try await prepareGameLaunch(bottle, recorder: recorder)
 
         // Written as scopes, so the document deletes each key before writing it.
-        #expect(recorder.imports.isEmpty)
+        // The only import is the Korean font fallback the hive has no aliases for.
+        #expect(!recorder.imports.contains { $0.contains("DllOverrides") })
         for game in ["RDR2.exe", "PlayRDR2.exe"] {
             let entry = recorder.overrides(for: .program(game))
             #expect(entry != nil, "\(game) gets its entry rewritten")
@@ -150,12 +151,13 @@ final class StaleD3D12OverrideTests {
             overrideWriter: recorder.writer, importer: recorder.importer
         )
 
-        // Written as a scope, so the document deletes the key before writing it.
+        // Written as a scope, so the document takes back the d3d12 it does not set.
         #expect(recorder.programScopes == ["RDR2.exe"])
         #expect(recorder.overrides(for: .program("RDR2.exe"))?["d3d12"] == nil)
         let document = Wine.registryDocument(for: [
             (key: Wine.DLLOverrideScope.program("RDR2.exe").registryKey, overrides: [:])
         ])
-        #expect(document.contains(#"[-HKCU\Software\Wine\AppDefaults\RDR2.exe\DllOverrides]"#))
+        #expect(document.contains("[HKCU\\Software\\Wine\\AppDefaults\\RDR2.exe\\DllOverrides]\r\n"))
+        #expect(document.contains(#""d3d12"=-"#))
     }
 }

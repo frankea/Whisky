@@ -85,7 +85,7 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
     /// process. Real resource trees have at most a few thousand entries; this
     /// generous cap stops sibling fan-out amplification from a crafted file
     /// without truncating any legitimate input.
-    private static let maxTotalEntries = 100_000
+    static let maxTotalEntries = 100_000
 
     /// Each resource directory entry is 8 bytes on disk.
     private static let entrySize: UInt64 = 8
@@ -188,7 +188,7 @@ public struct ResourceDirectoryTable: Hashable, Equatable {
     /// read returns zero-filled garbage) and waste time. Capping at the number of
     /// 8-byte entries between `firstEntryOffset` and the end of the file bounds
     /// the loop to real data.
-    private static func clampedEntryCount(
+    static func clampedEntryCount(
         claimed: UInt16,
         firstEntryOffset: UInt64,
         handle: FileHandle,

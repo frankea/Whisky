@@ -73,7 +73,7 @@ struct ConfigView: View {
                 isExpanded: $wineSectionExpanded,
                 buildVersion: $buildVersion,
                 retinaModeState: $retinaModeState,
-                dpiConfig: $dpiConfig,
+                dpiConfig: dpiBinding,
                 winVersionLoadingState: $winVersionLoadingState,
                 buildVersionLoadingState: $buildVersionLoadingState,
                 retinaModeLoadingState: $retinaModeLoadingState,
@@ -86,7 +86,7 @@ struct ConfigView: View {
             LauncherConfigSection(
                 bottle: bottle,
                 isExpanded: $launcherSectionExpanded,
-                onViewDiagnostics: loadLatestDiagnosisAndView
+                onViewDiagnostics: { loadLatestDiagnosisAndView(onUnavailable: showStabilityReport) }
             )
             InputConfigSection(bottle: bottle, isExpanded: $inputSectionExpanded)
             GraphicsConfigSection(bottle: bottle)
@@ -97,6 +97,7 @@ struct ConfigView: View {
             DLLOverrideConfigSection(bottle: bottle, isExpanded: $dllOverrideSectionExpanded)
             DependencyConfigSection(bottle: bottle)
             gameConfigRevertSection
+            gameConfigEnvironmentSection
             Section("Diagnostics") {
                 Text("Analyze Wine crash output for troubleshooting guidance")
                     .font(.caption)
@@ -113,14 +114,14 @@ struct ConfigView: View {
                 }
 
                 Button("Export Diagnostic Report\u{2026}") {
-                    loadLatestDiagnosisAndExport()
+                    loadLatestDiagnosisAndExport(onUnavailable: showStabilityReport)
                 }
-                .disabled(mostRecentlyDiagnosedProgram == nil)
+                .disabled(bottle.mostRecentlyDiagnosedProgram == nil)
 
                 Button("View Latest Diagnosis") {
-                    loadLatestDiagnosisAndView()
+                    loadLatestDiagnosisAndView(onUnavailable: showStabilityReport)
                 }
-                .disabled(mostRecentlyDiagnosedProgram == nil)
+                .disabled(bottle.mostRecentlyDiagnosedProgram == nil)
 
                 TroubleshootingHistoryView(
                     bottleURL: bottle.url,
@@ -129,10 +130,7 @@ struct ConfigView: View {
             }
             Section("Stability") {
                 Button("Generate Stability Diagnostics") {
-                    Task {
-                        stabilityDiagnosticReport = await StabilityDiagnostics.generateDiagnosticReport(for: bottle)
-                        showStabilityDiagnostics = true
-                    }
+                    showStabilityReport()
                 }
                 .help("Generates a bounded, privacy-safe report for issue triage.")
 
@@ -189,7 +187,7 @@ struct ConfigView: View {
         }
         .sheet(isPresented: $showStabilityDiagnostics) {
             DiagnosticsReportView(
-                title: "Stability Diagnostics Report",
+                title: String(localized: "config.stability.report.title"),
                 report: stabilityDiagnosticReport,
                 defaultFilenamePrefix: "whisky-stability-diagnostics"
             )
@@ -211,7 +209,8 @@ struct ConfigView: View {
                 programName: presentation.program.name,
                 bottleName: bottle.settings.name,
                 timestamp: presentation.program.settings.lastDiagnosisDate ?? Date(),
-                applyBottle: bottle
+                applyBottle: bottle,
+                applyProgramURL: presentation.program.url
             )
             .frame(minWidth: 600, minHeight: 400)
         }
@@ -292,18 +291,31 @@ struct ConfigView: View {
                 }
             }
         }
-        .onChange(of: dpiConfig) {
-            if dpiConfigLoadingState == .success {
-                Task(priority: .userInitiated) {
-                    dpiConfigLoadingState = .modifying
-                    do {
-                        try await Wine.changeDpiResolution(bottle: bottle, dpi: dpiConfig)
-                        dpiConfigLoadingState = .success
-                    } catch {
-                        logger.error("Failed to change DPI resolution: \(error.localizedDescription)")
-                        dpiConfigLoadingState = .failed
-                    }
-                }
+    }
+
+    /// The DPI the sheet edits. It writes from the setter rather than an
+    /// `onChange(of: dpiConfig)`, because loading assigns `dpiConfig` too and
+    /// that must not write the value it just read back to the registry.
+    private var dpiBinding: Binding<Int> {
+        Binding(
+            get: { dpiConfig },
+            set: { newValue in
+                guard newValue != dpiConfig else { return }
+                dpiConfig = newValue
+                saveDpi(newValue)
+            }
+        )
+    }
+
+    private func saveDpi(_ dpi: Int) {
+        Task(priority: .userInitiated) {
+            dpiConfigLoadingState = .modifying
+            do {
+                try await Wine.changeDpiResolution(bottle: bottle, dpi: dpi)
+                dpiConfigLoadingState = .success
+            } catch {
+                logger.error("Failed to change DPI resolution: \(error.localizedDescription)")
+                dpiConfigLoadingState = .failed
             }
         }
     }
@@ -350,9 +362,11 @@ extension ConfigView {
         dpiConfigLoadingState = .loading
         Task(priority: .userInitiated) {
             do {
-                // Wine.dpiResolution returns nil if registry key doesn't exist (expected for unedited DPI)
-                // It throws only on actual Wine/registry errors
-                dpiConfig = try await Wine.dpiResolution(bottle: bottle) ?? 0
+                // Wine.dpiResolution returns nil if the registry key doesn't exist (expected for
+                // unedited DPI) or holds the 0 that older versions wrote here; Wine uses its default
+                // of 96 for both. Nothing is written until the user picks a value. It throws only on
+                // actual Wine/registry errors.
+                dpiConfig = try await Wine.dpiResolution(bottle: bottle) ?? 96
                 dpiConfigLoadingState = .success
             } catch {
                 logger.error("Failed to load DPI resolution: \(error.localizedDescription)")
@@ -411,10 +425,44 @@ extension ConfigView {
         }
     }
 
+    /// Environment variables applied game configurations keep for games that
+    /// were not in the bottle yet, scoped to their executables. Programs that
+    /// were there got the variables in their own settings instead.
+    @ViewBuilder
+    var gameConfigEnvironmentSection: some View {
+        if !bottle.settings.gameConfigEnvironments.isEmpty {
+            Section("gameConfig.environment.title") {
+                ForEach(bottle.settings.gameConfigEnvironments) { record in
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(record.title)
+                                .font(.callout)
+                            if !record.executables.isEmpty {
+                                Text(record.executables.joined(separator: ", "))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            ForEach(record.variables.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
+                                Text(verbatim: "\(key)=\(value)")
+                                    .font(.caption.monospaced())
+                                    .textSelection(.enabled)
+                            }
+                        }
+                        Spacer()
+                        Button("gameConfig.environment.remove", role: .destructive) {
+                            bottle.settings.gameConfigEnvironments.removeAll { $0.entryId == record.entryId }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     func revertGameConfig(_ snapshot: GameConfigSnapshot) {
         do {
+            // revert deletes the snapshot file itself; deleting it again here
+            // threw, so the reverted section never went away.
             let remainingVerbs = try GameConfigApplicator.revert(bottle: bottle, snapshot: snapshot)
-            try GameConfigSnapshot.delete(from: bottle.url)
             gameConfigSnapshot = nil
             if !remainingVerbs.isEmpty {
                 logger.info(
@@ -430,28 +478,49 @@ extension ConfigView {
 // MARK: - Diagnostics Helpers
 
 extension ConfigView {
-    var mostRecentlyDiagnosedProgram: Program? {
-        bottle.programs
-            .filter { $0.settings.lastDiagnosisDate != nil }
-            .max { ($0.settings.lastDiagnosisDate ?? .distantPast) < ($1.settings.lastDiagnosisDate ?? .distantPast) }
+    /// Builds the bottle's stability report and shows it in a sheet.
+    func showStabilityReport() {
+        Task {
+            stabilityDiagnosticReport = await StabilityDiagnostics.generateDiagnosticReport(for: bottle)
+            showStabilityDiagnostics = true
+        }
     }
 
-    func loadLatestDiagnosisAndExport() {
-        guard let program = mostRecentlyDiagnosedProgram,
+    /// Opens the export sheet for the latest crash diagnosis. Calls
+    /// `onUnavailable` instead when there is none to export: no program has a
+    /// stored diagnosis, its log was never recorded, or the log has been pruned.
+    func loadLatestDiagnosisAndExport(onUnavailable: @escaping () -> Void) {
+        guard let program = bottle.mostRecentlyDiagnosedProgram,
               let logURL = program.settings.lastLogFileURL
-        else { return }
+        else {
+            onUnavailable()
+            return
+        }
         Task {
-            guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else { return }
+            guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else {
+                onUnavailable()
+                return
+            }
             exportPresentation = ExportPresentation(diagnosis: diagnosis, program: program)
         }
     }
 
-    func loadLatestDiagnosisAndView() {
-        guard let program = mostRecentlyDiagnosedProgram,
+    /// Shows the latest crash diagnosis. Calls `onUnavailable` instead when
+    /// there is none to show: no program has a stored diagnosis (a launcher that
+    /// exits cleanly never gets one), its log was never recorded, or the log has
+    /// been pruned.
+    func loadLatestDiagnosisAndView(onUnavailable: @escaping () -> Void) {
+        guard let program = bottle.mostRecentlyDiagnosedProgram,
               let logURL = program.settings.lastLogFileURL
-        else { return }
+        else {
+            onUnavailable()
+            return
+        }
         Task {
-            guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else { return }
+            guard let diagnosis = await Wine.classifyLastRun(logFileURL: logURL, exitCode: 1) else {
+                onUnavailable()
+                return
+            }
             crashPresentation = BottleDiagnosisPresentation(
                 diagnosis: diagnosis,
                 program: program,

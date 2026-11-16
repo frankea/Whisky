@@ -112,7 +112,7 @@ final class BottleOperationsMoveTests: BottleOperationsTestCase {
         let bottle = makeRegisteredBottle(in: registry)
         let destination = tempDir.appending(path: "Moved")
 
-        BottleOperations.move(bottleAt: bottleURL, to: destination, registry: registry)
+        try BottleOperations.move(bottleAt: bottleURL, to: destination, registry: registry)
 
         let fileManager = FileManager.default
         XCTAssertFalse(fileManager.fileExists(atPath: bottleURL.path(percentEncoded: false)))
@@ -144,7 +144,8 @@ final class BottleOperationsMoveTests: BottleOperationsTestCase {
         // after the settings were already rewritten (the issue #154 scenario).
         let destination = tempDir.appending(path: "missing/Moved")
 
-        BottleOperations.move(bottleAt: bottleURL, to: destination, registry: registry)
+        // The failure reaches the caller so the UI can say so and keep the old selection.
+        XCTAssertThrowsError(try BottleOperations.move(bottleAt: bottleURL, to: destination, registry: registry))
 
         XCTAssertTrue(FileManager.default.fileExists(atPath: bottleURL.path(percentEncoded: false)))
         XCTAssertEqual(bottle.settings.pins, originalPins)
@@ -167,12 +168,12 @@ final class BottleOperationsMoveTests: BottleOperationsTestCase {
     }
 
     @MainActor
-    func testMoveWithNoRegisteredBottleStillMovesDirectory() {
+    func testMoveWithNoRegisteredBottleStillMovesDirectory() throws {
         let registry = RegistryFixture()
         registry.bottlePaths = [bottleURL]
         let destination = tempDir.appending(path: "Moved")
 
-        BottleOperations.move(bottleAt: bottleURL, to: destination, registry: registry)
+        try BottleOperations.move(bottleAt: bottleURL, to: destination, registry: registry)
 
         XCTAssertFalse(FileManager.default.fileExists(atPath: bottleURL.path(percentEncoded: false)))
         XCTAssertTrue(FileManager.default.fileExists(atPath: destination.path(percentEncoded: false)))
@@ -368,24 +369,24 @@ final class BottleOperationsRemoveTests: BottleOperationsTestCase {
     }
 
     @MainActor
-    func testRemoveDeletingFilesPrunesRoutesToTheBottle() {
+    func testRemoveDeletingFilesPrunesRoutesToTheBottle() throws {
         let registry = RegistryFixture()
         _ = makeRegisteredBottle(in: registry)
         let (routing, otherBottle) = makeRouting()
 
-        BottleOperations.remove(bottleAt: bottleURL, deleteFiles: true, registry: registry, routing: routing)
+        try BottleOperations.remove(bottleAt: bottleURL, deleteFiles: true, registry: registry, routing: routing)
 
         XCTAssertNil(routing.bottleURL(forAppId: 1_245_620))
         XCTAssertEqual(routing.bottleURL(forAppId: 4_576_510)?.lastPathComponent, otherBottle.lastPathComponent)
     }
 
     @MainActor
-    func testRemoveKeepingFilesKeepsRoutes() {
+    func testRemoveKeepingFilesKeepsRoutes() throws {
         let registry = RegistryFixture()
         _ = makeRegisteredBottle(in: registry)
         let (routing, _) = makeRouting()
 
-        BottleOperations.remove(bottleAt: bottleURL, deleteFiles: false, registry: registry, routing: routing)
+        try BottleOperations.remove(bottleAt: bottleURL, deleteFiles: false, registry: registry, routing: routing)
 
         // The bottle is still on disk and can be re-imported; its routes wait
         // for it, inert until then because resolution ignores routes to
@@ -401,17 +402,19 @@ final class BottleOperationsRemoveTests: BottleOperationsTestCase {
         // Deleting the directory up front makes the file removal throw.
         try FileManager.default.removeItem(at: bottleURL)
 
-        BottleOperations.remove(bottleAt: bottleURL, deleteFiles: true, registry: registry, routing: routing)
+        XCTAssertThrowsError(
+            try BottleOperations.remove(bottleAt: bottleURL, deleteFiles: true, registry: registry, routing: routing)
+        )
 
         XCTAssertEqual(routing.bottleURL(forAppId: 1_245_620)?.lastPathComponent, bottleURL.lastPathComponent)
     }
 
     @MainActor
-    func testRemoveDeletingFilesRemovesDirectoryAndRegistryEntry() {
+    func testRemoveDeletingFilesRemovesDirectoryAndRegistryEntry() throws {
         let registry = RegistryFixture()
         _ = makeRegisteredBottle(in: registry)
 
-        BottleOperations.remove(bottleAt: bottleURL, deleteFiles: true, registry: registry)
+        try BottleOperations.remove(bottleAt: bottleURL, deleteFiles: true, registry: registry)
 
         XCTAssertFalse(FileManager.default.fileExists(atPath: bottleURL.path(percentEncoded: false)))
         XCTAssertTrue(registry.bottlePaths.isEmpty)
@@ -419,11 +422,11 @@ final class BottleOperationsRemoveTests: BottleOperationsTestCase {
     }
 
     @MainActor
-    func testRemoveKeepingFilesOnlyDeregisters() {
+    func testRemoveKeepingFilesOnlyDeregisters() throws {
         let registry = RegistryFixture()
         _ = makeRegisteredBottle(in: registry)
 
-        BottleOperations.remove(bottleAt: bottleURL, deleteFiles: false, registry: registry)
+        try BottleOperations.remove(bottleAt: bottleURL, deleteFiles: false, registry: registry)
 
         XCTAssertTrue(FileManager.default.fileExists(atPath: bottleURL.path(percentEncoded: false)))
         XCTAssertTrue(registry.bottlePaths.isEmpty)
@@ -431,15 +434,17 @@ final class BottleOperationsRemoveTests: BottleOperationsTestCase {
     }
 
     @MainActor
-    func testRemoveFailureKeepsRegistryEntry() throws {
+    func testRemoveFailureThrowsKeepsRegistryEntryAndClearsInFlight() throws {
         let registry = RegistryFixture()
-        _ = makeRegisteredBottle(in: registry)
+        let bottle = makeRegisteredBottle(in: registry)
         // Deleting the directory up front makes the file removal throw.
         try FileManager.default.removeItem(at: bottleURL)
 
-        BottleOperations.remove(bottleAt: bottleURL, deleteFiles: true, registry: registry)
+        XCTAssertThrowsError(try BottleOperations.remove(bottleAt: bottleURL, deleteFiles: true, registry: registry))
 
         XCTAssertEqual(registry.bottlePaths, [bottleURL])
         XCTAssertEqual(registry.loadCount, 0)
+        // A failed remove must not leave the bottle disabled until relaunch.
+        XCTAssertFalse(bottle.inFlight)
     }
 }

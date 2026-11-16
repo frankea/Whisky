@@ -79,6 +79,15 @@ public enum LauncherFixes {
             return false
         }
 
+        // Rockstar's profile is bottle-wide DXVK, and a Steam bottle's games run
+        // on D3DMetal: starting Rockstar's launcher from the Programs tab took
+        // GTA V Enhanced and every other Steam game off it (#382). The launcher
+        // gets its own entries from the launch either way.
+        guard !(detectedLauncher == .rockstar && hasSteam(bottle)) else {
+            Logger.wineKit.debug("Kept the Steam profile over Rockstar's for bottle")
+            return false
+        }
+
         // Apply launcher-specific fixes and save synchronously
         apply(to: bottle, launcher: detectedLauncher)
 
@@ -93,7 +102,6 @@ public enum LauncherFixes {
     ///
     /// **Changes Applied:**
     /// - Enables launcher compatibility mode
-    /// - Sets launcher-specific locale
     /// - Configures DXVK if required
     /// - Enables GPU spoofing for compatibility checks
     ///
@@ -128,6 +136,18 @@ public enum LauncherFixes {
         to bottle: Bottle, launcher: LauncherType, force: Bool = false,
         recommendedBackend: GraphicsBackend = GraphicsBackendResolver.resolve()
     ) {
+        // Rockstar's profile is bottle-wide DXVK: the setting, and the DXVK
+        // preset `requiresDXVK` adds to the bottle's overrides (and so to every
+        // Steam game's plan) for as long as Rockstar is the detected launcher.
+        // A Steam bottle's games run on D3DMetal, so the profile is never
+        // applied there, forced or not (#382), and the bottle's settings are
+        // left exactly as they were. Rockstar's own processes get their
+        // entries from every launch in that bottle either way.
+        if launcher == .rockstar, hasSteam(bottle) {
+            Logger.wineKit.info("Kept the Steam profile over Rockstar's for bottle '\(bottle.settings.name)'")
+            return
+        }
+
         // Enable launcher compatibility mode
         if !bottle.settings.launcherCompatibilityMode || force {
             bottle.settings.launcherCompatibilityMode = true
@@ -136,43 +156,32 @@ public enum LauncherFixes {
         // Set detected launcher
         bottle.settings.detectedLauncher = launcher
 
-        // Apply launcher-specific configurations
+        // Apply launcher-specific configurations. The locale is not among them:
+        // Auto keeps the preset's locale (or the Mac's), and writing
+        // English into the setting turned it into an explicit choice, rewritten
+        // whenever the fixes were applied again (#330, LauncherLocaleMigration).
         switch launcher {
         case .steam:
-            // Steam requires en_US locale to avoid steamwebhelper crashes
-            bottle.settings.launcherLocale = launcher.recommendedLocale
-
             applySteamBackend(to: bottle, force: force, recommendedBackend: recommendedBackend)
 
             // GPU spoofing helps with game compatibility checks
             bottle.settings.gpuSpoofing = true
 
-            // Longer network timeout for downloads
-            bottle.settings.networkTimeout = 90_000 // 90 seconds
-
         case .rockstar:
-            // Rockstar REQUIRES DXVK to display logo and UI. Still bottle-wide
-            // (the launcher layer adds the preset too): only Launcher.exe and
-            // SocialClubHelper.exe get entries of their own, and the rest of the
-            // standalone launcher's processes have not been mapped.
+            // Still bottle-wide (the launcher layer adds the preset too): only
+            // Launcher.exe and SocialClubHelper.exe get entries of their own,
+            // and the rest of the standalone launcher's processes have not been
+            // mapped. Never reached in a bottle with Steam (above).
             if bottle.settings.autoEnableDXVK {
                 bottle.settings.dxvk = true
             }
-
-            // English locale recommended
-            bottle.settings.launcherLocale = .english
 
         case .eaApp:
             // EA App needs GPU spoofing to pass checks
             bottle.settings.gpuSpoofing = true
             bottle.settings.gpuVendor = .nvidia
 
-            // Locale fix for Chromium-based UI
-            bottle.settings.launcherLocale = .english
-
         case .epicGames:
-            // Epic Games launcher improvements
-            bottle.settings.launcherLocale = .english
             bottle.settings.gpuSpoofing = true
 
         case .ubisoft:
@@ -184,12 +193,7 @@ public enum LauncherFixes {
                 bottle.settings.dxvkAsync = true
             }
 
-            // Longer timeout for Ubisoft's servers
-            bottle.settings.networkTimeout = 90_000
-
         case .battleNet:
-            // Battle.net Chromium-based launcher
-            bottle.settings.launcherLocale = .english
             bottle.settings.gpuSpoofing = true
 
             // DXVK recommended. Still bottle-wide: Battle.net Launcher.exe starts
@@ -201,6 +205,20 @@ public enum LauncherFixes {
         case .paradox:
             // Paradox's fix is environment-only (see LauncherPresets)
             break
+
+        case .rsiLauncher:
+            // Nothing bottle-wide. The launcher draws only on DXVK, and gets it
+            // per executable: Recommended resolves it to DXVK and the launch
+            // writes that into its own `AppDefaults` entry (#168). What Star
+            // Citizen runs on when the launcher starts it depends on the games'
+            // backend. Over D3DMetal it keeps D3DMetal: the bottle scope names
+            // none of DXVK's DLLs. Without the payload it runs on DXVK: the
+            // bottle's DXMT overrides load the native `d3d11.dll` and
+            // `d3d10core.dll`, and the launcher's launch has just put DXVK's
+            // there. The bottle still stays on Recommended, so Star Citizen
+            // launched from Whisky, like every other game, gets DXMT's files
+            // back on its own launch.
+            break
         }
 
         // Save settings synchronously to disk
@@ -211,6 +229,13 @@ public enum LauncherFixes {
         Applied launcher fixes for \(launcher.rawValue) to bottle '\(bottle.settings.name)'. \
         Settings persisted successfully.
         """)
+    }
+
+    /// Whether the bottle is a Steam bottle: tuned for Steam, or with Steam
+    /// installed. Read before a profile replaces the detected launcher.
+    @MainActor
+    private static func hasSteam(_ bottle: Bottle) -> Bool {
+        bottle.settings.detectedLauncher == .steam || SteamLibrary.detectInstall(bottleURL: bottle.url) != nil
     }
 
     /// The Steam profile's part in the bottle's backend.

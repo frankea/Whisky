@@ -113,12 +113,13 @@ final class LauncherFixesGatingTests: LauncherFixesTestCase {
         let bottle = makeBottle()
         bottle.settings.launcherCompatibilityMode = true
         bottle.settings.detectedLauncher = .epicGames
+        bottle.settings.gpuSpoofing = false
 
         XCTAssertTrue(LauncherFixes.detectAndApply(from: steamExe, for: bottle))
 
         XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
         // Steam's fix set was applied along with the replacement.
-        XCTAssertEqual(bottle.settings.networkTimeout, 90_000)
+        XCTAssertTrue(bottle.settings.gpuSpoofing)
         XCTAssertEqual(try persistedSettings().detectedLauncher, .steam)
     }
 
@@ -157,21 +158,20 @@ final class LauncherFixesApplyTests: LauncherFixesTestCase {
 
         XCTAssertTrue(bottle.settings.launcherCompatibilityMode)
         XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
-        XCTAssertEqual(bottle.settings.launcherLocale, .english)
+        // The locale stays the user's: Auto, which follows the Mac for Steam (#330).
+        XCTAssertEqual(bottle.settings.launcherLocale, .auto)
         XCTAssertTrue(bottle.settings.dxvk)
         XCTAssertTrue(bottle.settings.dxvkAsync)
         XCTAssertTrue(bottle.settings.gpuSpoofing)
-        XCTAssertEqual(bottle.settings.networkTimeout, 90_000)
 
         // Saved synchronously so Wine reads the new values.
         let persisted = try persistedSettings()
         XCTAssertTrue(persisted.launcherCompatibilityMode)
         XCTAssertEqual(persisted.detectedLauncher, .steam)
-        XCTAssertEqual(persisted.launcherLocale, .english)
+        XCTAssertEqual(persisted.launcherLocale, .auto)
         XCTAssertTrue(persisted.dxvk)
         XCTAssertTrue(persisted.dxvkAsync)
         XCTAssertTrue(persisted.gpuSpoofing)
-        XCTAssertEqual(persisted.networkTimeout, 90_000)
     }
 
     @MainActor
@@ -188,7 +188,7 @@ final class LauncherFixesApplyTests: LauncherFixesTestCase {
         XCTAssertFalse(bottle.settings.dxvkAsync)
         // The rest of the profile still lands.
         XCTAssertTrue(bottle.settings.gpuSpoofing)
-        XCTAssertEqual(bottle.settings.launcherLocale, .english)
+        XCTAssertEqual(bottle.settings.launcherLocale, .auto)
     }
 
     @MainActor
@@ -236,8 +236,7 @@ final class LauncherFixesScopingTests: LauncherFixesTestCase {
         // The rest of the profile still lands.
         XCTAssertTrue(bottle.settings.launcherCompatibilityMode)
         XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
-        XCTAssertEqual(bottle.settings.launcherLocale, .english)
-        XCTAssertEqual(bottle.settings.networkTimeout, 90_000)
+        XCTAssertEqual(bottle.settings.launcherLocale, .auto)
     }
 
     @MainActor
@@ -276,7 +275,7 @@ final class LauncherFixesScopingTests: LauncherFixesTestCase {
         XCTAssertEqual(bottle.settings.graphicsBackend, .recommended)
         XCTAssertEqual(try persistedSettings().graphicsBackend, .recommended)
         XCTAssertTrue(bottle.settings.launcherCompatibilityMode)
-        XCTAssertEqual(bottle.settings.launcherLocale, .english)
+        XCTAssertEqual(bottle.settings.launcherLocale, .auto)
     }
 
     @MainActor

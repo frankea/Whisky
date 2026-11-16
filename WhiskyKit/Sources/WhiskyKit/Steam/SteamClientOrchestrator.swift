@@ -130,18 +130,35 @@ public final class SteamClientOrchestrator: ObservableObject {
 
     /// Polls the bottle's process list so the library can show which games
     /// are running, including ones started outside Whisky.
+    ///
+    /// The games' install folders are scanned off the main actor, once each:
+    /// a library can hold dozens of games, and each scan reads several
+    /// folder levels.
     public func startTracking(games: [SteamGame]) {
         trackingTask?.cancel()
-        for game in games where executableNamesByAppId[game.appId] == nil {
-            executableNamesByAppId[game.appId] = SteamLibrary.executableNames(under: game.installURL)
-        }
+        let unscanned = games.filter { executableNamesByAppId[$0.appId] == nil }
         trackingTask = Task { [weak self] in
+            if !unscanned.isEmpty {
+                let scanned = await Self.executableNames(of: unscanned)
+                guard let self else { return }
+                executableNamesByAppId.merge(scanned) { current, _ in current }
+            }
             while !Task.isCancelled {
                 await self?.refreshRunningState()
                 guard let interval = self?.timing.trackingInterval else { return }
                 try? await Task.sleep(for: interval)
             }
         }
+    }
+
+    /// Each game's executable names, read on a background thread.
+    nonisolated static func executableNames(of games: [SteamGame]) async -> [Int: Set<String>] {
+        await Task.detached(priority: .utility) {
+            Dictionary(
+                games.map { ($0.appId, SteamLibrary.executableNames(under: $0.installURL)) },
+                uniquingKeysWith: { first, _ in first }
+            )
+        }.value
     }
 
     /// Asks the game's processes to close, then refreshes the running state.
@@ -236,13 +253,55 @@ public final class SteamClientOrchestrator: ObservableObject {
         if Self.shouldApplyLauncherFixes(settings: bottle.settings) {
             driver.applyLauncherFixes()
         }
+        // Other bottles' clients, so the wait can tell a new one from them.
+        let hostClientsBeforeStart = await driver.hostSteamPIDs()
         driver.startClient(steamExe: steamExe)
 
-        if await watch.waitForAny(of: ["steam.exe"], timeout: timing.clientReadyTimeout) {
+        if await waitForStartedClient(excluding: hostClientsBeforeStart) {
             driver.clientDidBecomeReady()
             return
         }
         throw SteamOrchestratorError.clientTimeout
+    }
+
+    /// Waits for the client this started, watching the host's process list
+    /// until a `steam.exe` that wasn't running before the start shows up, and
+    /// only then asking the bottle.
+    ///
+    /// On a cold prefix the client starts once Wine's boot has settled, and a
+    /// `tasklist.exe` every poll kept the boot busy: the wait ran out first and
+    /// `-applaunch` was never sent, while Steam came up after. Reading `ps`
+    /// starts no Wine process. It isn't scoped to the bottle, though, so once
+    /// a new `steam.exe` is up the bottle's own list confirms it is this one.
+    /// That check repeats, at most once per snapshot, while the new client is
+    /// still running: the first look can come back without it (a list read
+    /// that started just before it registered), and giving up there ran the
+    /// wait out with Steam already up. A client already running in another
+    /// bottle is in the `excluding` set, so it neither ends the wait nor turns
+    /// it back into polling the bottle.
+    ///
+    /// - Parameter running: Host PIDs of `steam.exe` from before the start.
+    private func waitForStartedClient(excluding running: Set<Int32>) async -> Bool {
+        let deadline = Date(timeIntervalSinceNow: timing.clientReadyTimeout)
+        var seen = running
+        // New host clients not yet confirmed in this bottle, while they run.
+        var unconfirmed = Set<Int32>()
+        repeat {
+            let host = await driver.hostSteamPIDs()
+            let new = host.subtracting(seen)
+            seen.formUnion(host)
+            unconfirmed = unconfirmed.union(new).intersection(host)
+            if !new.isEmpty {
+                // The snapshot from before the start can't have this client in it.
+                processSnapshot = nil
+            }
+            if !unconfirmed.isEmpty, await isClientRunning() {
+                return true
+            }
+            try? await Task.sleep(for: timing.pollInterval)
+            guard !Task.isCancelled else { return false }
+        } while Date() < deadline
+        return false
     }
 
     private func isClientRunning() async -> Bool {

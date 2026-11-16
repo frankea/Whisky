@@ -37,15 +37,15 @@ public enum DLLOverrideMode: String, Codable, CaseIterable, Sendable, Equatable,
     public var displayName: String {
         switch self {
         case .builtin:
-            "Builtin (b)"
+            String(localized: "config.dllOverrides.mode.builtin")
         case .native:
-            "Native (n)"
+            String(localized: "config.dllOverrides.mode.native")
         case .nativeThenBuiltin:
-            "Native then Builtin (n,b)"
+            String(localized: "config.dllOverrides.mode.nativeThenBuiltin")
         case .builtinThenNative:
-            "Builtin then Native (b,n)"
+            String(localized: "config.dllOverrides.mode.builtinThenNative")
         case .disabled:
-            "Disabled"
+            String(localized: "config.dllOverrides.mode.disabled")
         }
     }
 }
@@ -142,6 +142,53 @@ public struct DLLOverrideResolver: Sendable {
         self.managed = managed
         self.bottleCustom = bottleCustom
         self.programCustom = programCustom
+    }
+
+    /// Parses a `WINEDLLOVERRIDES` value into entries, the way Wine reads it.
+    ///
+    /// Entries are separated by `;`, and each is `dll[,dll...]=mode`: one mode
+    /// can name several DLLs. A mode is read the way Wine's loader reads it
+    /// (``mode(_:)``), so `d3d11=d` disables `d3d11` as it does in Wine. Names
+    /// are lowercased, as Wine compares them without case. An entry with no
+    /// `=` or no DLL name is skipped, so one typo does not cost the rest of
+    /// the value.
+    ///
+    /// - Parameter value: A `WINEDLLOVERRIDES`-syntax string.
+    /// - Returns: One entry per DLL named, in order.
+    public static func parse(_ value: String) -> [DLLOverrideEntry] {
+        let separators = CharacterSet(charactersIn: ", \t")
+        return value.split(separator: ";").flatMap { clause -> [DLLOverrideEntry] in
+            let halves = clause.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
+            guard halves.count == 2 else { return [] }
+            let loadOrder = mode(String(halves[1]))
+            return String(halves[0])
+                .components(separatedBy: separators)
+                .filter { !$0.isEmpty }
+                .map { DLLOverrideEntry(dllName: $0.lowercased(), mode: loadOrder) }
+        }
+    }
+
+    /// The mode a `WINEDLLOVERRIDES` mode string names, read as Wine's
+    /// `parse_load_order` does.
+    ///
+    /// Only the first letter of each word counts, and words starting with
+    /// anything but `n` or `b` are ignored. The first `n` or `b` picks native
+    /// or builtin; a later one of the other letter makes it `n,b` or `b,n`.
+    /// With neither letter the DLL is disabled, which is why `d`, `disabled`
+    /// and an empty mode all disable it.
+    static func mode(_ text: String) -> DLLOverrideMode {
+        var result = DLLOverrideMode.disabled
+        let words = text.lowercased().components(separatedBy: CharacterSet(charactersIn: ", \t"))
+        for letter in words.compactMap(\.first) {
+            switch (letter, result) {
+            case ("n", .disabled): result = .native
+            case ("b", .disabled): result = .builtin
+            case ("n", .builtin): return .builtinThenNative
+            case ("b", .native): return .nativeThenBuiltin
+            default: continue
+            }
+        }
+        return result
     }
 
     /// The standard DXVK DLL override preset.
@@ -288,7 +335,7 @@ public struct DLLOverrideResolver: Sendable {
                 warnings.append(DLLOverrideWarning(
                     dllName: dllName,
                     overriddenSource: source,
-                    message: "Override for \(dllName) overrides \(sourceDesc) setting"
+                    message: String(localized: "config.dllOverrides.warning.conflict \(dllName) \(sourceDesc)")
                 ))
             }
         }

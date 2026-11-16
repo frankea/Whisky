@@ -27,14 +27,21 @@ import Foundation
 public struct GameConfigAvailableCheck: TroubleshootingCheck {
     public let checkId = "game.config_available"
 
+    private static let noProgramSummary = "No program specified for game matching"
+    private static let emptyDatabaseSummary = "Game database is empty"
+
     public init() {}
+
+    public let signature: CheckSignature? = CheckSignature(
+        outcomes: [.pass, .fail, .unknown]
+    )
 
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         guard let programName = context.programName else {
             return CheckResult(
                 outcome: .unknown,
                 evidence: [:],
-                summary: "No program specified for game matching",
+                summary: Self.noProgramSummary,
                 confidence: .low
             )
         }
@@ -44,7 +51,7 @@ public struct GameConfigAvailableCheck: TroubleshootingCheck {
             return CheckResult(
                 outcome: .unknown,
                 evidence: [:],
-                summary: "Game database is empty",
+                summary: Self.emptyDatabaseSummary,
                 confidence: .low
             )
         }
@@ -69,7 +76,7 @@ public struct GameConfigAvailableCheck: TroubleshootingCheck {
             "variantCount": "\(result.entry.variants.count)"
         ]
 
-        evidence["rating"] = String(describing: result.entry.rating)
+        evidence["rating"] = result.entry.rating.displayName
 
         return CheckResult(
             outcome: .pass,
@@ -77,5 +84,36 @@ public struct GameConfigAvailableCheck: TroubleshootingCheck {
             summary: "Known config available: \(result.entry.title)",
             confidence: .high
         )
+    }
+
+    /// The summary of a result from this check in the user's language.
+    ///
+    /// ``CheckResult/summary`` stays in English because it is written to
+    /// history and escalation exports; this rebuilds the on-screen text from
+    /// the result's outcome and evidence.
+    ///
+    /// - Parameter result: A result produced by ``run(params:context:)``.
+    /// - Returns: The localized summary, or `nil` if the result was not
+    ///   produced by this check.
+    public static func localizedSummary(for result: CheckResult) -> String? {
+        switch result.outcome {
+        case .unknown:
+            switch result.summary {
+            case noProgramSummary:
+                return String(localized: "troubleshooting.check.gameConfig.noProgram")
+            case emptyDatabaseSummary:
+                return String(localized: "troubleshooting.check.gameConfig.emptyDatabase")
+            default:
+                return nil
+            }
+        case .fail:
+            guard let programName = result.evidence["programName"] else { return nil }
+            return String(localized: "troubleshooting.check.gameConfig.none \(programName)")
+        case .pass:
+            guard let gameName = result.evidence["gameName"] else { return nil }
+            return String(localized: "troubleshooting.check.gameConfig.available \(gameName)")
+        case .alreadyConfigured, .error:
+            return nil
+        }
     }
 }

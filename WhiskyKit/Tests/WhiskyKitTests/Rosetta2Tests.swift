@@ -51,6 +51,21 @@ final class Rosetta2Tests: XCTestCase {
         XCTAssertEqual(Rosetta2.isRosettaInstalled, fileExists)
     }
 
+    func testRuntimeLookupIsLiveNotCached() throws {
+        // A macOS update can remove Rosetta and the user can reinstall it while
+        // the app runs, so each read has to reflect the file as it is now.
+        let runtime = try makeTempDir().appending(path: "libRosettaRuntime")
+        Rosetta2.runtimePath = runtime.path(percentEncoded: false)
+        defer { Rosetta2.runtimePath = Rosetta2.rosetta2RuntimeBin }
+        XCTAssertFalse(Rosetta2.isRosettaInstalled)
+
+        try Data("x".utf8).write(to: runtime)
+        XCTAssertTrue(Rosetta2.isRosettaInstalled)
+
+        try FileManager.default.removeItem(at: runtime)
+        XCTAssertFalse(Rosetta2.isRosettaInstalled)
+    }
+
     // MARK: - installRosetta API Contract Tests
 
     /// Verifies that the installRosetta method has the expected API contract.

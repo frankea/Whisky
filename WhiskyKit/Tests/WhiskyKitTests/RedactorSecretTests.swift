@@ -82,6 +82,53 @@ struct RedactorSecretTests {
         #expect(out.hasSuffix("--token <redacted>"))
     }
 
+    @Test("Wine profile paths lose the account name", arguments: [
+        (#"C:\users\alice\AppData\Local"#, #"C:\users\<redacted>\AppData\Local"#),
+        (#"Z:/Users/Bob/Desktop"#, #"Z:/Users/<redacted>/Desktop"#),
+        (#"c:\\users\\carol\\x.ini"#, #"c:\\users\\<redacted>\\x.ini"#),
+        ("prefix/drive_c/users/dave/Documents", "prefix/drive_c/users/<redacted>/Documents"),
+        (#"open "C:\users\erin""#, #"open "C:\users\<redacted>""#),
+        (#"C:\users\Publicity\x"#, #"C:\users\<redacted>\x"#),
+        (#"C:\users\alice,next"#, #"C:\users\<redacted>,next"#),
+        (#"open (C:\users\alice) ok"#, #"open (C:\users\<redacted>) ok"#),
+        (#"C:\users\bob;D:\x"#, #"C:\users\<redacted>;D:\x"#),
+        ("[drive_c/users/carol]", "[drive_c/users/<redacted>]")
+    ])
+    func wineProfilePaths(input: String, expected: String) {
+        #expect(Redactor.redactHomePaths(input) == expected)
+    }
+
+    @Test("Shared Wine profiles stay readable", arguments: [
+        #"C:\users\crossover\AppData"#,
+        #"C:\Users\Public\Documents"#,
+        "drive_c/users/Shared/Steam",
+        "drive_c/users/crossover",
+        #"C:\users\"#,
+        #"(C:\users\crossover)"#,
+        #"(C:\users\Public)"#,
+        #"C:\users\Public;D:\x"#,
+        #"C:\users\crossover;C:\windows"#,
+        #"dir C:\users\Public, done"#,
+        "[drive_c/users/crossover]"
+    ])
+    func sharedProfilesKept(input: String) {
+        #expect(Redactor.redactHomePaths(input) == input)
+    }
+
+    @Test("Home and Wine profile redaction compose in a bottle path")
+    func homeAndProfileCompose() {
+        var home = FileManager.default.homeDirectoryForCurrentUser.path(percentEncoded: false)
+        if home.hasSuffix("/") {
+            home.removeLast()
+        }
+        let text = "\(home)/Library/Bottles/b/drive_c/users/frank/AppData err C:\\users\\frank\\x"
+        let out = Redactor.redactLogText(text)
+        let expected = "/Users/<redacted>/Library/Bottles/b/drive_c/users/<redacted>/AppData"
+            + #" err C:\users\<redacted>\x"#
+        #expect(out == expected)
+        #expect(!out.contains("frank"))
+    }
+
     @Test("Program arguments are scrubbed unless sensitive details are included")
     @MainActor func programSummaryGating() throws {
         let dir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)

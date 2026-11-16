@@ -51,7 +51,7 @@ struct AudioTestButtonsView: View {
     // MARK: - Test Wine Audio
 
     private var testWineAudioButton: some View {
-        Button("Test Wine Audio") {
+        Button("audio.test.wine") {
             runAllProbes()
         }
         .buttonStyle(.borderedProminent)
@@ -85,7 +85,7 @@ struct AudioTestButtonsView: View {
     // MARK: - Play Test Tone
 
     private var playTestToneButton: some View {
-        Button("Play Test Tone") {
+        Button("audio.test.tone") {
             runToneTest()
         }
         .buttonStyle(.bordered)
@@ -108,29 +108,30 @@ struct AudioTestButtonsView: View {
 
     private var toneConfirmationRow: some View {
         HStack(spacing: 8) {
-            Text("Did you hear the tone?")
+            Text("audio.test.toneQuestion")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Button("Yes") {
+            Button("audio.test.toneYes") {
                 onStatusUpdate(.healthy)
                 showToneConfirmation = false
             }
             .controlSize(.small)
-            Button("No") {
+            Button("audio.test.toneNo") {
+                let notAudible = String(localized: "audio.test.toneNotAudible")
                 let finding = AudioFinding(
                     id: "tone-not-audible",
-                    description: "Test tone not audible",
+                    description: notAudible,
                     confidence: .high,
-                    evidence: "User confirmed no audio heard during tone playback test",
-                    suggestedAction: "Check Wine audio driver and system output device settings"
+                    evidence: String(localized: "audio.test.toneNotAudible.evidence"),
+                    suggestedAction: String(localized: "audio.test.toneNotAudible.action")
                 )
                 let result = AudioProbeResult(
                     probeId: "tone-confirmation",
                     status: .error,
-                    summary: "Test tone not audible",
+                    summary: notAudible,
                     findings: [finding]
                 )
-                onStatusUpdate(.broken(primaryIssue: "Test tone not audible"))
+                onStatusUpdate(.broken(primaryIssue: notAudible))
                 onTestComplete([result])
                 showToneConfirmation = false
             }
@@ -149,7 +150,7 @@ struct AudioTestButtonsView: View {
                 // Full status requires running probes, so we just signal unknown to refresh the UI.
                 onStatusUpdate(.unknown)
             } else {
-                onStatusUpdate(.broken(primaryIssue: "No audio output device"))
+                onStatusUpdate(.broken(primaryIssue: String(localized: "audio.status.noOutputDevice")))
             }
         } label: {
             Image(systemName: "arrow.clockwise")
@@ -168,12 +169,13 @@ struct AudioTestButtonsView: View {
 
         if hasError {
             let primaryIssue = allFindings.first(where: { $0.confidence == .high })?.description
-                ?? allFindings.first?.description ?? "Audio stack error"
+                ?? allFindings.first?.description ?? String(localized: "audio.status.stackError")
             return .broken(primaryIssue: primaryIssue)
         }
 
         if hasWarning {
-            let primaryIssue = allFindings.first?.description ?? "Potential audio issue"
+            let primaryIssue = allFindings.first?.description
+                ?? String(localized: "audio.status.potentialIssue")
             return .degraded(primaryIssue: primaryIssue)
         }
 

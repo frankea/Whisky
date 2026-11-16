@@ -95,9 +95,15 @@ struct BottleActionBar: View {
                                     // This completes synchronously on MainActor, ensuring settings are
                                     // persisted before Wine.runProgram() reads them
                                     LauncherFixes.detectAndApply(from: url, for: bottle)
+                                    // After detection: in Automatic mode the policy
+                                    // depends on the launcher.
+                                    let clipboard = bottle.performClipboardCheck()
+                                    if case let .autoCleared(contentType, sizeBytes) = clipboard {
+                                        toast = .clipboardCleared(contentType: contentType, sizeBytes: sizeBytes)
+                                    }
 
                                     Telemetry.capture(.firstProgramLaunchAttempted)
-                                    if url.pathExtension == "bat" {
+                                    if Wine.isBatchFile(url) {
                                         try await Wine.runBatchFile(url: url, bottle: bottle)
                                     } else {
                                         try await Wine.runProgram(at: url, bottle: bottle)

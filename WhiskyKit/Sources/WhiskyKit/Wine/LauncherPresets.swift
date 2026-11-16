@@ -35,6 +35,24 @@ public enum FixCategory: String, Codable, CaseIterable, Sendable {
     case threading
     /// General compatibility workarounds
     case compatibility
+
+    /// Localized name of the category for display in the UI.
+    public var displayName: String {
+        switch self {
+        case .locale:
+            String(localized: "locale.title")
+        case .sandbox:
+            String(localized: "launcher.fixCategory.sandbox")
+        case .graphics:
+            String(localized: "config.title.graphics")
+        case .network:
+            String(localized: "launcher.fixCategory.network")
+        case .threading:
+            String(localized: "launcher.fixCategory.threading")
+        case .compatibility:
+            String(localized: "launcher.fixCategory.compatibility")
+        }
+    }
 }
 
 /// Structured metadata for a single launcher-specific environment variable fix.
@@ -59,6 +77,15 @@ public struct LauncherFixDetail: Sendable {
     public let reason: String
     /// The category of issue this fix addresses.
     public let category: FixCategory
+}
+
+/// What one of a launcher's ``LauncherType/chainExecutables`` draws with.
+enum LauncherChainRole: Sendable {
+    /// Direct2D on a D3D10.1 device, which only Wine's own Direct3D makes
+    /// (``RockstarD3DLayout``).
+    case wineDirect3D
+    /// A Chromium process, which draws on DXVK like Steam's web helper.
+    case chromium
 }
 
 /// Represents different game launcher platforms with optimized configurations.
@@ -90,6 +117,7 @@ public struct LauncherFixDetail: Sendable {
 /// - ``ubisoft``
 /// - ``battleNet``
 /// - ``paradox``
+/// - ``rsiLauncher``
 ///
 /// ### Configuration
 /// - ``environmentOverrides()``
@@ -110,6 +138,8 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     case battleNet = "Battle.net"
     /// Paradox Launcher
     case paradox = "Paradox Launcher"
+    /// RSI Launcher (Cloud Imperium's Electron launcher for Star Citizen)
+    case rsiLauncher = "RSI Launcher"
 
     public var id: String {
         rawValue
@@ -132,6 +162,8 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             "Battle.net"
         case .paradox:
             "Paradox Launcher"
+        case .rsiLauncher:
+            "RSI Launcher"
         }
     }
 
@@ -148,7 +180,7 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     /// Returns optimized environment variables for this launcher.
     ///
     /// These overrides address specific compatibility issues:
-    /// - **Steam**: Fixes steamwebhelper crashes (whisky-app/whisky#946, #1224, #1241) via locale and CEF sandbox
+    /// - **Steam**: Fixes steamwebhelper crashes by disabling its CEF sandbox
     /// - **Rockstar**: Requires DXVK for logo rendering (whisky-app/whisky#1335, #835)
     /// - **EA App/Epic**: Chromium-based, need sandbox and locale fixes
     /// - **Ubisoft**: DXVK async for Anno 1800 and other Ubisoft games (whisky-app/whisky#1004)
@@ -162,14 +194,10 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
 
         switch self {
         case .steam:
-            // Steam-specific fixes for steamwebhelper crashes
-            // (whisky-app/whisky#946, #1224, #1241)
-            // The Chromium Embedded Framework in Steam requires specific locale
-            env["LC_ALL"] = "en_US.UTF-8"
-            env["LANG"] = "en_US.UTF-8"
-            // Force C locale for numeric/time to avoid ICU parsing errors
-            env["LC_TIME"] = "C"
-            env["LC_NUMERIC"] = "C"
+            // No locale: steamwebhelper starts and signs in under German and
+            // Japanese on both the stable and the beta engines, so Auto leaves
+            // the locale of Steam and its games to the Mac (#330). Steam's own
+            // interface language is its setting, picked from the locale on install.
 
             // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
             // for all launchers. We only set Steam-specific variant here.
@@ -180,10 +208,6 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
 
             // Reduce UI stuttering in Steam client
             env["DXVK_ASYNC"] = "1"
-
-            // Note: Network timeouts for Steam are configured via bottle.settings.networkTimeout
-            // which is set to 90000ms by LauncherFixes.apply()
-            // This allows users to customize timeouts via the UI slider
 
         case .rockstar:
             // Rockstar Launcher fixes (whisky-app/whisky#1335, #835, #1120)
@@ -204,8 +228,6 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             env["LC_ALL"] = "en_US.UTF-8"
             env["LANG"] = "en_US.UTF-8"
 
-            // Note: Network timeouts configured via bottle.settings.networkTimeout (default 60s)
-
         case .epicGames:
             // Epic Games Store launcher fixes
             // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
@@ -216,9 +238,6 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             // Anno 1800 and other Ubisoft games compatibility
             env["DXVK_ASYNC"] = "1"
 
-            // Note: Network timeouts for Ubisoft are configured via bottle.settings.networkTimeout
-            // which is set to 90000ms by LauncherFixes.apply()
-
         case .battleNet:
             // Blizzard Battle.net launcher
             // Note: CEF_DISABLE_SANDBOX is set globally in MacOSCompatibility.swift
@@ -228,6 +247,12 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             // No environment fix: the old resource lookup workaround
             // (whisky-app/whisky#1091) set a variable no runtime reads.
             break
+
+        case .rsiLauncher:
+            // No environment fix: what the launcher needs is DXVK, which the
+            // resolver gives it per executable (#168). Anything set here would
+            // reach the bottle's environment, and so Star Citizen as well.
+            break
         }
 
         return env
@@ -236,6 +261,14 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     /// Indicates whether this launcher requires DXVK to function.
     ///
     /// Some launchers (notably Rockstar) will not render their UI without DXVK enabled.
+    ///
+    /// This is the bottle-wide requirement: it puts the DXVK preset into the
+    /// overrides every program in the bottle runs with. Launchers whose own
+    /// executables carry DXVK through the resolver (the RSI Launcher, whose
+    /// Chromium children run as the same executable) stay `false`, so the
+    /// bottle's overrides stay the games'. A game such a launcher starts itself
+    /// still loads the DXVK files its launch left in the prefix wherever those
+    /// overrides prefer native DLLs, as DXMT's do (see `LauncherFixes.apply`).
     public var requiresDXVK: Bool {
         switch self {
         case .rockstar:
@@ -268,6 +301,11 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
             ["Battle.net Helper.exe"]
         case .rockstar, .ubisoft, .paradox:
             []
+        case .rsiLauncher:
+            // Its Chromium processes (gpu-process, renderer, utility) run as
+            // `RSI Launcher.exe` itself, so the launched executable's own entry
+            // covers them. StarCitizen.exe is a game, and stays off the list.
+            []
         }
     }
 
@@ -277,16 +315,25 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     ///
     /// Rockstar's: a Rockstar title bought on Steam (Red Dead Redemption 2's
     /// `PlayRDR2.exe`) starts the Rockstar Games Launcher and Social Club inside
-    /// the Steam session. Both draw with Chromium and need DXVK the way Steam's
-    /// helper does. `Launcher.exe` also needs `d3d12` off: it asks D3D12 for
-    /// graphics information at startup, and with D3DMetal's `d3d12` reachable
-    /// that query hangs its shutdown, which keeps the game "running" in Steam
-    /// (#276). Social Club gets the same entry, the layout measured there.
+    /// the Steam session. They draw differently, so each has a role
+    /// (``chainRoles``). `Launcher.exe` draws its window with Direct2D on a
+    /// D3D10.1 device, which no backend Whisky ships can make, so it needs
+    /// Wine's own Direct3D (#382). Only `SocialClubHelper.exe` is Chromium, and
+    /// it needs DXVK the way Steam's helper does. Both keep `d3d12` off:
+    /// `Launcher.exe` asks D3D12 for graphics information at startup, and with
+    /// D3DMetal's `d3d12` reachable that query hangs its shutdown, which keeps
+    /// the game "running" in Steam (#276).
     public var chainExecutables: [String] {
+        chainRoles.map(\.executable)
+    }
+
+    /// Each of ``chainExecutables`` with what it draws with, which decides
+    /// the `AppDefaults` entry a launch writes it.
+    var chainRoles: [(executable: String, role: LauncherChainRole)] {
         switch self {
         case .rockstar:
-            ["Launcher.exe", "SocialClubHelper.exe"]
-        case .steam, .epicGames, .eaApp, .battleNet, .ubisoft, .paradox:
+            [("Launcher.exe", .wineDirect3D), ("SocialClubHelper.exe", .chromium)]
+        case .steam, .epicGames, .eaApp, .battleNet, .ubisoft, .paradox, .rsiLauncher:
             []
         }
     }
@@ -308,34 +355,37 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
 
     /// The recommended locale for this launcher.
     ///
-    /// Most launchers work best with US English locale to avoid
-    /// date/time parsing issues in embedded web views.
+    /// EA App, Epic Games, and Battle.net keep US English for their embedded
+    /// web views. Steam needs none: its web helper runs under other locales
+    /// (#330).
     public var recommendedLocale: Locales {
         switch self {
-        case .steam, .eaApp, .epicGames, .battleNet:
+        case .eaApp, .epicGames, .battleNet:
             .english
         default:
             .auto
         }
     }
 
-    /// User-friendly description of common issues this preset fixes.
+    /// Localized description of common issues this preset fixes, for display in the UI.
     public var fixesDescription: String {
         switch self {
         case .steam:
-            "Fixes steamwebhelper crashes, download stalls, and connection issues"
+            String(localized: "launcher.fixes.description.steam")
         case .rockstar:
-            "Fixes logo freeze and launcher initialization failures"
+            String(localized: "launcher.fixes.description.rockstar")
         case .eaApp:
-            "Fixes black screen and GPU detection errors"
+            String(localized: "launcher.fixes.description.eaApp")
         case .epicGames:
-            "Fixes launcher UI rendering and web view issues"
+            String(localized: "launcher.fixes.description.epicGames")
         case .ubisoft:
-            "Improves launcher stability and game compatibility"
+            String(localized: "launcher.fixes.description.ubisoft")
         case .battleNet:
-            "Fixes authentication and launcher rendering issues"
+            String(localized: "launcher.fixes.description.battleNet")
         case .paradox:
-            "No launcher-specific fixes needed"
+            String(localized: "launcher.fixes.description.paradox")
+        case .rsiLauncher:
+            String(localized: "launcher.fixes.description.rsiLauncher")
         }
     }
 }

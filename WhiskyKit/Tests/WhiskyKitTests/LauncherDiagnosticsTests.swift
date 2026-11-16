@@ -95,7 +95,6 @@ final class LauncherDiagnosticsTests: XCTestCase {
         bottle.settings.detectedLauncher = .steam
         bottle.settings.launcherLocale = .english
         bottle.settings.gpuSpoofing = true
-        bottle.settings.networkTimeout = 90_000
 
         var env: [String: String] = [:]
         bottle.settings.environmentVariables(wineEnv: &env)
@@ -104,7 +103,6 @@ final class LauncherDiagnosticsTests: XCTestCase {
         XCTAssertNotNil(env["STEAM_DISABLE_CEF_SANDBOX"])
         XCTAssertNotNil(env["LC_ALL"])
         XCTAssertNotNil(env["MESA_GL_VERSION_OVERRIDE"])
-        XCTAssertNotNil(env["WINHTTP_CONNECT_TIMEOUT"])
     }
 
     func testEnvironmentVariablesWithoutLauncherCompatibility() throws {
@@ -139,31 +137,6 @@ final class LauncherDiagnosticsTests: XCTestCase {
 
         // Should handle nil launcher gracefully without crashing
         XCTAssertTrue(true, "Should not crash with nil launcher")
-    }
-
-    func testDiagnosticsWithExtremeTimeout() throws {
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempURL) }
-
-        let bottle = Bottle(bottleUrl: tempURL, inFlight: false, isAvailable: true)
-        bottle.settings.launcherCompatibilityMode = true
-
-        // Test extreme timeout values
-        bottle.settings.networkTimeout = 30_000 // Minimum
-        var env1: [String: String] = [:]
-        bottle.settings.environmentVariables(wineEnv: &env1)
-        XCTAssertEqual(env1["WINHTTP_CONNECT_TIMEOUT"], "30000")
-
-        bottle.settings.networkTimeout = 180_000 // Maximum
-        var env2: [String: String] = [:]
-        bottle.settings.environmentVariables(wineEnv: &env2)
-        XCTAssertEqual(env2["WINHTTP_CONNECT_TIMEOUT"], "180000")
-
-        bottle.settings.networkTimeout = 60_000 // Default (should not set)
-        var env3: [String: String] = [:]
-        bottle.settings.environmentVariables(wineEnv: &env3)
-        XCTAssertNil(env3["WINHTTP_CONNECT_TIMEOUT"], "Default timeout should not set environment variable")
     }
 
     func testDiagnosticsWithAllGPUVendors() throws {
@@ -204,7 +177,6 @@ final class LauncherDiagnosticsTests: XCTestCase {
         bottle.settings.launcherLocale = .english
         bottle.settings.gpuSpoofing = true
         bottle.settings.gpuVendor = .nvidia
-        bottle.settings.networkTimeout = 90_000
         bottle.settings.autoEnableDXVK = true
 
         // Save settings
@@ -220,7 +192,6 @@ final class LauncherDiagnosticsTests: XCTestCase {
         XCTAssertEqual(bottle2.settings.launcherLocale, .english)
         XCTAssertTrue(bottle2.settings.gpuSpoofing)
         XCTAssertEqual(bottle2.settings.gpuVendor, .nvidia)
-        XCTAssertEqual(bottle2.settings.networkTimeout, 90_000)
         XCTAssertTrue(bottle2.settings.autoEnableDXVK)
     }
 
@@ -239,7 +210,6 @@ final class LauncherDiagnosticsTests: XCTestCase {
         XCTAssertEqual(bottle.settings.launcherLocale, .auto, "Should default to auto locale")
         XCTAssertTrue(bottle.settings.gpuSpoofing, "Should default to enabled")
         XCTAssertEqual(bottle.settings.gpuVendor, .nvidia, "Should default to NVIDIA")
-        XCTAssertEqual(bottle.settings.networkTimeout, 60_000, "Should default to 60 seconds")
         XCTAssertTrue(bottle.settings.autoEnableDXVK, "Should default to enabled")
     }
 
@@ -339,41 +309,6 @@ final class LauncherDiagnosticsTests: XCTestCase {
         XCTAssertNil(env["LANG"], "Should not set LANG to empty string")
     }
 
-    // MARK: - Network Timeout Tests
-
-    func testNetworkTimeoutOnlyAppliedWhenNonDefault() throws {
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempURL) }
-
-        let bottle = Bottle(bottleUrl: tempURL, inFlight: false, isAvailable: true)
-        bottle.settings.launcherCompatibilityMode = true
-        bottle.settings.networkTimeout = 60_000 // Default
-
-        var env: [String: String] = [:]
-        bottle.settings.environmentVariables(wineEnv: &env)
-
-        // Default timeout should not set environment variables
-        XCTAssertNil(env["WINHTTP_CONNECT_TIMEOUT"], "Default timeout should not set environment variable")
-    }
-
-    func testCustomNetworkTimeoutApplied() throws {
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempURL) }
-
-        let bottle = Bottle(bottleUrl: tempURL, inFlight: false, isAvailable: true)
-        bottle.settings.launcherCompatibilityMode = true
-        bottle.settings.networkTimeout = 120_000 // Custom
-
-        var env: [String: String] = [:]
-        bottle.settings.environmentVariables(wineEnv: &env)
-
-        // Custom timeout should be applied
-        XCTAssertEqual(env["WINHTTP_CONNECT_TIMEOUT"], "120000")
-        XCTAssertEqual(env["WINHTTP_RECEIVE_TIMEOUT"], "240000") // 2x connect timeout
-    }
-
     // MARK: - Auto-Enable DXVK Tests
 
     func testAutoEnableDXVKForRockstar() throws {
@@ -429,7 +364,7 @@ final class LauncherDiagnosticsTests: XCTestCase {
     }
 
     func testRecommendedLocales() {
-        XCTAssertEqual(LauncherType.steam.recommendedLocale, .english)
+        XCTAssertEqual(LauncherType.steam.recommendedLocale, .auto)
         XCTAssertEqual(LauncherType.eaApp.recommendedLocale, .english)
         XCTAssertEqual(LauncherType.epicGames.recommendedLocale, .english)
         XCTAssertEqual(LauncherType.battleNet.recommendedLocale, .english)
@@ -491,7 +426,6 @@ final class LauncherDiagnosticsTests: XCTestCase {
         config.launcherLocale = .english
         config.gpuSpoofing = true
         config.gpuVendor = .amd
-        config.networkTimeout = 90_000
         config.autoEnableDXVK = false
 
         // Encode
@@ -509,15 +443,63 @@ final class LauncherDiagnosticsTests: XCTestCase {
         XCTAssertEqual(decoded.launcherLocale, .english)
         XCTAssertEqual(decoded.gpuSpoofing, true)
         XCTAssertEqual(decoded.gpuVendor, .amd)
-        XCTAssertEqual(decoded.networkTimeout, 90_000)
         XCTAssertEqual(decoded.autoEnableDXVK, false)
+    }
+
+    /// Bottles saved before the network timeout setting was removed carry a
+    /// `networkTimeout` key; it must be ignored, not fail the decode.
+    func testLegacyNetworkTimeoutKeyStillDecodes() throws {
+        var config = BottleLauncherConfig()
+        config.compatibilityMode = true
+        config.detectedLauncher = .steam
+        config.gpuVendor = .amd
+        config.autoEnableDXVK = false
+
+        let data = try PropertyListEncoder().encode(config)
+        var dictionary = try XCTUnwrap(
+            PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+        )
+        dictionary["networkTimeout"] = 90_000
+        let legacy = try PropertyListSerialization.data(fromPropertyList: dictionary, format: .xml, options: 0)
+
+        let decoded = try PropertyListDecoder().decode(BottleLauncherConfig.self, from: legacy)
+        XCTAssertTrue(decoded.compatibilityMode)
+        XCTAssertEqual(decoded.detectedLauncher, .steam)
+        XCTAssertEqual(decoded.gpuVendor, .amd)
+        XCTAssertFalse(decoded.autoEnableDXVK)
+    }
+
+    /// The same legacy key inside a whole bottle's settings file decodes,
+    /// and no longer puts any WinHTTP variable into the environment.
+    func testLegacyNetworkTimeoutInBottleSettingsSetsNoWinHTTPVariables() throws {
+        var settings = BottleSettings()
+        settings.launcherCompatibilityMode = true
+        settings.detectedLauncher = .steam
+
+        let data = try PropertyListEncoder().encode(settings)
+        var dictionary = try XCTUnwrap(
+            PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+        )
+        var launcher = try XCTUnwrap(dictionary["launcherConfig"] as? [String: Any])
+        launcher["networkTimeout"] = 120_000
+        dictionary["launcherConfig"] = launcher
+        let legacy = try PropertyListSerialization.data(fromPropertyList: dictionary, format: .xml, options: 0)
+
+        let decoded = try PropertyListDecoder().decode(BottleSettings.self, from: legacy)
+        XCTAssertTrue(decoded.launcherCompatibilityMode)
+        XCTAssertEqual(decoded.detectedLauncher, .steam)
+
+        var env: [String: String] = [:]
+        decoded.environmentVariables(wineEnv: &env)
+        XCTAssertEqual(env["STEAM_DISABLE_CEF_SANDBOX"], "1")
+        XCTAssertTrue(env.keys.filter { $0.hasPrefix("WINHTTP_") }.isEmpty)
     }
 
     // MARK: - Locale Preservation Tests
 
     func testSteamLocaleNotOverwritten() throws {
-        // CRITICAL: Verify that Steam's "en_US.UTF-8" locale is not overwritten
-        // with "en_US" (missing .UTF-8 suffix) which would break steamwebhelper
+        // An explicit English override on a Steam bottle resolves to the full
+        // "en_US.UTF-8", never a bare "en_US"
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempURL) }
@@ -525,15 +507,13 @@ final class LauncherDiagnosticsTests: XCTestCase {
         let bottle = Bottle(bottleUrl: tempURL, inFlight: false, isAvailable: true)
         bottle.settings.launcherCompatibilityMode = true
         bottle.settings.detectedLauncher = .steam
-        bottle.settings.launcherLocale = .english // This is set by LauncherDetection
+        bottle.settings.launcherLocale = .english
 
         // Get full Wine environment (includes launcher preset + bottle settings)
         let env = Wine.constructWineEnvironment(for: bottle, environment: [:])
 
-        // CRITICAL: LC_ALL must be "en_US.UTF-8" (with .UTF-8 suffix) not just "en_US"
-        // The .UTF-8 suffix is essential for preventing steamwebhelper crashes
-        XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8", "Steam's LC_ALL must have .UTF-8 suffix")
-        XCTAssertEqual(env["LANG"], "en_US.UTF-8", "Steam's LANG must have .UTF-8 suffix")
+        XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8", "LC_ALL must have the .UTF-8 suffix")
+        XCTAssertEqual(env["LANG"], "en_US.UTF-8", "LANG must have the .UTF-8 suffix")
     }
 
     func testEnglishLocaleIncludesUTF8() {

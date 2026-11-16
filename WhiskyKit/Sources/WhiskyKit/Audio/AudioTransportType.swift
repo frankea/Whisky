@@ -20,7 +20,7 @@ import CoreAudio
 import Foundation
 
 /// Maps CoreAudio transport type constants to Swift cases for audio device classification.
-public enum AudioTransportType: String, Sendable, Codable, Equatable {
+public enum AudioTransportType: String, Sendable, Codable, Equatable, CaseIterable {
     case builtIn
     case usb
     case bluetooth
@@ -51,8 +51,25 @@ public enum AudioTransportType: String, Sendable, Codable, Equatable {
         }
     }
 
-    /// Human-readable display name for the transport type.
+    /// Display name for the transport type in the app's language.
+    ///
+    /// Only the generic words are translated; USB, Bluetooth, AirPlay, HDMI,
+    /// DisplayPort, and Thunderbolt are standard names and stay as they are.
+    /// The English default is what a lookup without the app's string catalog
+    /// (such as the package tests) returns. Stored preflight data and exports
+    /// use ``exportName``.
     public var displayName: String {
+        switch self {
+        case .builtIn: String(localized: "audio.transport.builtIn", defaultValue: "Built-in")
+        case .virtual: String(localized: "audio.transport.virtual", defaultValue: "Virtual")
+        case .aggregate: String(localized: "audio.transport.aggregate", defaultValue: "Aggregate")
+        case .unknown: String(localized: "audio.transport.unknown", defaultValue: "Unknown")
+        case .usb, .bluetooth, .airPlay, .hdmi, .displayPort, .thunderbolt: exportName
+        }
+    }
+
+    /// English name of the transport type, for stored preflight data and exports.
+    public var exportName: String {
         switch self {
         case .builtIn: "Built-in"
         case .usb: "USB"

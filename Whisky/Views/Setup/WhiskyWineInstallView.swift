@@ -145,8 +145,8 @@ struct WhiskyWineInstallView: View {
             diagnostics.record("Invoking WhiskyWineInstaller.install(from:) in detached task")
             let outcome = await Self.performInstall(tarball: capturedTarURL)
             let isInstalled = outcome.installed
-            if case let .failure(_, message?) = outcome {
-                diagnostics.record("Install failed: \(message)")
+            if case let .failure(_, _, diagnosticMessage?) = outcome {
+                diagnostics.record("Install failed: \(diagnosticMessage)")
             }
             let installStatus = isInstalled ? "installed" : "not installed"
             diagnostics.record(
@@ -183,7 +183,7 @@ struct WhiskyWineInstallView: View {
         case .success:
             Telemetry.capture(.runtimeInstallSucceeded)
             installError = nil
-        case let .failure(reason, message):
+        case let .failure(reason, message, _):
             Telemetry.capture(.runtimeInstallFailed(reason: reason))
             if let message {
                 installError = String(
@@ -197,11 +197,12 @@ struct WhiskyWineInstallView: View {
     }
 
     /// Outcome of an install attempt. The failure case carries the coarse
-    /// telemetry reason (decided where the error is known) and an optional
-    /// user-facing message; illegal combinations are unrepresentable.
+    /// telemetry reason (decided where the error is known), an optional
+    /// user-facing message, and the same message in English for the
+    /// diagnostics report; illegal combinations are unrepresentable.
     private enum InstallOutcome {
         case success
-        case failure(reason: Telemetry.InstallFailureReason, message: String?)
+        case failure(reason: Telemetry.InstallFailureReason, message: String?, diagnosticMessage: String?)
 
         var installed: Bool {
             if case .success = self {
@@ -219,7 +220,7 @@ struct WhiskyWineInstallView: View {
                 try WhiskyWineInstaller.install(from: tarball)
                 guard WhiskyWineInstaller.isWhiskyWineInstalled() else {
                     // Extraction reported success but the runtime isn't usable.
-                    return .failure(reason: .runtimeIncomplete, message: nil)
+                    return .failure(reason: .runtimeIncomplete, message: nil, diagnosticMessage: nil)
                 }
                 // The install replaced Libraries, so any deployed GPTK payload
                 // went with it; the store outlives it and redeploys here.
@@ -228,7 +229,13 @@ struct WhiskyWineInstallView: View {
             } catch {
                 let reason: Telemetry.InstallFailureReason =
                     (error as? WhiskyWineInstallError) == .tarballNotFound ? .tarballMissing : .extractFailed
-                return .failure(reason: reason, message: error.localizedDescription)
+                // Tar errors have an English form for the diagnostics report.
+                let diagnosticMessage = (error as? TarError)?.diagnosticMessage ?? error.localizedDescription
+                return .failure(
+                    reason: reason,
+                    message: error.localizedDescription,
+                    diagnosticMessage: diagnosticMessage
+                )
             }
         }.value
     }

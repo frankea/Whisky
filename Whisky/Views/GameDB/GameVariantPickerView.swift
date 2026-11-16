@@ -114,9 +114,9 @@ struct GameVariantPickerView: View {
 
         if let sync = variant.settings.enhancedSync {
             let syncName = switch sync {
-            case .none: "No Sync"
-            case .esync: "ESync"
-            case .msync: "MSync"
+            case .none: String(localized: "gameConfig.variant.noSync")
+            case .esync: String(localized: "config.enhancedSync.esync")
+            case .msync: String(localized: "config.enhancedSync.msync")
             }
             parts.append(syncName)
         }

@@ -154,7 +154,10 @@ struct LibraryView: View {
 
     private func unpin(_ url: URL, in bottleURL: URL) {
         guard let bottle = bottles.first(where: { $0.url == bottleURL }) else { return }
-        bottle.settings.pins.removeAll { $0.url == url }
+        // Recorded here and not only by `pinned`'s setter: the library lists
+        // pins straight from bottle settings, so the bottle may have no
+        // `Program` for this one, and the Start Menu scan would pin it again.
+        bottle.settings.unpin(url)
         if let program = bottle.programs.first(where: { $0.url == url }) {
             program.pinned = false
         }

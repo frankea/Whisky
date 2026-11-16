@@ -39,6 +39,10 @@ struct WineConfigSection: View {
     var onRetryBuildVersion: (() -> Void)?
     var onRetryRetinaMode: (() -> Void)?
     var onRetryDpi: (() -> Void)?
+    /// Read from the runtime's version plist when the picker appears, not on
+    /// every redraw. Assumed until then, so a runtime that implements it never
+    /// shows the caption, even for a frame.
+    @State private var runtimeImplementsEnhancedSync = true
 
     var body: some View {
         Section("config.title.wine", isExpanded: $isExpanded) {
@@ -88,30 +92,12 @@ struct WineConfigSection: View {
                 onRetry: onRetryRetinaMode
             ) {
                 VStack(alignment: .trailing, spacing: 4) {
-                    Picker("config.retinaMode", selection: $retinaModeState) {
+                    Picker("config.retinaMode", selection: retinaModeBinding) {
                         Text("config.retinaMode.on").tag(RetinaModeState.enabled)
                         Text("config.retinaMode.off").tag(RetinaModeState.disabled)
                         Text("config.retinaMode.unknown").tag(RetinaModeState.unknown)
                     }
                     .pickerStyle(.segmented)
-                    .onChange(of: retinaModeState) { oldValue, newValue in
-                        guard newValue != .unknown, newValue != oldValue else { return }
-                        let boolValue = newValue == .enabled
-                        Task(priority: .userInitiated) {
-                            retinaModeLoadingState = .modifying
-                            do {
-                                try await Wine.changeRetinaMode(
-                                    bottle: bottle, retinaMode: boolValue
-                                )
-                                retinaModeLoadingState = .success
-                            } catch {
-                                Self.logger.error(
-                                    "Failed to change retina mode: \(error.localizedDescription)"
-                                )
-                                retinaModeLoadingState = .failed
-                            }
-                        }
-                    }
                     if retinaModeState == .unknown {
                         Text("config.retinaMode.unknownHint")
                             .font(.caption)
@@ -125,10 +111,19 @@ struct WineConfigSection: View {
                     Text("config.enhancedSync.esync").tag(EnhancedSync.esync)
                     Text("config.enhancedSync.msync").tag(EnhancedSync.msync)
                 }
-                Text("config.enhancedSync.info")
+                Text("config.enhancedSync.description")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                if !runtimeImplementsEnhancedSync {
+                    Text("config.enhancedSync.runtimeUnsupported")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .task {
+                runtimeImplementsEnhancedSync = WhiskyWineInstaller.runtimeImplementsEnhancedSync()
             }
             SettingItemView(
                 title: "config.dpi",
@@ -164,6 +159,34 @@ struct WineConfigSection: View {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    /// The picker's selection. It writes from the setter rather than an
+    /// `onChange(of: retinaModeState)`, because loading assigns the state too
+    /// and that must not write the value it just read back to the registry.
+    private var retinaModeBinding: Binding<RetinaModeState> {
+        Binding(
+            get: { retinaModeState },
+            set: { newValue in
+                guard newValue != retinaModeState else { return }
+                retinaModeState = newValue
+                guard newValue != .unknown else { return }
+                saveRetinaMode(newValue == .enabled)
+            }
+        )
+    }
+
+    private func saveRetinaMode(_ enabled: Bool) {
+        Task(priority: .userInitiated) {
+            retinaModeLoadingState = .modifying
+            do {
+                try await Wine.changeRetinaMode(bottle: bottle, retinaMode: enabled)
+                retinaModeLoadingState = .success
+            } catch {
+                Self.logger.error("Failed to change retina mode: \(error.localizedDescription)")
+                retinaModeLoadingState = .failed
             }
         }
     }

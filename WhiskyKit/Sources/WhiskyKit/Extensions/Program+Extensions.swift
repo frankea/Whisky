@@ -47,48 +47,54 @@ private let crashSignatures: Set<String> = [
 ]
 
 public extension Program {
+    /// Launches the program the way every Run button does, reporting a failure in an alert.
+    ///
+    /// Shift selects the terminal. Goes through ``launchWithUserMode(useTerminal:onClipboardCleared:)``
+    /// so a context-menu Run gets the clipboard policy and crash watching a Play button gets.
     func run() {
-        if NSEvent.modifierFlags.contains(.shift) {
-            self.runInTerminal()
-        } else {
-            self.runInWine()
+        let useTerminal = NSEvent.modifierFlags.contains(.shift)
+        Task {
+            let result = await launchWithUserMode(useTerminal: useTerminal)
+            if let message = result.errorDescription {
+                showRunError(message: message)
+            }
         }
     }
 
-    /// Checks the clipboard before launching a Wine program, applying the bottle's policy.
-    ///
-    /// For `.needsUserDecision` results, presents a blocking alert asking the user
-    /// to clear or keep the clipboard. For `.autoCleared` results, the clipboard has
-    /// already been cleared by ``ClipboardManager``.
+    /// Checks the clipboard before launching this program, applying its bottle's policy.
     ///
     /// - Returns: The clipboard check result after any user interaction.
     @MainActor
     func performClipboardCheck() -> ClipboardCheckResult {
-        let policy = bottle.settings.clipboardPolicy
-        let threshold = bottle.settings.clipboardThreshold
-        let launcher = bottle.settings.detectedLauncher
-
-        let result = ClipboardManager.shared.checkBeforeLaunch(
-            launcher: launcher, policy: policy, threshold: threshold
-        )
-
-        switch result {
-        case .safe, .autoCleared:
-            return result
-        case let .needsUserDecision(contentType, sizeBytes, textPreview):
-            return showClipboardAlert(
-                contentType: contentType, sizeBytes: sizeBytes, textPreview: textPreview
-            )
-        }
+        bottle.performClipboardCheck()
     }
 
     /// Launches the program respecting user's modifier key preference and returns the result.
-    /// - Parameter useTerminal: Whether to launch in Terminal mode (e.g., Shift was held).
-    ///   **Important:** Capture `NSEvent.modifierFlags.contains(.shift)` synchronously at the call site,
-    ///   before entering any async context, to avoid race conditions with key state.
+    ///
+    /// Every launch the app starts for a ``Program`` comes through here, so
+    /// launcher auto-detection and the bottle's clipboard policy are applied
+    /// once per launch, whichever button or menu started it and whichever mode.
+    ///
+    /// - Parameters:
+    ///   - useTerminal: Whether to launch in Terminal mode (e.g., Shift was held).
+    ///     **Important:** Capture `NSEvent.modifierFlags.contains(.shift)` synchronously at the call site,
+    ///     before entering any async context, to avoid race conditions with key state.
+    ///   - onClipboardCleared: Called with the content type and size in bytes when the
+    ///     clipboard policy cleared the clipboard before the launch.
     /// - Returns: LaunchResult indicating success, terminal launch, or failure
     @MainActor
-    func launchWithUserMode(useTerminal: Bool) async -> LaunchResult {
+    func launchWithUserMode(
+        useTerminal: Bool,
+        onClipboardCleared: (@MainActor (_ contentType: String, _ sizeBytes: Int) -> Void)? = nil
+    ) async -> LaunchResult {
+        // Launcher detection first: in Automatic mode the clipboard policy
+        // depends on which launcher this is. Settings it changes are saved
+        // before the launch below prepares the bottle.
+        LauncherFixes.detectAndApply(from: url, for: bottle)
+        if case let .autoCleared(contentType, sizeBytes) = performClipboardCheck() {
+            onClipboardCleared?(contentType, sizeBytes)
+        }
+
         // Check for terminal mode (typically shift-click)
         if useTerminal {
             do {
@@ -118,7 +124,7 @@ public extension Program {
                     exitCode: result.exitCode
                 )
             } else {
-                watchForLateCrash(logFileURL: result.logFileURL)
+                watchForLateCrash(logFileURL: result.logFileURL, outputCompletion: result.outputCompletion)
             }
 
             return .launchedSuccessfully(programName: self.name)
@@ -127,27 +133,28 @@ public extension Program {
         }
     }
 
-    /// Watches for the session actually ending, then classifies its log.
+    /// Scans the run's log while the program runs, and once more when its
+    /// output has closed.
     ///
-    /// The bottle's wineserver going idle is the end-of-session signal, the
-    /// same one Discord presence uses, and this run's log keeps growing until
-    /// then because Wine's children inherit its file descriptor. Each launch
-    /// has its own log file, so concurrent watchers never double-report one
-    /// run. The probe is deliberately one interval late; the wineserver may
-    /// not be up yet at the moment of launch.
-    private func watchForLateCrash(logFileURL: URL) {
-        let bottle = self.bottle
+    /// The launch returns when `wine start` exits; the program it started,
+    /// and everything else that inherited the launch's output, go on writing
+    /// to this run's log until they exit, which `outputCompletion` reports.
+    /// Each launch has its own log file, so concurrent watchers never
+    /// double-report one run. The first scan is one interval after launch.
+    private func watchForLateCrash(logFileURL: URL, outputCompletion: ProcessOutputCompletion) {
         Task {
             while true {
                 try? await Task.sleep(for: .seconds(30))
+                // Read before the scan: once the output has closed, that scan
+                // sees the whole log, so it is the last one.
+                let outputClosed = outputCompletion.isComplete
                 if logContainsCrashSignatures(logFileURL) {
-                    triggerCrashClassification(logFileURL: logFileURL, exitCode: 1)
+                    // The program may still be running, and the only exit code
+                    // there is, the launcher's, was 0, so the diagnosis has none.
+                    triggerCrashClassification(logFileURL: logFileURL, exitCode: nil)
                     return
                 }
-                // Checked after the scan, so a crash written between the last
-                // scan and the wineserver going down still gets one look.
-                let running = await Wine.isWineserverRunning(for: bottle)
-                if !running {
+                if outputClosed {
                     return
                 }
             }
@@ -180,7 +187,7 @@ public extension Program {
     /// Classification runs on a background task (`.utility` priority) to avoid
     /// blocking the main thread. On completion, persists a ``DiagnosisHistoryEntry``
     /// and posts ``Notification.Name.crashDiagnosisAvailable``.
-    private func triggerCrashClassification(logFileURL: URL, exitCode: Int32) {
+    private func triggerCrashClassification(logFileURL: URL, exitCode: Int32?) {
         let programPath = self.url.path(percentEncoded: false)
         let programName = self.name
         let bottleName = self.bottle.settings.name
@@ -267,74 +274,5 @@ public extension Program {
         alert.alertStyle = .critical
         alert.addButton(withTitle: String(localized: "button.ok"))
         alert.runModal()
-    }
-
-    /// Shows a blocking alert when the clipboard contains large content that needs user decision.
-    ///
-    /// - Parameters:
-    ///   - contentType: The type of clipboard content ("text", "image", or "other")
-    ///   - sizeBytes: Size of the content in bytes
-    ///   - textPreview: Optional preview of text content (first 50 characters)
-    /// - Returns: `.autoCleared` if user chose to clear, `.safe` if user chose to keep
-    @MainActor private func showClipboardAlert(
-        contentType: String,
-        sizeBytes: Int,
-        textPreview: String?
-    ) -> ClipboardCheckResult {
-        let alert = NSAlert()
-        alert.messageText = String(localized: "clipboard.large.title")
-
-        let sizeKB = String(format: "%.1f", Double(sizeBytes) / 1_024.0)
-        let message: String
-        switch contentType {
-        case "text":
-            let preview = textPreview ?? ""
-            message = String(localized: "clipboard.large.message.text")
-                .replacingOccurrences(of: "{size}", with: sizeKB)
-                .replacingOccurrences(of: "{preview}", with: preview)
-        case "image":
-            message = String(localized: "clipboard.large.message.image")
-                .replacingOccurrences(of: "{size}", with: sizeKB)
-        default:
-            message = String(localized: "clipboard.large.message.other")
-                .replacingOccurrences(of: "{size}", with: sizeKB)
-        }
-
-        alert.informativeText = message
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: String(localized: "clipboard.clear"))
-        alert.addButton(withTitle: String(localized: "clipboard.keep"))
-
-        let response = alert.runModal()
-        if response == .alertFirstButtonReturn {
-            ClipboardManager.shared.clear()
-            return .autoCleared(contentType: contentType, sizeBytes: sizeBytes)
-        }
-        return .safe
-    }
-}
-
-extension Program {
-    func runInWine() {
-        let arguments = settings.arguments.split { $0.isWhitespace }.map(String.init)
-
-        Task {
-            do {
-                let result = try await self.launch(args: arguments)
-
-                // Track the log file URL
-                settings.lastLogFileURL = result.logFileURL
-
-                // Trigger classification on non-zero exit or crash signatures
-                if result.exitCode != 0 || logContainsCrashSignatures(result.logFileURL) {
-                    triggerCrashClassification(
-                        logFileURL: result.logFileURL,
-                        exitCode: result.exitCode
-                    )
-                }
-            } catch {
-                self.showRunError(message: error.localizedDescription)
-            }
-        }
     }
 }

@@ -24,8 +24,11 @@ import XCTest
 
 final class LauncherTypeTests: XCTestCase {
     func testAllLauncherTypesExist() {
-        let types: [LauncherType] = [.steam, .eaApp, .battleNet, .epicGames, .rockstar, .ubisoft, .paradox]
-        XCTAssertEqual(types.count, 7)
+        let types: [LauncherType] = [
+            .steam, .eaApp, .battleNet, .epicGames, .rockstar, .ubisoft, .paradox, .rsiLauncher
+        ]
+        XCTAssertEqual(types.count, 8)
+        XCTAssertEqual(Set(types), Set(LauncherType.allCases))
     }
 
     func testLauncherTypeHashable() {
@@ -44,7 +47,7 @@ final class LauncherTypeTests: XCTestCase {
     }
 
     func testLauncherTypeEnvironmentOverridesNotEmpty() {
-        for launcher in [LauncherType.steam, .eaApp, .battleNet, .epicGames, .rockstar, .ubisoft, .paradox] {
+        for launcher in LauncherType.allCases {
             // All launchers should return at least an empty dictionary
             let overrides = launcher.environmentOverrides()
             XCTAssertNotNil(overrides, "Launcher \(launcher) should return environment overrides")
@@ -59,6 +62,7 @@ final class LauncherTypeTests: XCTestCase {
         XCTAssertEqual(LauncherType.ubisoft.rawValue, "Ubisoft Connect")
         XCTAssertEqual(LauncherType.battleNet.rawValue, "Battle.net")
         XCTAssertEqual(LauncherType.paradox.rawValue, "Paradox Launcher")
+        XCTAssertEqual(LauncherType.rsiLauncher.rawValue, "RSI Launcher")
     }
 }
 
@@ -174,7 +178,6 @@ final class BottleLauncherConfigDetailedTests: XCTestCase {
         XCTAssertEqual(config.launcherLocale, .auto)
         XCTAssertTrue(config.gpuSpoofing)
         XCTAssertEqual(config.gpuVendor, .nvidia)
-        XCTAssertEqual(config.networkTimeout, 60_000)
         XCTAssertTrue(config.autoEnableDXVK)
     }
 
@@ -186,7 +189,6 @@ final class BottleLauncherConfigDetailedTests: XCTestCase {
         original.launcherLocale = .english
         original.gpuSpoofing = true
         original.gpuVendor = .amd
-        original.networkTimeout = 30_000
         original.autoEnableDXVK = false
 
         let encoder = PropertyListEncoder()
@@ -201,7 +203,6 @@ final class BottleLauncherConfigDetailedTests: XCTestCase {
         XCTAssertEqual(decoded.launcherLocale, .english)
         XCTAssertTrue(decoded.gpuSpoofing)
         XCTAssertEqual(decoded.gpuVendor, .amd)
-        XCTAssertEqual(decoded.networkTimeout, 30_000)
         XCTAssertFalse(decoded.autoEnableDXVK)
     }
 }

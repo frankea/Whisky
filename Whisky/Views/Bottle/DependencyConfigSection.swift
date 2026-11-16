@@ -48,12 +48,12 @@ struct DependencyConfigSection: View {
             }
         } header: {
             HStack {
-                Label("Dependencies", systemImage: "shippingbox")
+                Label("dependency.section", systemImage: "shippingbox")
                 Spacer()
                 Button {
                     loadDependencies()
                 } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
+                    Label("dependency.refresh", systemImage: "arrow.clockwise")
                         .labelStyle(.iconOnly)
                 }
                 .buttonStyle(.borderless)
@@ -87,14 +87,14 @@ struct DependencyConfigSection: View {
 
                 statusBadge(depStatus.status)
 
-                if depStatus.confidence == .cached || depStatus.confidence == .heuristic {
-                    Text("(\(depStatus.confidence.rawValue))")
+                if let confidenceLabel = confidenceLabel(depStatus.confidence) {
+                    Text("(\(confidenceLabel))")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
 
                 if !isInstalled(depStatus.status) {
-                    Button("Install") {
+                    Button("dependency.install") {
                         selectedDependency = depStatus.definition
                     }
                     .controlSize(.small)
@@ -109,15 +109,7 @@ struct DependencyConfigSection: View {
     private func dependencyRowDetails(_ depStatus: DependencyStatus) -> some View {
         HStack(spacing: 4) {
             if let lastChecked = depStatus.lastChecked {
-                Text("Checked ")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    +
-                    Text(lastChecked, style: .relative)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    +
-                    Text(" ago")
+                Text("dependency.lastChecked \(.currentDate, format: .reference(to: lastChecked))")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
             }
@@ -144,25 +136,38 @@ struct DependencyConfigSection: View {
     private func statusBadge(_ status: DependencyInstallStatus) -> some View {
         switch status {
         case .installed:
-            Label("Installed", systemImage: "checkmark.circle.fill")
+            Label("dependency.installed", systemImage: "checkmark.circle.fill")
                 .font(.caption)
                 .foregroundStyle(.green)
         case .notInstalled:
-            Label("Not Installed", systemImage: "xmark.circle.fill")
+            Label("dependency.notInstalled", systemImage: "xmark.circle.fill")
                 .font(.caption)
                 .foregroundStyle(.red)
         case .partiallyInstalled:
-            Label("Partially Installed", systemImage: "exclamationmark.triangle.fill")
+            Label("dependency.partial", systemImage: "exclamationmark.triangle.fill")
                 .font(.caption)
                 .foregroundStyle(.yellow)
         case .unknown:
-            Label("Unknown", systemImage: "questionmark.circle.fill")
+            Label("dependency.unknown", systemImage: "questionmark.circle.fill")
                 .font(.caption)
                 .foregroundStyle(.gray)
         }
     }
 
     // MARK: - Helpers
+
+    /// The marker shown next to a status that came from the cache or a
+    /// heuristic probe; `nil` for the confidences that need no caveat.
+    private func confidenceLabel(_ confidence: DependencyConfidence) -> String? {
+        switch confidence {
+        case .cached:
+            String(localized: "dependency.confidence.cached")
+        case .heuristic:
+            String(localized: "dependency.confidence.heuristic")
+        case .authoritative, .unknown:
+            nil
+        }
+    }
 
     private func isInstalled(_ status: DependencyInstallStatus) -> Bool {
         if case .installed = status { return true }

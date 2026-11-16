@@ -26,6 +26,9 @@ public extension Wine {
         case bottle
         /// This executable only. Children do not inherit it.
         case program(String)
+        /// wined3d's settings for this executable only, beside its DLL
+        /// overrides. Its values are settings, not DLLs: ``ownedValueNames``.
+        case direct3D(String)
 
         var registryKey: String {
             switch self {
@@ -35,11 +38,13 @@ public extension Wine {
                 // \\#( is a literal backslash then the interpolation; \#( alone
                 // would swallow the path separator.
                 #"HKCU\Software\Wine\AppDefaults\\#(executable)\DllOverrides"#
+            case let .direct3D(executable):
+                #"HKCU\Software\Wine\AppDefaults\\#(executable)\Direct3D"#
             }
         }
     }
 
-    private static let dllOverrideLogger = Logger(
+    internal static let dllOverrideLogger = Logger(
         subsystem: "com.isaacmarovitz.WhiskyKit", category: "dll-overrides"
     )
 
@@ -49,27 +54,95 @@ public extension Wine {
         _ bottle: Bottle, _ scopes: [(scope: DLLOverrideScope, overrides: String)]
     ) async throws -> Void
 
-    /// Replaces the DLL overrides at each scope, in one import.
+    /// Writes the DLL overrides at each scope, in one import.
     ///
     /// One import rather than a `reg` call per value: each of those is a whole
     /// wine process, and a launch syncing a bottle plus a launcher and its
     /// helpers spent twenty-odd of them before starting anything.
     ///
+    /// Values another tool wrote are left alone: only names Whisky could have
+    /// written are removed (``registryDocument(for:record:ownedValues:)``).
+    ///
     /// - Parameters:
     ///   - bottle: The bottle whose prefix registry is written.
     ///   - scopes: Each scope and the `WINEDLLOVERRIDES`-syntax string it
-    ///     should hold. An empty string clears that scope.
+    ///     should hold. An empty string takes back what Whisky wrote there.
     @MainActor
     static func syncDLLOverrides(
         bottle: Bottle, scopes: [(scope: DLLOverrideScope, overrides: String)]
     ) async throws {
-        let document = registryDocument(
-            for: scopes.map { (key: $0.scope.registryKey, overrides: parseDLLOverrides($0.overrides)) }
-        )
+        try await syncDLLOverrides(bottle: bottle, scopes: scopes) { document, bottle in
+            try await importDLLOverrideDocument(document, bottle: bottle)
+        }
+    }
+
+    /// The last sync started in each bottle, for the next one to wait on.
+    @MainActor private static var syncTails: [URL: Task<Void, Never>] = [:]
+
+    /// ``syncDLLOverrides(bottle:scopes:)`` with the import itself supplied, so
+    /// tests can run it against a simulated registry.
+    ///
+    /// Syncs in one bottle run one at a time. Each builds its document from the
+    /// names the record holds when it starts, so one that started during
+    /// another's import missed that import's names: neither document removed
+    /// them, and the record then forgot them, leaving overrides Whisky wrote
+    /// that it would never take back.
+    ///
+    /// `currentValue` reads what a key of settings holds now, the bottle's
+    /// `user.reg` when `nil`; tests pass their simulated registry.
+    @MainActor
+    internal static func syncDLLOverrides(
+        bottle: Bottle, scopes: [(scope: DLLOverrideScope, overrides: String)],
+        importer: @escaping RegistryImporter, currentValue: RegistryValueReader? = nil
+    ) async throws {
+        let key = bottle.url.standardizedFileURL
+        let previous = syncTails[key]
+        let reader = currentValue ?? { registryValue(bottleURL: bottle.url, key: $0, name: $1) }
+        let sync = Task { @MainActor in
+            await previous?.value
+            try await syncDLLOverridesNow(bottle: bottle, scopes: scopes, importer: importer, currentValue: reader)
+        }
+        let tail = Task { @MainActor in _ = try? await sync.value }
+        syncTails[key] = tail
+        defer {
+            if syncTails[key] == tail {
+                syncTails[key] = nil
+            }
+        }
+        try await sync.value
+    }
+
+    @MainActor
+    private static func syncDLLOverridesNow(
+        bottle: Bottle, scopes: [(scope: DLLOverrideScope, overrides: String)],
+        importer: RegistryImporter, currentValue: RegistryValueReader
+    ) async throws {
+        let planned = scopes.filter { $0.scope.ownedValueNames == nil }
+            .map { (key: $0.scope.registryKey, overrides: parseDLLOverrides($0.overrides)) }
+        let snapshot = DLLOverrideRecord.load(from: bottle.url)
+        let owned = ownedValueEdits(for: scopes, record: snapshot, current: currentValue)
+        try await importer(registryDocument(for: planned, record: snapshot, ownedValues: owned), bottle)
+        // Only after the import: a failed one leaves the old names recorded, so
+        // the next launch still takes them back. Read again rather than saving
+        // `snapshot`, so names saved some other way during the import (the
+        // record is one file per bottle) are kept. Nothing suspends between
+        // this load and the save.
+        do {
+            try DLLOverrideRecord.load(from: bottle.url).updated(with: planned).updated(with: owned)
+                .save(to: bottle.url)
+        } catch {
+            dllOverrideLogger.error("Could not record the DLL overrides written: \(error.localizedDescription)")
+        }
+        dllOverrideLogger.debug("Synced DLL overrides for \(scopes.count) scope(s) in one import")
+    }
+
+    /// Runs `reg import` on a DLL override document in the bottle.
+    @MainActor
+    private static func importDLLOverrideDocument(_ document: String, bottle: Bottle) async throws {
         let url = FileManager.default.temporaryDirectory
             .appending(path: "whisky-dll-overrides-\(UUID().uuidString).reg")
         // Wine detects a Unicode .reg by its BOM alone, and `.utf16LittleEndian`
-        // writes none — the file parses as ANSI, matches no header, and imports
+        // writes none: the file parses as ANSI, matches no header, and imports
         // nothing while exiting 0. Written explicitly rather than via `.utf16`,
         // whose BOM follows platform endianness.
         try ("\u{FEFF}" + document).write(to: url, atomically: true, encoding: .utf16LittleEndian)
@@ -78,7 +151,6 @@ public extension Wine {
         // `reg import`, not `regedit`: regedit has no silent switch, so it puts up
         // the import confirmation and never exits.
         try await runWine(["reg", "import", url.path(percentEncoded: false)], bottle: bottle)
-        dllOverrideLogger.debug("Synced DLL overrides for \(scopes.count) scope(s) in one import")
     }
 
     /// Moves this launch's DLL overrides from the environment into the registry.
@@ -101,12 +173,16 @@ public extension Wine {
     ///   express overrides for an executable whose name is not known.
     /// - Parameter descendantExecutables: The executable names the overrides
     ///   belong to when they apply to descendants.
+    /// - Parameter ownSettingsExecutables: Descendants that keep their own
+    ///   settings, written ahead of the descendants' overrides.
     /// - Parameter descendantLaunchers: Launchers the descendants start on their
     ///   own, whose ``LauncherType/chainExecutables`` need entries ahead of time.
     /// - Parameter recommendedBackend: What `.recommended` resolves to for the
     ///   bottle; `nil` asks ``GraphicsBackendResolver``.
     /// - Parameter builtinD3D12IsD3DMetal: Whether the runtime's builtin `d3d12`
     ///   is D3DMetal's, passed on to every composition written here.
+    /// - Parameter rockstarLayout: What Rockstar's `Launcher.exe` gets, when its
+    ///   entries are written; `nil` reads the runtime (``RockstarD3DLayout``).
     /// - Parameter writer: What performs the registry write.
     @MainActor
     static func applyDLLOverrides(
@@ -115,11 +191,14 @@ public extension Wine {
         wineEnvironment: inout [String: String],
         applyToDescendants: Bool,
         descendantExecutables: [String] = [],
+        ownSettingsExecutables: [URL] = [],
         descendantLaunchers: [LauncherType] = [],
         recommendedBackend: GraphicsBackend? = nil,
         builtinD3D12IsD3DMetal: Bool = GPTKImporter.isDeployed(),
+        rockstarLayout: RockstarD3DLayout? = nil,
         writer: DLLOverrideWriter = { try await syncDLLOverrides(bottle: $0, scopes: $1) }
     ) async throws {
+        let resolveRockstarLayout = { rockstarLayout ?? .resolve(payloadDeployed: builtinD3D12IsD3DMetal) }
         let bottleOverrides = constructWineEnvironment(
             for: bottle, recommendedBackend: recommendedBackend, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
         )["WINEDLLOVERRIDES"] ?? ""
@@ -139,8 +218,8 @@ public extension Wine {
         // asks it about the GPU before it will consider DLSS at all, so it is
         // disabled per helper rather than withheld from the bottle.
         //
-        // The helpers are written on a Steam game launch too. The sync
-        // *replaces* each key it writes, so leaving them out did not merely skip
+        // The helpers are written on a Steam game launch too. The sync used to
+        // *replace* each key it wrote, so leaving them out did not merely skip
         // them, it cleared any entry they already had and handed Chromium
         // nvapi64 again. The overrides on such a launch are the game's, so the
         // launcher and its helpers get the launcher's own set instead: the
@@ -154,6 +233,8 @@ public extension Wine {
             scopes.add([url.lastPathComponent], own)
         } else if !applyToDescendants {
             let own = wineEnvironment.removeValue(forKey: "WINEDLLOVERRIDES") ?? ""
+            // Rockstar's launcher gets the chain's entries ahead of `own`, per-program overrides too.
+            addRockstarDirectLaunchScopes(url, to: &scopes, layout: resolveRockstarLayout, launcherSet: launcherSet)
             scopes.add(helperExecutables(for: url), disablingNVAPI(in: own))
             // The launched executable needs its own entry too: AppDefaults is per
             // executable and children do not inherit it.
@@ -172,16 +253,30 @@ public extension Wine {
             scopes.add(["steam.exe"], own)
         }
 
+        // Chromium front ends (3DMark's) get the launcher set: among what a Steam
+        // launch starts, and wherever one is installed, since Steam's own Play
+        // button or a shortcut starts it without Whisky (#372).
+        addFrontEndScopes(
+            ownSettingsExecutables + frontEndExecutables(bottleURL: bottle.url, steamRoot: steamRoot),
+            to: &scopes, bottle: bottle, recommendedBackend: recommendedBackend, launcherSet: launcherSet
+        )
+
         // The game's plan, in the entries of the executables it runs as. After
         // Steam's own, which a game executable never displaces.
         if let gamePlan {
+            for (executable, own) in ownSettingsDLLOverrides(
+                for: ownSettingsExecutables, bottle: bottle,
+                recommendedBackend: recommendedBackend, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
+            ) {
+                scopes.add([executable], own)
+            }
             scopes.add(descendantExecutables, gamePlan)
         }
 
-        scopes.add(
-            chainExecutables(for: launcher, descendantLaunchers: descendantLaunchers, bottleURL: bottle.url),
-            disablingD3D12(in: launcherSet(nil))
-        )
+        if !chainExecutables(for: launcher, descendantLaunchers: descendantLaunchers, bottleURL: bottle.url).isEmpty {
+            addRockstarChainScopes(to: &scopes, layout: resolveRockstarLayout, launcherSet: launcherSet)
+        }
+        releaseRockstarRenderer(in: &scopes, bottleURL: bottle.url)
 
         try await writer(bottle, scopes.entries)
     }
@@ -197,9 +292,34 @@ public extension Wine {
         }
 
         mutating func add(_ executables: [String], _ overrides: String) {
-            for executable in executables where taken.insert(executable.lowercased()).inserted {
+            for executable in executables
+                where Self.isKeySegment(executable) && taken.insert(executable.lowercased()).inserted {
                 entries.append((scope: .program(executable), overrides: overrides))
             }
+        }
+
+        /// Adds a key of settings (``DLLOverrideScope/ownedValueNames``) once, and nothing else.
+        mutating func add(settings scope: DLLOverrideScope, _ values: String) {
+            guard scope.ownedValueNames != nil, !entries.contains(where: { $0.scope == scope }) else { return }
+            entries.append((scope: scope, overrides: values))
+        }
+
+        /// Whether `executable` already has its set, compared without case.
+        func contains(_ executable: String) -> Bool {
+            taken.contains(executable.lowercased())
+        }
+
+        /// Whether the name can go into an `AppDefaults` key header. A macOS
+        /// file name can hold a line break, which ends the header early in
+        /// the `.reg` document: Wine drops it, and that program's values land
+        /// in the key before it. A backslash would make a subkey. Neither can
+        /// be a Windows image name, so no process would match the entry. Only
+        /// control codes count, not format characters: a zero-width non-joiner
+        /// is an ordinary part of Persian words, and a file name with one is a
+        /// real program.
+        static func isKeySegment(_ executable: String) -> Bool {
+            !executable.isEmpty && !executable.contains("\\")
+                && !executable.unicodeScalars.contains { $0.properties.generalCategory == .control }
         }
     }
 
@@ -234,84 +354,6 @@ public extension Wine {
             for: bottle, programOverrides: pinned,
             recommendedBackend: recommendedBackend, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
         )["WINEDLLOVERRIDES"] ?? ""
-    }
-
-    /// The launcher executables a launch should write entries for ahead of
-    /// time, because something other than Whisky starts them.
-    ///
-    /// Rockstar's chain, when the game being launched is a Rockstar title,
-    /// whether or not Rockstar's launcher is installed yet: the first run of
-    /// one installs the launcher and starts it in the same session. Otherwise
-    /// it rides along with Steam and Rockstar launches only once the launcher
-    /// is installed in the bottle.
-    ///
-    /// `AppDefaults` is keyed on the file name alone, so the entry is the same
-    /// for any `Launcher.exe` in the bottle. Once Rockstar's launcher is there,
-    /// another program by that name gets the Rockstar layout until its own
-    /// launch from Whisky writes its own entry (and loses it again at the next
-    /// Steam launch). A game's own `Launcher.exe` keeps the game's plan during
-    /// that game's Steam launch, since game executables are written first.
-    static func chainExecutables(
-        for launcher: LauncherType?, descendantLaunchers: [LauncherType] = [], bottleURL: URL
-    ) -> [String] {
-        let rockstarSession = descendantLaunchers.contains(.rockstar)
-            || ((launcher == .steam || launcher == .rockstar) && rockstarInstalled(bottleURL: bottleURL))
-        return rockstarSession ? LauncherType.rockstar.chainExecutables : []
-    }
-
-    /// Whether the bottle has a `Rockstar Games` folder in either Program Files.
-    static func rockstarInstalled(bottleURL: URL) -> Bool {
-        let driveC = bottleURL.appending(path: "drive_c")
-        return ["Program Files", "Program Files (x86)"].contains { programFiles in
-            let folder = driveC.appending(path: programFiles).appending(path: "Rockstar Games")
-            return FileManager.default.fileExists(atPath: folder.path(percentEncoded: false))
-        }
-    }
-
-    /// Renders a `.reg` leaving each key holding exactly `overrides`.
-    ///
-    /// `[-Key]` then `[Key]` is a replace, since `.reg` runs in order. That is
-    /// what prunes stale values without reading the key back first.
-    static func registryDocument(for scopes: [(key: String, overrides: [String: String])]) -> String {
-        var lines = ["Windows Registry Editor Version 5.00", ""]
-        for scope in scopes {
-            lines.append("[-\(scope.key)]")
-            lines.append("")
-            let renderable = scope.overrides
-                .filter { isRenderable(dll: $0.key, mode: $0.value) }
-                .sorted { $0.key < $1.key }
-            guard !renderable.isEmpty else { continue }
-            lines.append("[\(scope.key)]")
-            for (dll, mode) in renderable {
-                lines.append("\"\(dll)\"=\"\(mode)\"")
-            }
-            lines.append("")
-        }
-        return lines.joined(separator: "\r\n")
-    }
-
-    /// Whether an override can be rendered without corrupting the document.
-    ///
-    /// Custom overrides are user-typed, and a quote or backslash in a name would
-    /// terminate the value early and take every later scope down with it. A DLL
-    /// name is a filename and a mode is a list of known words, so anything
-    /// outside these sets could not have loaded regardless — dropping it costs
-    /// nothing and contains the blast radius to the one bad entry.
-    static func isRenderable(dll: String, mode: String) -> Bool {
-        let name = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz0123456789._-+")
-        let modes = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz,")
-        guard !dll.isEmpty else { return false }
-        return dll.lowercased().unicodeScalars.allSatisfy(name.contains)
-            && mode.lowercased().unicodeScalars.allSatisfy(modes.contains)
-    }
-
-    /// The launcher helpers that must share `url`'s DLL overrides.
-    ///
-    /// Detected from the executable, not the bottle's recorded launcher: they
-    /// need the entry because of how wine resolves `AppDefaults`, not because
-    /// the user enabled launcher fixes.
-    static func helperExecutables(for url: URL) -> [String] {
-        LauncherType.detect(from: url)?.helperExecutables ?? []
     }
 
     /// Adds `nvapi64=`, `nvapi=`, and `nvngx=` to an override string, keeping whatever else it holds.

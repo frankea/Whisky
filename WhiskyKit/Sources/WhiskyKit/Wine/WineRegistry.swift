@@ -90,7 +90,7 @@ enum WineRegistryFile {
     }
 
     /// The `.reg` file that holds `key`, and the section header `key` has in it.
-    private static func contents(for key: String, bottleURL: URL) -> (text: String, sectionHeader: String)? {
+    static func contents(for key: String, bottleURL: URL) -> (text: String, sectionHeader: String)? {
         let regFileName: String
         if key.hasPrefix("HKCU") || key.hasPrefix("HKEY_CURRENT_USER") {
             regFileName = "user.reg"
@@ -119,7 +119,7 @@ enum WineRegistryFile {
 
     /// The name a `"name"=...` line sets, spelled as in the file, or `nil`
     /// for any other line. An escaped quote does not end the name.
-    private static func quotedName(in line: String) -> String? {
+    static func quotedName(in line: String) -> String? {
         guard line.hasPrefix("\"") else {
             return nil
         }
@@ -167,12 +167,30 @@ public extension Wine {
         bottle: Bottle, key: String, name: String, type: RegistryType
     ) async throws -> String? {
         let output = try await runWine(["reg", "query", key, "-v", name], bottle: bottle)
-        let lines = output.split(omittingEmptySubsequences: true, whereSeparator: \.isNewline)
+        return registryValue(fromQueryOutput: output, type: type)
+    }
 
-        guard let line = lines.first(where: { $0.contains(type.rawValue) }) else { return nil }
-        let array = line.split(omittingEmptySubsequences: true, whereSeparator: \.isWhitespace)
-        guard let value = array.last else { return nil }
-        return String(value)
+    /// The data of the first value of `type` in `reg query` output.
+    ///
+    /// A value line reads `    Name    REG_SZ    data`. Everything after the
+    /// type token is the data, so a value with spaces comes back whole and
+    /// an empty value comes back as `""` rather than as the type name.
+    ///
+    /// - Returns: The data, or `nil` when no value of that type is listed.
+    internal static func registryValue(fromQueryOutput output: String, type: RegistryType) -> String? {
+        for line in output.split(whereSeparator: \.isNewline) {
+            var searchStart = line.startIndex
+            while let range = line[searchStart...].range(of: type.rawValue) {
+                let precededBySpace = range.lowerBound > line.startIndex
+                    && line[line.index(before: range.lowerBound)].isWhitespace
+                let followedBySpace = range.upperBound == line.endIndex || line[range.upperBound].isWhitespace
+                if precededBySpace, followedBySpace {
+                    return line[range.upperBound...].trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                searchStart = range.upperBound
+            }
+        }
+        return nil
     }
 
     @MainActor
@@ -252,10 +270,15 @@ public extension Wine {
             type: .dword
         )
         else { return nil }
+        return dpiResolution(fromRegistryData: output)
+    }
 
-        let noPrefix = output.replacingOccurrences(of: "0x", with: "")
-        let int = Int(noPrefix, radix: 16)
-        guard let int else { return nil }
+    /// Parses a `LogPixels` DWORD such as `0x90`. A stored 0 counts as unset:
+    /// Wine falls back to 96 DPI for it, and older versions of the config view
+    /// wrote 0 into bottles whose key was missing.
+    static func dpiResolution(fromRegistryData data: String) -> Int? {
+        let noPrefix = data.replacingOccurrences(of: "0x", with: "")
+        guard let int = Int(noPrefix, radix: 16), int > 0 else { return nil }
         return int
     }
 
@@ -270,19 +293,22 @@ public extension Wine {
     @discardableResult
     @MainActor
     static func control(bottle: Bottle) async throws -> String {
-        try await Wine.runWine(["control"], bottle: bottle)
+        Wine.noteUserLaunch(in: bottle)
+        return try await Wine.runWine(["control"], bottle: bottle)
     }
 
     @discardableResult
     @MainActor
     static func regedit(bottle: Bottle) async throws -> String {
-        try await Wine.runWine(["regedit"], bottle: bottle)
+        Wine.noteUserLaunch(in: bottle)
+        return try await Wine.runWine(["regedit"], bottle: bottle)
     }
 
     @discardableResult
     @MainActor
     static func cfg(bottle: Bottle) async throws -> String {
-        try await Wine.runWine(["winecfg"], bottle: bottle)
+        Wine.noteUserLaunch(in: bottle)
+        return try await Wine.runWine(["winecfg"], bottle: bottle)
     }
 
     @discardableResult

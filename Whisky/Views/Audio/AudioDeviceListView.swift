@@ -77,7 +77,7 @@ struct AudioDeviceListView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            Text("\(device.outputChannelCount)ch")
+            Text("audio.devices.channelCount \(device.outputChannelCount)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

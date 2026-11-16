@@ -51,7 +51,7 @@ final class FixApplicatorTests: XCTestCase {
             fixId: "switch-backend", params: ["backend": "dxvk"], bottle: bottle, program: nil
         ))
 
-        XCTAssertEqual(preview.settingName, "Graphics Backend")
+        XCTAssertEqual(preview.settingName, String(localized: "config.graphics.backend"))
         XCTAssertEqual(preview.currentValue, "WineD3D")
         XCTAssertEqual(preview.newValue, "DXVK")
         XCTAssertTrue(preview.isReversible)
@@ -104,13 +104,25 @@ final class FixApplicatorTests: XCTestCase {
         XCTAssertEqual(attempt.result, .applied)
     }
 
-    func testApplyEnableEsync() {
+    func testApplyEnableEsyncTurnsOnMSync() {
         bottle.settings.enhancedSync = .none
 
         let attempt = FixApplicator.apply(fixId: "enable-esync", params: [:], bottle: bottle, program: nil)
 
-        XCTAssertEqual(bottle.settings.enhancedSync, .esync)
+        XCTAssertEqual(bottle.settings.enhancedSync, .msync)
+        XCTAssertEqual(attempt.afterValue, "msync")
         XCTAssertEqual(attempt.result, .applied)
+    }
+
+    func testApplyEnableEsyncNeverDowngradesAnEnabledMode() {
+        for mode in [EnhancedSync.msync, .esync] {
+            bottle.settings.enhancedSync = mode
+
+            let attempt = FixApplicator.apply(fixId: "enable-esync", params: [:], bottle: bottle, program: nil)
+
+            XCTAssertEqual(bottle.settings.enhancedSync, mode)
+            XCTAssertEqual(attempt.beforeValue, attempt.afterValue)
+        }
     }
 
     func testApplyRegistryBackedFixesStayPendingForVerification() {
@@ -144,11 +156,12 @@ final class FixApplicatorTests: XCTestCase {
     }
 
     func testUndoEsyncRestoresPriorMode() {
-        bottle.settings.enhancedSync = .msync
+        bottle.settings.enhancedSync = .none
         let attempt = FixApplicator.apply(fixId: "enable-esync", params: [:], bottle: bottle, program: nil)
+        XCTAssertEqual(bottle.settings.enhancedSync, .msync)
 
         XCTAssertTrue(FixApplicator.undo(attempt: attempt, bottle: bottle, program: nil))
-        XCTAssertEqual(bottle.settings.enhancedSync, .msync)
+        XCTAssertEqual(bottle.settings.enhancedSync, .none)
     }
 
     func testUndoWithMissingBeforeValueFails() {
@@ -237,8 +250,8 @@ final class FixApplicatorTests: XCTestCase {
         ))
 
         XCTAssertEqual(preview.settingName, "Wine DNS override")
-        XCTAssertEqual(preview.currentValue, "Not set")
-        XCTAssertEqual(preview.newValue, "Not set")
+        XCTAssertEqual(preview.currentValue, String(localized: "config.buildVersion.notSet"))
+        XCTAssertEqual(preview.newValue, String(localized: "config.buildVersion.notSet"))
         XCTAssertTrue(preview.isReversible)
     }
 

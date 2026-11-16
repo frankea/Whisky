@@ -226,7 +226,9 @@ public struct GameConfigVariantSettings: Codable, Sendable, Equatable {
         // so we try String first and fall back to the native Codable format.
         if let syncString = try container.decodeIfPresent(String.self, forKey: .enhancedSync) {
             switch syncString {
-            case "none": self.enhancedSync = .none
+            // Spelled out: on this Optional a bare `.none` is nil, which means
+            // "leave the bottle's sync alone" rather than sync off.
+            case "none": self.enhancedSync = EnhancedSync.none
             case "esync": self.enhancedSync = .esync
             case "msync": self.enhancedSync = .msync
             default: self.enhancedSync = nil
@@ -267,6 +269,10 @@ public struct GameConfigVariant: Codable, Sendable, Equatable {
     public let dllOverrides: [DLLOverrideEntry]?
     /// Winetricks verbs required by this variant.
     public let winetricksVerbs: [String]?
+    /// Arguments for the game's own command line. A Steam launch hands them to
+    /// the client after `-applaunch <appid>`, and the client passes them on to
+    /// the game.
+    public let launchArguments: [String]?
     /// Information about when and how this variant was tested.
     public let testedWith: TestedWith?
 
@@ -280,6 +286,7 @@ public struct GameConfigVariant: Codable, Sendable, Equatable {
         environmentVariables: [String: String]? = nil,
         dllOverrides: [DLLOverrideEntry]? = nil,
         winetricksVerbs: [String]? = nil,
+        launchArguments: [String]? = nil,
         testedWith: TestedWith? = nil
     ) {
         self.id = id
@@ -291,6 +298,7 @@ public struct GameConfigVariant: Codable, Sendable, Equatable {
         self.environmentVariables = environmentVariables
         self.dllOverrides = dllOverrides
         self.winetricksVerbs = winetricksVerbs
+        self.launchArguments = launchArguments
         self.testedWith = testedWith
     }
 
@@ -311,6 +319,7 @@ public struct GameConfigVariant: Codable, Sendable, Equatable {
         )
         self.dllOverrides = try container.decodeIfPresent([DLLOverrideEntry].self, forKey: .dllOverrides)
         self.winetricksVerbs = try container.decodeIfPresent([String].self, forKey: .winetricksVerbs)
+        self.launchArguments = try container.decodeIfPresent([String].self, forKey: .launchArguments)
         self.testedWith = try container.decodeIfPresent(TestedWith.self, forKey: .testedWith)
     }
 }

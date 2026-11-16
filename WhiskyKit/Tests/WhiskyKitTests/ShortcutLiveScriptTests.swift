@@ -46,6 +46,52 @@ struct ShortcutLiveScriptTests {
         #expect(quoted == #"'Bo'\''ttle; rm -rf $HOME'"#)
     }
 
+    @Test("AppleScript quoting escapes backslashes, quotes and newlines")
+    func appleScriptQuoting() {
+        let quoted = ShortcutCreator.appleScriptQuoted("a \\ b \"c\"\nd")
+
+        #expect(quoted == #""a \\ b \"c\"\nd""#)
+    }
+
+    @Test("Translated alert text with ' \" and \\ keeps the script valid")
+    func translatedAlertQuoting() throws {
+        let title = #"L'app "Whisky" \ introuvable"#
+        let message = #"Installez Whisky pour l'utiliser; $HOME `id` \"#
+        let script = ShortcutCreator.liveLaunchScript(
+            for: .steamGame(appId: 4_576_510), notFoundTitle: title, notFoundMessage: message
+        )
+
+        // The whole script parses as sh.
+        #expect(try runProcess("/bin/sh", ["-n", "-c", script]).status == 0)
+
+        // The shell hands osascript exactly the AppleScript source we built.
+        let line = try #require(script.split(separator: "\n").first { $0.contains("osascript -e ") })
+        let echo = line.replacingOccurrences(of: "osascript -e ", with: "printf '%s' ")
+        let printed = try runProcess("/bin/sh", ["-c", echo])
+        let expected = "display alert \(ShortcutCreator.appleScriptQuoted(title))"
+            + " message \(ShortcutCreator.appleScriptQuoted(message))"
+        #expect(printed.status == 0)
+        #expect(printed.output == expected)
+
+        // And that source compiles as AppleScript (compiled only, never run).
+        let compiled = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).scpt")
+        defer { try? FileManager.default.removeItem(at: compiled) }
+        #expect(try runProcess("/usr/bin/osacompile", ["-o", compiled.path, "-e", printed.output]).status == 0)
+    }
+
+    private func runProcess(_ executable: String, _ arguments: [String]) throws -> (status: Int32, output: String) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: executable)
+        process.arguments = arguments
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = FileHandle.nullDevice
+        try process.run()
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        return (process.terminationStatus, String(bytes: data, encoding: .utf8) ?? "")
+    }
+
     @Test("Windows paths map from drive_c and reject outsiders")
     func windowsPathMapping() {
         let bottle = URL(fileURLWithPath: "/tmp/bottles/b")

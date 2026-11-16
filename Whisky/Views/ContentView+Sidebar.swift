@@ -51,7 +51,8 @@ extension ContentView {
                                     Text(bottle.settings.name)
                                     Spacer()
                                     Button {
-                                        Task { await bottle.remove(delete: false) }
+                                        // Only deregisters, which cannot fail.
+                                        Task { try? await bottle.remove(delete: false) }
                                     } label: {
                                         Image(systemName: "xmark.circle")
                                             .foregroundStyle(.secondary)

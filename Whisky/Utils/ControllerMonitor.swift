@@ -31,8 +31,20 @@ enum ControllerType: String {
         "gamecontroller"
     }
 
-    /// A human-readable display name for the controller type.
+    /// The controller type's name in the user's language, for the UI.
+    ///
+    /// PlayStation and Xbox are brand names and stay as they are.
     var displayName: String {
+        switch self {
+        case .generic:
+            String(localized: "controller.type.generic")
+        case .playStation, .xbox:
+            exportName
+        }
+    }
+
+    /// The controller type's English name, for the copied controller report.
+    var exportName: String {
         switch self {
         case .playStation:
             "PlayStation"
@@ -68,8 +80,20 @@ struct ControllerInfo: Identifiable {
     /// Unique identifier for this controller snapshot.
     let id: UUID
 
-    /// The vendor-provided name of the controller, or "Unknown Controller" if unavailable.
-    let name: String
+    /// The vendor-provided name of the controller, if the controller reports one.
+    let vendorName: String?
+
+    /// The controller's name for the UI: the vendor name, or a localized
+    /// "Unknown Controller" when the controller does not report one.
+    var name: String {
+        vendorName ?? String(localized: "controller.unknownName")
+    }
+
+    /// The controller's name for the copied report and the controller
+    /// history: the vendor name, or "Unknown Controller" in English.
+    var exportName: String {
+        vendorName ?? "Unknown Controller"
+    }
 
     /// The product category string from GCController (e.g. "DualSense", "Xbox Wireless Controller").
     let productCategory: String
@@ -230,7 +254,7 @@ class ControllerMonitor: ObservableObject {
 
         return ControllerInfo(
             id: UUID(),
-            name: controller.vendorName ?? "Unknown Controller",
+            vendorName: controller.vendorName,
             productCategory: controller.productCategory,
             batteryLevel: batteryInfo?.level,
             batteryState: batteryInfo?.state,
@@ -266,10 +290,10 @@ class ControllerMonitor: ObservableObject {
 
         for controller in controllers {
             // Remove existing entry with the same name (dedup)
-            recentHistory.removeAll { $0.name == controller.name }
+            recentHistory.removeAll { $0.name == controller.exportName }
 
             recentHistory.append(ControllerHistoryEntry(
-                name: controller.name,
+                name: controller.exportName,
                 connectionType: controller.connectionType.rawValue,
                 lastSeen: now
             ))

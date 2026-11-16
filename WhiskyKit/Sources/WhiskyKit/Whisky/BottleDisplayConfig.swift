@@ -38,7 +38,10 @@ public enum ResolutionPreset: String, Codable, CaseIterable, Equatable, Sendable
     /// User-specified custom resolution
     case custom
 
-    /// A human-readable label for this preset.
+    /// A localized, human-readable label for this preset.
+    ///
+    /// The fixed sizes are plain numbers; the default size, Match Display and
+    /// Custom come from the app's string catalog.
     public var label: String {
         switch self {
         case .r1280x720:
@@ -46,15 +49,15 @@ public enum ResolutionPreset: String, Codable, CaseIterable, Equatable, Sendable
         case .r1600x900:
             "1600 x 900"
         case .r1920x1080:
-            "1920 x 1080 (Default)"
+            String(localized: "config.virtualDesktop.preset.default \("1920 x 1080")")
         case .r2560x1440:
             "2560 x 1440"
         case .r3840x2160:
             "3840 x 2160"
         case .matchDisplay:
-            "Match Mac Display"
+            String(localized: "config.virtualDesktop.matchDisplay.label")
         case .custom:
-            "Custom"
+            String(localized: "config.virtualDesktop.custom")
         }
     }
 

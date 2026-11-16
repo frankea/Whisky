@@ -42,7 +42,7 @@
       "description": "Verifying the Wine audio driver configuration in the registry.",
       "checkId": "audio.driver_check",
       "params": {
-        "expected": "pulseaudio"
+        "expected": "auto,coreaudio"
       },
       "on": {
         "pass": "check_audio_buffer",
@@ -66,7 +66,7 @@
       "fixPreview": {
         "settingName": "Wine Audio Driver",
         "currentValueKey": "currentDriver",
-        "newValue": "pulseaudio",
+        "newValue": "auto",
         "scope": "bottle"
       },
       "isReversible": true,
@@ -74,6 +74,9 @@
       "on": {
         "applied": "verify_fix",
         "skipped": "check_audio_buffer"
+      },
+      "params": {
+        "driver": "auto"
       }
     },
     "check_audio_buffer": {

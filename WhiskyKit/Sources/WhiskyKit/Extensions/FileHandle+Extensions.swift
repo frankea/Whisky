@@ -16,139 +16,9 @@
 //  If not, see https://www.gnu.org/licenses/.
 //
 
-import Darwin
 import Foundation
-@preconcurrency import ObjectiveC
 import os.log
 import SemanticVersion
-
-private final class WineLogCapRegistry: @unchecked Sendable {
-    static let shared = WineLogCapRegistry()
-
-    private struct State {
-        var bytesWritten: Int64
-        var didWriteTruncationMarker: Bool
-    }
-
-    private let lock = NSLock()
-    private var states: [ObjectIdentifier: State] = [:]
-    private nonisolated(unsafe) static var deinitObserverKey: UInt8 = 0
-
-    private final class DeinitObserver {
-        let onDeinit: () -> Void
-        init(onDeinit: @escaping () -> Void) {
-            self.onDeinit = onDeinit
-        }
-
-        deinit { onDeinit() }
-    }
-
-    private init() {}
-
-    func write(_ data: Data, to handle: FileHandle) {
-        let key = ObjectIdentifier(handle)
-        attachDeinitObserverIfNeeded(to: handle, key: key)
-
-        lock.lock()
-        defer { lock.unlock() }
-
-        var state = states[key] ?? State(
-            bytesWritten: currentSizeBytes(for: handle),
-            didWriteTruncationMarker: false
-        )
-
-        // Once truncation starts, discard further output without buffering.
-        if state.didWriteTruncationMarker {
-            // `state` isn't mutated in this branch, so writing it back to `states` would be redundant.
-            return
-        }
-
-        let maxBytes = Wine.maxLogFileBytes
-        let markerData = Wine.logTruncationMarker.data(using: .utf8) ?? Data()
-        let dataCap = max(0, maxBytes - Int64(markerData.count))
-
-        if state.bytesWritten < dataCap {
-            let remainingForData = dataCap - state.bytesWritten
-            if Int64(data.count) <= remainingForData {
-                writeData(data, to: handle)
-                state.bytesWritten += Int64(data.count)
-            } else {
-                if remainingForData > 0 {
-                    let prefix = data.prefix(Int(remainingForData))
-                    writeData(prefix, to: handle)
-                    state.bytesWritten += Int64(prefix.count)
-                }
-                writeTruncationMarkerIfPossible(markerData, maxBytes: maxBytes, state: &state, handle: handle)
-            }
-        } else {
-            // We've hit the data budget; begin truncation and append the marker once.
-            writeTruncationMarkerIfPossible(markerData, maxBytes: maxBytes, state: &state, handle: handle)
-        }
-
-        states[key] = state
-    }
-
-    func removeState(for handle: FileHandle) {
-        removeState(forKey: ObjectIdentifier(handle))
-    }
-
-    private func removeState(forKey key: ObjectIdentifier) {
-        lock.lock()
-        defer { lock.unlock() }
-        states.removeValue(forKey: key)
-    }
-
-    private func attachDeinitObserverIfNeeded(to handle: FileHandle, key: ObjectIdentifier) {
-        // Ensure state is cleared even if `closeWineLog()` isn't called (e.g., early returns / errors).
-        if objc_getAssociatedObject(handle, &Self.deinitObserverKey) != nil { return }
-        let observer = DeinitObserver { [weak self] in
-            self?.removeState(forKey: key)
-        }
-        objc_setAssociatedObject(handle, &Self.deinitObserverKey, observer, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-    }
-
-    private func currentSizeBytes(for handle: FileHandle) -> Int64 {
-        do {
-            // Ensures subsequent writes remain append-only.
-            let offset = try handle.seekToEnd()
-            return Int64(offset)
-        } catch {
-            Logger.wineKit.info("Failed to determine current file size; seekToEnd() threw: \(error)")
-            // Fall back to `fstat` (doesn't require seeking) to avoid unnecessarily disabling logging.
-            var fileStat = stat()
-            if fstat(handle.fileDescriptor, &fileStat) == 0 {
-                return Int64(fileStat.st_size)
-            }
-
-            // If we still can't determine the current size, assume the cap is already reached to avoid writing past it.
-            return Wine.maxLogFileBytes
-        }
-    }
-
-    private func writeData(_ data: Data, to handle: FileHandle) {
-        do {
-            try handle.write(contentsOf: data)
-        } catch {
-            Logger.wineKit.info("Failed to write log data: \(error)")
-        }
-    }
-
-    private func writeTruncationMarkerIfPossible(
-        _ markerData: Data,
-        maxBytes: Int64,
-        state: inout State,
-        handle: FileHandle
-    ) {
-        guard !state.didWriteTruncationMarker else { return }
-        let remainingTotal = maxBytes - state.bytesWritten
-        if remainingTotal > 0 {
-            let markerSlice = markerData.prefix(Int(remainingTotal))
-            writeData(markerSlice, to: handle)
-            state.bytesWritten += Int64(markerSlice.count)
-        }
-        state.didWriteTruncationMarker = true
-    }
-}
 
 extension FileHandle {
     private enum Constants {
@@ -184,11 +54,16 @@ extension FileHandle {
     /// Writes a line to a Whisky log file while enforcing the log size cap.
     ///
     /// This method is thread-safe across concurrent stdout/stderr writers for the same file handle.
-    /// Once the per-file cap is reached, additional output is discarded without buffering.
-    /// A single truncation marker is appended once when truncation begins.
+    /// A log that reaches its cap keeps its head (the launch header and early output) and its
+    /// newest output, with the truncation marker between them (``WineLogLimits``).
     func writeWineLog(line: String) {
+        writeWineLog(line: line, limits: .standard)
+    }
+
+    /// Writes a line to a Whisky log file under the given limits. Tests use small ones.
+    func writeWineLog(line: String, limits: WineLogLimits) {
         guard let data = line.data(using: .utf8) else { return }
-        WineLogCapRegistry.shared.write(data, to: self)
+        WineLogCapRegistry.shared.write(data, to: self, limits: limits)
     }
 
     /// Closes a Whisky log file handle and clears any associated in-memory cap state.
@@ -205,7 +80,7 @@ extension FileHandle {
         let macOSVersionString =
             "\(macOSVersion.majorVersion).\(macOSVersion.minorVersion).\(macOSVersion.patchVersion)"
 
-        header += "Whisky Version: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] ?? "")\n"
+        header += "Whisky Version: \(WhiskyAppVersion.current)\n"
         header += "Date: \(ISO8601DateFormatter().string(from: Date.now))\n"
         header += "macOS Version: \(macOSVersionString)\n\n"
         writeWineLog(line: header)

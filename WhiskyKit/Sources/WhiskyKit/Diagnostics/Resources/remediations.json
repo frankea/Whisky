@@ -101,17 +101,17 @@
     },
     {
       "id": "steam-download-fix",
-      "title": "Fix Steam Download Stall",
-      "description": "Steam downloads can stall due to network configuration. Try increasing the network timeout or switching download region.",
+      "title": "Steam Download Stall",
+      "description": "Steam downloads can stall on Steam's side. In Steam, open Settings > Downloads, use Clear Download Cache or choose a different Download Region, then restart Steam.",
       "category": "networkingLaunchers",
-      "actionType": "changeSetting",
+      "actionType": "informational",
       "risk": "low",
-      "settingKeyPath": "networkTimeout",
-      "settingValue": "120000",
+      "settingKeyPath": null,
+      "settingValue": null,
       "winetricksVerb": null,
-      "whatWillChange": "Increases network timeout and enables HTTP/1.1 fallback for Steam downloads",
-      "undoPath": "Reset network timeout in Launcher settings",
-      "appliesNextLaunch": true
+      "whatWillChange": "No automatic changes; the fix is made in Steam's own settings",
+      "undoPath": "No changes to undo",
+      "appliesNextLaunch": false
     },
     {
       "id": "anticheat-info",

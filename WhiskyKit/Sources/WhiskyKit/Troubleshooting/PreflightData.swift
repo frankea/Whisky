@@ -53,14 +53,33 @@ public struct PreflightData: Codable, Sendable {
     /// Exit code from the program's last run, if available.
     public let lastExitCode: Int32?
 
+    /// When the run that wrote ``recentLogURL`` started, if known. A check
+    /// that needs a launch made after a fix compares against this.
+    public let recentRunStartTime: Date?
+
     /// Name of the current default audio output device, if detected.
     public let audioDeviceName: String?
 
     /// Transport type of the audio device (e.g., "built-in", "bluetooth").
     public let audioTransportType: String?
 
-    /// Resolved graphics backend (e.g., "dxvk", "gptk").
+    /// Nominal sample rate of the default audio output device in Hz, if
+    /// detected.
+    public let audioSampleRate: Double?
+
+    /// The graphics backend a launch of the program uses, resolved (e.g.,
+    /// "dxvk", "d3dMetal"): the program's override when it has one, the
+    /// bottle's otherwise.
     public let graphicsBackend: String
+
+    /// The bottle's own graphics backend, resolved, whatever the program
+    /// overrides. `nil` in snapshots taken before this was recorded.
+    public let bottleGraphicsBackend: String?
+
+    /// Why Recommended picked ``graphicsBackend`` (a Chromium window steered to
+    /// DXVK, say), when the launch is on Recommended. `nil` for an explicit
+    /// choice and in snapshots taken before this was recorded.
+    public let graphicsBackendReason: String?
 
     /// When this preflight data was collected.
     public let collectedAt: Date
@@ -75,9 +94,13 @@ public struct PreflightData: Codable, Sendable {
         processCount: Int,
         recentLogURL: URL? = nil,
         lastExitCode: Int32? = nil,
+        recentRunStartTime: Date? = nil,
         audioDeviceName: String? = nil,
         audioTransportType: String? = nil,
+        audioSampleRate: Double? = nil,
         graphicsBackend: String,
+        bottleGraphicsBackend: String? = nil,
+        graphicsBackendReason: String? = nil,
         collectedAt: Date = Date()
     ) {
         self.bottleURL = bottleURL
@@ -89,9 +112,13 @@ public struct PreflightData: Codable, Sendable {
         self.processCount = processCount
         self.recentLogURL = recentLogURL
         self.lastExitCode = lastExitCode
+        self.recentRunStartTime = recentRunStartTime
         self.audioDeviceName = audioDeviceName
         self.audioTransportType = audioTransportType
+        self.audioSampleRate = audioSampleRate
         self.graphicsBackend = graphicsBackend
+        self.bottleGraphicsBackend = bottleGraphicsBackend
+        self.graphicsBackendReason = graphicsBackendReason
         self.collectedAt = collectedAt
     }
 }

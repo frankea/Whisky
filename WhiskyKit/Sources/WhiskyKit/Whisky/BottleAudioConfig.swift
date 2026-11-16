@@ -100,11 +100,15 @@ public enum AudioLatencyPreset: String, Codable, CaseIterable, Equatable, Sendab
 /// The output device routing mode for a Wine bottle.
 ///
 /// Controls whether Wine follows the macOS default output device
-/// or is pinned to a specific device by name.
+/// or is pinned to a specific device by its CoreAudio UID.
+///
+/// A pin is written to the bottle's registry as Wine's `DefaultOutput`
+/// endpoint at launch. When the pinned device is not connected, Wine falls
+/// back to the macOS default output.
 public enum OutputDeviceMode: String, Codable, CaseIterable, Equatable, Sendable {
     /// Follow the macOS default output device (recommended).
     case followSystem
-    /// Pin audio output to a specific device by name.
+    /// Pin audio output to a specific device.
     case pinned
 
     /// A human-readable display name for this device mode.
@@ -133,8 +137,11 @@ public struct BottleAudioConfig: Codable, Equatable {
     /// The output device routing mode. Defaults to `.followSystem`.
     var outputDeviceMode: OutputDeviceMode = .followSystem
 
-    /// The name of the pinned output device, if any.
+    /// The display name of the pinned output device, if any.
     var pinnedDeviceName: String?
+
+    /// The CoreAudio UID of the pinned output device, if any.
+    var pinnedDeviceUID: String?
 
     /// Creates a new audio config with default values.
     public init() {}
@@ -150,8 +157,11 @@ public struct BottleAudioConfig: Codable, Equatable {
         self.outputDeviceMode = container.decodeLenientIfPresent(
             OutputDeviceMode.self, forKey: .outputDeviceMode
         ) ?? .followSystem
-        self.pinnedDeviceName = try container.decodeIfPresent(
+        self.pinnedDeviceName = try? container.decodeIfPresent(
             String.self, forKey: .pinnedDeviceName
+        )
+        self.pinnedDeviceUID = try? container.decodeIfPresent(
+            String.self, forKey: .pinnedDeviceUID
         )
     }
 }

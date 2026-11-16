@@ -39,14 +39,16 @@ public enum AudioSymptom: String, CaseIterable, Identifiable, Sendable {
         rawValue
     }
 
-    /// Human-readable display name for this symptom.
+    /// Display name for this symptom in the app's language.
+    ///
+    /// Exports use ``rawValue`` so they read the same in every language.
     public var displayName: String {
         switch self {
-        case .noSound: "No sound at all"
-        case .crackling: "Crackling or popping"
-        case .stutter: "Audio stutter or desync"
-        case .wrongDevice: "Wrong output device"
-        case .menusOnly: "Sound in menus only"
+        case .noSound: String(localized: "audio.symptom.noSound")
+        case .crackling: String(localized: "audio.symptom.crackling")
+        case .stutter: String(localized: "audio.symptom.stutter")
+        case .wrongDevice: String(localized: "audio.symptom.wrongDevice")
+        case .menusOnly: String(localized: "audio.symptom.menusOnly")
         }
     }
 
@@ -61,19 +63,19 @@ public enum AudioSymptom: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// Detailed description of this symptom for the selection UI.
+    /// Detailed description of this symptom for the selection UI, in the app's language.
     public var symptomDescription: String {
         switch self {
         case .noSound:
-            "Games or applications produce no audio output"
+            String(localized: "audio.symptom.noSound.description")
         case .crackling:
-            "Audio plays but with crackling, popping, or distortion"
+            String(localized: "audio.symptom.crackling.description")
         case .stutter:
-            "Sound stutters, skips, or falls out of sync with video"
+            String(localized: "audio.symptom.stutter.description")
         case .wrongDevice:
-            "Sound plays through the wrong speakers or headphones"
+            String(localized: "audio.symptom.wrongDevice.description")
         case .menusOnly:
-            "Audio works in game menus but not during gameplay"
+            String(localized: "audio.symptom.menusOnly.description")
         }
     }
 }

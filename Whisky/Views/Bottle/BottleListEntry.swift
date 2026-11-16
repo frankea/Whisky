@@ -85,6 +85,11 @@ struct BottleListEntry: View {
         .onDisappear {
             probeTask?.cancel()
         }
+        .onReceive(NotificationCenter.default.publisher(for: ProcessRegistry.didChangeNotification)) { note in
+            // A launch or stop in this bottle shows at once rather than at the next tick.
+            guard note.userInfo?[ProcessRegistry.bottleURLKey] as? URL == bottle.url else { return }
+            Task { await probeRunningState() }
+        }
         .onChange(of: refresh, initial: true) {
             name = bottle.settings.name
             Task { await probeRunningState() }
@@ -163,8 +168,12 @@ struct BottleListEntry: View {
                             let newBottePath = url
                                 .appending(path: bottle.url.lastPathComponent)
 
-                            bottle.move(destination: newBottePath)
-                            selected = newBottePath
+                            do {
+                                try bottle.move(destination: newBottePath)
+                                selected = newBottePath
+                            } catch {
+                                showOperationFailure(String(localized: "bottle.move.failed.title"), error: error)
+                            }
                         }
                     }
                 }
@@ -241,17 +250,15 @@ struct BottleListEntry: View {
         }
     }
 
+    /// The orange stop button is only for a wineserver nothing Whisky launched
+    /// in this run of the app accounts for. A game started here keeps the
+    /// wineserver up long after its `wine start` process exits, and that is
+    /// a running bottle, not an orphan.
     @MainActor
     private func probeRunningState() async {
-        let trackedCount = ProcessRegistry.shared.getProcessCount(for: bottle)
-        runningCount = trackedCount
-
-        if trackedCount == 0 {
-            let active = await Wine.isWineserverRunning(for: bottle)
-            hasOrphanProcesses = active
-        } else {
-            hasOrphanProcesses = false
-        }
+        let state = await Wine.runState(for: bottle)
+        runningCount = state.badgeCount
+        hasOrphanProcesses = state == .orphaned
     }
 }
 
@@ -322,13 +329,37 @@ extension BottleListEntry {
 
         if response == .alertFirstButtonReturn {
             Task(priority: .userInitiated) {
-                if selected == bottle.url {
+                let wasSelected = selected == bottle.url
+                if wasSelected {
                     selected = nil
                 }
 
-                await bottle.remove(delete: checkbox.state == .on)
+                do {
+                    let removed = try await bottle.remove(delete: checkbox.state == .on)
+                    // Cancelled at the running-processes prompt: still listed.
+                    if !removed, wasSelected {
+                        selected = bottle.url
+                    }
+                } catch {
+                    // The bottle is still in the list, so put the selection back.
+                    if wasSelected {
+                        selected = bottle.url
+                    }
+                    showOperationFailure(String(localized: "bottle.remove.failed.title"), error: error)
+                }
             }
         }
+    }
+
+    /// Tells the user a move or remove failed instead of failing silently.
+    @MainActor
+    func showOperationFailure(_ title: String, error: Error) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = error.localizedDescription
+        alert.alertStyle = .critical
+        alert.addButton(withTitle: String(localized: "button.ok"))
+        alert.runModal()
     }
 }
 

@@ -29,7 +29,8 @@ private let launcherConfigLogger = Logger(
 struct LauncherConfigSection: View {
     @ObservedObject var bottle: Bottle
     @Binding var isExpanded: Bool
-    /// Opens the latest diagnosis; supplied by ConfigView, which owns that sheet.
+    /// Opens the latest crash diagnosis, or the stability report when there is
+    /// none; supplied by ConfigView, which owns both sheets.
     var onViewDiagnostics: () -> Void = {}
     @State private var overridesExpanded: Bool = false
 
@@ -46,6 +47,10 @@ struct LauncherConfigSection: View {
                 if bottle.settings.launcherCompatibilityMode {
                     launcherCompatibilityControls
                 }
+
+                // Outside the compatibility controls: the Rockstar launcher's
+                // Direct3D does not depend on compatibility mode.
+                rockstarWineD3DRow
             }
             .padding(.vertical, 8)
         } label: {
@@ -98,9 +103,6 @@ extension LauncherConfigSection {
 
         Divider()
 
-        // Network configuration
-        networkControls
-
         // Rockstar is the only launcher that requires DXVK; every launcher
         // already resolves to DXVK under the Recommended backend
         Toggle("Use DXVK for Rockstar Games Launcher", isOn: $bottle.settings.autoEnableDXVK)
@@ -130,6 +132,7 @@ extension LauncherConfigSection {
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
+            .help("launcher.config.viewDiagnostics.help")
             Spacer()
         }
 
@@ -218,14 +221,15 @@ extension LauncherConfigSection {
                 }
             }
             .help("""
-            Steam and Chromium-based launchers require en_US locale \
-            to avoid steamwebhelper crashes
+            Sets the Windows locale for every program in this bottle, including games a launcher starts. \
+            Auto keeps the launcher's default: US English for EA App, Epic Games, Battle.net and Rockstar, \
+            and the Mac's own language and region otherwise.
             """)
 
             if bottle.settings.launcherLocale != .auto {
                 Text("""
-                Forces \(bottle.settings.launcherLocale.pretty()) locale \
-                to fix steamwebhelper crashes
+                Programs in this bottle, the launcher included, use \(bottle.settings.launcherLocale.pretty()). \
+                If the launcher's window stops working, set this back to Auto.
                 """)
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -248,30 +252,6 @@ extension LauncherConfigSection {
                 }
             }
             .help("NVIDIA (recommended) provides best compatibility across launchers")
-        }
-    }
-
-    private var networkControls: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text("Network Timeout:")
-                Spacer()
-                Text("\(bottle.settings.networkTimeout / 1_000)s")
-                    .foregroundColor(.secondary)
-            }
-
-            Slider(
-                value: Binding(
-                    get: { Double(bottle.settings.networkTimeout) },
-                    set: { bottle.settings.networkTimeout = Int($0) }
-                ),
-                in: 30_000 ... 180_000,
-                step: 15_000
-            )
-
-            Text("Fixes Steam download stalls and connection timeouts")
-                .font(.caption)
-                .foregroundColor(.secondary)
         }
     }
 
@@ -315,7 +295,7 @@ private struct ActiveEnvironmentOverrides: View {
     @Binding var isExpanded: Bool
 
     var body: some View {
-        DisclosureGroup("Active Environment Overrides", isExpanded: $isExpanded) {
+        DisclosureGroup("launcher.config.activeOverrides", isExpanded: $isExpanded) {
             VStack(alignment: .leading, spacing: 12) {
                 if let launcher, !launcher.fixDetails().isEmpty {
                     launcherFixesSection(launcher)
@@ -383,14 +363,14 @@ private struct ActiveEnvironmentOverrides: View {
         provenance: String?
     ) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(categoryDisplayName(category))
+            Text(category.displayName)
                 .font(.caption2)
                 .fontWeight(.medium)
                 .foregroundColor(.secondary)
                 .textCase(.uppercase)
 
             ForEach(fixes, id: \.key) { fix in
-                fixRow(key: fix.key, value: fix.value, reason: fix.reason)
+                fixRow(key: fix.key, value: fix.value, reason: fix.localizedReason)
             }
         }
     }
@@ -400,7 +380,7 @@ private struct ActiveEnvironmentOverrides: View {
         fixes: [MacOSFix]
     ) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(categoryDisplayName(category))
+            Text(category.displayName)
                 .font(.caption2)
                 .fontWeight(.medium)
                 .foregroundColor(.secondary)
@@ -410,7 +390,7 @@ private struct ActiveEnvironmentOverrides: View {
                 fixRow(
                     key: fix.key,
                     value: fix.value,
-                    reason: "Applied because macOS >= \(fix.appliesFrom.description): \(fix.reason)"
+                    reason: platformReason(fix)
                 )
             }
         }
@@ -448,15 +428,14 @@ private struct ActiveEnvironmentOverrides: View {
 
     // MARK: - Helpers
 
-    private func categoryDisplayName(_ category: FixCategory) -> String {
-        switch category {
-        case .locale: "Locale"
-        case .sandbox: "Sandbox"
-        case .graphics: "Graphics"
-        case .network: "Network"
-        case .threading: "Threading"
-        case .compatibility: "Compatibility"
+    /// Why a platform fix is active. Universal fixes carry macOS 0.0.0, which
+    /// reads as nonsense when printed as a minimum version.
+    private func platformReason(_ fix: MacOSFix) -> String {
+        if fix.appliesFrom.major == 0 {
+            return String(localized: "launcher.config.provenance.allVersions \(fix.localizedReason)")
         }
+        let version = fix.appliesFrom.description
+        return String(localized: "launcher.config.provenance.platformReason \(version) \(fix.localizedReason)")
     }
 }
 
@@ -538,6 +517,50 @@ struct DiagnosticsReportView: View {
                 alert.addButton(withTitle: String(localized: "button.ok"))
                 alert.runModal()
             }
+        }
+    }
+}
+
+// MARK: - Rockstar Wine Direct3D
+
+extension LauncherConfigSection {
+    /// The Rockstar Games Launcher's Wine Direct3D setting, shown only where
+    /// it means something: a bottle with the launcher while GPTK is deployed,
+    /// or one Whisky already swapped (#382).
+    @ViewBuilder
+    private var rockstarWineD3DRow: some View {
+        if let status = bottle.rockstarWineD3DStatus {
+            Divider()
+            Toggle("launcher.config.rockstarWineD3D.toggle", isOn: $bottle.settings.rockstarWineD3D)
+                .help("launcher.config.rockstarWineD3D.help")
+            rockstarWineD3DStatusText(status)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// One line on what the setting does in this bottle right now.
+    private func rockstarWineD3DStatusText(_ status: RockstarWineD3DStatus) -> Text {
+        switch status {
+        case .active:
+            Text("launcher.config.rockstarWineD3D.status.active")
+        case .pending, .notApplied(.gptkForwarders):
+            Text("launcher.config.rockstarWineD3D.status.pending")
+        // `rockstarWineD3DStatus` reports these two as `.off` and `.pending`
+        // itself; they read the same here if one ever arrives as a reason.
+        case .off, .notApplied(.disabledByUser):
+            Text("launcher.config.rockstarWineD3D.status.off")
+        case .notApplied(.sourceUnavailable):
+            Text("launcher.config.rockstarWineD3D.status.sourceUnavailable")
+        case .notApplied(.bottleUsesNativeD3D11):
+            Text("launcher.config.rockstarWineD3D.status.bottleUsesNativeD3D11")
+        case let .notApplied(.dxvkPlanGames(names)):
+            Text("launcher.config.rockstarWineD3D.status.dxvkPlanGames \(names.formatted(.list(type: .and)))")
+        case let .notApplied(.unservedConsumers(names)):
+            Text("launcher.config.rockstarWineD3D.status.unservedConsumers \(names.formatted(.list(type: .and)))")
+        case .notApplied(.swapFailed):
+            Text("launcher.config.rockstarWineD3D.status.failed")
         }
     }
 }

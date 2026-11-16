@@ -117,13 +117,19 @@ final class GameApplicatorTests: XCTestCase {
 
         // Real entries pair an explicit backend with `dxvk: false`; the legacy
         // setter maps that `false` to Recommended, which used to undo the backend.
+        // D3DMetal is pinned as installed; a missing payload is covered in
+        // GameConfigBackendAvailabilityTests.
         let variant = makeTestVariant(graphicsBackend: .d3dMetal, dxvk: false)
         let entry = makeTestEntry(variant: variant)
 
-        _ = try GameConfigApplicator.apply(entry: entry, variant: variant, to: bottle)
+        _ = try GameConfigApplicator.apply(
+            entry: entry, variant: variant, to: bottle, isBackendAvailable: { _ in true }
+        )
 
         XCTAssertEqual(bottle.settings.graphicsBackend, .d3dMetal)
-        let changes = GameConfigApplicator.previewChanges(variant: variant, bottle: bottle)
+        let changes = GameConfigApplicator.previewChanges(
+            variant: variant, bottle: bottle, isBackendAvailable: { _ in true }
+        )
         XCTAssertFalse(changes.contains { $0.settingName == "DXVK" }, "no DXVK row when the backend is explicit")
     }
 
@@ -239,11 +245,14 @@ final class GameApplicatorTests: XCTestCase {
 
         let variant = makeTestVariant(winetricksVerbs: ["vcrun2022", "dotnet48"])
         let entry = makeTestEntry(variant: variant)
-        let snapshot = try GameConfigApplicator.apply(entry: entry, variant: variant, to: bottle)
+        _ = try GameConfigApplicator.apply(entry: entry, variant: variant, to: bottle)
+        // Only the verbs that actually installed are recorded, after the apply.
+        try GameConfigApplicator.recordInstalledVerbs(["vcrun2022"], bottleURL: bottle.url)
+        let snapshot = try XCTUnwrap(GameConfigSnapshot.load(from: bottle.url))
 
         let verbs = try GameConfigApplicator.revert(bottle: bottle, snapshot: snapshot)
 
-        XCTAssertEqual(verbs, ["vcrun2022", "dotnet48"], "Revert should return the installed verbs list")
+        XCTAssertEqual(verbs, ["vcrun2022"], "Revert should return the verbs that were installed")
     }
 
     // MARK: - Test 6: Pending Winetricks Verbs Filters Installed
@@ -277,20 +286,20 @@ final class GameApplicatorTests: XCTestCase {
         let changes = GameConfigApplicator.previewChanges(variant: variant, bottle: bottle)
 
         // Should have at least graphics backend change
-        let backendChange = changes.first { $0.settingName == "Graphics Backend" }
+        let backendChange = changes.first { $0.kind == .graphicsBackend }
         XCTAssertNotNil(backendChange, "Should include graphics backend change")
         XCTAssertEqual(backendChange?.newValue, GraphicsBackend.dxvk.displayName)
         XCTAssertTrue(backendChange?.isHighImpact == true, "Graphics backend change should be high impact")
 
         // Should have enhanced sync change
-        let syncChange = changes.first { $0.settingName == "Enhanced Sync" }
+        let syncChange = changes.first { $0.kind == .enhancedSync }
         XCTAssertNotNil(syncChange, "Should include enhanced sync change")
-        XCTAssertEqual(syncChange?.newValue, "ESync")
+        XCTAssertEqual(syncChange?.newValue, String(localized: "config.enhancedSync.esync"))
 
         // Should have DLL override change
-        let dllChange = changes.first { $0.settingName == "dxgi" }
+        let dllChange = changes.first { $0.kind == .dllOverride && $0.settingName == "dxgi" }
         XCTAssertNotNil(dllChange, "Should include DLL override change")
-        XCTAssertEqual(dllChange?.category, "DLL Overrides")
+        XCTAssertEqual(dllChange?.category, String(localized: "gameConfig.detail.dllOverrides"))
         XCTAssertTrue(dllChange?.isHighImpact == true, "DLL override additions should be high impact")
     }
 

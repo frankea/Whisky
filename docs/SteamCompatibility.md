@@ -62,11 +62,7 @@ Steam is the most widely used game launcher in Whisky, but also has the most com
    - Setting the whole bottle to DXVK turns d3d12 off for every game when the
      payload is deployed; only do it for a bottle whose games all want DXVK.
 
-2. **Adjust Network Timeout:**
-   - Config → Launcher Compatibility
-   - Set timeout to **90 seconds** (recommended for Steam)
-
-3. **Enable GPU Spoofing:**
+2. **Enable GPU Spoofing:**
    - Config → Launcher Compatibility
    - GPU Spoofing: **ON**
    - Vendor: **NVIDIA** (best compatibility)
@@ -79,11 +75,13 @@ Steam is the most widely used game launcher in Whisky, but also has the most com
 
 2. **Check Critical Settings:**
    ```
-   LC_ALL = en_US.UTF-8          ✅ (prevents steamwebhelper crash)
    STEAM_DISABLE_CEF_SANDBOX = 1  ✅ (Wine compatibility)
    STEAM_RUNTIME = 0              ✅ (Wine compatibility)
    DXVK_ASYNC = 1                 ✅ (UI performance)
    ```
+   The Steam preset sets no locale. With Locale Override on **Auto**, no
+   `LC_ALL`/`LANG` appears, and Steam and its games get your Mac's language
+   and region.
 
 3. **Look for Warnings:**
    - ✅ "Configuration is optimal" → Good to go!
@@ -104,36 +102,35 @@ Steam is the most widely used game launcher in Whisky, but also has the most com
 - Steam UI completely unusable
 
 #### Root Cause:
-Steam's Chromium Embedded Framework (CEF) crashes when:
-- Locale doesn't specify UTF-8 encoding
-- ICU (International Components for Unicode) fails to initialize
-- Date/time parsing encounters unexpected format
+Steam's Chromium Embedded Framework (CEF) web helper can fail under Wine.
+Launcher Compatibility applies Steam-specific fixes such as disabling the CEF
+sandbox.
 
 #### Solution:
 
-**Critical Fix - Locale:**
 1. Config → Launcher Compatibility → Enable
-2. Locale Override → **English**
-3. Generate diagnostics → Verify `LC_ALL=en_US.UTF-8`
+2. Generate diagnostics → Verify `STEAM_DISABLE_CEF_SANDBOX=1`
 
-**Important:** The `.UTF-8` suffix is CRITICAL. `en_US` alone will still crash!
-
-#### Verification:
-```
-✅ LC_ALL=en_US.UTF-8 (correct)
-❌ LC_ALL=en_US (missing .UTF-8 - will crash!)
-```
+**Locale:** Earlier versions forced `LC_ALL=en_US.UTF-8` for Steam to avoid
+this crash. That crash did not reproduce in current testing: steamwebhelper
+started and the login page loaded under German and Japanese locales on both
+the stable and beta engines, the same as under English. The Steam preset now
+sets no locale. Leave Locale Override on **Auto** to give Steam and the games
+it starts your Mac's language and region, or pick another locale there.
+Steam's own interface language is a Steam setting (Steam > Settings >
+Interface). Bottles that older versions of Whisky set to English are put back
+on Auto once. If Steam's window fails to load under your locale, set Locale
+Override to English (en_US) and please report it.
 
 #### If Still Crashes:
 1. Delete Steam installation
 2. Recreate bottle with compatibility mode enabled FIRST
 3. Install Steam fresh
-4. Verify locale before first launch
 
 **Related Issues:**
 - whisky-app/whisky#946 (Primary issue - 30+ comments)
 - whisky-app/whisky#1224 (UI unusable)
-- whisky-app/whisky#1241 (Locale fix discovery)
+- whisky-app/whisky#1241 (Earlier locale workaround)
 
 ---
 
@@ -147,33 +144,16 @@ Steam's Chromium Embedded Framework (CEF) crashes when:
 - Happens with multiple games
 
 #### Root Cause:
-Wine's HTTP/2 implementation has connection pooling issues. Downloads use persistent connections that timeout incorrectly.
+A stall is usually on Steam's side: a damaged download cache, or a busy content server in the selected download region. Steam's content downloads do not go through Wine's WinHTTP or WinINet, and Wine reads no environment variable or registry value for network timeouts, so there is no Whisky setting that changes them.
 
 #### Solution:
 
-**Primary Fix:**
-1. Config → Launcher Compatibility
-2. Network Timeout → **90 seconds** (or higher)
-3. Restart Steam
+Fix it in Steam's own settings:
+1. Steam → Settings → Downloads → **Clear Download Cache**
+2. If the stall comes back, choose a different **Download Region** in the same pane
+3. Restart Steam and resume the download
 
-**In-Steam Workaround:**
-1. Steam → Settings → Downloads
-2. Change "Download Region" to different location
-3. Pause and resume download
-4. Clear download cache
-
-**Verify Environment:**
-```
-WINHTTP_CONNECT_TIMEOUT = 90000
-WINHTTP_RECEIVE_TIMEOUT = 180000
-WINE_FORCE_HTTP11 = 1
-WINE_MAX_CONNECTIONS_PER_SERVER = 10
-```
-
-**Why This Works:**
-- Longer timeouts prevent premature connection closure
-- HTTP/1.1 fallback avoids Wine's HTTP/2 bugs
-- Connection pooling limits prevent resource exhaustion
+Also check that the download is not just paused or waiting in the queue (Steam → Downloads), which looks the same as a stall.
 
 **Related Issues:**
 - whisky-app/whisky#1148 (Downloads stall)
@@ -196,15 +176,7 @@ Network keepalive timeouts and SSL handshake issues.
 
 #### Solution:
 
-1. **Increase Timeout:**
-   - Network Timeout → 120 seconds or higher
-
-2. **Verify SSL Settings:**
-   - Generate diagnostics
-   - Check `WINE_ENABLE_SSL=1`
-   - Check `WINE_SSL_VERSION_MIN=TLS1.2`
-
-3. **Check macOS Network:**
+1. **Check macOS Network:**
    - System Settings → Network
    - Verify stable connection
    - Disable any VPN temporarily (test)
@@ -352,7 +324,7 @@ For specific games launched through Steam:
 **Status:** Should work with compatibility mode
 
 **If Workshop Fails:**
-- Increase network timeout to 180s
+- Clear Steam's download cache (Steam → Settings → Downloads)
 - Check firewall isn't blocking downloads
 - Try manual mod installation as fallback
 
@@ -392,10 +364,9 @@ For specific games launched through Steam:
 
 ### For Best Download Speed
 
-1. **Network Timeout:** 120-180 seconds
-2. **Download Region:** Choose geographically close server
-3. **Clear Download Cache:** Steam → Settings → Downloads → Clear Cache
-4. **Wired Connection:** Wi-Fi can cause issues
+1. **Download Region:** Choose geographically close server
+2. **Clear Download Cache:** Steam → Settings → Downloads → Clear Download Cache
+3. **Wired Connection:** Wi-Fi can cause issues
 
 ---
 
@@ -404,9 +375,8 @@ For specific games launched through Steam:
 Before reporting Steam issues, verify:
 
 - [ ] Launcher Compatibility Mode enabled
-- [ ] Locale set to English (en_US.UTF-8)
+- [ ] Locale Override on Auto (or the language you want Steam in)
 - [ ] DXVK enabled
-- [ ] Network timeout at least 90 seconds
 - [ ] Sequoia Compat Mode (macOS 15+)
 - [ ] Generated diagnostic report
 - [ ] Checked configuration warnings
@@ -506,7 +476,6 @@ Before reporting Steam issues, verify:
 
 **Configuration:**
 - Launcher Compatibility: Enabled
-- Network Timeout: 60 seconds
 - DXVK: Enabled
 
 **Steps to Reproduce:**
@@ -519,7 +488,6 @@ Before reporting Steam issues, verify:
 
 **Attempted Fixes:**
 - Changed download region - no change
-- Increased timeout to 90s - still stalls
 - Cleared download cache - no change
 ```
 
@@ -554,7 +522,7 @@ Before reporting Steam issues, verify:
 
 **Game Downloads:**
 - ✅ Small-medium games (<20GB): Excellent
-- ✅ Large games (20-100GB): Good with proper timeout
+- ✅ Large games (20-100GB): Good
 - ✅ Massive games (>100GB): Works but may need monitoring
 
 **Game Launches:**
@@ -596,7 +564,7 @@ Before reporting Steam issues, verify:
 **A:** No, Steam reports you as playing on Windows via Wine.
 
 ### Q: Can I use Steam Workshop?
-**A:** Yes, generally works. Increase network timeout for large workshop items.
+**A:** Yes, generally works. If a large workshop item stalls, clear Steam's download cache.
 
 ### Q: Does Steam overlay work in games?
 **A:** Game-dependent. Many games support it, some don't render correctly.
@@ -633,9 +601,8 @@ Windows Version: Windows 10
 ```
 Mode: Enabled
 Detection: Automatic
-Locale: English (en_US.UTF-8)
+Locale: Auto (your Mac's language and region)
 GPU Spoofing: Enabled (NVIDIA)
-Network Timeout: 90 seconds
 DXVK for Rockstar: Yes
 ```
 
@@ -739,13 +706,11 @@ Based on upstream issue resolution:
 
 **Expected Success Rate with Launcher Compatibility:**
 - ✅ Steam Client: ~95% (steamwebhelper fix is very effective)
-- ✅ Downloads: ~90% (timeout fixes resolve most issues)
 - ✅ Games: Varies by game (check ProtonDB)
 - ⚠️ Special Features: 50-70% (overlay, streaming, etc.)
 
 **Without Launcher Compatibility:**
 - ❌ Steam Client: ~50% (steamwebhelper crashes common)
-- ❌ Downloads: ~70% (frequent stalls)
 
 **Improvement:** ~80% reduction in launcher issues
 

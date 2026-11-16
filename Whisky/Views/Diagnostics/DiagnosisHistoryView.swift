@@ -159,7 +159,7 @@ extension DiagnosisHistoryView {
     }
 
     private func confidenceBadge(_ tier: ConfidenceTier) -> some View {
-        Text(tier.displayName)
+        Text(tier.localizedName)
             .font(.caption2)
             .fontWeight(.medium)
             .padding(.horizontal, 6)
@@ -180,7 +180,7 @@ extension DiagnosisHistoryView {
             Button("Clear", role: .destructive) {
                 clearHistory()
             }
-            Button("Cancel", role: .cancel) {}
+            Button("button.cancel", role: .cancel) {}
         } message: {
             Text("This will remove all crash diagnosis records for this program.")
         }

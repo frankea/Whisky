@@ -98,13 +98,13 @@ struct AudioDeviceHistoryView: View {
     private func eventDescription(_ event: AudioDeviceChangeEvent) -> String {
         switch event.eventType {
         case .defaultOutputChanged:
-            "Default output changed to \(event.deviceName)"
+            String(localized: "audio.history.event.defaultOutputChanged \(event.deviceName)")
         case .disconnected:
-            "\(event.deviceName) disconnected"
+            String(localized: "audio.history.event.disconnected \(event.deviceName)")
         case .reconnected:
-            "\(event.deviceName) reconnected"
+            String(localized: "audio.history.event.reconnected \(event.deviceName)")
         case .sampleRateChanged:
-            "Sample rate changed on \(event.deviceName)"
+            String(localized: "audio.history.event.sampleRateChanged \(event.deviceName)")
         }
     }
 }

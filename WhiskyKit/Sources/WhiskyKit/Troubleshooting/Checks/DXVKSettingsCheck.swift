@@ -28,6 +28,11 @@ public struct DXVKSettingsCheck: TroubleshootingCheck {
 
     public init() {}
 
+    public let signature: CheckSignature? = CheckSignature(
+        acceptedParams: ["expected"], requiredParams: ["setting"],
+        outcomes: [.alreadyConfigured, .fail, .error]
+    )
+
     // swiftlint:disable:next function_body_length
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         guard let setting = params["setting"] else {
@@ -94,5 +99,39 @@ public struct DXVKSettingsCheck: TroubleshootingCheck {
             summary: "DXVK \(setting) is \(currentValue), expected \(expected)",
             confidence: .high
         )
+    }
+
+    /// The summary of a result from this check in the user's language.
+    ///
+    /// ``CheckResult/summary`` stays in English because it is written to
+    /// history and escalation exports; this rebuilds the on-screen text from
+    /// the result's outcome and evidence.
+    ///
+    /// - Parameter result: A result produced by ``run(params:context:)``.
+    /// - Returns: The localized summary, or `nil` to show ``CheckResult/summary`` (the
+    ///   flow-authoring error for a missing parameter has no localized form).
+    public static func localizedSummary(for result: CheckResult) -> String? {
+        let evidence = result.evidence
+        switch result.outcome {
+        case .error:
+            if evidence["error"] != nil {
+                return String(localized: "troubleshooting.check.settingsUnreadable")
+            }
+            guard let setting = evidence["setting"] else { return nil }
+            return String(localized: "troubleshooting.check.dxvk.unknownSetting \(setting)")
+        case .alreadyConfigured:
+            guard let setting = evidence["setting"], let expected = evidence["expected"] else { return nil }
+            return String(localized: "troubleshooting.check.dxvk.matches \(setting) \(expected)")
+        case .fail:
+            guard let setting = evidence["setting"],
+                  let current = evidence["current"],
+                  let expected = evidence["expected"]
+            else {
+                return nil
+            }
+            return String(localized: "troubleshooting.check.dxvk.mismatch \(setting) \(current) \(expected)")
+        case .pass, .unknown:
+            return nil
+        }
     }
 }

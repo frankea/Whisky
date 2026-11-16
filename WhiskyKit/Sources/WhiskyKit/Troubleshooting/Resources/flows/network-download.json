@@ -18,18 +18,17 @@
         "error": "check_wine_dns"
       },
       "evidenceMap": {
-        "launcherType": "Detected launcher",
-        "launcherName": "Launcher name"
+        "detectedLauncher": "Detected launcher"
       }
     },
     "branch_by_launcher": {
       "id": "branch_by_launcher",
-      "type": "info",
+      "type": "branch",
       "phase": "checks",
       "title": "Launcher identified",
       "description": "Routing to launcher-specific network troubleshooting steps.",
       "on": {
-        "steam": "check_steam_download",
+        "Steam": "check_steam_download",
         "default": "check_wine_dns"
       }
     },

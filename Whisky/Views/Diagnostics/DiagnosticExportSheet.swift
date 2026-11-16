@@ -37,6 +37,8 @@ struct DiagnosticExportSheet: View {
     @State private var includeFullLog = true
     @State private var isExporting = false
     @State private var showCopySuccess = false
+    /// Why the last Save ZIP failed, while its alert is up.
+    @State private var saveFailure: String?
 
     private var exportOptions: ExportOptions {
         ExportOptions(
@@ -67,6 +69,15 @@ struct DiagnosticExportSheet: View {
         }
         .padding(20)
         .frame(minWidth: 480)
+        .alert(
+            "diagnostics.export.saveFailed",
+            isPresented: Binding(get: { saveFailure != nil }, set: { if !$0 { saveFailure = nil } }),
+            presenting: saveFailure
+        ) { _ in
+            Button("button.ok") {}
+        } message: { reason in
+            Text(reason)
+        }
     }
 }
 
@@ -97,7 +108,12 @@ extension DiagnosticExportSheet {
             }
 
             Toggle(isOn: $includeRemediationHistory) {
-                Text("Include remediation history")
+                VStack(alignment: .leading) {
+                    Text("Include remediation history")
+                    Text("diagnostics.export.includeRemediationHistory.detail")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Toggle(isOn: $includeFullLog) {
@@ -113,7 +129,7 @@ extension DiagnosticExportSheet {
 
     private var actionButtons: some View {
         HStack {
-            Button("Cancel", role: .cancel) {
+            Button("button.cancel", role: .cancel) {
                 dismiss()
             }
             .keyboardShortcut(.cancelAction)
@@ -159,16 +175,22 @@ extension DiagnosticExportSheet {
             guard result == .OK, let destination = panel.url else { return }
             isExporting = true
             Task {
-                let zipURL = await DiagnosticExporter.exportZIP(
-                    diagnosis: diagnosis,
-                    bottle: bottle,
-                    program: program,
-                    logFileURL: logFileURL,
-                    timeline: loadRemediationTimeline(),
-                    options: exportOptions
-                )
-
-                try? moveFile(from: zipURL, to: destination)
+                do {
+                    try await DiagnosticExporter.exportZIP(
+                        diagnosis: diagnosis,
+                        bottle: bottle,
+                        program: program,
+                        logFileURL: logFileURL,
+                        timeline: loadRemediationTimeline(),
+                        options: exportOptions,
+                        to: destination
+                    )
+                } catch {
+                    // Stay open so the user can try again or pick another place.
+                    isExporting = false
+                    saveFailure = error.localizedDescription
+                    return
+                }
                 isExporting = false
                 dismiss()
             }
@@ -182,6 +204,7 @@ extension DiagnosticExportSheet {
                 diagnosis: diagnosis,
                 bottle: bottle,
                 program: program,
+                timeline: loadRemediationTimeline(),
                 options: exportOptions
             )
 
@@ -203,28 +226,8 @@ extension DiagnosticExportSheet {
 // MARK: - Helpers
 
 extension DiagnosticExportSheet {
-    private func moveFile(from source: URL, to destination: URL) throws {
-        let fileManager = FileManager.default
-        if fileManager.fileExists(atPath: destination.path(percentEncoded: false)) {
-            try fileManager.removeItem(at: destination)
-        }
-        try fileManager.moveItem(at: source, to: destination)
-    }
-
-    private func loadDiagnosisHistory() -> DiagnosisHistory? {
-        let historyURL = bottle.url
-            .appending(path: "Program Settings")
-            .appending(path: program.name)
-            .appendingPathExtension("diagnosis-history.plist")
-        let history = DiagnosisHistory.load(from: historyURL)
-        return history.isEmpty ? nil : history
-    }
-
     private func loadRemediationTimeline() -> RemediationTimeline? {
-        let timelineURL = bottle.url
-            .appending(path: "Program Settings")
-            .appending(path: program.name)
-            .appendingPathExtension("remediation-timeline.plist")
+        let timelineURL = RemediationTimeline.url(forProgramAt: program.url, inBottleAt: bottle.url)
         let timeline = RemediationTimeline.load(from: timelineURL)
         return timeline.isEmpty ? nil : timeline
     }

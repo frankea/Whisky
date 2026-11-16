@@ -78,6 +78,28 @@ final class LibraryModel: ObservableObject {
 
     private var orchestrators: [URL: SteamClientOrchestrator] = [:]
     private var cancellables: Set<AnyCancellable> = []
+    /// Reloads that have not assigned their rows yet, and the launches recorded
+    /// meanwhile: a reload that read a run log before a launch was written would
+    /// otherwise put the old date back when it finishes.
+    private var reloadsInFlight = 0
+    private var launchesDuringReload: [RecordedLaunch] = []
+    /// Counts reloads as they start. Each one awaits the Steam scan, so an
+    /// older reload can finish after a newer one; only the newest assigns its
+    /// rows, or the older one would put back what the newer one replaced.
+    private var reloadGeneration = 0
+
+    /// - Parameter notificationCenter: Where launches are announced. Every
+    ///   launch path records its run before the program starts, and the cards
+    ///   are rebuilt only on a reload, so without this a card says "Never run"
+    ///   until the library is left and reopened.
+    init(notificationCenter: NotificationCenter = .default) {
+        notificationCenter.publisher(for: RecordedLaunch.didRecordNotification)
+            .compactMap { RecordedLaunch(notification: $0) }
+            .sink { [weak self] launch in
+                self?.apply(launch)
+            }
+            .store(in: &cancellables)
+    }
 
     // MARK: - State
 
@@ -109,6 +131,15 @@ final class LibraryModel: ObservableObject {
     /// `libraryfolders.vdf` and every run log lookup is a plist read, so doing
     /// it inside a card turns scrolling into disk traffic.
     func reload(bottles: [Bottle]) async {
+        reloadsInFlight += 1
+        reloadGeneration += 1
+        let generation = reloadGeneration
+        defer {
+            reloadsInFlight -= 1
+            if reloadsInFlight == 0 {
+                launchesDuringReload.removeAll()
+            }
+        }
         var built: [LibraryRow] = []
         let showBottleName = bottles.count > 1
         let routed = GameRouting().lastLaunches()
@@ -134,7 +165,32 @@ final class LibraryModel: ObservableObject {
             trackSteam(in: bottle)
         }
 
+        guard generation == reloadGeneration else { return }
+        for launch in launchesDuringReload {
+            built = applying(launch, to: built)
+        }
         rows = sorted(built)
+    }
+
+    /// Moves a just-launched entry's last played date forward in place.
+    ///
+    /// The date comes with the launch rather than from a reread of its run
+    /// log, so it costs nothing to apply on every launch.
+    func apply(_ launch: RecordedLaunch) {
+        if reloadsInFlight > 0 {
+            launchesDuringReload.append(launch)
+        }
+        let updated = applying(launch, to: rows)
+        guard updated.map(\.lastPlayed) != rows.map(\.lastPlayed) else { return }
+        rows = sorted(updated)
+    }
+
+    private func applying(_ launch: RecordedLaunch, to rows: [LibraryRow]) -> [LibraryRow] {
+        rows.map { row in
+            let lastPlayed = launch.lastPlayed(row.lastPlayed, for: row.item)
+            guard lastPlayed != row.lastPlayed else { return row }
+            return LibraryRow(item: row.item, bottleName: row.bottleName, lastPlayed: lastPlayed)
+        }
     }
 
     /// When an entry was last started in Whisky.
@@ -202,6 +258,11 @@ extension LibraryModel {
                 launchError = String(localized: "library.launch.steamGameMissing")
                 return
             }
+            // A program launch applies the clipboard policy inside the launch;
+            // a Steam game is handed to the client, so it is applied here.
+            if case let .autoCleared(contentType, sizeBytes) = bottle.performClipboardCheck() {
+                toast = .clipboardCleared(contentType: contentType, sizeBytes: sizeBytes)
+            }
             orchestrator(for: bottle).launch(game)
         }
     }
@@ -220,26 +281,20 @@ extension LibraryModel {
     }
 
     private func launchProgram(at url: URL, in bottle: Bottle) {
-        // Through the bottle's own program list where possible, so the launch
-        // picks up that program's overrides rather than only the bottle's.
-        guard let program = bottle.programs.first(where: { $0.url == url }) else {
-            programLaunching.insert(url)
-            Task {
-                defer { programLaunching.remove(url) }
-                do {
-                    try await Wine.runProgram(at: url, bottle: bottle)
-                } catch {
-                    launchError = error.localizedDescription
-                }
-            }
-            return
-        }
+        // Always as a Program, so the launch picks up that program's overrides
+        // and gets launcher detection and the clipboard policy like every other
+        // Play. The bottle's own list is used where it has the program; built
+        // from the URL otherwise, as the Dock and menu bar do for a pin before
+        // any scan.
+        let program = bottle.programs.first(where: { $0.url == url }) ?? Program(url: url, bottle: bottle)
 
         programLaunching.insert(url)
         Telemetry.capture(.firstProgramLaunchAttempted)
         let useTerminal = NSEvent.modifierFlags.contains(.shift)
         Task {
-            let result = await program.launchWithUserMode(useTerminal: useTerminal)
+            let result = await program.launchWithUserMode(useTerminal: useTerminal) { [weak self] type, size in
+                self?.toast = .clipboardCleared(contentType: type, sizeBytes: size)
+            }
             programLaunching.remove(url)
             toast = result.toastData
         }
@@ -254,7 +309,7 @@ extension LibraryModel {
             return existing
         }
 
-        let made = SteamClientOrchestrator(bottle: bottle, driver: AppSteamClientDriver(bottle: bottle))
+        let made = SteamClientOrchestrator(bottle: bottle)
         let url = bottle.url
         made.$phases
             .sink { [weak self] phases in

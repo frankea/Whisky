@@ -20,16 +20,13 @@
 import XCTest
 
 final class LauncherPresetTests: XCTestCase {
-    func testSteamPresetIncludesLocale() {
+    func testSteamPresetLeavesTheLocaleToTheMac() {
         let env = LauncherType.steam.environmentOverrides()
 
-        // Steam should set en_US locale to fix steamwebhelper crashes
-        XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8")
-        XCTAssertEqual(env["LANG"], "en_US.UTF-8")
-
-        // Should force C locale for time/numeric to avoid ICU issues
-        XCTAssertEqual(env["LC_TIME"], "C")
-        XCTAssertEqual(env["LC_NUMERIC"], "C")
+        // steamwebhelper runs under other locales, so the preset sets none (#330)
+        for key in ["LC_ALL", "LANG", "LC_TIME", "LC_NUMERIC"] {
+            XCTAssertNil(env[key], key)
+        }
     }
 
     func testSteamPresetDisablesSandbox() {
@@ -47,12 +44,10 @@ final class LauncherPresetTests: XCTestCase {
         XCTAssertEqual(env["STEAM_RUNTIME"], "0")
     }
 
-    func testSteamPresetIncludesNetworkFixes() {
+    func testSteamPresetSetsNoWinHTTPTimeouts() {
         let env = LauncherType.steam.environmentOverrides()
 
-        // Network timeouts are now configured via bottle.settings.networkTimeout
-        // instead of directly in launcher presets. This allows user customization.
-        // Verify Steam preset doesn't set them (they're set by BottleSettings)
+        // Wine's winhttp and wininet read no timeout environment variables
         XCTAssertNil(env["WINHTTP_CONNECT_TIMEOUT"])
         XCTAssertNil(env["WINHTTP_RECEIVE_TIMEOUT"])
 
@@ -123,6 +118,20 @@ final class LauncherPresetTests: XCTestCase {
         XCTAssertTrue(LauncherType.paradox.fixDetails().isEmpty)
     }
 
+    func testRSILauncherPreset() {
+        // The RSI Launcher's fix is DXVK for its own executable (#168). Nothing
+        // goes into the environment or the bottle, which Star Citizen shares.
+        let launcher = LauncherType.rsiLauncher
+        XCTAssertTrue(launcher.environmentOverrides().isEmpty)
+        XCTAssertTrue(launcher.fixDetails().isEmpty)
+        XCTAssertFalse(launcher.requiresDXVK, "a bottle-wide DXVK requirement would reach Star Citizen")
+        XCTAssertEqual(launcher.recommendedLocale, .auto)
+        XCTAssertFalse(launcher.usesClipboard)
+        XCTAssertEqual(launcher.helperExecutables, [])
+        XCTAssertEqual(launcher.chainExecutables, [])
+        XCTAssertEqual(launcher.displayName, "RSI Launcher")
+    }
+
     func testFixDetailsMatchEnvironmentOverrides() {
         for launcher in LauncherType.allCases {
             let details = Dictionary(uniqueKeysWithValues: launcher.fixDetails().map { ($0.key, $0.value) })
@@ -131,13 +140,13 @@ final class LauncherPresetTests: XCTestCase {
     }
 
     func testRecommendedLocales() {
-        // Steam, EA App, Epic Games, Battle.net should recommend English
-        XCTAssertEqual(LauncherType.steam.recommendedLocale, .english)
+        // EA App, Epic Games, Battle.net should recommend English
         XCTAssertEqual(LauncherType.eaApp.recommendedLocale, .english)
         XCTAssertEqual(LauncherType.epicGames.recommendedLocale, .english)
         XCTAssertEqual(LauncherType.battleNet.recommendedLocale, .english)
 
-        // Others can use auto
+        // Others can use auto; Steam's language follows the Mac's (#330)
+        XCTAssertEqual(LauncherType.steam.recommendedLocale, .auto)
         XCTAssertEqual(LauncherType.rockstar.recommendedLocale, .auto)
         XCTAssertEqual(LauncherType.ubisoft.recommendedLocale, .auto)
     }

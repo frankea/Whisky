@@ -135,7 +135,7 @@ struct GameConfigurationView: View {
                     Text("gamedb.filter.allStores")
                         .tag(nil as String?)
                     ForEach(availableStores, id: \.self) { store in
-                        Text(store.capitalized)
+                        Text(GameDBEntry.storeDisplayName(store))
                             .tag(store as String?)
                     }
                 } label: {
@@ -188,6 +188,27 @@ struct GameConfigurationView: View {
         case .dxmt: "DXMT"
         case .wined3d: "WineD3D"
         case .recommended: nil
+        }
+    }
+}
+
+// MARK: - Store Names
+
+extension GameDBEntry {
+    /// The on-screen name for a raw ``GameDBEntry/store`` id such as
+    /// `"steam"` or `"battlenet"`.
+    ///
+    /// Store brands keep their own spelling; only the catch-all `"other"`
+    /// is translated. Unknown ids fall back to the capitalized id. Filtering
+    /// keeps comparing the raw ids.
+    static func storeDisplayName(_ store: String) -> String {
+        switch store {
+        case "steam": "Steam"
+        case "epic": "Epic Games"
+        case "gog": "GOG"
+        case "battlenet": "Battle.net"
+        case "other": String(localized: "gamedb.store.other")
+        default: store.capitalized
         }
     }
 }

@@ -71,7 +71,7 @@ public struct EnvironmentProvenance: Sendable {
         ///
         /// Populated by callers using ``EnvironmentBuilder/set(_:_:layer:reason:)``
         /// to explain why a particular value was set. For example,
-        /// "Fixes steamwebhelper CEF locale crashes" or "macOS >= 15.4".
+        /// "Set by the bottle's Locale Override" or "macOS >= 15.4".
         public let reason: String?
     }
 

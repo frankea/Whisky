@@ -70,6 +70,14 @@ public final class CheckRegistry: @unchecked Sendable {
         logger.debug("Registered check: \(check.checkId)")
     }
 
+    /// The check registered under `checkId`, if any.
+    ///
+    /// - Parameter checkId: The stable identifier of the check.
+    /// - Returns: The registered implementation, or `nil`.
+    public func check(for checkId: String) -> (any TroubleshootingCheck)? {
+        lock.withLock { checks[checkId] }
+    }
+
     // MARK: - Execution
 
     /// Runs the check identified by `checkId` with the given parameters and context.

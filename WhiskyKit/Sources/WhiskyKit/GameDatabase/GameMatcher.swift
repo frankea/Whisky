@@ -244,7 +244,14 @@ public enum GameMatcher {
         // Steam App ID match (highest confidence)
         if let metadataAppId = metadata.steamAppId, let entryAppId = entry.steamAppId {
             if metadataAppId == entryAppId {
-                return (1.0, "Steam App ID \(entryAppId) matches exactly")
+                return (
+                    1.0,
+                    String(
+                        localized: "gameConfig.match.steamAppId %@",
+                        // An identifier, so no locale digit grouping ("1245620", not "1,245,620").
+                        defaultValue: "Steam App ID \(String(entryAppId)) matches exactly"
+                    )
+                )
             }
         }
 
@@ -255,7 +262,13 @@ public enum GameMatcher {
                     if let fpSize = fingerprint.fileSize, let fpTimestamp = fingerprint.peTimestamp {
                         if metaSize == fpSize,
                            abs(metaTimestamp.timeIntervalSince(fpTimestamp)) < 1.0 {
-                            return (0.95, "File size and PE timestamp match known fingerprint")
+                            return (
+                                0.95,
+                                String(
+                                    localized: "gameConfig.match.fingerprint",
+                                    defaultValue: "File size and PE timestamp match known fingerprint"
+                                )
+                            )
                         }
                     }
                 }
@@ -282,24 +295,28 @@ public enum GameMatcher {
 
         // Base score for exe name match
         var score = 0.85
-        var explanation = "Executable name '\(metadata.exeName)' matches database entry"
 
         // Bonus for path pattern match
+        var pathConfirmed = false
         if let installPath = metadata.installPath, let pathPatterns = entry.pathPatterns {
             let pathLower = installPath.lowercased()
-            let pathMatch = pathPatterns.contains { pathLower.contains($0.lowercased()) }
-            if pathMatch {
+            pathConfirmed = pathPatterns.contains { pathLower.contains($0.lowercased()) }
+            if pathConfirmed {
                 score = 0.90
-                explanation += " with install path confirmation"
             }
         }
 
         // Apply generic exe penalty
-        if genericExeNames.contains(metaExeLower) {
+        let isGeneric = genericExeNames.contains(metaExeLower)
+        if isGeneric {
             score += genericPenalty
-            explanation += " (generic exe name penalty applied)"
         }
 
+        let explanation = exeNameExplanation(
+            exeName: metadata.exeName,
+            pathConfirmed: pathConfirmed,
+            isGeneric: isGeneric
+        )
         return (score, explanation)
     }
 
@@ -335,7 +352,11 @@ public enum GameMatcher {
         let ratio = Double(matchCount) / Double(exeTokens.count)
         var score = 0.3 + ratio * 0.3
 
-        var explanation = "Name tokens match: \(matchCount)/\(exeTokens.count) tokens"
+        let tokenCount = exeTokens.count
+        var explanation = String(
+            localized: "gameConfig.match.tokens %lld %lld",
+            defaultValue: "Name tokens match: \(matchCount)/\(tokenCount) tokens"
+        )
 
         // Install path bonus
         if let installPath = metadata.installPath, let pathPatterns = entry.pathPatterns {
@@ -343,7 +364,10 @@ public enum GameMatcher {
             let pathMatch = pathPatterns.contains { pathLower.contains($0.lowercased()) }
             if pathMatch {
                 score += 0.1
-                explanation += " + install path bonus"
+                explanation = String(
+                    localized: "gameConfig.match.tokens.path %lld %lld",
+                    defaultValue: "Name tokens match: \(matchCount)/\(tokenCount) tokens + install path bonus"
+                )
             }
         }
 
@@ -421,6 +445,43 @@ public enum GameMatcher {
     private static func operatingSystemVersion() -> String {
         let version = ProcessInfo.processInfo.operatingSystemVersion
         return "\(version.majorVersion).\(version.minorVersion).\(version.patchVersion)"
+    }
+}
+
+// MARK: - Match Explanations
+
+extension GameMatcher {
+    /// The explanation for an executable name match, as one whole sentence per
+    /// combination so translations never have to append English fragments.
+    ///
+    /// The English default is what a lookup without the app's string catalog
+    /// (such as the package tests) returns.
+    private static func exeNameExplanation(exeName: String, pathConfirmed: Bool, isGeneric: Bool) -> String {
+        switch (pathConfirmed, isGeneric) {
+        case (false, false):
+            String(
+                localized: "gameConfig.match.exeName %@",
+                defaultValue: "Executable name '\(exeName)' matches database entry"
+            )
+        case (true, false):
+            String(
+                localized: "gameConfig.match.exeName.path %@",
+                defaultValue: "Executable name '\(exeName)' matches database entry with install path confirmation"
+            )
+        case (false, true):
+            String(
+                localized: "gameConfig.match.exeName.generic %@",
+                defaultValue: "Executable name '\(exeName)' matches database entry (generic exe name penalty applied)"
+            )
+        case (true, true):
+            String(
+                localized: "gameConfig.match.exeName.pathGeneric %@",
+                defaultValue: """
+                Executable name '\(exeName)' matches database entry with install path \
+                confirmation (generic exe name penalty applied)
+                """
+            )
+        }
     }
 }
 

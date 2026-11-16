@@ -23,6 +23,11 @@ struct PerformanceConfigSection: View {
     @ObservedObject var bottle: Bottle
     @Binding var isExpanded: Bool
 
+    /// Whether the VC++ runtime was found in the prefix; `nil` until checked.
+    @State private var vcRedistDetected: Bool?
+    /// Set once the installer is handed to Terminal, until the runtime is found.
+    @State private var vcRedistInstallStarted = false
+
     var body: some View {
         Section("config.title.performance", isExpanded: $isExpanded) {
             Toggle(isOn: $bottle.settings.shaderCacheEnabled) {
@@ -41,31 +46,71 @@ struct PerformanceConfigSection: View {
                         .foregroundColor(.secondary)
                 }
             }
-            // Install VC++ Runtime button (needed for Unity IL2CPP and other C++ games)
-            if !bottle.settings.vcRedistInstalled {
-                Button {
-                    Task {
-                        await Winetricks.runCommand(command: "vcrun2019", bottle: bottle)
-                        bottle.settings.vcRedistInstalled = true
-                    }
-                } label: {
-                    HStack {
-                        Image(systemName: "wrench.and.screwdriver")
-                        VStack(alignment: .leading) {
-                            Text("config.installVcRedist")
-                            Text("config.installVcRedist.info")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+            vcRedistRow
+        }
+        .task(id: bottle.url) {
+            await refreshVCRedistStatus()
+        }
+        // Winetricks installs the runtime in Terminal; check again when the
+        // user comes back from it.
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task { await refreshVCRedistStatus() }
+        }
+    }
+
+    /// The VC++ runtime row (needed for Unity IL2CPP and other C++ games):
+    /// shown as installed only once the runtime's DLLs are found in the prefix.
+    @ViewBuilder
+    private var vcRedistRow: some View {
+        switch vcRedistDetected {
+        case .some(true):
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                Text("config.vcRedistInstalled")
+            }
+        case .some(false):
+            Button {
+                Task {
+                    // Only claim the installer is running once Terminal has it;
+                    // a failed prefix check or missing resources starts nothing.
+                    if await Winetricks.runCommand(command: "vcrun2019", bottle: bottle) {
+                        vcRedistInstallStarted = true
                     }
                 }
-            } else {
+            } label: {
                 HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                    Text("config.vcRedistInstalled")
+                    Image(systemName: "wrench.and.screwdriver")
+                    VStack(alignment: .leading) {
+                        Text("config.installVcRedist")
+                        Text(
+                            vcRedistInstallStarted
+                                ? LocalizedStringKey("config.installVcRedist.pending")
+                                : LocalizedStringKey("config.installVcRedist.info")
+                        )
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    }
                 }
             }
+        case .none:
+            EmptyView()
+        }
+    }
+
+    /// Looks for the runtime in the prefix off the main thread and keeps the
+    /// stored flag in step with what is on disk.
+    private func refreshVCRedistStatus() async {
+        let prefixURL = bottle.url
+        let installed = await Task.detached(priority: .utility) {
+            VCRedistDetector.isInstalled(prefixURL: prefixURL)
+        }.value
+        vcRedistDetected = installed
+        if installed {
+            vcRedistInstallStarted = false
+        }
+        if bottle.settings.vcRedistInstalled != installed {
+            bottle.settings.vcRedistInstalled = installed
         }
     }
 }

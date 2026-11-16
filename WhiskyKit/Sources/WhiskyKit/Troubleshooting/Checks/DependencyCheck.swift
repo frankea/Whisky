@@ -29,6 +29,10 @@ public struct DependencyCheck: TroubleshootingCheck {
 
     public init() {}
 
+    public let signature: CheckSignature? = CheckSignature(
+        requiredParams: ["dlls"], outcomes: [.pass, .fail, .error]
+    )
+
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         guard let dllsParam = params["dlls"], !dllsParam.isEmpty else {
             return CheckResult(
@@ -82,5 +86,37 @@ public struct DependencyCheck: TroubleshootingCheck {
             summary: "\(missingDLLs.count) missing DLL(s): \(missingDLLs.joined(separator: ", "))",
             confidence: .high
         )
+    }
+
+    /// The summary of a result from this check in the user's language.
+    ///
+    /// ``CheckResult/summary`` stays in English because it is written to
+    /// history and escalation exports; this rebuilds the on-screen text from
+    /// the result's outcome and evidence.
+    ///
+    /// - Parameter result: A result produced by ``run(params:context:)``.
+    /// - Returns: The localized summary, or `nil` for a result this check
+    ///   didn't produce or an error result (a flow authoring problem).
+    public static func localizedSummary(for result: CheckResult) -> String? {
+        switch result.outcome {
+        case .pass:
+            guard let checked = result.evidence["checked"] else { return nil }
+            return String(localized: "troubleshooting.check.dependency.allFound \(dllList(checked).count)")
+        case .fail:
+            guard let missing = result.evidence["missing"] else { return nil }
+            let names = dllList(missing)
+            return String(
+                localized: "troubleshooting.check.dependency.missing \(names.count) \(names.joined(separator: ", "))"
+            )
+        default:
+            return nil
+        }
+    }
+
+    /// Splits a comma-separated evidence value back into DLL names.
+    private static func dllList(_ value: String) -> [String] {
+        value.split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
     }
 }

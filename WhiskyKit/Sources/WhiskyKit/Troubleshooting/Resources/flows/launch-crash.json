@@ -82,6 +82,7 @@
       },
       "on": {
         "pass": "escalate",
+        "already_configured": "escalate",
         "fail": "fix_install_verb",
         "unknown": "escalate",
         "error": "escalate"

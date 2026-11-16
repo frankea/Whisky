@@ -29,7 +29,6 @@ final class BottleLauncherConfigTests: XCTestCase {
         XCTAssertEqual(config.launcherLocale, .auto)
         XCTAssertTrue(config.gpuSpoofing)
         XCTAssertEqual(config.gpuVendor, .nvidia)
-        XCTAssertEqual(config.networkTimeout, 60_000)
         XCTAssertTrue(config.autoEnableDXVK)
     }
 
@@ -40,7 +39,6 @@ final class BottleLauncherConfigTests: XCTestCase {
         config.detectedLauncher = .steam
         config.launcherLocale = .english
         config.gpuVendor = .amd
-        config.networkTimeout = 90_000
 
         // Encode
         let encoder = PropertyListEncoder()
@@ -55,7 +53,6 @@ final class BottleLauncherConfigTests: XCTestCase {
         XCTAssertEqual(decoded.detectedLauncher, .steam)
         XCTAssertEqual(decoded.launcherLocale, .english)
         XCTAssertEqual(decoded.gpuVendor, .amd)
-        XCTAssertEqual(decoded.networkTimeout, 90_000)
     }
 
     func testLauncherModeEnum() {
@@ -89,7 +86,6 @@ final class BottleLauncherConfigTests: XCTestCase {
         settings.detectedLauncher = .rockstar
         settings.launcherLocale = .english
         settings.gpuSpoofing = false
-        settings.networkTimeout = 120_000
 
         // Verify changes
         XCTAssertTrue(settings.launcherCompatibilityMode)
@@ -97,7 +93,6 @@ final class BottleLauncherConfigTests: XCTestCase {
         XCTAssertEqual(settings.detectedLauncher, .rockstar)
         XCTAssertEqual(settings.launcherLocale, .english)
         XCTAssertFalse(settings.gpuSpoofing)
-        XCTAssertEqual(settings.networkTimeout, 120_000)
     }
 
     func testEnvironmentVariablesWithLauncherCompatibility() {
@@ -113,7 +108,7 @@ final class BottleLauncherConfigTests: XCTestCase {
         // Should include Steam-specific fixes
         XCTAssertEqual(env["STEAM_DISABLE_CEF_SANDBOX"], "1")
 
-        // Should include locale override (with .UTF-8 suffix, critical for steamwebhelper)
+        // Should include the explicit English override, with the .UTF-8 suffix
         XCTAssertEqual(env["LC_ALL"], "en_US.UTF-8")
         XCTAssertEqual(env["LC_TIME"], "C")
 
@@ -132,19 +127,6 @@ final class BottleLauncherConfigTests: XCTestCase {
         // Should not include launcher-specific fixes
         XCTAssertNil(env["STEAM_DISABLE_CEF_SANDBOX"])
         // GPU spoofing should not be applied if launcher compat is off
-    }
-
-    func testNetworkTimeoutConfiguration() {
-        var settings = BottleSettings()
-        settings.launcherCompatibilityMode = true
-        settings.networkTimeout = 45_000
-
-        var env: [String: String] = [:]
-        settings.environmentVariables(wineEnv: &env)
-
-        // Should include custom network timeout
-        XCTAssertEqual(env["WINHTTP_CONNECT_TIMEOUT"], "45000")
-        XCTAssertEqual(env["WINHTTP_RECEIVE_TIMEOUT"], "90000") // 2x connect timeout
     }
 
     func testAutoEnableDXVKForRockstar() {
@@ -168,6 +150,35 @@ final class BottleLauncherConfigTests: XCTestCase {
         XCTAssertEqual(launcherOverrides.first { $0.entry.dllName == "d3d12" }?.entry.mode, .disabled)
     }
 
+    func testRockstarWineD3DIsOnWhenTheKeyIsAbsent() throws {
+        let data = try PropertyListEncoder().encode(BottleLauncherConfig())
+        let decoded = try PropertyListDecoder().decode(BottleLauncherConfig.self, from: data)
+
+        XCTAssertNil(decoded.rockstarWineD3D)
+        XCTAssertTrue(BottleSettings().rockstarWineD3D)
+    }
+
+    func testUntouchedConfigEncodesWithoutTheRockstarKey() throws {
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let xml = try XCTUnwrap(String(data: encoder.encode(BottleLauncherConfig()), encoding: .utf8))
+
+        XCTAssertFalse(xml.contains("rockstarWineD3D"))
+    }
+
+    func testRockstarWineD3DOffRoundTrips() throws {
+        let url = FileManager.default.temporaryDirectory.appending(path: "rockstar_setting_\(UUID().uuidString).plist")
+        defer { try? FileManager.default.removeItem(at: url) }
+        var settings = BottleSettings()
+        settings.rockstarWineD3D = false
+
+        try settings.encode(to: url)
+        let xml = try String(contentsOf: url, encoding: .utf8)
+
+        XCTAssertTrue(xml.contains("rockstarWineD3D"))
+        XCTAssertFalse(try BottleSettings.decode(from: url).rockstarWineD3D)
+    }
+
     func testNoInventedNetworkVariables() {
         var settings = BottleSettings()
         settings.launcherCompatibilityMode = true
@@ -181,5 +192,9 @@ final class BottleLauncherConfigTests: XCTestCase {
         XCTAssertNil(env["WINE_SSL_VERSION_MIN"])
         XCTAssertNil(env["WINE_MAX_CONNECTIONS_PER_SERVER"])
         XCTAssertNil(env["WINE_FORCE_HTTP11"])
+        // Wine's winhttp and wininet take timeouts only from the program's own
+        // option calls, never from the environment.
+        XCTAssertNil(env["WINHTTP_CONNECT_TIMEOUT"])
+        XCTAssertNil(env["WINHTTP_RECEIVE_TIMEOUT"])
     }
 }

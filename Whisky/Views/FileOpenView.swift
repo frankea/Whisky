@@ -88,10 +88,14 @@ struct FileOpenView: View {
                     // persisted before Wine.runProgram() reads them
                     await MainActor.run {
                         LauncherFixes.detectAndApply(from: fileURL, for: bottle)
+                        // After detection: in Automatic mode the policy depends on the launcher.
+                        if case let .autoCleared(contentType, sizeBytes) = bottle.performClipboardCheck() {
+                            toast = .clipboardCleared(contentType: contentType, sizeBytes: sizeBytes)
+                        }
                         Telemetry.capture(.firstProgramLaunchAttempted)
                     }
 
-                    if fileURL.pathExtension == "bat" {
+                    if Wine.isBatchFile(fileURL) {
                         try await Wine.runBatchFile(
                             url: fileURL,
                             bottle: bottle

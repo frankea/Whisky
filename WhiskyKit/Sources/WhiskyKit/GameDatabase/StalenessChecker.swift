@@ -40,7 +40,7 @@ public struct StalenessResult: Sendable, Equatable {
     public let isStale: Bool
     /// The specific reasons for staleness (empty if not stale).
     public let reasons: [StalenessReason]
-    /// A user-friendly warning message combining all reasons, or `nil` if not stale.
+    /// A localized warning message with one sentence per reason, or `nil` if not stale.
     public let warningMessage: String?
 
     public init(isStale: Bool, reasons: [StalenessReason], warningMessage: String?) {
@@ -90,6 +90,7 @@ public enum StalenessChecker {
         currentWineVersion: String? = nil
     ) -> StalenessResult {
         var reasons: [StalenessReason] = []
+        // One whole sentence per reason, so each translates on its own.
         var messageParts: [String] = []
 
         // 1. Date staleness: >90 days since last tested
@@ -97,26 +98,35 @@ public enum StalenessChecker {
         if daysSinceTested > stalenessThresholdDays {
             reasons.append(.dateExpired)
             let days = Int(daysSinceTested)
-            messageParts.append("last tested \(days) days ago")
+            messageParts.append(String(
+                localized: "gameConfig.staleness.lastTested %lld",
+                defaultValue: "Last tested \(days) days ago."
+            ))
         }
 
         // 2. macOS version mismatch: user's macOS newer by >1 minor release
         let macOSVersion = currentMacOSVersion ?? currentSystemMacOSVersion()
         if isMacOSVersionStale(tested: testedWith.macOSVersion, current: macOSVersion) {
             reasons.append(.macOSVersionMismatch)
-            messageParts.append("on macOS \(testedWith.macOSVersion)")
+            messageParts.append(String(
+                localized: "gameConfig.staleness.macOS %@",
+                defaultValue: "Tested on macOS \(testedWith.macOSVersion)."
+            ))
         }
 
         // 3. Wine version mismatch: major version differs
         if let currentWine = currentWineVersion,
            isWineVersionStale(tested: testedWith.wineVersion, current: currentWine) {
             reasons.append(.wineVersionMismatch)
-            messageParts.append("with Wine \(testedWith.wineVersion)")
+            messageParts.append(String(
+                localized: "gameConfig.staleness.wine %@",
+                defaultValue: "Tested with Wine \(testedWith.wineVersion)."
+            ))
         }
 
         let isStale = !reasons.isEmpty
         let warningMessage: String? = if isStale {
-            "This config was \(messageParts.joined(separator: ", "))."
+            messageParts.joined(separator: " ")
         } else {
             nil
         }

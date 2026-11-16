@@ -73,14 +73,16 @@ final class SteamGameLaunchScopingTests {
             programOverrides: plan, overridesApplyToDescendants: true,
             descendantExecutables: games, descendantLaunchers: launchers,
             recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: true,
-            overrideWriter: recorder.writer, importer: recorder.importer
+            overrideWriter: recorder.writer, importer: recorder.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
     }
 
     private func prepareDirectLaunch(_ url: URL, _ bottle: Bottle, recorder: ScopeRecorder) async throws {
         _ = try await Wine.prepareProgramLaunch(
             at: url, bottle: bottle, recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: true,
-            overrideWriter: recorder.writer, importer: recorder.importer
+            overrideWriter: recorder.writer, importer: recorder.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
     }
 
@@ -160,7 +162,8 @@ final class SteamGameLaunchScopingTests {
         // the plan reaches the game, DXVK would turn d3d12 off for a DX12 title.
         let bottle = try makeBottle()
         let recorder = ScopeRecorder()
-        let plan = LaunchResolver.plan(steamAppId: 1_174_180)
+        // As on a Mac with the GPTK payload, so the plan keeps the entry's D3DMetal.
+        let plan = LaunchResolver.plan(steamAppId: 1_174_180, isBackendAvailable: { _ in true })
 
         _ = try await prepareGameLaunch(
             bottle,
@@ -175,7 +178,10 @@ final class SteamGameLaunchScopingTests {
         #expect(entry?["d3d12"] != "")
         #expect(entry?["dxgi"]?.hasPrefix("n") != true)
         #expect(entry?["d3d11"]?.hasPrefix("n") != true)
-        expectDXVK(recorder.overrides(for: .program("Launcher.exe")), "Launcher.exe")
+        // The launch says the payload is deployed, so the layout fails closed
+        // unless the runtime's d3d11 and dxgi are the store's backed-up Wine
+        // originals, which no deployed or absent payload leaves them as.
+        recorder.expectRockstarChain(layout: .degraded(.gptkForwarders))
     }
 
     @Test("A game executable never displaces Steam's own entry")
@@ -187,7 +193,8 @@ final class SteamGameLaunchScopingTests {
             at: steam(in: bottle), args: ["-applaunch", "1"], bottle: bottle,
             overridesApplyToDescendants: true, descendantExecutables: ["Game.exe", "STEAMWEBHELPER.exe"],
             recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: true,
-            overrideWriter: recorder.writer, importer: recorder.importer
+            overrideWriter: recorder.writer, importer: recorder.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
 
         #expect(recorder.programScopes.filter { $0.lowercased() == "steamwebhelper.exe" }.count == 1)
@@ -212,7 +219,8 @@ final class SteamGameLaunchScopingTests {
             at: steamExe, args: ["-silent"], bottle: bottle,
             programOverrides: Program.persistedOverrides(for: steamExe, bottleURL: bottle.url),
             recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: true,
-            overrideWriter: clientStart.writer, importer: clientStart.importer
+            overrideWriter: clientStart.writer, importer: clientStart.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
 
         let steamEntry = gameLaunch.overrides(for: .program("steam.exe"))
@@ -270,11 +278,8 @@ final class SteamGameLaunchScopingTests {
 
         _ = try await prepareGameLaunch(bottle, launchers: [.rockstar], recorder: recorder)
 
-        for executable in ["Launcher.exe", "SocialClubHelper.exe"] {
-            let entry = recorder.overrides(for: .program(executable))
-            expectDXVK(entry, executable)
-            #expect(entry?["d3d12"] == "", "\(executable): d3d12")
-        }
+        // Payload deployed and no stored Wine originals to match: degraded.
+        recorder.expectRockstarChain(layout: .degraded(.gptkForwarders))
     }
 
     @Test("Another game writes no Launcher.exe entry while Rockstar's launcher is absent")
@@ -298,11 +303,14 @@ final class SteamGameLaunchScopingTests {
             at: steam(in: bottle), args: ["-applaunch", "1"], bottle: bottle,
             overridesApplyToDescendants: true, descendantExecutables: ["Launcher.exe", "Game.exe"],
             recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: true,
-            overrideWriter: recorder.writer, importer: recorder.importer
+            overrideWriter: recorder.writer, importer: recorder.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
 
         #expect(recorder.programScopes.filter { $0.lowercased() == "launcher.exe" }.count == 1)
         #expect(recorder.overrides(for: .program("Launcher.exe"))?["d3d11"] == nil)
+        // Its renderer stays the game's too: Rockstar's Direct3D key is not written.
+        #expect(recorder.overrides(for: .direct3D("Launcher.exe")) == nil)
         #expect(recorder.overrides(for: .program("SocialClubHelper.exe"))?["d3d12"] == "")
     }
 

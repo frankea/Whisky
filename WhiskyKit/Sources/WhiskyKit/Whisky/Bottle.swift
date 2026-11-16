@@ -99,6 +99,11 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
     /// walk, so the UI can show a loading indicator instead of hitching the main
     /// thread on a large bottle.
     @Published public var programsLoading: Bool = false
+    /// The Direct3D layout the last launch that decided one gave the Rockstar
+    /// Games Launcher in this bottle, or `nil` before any did since the app
+    /// started. Held in memory only, so the settings can show it without
+    /// scanning the bottle; ``rockstarWineD3DStatus`` reads it.
+    @Published public internal(set) var rockstarD3DLayout: RockstarD3DLayout?
     /// Indicates whether the bottle's directory exists and is accessible.
     public var isAvailable: Bool = false
 
@@ -200,6 +205,12 @@ public final class Bottle: ObservableObject, Equatable, Hashable, Identifiable, 
         // load can overwrite a settings change the app wrote in the meantime.
         if validPins != self.settings.pins {
             self.settings.pins = validPins
+        }
+
+        // Unpin records for uninstalled programs have nothing left to protect.
+        let validUnpins = self.settings.prunedUnpinnedPrograms()
+        if validUnpins != self.settings.unpinnedPrograms {
+            self.settings.unpinnedPrograms = validUnpins
         }
     }
 

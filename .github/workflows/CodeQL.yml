@@ -1,0 +1,113 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: &docs-paths
+      - '**.md'
+      - 'docs/**'
+      - 'images/**'
+      - 'LICENSE'
+  pull_request:
+    branches: [main]
+    paths-ignore: *docs-paths
+  schedule:
+    # Weekly, so new CodeQL queries run against code that hasn't changed.
+    - cron: '23 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      # Swift is analyzed by watching a real build, the same unsigned xcodebuild
+      # of every scheme as the CI build job. Under CodeQL's tracer that holds a
+      # macOS runner for about 35 minutes, so Swift runs on pushes to main, the
+      # weekly scan and manual runs. Pull requests get the Python and workflow
+      # analyses, which take under a minute.
+      matrix:
+        include: >-
+          ${{ fromJSON(github.event_name == 'pull_request' && '[
+          {"language": "python", "build-mode": "none", "runner": "ubuntu-latest"},
+          {"language": "actions", "build-mode": "none", "runner": "ubuntu-latest"}
+          ]' || '[
+          {"language": "swift", "build-mode": "manual", "runner": "macos-26"},
+          {"language": "python", "build-mode": "none", "runner": "ubuntu-latest"},
+          {"language": "actions", "build-mode": "none", "runner": "ubuntu-latest"}
+          ]') }}
+    steps:
+      # The Swift build runs Xcode build phases and package code, so don't leave
+      # the job's token (which can write security events) in the git config.
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup Xcode
+        if: matrix.language == 'swift'
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
+        with:
+          xcode-version: latest-stable
+
+      # Fetch the packages before CodeQL starts tracing. Under the tracer,
+      # cloning them took about 9 minutes; outside it they come from the same
+      # cache CI uses.
+      - name: Cache SPM Dependencies
+        if: matrix.language == 'swift'
+        uses: actions/cache@v5
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/*/SourcePackages
+          key: ${{ runner.os }}-codeql-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-codeql-spm-
+
+      - name: Resolve packages
+        if: matrix.language == 'swift'
+        run: xcodebuild -resolvePackageDependencies -project Whisky.xcodeproj -scheme Whisky
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      # SwiftLint's build phase skips itself when CI=true, which GitHub Actions sets.
+      # The analysis reads the source, so one architecture is enough (Debug
+      # builds both, which doubled the traced compile), and the IDE index
+      # store is skipped. Packages resolved above are not fetched again.
+      - name: Build
+        if: matrix.language == 'swift'
+        run: |
+          for scheme in Whisky WhiskyCmd WhiskyThumbnail; do
+            echo "::group::Build $scheme"
+            xcodebuild -project Whisky.xcodeproj \
+              -scheme "$scheme" \
+              -configuration Debug \
+              -disableAutomaticPackageResolution \
+              build \
+              ARCHS=arm64 \
+              ONLY_ACTIVE_ARCH=YES \
+              COMPILER_INDEX_STORE_ENABLE=NO \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGNING_ALLOWED=NO
+            echo "::endgroup::"
+          done
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}

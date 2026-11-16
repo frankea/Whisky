@@ -121,7 +121,7 @@ extension DependencyInstallSheet {
                 .font(.callout)
 
                 Label(
-                    "Estimated time: \(definition.estimatedInstallMinutes) minutes",
+                    "dependency.install.estimated \(definition.estimatedInstallMinutes)",
                     systemImage: "clock"
                 )
                 .font(.callout)
@@ -269,7 +269,7 @@ extension DependencyInstallSheet {
 extension DependencyInstallSheet {
     @ViewBuilder
     private var verifyStage: some View {
-        Label("Verification", systemImage: "checkmark.seal")
+        Label("dependency.install.verify", systemImage: "checkmark.seal")
             .font(.title2)
             .fontWeight(.semibold)
 
@@ -297,13 +297,16 @@ extension DependencyInstallSheet {
                 .foregroundStyle(.green)
         case let .failure(exitCode):
             Label(
-                "Installation exited with code \(exitCode)",
+                "Installation exited with code \(Int(exitCode))",
                 systemImage: "exclamationmark.triangle.fill"
             )
             .foregroundStyle(.orange)
         case let .error(message):
-            Label("Installation failed: \(message)", systemImage: "xmark.circle.fill")
-                .foregroundStyle(.red)
+            Label(
+                String(format: String(localized: "setup.whiskywine.error.installFailed.detail"), message),
+                systemImage: "xmark.circle.fill"
+            )
+            .foregroundStyle(.red)
         }
     }
 
@@ -340,7 +343,7 @@ extension DependencyInstallSheet {
     private var bottomBar: some View {
         HStack {
             if stage != .verify {
-                Button("Cancel") {
+                Button("button.cancel") {
                     cancelInstall()
                     dismiss()
                 }
@@ -351,13 +354,13 @@ extension DependencyInstallSheet {
 
             switch stage {
             case .info:
-                Button("Continue") {
+                Button("troubleshooting.wizard.continue") {
                     stage = .preflight
                     runPreflightChecks()
                 }
                 .keyboardShortcut(.defaultAction)
             case .preflight:
-                Button("Install") {
+                Button("dependency.install") {
                     startInstallation()
                 }
                 .keyboardShortcut(.defaultAction)
@@ -385,13 +388,27 @@ extension DependencyInstallSheet {
             }
             let preflight = PreflightResult(
                 prefixValid: result.isValid,
-                prefixMessage: result.isValid
-                    ? "Prefix is healthy and ready for installation"
-                    : result.diagnostics?.events.last ?? "Prefix validation failed"
+                prefixMessage: preflightMessage(for: result)
             )
             await MainActor.run {
                 preflightResult = preflight
             }
+        }
+    }
+
+    /// The Prefix Health caption for a validation result, in the user's language.
+    ///
+    /// The validation diagnostics stay English for reports and are not shown here.
+    private nonisolated func preflightMessage(for result: WinePrefixValidation.ValidationResult) -> String {
+        switch result {
+        case .valid:
+            String(localized: "dependency.install.preflight.healthy")
+        case .missingUserProfile:
+            String(localized: "winetricks.error.missingUserProfile")
+        case .missingAppData:
+            String(localized: "winetricks.error.missingAppData")
+        case .corruptedPrefix:
+            String(localized: "winetricks.error.corruptedPrefix")
         }
     }
 
@@ -427,7 +444,7 @@ extension DependencyInstallSheet {
             guard !Task.isCancelled else { return }
 
             let result: InstallResult = if hadError {
-                .error("One or more verbs failed")
+                .error(String(localized: "dependency.install.error.verbsFailed"))
             } else if lastExitCode == 0 {
                 .success
             } else {

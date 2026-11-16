@@ -203,6 +203,8 @@ extension GPTKImporter {
 
     /// Testable seam for ``ensureMetalFXBridgeInstalled()``.
     static func ensureMetalFXBridgeInstalled(inLibraryFolder folder: URL, usingStore store: URL) {
+        mutationLock.lock()
+        defer { mutationLock.unlock() }
         guard isDeployed(inLibraryFolder: folder),
               isStorePayloadDeployed(inLibraryFolder: folder, usingStore: store)
         else {

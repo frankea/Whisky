@@ -38,22 +38,17 @@ If problems persist, see launcher-specific sections below.
    - Open bottle → Config → Launcher Compatibility
    - Toggle "Launcher Compatibility Mode" ON
 
-2. **Verify Locale Setting:**
-   - Check "Locale Override" is set to **English (en_US.UTF-8)**
-   - This fixes ICU parsing errors in steamwebhelper
-
-3. **Check Configuration:**
+2. **Check Configuration:**
    - Click "Generate Diagnostics Report"
-   - Verify `LC_ALL=en_US.UTF-8` in environment variables
    - Verify `STEAM_DISABLE_CEF_SANDBOX=1`
 
-**Why This Happens:**
-Steam's Chromium-based web helper crashes when parsing dates/times in certain locales. The `.UTF-8` suffix is critical for proper Unicode handling.
+**About Locale:**
+Earlier versions forced `LC_ALL=en_US.UTF-8` for Steam to avoid this crash. That crash did not reproduce in current testing (steamwebhelper started and the login page loaded under German and Japanese locales on both the stable and beta engines), so the Steam preset now sets no locale. With Locale Override on **Auto**, Steam and the games it starts get your Mac's language and region as their Windows locale; pick another locale there to change that. Steam's own interface language is a Steam setting (Steam > Settings > Interface). If Steam's window fails to load under your locale, set Locale Override to English (en_US) and please report it.
 
 **Related Upstream Issues:**
 - whisky-app/whisky#946 (steamwebhelper crash)
 - whisky-app/whisky#1224 (UI unusable)
-- whisky-app/whisky#1241 (Locale fix discovery)
+- whisky-app/whisky#1241 (Earlier locale workaround)
 
 ---
 
@@ -67,23 +62,18 @@ Steam's Chromium-based web helper crashes when parsing dates/times in certain lo
 
 **Solution:**
 
-1. **Increase Network Timeout:**
-   - Open bottle → Config → Launcher Compatibility
-   - Enable Launcher Compatibility Mode
-   - Adjust "Network Timeout" slider to **90 seconds** or higher
+The fix is in Steam's own settings; Whisky has no setting that affects Steam downloads.
 
-2. **Verify Network Settings:**
-   - Generate diagnostics report
-   - Check `WINHTTP_CONNECT_TIMEOUT=90000`
-   - Check `WINE_FORCE_HTTP11=1`
+1. **Clear Download Cache:**
+   - In Steam, Settings → Downloads → Clear Download Cache
 
-3. **Force Download Region:**
-   - In Steam, Settings → Downloads
-   - Change download region to one geographically close
-   - Pause and resume download
+2. **Change Download Region:**
+   - In the same pane, pick a different download region close to you
+
+3. **Restart Steam** and resume the download. Check it is not just paused or queued in Steam → Downloads.
 
 **Why This Happens:**
-Wine's HTTP/2 implementation has issues. Forcing HTTP/1.1 and increasing timeouts resolves connection stability problems.
+Stalls usually come from a damaged download cache or a busy content server. Steam's content downloads do not go through Wine's WinHTTP or WinINet, and Wine reads no environment variable or registry value for network timeouts.
 
 **Related Upstream Issues:**
 - whisky-app/whisky#1148 (Downloads stall)
@@ -201,13 +191,6 @@ Epic's Chromium Embedded Framework conflicts with Wine's threading model. Disabl
    - Enable DXVK
    - Toggle "DXVK Async" ON
 
-2. **Increase Network Timeout:**
-   - Config → Launcher Compatibility
-   - Adjust timeout to **90 seconds**
-
-**Why This Happens:**
-Ubisoft's servers can be slow, requiring higher timeouts.
-
 **Related Upstream Issues:**
 - whisky-app/whisky#1004 (Beta update issues)
 - whisky-app/whisky#879 (Anno 1800 won't launch)
@@ -313,16 +296,14 @@ Rosetta 2: ✅ Installed
 ```
 Compatibility Mode: ✅ Enabled
 Detected Launcher: Steam
-Launcher Locale: English (en_US.UTF-8)
+Launcher Locale: Auto
 GPU Spoofing: ✅ Enabled (NVIDIA)
 ```
 
 **Environment Variables:**
 Look for:
-- `LC_ALL=en_US.UTF-8` (locale fix)
 - `STEAM_DISABLE_CEF_SANDBOX=1` (CEF fix)
 - `MESA_GL_VERSION_OVERRIDE=4.6` (GPU spoofing)
-- `WINHTTP_CONNECT_TIMEOUT=90000` (network timeout)
 
 **Validation Results:**
 - ✅ Configuration is optimal
@@ -339,10 +320,6 @@ Look for:
 ### ❌ "DXVK REQUIRED for Rockstar Launcher"
 **Impact:** Logo won't display, launcher unusable  
 **Solution:** Enable DXVK immediately (critical)
-
-### ⚠️ "Steam may crash without en_US locale"
-**Impact:** steamwebhelper crashes likely  
-**Solution:** Set Locale Override to English
 
 ### ❌ "GPU spoofing REQUIRED for EA App"
 **Impact:** Black screen, "GPU not supported"  
@@ -421,14 +398,12 @@ Isolate launcher issues:
 ### Steam
 **Must Have:**
 - ✅ Launcher Compatibility Mode
-- ✅ Locale: English (en_US.UTF-8)
 
 **Recommended:**
 - ✅ DXVK (improves UI performance)
-- ✅ Network timeout: 90s
+- ✅ Locale: Auto (your Mac's language and region; the Steam preset sets no locale)
 
 **Critical Settings:**
-- `LC_ALL=en_US.UTF-8` (prevents steamwebhelper crash)
 - `STEAM_DISABLE_CEF_SANDBOX=1` (Wine compatibility)
 
 ---
@@ -482,7 +457,6 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 
 **Recommended:**
 - ✅ DXVK + DXVK Async
-- ✅ Network timeout: 90s
 
 **Critical Settings:**
 - `DXVK_ASYNC=1` (game compatibility)
@@ -508,6 +482,41 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 
 **Critical Settings:**
 - None beyond Launcher Compatibility Mode
+
+---
+
+### RSI Launcher (Star Citizen)
+**Must Have:**
+- ✅ Graphics backend: Recommended or DXVK (the launcher's window stays blank white on D3DMetal and DXMT)
+
+**Critical Settings:**
+- None bottle-wide. On Recommended, Whisky runs `RSI Launcher.exe` (and the Chromium processes it starts as the same executable) on DXVK
+- Star Citizen launched from Whisky keeps the bottle's backend. Started from the launcher, it keeps D3DMetal when Game Porting Toolkit is imported; without it, the game runs on DXVK, because the launcher's DXVK files replace DXMT's in the bottle until a game is next launched from Whisky
+
+---
+
+### Chromium apps (3DMark and other front ends)
+Some programs that are not launchers draw their own window with Chromium (CEF or Electron), and that window stays black on D3DMetal and DXMT, while the benchmarks or games they start run fine there.
+
+**Must Have:**
+- ✅ Graphics backend: Recommended (the default). Whisky runs a known front end on DXVK by itself
+
+**How it works:**
+- Known front ends are listed by executable name: today `3DMark.exe` (3DMark, Steam App 223850). On Recommended, the front end gets DXVK in its own registry entry (`AppDefaults\3DMark.exe`), and its benchmarks keep the bottle's backend, D3DMetal when Game Porting Toolkit is imported
+- This applies when 3DMark is launched from the Programs tab, from the Whisky Library (`-applaunch 223850`), and when Steam's own Play button or a shortcut starts it: any launch in a bottle with 3DMark installed writes its entry ahead of time
+- The program's settings page says why Recommended picked DXVK. An explicit backend on the program, or on the bottle, is never changed. Setting the program itself to Recommended steers it the same way in a bottle set to D3DMetal or DXMT
+- A DXVK override set on `3DMark.exe` stays on the front end and no longer becomes the backend of 3DMark's benchmarks on Steam launches
+- In a bottle without Game Porting Toolkit (DXMT), DXVK and DXMT share system files, so what the front end starts also runs on DXVK until a DXMT program is next started from Whisky
+
+**Electron and NW.js apps:**
+- An Electron app (its folder holds `resources/app.asar` or `resources/app/package.json`, `icudtl.dat`, and a V8 snapshot, and the executable imports `ffmpeg.dll`) or an NW.js app (`nw.dll` and `icudtl.dat` beside it, and the executable imports `nw.dll` or `nw_elf.dll`) runs on DXVK under Recommended, the same way as a known front end. Its settings page names the file that identified it
+- An executable that imports Direct3D, DXGI, Vulkan or OpenGL itself is never matched, nor is anything under `drive_c/windows` or in a folder with more than 2,000 files. The uninstaller and helper programs beside an Electron app keep the bottle's backend
+- A Squirrel install (`Update.exe` beside the app, the app itself in an `app-x.y.z` folder) is matched through the app the stub starts
+- The entry is written when Whisky launches the app, from the Programs tab or with Play in the Whisky Library, and stays in the registry for later starts from elsewhere. Wine keys it on the file name alone, so a generic name such as `Game.exe` also reaches another `Game.exe` started outside Whisky, until Whisky launches that one and writes its own entry
+
+**Other Chromium apps:**
+- If a program's settings page finds `libcef.dll` beside it, and the program loads `libcef.dll` itself without importing a graphics API, it offers **Use DXVK** for that program only. Whisky never switches such a program by itself: games ship CEF too, for overlays and in-game browsers, and DXVK has no Direct3D 12 on macOS
+- If a program's window stays black and it is a Chromium app, set its graphics backend to DXVK on its settings page, and please report it so it can be added to the list
 
 ---
 
@@ -641,8 +650,8 @@ Before making changes:
 ### Q: Can I customize individual launcher settings?
 **A:** Currently, settings apply to the detected launcher. Per-game overrides may be added in future versions.
 
-### Q: Why does my launcher require English locale?
-**A:** Chromium Embedded Framework in launchers has Unicode parsing bugs with certain locales. English (en_US.UTF-8) avoids these issues.
+### Q: Why do some launchers use an English locale?
+**A:** The Rockstar, EA App, Epic Games, and Battle.net presets set en_US.UTF-8 to avoid locale problems reported for those launchers. Steam's preset sets no locale, so with Locale Override on Auto, Steam and the games it starts get your Mac's language and region. Launcher bottles that older versions of Whisky set to English are put back on Auto once. Locale Override can pick a specific locale for any launcher.
 
 ---
 
@@ -668,4 +677,4 @@ Before making changes:
 
 **Last Updated:** January 12, 2026  
 **Feature Version:** 1.0.0  
-**Covers:** Steam, Rockstar, EA App, Epic, Ubisoft, Battle.net, Paradox
+**Covers:** Steam, Rockstar, EA App, Epic, Ubisoft, Battle.net, Paradox, RSI Launcher

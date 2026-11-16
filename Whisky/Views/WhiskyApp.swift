@@ -40,6 +40,9 @@ struct WhiskyApp: App {
     /// Opt-in: show a menu-bar extra and keep Whisky running after the main
     /// window closes (see `AppDelegate.applicationShouldTerminateAfterLastWindowClosed`).
     @AppStorage("showMenuBarExtra") private var showMenuBarExtra = false
+    /// Set once the original-Whisky import has been offered automatically, so
+    /// it is never offered again (it stays available from the File menu).
+    @AppStorage("hasOfferedLegacyMigration") private var hasOfferedLegacyMigration = false
     @State var showSetup: Bool = false
     @State private var showMigrate: Bool = false
     @State private var showDiagnosticsSheet: Bool = false
@@ -73,6 +76,10 @@ struct WhiskyApp: App {
     /// - The stored payload is checked first if nothing has checked it as it
     ///   is now (a store imported before imports verified Apple's signature),
     ///   and a deployment of a store that fails is taken back out.
+    /// - A stored payload goes into a GPTK-capable engine that has no D3DMetal
+    ///   yet. Those engines are installed by hand with Whisky quit, so this is
+    ///   the first chance to deploy into one (#358). Bottles Steam's profile
+    ///   had to switch to DXVK can then go back to Recommended.
     /// - The MetalFX and NVAPI bridges and the D3D12 video processor go into
     ///   runtimes that already hold the payload. Deploying does this too, but
     ///   an install set up before they existed never deploys again, so without
@@ -83,10 +90,35 @@ struct WhiskyApp: App {
         let bottles = data.loadBottles().map(\.url)
         Task.detached(priority: .background) {
             GPTKImporter.verifyStoredPayload()
+            if GPTKImporter.deployStoredPayloadIfMissing() {
+                await MainActor.run {
+                    BottleVM.shared.migrateLauncherBackends()
+                }
+            }
             GPTKImporter.ensureMetalFXBridgeInstalled()
             GPTKImporter.ensureNVAPIBridgeInstalled()
             GPTKImporter.ensureVideoProcessorInstalled(bottles: bottles)
         }
+    }
+
+    /// Offers the original-Whisky import once, when the archived app left
+    /// bottles this fork hasn't registered yet. Most people installing the fork
+    /// are coming from the original app, and the import is otherwise only
+    /// reachable from the File menu, so a first launch would create a fresh
+    /// bottle without ever mentioning the old ones.
+    ///
+    /// Called when the main window appears and when setup closes, so the sheet
+    /// never competes with the first-launch setup sheet for presentation.
+    private func offerLegacyMigrationIfNeeded() {
+        guard !Self.isUITesting, !hasOfferedLegacyMigration, !showSetup, !showMigrate,
+              LegacyBottleImport.legacyContainerExists()
+        else { return }
+        let importable = LegacyBottleImport.importableBottleURLs(
+            existingPaths: BottleVM.shared.bottlesList.paths
+        )
+        guard !importable.isEmpty else { return }
+        hasOfferedLegacyMigration = true
+        showMigrate = true
     }
 
     var body: some Scene {
@@ -103,6 +135,16 @@ struct WhiskyApp: App {
                     }
                     updateGPTKPayloadIfNeeded()
                     startAudioDeviceListening()
+                    // Without a runtime, ContentView is about to present setup;
+                    // the onChange below offers the import once that closes.
+                    if WhiskyWineInstaller.isWhiskyWineInstalled() {
+                        offerLegacyMigrationIfNeeded()
+                    }
+                }
+                .onChange(of: showSetup) { _, isShowing in
+                    if !isShowing {
+                        offerLegacyMigrationIfNeeded()
+                    }
                 }
                 .onReceive(
                     NotificationCenter.default.publisher(for: .crashDiagnosisAvailable)
@@ -147,7 +189,8 @@ struct WhiskyApp: App {
                         programName: banner.programName,
                         bottleName: bottle(forProgramPath: banner.programPath)?.settings.name ?? "",
                         timestamp: Date(),
-                        applyBottle: bottle(forProgramPath: banner.programPath)
+                        applyBottle: bottle(forProgramPath: banner.programPath),
+                        applyProgramURL: URL(fileURLWithPath: banner.programPath)
                     )
                     .frame(minWidth: 600, minHeight: 400)
                 }
@@ -363,26 +406,36 @@ struct WhiskyApp: App {
 
                 switch event.eventType {
                 case .defaultOutputChanged, .disconnected:
-                    let message = String(
-                        localized: "audio.alert.disconnected"
-                    ) + ": \(event.deviceName)"
+                    let message = deviceAlertMessage(
+                        String(localized: "audio.alert.disconnected"),
+                        deviceName: event.deviceName
+                    )
                     audioDeviceToast = ToastData(message: message, style: .info)
                 case .reconnected:
-                    let message = String(
-                        localized: "audio.alert.reconnected"
-                    ) + ": \(event.deviceName)"
+                    let message = deviceAlertMessage(
+                        String(localized: "audio.alert.reconnected"),
+                        deviceName: event.deviceName
+                    )
                     audioDeviceToast = ToastData(message: message, style: .success)
                 case .sampleRateChanged:
                     // Check for low sample rate (HFP/Bluetooth issue)
                     if let device = audioMonitor.defaultOutputDevice(),
                        device.sampleRate < 22_050, device.sampleRate > 0 {
-                        let message = String(localized: "audio.alert.lowSampleRate")
-                            + ": \(event.deviceName)"
+                        let message = deviceAlertMessage(
+                            String(localized: "audio.alert.lowSampleRate"),
+                            deviceName: event.deviceName
+                        )
                         audioDeviceToast = ToastData(message: message, style: .info)
                     }
                 }
             }
         }
+    }
+
+    /// An audio alert followed by the device's name, joined with the
+    /// translated "%@: %@" pattern so each language punctuates it its own way.
+    private func deviceAlertMessage(_ alertText: String, deviceName: String) -> String {
+        String(localized: "\(alertText): \(deviceName)")
     }
 }
 

@@ -60,7 +60,7 @@ The implementation follows a layered architecture with clear separation of conce
 **Purpose:** Defines launcher-specific environment configurations
 
 **Key Features:**
-- Enum-based launcher types (7 supported launchers)
+- Enum-based launcher types (8 supported launchers)
 - Environment override methods per launcher
 - DXVK requirement flags
 - Recommended locale settings
@@ -74,13 +74,13 @@ The implementation follows a layered architecture with clear separation of conce
 - Ubisoft Connect
 - Battle.net
 - Paradox Launcher
+- RSI Launcher (Star Citizen)
 
 **Sample Environment Overrides:**
 ```swift
 Steam:
-- LC_ALL=en_US.UTF-8 (fixes steamwebhelper crashes)
+- No locale (on Auto, the Mac's language and region)
 - STEAM_DISABLE_CEF_SANDBOX=1 (Wine compatibility)
-- WINHTTP_CONNECT_TIMEOUT=90000 (download reliability)
 
 Rockstar:
 - WINE_LARGE_ADDRESS_AWARE=1 (launcher initialization)
@@ -90,6 +90,39 @@ EA App:
 - LC_ALL=en_US.UTF-8 (launcher UI locale)
 - CEF_DISABLE_SANDBOX=1 (launcher UI)
 ```
+
+#### ChromiumFrontEnd.swift
+**Purpose:** Curated table of programs whose own window is drawn by Chromium but that are not launchers (#372)
+
+**Key Features:**
+- One row per front end: executable names, helper executables, install locations, Steam App ID, and the issue its layout was verified in (v1: `3DMark.exe`, App 223850)
+- Matched by file name only, without case, after `LauncherType.detect(from:)`, so every launcher keeps its own path
+- Tests reject generic names (`AppDefaults` is keyed on the file name alone) and names shared with a launcher or a GameDB game
+- `DXVKSteering` (launcher or front end), `RecommendedReason` and `BackendResolution` in `GraphicsBackendResolver` say why Recommended picked a backend; `resolve(for:)` stays as a wrapper
+
+**Routing:**
+- Direct launch: `prepareProgramLaunch` steers Recommended to DXVK and pins it into the program's own `AppDefaults` entry; the bottle scope and the MetalFX placeholder follow the games' backend
+- Steam `-applaunch`: front ends among the scanned executables leave the game's plan (as #376's Chromium hosts do) and get the launcher set, unless their own override picks another backend
+- Ahead of time: every launch in a bottle whose games run on something other than DXVK writes the entry for each installed front end whose own choice (its override, else the bottle's backend) is Recommended or DXVK (registry only, DXVK is not deployed), so a program-level Recommended routes the same on every path
+- A program with `libcef.dll` beside it that is not in the table only gets a one-click suggestion on its settings page
+
+#### ChromiumRuntimeDetector.swift
+**Purpose:** Electron and NW.js apps found by their files, steered like a table row (#372)
+
+**Rule:**
+- Electron: the folder holds `resources/app.asar` (or `resources/app/package.json`), `icudtl.dat`, and `v8_context_snapshot.bin` or `snapshot_blob.bin`, and the executable imports `ffmpeg.dll` from either import table (Electron 45 delay-loads it)
+- NW.js: the folder holds `nw.dll` and `icudtl.dat`, and the executable imports `nw.dll` or `nw_elf.dll`
+- Guard: no `d3d9`, `d3d11`, `d3d12`, `dxgi`, `vulkan-1` or `opengl32` among the normal imports. Delay imports do not veto, since Chromium delay-loads Direct3D
+- Skipped: launchers and table rows (they keep their own path), `drive_c/windows`, folders with more than 2,000 entries. A Squirrel stub is classified by the `app-x.y.z` app it starts
+- `PE/ImportTable.swift` reads the normal (data directory 1) and delay-load (data directory 13) tables apart: names only, 256-byte names, at most 1,024 descriptors, stopping at the first offset outside the file
+- Results are cached per process, keyed on the path, size and modification date of the executable and its folder's modification date. A miss is not cached when the files that decide it sit a folder down (`resources` beside `icudtl.dat`, or `Update.exe` beside a Squirrel stub), so an install that is still extracting is looked at again on the next scan
+
+**Routing:**
+- `DXVKSteering.inspect(executable:)` puts launchers and the table first; `prepareProgramLaunch` and the preflight use it. `DXVKSteering.detect(executable:)` stays name-only
+- `Program.dxvkSteering` is classified off the main actor in `updateInstalledPrograms`, so views never read a program's files
+- No entry is written ahead of time for a match: it is written when Whisky launches the app
+- On a Whisky Library Play (`steam.exe -applaunch`), a match in the game's folder gets the launcher set in its own entry, ahead of the game's plan, like a table row. It stays among the plan's executables, since it is often the game itself and its settings still shape the plan
+- The CEF suggestion uses the same parser: `libcef.dll` beside the executable, imported by it, and no graphics import
 
 #### GPUDetection.swift (180 lines)
 **Purpose:** GPU capability spoofing for launcher compatibility checks
@@ -120,7 +153,6 @@ are read by no shipped runtime.
 - `launcherLocale: Locales` - Locale override
 - `gpuSpoofing: Bool` - GPU spoofing enable
 - `gpuVendor: GPUVendor` - Vendor selection
-- `networkTimeout: Int` - Connection timeout
 - `autoEnableDXVK: Bool` - Force DXVK in a bottle whose launcher requires it (Rockstar only)
 
 **Serialization:** Fully Codable with PropertyListEncoder
@@ -285,22 +317,17 @@ Epic Games:
    - Model name display
    - Compatibility explanation
 
-7. **Network Configuration**
-   - Timeout slider (30-180 seconds)
-   - Current value display
-   - Download fix explanation
-
-8. **Use DXVK for Rockstar Games Launcher**
+7. **Use DXVK for Rockstar Games Launcher**
    - Rockstar is the only launcher with `requiresDXVK`; other launchers get DXVK from the Recommended backend
 
-9. **Diagnostics Button**
+8. **Diagnostics Button**
    - One-click report generation
    - Sheet presentation
 
-10. **Configuration Warnings**
-    - Real-time validation
-    - Color-coded warnings
-    - Specific recommendations
+9. **Configuration Warnings**
+   - Real-time validation
+   - Color-coded warnings
+   - Specific recommendations
 
 **State Management:**
 - `@ObservedObject var bottle: Bottle`
@@ -354,7 +381,7 @@ if bottle.settings.launcherCompatibilityMode &&
 ### Unit Tests Summary
 
 #### LauncherPresetTests.swift (12 tests)
-✅ `testSteamPresetIncludesLocale`
+✅ `testSteamPresetLeavesTheLocaleToTheMac`
 ✅ `testSteamPresetDisablesSandbox`
 ✅ `testSteamPresetIncludesNetworkFixes`
 ✅ `testRockstarRequiresDXVK`
@@ -392,7 +419,6 @@ if bottle.settings.launcherCompatibilityMode &&
 ✅ `testBottleSettingsLauncherConfigModification`
 ✅ `testEnvironmentVariablesWithLauncherCompatibility`
 ✅ `testEnvironmentVariablesWithoutLauncherCompatibility`
-✅ `testNetworkTimeoutConfiguration`
 ✅ `testAutoEnableDXVKForRockstar`
 ✅ `testSSLTLSConfiguration`
 
@@ -418,7 +444,6 @@ Total time: 0.523 seconds
 - [x] Auto-enable DXVK for Rockstar
 - [x] GPU spoofing environment validation
 - [x] Locale override application
-- [x] Network timeout slider behavior
 - [x] Detection mode switching (Auto/Manual)
 
 ## Known Issues & Limitations
@@ -433,10 +458,10 @@ Total time: 0.523 seconds
 **Mitigation:** Clearly documented in help text  
 **Impact:** Low - launchers only check capabilities at startup
 
-### 3. Network Timeout Defaults
-**Issue:** Single timeout value for all operations  
-**Mitigation:** Configurable slider (30-180s)  
-**Future:** Per-operation timeout configuration
+### 3. No Control Over Network Timeouts
+**Issue:** Wine's WinHTTP and WinINet read no environment variable or registry value for timeouts; only the program's own option calls set them, and Steam's content downloads use neither library  
+**Mitigation:** Download stalls are fixed in the launcher's own settings (for Steam: Settings → Downloads → Clear Download Cache or another Download Region)  
+**Impact:** Whisky offers no network timeout setting
 
 ### 4. macOS Version Support
 **Issue:** Pre-15.0 systems get limited benefit  

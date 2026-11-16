@@ -576,6 +576,35 @@ final class BottleSettingsTests: XCTestCase {
         XCTAssertEqual(decoded.launcherMode, .auto)
     }
 
+    /// What a build that predates a launcher sees when a newer one recorded it:
+    /// the detected launcher drops to none, and the rest of the bottle loads.
+    func testUnknownDetectedLauncherDecodesToNoneInWholeSettings() throws {
+        var settings = BottleSettings()
+        settings.name = "Detected Launcher Forward Compat"
+        settings.launcherCompatibilityMode = true
+        settings.detectedLauncher = .rsiLauncher
+
+        let decoded = try decodeSettingsSubstituting(
+            settings,
+            original: "<string>RSI Launcher</string>",
+            replacement: "<string>Some Future Launcher</string>"
+        )
+
+        XCTAssertEqual(decoded.name, "Detected Launcher Forward Compat")
+        XCTAssertTrue(decoded.launcherCompatibilityMode)
+        XCTAssertNil(decoded.detectedLauncher)
+    }
+
+    func testDetectedRSILauncherRoundTrips() throws {
+        var settings = BottleSettings()
+        settings.detectedLauncher = .rsiLauncher
+
+        let data = try PropertyListEncoder().encode(settings)
+        let decoded = try PropertyListDecoder().decode(BottleSettings.self, from: data)
+
+        XCTAssertEqual(decoded.detectedLauncher, .rsiLauncher)
+    }
+
     // MARK: - Decode Recovery
 
     func testFileVersionMismatchQuarantinesAndResets() throws {

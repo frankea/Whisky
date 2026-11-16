@@ -130,6 +130,22 @@ final class NVAPIBridgeTests: XCTestCase {
         )
     }
 
+    func testRockstarsChainNeverReachesNVAPI() {
+        // Social Club's helper is Chromium, which probes for an NVIDIA GPU, and
+        // nvapi64 took Launcher.exe down right after sign-in (#382).
+        let set = "d3d10core=n,b;d3d11=n,b;dxgi=n,b"
+        let chromium = "d3d10core=n,b;d3d11=n,b;d3d12=;dxgi=n,b;nvapi=;nvapi64=;nvngx="
+        XCTAssertEqual(Wine.rockstarChainOverrides(role: .chromium, layout: .builtin, launcherSet: set), chromium)
+        XCTAssertEqual(
+            Wine.rockstarChainOverrides(role: .wineDirect3D, layout: .builtin, launcherSet: set),
+            "d3d10core=b;d3d11=b;d3d12=;dxgi=b;nvapi=;nvapi64=;nvngx="
+        )
+        XCTAssertEqual(
+            Wine.rockstarChainOverrides(role: .wineDirect3D, layout: .degraded(.gptkForwarders), launcherSet: set),
+            chromium
+        )
+    }
+
     func testDisablingNVAPIKeepsTheHelpersOtherOverrides() {
         // The helper still needs whatever the bottle gave it; only nvapi64 goes.
         let result = Wine.disablingNVAPI(in: "dxgi=n,b;d3d11=n,b;d3d12=")

@@ -31,6 +31,9 @@ struct ProgramOverrideSettingsView: View {
     @ObservedObject var bottle: Bottle
     @ObservedObject var program: Program
     @Binding var isExpanded: Bool
+    /// Opens the bottle's configuration page, where the advanced audio
+    /// settings live. Without it the wizard does not offer to open them.
+    var onOpenBottleConfig: (() -> Void)?
 
     @State private var showResetConfirmation = false
     @State private var diagnosisPresentation: DiagnosisPresentation?
@@ -38,6 +41,24 @@ struct ProgramOverrideSettingsView: View {
     @State private var showGameConfigDetail: Bool = false
     @State private var recommendedDependencies: [DependencyDefinition] = []
     @State private var dependencyToInstall: DependencyDefinition?
+    /// The audio troubleshooting wizard for this program's bottle, while it is open.
+    @State private var audioWizard: AudioWizardPresentation?
+    @State private var audioMonitor = AudioDeviceMonitor()
+    /// Set when the wizard asked for the advanced audio settings; acted on
+    /// once its sheet is gone so the navigation is not lost to the dismissal.
+    @State private var openAdvancedAudioAfterWizard = false
+    @AppStorage("audioAdvancedMode") private var audioAdvancedMode = false
+    /// The bottle's virtual desktop as its registry has it, once read. The
+    /// bottle's setting only mirrors the registry and misses changes made
+    /// outside its Display section, such as in winecfg.
+    @State private var bottleVirtualDesktopInRegistry: (enabled: Bool, resolution: String?)?
+    /// Read from the runtime's version plist when the sync group appears, not
+    /// on every redraw, and assumed until then.
+    @State private var runtimeImplementsEnhancedSync = true
+    /// Whether the program ships CEF and imports it, with no graphics import
+    /// of its own: read off the main actor once when the page appears, rather
+    /// than on every redraw.
+    @State private var shipsCEF = false
 
     var body: some View {
         dependencyBadgeSection
@@ -55,12 +76,16 @@ struct ProgramOverrideSettingsView: View {
         diagnosticsSection
         audioTroubleshootingSection
             .task {
+                let url = program.url
+                shipsCEF = await Task.detached(priority: .utility) {
+                    ChromiumRuntimeDetector.suggestsCEF(for: url)
+                }.value
                 await loadGameMatch()
                 await loadRecommendedDependencies()
             }
             .sheet(isPresented: $showGameConfigDetail) {
                 if let match = gameMatch {
-                    GameEntryDetailView(entry: match.entry, bottle: bottle)
+                    GameEntryDetailView(entry: match.entry, bottle: bottle, programURL: program.url)
                         .frame(minWidth: 600, minHeight: 500)
                 }
             }
@@ -74,7 +99,8 @@ struct ProgramOverrideSettingsView: View {
                     programName: program.name,
                     bottleName: bottle.settings.name,
                     timestamp: Date(),
-                    applyBottle: bottle
+                    applyBottle: bottle,
+                    applyProgramURL: program.url
                 )
                 .frame(minWidth: 600, minHeight: 400)
             }
@@ -146,15 +172,35 @@ struct ProgramOverrideSettingsView: View {
     // MARK: - Audio Troubleshooting Section
 
     private var audioTroubleshootingSection: some View {
-        Section("Audio") {
+        Section("config.title.audio") {
             Button("Troubleshoot Audio\u{2026}") {
-                NotificationCenter.default.post(
-                    name: .openAudioTroubleshooting,
-                    object: nil
-                )
+                audioWizard = .make(for: bottle, monitor: audioMonitor)
             }
-            .help("Open audio diagnostics and troubleshooting for this bottle")
+            .help("program.overrides.audio.troubleshoot.help")
         }
+        .sheet(item: $audioWizard, onDismiss: openAdvancedAudioIfRequested) { presentation in
+            AudioTroubleshootingWizardView(
+                engine: presentation.engine,
+                onDismiss: {
+                    audioWizard = nil
+                },
+                onOpenAdvanced: onOpenBottleConfig == nil ? nil : {
+                    openAdvancedAudioAfterWizard = true
+                },
+                onApplyFix: { actionId in
+                    await AudioWizardPresentation.applyFix(actionId, bottle: bottle).failureReason
+                }
+            )
+        }
+    }
+
+    /// Shows the bottle's audio settings in advanced mode on its configuration
+    /// page, after the wizard asked for them.
+    private func openAdvancedAudioIfRequested() {
+        guard openAdvancedAudioAfterWizard else { return }
+        openAdvancedAudioAfterWizard = false
+        audioAdvancedMode = true
+        onOpenBottleConfig?()
     }
 
     // MARK: - Dependency Badge
@@ -291,19 +337,75 @@ struct ProgramOverrideSettingsView: View {
                     Toggle("config.metal4", isOn: metal4Binding)
                 }
 
+                // Not gated on the backend: the Metal HUD is Apple's, and it
+                // draws over DXVK titles too. The bottle value covers every
+                // process in the prefix, launcher windows included, so this is
+                // how one title gets the HUD to itself.
+                Toggle("config.metalHud", isOn: metalHudBinding)
+
                 // "Takes effect next launch" note
                 Text("config.graphics.nextLaunch")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
+                // Resolved, or a bottle on Recommended reports "Recommended".
+                let backendName = resolvedBottleBackend.displayName
+                let asyncState = onOff(bottle.settings.dxvkAsync)
+                let hudState = hudDescription(bottle.settings.dxvkHud)
                 inheritedSummary(
-                    // Resolved, or a bottle on Recommended reports "Recommended".
-                    "\(resolvedBottleBackend.displayName), "
-                        + "DXVK Async \(bottle.settings.dxvkAsync ? "On" : "Off"), "
-                        + "HUD \(hudDescription(bottle.settings.dxvkHud))"
+                    String(localized: "program.overrides.graphics.summary \(backendName) \(asyncState) \(hudState)")
                 )
             }
+
+            chromiumCaption
         }
+    }
+
+    /// What Recommended does for a program whose window Chromium draws, or a
+    /// suggestion for an unlisted one that ships CEF (#372).
+    @ViewBuilder
+    private var chromiumCaption: some View {
+        if let steering = dxvkSteering {
+            switch effectiveBackendChoice {
+            case .recommended:
+                // Nothing to explain where the games already run on DXVK.
+                if gamesBackend != .dxvk {
+                    graphicsCaption(
+                        GraphicsBackendResolver.resolution(for: steering).rationale(gamesBackend: gamesBackend)
+                    )
+                }
+            case .dxvk where hasGraphicsOverride:
+                HStack {
+                    graphicsCaption(String(localized: "program.overrides.graphics.alreadyDXVK"))
+                    Button("program.overrides.graphics.useRecommended") {
+                        program.settings.overrides?.graphicsBackend = .recommended
+                    }
+                    .controlSize(.small)
+                }
+            case .dxvk:
+                EmptyView()
+            default:
+                graphicsCaption(String(localized: "program.overrides.graphics.chromiumHint"))
+            }
+        } else if shipsCEF, effectiveResolvedBackend != .dxvk {
+            HStack {
+                graphicsCaption(String(localized: "program.overrides.graphics.cefSuggestion"))
+                Button("program.overrides.graphics.useDXVK") {
+                    if !hasGraphicsOverride {
+                        graphicsOverrideBinding.wrappedValue = true
+                    }
+                    program.settings.overrides?.graphicsBackend = .dxvk
+                }
+                .controlSize(.small)
+            }
+        }
+    }
+
+    private func graphicsCaption(_ text: String) -> some View {
+        Text(text)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     @ViewBuilder
@@ -331,9 +433,17 @@ struct ProgramOverrideSettingsView: View {
                     Text("config.enhancedSync.esync").tag(EnhancedSync.esync)
                     Text("config.enhancedSync.msync").tag(EnhancedSync.msync)
                 }
+                if !runtimeImplementsEnhancedSync {
+                    Text("config.enhancedSync.runtimeUnsupported")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             } else {
                 inheritedSummary(syncDescription(bottle.settings.enhancedSync))
             }
+        }
+        .task {
+            runtimeImplementsEnhancedSync = WhiskyWineInstaller.runtimeImplementsEnhancedSync()
         }
     }
 
@@ -348,7 +458,11 @@ struct ProgramOverrideSettingsView: View {
             if hasPerformanceOverride {
                 performanceControls
             } else {
-                inheritedSummary("Shader Cache \(bottle.settings.shaderCacheEnabled ? "On" : "Off")")
+                inheritedSummary(
+                    String(
+                        localized: "program.overrides.performance.summary \(onOff(bottle.settings.shaderCacheEnabled))"
+                    )
+                )
             }
         }
     }
@@ -368,9 +482,10 @@ struct ProgramOverrideSettingsView: View {
             if hasInputOverride {
                 inputControls
             } else {
+                let compatState = onOff(bottle.settings.controllerCompatibilityMode)
+                let labelsState = onOff(bottle.settings.useButtonLabels)
                 inheritedSummary(
-                    "Controller Compat \(bottle.settings.controllerCompatibilityMode ? "On" : "Off"), "
-                        + "Native Labels \(bottle.settings.useButtonLabels ? "On" : "Off")"
+                    String(localized: "program.overrides.input.summary \(compatState) \(labelsState)")
                 )
             }
         }
@@ -396,20 +511,37 @@ struct ProgramOverrideSettingsView: View {
             if hasDisplayOverride {
                 displayControls
             } else {
-                if bottle.settings.virtualDesktopEnabled {
-                    let preset = bottle.settings.resolutionPreset
-                    let resText = preset.dimensions.map { "\($0.width)x\($0.height)" }
-                        ?? (preset == .custom
-                            ? "\(bottle.settings.customResolutionWidth)x\(bottle.settings.customResolutionHeight)"
-                            : String(localized: "config.virtualDesktop.matchDisplay.label"))
+                if bottleVirtualDesktopEnabled {
                     inheritedSummary(
-                        String(localized: "program.overrides.display.enabled") + " " + resText
+                        String(localized: "program.overrides.display.enabledSummary \(bottleVirtualDesktopSize)")
                     )
                 } else {
                     inheritedSummary(String(localized: "config.virtualDesktop.off"))
                 }
             }
         }
+        .task(id: bottle.url) {
+            bottleVirtualDesktopInRegistry = try? await Wine.virtualDesktop(bottle: bottle)
+        }
+    }
+
+    /// Whether the bottle runs its programs in a virtual desktop: the registry's
+    /// answer once read, the bottle's setting until then.
+    private var bottleVirtualDesktopEnabled: Bool {
+        bottleVirtualDesktopInRegistry?.enabled ?? bottle.settings.virtualDesktopEnabled
+    }
+
+    /// The size of the bottle's virtual desktop, from its settings, or from the
+    /// registry when the settings do not know it is on.
+    private var bottleVirtualDesktopSize: String {
+        if !bottle.settings.virtualDesktopEnabled, let resolution = bottleVirtualDesktopInRegistry?.resolution {
+            return resolution
+        }
+        let preset = bottle.settings.resolutionPreset
+        return preset.dimensions.map { "\($0.width)x\($0.height)" }
+            ?? (preset == .custom
+                ? "\(bottle.settings.customResolutionWidth)x\(bottle.settings.customResolutionHeight)"
+                : String(localized: "config.virtualDesktop.matchDisplay.label"))
     }
 
     @ViewBuilder
@@ -463,8 +595,10 @@ struct ProgramOverrideSettingsView: View {
                 )
             } else {
                 inheritedSummary(
-                    "\(bottle.settings.dllOverrides.count) "
-                        + String(localized: "program.overrides.dll.customCount")
+                    String(
+                        format: String(localized: "program.overrides.dll.customCount"),
+                        bottle.settings.dllOverrides.count
+                    )
                 )
             }
         }
@@ -549,16 +683,41 @@ struct ProgramOverrideSettingsView: View {
         program.settings.overrides?.graphicsBackend != nil
     }
 
-    /// The backend this program actually launches with.
-    private var resolvedOverriddenBackend: GraphicsBackend {
-        let backend = program.settings.overrides?.graphicsBackend ?? .recommended
-        return backend == .recommended ? GraphicsBackendResolver.resolve() : backend
+    /// Why Recommended runs this program on DXVK, if it does: a launcher, a
+    /// Chromium front end from the table, or an Electron or NW.js app. Read
+    /// from the program's scan, never from its files.
+    private var dxvkSteering: DXVKSteering? {
+        program.dxvkSteering
     }
 
-    /// The bottle's backend, resolved, for the inherited summary.
-    private var resolvedBottleBackend: GraphicsBackend {
+    /// The backend this program's launches choose, before Recommended resolves.
+    private var effectiveBackendChoice: GraphicsBackend {
+        program.settings.overrides?.graphicsBackend ?? bottle.settings.graphicsBackend
+    }
+
+    /// What the bottle's games run on, which the programs a steered one starts keep.
+    private var gamesBackend: GraphicsBackend {
         bottle.settings.graphicsBackend == .recommended
             ? GraphicsBackendResolver.resolve()
+            : bottle.settings.graphicsBackend
+    }
+
+    /// The backend this program actually launches with, with or without an override.
+    private var effectiveResolvedBackend: GraphicsBackend {
+        hasGraphicsOverride ? resolvedOverriddenBackend : resolvedBottleBackend
+    }
+
+    /// The backend this program actually launches with. Recommended resolves
+    /// for the program, so a launcher or front end reports DXVK.
+    private var resolvedOverriddenBackend: GraphicsBackend {
+        let backend = program.settings.overrides?.graphicsBackend ?? .recommended
+        return backend == .recommended ? GraphicsBackendResolver.resolution(for: dxvkSteering).backend : backend
+    }
+
+    /// The bottle's backend, resolved for this program, for the inherited summary.
+    private var resolvedBottleBackend: GraphicsBackend {
+        bottle.settings.graphicsBackend == .recommended
+            ? GraphicsBackendResolver.resolution(for: dxvkSteering).backend
             : bottle.settings.graphicsBackend
     }
 
@@ -627,12 +786,14 @@ struct ProgramOverrideSettingsView: View {
                     program.settings.overrides?.dxvkAsync = bottle.settings.dxvkAsync
                     program.settings.overrides?.dxvkHud = bottle.settings.dxvkHud
                     program.settings.overrides?.metal4Enabled = bottle.settings.metal4Enabled
+                    program.settings.overrides?.metalHud = bottle.settings.metalHud
                 } else {
                     program.settings.overrides?.graphicsBackend = nil
                     program.settings.overrides?.dxvk = nil
                     program.settings.overrides?.dxvkAsync = nil
                     program.settings.overrides?.dxvkHud = nil
                     program.settings.overrides?.metal4Enabled = nil
+                    program.settings.overrides?.metalHud = nil
                 }
             }
         )
@@ -695,7 +856,7 @@ struct ProgramOverrideSettingsView: View {
             set: { isOn in
                 ensureOverrides()
                 if isOn {
-                    program.settings.overrides?.virtualDesktopEnabled = bottle.settings.virtualDesktopEnabled
+                    program.settings.overrides?.virtualDesktopEnabled = bottleVirtualDesktopEnabled
                     program.settings.overrides?.resolutionPreset = bottle.settings.resolutionPreset
                     program.settings.overrides?.customResolutionWidth = bottle.settings.customResolutionWidth
                     program.settings.overrides?.customResolutionHeight = bottle.settings.customResolutionHeight
@@ -743,6 +904,13 @@ struct ProgramOverrideSettingsView: View {
         Binding(
             get: { program.settings.overrides?.metal4Enabled ?? bottle.settings.metal4Enabled },
             set: { program.settings.overrides?.metal4Enabled = $0 }
+        )
+    }
+
+    private var metalHudBinding: Binding<Bool> {
+        Binding(
+            get: { program.settings.overrides?.metalHud ?? bottle.settings.metalHud },
+            set: { program.settings.overrides?.metalHud = $0 }
         )
     }
 
@@ -868,19 +1036,26 @@ struct ProgramOverrideSettingsView: View {
 
     private func hudDescription(_ hud: DXVKHUD) -> String {
         switch hud {
-        case .full: "Full"
-        case .partial: "Partial"
-        case .fps: "FPS"
-        case .off: "Off"
+        case .full: String(localized: "config.dxvkHud.full")
+        case .partial: String(localized: "config.dxvkHud.partial")
+        case .fps: String(localized: "config.dxvkHud.fps")
+        case .off: String(localized: "config.dxvkHud.off")
         }
     }
 
     private func syncDescription(_ sync: EnhancedSync) -> String {
         switch sync {
-        case .none: "None"
-        case .esync: "ESync"
-        case .msync: "MSync"
+        case .none: String(localized: "config.enhancedSync.none")
+        case .esync: String(localized: "config.enhancedSync.esync")
+        case .msync: String(localized: "config.enhancedSync.msync")
         }
+    }
+
+    /// "On" or "Off" for a bottle setting shown in an inherited summary.
+    private func onOff(_ value: Bool) -> String {
+        value
+            ? String(localized: "config.retinaMode.on")
+            : String(localized: "config.retinaMode.off")
     }
 }
 

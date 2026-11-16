@@ -22,12 +22,20 @@ import Foundation
 ///
 /// Reads the resolved graphics backend from preflight data and compares it
 /// to the `expected` parameter. Returns `.alreadyConfigured` when the
-/// backend is explicitly set, `.pass` when it resolves correctly via
-/// `.recommended`, and `.fail` when the backend does not match.
+/// backend matches and `.fail` when it does not.
+///
+/// `params["scope"]` picks the backend compared: `program_or_bottle` (the
+/// default) is the one a launch uses, the program's override when it has
+/// one and the bottle's otherwise; `bottle` is the bottle's alone.
 public struct GraphicsBackendCheck: TroubleshootingCheck {
     public let checkId = "graphics.backend_is"
 
     public init() {}
+
+    public let signature: CheckSignature? = CheckSignature(
+        acceptedParams: ["scope"], requiredParams: ["expected"],
+        outcomes: [.alreadyConfigured, .fail]
+    )
 
     public func run(params: [String: String], context: CheckContext) async -> CheckResult {
         guard let expected = params["expected"] else {
@@ -39,7 +47,12 @@ public struct GraphicsBackendCheck: TroubleshootingCheck {
             )
         }
 
-        let resolvedBackend = context.preflight.graphicsBackend
+        let preflight = context.preflight
+        let resolvedBackend = if params["scope"] == "bottle" {
+            preflight.bottleGraphicsBackend ?? preflight.graphicsBackend
+        } else {
+            preflight.graphicsBackend
+        }
 
         let evidence = [
             "current": resolvedBackend,
@@ -61,5 +74,33 @@ public struct GraphicsBackendCheck: TroubleshootingCheck {
             summary: "Backend is \(resolvedBackend), expected \(expected)",
             confidence: .high
         )
+    }
+
+    /// The summary of a result from this check in the user's language.
+    ///
+    /// ``CheckResult/summary`` stays in English because it is written to
+    /// history and escalation exports; this rebuilds the on-screen text from
+    /// the result's outcome and evidence, naming backends by their display
+    /// names rather than their raw identifiers.
+    ///
+    /// - Parameter result: A result produced by ``run(params:context:)``.
+    /// - Returns: The localized summary, or `nil` if the result was not
+    ///   produced by this check.
+    public static func localizedSummary(for result: CheckResult) -> String? {
+        guard let expected = result.evidence["expected"].map(backendName) else { return nil }
+        switch result.outcome {
+        case .alreadyConfigured:
+            return String(localized: "troubleshooting.check.backend.matches \(expected)")
+        case .fail:
+            guard let current = result.evidence["current"].map(backendName) else { return nil }
+            return String(localized: "troubleshooting.check.backend.mismatch \(current) \(expected)")
+        case .pass, .error, .unknown:
+            return nil
+        }
+    }
+
+    /// The display name for a raw ``GraphicsBackend`` value, or the value itself.
+    private static func backendName(_ rawValue: String) -> String {
+        GraphicsBackend(rawValue: rawValue)?.displayName ?? rawValue
     }
 }

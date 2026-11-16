@@ -177,10 +177,15 @@ final class AudioTests: XCTestCase {
     // MARK: - AudioStatus
 
     func testStatusDisplayNames() {
-        XCTAssertEqual(AudioStatus.healthy.displayName, "OK")
-        XCTAssertEqual(AudioStatus.degraded(primaryIssue: "test").displayName, "Degraded")
-        XCTAssertEqual(AudioStatus.broken(primaryIssue: "test").displayName, "Broken")
-        XCTAssertEqual(AudioStatus.unknown.displayName, "Unknown")
+        // The names come from the app's string catalog, which the package tests
+        // don't load, so each case is checked against its own catalog key.
+        XCTAssertEqual(AudioStatus.healthy.displayName, String(localized: "audio.status.ok"))
+        XCTAssertEqual(
+            AudioStatus.degraded(primaryIssue: "test").displayName,
+            String(localized: "audio.status.degraded")
+        )
+        XCTAssertEqual(AudioStatus.broken(primaryIssue: "test").displayName, String(localized: "audio.status.broken"))
+        XCTAssertEqual(AudioStatus.unknown.displayName, String(localized: "audio.status.unknown"))
     }
 
     func testStatusSFSymbols() {

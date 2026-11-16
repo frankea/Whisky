@@ -158,12 +158,12 @@ img.screenshot {
 <ul>
   <li>Apple Silicon Mac (M1, M2, M3, M4)</li>
   <li>macOS Sequoia 15.0 or later</li>
-  <li>~800 MB disk space for the bundled Wine runtime (a ~313 MB download)</li>
+  <li>~1.3 GB disk space for the Wine engine (a ~460 MB download)</li>
 </ul>
 
 <h2>What's included</h2>
 <ul>
-  <li>Wine 11 with macOS-specific patches</li>
+  <li>Wine 11.19 with CrossOver's macOS patches, able to run Apple's D3DMetal</li>
   <li>DXMT (Direct3D 11 to Metal) and DXVK (Direct3D to Vulkan) translation layers, selectable per bottle</li>
   <li>Launcher compatibility profiles for Steam, Epic, EA App, Battle.net, Rockstar, and more</li>
   <li>Stability diagnostics with one-click crash report export</li>
@@ -174,14 +174,15 @@ img.screenshot {
 <h2>Graphics backends</h2>
 <p>Whisky translates Direct3D to the Mac GPU with translation layers you pick per bottle:</p>
 <ul>
-  <li><strong>DXMT</strong> (the default behind "Recommended"): Direct3D 11 to Metal, deployed per bottle so one bottle's choice never affects another. The fast path for modern DirectX 11 titles.</li>
+  <li><strong>D3DMetal</strong> (what "Recommended" uses once you import it): Apple's Direct3D 11 and 12 to Metal layer from the Game Porting Toolkit. Download the toolkit from Apple, import it in Settings, and Whisky deploys it into the engine. Required for DirectX 12 games. Needs Whisky 3.10.0 or later.</li>
+  <li><strong>DXMT</strong> (what "Recommended" uses without D3DMetal): Direct3D 11 to Metal, deployed per bottle so one bottle's choice never affects another.</li>
   <li><strong>DXVK</strong>: Direct3D to Vulkan (via MoltenVK), a broad-compatibility fallback for titles DXMT doesn't handle. Pinned at the macOS-compatible 1.10.3 <em>by design</em>: the DXVK 2.x line needs Vulkan features macOS doesn't expose, so a higher version number simply wouldn't run here.</li>
-  <li><strong>D3DMetal</strong>: Apple's layer from the Game Porting Toolkit. The current engine can't execute it, and Whisky says so in the picker instead of silently falling back to something slower. Real support (an engine that runs it, with your own imported GPTK payload) is in active development.</li>
 </ul>
 <p class="muted"><strong>Anti-cheat:</strong> games using kernel-level anti-cheat (EAC, BattlEye, and similar) generally do not run under any Wine-based wrapper on macOS, including Whisky. This is a Wine-wide limitation, not specific to this fork.</p>
 
 <h2>News</h2>
 <ul>
+  <li><strong>2026-11-14: Whisky 3.10.0 released.</strong> A new default engine, 4.8.3 (Wine 11.19), runs D3DMetal: import Apple's Game Porting Toolkit in Settings to play DirectX 12 games. Launches also return as soon as the game starts, logs keep their newest output, and Start Menu shortcuts and unpins stick.</li>
   <li><strong>2026-08-04: Whisky 3.6.0 released.</strong> The first fully localized release: the entire app is translated in all 22 supported languages, from Arabic to Vietnamese, with translations managed on <a href="https://crowdin.com/project/frankea-whisky">Crowdin</a>. Also new: a Steam games library inside bottles, a Game Porting Toolkit import flow, and <code>whisky games</code> / <code>whisky launch</code> command line tools.</li>
   <li><strong>2026-07-30: Whisky 3.5.2 released.</strong> Bottles missing from the library are recovered at startup, the graphics backend picker only offers what the engine can run, and first-run engine setup works in day-first locales.</li>
   <li><strong>2026-07-24: Whisky 3.5.1 released.</strong> Winetricks now ships inside the app, so bottle dependency installs (VC++, .NET, DirectX, fonts) work out of the box.</li>

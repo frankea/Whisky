@@ -169,11 +169,14 @@ struct SteamClientOrchestratorLaunchTests {
     func clientWaitStopsReadingWhenTheNewClientExits() async throws {
         let (bottle, games) = try Fixture.makeBottle()
         let driver = FakeSteamClientDriver(script: [[]])
-        // Long enough for the reads below even on a loaded runner.
+        // The wait is ended by stop() below, never by its budget: counted in
+        // passes rather than seconds, so a loaded runner that holds the main
+        // actor for a while can't run the budget out before the reads happen.
         var timing = Fixture.fast
-        timing.clientReadyTimeout = 3
+        timing.clientReadyTimeout = 60
         let orchestrator = SteamClientOrchestrator(bottle: bottle, driver: driver, timing: timing)
         var listsAtExit: Int?
+        var passesAtExit: Int?
         driver.onStartClient = {
             let listsAtStart = driver.listCalls
             driver.hostOverride = ["steam.exe"]
@@ -183,16 +186,23 @@ struct SteamClientOrchestratorLaunchTests {
                 guard call == listsAtStart + 2 else { return }
                 driver.hostOverride = ["services.exe"]
                 listsAtExit = call
+                passesAtExit = driver.hostPIDCalls
             }
         }
 
         orchestrator.launch(games[0])
-        await Fixture.awaitIdle(orchestrator)
-
-        #expect(orchestrator.launchError == SteamOrchestratorError.clientTimeout.errorDescription)
+        // Several more passes of the wait after the client went, each of
+        // which could have read the bottle again.
+        await Fixture.eventually("the wait should keep polling the host") {
+            passesAtExit.map { driver.hostPIDCalls >= $0 + 5 } ?? false
+        }
         let exit = try #require(listsAtExit)
         // At most the read already under way when the client went.
         #expect(driver.listCalls <= exit + 1)
+
+        orchestrator.stop()
+        await Fixture.awaitIdle(orchestrator)
+        #expect(orchestrator.launchError == SteamOrchestratorError.clientTimeout.errorDescription)
         #expect(driver.launched.isEmpty)
     }
 

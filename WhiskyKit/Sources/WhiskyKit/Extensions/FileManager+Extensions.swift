@@ -53,10 +53,8 @@ extension FileManager {
             try copyItem(at: sourceURL, to: destinationURL)
             return
         }
-        let tempURL = destinationURL.appendingPathExtension("whisky-tmp")
-        if fileExists(atPath: tempURL.path(percentEncoded: false)) {
-            try removeItem(at: tempURL)
-        }
+        removeLegacyTemp(beside: destinationURL)
+        let tempURL = uniqueTempURL(beside: destinationURL)
         do {
             try copyItem(at: sourceURL, to: tempURL)
             try moveIntoPlace(tempURL, over: destinationURL)
@@ -64,6 +62,24 @@ extension FileManager {
             try? removeItem(at: tempURL)
             throw error
         }
+    }
+
+    /// A temp path beside `url` that no other install can be using.
+    ///
+    /// Two launches in one bottle can install the same DLL at once. With one
+    /// fixed name, the second would clear or overwrite the first's temp while
+    /// it was still being written, and the first could then rename a
+    /// half-copied file into the system directory. A name of its own per
+    /// install makes each temp private to the call that made it.
+    func uniqueTempURL(beside url: URL) -> URL {
+        url.appendingPathExtension("whisky-tmp-\(UUID().uuidString)")
+    }
+
+    /// Removes the fixed-name temp (`<name>.whisky-tmp`) an interrupted
+    /// install from an earlier version could leave beside `url`. Nothing
+    /// writes that name any more, so removing it never races a live install.
+    func removeLegacyTemp(beside url: URL) {
+        try? removeItem(at: url.appendingPathExtension("whisky-tmp"))
     }
 
     /// Moves `tempURL` over `destinationURL` with a single `rename(2)`.
@@ -116,7 +132,7 @@ extension FileManager {
     /// and a slot the prefix never had is not one to invent.
     ///
     /// The swap is atomic. The replacement is copied beside the original
-    /// under a `.whisky-tmp` name and moved over it with a single `rename`
+    /// under a temp name of its own (``uniqueTempURL(beside:)``) and moved over it with a single `rename`
     /// (see ``moveIntoPlace(_:over:)``), so a crash or a failed copy part way
     /// through leaves the original in place rather than a system directory
     /// without the DLL. The temp is removed when anything fails. A symlink or

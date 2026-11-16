@@ -40,8 +40,15 @@ struct WineStrippedCopyTests {
         try wine.write(to: source)
     }
 
+    /// The fixed temp name earlier versions used, which a crash could leave behind.
     private var temp: URL {
         destination.appendingPathExtension("whisky-tmp")
+    }
+
+    /// Whether any install temp, fixed or unique, is left beside the destination.
+    private func noTempsLeft() throws -> Bool {
+        let dir = destination.deletingLastPathComponent().path(percentEncoded: false)
+        return try !FileManager.default.contentsOfDirectory(atPath: dir).contains { $0.contains(".whisky-tmp") }
     }
 
     private func exists(_ url: URL) -> Bool {
@@ -64,7 +71,7 @@ struct WineStrippedCopyTests {
         #expect(try Wine.isNativePE(destination))
         #expect(Wine.isStrippedCopy(destination, of: source))
         #expect(try Data(contentsOf: destination).suffix(9) == Data("wine dxgi".utf8))
-        #expect(!exists(temp))
+        #expect(try noTempsLeft())
     }
 
     @Test("Replaces a different file already at the destination")
@@ -74,7 +81,7 @@ struct WineStrippedCopyTests {
         try Wine.installStrippedCopy(at: destination, from: source)
 
         #expect(Wine.isStrippedCopy(destination, of: source))
-        #expect(!exists(temp))
+        #expect(try noTempsLeft())
     }
 
     @Test("A second install leaves the stripped copy untouched")
@@ -103,7 +110,7 @@ struct WineStrippedCopyTests {
             try Wine.installStrippedCopy(at: destination, from: source)
         }
         #expect(try Data(contentsOf: destination) == keep)
-        #expect(!exists(temp))
+        #expect(try noTempsLeft())
     }
 
     @Test("A missing source throws and never leaves the destination missing")
@@ -116,7 +123,7 @@ struct WineStrippedCopyTests {
             try Wine.installStrippedCopy(at: destination, from: source)
         }
         #expect(try Data(contentsOf: destination) == before)
-        #expect(!exists(temp))
+        #expect(try noTempsLeft())
     }
 
     @Test("A swap that fails after the temp is written removes the temp and keeps the destination")
@@ -131,7 +138,7 @@ struct WineStrippedCopyTests {
             try Wine.installStrippedCopy(at: destination, from: source)
         }
         #expect(try Data(contentsOf: inside) == Data("keep me".utf8))
-        #expect(!exists(temp))
+        #expect(try noTempsLeft())
     }
 
     @Test("A symlinked destination is replaced by the stripped copy and its target keeps its bytes")
@@ -147,7 +154,7 @@ struct WineStrippedCopyTests {
         #expect(type as? FileAttributeType == .typeRegular)
         #expect(Wine.isStrippedCopy(destination, of: source))
         #expect(try Data(contentsOf: target) == linked)
-        #expect(!exists(temp))
+        #expect(try noTempsLeft())
     }
 
     @Test("A read-only destination is replaced")
@@ -160,7 +167,7 @@ struct WineStrippedCopyTests {
         try Wine.installStrippedCopy(at: destination, from: source)
 
         #expect(Wine.isStrippedCopy(destination, of: source))
-        #expect(!exists(temp))
+        #expect(try noTempsLeft())
     }
 
     @Test("A temp left by an interrupted install is replaced, then cleaned up")
@@ -170,7 +177,33 @@ struct WineStrippedCopyTests {
         try Wine.installStrippedCopy(at: destination, from: source)
 
         #expect(Wine.isStrippedCopy(destination, of: source))
-        #expect(!exists(temp))
+        #expect(try noTempsLeft())
+    }
+
+    @Test("A symlinked source is copied from its target, which keeps its marker")
+    func symlinkedSourceIsNotWrittenThrough() throws {
+        let link = tempDir.appending(path: "source").appending(path: "linked-dxgi.dll")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: source)
+        let before = try Data(contentsOf: source)
+
+        try Wine.installStrippedCopy(at: destination, from: link)
+
+        #expect(try Data(contentsOf: source) == before)
+        #expect(Wine.carriesBuiltinMarker(source))
+        #expect(Wine.isStrippedCopy(destination, of: source))
+        let type = try FileManager.default.attributesOfItem(atPath: destination.path(percentEncoded: false))[.type]
+        #expect(type as? FileAttributeType == .typeRegular)
+        #expect(try noTempsLeft())
+    }
+
+    @Test("Each install gets a temp name of its own")
+    func tempNamesAreUnique() {
+        let first = FileManager.default.uniqueTempURL(beside: destination)
+        let second = FileManager.default.uniqueTempURL(beside: destination)
+
+        #expect(first != second)
+        #expect(first.deletingLastPathComponent() == destination.deletingLastPathComponent())
+        #expect(first.lastPathComponent.hasPrefix("dxgi.dll.whisky-tmp-"))
     }
 
     @Test("A failed copy leaves the destination and no temp behind")
@@ -185,7 +218,7 @@ struct WineStrippedCopyTests {
             try Wine.installStrippedCopy(at: destination, from: source)
         }
         #expect(try Data(contentsOf: destination) == keep)
-        #expect(!exists(temp))
+        #expect(try noTempsLeft())
     }
 
     // MARK: - deployCleanDXGI

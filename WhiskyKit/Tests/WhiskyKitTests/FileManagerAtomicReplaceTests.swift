@@ -37,8 +37,15 @@ struct FileManagerAtomicReplaceTests {
         try Data("dxvk d3d11".utf8).write(to: replacement)
     }
 
+    /// The fixed temp name earlier versions used, which a crash could leave behind.
     private var temp: URL {
         original.appendingPathExtension("whisky-tmp")
+    }
+
+    /// Whether any install temp, fixed or unique, is left beside the destination.
+    private func noTempsLeft() throws -> Bool {
+        let dir = original.deletingLastPathComponent().path(percentEncoded: false)
+        return try !FileManager.default.contentsOfDirectory(atPath: dir).contains { $0.contains(".whisky-tmp") }
     }
 
     private func exists(_ url: URL) -> Bool {
@@ -50,7 +57,7 @@ struct FileManagerAtomicReplaceTests {
         try FileManager.default.replaceFile(at: original, with: replacement, makeOriginalCopy: makeOriginalCopy)
 
         #expect(try Data(contentsOf: original) == Data("dxvk d3d11".utf8))
-        #expect(!exists(temp))
+        #expect(try noTempsLeft())
         let backup = original.appendingPathExtension("orig")
         #expect(exists(backup) == makeOriginalCopy)
         if makeOriginalCopy {
@@ -65,7 +72,7 @@ struct FileManagerAtomicReplaceTests {
         try FileManager.default.replaceFile(at: absent, with: replacement)
 
         #expect(!exists(absent))
-        #expect(!exists(absent.appendingPathExtension("whisky-tmp")))
+        #expect(try noTempsLeft())
     }
 
     @Test("A replacement that cannot be copied leaves the original in place", arguments: [true, false])
@@ -78,7 +85,7 @@ struct FileManagerAtomicReplaceTests {
             )
         }
         #expect(try Data(contentsOf: original) == Data("wine d3d11".utf8))
-        #expect(!exists(temp))
+        #expect(try noTempsLeft())
     }
 
     @Test("A temp left by an interrupted replace is cleared")
@@ -88,7 +95,7 @@ struct FileManagerAtomicReplaceTests {
         try FileManager.default.replaceFile(at: original, with: replacement, makeOriginalCopy: false)
 
         #expect(try Data(contentsOf: original) == Data("dxvk d3d11".utf8))
-        #expect(!exists(temp))
+        #expect(try noTempsLeft())
     }
 
     @Test("A symlinked destination is replaced by a file and its target keeps its bytes", arguments: [true, false])
@@ -104,7 +111,7 @@ struct FileManagerAtomicReplaceTests {
         #expect(type as? FileAttributeType == .typeRegular)
         #expect(try Data(contentsOf: original) == Data("dxvk d3d11".utf8))
         #expect(try Data(contentsOf: target) == Data("wine d3d11".utf8))
-        #expect(!exists(temp))
+        #expect(try noTempsLeft())
     }
 
     @Test("A read-only destination is replaced", arguments: [true, false])
@@ -116,7 +123,7 @@ struct FileManagerAtomicReplaceTests {
         try FileManager.default.replaceFile(at: original, with: replacement, makeOriginalCopy: makeOriginalCopy)
 
         #expect(try Data(contentsOf: original) == Data("dxvk d3d11".utf8))
-        #expect(!exists(temp))
+        #expect(try noTempsLeft())
     }
 
     @Test("A swap that fails after the temp is written removes the temp and keeps the destination")
@@ -132,6 +139,6 @@ struct FileManagerAtomicReplaceTests {
             try FileManager.default.replaceFile(at: original, with: replacement, makeOriginalCopy: false)
         }
         #expect(try Data(contentsOf: inside) == Data("keep me".utf8))
-        #expect(!exists(temp))
+        #expect(try noTempsLeft())
     }
 }

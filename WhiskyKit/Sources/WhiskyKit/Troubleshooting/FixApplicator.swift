@@ -639,9 +639,14 @@ public enum FixApplicator { // swiftlint:disable:this type_body_length
 
     /// The launcher the launcher fixes are for: the program's own when it is
     /// one, otherwise the launcher the bottle was set up for.
+    ///
+    /// Rockstar's launcher in a Steam bottle gets Steam's: the bottle keeps
+    /// Steam's profile and Rockstar's is never applied there, so the preview
+    /// names, and Apply reapplies, the profile that actually lands.
     @MainActor
     private static func launcherForFixes(bottle: Bottle, program: Program?) -> LauncherType? {
-        program.flatMap { LauncherType.detect(from: $0.url) } ?? bottle.settings.detectedLauncher
+        let launcher = program.flatMap { LauncherType.detect(from: $0.url) } ?? bottle.settings.detectedLauncher
+        return launcher.map { LauncherFixes.profileLauncher(for: $0, in: bottle) }
     }
 
     private static func stateName(_ isEnabled: Bool) -> String {

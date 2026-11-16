@@ -143,7 +143,7 @@ public enum LauncherFixes {
         // applied there, forced or not (#382), and the bottle's settings are
         // left exactly as they were. Rockstar's own processes get their
         // entries from every launch in that bottle either way.
-        if launcher == .rockstar, hasSteam(bottle) {
+        if profileLauncher(for: launcher, in: bottle) != launcher {
             Logger.wineKit.info("Kept the Steam profile over Rockstar's for bottle '\(bottle.settings.name)'")
             return
         }
@@ -229,6 +229,15 @@ public enum LauncherFixes {
         Applied launcher fixes for \(launcher.rawValue) to bottle '\(bottle.settings.name)'. \
         Settings persisted successfully.
         """)
+    }
+
+    /// The launcher whose profile `bottle` keeps when `launcher`'s is asked
+    /// for: Steam's in a Steam bottle asked for Rockstar's, which
+    /// ``apply(to:launcher:force:recommendedBackend:)`` never puts there
+    /// (#382), and `launcher`'s own otherwise.
+    @MainActor
+    static func profileLauncher(for launcher: LauncherType, in bottle: Bottle) -> LauncherType {
+        launcher == .rockstar && hasSteam(bottle) ? .steam : launcher
     }
 
     /// Whether the bottle is a Steam bottle: tuned for Steam, or with Steam

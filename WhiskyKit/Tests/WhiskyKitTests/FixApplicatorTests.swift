@@ -226,6 +226,33 @@ final class FixApplicatorTests: XCTestCase {
         XCTAssertEqual(attempt.result, .failed)
     }
 
+    func testLauncherFixesForRockstarInASteamBottleReapplySteams() throws {
+        // Rockstar's profile never lands in a bottle with Steam (#382), so the
+        // fix names and reapplies the profile that does instead of reporting
+        // Rockstar's as applied.
+        let steam = tempDir.appending(path: "drive_c/Program Files (x86)/Steam")
+        try FileManager.default.createDirectory(at: steam, withIntermediateDirectories: true)
+        try Data("MZ".utf8).write(to: steam.appending(path: "steam.exe"))
+        let program = Program(
+            url: tempDir.appending(path: "drive_c/Program Files/Rockstar Games/Launcher/Launcher.exe"),
+            bottle: bottle
+        )
+
+        let preview = try XCTUnwrap(FixApplicator.preview(
+            fixId: "apply-launcher-fixes", params: [:], bottle: bottle, program: program
+        ))
+        XCTAssertEqual(preview.currentValue, LauncherType.steam.displayName)
+
+        let attempt = FixApplicator.apply(
+            fixId: "apply-launcher-fixes", params: [:], bottle: bottle, program: program
+        )
+
+        XCTAssertEqual(attempt.result, .applied)
+        XCTAssertEqual(attempt.afterValue, LauncherType.steam.rawValue)
+        XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
+        XCTAssertTrue(bottle.settings.launcherCompatibilityMode)
+    }
+
     // MARK: - Registry fix
 
     func testSetRegistryValueWithoutParamsFails() {

@@ -70,7 +70,7 @@ Whisky sends no data by default. An **opt-in** (default off) first-run checkbox
 events: `runtime_install_started`, `runtime_install_succeeded`,
 `runtime_install_failed` (with a coarse `reason` property:
 `download_failed` / `verify_failed` / `tarball_missing` / `extract_failed` /
-`runtime_incomplete`), `first_bottle_created`, and
+`runtime_incomplete` / `network_blocked`), `first_bottle_created`, and
 `first_program_launch_attempted`. `runtime_install_started` fires once per setup
 pass; `runtime_install_succeeded` / `runtime_install_failed` are per install
 attempt (so retries are counted); the two `first_…` events fire at most once per

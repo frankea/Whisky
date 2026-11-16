@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import WhiskyKit
 
 /// Maps an HTTP status code from a failed runtime download into a localized,
 /// user-facing message.
@@ -84,5 +85,52 @@ extension WhiskyWineDownloadView {
     func setDownloadFailure(_ message: String, reason: Telemetry.InstallFailureReason = .downloadFailed) {
         downloadFailure = DownloadFailure(message: message, reason: reason)
         Telemetry.capture(.runtimeInstallFailed(reason: reason))
+    }
+
+    /// Decodes the version plist. When the body isn't one, records what came
+    /// back instead. A web page there means a network filter, firewall or
+    /// sign-in page answered for the server, so this shows the blocked-network
+    /// message and returns `nil`; any other unreadable body rethrows.
+    @MainActor
+    func decodeVersionPlist(_ data: Data, response: URLResponse, requestedURL: URL) throws -> WhiskyWineVersion? {
+        do {
+            return try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)
+        } catch {
+            let summary = DownloadResponseSummary(data: data, response: response, requestedURL: requestedURL)
+            diagnostics.versionResponse = summary
+            diagnostics.record("Version plist unreadable: \(summary.diagnosticDescription)")
+            guard summary.isWebPage else { throw error }
+            setDownloadFailure(String(localized: "setup.whiskywine.error.blockedByNetwork"), reason: .networkBlocked)
+            return nil
+        }
+    }
+
+    /// Discards a runtime archive that failed verification and explains why.
+    /// A web page in place of the archive gets the blocked-network message,
+    /// since retrying on the same network fetches the same page.
+    @MainActor
+    func failVerification(fileURL: URL, detail: String) {
+        diagnostics.record("Integrity check FAILED: \(detail)")
+        // Inspect before discarding: the file is the only evidence of what came back.
+        let summary = DownloadResponseSummary(fileAt: fileURL)
+        // Discard the archive plus any resume artifacts so the next attempt
+        // restarts from a clean slate, never from bad bytes.
+        ResumableDownloader.discardArtifacts(at: fileURL)
+        if let summary, summary.isWebPage {
+            diagnostics.downloadResponse = summary
+            diagnostics.record("Downloaded file is a web page: \(summary.diagnosticDescription)")
+            setDownloadFailure(String(localized: "setup.whiskywine.error.blockedByNetwork"), reason: .networkBlocked)
+            return
+        }
+        setDownloadFailure(
+            String(
+                localized: "setup.whiskywine.error.checksumMismatch",
+                defaultValue: """
+                The downloaded Wine runtime failed its integrity check and was not installed. \
+                This usually means the download was corrupted. Please try again.
+                """
+            ),
+            reason: .verifyFailed
+        )
     }
 }

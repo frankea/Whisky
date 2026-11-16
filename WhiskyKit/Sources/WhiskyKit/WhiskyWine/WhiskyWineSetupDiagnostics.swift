@@ -54,6 +54,10 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
     public var downloadURL: String?
     public var versionHTTPStatus: Int?
     public var downloadHTTPStatus: Int?
+    /// What came back instead of the version plist, when it didn't parse.
+    public var versionResponse: DownloadResponseSummary?
+    /// What came back instead of the runtime archive, when it failed verification.
+    public var downloadResponse: DownloadResponseSummary?
 
     public var bytesReceived: Int64 = 0
     public var bytesExpected: Int64 = 0
@@ -86,6 +90,8 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         downloadURL = nil
         versionHTTPStatus = nil
         downloadHTTPStatus = nil
+        versionResponse = nil
+        downloadResponse = nil
         bytesReceived = 0
         bytesExpected = 0
         lastProgressAt = nil
@@ -170,8 +176,10 @@ public struct WhiskyWineSetupDiagnostics: Codable, Sendable {
         lines.append("[NETWORK]")
         appendIfPresent("Version plist", value: sanitizedURLString(versionPlistURL), into: &lines)
         appendIfPresent("Version plist HTTP", value: versionHTTPStatus, into: &lines)
+        appendIfPresent("Version plist response", value: versionResponse?.diagnosticDescription, into: &lines)
         appendIfPresent("Download URL", value: sanitizedURLString(downloadURL), into: &lines)
         appendIfPresent("Download HTTP", value: downloadHTTPStatus, into: &lines)
+        appendIfPresent("Download response", value: downloadResponse?.diagnosticDescription, into: &lines)
         lines.append("")
     }
 

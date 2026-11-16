@@ -196,10 +196,14 @@ func writeRuntimeVersion(at libraryFolder: URL, _ major: Int, _ minor: Int, _ pa
     )
 }
 
-/// Gzip-tars a minimal `Libraries` tree the way the runtime archive ships.
+/// Gzip-tars a minimal `Libraries` tree the way the runtime archive ships,
+/// carrying the version plist and `wine64` the installer requires.
 func makeLibrariesTarball(in directory: URL) throws -> URL {
     let source = directory.appending(path: "Libraries")
-    try FileManager.default.createDirectory(at: source, withIntermediateDirectories: true)
+    let binDir = source.appending(path: "Wine").appending(path: "bin")
+    try FileManager.default.createDirectory(at: binDir, withIntermediateDirectories: true)
+    try Data("#!/bin/sh\n".utf8).write(to: binDir.appending(path: "wine64"))
+    try writeRuntimeVersion(at: source, 3, 0, 0)
     try Data("marker".utf8).write(to: source.appending(path: "marker.txt"))
 
     let tarball = directory.appending(path: "archive.tar.gz")

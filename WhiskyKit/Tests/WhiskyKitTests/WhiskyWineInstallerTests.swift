@@ -307,25 +307,16 @@ final class WhiskyWineInstallerTests: XCTestCase {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        // Build a tiny source tree and gzip-tar it the way the runtime archive ships.
-        let sourceDir = tempDir.appendingPathComponent("Libraries")
-        try FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
-        try Data("marker".utf8).write(to: sourceDir.appendingPathComponent("marker.txt"))
-
-        let tarball = tempDir.appendingPathComponent("archive").appendingPathExtension("tar.gz")
-        let tar = Process()
-        tar.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
-        tar.currentDirectoryURL = tempDir
-        tar.arguments = ["-czf", tarball.path, "Libraries"]
-        try tar.run()
-        tar.waitUntilExit()
-        try XCTSkipUnless(tar.terminationStatus == 0, "Could not build the tar fixture")
+        let tarball = try makeRuntimeTarball(in: tempDir)
 
         let destination = tempDir.appendingPathComponent("dest")
         try WhiskyWineInstaller.install(tarball: tarball, into: destination)
 
         let extracted = destination.appendingPathComponent("Libraries/marker.txt")
         XCTAssertTrue(FileManager.default.fileExists(atPath: extracted.path))
+        XCTAssertTrue(WhiskyWineInstaller.isRuntimePresent(
+            inLibraryFolder: destination.appendingPathComponent("Libraries")
+        ))
     }
 
     func testInstallReplacesExistingDestinationContents() throws {
@@ -333,18 +324,7 @@ final class WhiskyWineInstallerTests: XCTestCase {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let sourceDir = tempDir.appendingPathComponent("Libraries")
-        try FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
-        try Data("marker".utf8).write(to: sourceDir.appendingPathComponent("marker.txt"))
-
-        let tarball = tempDir.appendingPathComponent("archive").appendingPathExtension("tar.gz")
-        let tar = Process()
-        tar.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
-        tar.currentDirectoryURL = tempDir
-        tar.arguments = ["-czf", tarball.path, "Libraries"]
-        try tar.run()
-        tar.waitUntilExit()
-        try XCTSkipUnless(tar.terminationStatus == 0, "Could not build the tar fixture")
+        let tarball = try makeRuntimeTarball(in: tempDir)
 
         // Pre-existing install with a stale file that the rebuild must remove,
         // rather than merging the new contents on top of it.
@@ -374,18 +354,7 @@ final class WhiskyWineInstallerTests: XCTestCase {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let sourceDir = tempDir.appendingPathComponent("Libraries")
-        try FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
-        try Data("marker".utf8).write(to: sourceDir.appendingPathComponent("marker.txt"))
-
-        let tarball = tempDir.appendingPathComponent("archive").appendingPathExtension("tar.gz")
-        let tar = Process()
-        tar.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
-        tar.currentDirectoryURL = tempDir
-        tar.arguments = ["-czf", tarball.path, "Libraries"]
-        try tar.run()
-        tar.waitUntilExit()
-        try XCTSkipUnless(tar.terminationStatus == 0, "Could not build the tar fixture")
+        let tarball = try makeRuntimeTarball(in: tempDir)
 
         // A destination that already has a stale runtime AND an unrelated
         // sibling directory with a file in it.
@@ -452,7 +421,9 @@ final class WhiskyWineInstallerTests: XCTestCase {
         let destination = tempDir.appendingPathComponent("dest")
         let installed = try makeInstalledRuntime(in: destination)
 
-        XCTAssertThrowsError(try WhiskyWineInstaller.install(tarball: tarball, into: destination))
+        XCTAssertThrowsError(try WhiskyWineInstaller.install(tarball: tarball, into: destination)) { error in
+            XCTAssertEqual(error as? WhiskyWineInstallError, .runtimeIncomplete)
+        }
 
         XCTAssertTrue(
             FileManager.default.fileExists(atPath: installed.path),
@@ -462,15 +433,40 @@ final class WhiskyWineInstallerTests: XCTestCase {
         XCTAssertEqual(try stagingLeftovers(in: destination), [])
     }
 
+    func testInstallKeepsExistingRuntimeWhenStagedRuntimeIsIncomplete() throws {
+        // An archive with a Libraries/ folder that lacks the version plist or
+        // wine64 is not a runtime, and must not replace the working one.
+        for (plist, wine64) in [(true, false), (false, true), (false, false)] {
+            let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+            defer { try? FileManager.default.removeItem(at: tempDir) }
+
+            let sourceDir = tempDir.appendingPathComponent("Libraries")
+            try makeRuntime(in: sourceDir, plist: plist, wine64: wine64)
+            try Data("marker".utf8).write(to: sourceDir.appendingPathComponent("marker.txt"))
+            let tarball = try makeTarball(of: "Libraries", in: tempDir)
+
+            let destination = tempDir.appendingPathComponent("dest")
+            let installed = try makeInstalledRuntime(in: destination)
+
+            XCTAssertThrowsError(try WhiskyWineInstaller.install(tarball: tarball, into: destination)) { error in
+                XCTAssertEqual(error as? WhiskyWineInstallError, .runtimeIncomplete, "plist \(plist), wine64 \(wine64)")
+            }
+
+            XCTAssertTrue(FileManager.default.fileExists(atPath: installed.path), "plist \(plist), wine64 \(wine64)")
+            XCTAssertFalse(FileManager.default.fileExists(
+                atPath: destination.appendingPathComponent("Libraries/marker.txt").path
+            ))
+            XCTAssertEqual(try stagingLeftovers(in: destination), [])
+        }
+    }
+
     func testInstallLeavesNoStagingFoldersAfterSuccess() throws {
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let sourceDir = tempDir.appendingPathComponent("Libraries")
-        try FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
-        try Data("marker".utf8).write(to: sourceDir.appendingPathComponent("marker.txt"))
-        let tarball = try makeTarball(of: "Libraries", in: tempDir)
+        let tarball = try makeRuntimeTarball(in: tempDir)
 
         let destination = tempDir.appendingPathComponent("dest")
         _ = try makeInstalledRuntime(in: destination)
@@ -481,6 +477,142 @@ final class WhiskyWineInstallerTests: XCTestCase {
             atPath: destination.appendingPathComponent("Libraries/marker.txt").path
         ))
         XCTAssertEqual(try stagingLeftovers(in: destination), [])
+    }
+
+    func testInstallRemovesStaleStagingFoldersOnly() throws {
+        // A force-quit mid-install leaves its staging folder (and Tar's own,
+        // inside it) behind. The next install clears folders it named, and
+        // nothing else that merely looks similar.
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let tarball = try makeRuntimeTarball(in: tempDir)
+        let destination = tempDir.appendingPathComponent("dest")
+        _ = try makeInstalledRuntime(in: destination)
+
+        let stale = destination.appendingPathComponent(".runtime-staging-\(UUID().uuidString)")
+        let halfExtracted = stale.appendingPathComponent("extracted/.untar-staging-\(UUID().uuidString)/Libraries")
+        try FileManager.default.createDirectory(at: halfExtracted, withIntermediateDirectories: true)
+        try Data("partial".utf8).write(to: halfExtracted.appendingPathComponent("partial.bin"))
+        let lookalikes = [".runtime-staging-notes", ".runtime-staging-\(UUID().uuidString)-copy"]
+        for name in lookalikes {
+            try FileManager.default.createDirectory(
+                at: destination.appendingPathComponent(name),
+                withIntermediateDirectories: true
+            )
+        }
+
+        try WhiskyWineInstaller.install(tarball: tarball, into: destination)
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: stale.path), "A stale staging folder is removed")
+        XCTAssertEqual(try stagingLeftovers(in: destination).sorted(), lookalikes.sorted())
+    }
+
+    func testInstallRestoresPreviousRuntimeWhenSwapFails() throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let tarball = try makeRuntimeTarball(in: tempDir)
+        let destination = tempDir.appendingPathComponent("dest")
+        let installed = try makeInstalledRuntime(in: destination)
+        let runtime = destination.appendingPathComponent("Libraries")
+
+        // Only the first move into place (the new runtime) fails.
+        var movesIntoPlace = 0
+        let moveItem: (URL, URL) throws -> Void = { source, target in
+            if target.standardizedFileURL.path == runtime.standardizedFileURL.path {
+                movesIntoPlace += 1
+                if movesIntoPlace == 1 {
+                    throw CocoaError(.fileWriteUnknown)
+                }
+            }
+            try FileManager.default.moveItem(at: source, to: target)
+        }
+
+        XCTAssertThrowsError(
+            try WhiskyWineInstaller.install(tarball: tarball, into: destination, moveItem: moveItem)
+        ) { error in
+            XCTAssertEqual((error as? CocoaError)?.code, .fileWriteUnknown)
+        }
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: installed.path), "The previous runtime is put back")
+        XCTAssertEqual(try stagingLeftovers(in: destination), [])
+    }
+
+    func testInstallKeepsStagingWhenRestoreFails() throws {
+        // If neither the new runtime nor the old one can be moved into place,
+        // the staging folder holds the only copy of the previous runtime and
+        // must survive the install.
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let tarball = try makeRuntimeTarball(in: tempDir)
+        let destination = tempDir.appendingPathComponent("dest")
+        _ = try makeInstalledRuntime(in: destination)
+        let runtime = destination.appendingPathComponent("Libraries")
+
+        XCTAssertThrowsError(try WhiskyWineInstaller.install(
+            tarball: tarball,
+            into: destination,
+            moveItem: failingMoves(into: runtime)
+        )) { error in
+            XCTAssertEqual(error as? WhiskyWineInstallError, .restoreFailed)
+        }
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: runtime.path))
+        let kept = try stagingLeftovers(in: destination)
+        XCTAssertEqual(kept.count, 1)
+        let retired = destination.appendingPathComponent(kept.first ?? "")
+            .appendingPathComponent("Libraries.previous/installed.txt")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: retired.path), "Staging keeps the previous runtime")
+
+        // The next install puts the kept runtime back before it extracts, so
+        // even an install that then fails leaves the user with a runtime.
+        let badTarball = tempDir.appendingPathComponent("bad").appendingPathExtension("tar.gz")
+        try Data("not a tarball".utf8).write(to: badTarball)
+        XCTAssertThrowsError(try WhiskyWineInstaller.install(tarball: badTarball, into: destination))
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: runtime.appendingPathComponent("installed.txt").path))
+        XCTAssertEqual(try stagingLeftovers(in: destination), [])
+    }
+
+    func testStaleCleanupKeepsFolderWhenPreviousRuntimeCannotBeRestored() throws {
+        let destination = try makeTempDir()
+        let runtime = destination.appendingPathComponent("Libraries")
+        let stale = destination.appendingPathComponent(".runtime-staging-\(UUID().uuidString)")
+        let retired = stale.appendingPathComponent("Libraries.previous")
+        try FileManager.default.createDirectory(at: retired, withIntermediateDirectories: true)
+
+        WhiskyWineInstaller.cleanUpStaleStaging(in: destination, moveItem: failingMoves(into: runtime))
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: retired.path), "The only copy is never deleted")
+
+        WhiskyWineInstaller.cleanUpStaleStaging(in: destination)
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: runtime.path), "A later cleanup restores it")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: stale.path))
+    }
+
+    /// A mover that refuses every move into `target`, and performs the rest.
+    private func failingMoves(into target: URL) -> (URL, URL) throws -> Void {
+        { source, destination in
+            if destination.standardizedFileURL.path == target.standardizedFileURL.path {
+                throw CocoaError(.fileWriteNoPermission)
+            }
+            try FileManager.default.moveItem(at: source, to: destination)
+        }
+    }
+
+    /// Gzip-tars a minimal usable runtime (version plist, `wine64`, and a
+    /// `marker.txt`) as `Libraries/`, the way the runtime archive ships.
+    private func makeRuntimeTarball(in directory: URL) throws -> URL {
+        let sourceDir = directory.appendingPathComponent("Libraries")
+        try makeRuntime(in: sourceDir, plist: true, wine64: true)
+        try Data("marker".utf8).write(to: sourceDir.appendingPathComponent("marker.txt"))
+        return try makeTarball(of: "Libraries", in: directory)
     }
 
     /// Gzip-tars `folder` (a child of `directory`) the way the runtime archive ships.

@@ -80015,6 +80015,40 @@
         }
       }
     },
+    "setup.whiskywine.error.restoreFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The new Wine runtime could not be moved into place, and the previous one could not be put back. Please try again; Whisky restores the previous runtime before the next install attempt."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The new Wine runtime could not be moved into place, and the previous one could not be put back. Please try again; Whisky restores the previous runtime before the next install attempt."
+          }
+        }
+      }
+    },
+    "setup.whiskywine.error.runtimeIncomplete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The downloaded Wine runtime is incomplete and was not installed. Please try again."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The downloaded Wine runtime is incomplete and was not installed. Please try again."
+          }
+        }
+      }
+    },
     "setup.whiskywine.error.serverError" : {
       "localizations" : {
         "ar" : {

@@ -1174,6 +1174,10 @@ public class Wine {
     /// the removal path instead of deploying a dxgi the current runtime never
     /// shipped.
     ///
+    /// Which file counts as Wine's clean dxgi is ``WineD3DSource``'s call, not
+    /// an assumption that `originals/dxgi.dll` is current: backups stamped for
+    /// another engine are refused, and the prefix keeps what it has.
+    ///
     /// The deployed branch still sweeps `syswow64`: GPTK forwards only the
     /// 64-bit builtin, so the 32-bit one is wine's own and DXMT residue there
     /// is just as wrong as without the payload. The sweep is scoped to
@@ -1181,17 +1185,19 @@ public class Wine {
     /// and a both-arch sweep would delete it on every launch.
     static func reconcileDXGIForDXVK(
         prefixRoot: URL,
-        gptkOriginalsDXGI: URL = GPTKImporter.storeFolder
-            .appending(path: "originals").appending(path: "dxgi.dll"),
         gptkPayloadIsDeployed: Bool = GPTKImporter.isDeployed(),
-        libraryFolder: URL = WhiskyWineInstaller.libraryFolder
+        libraryFolder: URL = WhiskyWineInstaller.libraryFolder,
+        store: URL = GPTKImporter.storeFolder
     ) {
         guard gptkPayloadIsDeployed else {
             removeStaleNativeDXGI(prefixRoot: prefixRoot, libraryFolder: libraryFolder)
             return
         }
         removeStaleNativeDXGI(prefixRoot: prefixRoot, libraryFolder: libraryFolder, directories: ["syswow64"])
-        deployCleanDXGI(prefixRoot: prefixRoot, from: gptkOriginalsDXGI)
+        deployCleanDXGI(
+            prefixRoot: prefixRoot,
+            source: WineD3DSource.resolve("dxgi.dll", libraryFolder: libraryFolder, store: store)
+        )
     }
 
     /// Removes a native `dxgi.dll` the prefix must not keep under DXVK.
@@ -1212,7 +1218,7 @@ public class Wine {
     /// per-launch prefix-mutation path.
     ///
     /// Whether removal is the right answer at all is decided by
-    /// ``reconcileDXGIForDXVK(prefixRoot:gptkOriginalsDXGI:gptkPayloadIsDeployed:libraryFolder:)``,
+    /// ``reconcileDXGIForDXVK(prefixRoot:gptkPayloadIsDeployed:libraryFolder:store:)``,
     /// which owns the payload predicate and picks the `directories` to sweep.
     static func removeStaleNativeDXGI(
         prefixRoot: URL,
@@ -1261,8 +1267,28 @@ public class Wine {
         }
     }
 
+    /// winebuild's signature in the 16 bytes at offset 0x40 of every Wine
+    /// builtin PE. The loader treats a file carrying it as a placeholder for
+    /// the builtin in `lib/wine`, never as a DLL in its own right.
+    static let builtinMarker = Data("Wine builtin DLL".utf8)
+
+    /// Whether the PE at `url` carries winebuild's builtin marker.
+    ///
+    /// Stricter than the inverse of ``isNativePE(_:)``, which also answers
+    /// `false` for a file too short to hold the marker: here only a file that
+    /// actually holds the marker counts, so a truncated file is never taken
+    /// for Wine's build of a DLL.
+    static func carriesBuiltinMarker(_ url: URL) -> Bool {
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return false }
+        defer { try? handle.close() }
+        guard (try? handle.seek(toOffset: 0x40)) != nil,
+              let marker = try? handle.read(upToCount: 16)
+        else { return false }
+        return marker == builtinMarker
+    }
+
     /// Strips the "Wine builtin DLL" marker at offset 0x40 from a PE file.
-    private static func stripBuiltinMarker(at fileURL: URL) throws {
+    static func stripBuiltinMarker(at fileURL: URL) throws {
         guard FileManager.default.fileExists(atPath: fileURL.path(percentEncoded: false)) else { return }
         let handle = try FileHandle(forUpdating: fileURL)
         defer { try? handle.close() }
@@ -1274,28 +1300,38 @@ public class Wine {
         try handle.write(contentsOf: Data(dosCode))
     }
 
-    /// Deploys Wine's backed-up clean `dxgi.dll` into the prefix, with the
-    /// builtin marker stripped so the loader accepts it as a true native PE.
+    /// Deploys Wine's clean `dxgi.dll` into the prefix, with the builtin
+    /// marker stripped so the loader accepts it as a true native PE.
     ///
     /// Only `system32` is written: GPTK deploys forwarders into
     /// `wine/x86_64-windows` only, so the 32-bit builtin is still Wine's own
-    /// and the stored 64-bit original has no business in `syswow64`.
+    /// and a 64-bit original has no business in `syswow64`.
+    ///
+    /// `source` is whatever ``WineD3DSource`` resolved for the installed
+    /// engine. When it found nothing safe (backups from an older engine, a
+    /// missing or unmarked file), the prefix keeps the dxgi it has: an older
+    /// engine's dxgi beside this engine's DLLs is worse than no change.
     ///
     /// This runs on every DXVK launch, so a prefix that already holds the
-    /// stripped original is left untouched rather than copied and patched
-    /// again.
-    static func deployCleanDXGI(prefixRoot: URL, from gptkOriginalsDXGI: URL) {
-        let fileManager = FileManager.default
-        guard fileManager.fileExists(atPath: gptkOriginalsDXGI.path(percentEncoded: false)) else { return }
-
+    /// stripped copy is left untouched rather than copied and patched again.
+    /// For the same reason an unavailable source logs one info line per
+    /// launch, not once per session: the reason can change between launches
+    /// (an engine update, a reimport), and the line is what explains why the
+    /// prefix kept its dxgi.
+    static func deployCleanDXGI(prefixRoot: URL, source: WineD3DSource) {
         let sys32DXGI = prefixRoot.appending(path: "drive_c").appending(path: "windows")
             .appending(path: "system32").appending(path: "dxgi.dll")
-        if isStrippedCopy(sys32DXGI, of: gptkOriginalsDXGI) {
+        let sourceURL: URL
+        switch source {
+        case let .libWine(url), let .originals(url):
+            sourceURL = url
+        case let .unavailable(reason):
+            let why = reason.description
+            Logger.wineKit.info("Left the prefix's dxgi.dll as it is, no clean dxgi: \(why, privacy: .public)")
             return
         }
         do {
-            try fileManager.installFile(at: sys32DXGI, from: gptkOriginalsDXGI)
-            try stripBuiltinMarker(at: sys32DXGI)
+            try installStrippedCopy(at: sys32DXGI, from: sourceURL)
         } catch {
             Logger.wineKit.warning(
                 "Could not deploy clean dxgi.dll into prefix: \(error.localizedDescription, privacy: .public)"
@@ -1303,10 +1339,10 @@ public class Wine {
         }
     }
 
-    /// Whether `deployed` is already what ``deployCleanDXGI(prefixRoot:from:)``
+    /// Whether `deployed` is already what ``installStrippedCopy(at:from:)``
     /// would write: a native PE that matches `original` byte for byte outside
     /// the 16-byte marker window at 0x40, the only bytes the strip rewrites.
-    private static func isStrippedCopy(_ deployed: URL, of original: URL) -> Bool {
+    static func isStrippedCopy(_ deployed: URL, of original: URL) -> Bool {
         guard FileManager.default.fileExists(atPath: deployed.path(percentEncoded: false)),
               (try? isNativePE(deployed)) == true,
               let existing = try? Data(contentsOf: deployed),
@@ -1382,7 +1418,7 @@ public class Wine {
         guard let marker = try handle.read(upToCount: 16), marker.count == 16 else {
             return false
         }
-        return marker != Data("Wine builtin DLL".utf8)
+        return marker != builtinMarker
     }
 
     /// Places the per-bottle files a backend needs in the prefix before launch.

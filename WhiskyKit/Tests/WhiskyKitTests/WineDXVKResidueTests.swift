@@ -124,10 +124,11 @@ final class WineDXVKResidueTests: XCTestCase {
     func testDeployedPayloadInstallsStrippedOriginal() throws {
         try writeOriginals(builtinFake("stored-original"))
 
-        Wine.reconcileDXGIForDXVK(
+        try Wine.reconcileDXGIForDXVK(
             prefixRoot: prefixRoot,
-            gptkOriginalsDXGI: originalsDXGI,
-            gptkPayloadIsDeployed: true
+            gptkPayloadIsDeployed: true,
+            libraryFolder: makeGPTKRuntime(),
+            store: store
         )
 
         XCTAssertTrue(exists(dxgi("system32")))
@@ -140,10 +141,11 @@ final class WineDXVKResidueTests: XCTestCase {
         try writeOriginals(builtinFake("stored-original"))
         try nativeFake("dxmt-64").write(to: dxgi("system32"))
 
-        Wine.reconcileDXGIForDXVK(
+        try Wine.reconcileDXGIForDXVK(
             prefixRoot: prefixRoot,
-            gptkOriginalsDXGI: originalsDXGI,
-            gptkPayloadIsDeployed: true
+            gptkPayloadIsDeployed: true,
+            libraryFolder: makeGPTKRuntime(),
+            store: store
         )
 
         XCTAssertTrue(try Wine.isNativePE(dxgi("system32")))
@@ -156,10 +158,11 @@ final class WineDXVKResidueTests: XCTestCase {
     func testDeployedPayloadLeavesSysWOW64Alone() throws {
         try writeOriginals(builtinFake("stored-original"))
 
-        Wine.reconcileDXGIForDXVK(
+        try Wine.reconcileDXGIForDXVK(
             prefixRoot: prefixRoot,
-            gptkOriginalsDXGI: originalsDXGI,
-            gptkPayloadIsDeployed: true
+            gptkPayloadIsDeployed: true,
+            libraryFolder: makeGPTKRuntime(),
+            store: store
         )
 
         XCTAssertFalse(exists(dxgi("syswow64")))
@@ -178,7 +181,6 @@ final class WineDXVKResidueTests: XCTestCase {
 
         try Wine.reconcileDXGIForDXVK(
             prefixRoot: prefixRoot,
-            gptkOriginalsDXGI: originalsDXGI,
             gptkPayloadIsDeployed: false,
             libraryFolder: makeRuntime()
         )
@@ -197,7 +199,6 @@ final class WineDXVKResidueTests: XCTestCase {
 
         Wine.reconcileDXGIForDXVK(
             prefixRoot: prefixRoot,
-            gptkOriginalsDXGI: originalsDXGI,
             gptkPayloadIsDeployed: false,
             libraryFolder: noRuntime
         )
@@ -211,10 +212,11 @@ final class WineDXVKResidueTests: XCTestCase {
     func testDeployedPayloadWithoutStoredOriginalIsANoOp() throws {
         try builtinFake("wine-fake").write(to: dxgi("system32"))
 
-        Wine.reconcileDXGIForDXVK(
+        try Wine.reconcileDXGIForDXVK(
             prefixRoot: prefixRoot,
-            gptkOriginalsDXGI: originalsDXGI,
-            gptkPayloadIsDeployed: true
+            gptkPayloadIsDeployed: true,
+            libraryFolder: makeGPTKRuntime(),
+            store: store
         )
 
         XCTAssertEqual(try Data(contentsOf: dxgi("system32")), builtinFake("wine-fake"))
@@ -230,9 +232,9 @@ final class WineDXVKResidueTests: XCTestCase {
 
         try Wine.reconcileDXGIForDXVK(
             prefixRoot: prefixRoot,
-            gptkOriginalsDXGI: originalsDXGI,
             gptkPayloadIsDeployed: true,
-            libraryFolder: makeRuntime()
+            libraryFolder: makeGPTKRuntime(),
+            store: store
         )
 
         XCTAssertEqual(try Data(contentsOf: dxgi("syswow64")), builtinFake("builtin-i386-windows"))
@@ -259,12 +261,12 @@ final class WineDXVKResidueTests: XCTestCase {
     /// stripped original must not be copied and patched again.
     func testDeployedPayloadDoesNotRewriteMatchingDXGI() throws {
         try writeOriginals(builtinFake("stored-original"))
-        let runtime = try makeRuntime()
+        let runtime = try makeGPTKRuntime()
         Wine.reconcileDXGIForDXVK(
             prefixRoot: prefixRoot,
-            gptkOriginalsDXGI: originalsDXGI,
             gptkPayloadIsDeployed: true,
-            libraryFolder: runtime
+            libraryFolder: runtime,
+            store: store
         )
         let past = Date(timeIntervalSince1970: 1_000_000)
         try FileManager.default.setAttributes(
@@ -275,9 +277,9 @@ final class WineDXVKResidueTests: XCTestCase {
 
         Wine.reconcileDXGIForDXVK(
             prefixRoot: prefixRoot,
-            gptkOriginalsDXGI: originalsDXGI,
             gptkPayloadIsDeployed: true,
-            libraryFolder: runtime
+            libraryFolder: runtime,
+            store: store
         )
 
         let after = try identity(dxgi("system32"))
@@ -293,11 +295,11 @@ final class WineDXVKResidueTests: XCTestCase {
         let stale = nativeFake("dxmt-64") + Data("stale-original".utf8)
         try stale.write(to: dxgi("system32"))
 
-        Wine.reconcileDXGIForDXVK(
+        try Wine.reconcileDXGIForDXVK(
             prefixRoot: prefixRoot,
-            gptkOriginalsDXGI: originalsDXGI,
             gptkPayloadIsDeployed: true,
-            libraryFolder: noRuntime
+            libraryFolder: makeGPTKRuntime(),
+            store: store
         )
 
         XCTAssertTrue(try Wine.isNativePE(dxgi("system32")))
@@ -310,11 +312,11 @@ final class WineDXVKResidueTests: XCTestCase {
         try writeOriginals(builtinFake("stored-original"))
         try builtinFake("stored-original").write(to: dxgi("system32"))
 
-        Wine.reconcileDXGIForDXVK(
+        try Wine.reconcileDXGIForDXVK(
             prefixRoot: prefixRoot,
-            gptkOriginalsDXGI: originalsDXGI,
             gptkPayloadIsDeployed: true,
-            libraryFolder: noRuntime
+            libraryFolder: makeGPTKRuntime(),
+            store: store
         )
 
         XCTAssertTrue(try Wine.isNativePE(dxgi("system32")))
@@ -337,6 +339,30 @@ final class WineDXVKResidueTests: XCTestCase {
             try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             try builtinFake("builtin-\(arch)").write(to: dir.appending(path: "dxgi.dll"))
         }
+        return root
+    }
+
+    /// The GPTK store `originalsDXGI` lives in.
+    private var store: URL {
+        tempDir.appending(path: "store")
+    }
+
+    /// ``makeRuntime()`` with GPTK deployed over its 64-bit dxgi: the slot
+    /// byte-matches the store's forwarder and `originals/` is stamped for
+    /// this runtime, so `WineD3DSource` resolves dxgi to the stored original.
+    private func makeGPTKRuntime() throws -> URL {
+        let root = try makeRuntime()
+        let forwarder = builtinFake("gptk-forwarder")
+        let storePE = store.appending(path: "lib/wine/x86_64-windows")
+        try FileManager.default.createDirectory(at: storePE, withIntermediateDirectories: true)
+        try forwarder.write(to: storePE.appending(path: "dxgi.dll"))
+        try forwarder.write(to: root.appending(path: "Wine/lib/wine/x86_64-windows/dxgi.dll"))
+        try writeRuntimeVersion(at: root, 11, 19, 0)
+        try FileManager.default.createDirectory(
+            at: store.appending(path: "originals"), withIntermediateDirectories: true
+        )
+        try PropertyListEncoder().encode(GPTKOriginalsRecord(runtimeVersion: "11.19.0"))
+            .write(to: GPTKImporter.originalsRecordURL(inStore: store))
         return root
     }
 

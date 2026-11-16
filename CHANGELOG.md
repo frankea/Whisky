@@ -8,11 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- The Rockstar Games Launcher gets past "Initializing" and signs in when
-  GPTK is not imported: Whisky runs it on Wine's own Direct3D with the
+- The Rockstar Games Launcher gets past "Initializing" and signs in, with
+  or without GPTK imported: Whisky runs it on Wine's own Direct3D with the
   OpenGL renderer, the only setup its window draws on, and keeps the
-  NVIDIA bridges away from it and its Social Club helper. With GPTK
-  imported it still fails to start; that needs a follow-up ([#389], [#382]).
+  NVIDIA bridges away from it and its Social Club helper ([#389], [#382]).
+  With GPTK imported, Whisky puts Wine's own Direct3D 11 in the bottle's
+  system folder and gives Steam and Social Club their own copies of DXVK,
+  so both keep drawing. A new setting in the bottle's launcher settings
+  turns this off, and it is not applied when a game or program in the
+  bottle needs DXVK from the system folder ([#391]).
 - Starting the Rockstar Games Launcher from the Programs tab in a Steam
   bottle no longer switches the whole bottle to DXVK, which took GTA V
   Enhanced and other Steam games off D3DMetal ([#389], [#382]).
@@ -1637,6 +1641,7 @@ up to date.
 [#384]: https://github.com/frankea/Whisky/issues/384
 [#385]: https://github.com/frankea/Whisky/issues/385
 [#389]: https://github.com/frankea/Whisky/issues/389
+[#391]: https://github.com/frankea/Whisky/issues/391
 [@adurham]: https://github.com/adurham
 [@daydalek]: https://github.com/daydalek
 [@Dunn-Kim]: https://github.com/Dunn-Kim

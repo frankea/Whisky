@@ -176,8 +176,10 @@ final class SteamGameLaunchScopingTests {
         #expect(entry?["d3d12"] != "")
         #expect(entry?["dxgi"]?.hasPrefix("n") != true)
         #expect(entry?["d3d11"]?.hasPrefix("n") != true)
-        // On this runtime's layout, read the way the launch reads it.
-        recorder.expectRockstarChain(layout: .resolve(payloadDeployed: true))
+        // The launch says the payload is deployed, so the layout fails closed
+        // unless the runtime's d3d11 and dxgi are the store's backed-up Wine
+        // originals, which no deployed or absent payload leaves them as.
+        recorder.expectRockstarChain(layout: .degraded(.gptkForwarders))
     }
 
     @Test("A game executable never displaces Steam's own entry")
@@ -272,7 +274,8 @@ final class SteamGameLaunchScopingTests {
 
         _ = try await prepareGameLaunch(bottle, launchers: [.rockstar], recorder: recorder)
 
-        recorder.expectRockstarChain(layout: .resolve(payloadDeployed: true))
+        // Payload deployed and no stored Wine originals to match: degraded.
+        recorder.expectRockstarChain(layout: .degraded(.gptkForwarders))
     }
 
     @Test("Another game writes no Launcher.exe entry while Rockstar's launcher is absent")

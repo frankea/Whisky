@@ -39,6 +39,9 @@ final class RockstarD3DLayoutTests {
         for name in ["d3d11.dll", "dxgi.dll"] {
             try write("apple \(name)", to: storePE.appending(path: name))
         }
+        // The Wine originals deploy backed up, which runtime(...) restores.
+        try write("wine d3d11", to: store.appending(path: "originals/d3d11.dll"))
+        try write("wine dxgi", to: store.appending(path: "originals/dxgi.dll"))
         try write("dxvk d3d11", to: dxvk.appending(path: "x64/d3d11.dll"))
         try write("dxvk d3d10core", to: dxvk.appending(path: "x64/d3d10core.dll"))
     }
@@ -106,13 +109,44 @@ final class RockstarD3DLayoutTests {
             == .degraded(.gptkForwarders))
     }
 
-    @Test("Missing slots and a missing store lead nowhere")
+    @Test("Missing slots and a missing store are no forwarders, and no Wine originals either")
     func missingFilesAreNotForwarders() {
-        let slots = RockstarD3DLayout.forwarders(
-            libraryFolder: root.appending(path: "nothing"), store: root.appending(path: "no store")
-        )
+        let nothing = root.appending(path: "nothing")
+        let noStore = root.appending(path: "no store")
+        let slots = RockstarD3DLayout.forwarders(libraryFolder: nothing, store: noStore)
         #expect(!slots.d3d11)
         #expect(!slots.dxgi)
+        let originals = RockstarD3DLayout.wineOriginals(libraryFolder: nothing, store: noStore)
+        #expect(!originals.d3d11)
+        #expect(!originals.dxgi)
+        // With the payload deployed, nothing to vouch for the slots is D3DMetal.
+        #expect(RockstarD3DLayout.resolve(payloadDeployed: true, libraryFolder: nothing, store: noStore)
+            == .degraded(.gptkForwarders))
+    }
+
+    @Test("A payload copied in by hand degrades, though it matches no forwarder in the store")
+    func handPlacedPayloadDegrades() throws {
+        try write("hand-placed apple d3d11", to: runtimePE.appending(path: "d3d11.dll"))
+        try write("hand-placed apple dxgi", to: runtimePE.appending(path: "dxgi.dll"))
+
+        for store in [store, root.appending(path: "no store")] {
+            let slots = RockstarD3DLayout.forwarders(libraryFolder: library, store: store)
+            #expect(!slots.d3d11 && !slots.dxgi)
+            #expect(RockstarD3DLayout.resolve(payloadDeployed: true, libraryFolder: library, store: store)
+                == .degraded(.gptkForwarders))
+        }
+    }
+
+    @Test("One slot that is not the stored Wine original is enough to degrade")
+    func oneUnknownSlotDegrades() throws {
+        try runtime(d3d11Forwarder: false, dxgiForwarder: false)
+        try write("another engine's dxgi", to: runtimePE.appending(path: "dxgi.dll"))
+
+        let originals = RockstarD3DLayout.wineOriginals(libraryFolder: library, store: store)
+        #expect(originals.d3d11)
+        #expect(!originals.dxgi)
+        #expect(RockstarD3DLayout.resolve(payloadDeployed: true, libraryFolder: library, store: store)
+            == .degraded(.gptkForwarders))
     }
 
     // MARK: - Diagnostics
@@ -176,6 +210,9 @@ final class RockstarD3DLayoutTests {
         #expect(report.contains("- **Layout:** degraded (gptkForwarders"))
         #expect(report.contains("- **Runtime d3d11.dll is a GPTK forwarder:** yes"))
         #expect(report.contains("- **Runtime dxgi.dll is a GPTK forwarder:** no"))
+        #expect(report.contains("- **GPTK payload deployed:** yes"))
+        #expect(report.contains("- **Runtime d3d11.dll is the stored Wine original:** no"))
+        #expect(report.contains("- **Runtime dxgi.dll is the stored Wine original:** yes"))
         #expect(report.contains("- **system32 d3d11.dll:** DXVK payload"))
         #expect(report.contains("- **system32 dxgi.dll:** builtin placeholder"))
         #expect(report.contains("- **system32 d3d10core.dll:** missing"))
@@ -183,7 +220,27 @@ final class RockstarD3DLayoutTests {
         #expect(report.contains(#"- **AppDefaults Launcher.exe\Direct3D:** renderer="gl""#))
         #expect(report.contains(#"- **AppDefaults SocialClubHelper.exe\DllOverrides:** none"#))
         #expect(report.contains("- **WINEDLLOVERRIDES set for Launcher.exe:** no"))
-        #expect(report.contains("- **WINE_D3D_CONFIG set for Launcher.exe:** yes"))
+        #expect(report.contains("- **WINE_D3D_CONFIG set for Launcher.exe:** yes (game configuration)"))
+    }
+
+    @Test("The section names the Launcher.exe program settings that set either variable")
+    func sectionReadsTheProgramsEnvironment() throws {
+        let bottle = try makeBottle(rockstar: true)
+        let launcher = bottle.url.appending(path: "drive_c/Program Files/Rockstar Games/Launcher/Launcher.exe")
+        let settingsURL = Program.settingsLocations(
+            for: launcher, bottleURL: bottle.url, legacyName: launcher.lastPathComponent
+        ).identity
+        var settings = ProgramSettings()
+        settings.environment = ["WINE_D3D_CONFIG": "renderer=vulkan", "WINEDLLOVERRIDES": "d3d11=n"]
+        try FileManager.default.createDirectory(
+            at: settingsURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try settings.encode(to: settingsURL)
+
+        let report = section(bottle)
+
+        #expect(report.contains("- **WINEDLLOVERRIDES set for Launcher.exe:** yes (program settings)"))
+        #expect(report.contains("- **WINE_D3D_CONFIG set for Launcher.exe:** yes (program settings)"))
     }
 
     @Test("Without the payload the section reports the builtin layout")

@@ -169,6 +169,91 @@ final class RockstarLauncherScopingTests {
         #expect(!Wine.isRockstarLauncher(other))
     }
 
+    @Test("Only Rockstar's launcher folder and file name make a launch Rockstar's launcher", arguments: [
+        // Detects as Rockstar, but a game's own Launcher.exe, not the launcher's.
+        "Program Files/Rockstar Games/Red Dead Redemption 2/Launcher.exe",
+        // The launcher's folder, another file.
+        "Program Files/Rockstar Games/Launcher/LauncherPatcher.exe"
+    ])
+    func onlyTheLaunchersOwnExecutableCounts(_ relativePath: String) async throws {
+        let bottle = try makeBottle()
+        _ = try rockstarLauncher(in: bottle)
+        let program = try makeExecutable(relativePath, in: bottle)
+        let recorder = ScopeRecorder()
+        #expect(LauncherType.detect(from: program) == .rockstar)
+
+        _ = try await Wine.prepareProgramLaunch(
+            at: program, bottle: bottle, recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: false,
+            overrideWriter: recorder.writer, importer: recorder.importer
+        )
+
+        #expect(!Wine.isRockstarLauncher(program))
+        // The program keeps its own launch set: none of Wine's own Direct3D.
+        let own = recorder.overrides(for: .program(program.lastPathComponent))
+        #expect(own != nil)
+        #expect(own?["d3d11"] != "b")
+        if program.lastPathComponent == "Launcher.exe" {
+            // The game's Launcher.exe holds the entry, so no renderer is asked for.
+            #expect(recorder.overrides(for: .direct3D("Launcher.exe")) == nil)
+        }
+    }
+
+    @Test("A Launcher.exe another launcher's detection claims first is not Rockstar's")
+    func detectionMustSayRockstar() {
+        let url = URL(filePath: "/Bottle/drive_c/Program Files/Roberts Space Industries/RSI Launcher")
+            .appending(path: "Rockstar Games/Launcher/Launcher.exe")
+
+        #expect(LauncherType.detect(from: url) == .rsiLauncher)
+        #expect(!Wine.isRockstarLauncher(url))
+    }
+
+    /// Records that Whisky wrote `renderer=gl` for `Launcher.exe` earlier.
+    private func recordRenderer(in bottle: Bottle) throws {
+        let key = Wine.DLLOverrideScope.direct3D("Launcher.exe").registryKey
+        try DLLOverrideRecord()
+            .updated(with: [OwnedRegistryValueEdit(key: key, name: "renderer", line: .set("gl"), owned: "gl")])
+            .save(to: bottle.url)
+    }
+
+    @Test("Another launcher.exe from the Programs tab asks for no renderer once Whisky wrote one")
+    func otherLauncherExeReleasesTheRenderer() async throws {
+        let bottle = try makeBottle()
+        _ = try rockstarLauncher(in: bottle)
+        try recordRenderer(in: bottle)
+        let other = try makeExecutable("Games/Other Game/launcher.exe", in: bottle)
+        let recorder = ScopeRecorder()
+
+        _ = try await Wine.prepareProgramLaunch(
+            at: other, bottle: bottle, recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: false,
+            overrideWriter: recorder.writer, importer: recorder.importer
+        )
+
+        let entries = try #require(recorder.writes.first)
+        #expect(entries.first { $0.scope == .direct3D("Launcher.exe") }?.overrides == "")
+        #expect(recorder.overrides(for: .program("launcher.exe"))?["d3d11"] != "b")
+    }
+
+    @Test("A game's own Launcher.exe in its Steam launch asks for no renderer once Whisky wrote one")
+    func gamesOwnLauncherExeReleasesTheRenderer() async throws {
+        let bottle = try makeBottle()
+        _ = try rockstarLauncher(in: bottle)
+        try recordRenderer(in: bottle)
+        let recorder = ScopeRecorder()
+        var environment = ["WINEDLLOVERRIDES": "d3d11=n,b;dxgi=n,b"]
+
+        try await Wine.applyDLLOverrides(
+            for: steam(in: bottle), bottle: bottle, wineEnvironment: &environment, applyToDescendants: true,
+            descendantExecutables: ["Launcher.exe"], descendantLaunchers: [.rockstar],
+            recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: true, rockstarLayout: .builtin,
+            writer: recorder.writer
+        )
+
+        let entries = try #require(recorder.writes.first)
+        #expect(entries.first { $0.scope == .program("Launcher.exe") }?.overrides == "d3d11=n,b;dxgi=n,b")
+        #expect(entries.first { $0.scope == .direct3D("Launcher.exe") }?.overrides == "")
+        #expect(entries.filter { $0.scope.ownedValueNames != nil }.count == 1)
+    }
+
     @Test("A Steam launch of a Rockstar title writes each of Rockstar's chain its role's entry", arguments: [
         1_174_180, 271_590, 3_240_220, 204_100, 12_210
     ])

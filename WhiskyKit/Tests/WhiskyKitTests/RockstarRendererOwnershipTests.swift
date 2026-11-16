@@ -104,6 +104,30 @@ final class RockstarRendererOwnershipTests {
         #expect(recordedRenderer(bottle) == nil)
     }
 
+    @Test("A renderer Whisky wrote and the user deleted is forgotten, with nothing removed")
+    func deletedRendererIsForgotten() async throws {
+        let bottle = try makeBottle()
+        try await syncLauncher(bottle, renderer: "gl")
+        registry.apply("[-\(direct3DKey)]")
+
+        let document = try await syncLauncher(bottle, renderer: nil)
+
+        #expect(!document.contains("Direct3D"))
+        #expect(recordedRenderer(bottle) == nil)
+    }
+
+    @Test("A renderer Whisky wrote and the user deleted is written again while a launch wants it")
+    func deletedRendererIsRewrittenWhileWanted() async throws {
+        let bottle = try makeBottle()
+        try await syncLauncher(bottle, renderer: "gl")
+        registry.apply("[-\(direct3DKey)]")
+
+        let document = try await syncLauncher(bottle, renderer: "gl")
+
+        #expect(section(direct3DKey, in: document) == [#""renderer"="gl""#])
+        #expect(recordedRenderer(bottle) == "gl")
+    }
+
     @Test("A renderer the user changed after Whisky wrote it stays, and is no longer Whisky's")
     func rendererChangedByTheUserStays() async throws {
         let bottle = try makeBottle()

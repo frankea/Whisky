@@ -20,10 +20,6 @@ import Foundation
 import os.log
 
 extension Wine {
-    private static let rockstarLogger = Logger(
-        subsystem: "com.isaacmarovitz.WhiskyKit", category: "dll-overrides"
-    )
-
     /// The launcher executables a launch should write entries for ahead of
     /// time, because something other than Whisky starts them.
     ///
@@ -38,7 +34,9 @@ extension Wine {
     /// another program by that name gets the Rockstar layout until its own
     /// launch from Whisky writes its own entry (and loses it again at the next
     /// Steam launch). A game's own `Launcher.exe` keeps the game's plan during
-    /// that game's Steam launch, since game executables are written first.
+    /// that game's Steam launch, since game executables are written first. The
+    /// renderer flips with the entry: a launch that writes `Launcher.exe` some
+    /// other set takes back the one Whisky wrote (``releaseRockstarRenderer(in:bottleURL:)``).
     static func chainExecutables(
         for launcher: LauncherType?, descendantLaunchers: [LauncherType] = [], bottleURL: URL
     ) -> [String] {
@@ -65,6 +63,19 @@ extension Wine {
             && LauncherType.detect(from: url) == .rockstar
     }
 
+    /// Rockstar's chain for a launch of Rockstar's own `Launcher.exe` from the
+    /// Programs tab, written ahead of the launch's generic set so that set
+    /// does not displace it. Any other executable gets nothing here.
+    @MainActor
+    static func addRockstarDirectLaunchScopes(
+        _ url: URL, to scopes: inout DLLOverrideScopes,
+        layout: () -> RockstarD3DLayout, launcherSet: (ProgramOverrides?) -> String
+    ) {
+        guard isRockstarLauncher(url) else { return }
+        addRockstarChainScopes(to: &scopes, layout: layout, launcherSet: launcherSet)
+        dllOverrideLogger.info("Rockstar's Launcher.exe gets the chain's set, not this launch's own")
+    }
+
     /// Writes Rockstar's chain (``LauncherType/chainRoles``) each the entry
     /// its role needs, unless every one of them already has an entry.
     ///
@@ -75,16 +86,23 @@ extension Wine {
     /// which the launcher dies at "Initializing group 1"; on any other it asks
     /// for nothing, which takes back a renderer Whisky wrote earlier.
     ///
+    /// Every role starts from the launcher set without the user's own
+    /// overrides, a launch of Rockstar's launcher from the Programs tab
+    /// included: its per-program DLL overrides and a `WINEDLLOVERRIDES` in its
+    /// environment are not written for it. The Direct3D DLLs, `d3d12` and the
+    /// NVIDIA bridges are what decide whether it draws at all.
+    ///
     /// - Parameters:
     ///   - scopes: The launch's scopes, where the first set for an executable wins.
-    ///   - layout: What `Launcher.exe` can be given.
+    ///   - layout: Resolves what `Launcher.exe` can be given; only called when
+    ///     an entry is written, since it may read the runtime.
     ///   - launcherSet: Composes the launcher set from the user's own overrides
     ///     for the executable:
     ///     ``launcherDLLOverrides(bottle:userOverrides:recommendedBackend:builtinD3D12IsD3DMetal:)``.
     @MainActor
     static func addRockstarChainScopes(
         to scopes: inout DLLOverrideScopes,
-        layout: @autoclosure () -> RockstarD3DLayout,
+        layout: () -> RockstarD3DLayout,
         launcherSet: (ProgramOverrides?) -> String
     ) {
         let chain = LauncherType.rockstar.chainRoles
@@ -96,12 +114,39 @@ extension Wine {
             scopes.add([executable], rockstarChainOverrides(role: role, layout: layout, launcherSet: base))
             guard role == .wineDirect3D else { continue }
             guard ownsEntry else {
-                rockstarLogger.info("\(executable, privacy: .public) keeps this launch's own plan")
+                dllOverrideLogger.info("\(executable, privacy: .public) keeps this launch's own plan")
                 continue
             }
-            scopes.add(.direct3D(executable), layout == .builtin ? "renderer=gl" : "")
-            rockstarLogger.info("\(executable, privacy: .public): Rockstar layout \(layout.summary, privacy: .public)")
+            scopes.add(settings: .direct3D(executable), layout == .builtin ? "renderer=gl" : "")
+            dllOverrideLogger.info(
+                "\(executable, privacy: .public): Rockstar layout \(layout.summary, privacy: .public)"
+            )
         }
+    }
+
+    /// Asks for no renderer in `Launcher.exe`'s `Direct3D` key when this
+    /// launch writes `Launcher.exe` a set of its own but not that key.
+    ///
+    /// The key is keyed on the file name alone, like the entry beside it. A
+    /// launch that gives the entry to another program by that name (a game's
+    /// own `Launcher.exe` in its Steam launch, or another `launcher.exe` from
+    /// the Programs tab) would otherwise leave the `renderer=gl` Rockstar's
+    /// chain wrote, and that program would be on wined3d's OpenGL renderer
+    /// whenever it uses wined3d. The ownership rules take back only a renderer
+    /// Whisky recorded writing and the registry still holds; one the user set
+    /// stays (``ownedValueEdit(key:name:wanted:recorded:current:)``).
+    ///
+    /// Only while the record holds a renderer, so a bottle Whisky never wrote
+    /// one into gets no `Direct3D` scope at all.
+    static func releaseRockstarRenderer(in scopes: inout DLLOverrideScopes, bottleURL: URL) {
+        let executable = "Launcher.exe"
+        let direct3D = DLLOverrideScope.direct3D(executable)
+        guard scopes.contains(executable),
+              !scopes.entries.contains(where: { $0.scope == direct3D }),
+              DLLOverrideRecord.load(from: bottleURL).ownedValue("renderer", in: direct3D.registryKey) != nil
+        else { return }
+        scopes.add(settings: direct3D, "")
+        dllOverrideLogger.info("Launcher.exe is not Rockstar's in this launch: taking back its renderer")
     }
 
     /// The DLL overrides one of Rockstar's chain runs with.

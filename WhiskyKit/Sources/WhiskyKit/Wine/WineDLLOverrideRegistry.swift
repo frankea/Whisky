@@ -44,7 +44,7 @@ public extension Wine {
         }
     }
 
-    private static let dllOverrideLogger = Logger(
+    internal static let dllOverrideLogger = Logger(
         subsystem: "com.isaacmarovitz.WhiskyKit", category: "dll-overrides"
     )
 
@@ -198,7 +198,7 @@ public extension Wine {
         rockstarLayout: RockstarD3DLayout? = nil,
         writer: DLLOverrideWriter = { try await syncDLLOverrides(bottle: $0, scopes: $1) }
     ) async throws {
-        let rockstarLayout = { rockstarLayout ?? .resolve(payloadDeployed: builtinD3D12IsD3DMetal) }
+        let resolveRockstarLayout = { rockstarLayout ?? .resolve(payloadDeployed: builtinD3D12IsD3DMetal) }
         let bottleOverrides = constructWineEnvironment(
             for: bottle, recommendedBackend: recommendedBackend, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
         )["WINEDLLOVERRIDES"] ?? ""
@@ -232,12 +232,9 @@ public extension Wine {
             scopes.add(launcher.helperExecutables, disablingNVAPI(in: own))
             scopes.add([url.lastPathComponent], own)
         } else if !applyToDescendants {
-            // Rockstar's launcher from the Programs tab gets the chain's own
-            // entries, which its generic launch set below must not displace.
-            if isRockstarLauncher(url) {
-                addRockstarChainScopes(to: &scopes, layout: rockstarLayout(), launcherSet: launcherSet)
-            }
             let own = wineEnvironment.removeValue(forKey: "WINEDLLOVERRIDES") ?? ""
+            // Rockstar's launcher gets the chain's entries ahead of `own`, per-program overrides too.
+            addRockstarDirectLaunchScopes(url, to: &scopes, layout: resolveRockstarLayout, launcherSet: launcherSet)
             scopes.add(helperExecutables(for: url), disablingNVAPI(in: own))
             // The launched executable needs its own entry too: AppDefaults is per
             // executable and children do not inherit it.
@@ -277,8 +274,9 @@ public extension Wine {
         }
 
         if !chainExecutables(for: launcher, descendantLaunchers: descendantLaunchers, bottleURL: bottle.url).isEmpty {
-            addRockstarChainScopes(to: &scopes, layout: rockstarLayout(), launcherSet: launcherSet)
+            addRockstarChainScopes(to: &scopes, layout: resolveRockstarLayout, launcherSet: launcherSet)
         }
+        releaseRockstarRenderer(in: &scopes, bottleURL: bottle.url)
 
         try await writer(bottle, scopes.entries)
     }
@@ -300,9 +298,9 @@ public extension Wine {
             }
         }
 
-        /// Adds a key of settings (``DLLOverrideScope/ownedValueNames``), once.
-        mutating func add(_ scope: DLLOverrideScope, _ values: String) {
-            guard !entries.contains(where: { $0.scope == scope }) else { return }
+        /// Adds a key of settings (``DLLOverrideScope/ownedValueNames``) once, and nothing else.
+        mutating func add(settings scope: DLLOverrideScope, _ values: String) {
+            guard scope.ownedValueNames != nil, !entries.contains(where: { $0.scope == scope }) else { return }
             entries.append((scope: scope, overrides: values))
         }
 

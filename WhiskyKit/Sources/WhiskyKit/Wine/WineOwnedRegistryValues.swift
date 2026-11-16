@@ -68,7 +68,8 @@ extension Wine {
     /// user's (winecfg, `regedit`, a guide followed by hand): it is neither
     /// written over nor recorded, so no later launch removes it either. Only
     /// a value Whisky recorded, still holding what it wrote, is taken back
-    /// once no longer wanted. One the user deleted is simply forgotten.
+    /// once no longer wanted. One the user deleted is written again while a
+    /// launch still wants it, and otherwise forgotten, with nothing removed.
     ///
     /// - Parameters:
     ///   - key: The registry key.

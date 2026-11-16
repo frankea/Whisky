@@ -633,8 +633,11 @@ public struct BottleSettings: Codable, Equatable {
 
     /// Whether to force DXVK in a bottle whose launcher requires it.
     ///
-    /// Only Rockstar Games Launcher does (``LauncherType/requiresDXVK``): it
-    /// cannot render its logo screen without DXVK. When on, detecting it
+    /// Only Rockstar Games Launcher does (``LauncherType/requiresDXVK``), for
+    /// the standalone launcher's processes no launch writes an entry for.
+    /// `Launcher.exe` itself draws on Wine's own Direct3D through its own
+    /// entry (#382), and a bottle with Steam never gets the Rockstar profile,
+    /// so its games stay off this. When on, detecting it
     /// switches the bottle to DXVK, and every launch in the bottle deploys
     /// DXVK and (in launcher compatibility mode) gets its DLL overrides,
     /// whatever ``graphicsBackend`` says.

@@ -78,11 +78,17 @@ extension DiagnosticExporter {
             payloadDeployed: payloadDeployed, libraryFolder: libraryFolder, store: store
         )
         let slots = RockstarD3DLayout.forwarders(libraryFolder: libraryFolder, store: store)
+        let originals = RockstarD3DLayout.wineOriginals(libraryFolder: libraryFolder, store: store)
 
         var section = "### Rockstar Launcher Layout\n\n"
         section += "- **Layout:** \(layout.summary)\n"
+        section += "- **GPTK payload deployed:** \(payloadDeployed ? "yes" : "no")\n"
         section += "- **Runtime d3d11.dll is a GPTK forwarder:** \(slots.d3d11 ? "yes" : "no")\n"
         section += "- **Runtime dxgi.dll is a GPTK forwarder:** \(slots.dxgi ? "yes" : "no")\n"
+        // What the layout goes by while the payload is deployed: a hand-placed
+        // payload is no forwarder of the store's, and not Wine's original either.
+        section += "- **Runtime d3d11.dll is the stored Wine original:** \(originals.d3d11 ? "yes" : "no")\n"
+        section += "- **Runtime dxgi.dll is the stored Wine original:** \(originals.dxgi ? "yes" : "no")\n"
         let system32 = bottle.url.appending(path: "drive_c/windows/system32")
         for dll in rockstarSystem32DLLs {
             let kind = classifySystem32DLL(system32.appending(path: dll), dxvkFolder: dxvkFolder)
@@ -98,14 +104,37 @@ extension DiagnosticExporter {
         }
         // Either variable outvotes the registry. Whisky composes the bottle's
         // WINEDLLOVERRIDES itself and moves it into the registry at launch, so
-        // only a game configuration's counts there.
-        let gameConfig = bottle.settings.gameConfigEnvironment(forExecutable: "Launcher.exe")
-        let d3dConfig = gameConfig["WINE_D3D_CONFIG"] ?? Wine.constructWineEnvironment(for: bottle)["WINE_D3D_CONFIG"]
-        section += "- **WINEDLLOVERRIDES set for Launcher.exe:** "
-        section += gameConfig["WINEDLLOVERRIDES"] == nil ? "no\n" : "yes (game configuration)\n"
-        section += "- **WINE_D3D_CONFIG set for Launcher.exe:** \(d3dConfig == nil ? "no" : "yes")\n"
+        // only a game configuration's or the program's own counts there.
+        let sources: [(name: String, environment: [String: String])] = [
+            ("program settings", rockstarLauncherProgramEnvironment(bottleURL: bottle.url)),
+            ("game configuration", bottle.settings.gameConfigEnvironment(forExecutable: "Launcher.exe")),
+            ("bottle", Wine.constructWineEnvironment(for: bottle).filter { $0.key == "WINE_D3D_CONFIG" })
+        ]
+        for variable in ["WINEDLLOVERRIDES", "WINE_D3D_CONFIG"] {
+            let setBy = sources.filter { $0.environment[variable] != nil }.map(\.name)
+            section += "- **\(variable) set for Launcher.exe:** "
+            section += setBy.isEmpty ? "no\n" : "yes (\(setBy.joined(separator: ", ")))\n"
+        }
         section += "\n"
         return section
+    }
+
+    /// The environment variables in the program settings of Rockstar's
+    /// `Launcher.exe`, in either Program Files, which a launch of it from the
+    /// Programs tab adds to its environment.
+    static func rockstarLauncherProgramEnvironment(bottleURL: URL) -> [String: String] {
+        let driveC = bottleURL.appending(path: "drive_c")
+        var environment: [String: String] = [:]
+        for programFiles in ["Program Files", "Program Files (x86)"] {
+            let url = driveC.appending(path: programFiles).appending(path: "Rockstar Games/Launcher/Launcher.exe")
+            let locations = Program.settingsLocations(for: url, bottleURL: bottleURL, legacyName: url.lastPathComponent)
+            for settingsURL in [locations.identity, locations.legacy] {
+                guard let settings = try? ProgramSettings.decodeIfPresent(from: settingsURL) else { continue }
+                environment.merge(settings.environment) { current, _ in current }
+                break
+            }
+        }
+        return environment
     }
 
     /// What `url` holds, by Wine's marker and against the installed DXVK.

@@ -73,14 +73,16 @@ final class SteamGameLaunchScopingTests {
             programOverrides: plan, overridesApplyToDescendants: true,
             descendantExecutables: games, descendantLaunchers: launchers,
             recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: true,
-            overrideWriter: recorder.writer, importer: recorder.importer
+            overrideWriter: recorder.writer, importer: recorder.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
     }
 
     private func prepareDirectLaunch(_ url: URL, _ bottle: Bottle, recorder: ScopeRecorder) async throws {
         _ = try await Wine.prepareProgramLaunch(
             at: url, bottle: bottle, recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: true,
-            overrideWriter: recorder.writer, importer: recorder.importer
+            overrideWriter: recorder.writer, importer: recorder.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
     }
 
@@ -191,7 +193,8 @@ final class SteamGameLaunchScopingTests {
             at: steam(in: bottle), args: ["-applaunch", "1"], bottle: bottle,
             overridesApplyToDescendants: true, descendantExecutables: ["Game.exe", "STEAMWEBHELPER.exe"],
             recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: true,
-            overrideWriter: recorder.writer, importer: recorder.importer
+            overrideWriter: recorder.writer, importer: recorder.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
 
         #expect(recorder.programScopes.filter { $0.lowercased() == "steamwebhelper.exe" }.count == 1)
@@ -216,7 +219,8 @@ final class SteamGameLaunchScopingTests {
             at: steamExe, args: ["-silent"], bottle: bottle,
             programOverrides: Program.persistedOverrides(for: steamExe, bottleURL: bottle.url),
             recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: true,
-            overrideWriter: clientStart.writer, importer: clientStart.importer
+            overrideWriter: clientStart.writer, importer: clientStart.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
 
         let steamEntry = gameLaunch.overrides(for: .program("steam.exe"))
@@ -299,7 +303,8 @@ final class SteamGameLaunchScopingTests {
             at: steam(in: bottle), args: ["-applaunch", "1"], bottle: bottle,
             overridesApplyToDescendants: true, descendantExecutables: ["Launcher.exe", "Game.exe"],
             recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: true,
-            overrideWriter: recorder.writer, importer: recorder.importer
+            overrideWriter: recorder.writer, importer: recorder.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
 
         #expect(recorder.programScopes.filter { $0.lowercased() == "launcher.exe" }.count == 1)

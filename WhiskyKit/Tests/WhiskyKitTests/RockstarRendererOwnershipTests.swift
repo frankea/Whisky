@@ -193,6 +193,26 @@ final class RockstarRendererOwnershipTests {
         #expect(recordedRenderer(bottle) == nil)
     }
 
+    @Test("The swapped layout asks for the renderer, and a degraded one after it takes Whisky's back")
+    func swappedThenDegradedReleasesTheRenderer() async throws {
+        let bottle = try makeBottle()
+        let layouts: [(RockstarD3DLayout, [String: String])] = [
+            (.swapped(source: URL(filePath: "/originals/d3d11.dll")), ["renderer": "gl"]),
+            (.degraded(.disabledByUser), [:])
+        ]
+        for (layout, expected) in layouts {
+            var scopes = Wine.DLLOverrideScopes(bottle: "")
+            Wine.addRockstarChainScopes(to: &scopes, layout: { layout }, launcherSet: { _ in "d3d11=n,b" })
+            try await Wine.syncDLLOverrides(
+                bottle: bottle, scopes: scopes.entries,
+                importer: { document, _ in self.registry.apply(document) },
+                currentValue: { key, name in self.registry.values(key)[name.lowercased()] }
+            )
+            #expect(registry.values(direct3DKey) == expected, "\(layout.summary)")
+        }
+        #expect(recordedRenderer(bottle) == nil)
+    }
+
     @Test("Only the scope's own value names are read from its string", arguments: [
         "renderer=gl;d3d11=n,b", "renderer=gl;csmt=0"
     ])

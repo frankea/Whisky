@@ -141,4 +141,24 @@ struct FileManagerAtomicReplaceTests {
         #expect(try Data(contentsOf: inside) == Data("keep me".utf8))
         #expect(try noTempsLeft())
     }
+
+    @Test("replaceDLLs leaves an excluded DLL alone, whatever its case, and replaces the rest")
+    func replaceDLLsExcluding() throws {
+        let source = tempDir.appending(path: "payload")
+        let destination = tempDir.appending(path: "system32")
+        for folder in [source, destination] {
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        }
+        for dll in ["d3d11.dll", "d3d10core.dll"] {
+            try Data("dxvk \(dll)".utf8).write(to: source.appending(path: dll))
+            try Data("wine \(dll)".utf8).write(to: destination.appending(path: dll))
+        }
+
+        try FileManager.default.replaceDLLs(in: destination, withContentsIn: source, excluding: ["D3D11.DLL"])
+
+        #expect(try Data(contentsOf: destination.appending(path: "d3d11.dll")) == Data("wine d3d11.dll".utf8))
+        #expect(
+            try Data(contentsOf: destination.appending(path: "d3d10core.dll")) == Data("dxvk d3d10core.dll".utf8)
+        )
+    }
 }

@@ -647,6 +647,18 @@ public struct BottleSettings: Codable, Equatable {
         set { launcherConfig.autoEnableDXVK = newValue }
     }
 
+    /// Whether the Rockstar Games Launcher may draw on Wine's own Direct3D
+    /// while GPTK is deployed: Wine's `d3d11` in `system32`, with DXVK copies
+    /// beside Steam's and Social Club's Chromium (#382). On by default.
+    ///
+    /// Turned off, the next launch of Steam or the launcher from Whisky puts
+    /// DXVK back into `system32` and takes the copies back; the launcher then
+    /// cannot draw while GPTK is deployed.
+    public var rockstarWineD3D: Bool {
+        get { launcherConfig.rockstarWineD3D ?? true }
+        set { launcherConfig.rockstarWineD3D = newValue }
+    }
+
     /// The last ``LauncherBackendMigration`` this bottle has been through.
     var launcherBackendMigration: Int {
         get { launcherConfig.backendMigration }

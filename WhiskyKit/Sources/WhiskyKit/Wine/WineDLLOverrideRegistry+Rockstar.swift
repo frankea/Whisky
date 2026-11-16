@@ -45,12 +45,37 @@ extension Wine {
         return rockstarSession ? LauncherType.rockstar.chainExecutables : []
     }
 
-    /// Whether the bottle has a `Rockstar Games` folder in either Program Files.
+    /// Whether the bottle has a `Rockstar Games` folder in either Program
+    /// Files with something of Rockstar's in it.
+    ///
+    /// The Rockstar swap (#382) creates `Rockstar Games\Social Club` itself,
+    /// with DXVK's `d3d11.dll` and `d3d10core.dll` in it, ahead of the
+    /// launcher's first start. A folder holding nothing but that, or nothing
+    /// at all, is not Rockstar's: counted as an install, one first run that
+    /// never got as far as installing the launcher would keep every later
+    /// Steam start swapped and writing Rockstar's chain, and the teardown
+    /// once Rockstar's uninstaller has removed its own files could never
+    /// come, since Whisky's copies would be what kept the folder there.
     static func rockstarInstalled(bottleURL: URL) -> Bool {
         let driveC = bottleURL.appending(path: "drive_c")
         return ["Program Files", "Program Files (x86)"].contains { programFiles in
             let folder = driveC.appending(path: programFiles).appending(path: "Rockstar Games")
             return FileManager.default.fileExists(atPath: folder.path(percentEncoded: false))
+                && !holdsNothingOfRockstars(folder)
+        }
+    }
+
+    /// Whether `rockstarGames` holds nothing but Finder's `.DS_Store` and a
+    /// `Social Club` folder holding nothing but that and the swap's copies.
+    private static func holdsNothingOfRockstars(_ rockstarGames: URL) -> Bool {
+        func entries(_ url: URL) -> [String]? {
+            (try? FileManager.default.contentsOfDirectory(atPath: url.path(percentEncoded: false)))?
+                .filter { $0 != ".DS_Store" }
+        }
+        guard let names = entries(rockstarGames) else { return false }
+        return names.allSatisfy { name in
+            name.lowercased() == "social club"
+                && entries(rockstarGames.appending(path: name))?.allSatisfy(rockstarD3DCopyDLLs.contains) == true
         }
     }
 
@@ -82,9 +107,10 @@ extension Wine {
     /// `Launcher.exe` gets its `Direct3D` key alongside, and only while its
     /// entry is the one written here: a game's own `Launcher.exe`, whose plan
     /// a Steam launch writes first, keeps the game's renderer as well. On the
-    /// builtin layout that key asks for wined3d's OpenGL renderer, without
-    /// which the launcher dies at "Initializing group 1"; on any other it asks
-    /// for nothing, which takes back a renderer Whisky wrote earlier.
+    /// builtin and swapped layouts, where `Launcher.exe` draws on wined3d,
+    /// that key asks for wined3d's OpenGL renderer, without which the launcher
+    /// dies at "Initializing group 1"; on a degraded one it asks for nothing,
+    /// which takes back a renderer Whisky wrote earlier.
     ///
     /// Every role starts from the launcher set without the user's own
     /// overrides, a launch of Rockstar's launcher from the Programs tab
@@ -117,7 +143,7 @@ extension Wine {
                 dllOverrideLogger.info("\(executable, privacy: .public) keeps this launch's own plan")
                 continue
             }
-            scopes.add(settings: .direct3D(executable), layout == .builtin ? "renderer=gl" : "")
+            scopes.add(settings: .direct3D(executable), layout.usesWineDirect3D ? "renderer=gl" : "")
             dllOverrideLogger.info(
                 "\(executable, privacy: .public): Rockstar layout \(layout.summary, privacy: .public)"
             )
@@ -155,8 +181,15 @@ extension Wine {
     /// own `d3d10core`, `d3d11` and `dxgi` pinned to builtin. Builtin, not
     /// `n,b`: DXVK's files stay in `system32` for everything else, and Wine
     /// loads its builtin even when a launch names the file there by full path.
-    /// `d3d12` stays off (#276), and NVIDIA's bridges too: `nvapi64` took the
-    /// launcher down with an access violation right after sign-in.
+    ///
+    /// On the swapped layout the runtime's `d3d11` and `dxgi` are GPTK's
+    /// forwarders, and Wine's own sit in `system32` as native copies with the
+    /// marker stripped, so `Launcher.exe` asks for those two native first,
+    /// `n,b`. `d3d10core` stays builtin: `system32` keeps DXVK's, and the
+    /// runtime's is Wine's own, since GPTK never replaces it.
+    ///
+    /// On both, `d3d12` stays off (#276), and NVIDIA's bridges too: `nvapi64`
+    /// took the launcher down with an access violation right after sign-in.
     ///
     /// Anything else gets the launcher set, the DXVK preset, with `d3d12` and
     /// the NVIDIA bridges off: `SocialClubHelper.exe`, which is Chromium and
@@ -170,12 +203,14 @@ extension Wine {
     static func rockstarChainOverrides(
         role: LauncherChainRole, layout: RockstarD3DLayout, launcherSet: String
     ) -> String {
-        guard role == .wineDirect3D, layout == .builtin else {
+        guard role == .wineDirect3D, layout.usesWineDirect3D else {
             return disablingNVAPI(in: disablingD3D12(in: launcherSet))
         }
         var parsed = parseDLLOverrides(launcherSet)
-        for dll in ["d3d10core", "d3d11", "dxgi"] {
-            parsed[dll] = "b"
+        let fromSystem32 = layout != .builtin
+        parsed["d3d10core"] = "b"
+        for dll in ["d3d11", "dxgi"] {
+            parsed[dll] = fromSystem32 ? "n,b" : "b"
         }
         for dll in ["d3d12", "nvapi", "nvapi64", "nvngx"] {
             parsed[dll] = ""

@@ -75,21 +75,35 @@ extension Wine {
     ///     its library games, whose plans decide which copies stay; `nil` for anything else.
     ///   - dxvkFolder: The DXVK payload.
     ///   - dxmtFolder: The DXMT payload.
+    ///   - rockstar: The launch, for the Rockstar Games Launcher's Direct3D in
+    ///     `system32` (``deployDXVK(bottle:from:rockstar:ops:)``); `nil`
+    ///     deploys DXVK exactly as it was deployed before the swap existed.
+    ///     Only read when the launch deploys DXVK: a launch on DXMT has
+    ///     already put DXMT's `d3d11` into `system32`, and nothing here may
+    ///     write over it.
+    /// - Returns: The layout the launch decided for Rockstar's `Launcher.exe`,
+    ///   or `nil` when it decided none and the DLL override step resolves it.
     /// - Throws: An error if DXVK's files cannot be copied. The game folders never throw.
     @MainActor
+    @discardableResult
     static func deployLauncherAndGameLayers(
         bottle: Bottle, effectiveBackend: GraphicsBackend, programOverrides: ProgramOverrides?,
         launcherCarriesDescendantPlan: Bool, gameExecutables: [URL], steamGamesBackend: GraphicsBackend? = nil,
-        dxvkFolder: URL = Wine.dxvkFolder, dxmtFolder: URL = Wine.dxmtFolder
-    ) throws {
+        dxvkFolder: URL = Wine.dxvkFolder, dxmtFolder: URL = Wine.dxmtFolder, rockstar: RockstarD3DLaunch? = nil
+    ) throws -> RockstarD3DLayout? {
         let legacyProgramDXVK = programOverrides?.graphicsBackend == nil && programOverrides?.dxvk == true
         let shouldEnableDXVK = deploysDXVK(
             effectiveBackend: effectiveBackend, legacyProgramDXVK: legacyProgramDXVK,
             launcherCarriesDescendantPlan: launcherCarriesDescendantPlan,
             autoEnableDXVK: bottle.settings.autoEnableDXVK, detectedLauncher: bottle.settings.detectedLauncher
         )
+        var rockstarLayout: RockstarD3DLayout?
         if shouldEnableDXVK {
-            try enableDXVK(bottle: bottle, from: dxvkFolder)
+            if let rockstar {
+                rockstarLayout = try deployDXVK(bottle: bottle, from: dxvkFolder, rockstar: rockstar)
+            } else {
+                try enableDXVK(bottle: bottle, from: dxvkFolder)
+            }
         }
 
         if let steamGamesBackend {
@@ -104,6 +118,7 @@ extension Wine {
             ),
             executables: gameExecutables, bottleURL: bottle.url, payloadRoot: dxmtFolder
         )
+        return rockstarLayout
     }
 }
 

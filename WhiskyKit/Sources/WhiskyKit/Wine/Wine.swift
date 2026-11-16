@@ -448,6 +448,10 @@ public class Wine {
     ///   - dxmtFolder: The DXMT payload a launch on DXMT copies into the prefix and, for a
     ///     launcher carrying a DXMT plan or a game with copies already recorded, beside the
     ///     game's executables. Defaults to the installed one; tests pass their own.
+    ///   - rockstarRuntime: Where a DXVK launch in a bottle with the Rockstar Games Launcher
+    ///     reads Wine's own `d3d11` and `dxgi` for its swapped layout. Defaults to the
+    ///     installed runtime and GPTK store; tests pass fixtures, or a runtime holding
+    ///     nothing, so a Mac with GPTK deployed cannot swap a test bottle.
     /// - Returns: The environment and `wine64` arguments the launch runs with.
     /// - Throws: An error if a backend's files cannot be deployed or the DLL override import
     ///   cannot be started. A failed font alias import is only logged.
@@ -467,7 +471,8 @@ public class Wine {
         importer: RegistryImporter = { try await importRegistry(document: $0, bottle: $1) },
         virtualDesktopQuery: VirtualDesktopQuery = { try await isVirtualDesktopEnabled(bottle: $0) },
         dxvkFolder: URL = Wine.dxvkFolder,
-        dxmtFolder: URL = Wine.dxmtFolder
+        dxmtFolder: URL = Wine.dxmtFolder,
+        rockstarRuntime: RockstarD3DRuntime = .installed
     ) async throws -> PreparedLaunch {
         // Font aliases first, before any setting is read: their import can take
         // a few seconds, and a setting changed during it would leave this launch
@@ -513,21 +518,19 @@ public class Wine {
 
         try prepareBackendPrefix(effectiveBackend, bottle: bottle, dxmtFolder: dxmtFolder)
 
-        // The MetalFX placeholder serves the bottle's games, and only D3DMetal
-        // answers it. A launcher's or front end's own launch says nothing about
-        // them, so it is keyed on what they resolve to: keyed on the launcher's
-        // DXVK, every Steam start took away the placeholder its games need
-        // (#276), and 3DMark's DLSS feature test is a D3DMetal workload.
-        let gamesBackend = bottle.settings.graphicsBackend == .recommended
-            ? recommendedBackend : bottle.settings.graphicsBackend
-        applyMetalFX(bottle: bottle, backend: steering == nil ? effectiveBackend : gamesBackend)
+        applyLaunchMetalFX(bottle, effectiveBackend, steered: steering != nil, games: recommendedBackend)
 
-        try deployLauncherAndGameLayers(
+        let rockstarLayout = try deployLauncherAndGameLayers(
             bottle: bottle, effectiveBackend: effectiveBackend, programOverrides: programOverrides,
             launcherCarriesDescendantPlan: overridesApplyToDescendants && launcher != nil,
             gameExecutables: overridesApplyToDescendants ? descendantExecutableURLs : [url],
             steamGamesBackend: launcher == .steam ? recommendedBackend : nil,
-            dxvkFolder: dxvkFolder, dxmtFolder: dxmtFolder
+            dxvkFolder: dxvkFolder, dxmtFolder: dxmtFolder,
+            rockstar: RockstarD3DLaunch(
+                url: url, launcher: launcher, descendantLaunchers: descendantLaunchers,
+                recommendedBackend: recommendedBackend, payloadDeployed: builtinD3D12IsD3DMetal,
+                runtime: rockstarRuntime
+            )
         )
 
         var wineEnvironment = launchEnvironment(
@@ -546,6 +549,7 @@ public class Wine {
             descendantLaunchers: descendantLaunchers,
             recommendedBackend: recommendedBackend,
             builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal,
+            rockstarLayout: rockstarLayout,
             writer: overrideWriter
         )
 
@@ -1138,17 +1142,41 @@ public class Wine {
 
     /// Installs the DXVK libraries in `dxvkFolder` into a bottle's Windows
     /// system directories. Tests pass a folder of their own.
+    ///
+    /// With `system32D3D11Source`, `system32\d3d11.dll` is not DXVK's but
+    /// Wine's own `d3d11` from that builtin-marked file, with the marker
+    /// stripped (``installStrippedCopy(at:from:)``, a no-op when it already
+    /// is): the Rockstar Games Launcher's swapped layout
+    /// (``RockstarD3DLayout/swapped(source:)``). The slot is never handed to
+    /// DXVK in between, so a process starting during the deploy finds one or
+    /// the other, both whole. `syswow64` and every other DLL get DXVK as
+    /// without it, and `dxgi.dll` is reconciled after, as on every launch.
+    ///
+    /// - Parameters:
+    ///   - bottle: The bottle to install into.
+    ///   - dxvkFolder: The DXVK payload, with an `x64` and an `x32` folder.
+    ///   - system32D3D11Source: Wine's builtin-marked `d3d11.dll` for the
+    ///     swapped layout, or `nil` for DXVK's own.
+    ///   - reconcileDXGI: Puts the right `dxgi.dll` into the prefix at the
+    ///     given root. Tests pin the runtime it reads.
     @MainActor
-    static func enableDXVK(bottle: Bottle, from dxvkFolder: URL) throws {
+    static func enableDXVK(
+        bottle: Bottle, from dxvkFolder: URL, system32D3D11Source: URL? = nil,
+        reconcileDXGI: (URL) -> Void = { reconcileDXGIForDXVK(prefixRoot: $0) }
+    ) throws {
+        let windows = bottle.url.appending(path: "drive_c").appending(path: "windows")
+        let system32 = windows.appending(path: "system32")
         try FileManager.default.replaceDLLs(
-            in: bottle.url.appending(path: "drive_c").appending(path: "windows").appending(path: "system32"),
-            withContentsIn: dxvkFolder.appending(path: "x64")
+            in: system32, withContentsIn: dxvkFolder.appending(path: "x64"),
+            excluding: system32D3D11Source == nil ? [] : ["d3d11.dll"]
         )
         try FileManager.default.replaceDLLs(
-            in: bottle.url.appending(path: "drive_c").appending(path: "windows").appending(path: "syswow64"),
-            withContentsIn: dxvkFolder.appending(path: "x32")
+            in: windows.appending(path: "syswow64"), withContentsIn: dxvkFolder.appending(path: "x32")
         )
-        reconcileDXGIForDXVK(prefixRoot: bottle.url)
+        if let system32D3D11Source {
+            try installStrippedCopy(at: system32.appending(path: "d3d11.dll"), from: system32D3D11Source)
+        }
+        reconcileDXGI(bottle.url)
     }
 
     /// Reconciles the prefix's `dxgi.dll` with the GPTK payload state, keyed on
@@ -1438,6 +1466,28 @@ public class Wine {
         case .d3dMetal, .dxvk, .wined3d, .recommended:
             break
         }
+    }
+
+    /// ``applyMetalFX(bottle:backend:libraryFolder:)`` for a launch.
+    ///
+    /// The MetalFX placeholder serves the bottle's games, and only D3DMetal
+    /// answers it. A launcher's or front end's own launch says nothing about
+    /// them, so it is keyed on what they resolve to: keyed on the launcher's
+    /// DXVK, every Steam start took away the placeholder its games need
+    /// (#276), and 3DMark's DLSS feature test is a D3DMetal workload.
+    ///
+    /// - Parameters:
+    ///   - bottle: The bottle the launch runs in.
+    ///   - launchBackend: The launch's effective backend.
+    ///   - steered: Whether Recommended steered the launched executable to DXVK.
+    ///   - recommendedBackend: What `.recommended` resolves to for the bottle's games.
+    @MainActor
+    private static func applyLaunchMetalFX(
+        _ bottle: Bottle, _ launchBackend: GraphicsBackend, steered: Bool, games recommendedBackend: GraphicsBackend
+    ) {
+        let gamesBackend = bottle.settings.graphicsBackend == .recommended
+            ? recommendedBackend : bottle.settings.graphicsBackend
+        applyMetalFX(bottle: bottle, backend: steered ? gamesBackend : launchBackend)
     }
 
     /// Opts a bottle in or out of D3DMetal's DLSS-to-MetalFX path, per

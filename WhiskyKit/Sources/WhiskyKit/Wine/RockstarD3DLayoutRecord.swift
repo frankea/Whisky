@@ -87,52 +87,16 @@ struct RockstarD3DLayoutRecord: Codable, Equatable {
     /// shared bottle, and its paths are what a teardown removes and what the
     /// diagnostics report hashes. So every entry that does not stay inside
     /// the bottle's `drive_c` is dropped here, before any code uses it
-    /// (``isContained(_:in:)``).
+    /// (``DriveCRecordKey/isContained(_:in:)``).
     static func load(from bottleURL: URL) -> RockstarD3DLayoutRecord? {
         guard let data = try? Data(contentsOf: url(in: bottleURL)),
               var record = try? PropertyListDecoder().decode(RockstarD3DLayoutRecord.self, from: data),
               record.version <= currentVersion
         else { return nil }
         let driveC = bottleURL.appending(path: "drive_c")
-        record.copies = record.copies.filter { isContained($0.key, in: driveC) }
-        record.createdFolders = record.createdFolders.filter { isContained($0, in: driveC) }
+        record.copies = record.copies.filter { DriveCRecordKey.isContained($0.key, in: driveC) }
+        record.createdFolders = record.createdFolders.filter { DriveCRecordKey.isContained($0, in: driveC) }
         return record
-    }
-
-    /// Whether `key` names a path inside `driveC`, as every key Whisky writes
-    /// does: relative, `/`-separated, with no empty, `.` or `..` component, no
-    /// backslash and no control character, and still inside `driveC` once
-    /// symbolic links are followed. Wine links `drive_c/users/<name>/Documents`
-    /// and its siblings into the Mac's home folder, so a key that is clean on
-    /// its face can still lead out of the bottle.
-    static func isContained(_ key: String, in driveC: URL) -> Bool {
-        let components = key.split(separator: "/", omittingEmptySubsequences: false)
-        guard !key.isEmpty, !key.contains("\\"),
-              !key.unicodeScalars.contains(where: { $0.properties.generalCategory == .control }),
-              components.allSatisfy({ !$0.isEmpty && $0 != "." && $0 != ".." })
-        else { return false }
-        let root = resolvedPath(driveC)
-        let resolved = resolvedPath(driveC.appending(path: key))
-        return resolved.hasPrefix(root.hasSuffix("/") ? root : root + "/")
-    }
-
-    /// `url` with symbolic links followed in its deepest part that exists.
-    /// `resolvingSymlinksInPath()` gives up on a path whose last part does
-    /// not exist yet, which would let a missing file under a linked folder
-    /// pass for one inside the bottle.
-    private static func resolvedPath(_ url: URL) -> String {
-        var existing = url.standardizedFileURL
-        var rest: [String] = []
-        while !FileManager.default.fileExists(atPath: existing.path(percentEncoded: false)),
-              existing.pathComponents.count > 1 {
-            rest.insert(existing.lastPathComponent, at: 0)
-            existing.deleteLastPathComponent()
-        }
-        var resolved = existing.resolvingSymlinksInPath()
-        for component in rest {
-            resolved.append(path: component)
-        }
-        return resolved.standardizedFileURL.path(percentEncoded: false)
     }
 
     /// Writes the record in one step, so a reader never sees half of it.

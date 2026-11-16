@@ -62,10 +62,17 @@ struct DXMTGameFolderRecord: Codable, Equatable {
     }
 
     /// The bottle's record, or an empty one when there is none or it cannot be read.
+    ///
+    /// Every copy whose path does not stay inside the bottle's `drive_c` is
+    /// dropped here (``DriveCRecordKey/isContained(_:in:)``). The removals
+    /// and deploys re-check each folder they touch as well, so this keeps such
+    /// a path from reaching any other code that reads the record.
     static func load(from bottleURL: URL) -> DXMTGameFolderRecord {
         guard let data = try? Data(contentsOf: url(in: bottleURL)),
-              let record = try? PropertyListDecoder().decode(DXMTGameFolderRecord.self, from: data)
+              var record = try? PropertyListDecoder().decode(DXMTGameFolderRecord.self, from: data)
         else { return DXMTGameFolderRecord() }
+        let driveC = bottleURL.appending(path: "drive_c")
+        record.copies = record.copies.filter { DriveCRecordKey.isContained($0.key, in: driveC) }
         return record
     }
 

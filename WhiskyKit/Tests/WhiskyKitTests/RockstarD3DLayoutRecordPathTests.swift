@@ -52,7 +52,7 @@ struct RockstarD3DLayoutRecordPathTests {
             "Program Files/Rockstar Games/Social Club/d3d10core.dll",
             "Program Files/Rockstar Games/Social Club"
         ] {
-            #expect(RockstarD3DLayoutRecord.isContained(key, in: driveC), "\(key)")
+            #expect(DriveCRecordKey.isContained(key, in: driveC), "\(key)")
         }
     }
 
@@ -63,7 +63,7 @@ struct RockstarD3DLayoutRecordPathTests {
         "users/crossover/Documents"
     ])
     func escapingKeysAreRefused(key: String) {
-        #expect(!RockstarD3DLayoutRecord.isContained(key, in: driveC))
+        #expect(!DriveCRecordKey.isContained(key, in: driveC))
     }
 
     @Test("Loading drops every entry that leaves drive_c, so a teardown never sees it")

@@ -53,6 +53,9 @@ enum Telemetry {
         /// Extraction succeeded but the archive held no usable runtime (e.g.
         /// the `wine64` binary is missing), so the installed one was kept.
         case runtimeIncomplete = "runtime_incomplete"
+        /// A web page came back instead of the version plist or the runtime
+        /// archive: a network filter, firewall or sign-in page is in the way.
+        case networkBlocked = "network_blocked"
     }
 
     enum Event {

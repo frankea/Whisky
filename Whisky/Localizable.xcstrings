@@ -78238,6 +78238,22 @@
         }
       }
     },
+    "setup.whiskywine.error.blockedByNetwork" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A web page came back instead of the download, so a network filter or Wi-Fi sign-in page is probably blocking it. Try another network, or ask the network's administrator to allow frankea.github.io, github.com and githubusercontent.com."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A web page came back instead of the download, so a network filter or Wi-Fi sign-in page is probably blocking it. Try another network, or ask the network's administrator to allow frankea.github.io, github.com and githubusercontent.com."
+          }
+        }
+      }
+    },
     "setup.whiskywine.error.checksumMismatch" : {
       "localizations" : {
         "ar" : {

@@ -90,7 +90,9 @@ struct WhiskyWineDownloadView: View {
             }
             Spacer()
         }
-        .frame(width: 400, height: 200)
+        // Grows past the 200 point minimum so a long error message isn't cut to one line.
+        .frame(width: 400)
+        .frame(minHeight: 200)
         .onAppear {
             // Guard against multiple onAppear calls from NavigationStack so the
             // once-per-setup-attempt runtime_install_started capture holds.
@@ -118,6 +120,7 @@ extension WhiskyWineDownloadView {
             Text(error)
                 .font(.subheadline)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal)
 
             HStack(spacing: 12) {
@@ -230,7 +233,8 @@ extension WhiskyWineDownloadView {
                 return
             }
 
-            let versionInfo = try PropertyListDecoder().decode(WhiskyWineVersion.self, from: data)
+            guard let versionInfo = try decodeVersionPlist(data, response: response, requestedURL: versionURL)
+            else { return }
             expectedSHA256 = versionInfo.sha256
 
             let version = versionInfo.version
@@ -350,20 +354,7 @@ extension WhiskyWineDownloadView {
             case .unreadable: "expected \(expected), archive unreadable"
             }
             if let failure {
-                diagnostics.record("Integrity check FAILED — \(failure)")
-                // Discard the archive plus any resume artifacts so the next
-                // attempt restarts from a clean slate, never from bad bytes.
-                ResumableDownloader.discardArtifacts(at: fileURL)
-                setDownloadFailure(
-                    String(
-                        localized: "setup.whiskywine.error.checksumMismatch",
-                        defaultValue: """
-                        The downloaded Wine runtime failed its integrity check and was not installed. \
-                        This usually means the download was corrupted. Please try again.
-                        """
-                    ),
-                    reason: .verifyFailed
-                )
+                failVerification(fileURL: fileURL, detail: failure)
                 return
             }
             diagnostics.record("Integrity check passed")

@@ -126,7 +126,7 @@ funnel, so the maintainer can see where new installs fail:
 | --- | --- |
 | `runtime_install_started` | — |
 | `runtime_install_succeeded` | — |
-| `runtime_install_failed` | `reason`: one of `download_failed`, `verify_failed`, `tarball_missing`, `extract_failed`, `runtime_incomplete` |
+| `runtime_install_failed` | `reason`: one of `download_failed`, `verify_failed`, `tarball_missing`, `extract_failed`, `runtime_incomplete`, `network_blocked` |
 | `first_bottle_created` | — |
 | `first_program_launch_attempted` | — |
 

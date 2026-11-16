@@ -148,7 +148,7 @@ struct ContentView: View {
             BottleCreationView(newlyCreatedBottleURL: $newlyCreatedBottleURL)
         }
         .sheet(isPresented: $showSetup) {
-            SetupView(showSetup: $showSetup, firstTime: false, updatingRuntime: updatingRuntime)
+            SetupView(showSetup: $showSetup, firstTime: false, updatingRuntime: $updatingRuntime)
         }
         .onChange(of: showSetup) { _, isShowing in
             if !isShowing {

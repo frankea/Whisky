@@ -25,8 +25,11 @@ struct RosettaView: View {
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
     /// Set during a runtime update, when the installed runtime is still in
-    /// place but a new one has to be downloaded after Rosetta.
-    var updatingRuntime: Bool = false
+    /// place but a new one has to be downloaded after Rosetta. A binding, not a
+    /// copied value: the install runs in a detached task holding a copy of this
+    /// view, and the user can accept the update while it runs, so ``proceed()``
+    /// has to read the current value rather than the one at onAppear.
+    @Binding var updatingRuntime: Bool
 
     var body: some View {
         VStack {
@@ -118,5 +121,5 @@ struct RosettaView: View {
 }
 
 #Preview {
-    RosettaView(path: .constant([]), showSetup: .constant(true))
+    RosettaView(path: .constant([]), showSetup: .constant(true), updatingRuntime: .constant(false))
 }

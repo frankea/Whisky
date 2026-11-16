@@ -33,8 +33,9 @@ struct SetupView: View {
     var firstTime: Bool = true
     /// Set when the user accepted a runtime update. The installed runtime stays
     /// in place until the new one has been extracted, so setup has to go to the
-    /// download stage even though a runtime is already installed.
-    var updatingRuntime: Bool = false
+    /// download stage even though a runtime is already installed. A binding,
+    /// since the user can accept the update after setup has opened.
+    @Binding var updatingRuntime: Bool
 
     var body: some View {
         VStack {
@@ -44,7 +45,7 @@ struct SetupView: View {
                     .navigationDestination(for: SetupStage.self) { stage in
                         switch stage {
                         case .rosetta:
-                            RosettaView(path: $path, showSetup: $showSetup, updatingRuntime: updatingRuntime)
+                            RosettaView(path: $path, showSetup: $showSetup, updatingRuntime: $updatingRuntime)
                         case .whiskyWineDownload:
                             WhiskyWineDownloadView(
                                 tarLocation: $tarLocation,

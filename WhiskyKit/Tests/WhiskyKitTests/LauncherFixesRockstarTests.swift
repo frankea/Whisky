@@ -80,6 +80,7 @@ final class LauncherFixesRockstarTests: LauncherFixesTestCase {
         try installSteam()
         let bottle = makeBottle()
         let before = bottleOverrides(bottle)
+        let compatibilityBefore = bottle.settings.launcherCompatibilityMode
 
         for force in [false, true] {
             LauncherFixes.apply(to: bottle, launcher: .rockstar, force: force, recommendedBackend: .d3dMetal)
@@ -89,7 +90,9 @@ final class LauncherFixesRockstarTests: LauncherFixesTestCase {
             XCTAssertFalse(bottle.settings.dxvk)
             XCTAssertEqual(bottleOverrides(bottle), before)
         }
-        XCTAssertTrue(bottle.settings.launcherCompatibilityMode)
+        // Nothing in the bottle's settings changes, compatibility mode included.
+        XCTAssertEqual(bottle.settings.launcherCompatibilityMode, compatibilityBefore)
+        XCTAssertEqual(try persistedSettings().launcherCompatibilityMode, compatibilityBefore)
         XCTAssertNil(try persistedSettings().detectedLauncher)
     }
 

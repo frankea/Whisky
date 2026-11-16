@@ -136,21 +136,21 @@ public enum LauncherFixes {
         to bottle: Bottle, launcher: LauncherType, force: Bool = false,
         recommendedBackend: GraphicsBackend = GraphicsBackendResolver.resolve()
     ) {
-        // Enable launcher compatibility mode
-        if !bottle.settings.launcherCompatibilityMode || force {
-            bottle.settings.launcherCompatibilityMode = true
-        }
-
         // Rockstar's profile is bottle-wide DXVK: the setting, and the DXVK
         // preset `requiresDXVK` adds to the bottle's overrides (and so to every
         // Steam game's plan) for as long as Rockstar is the detected launcher.
         // A Steam bottle's games run on D3DMetal, so the profile is never
-        // applied there, forced or not (#382). Rockstar's own processes get
-        // their entries from every launch in that bottle either way.
+        // applied there, forced or not (#382), and the bottle's settings are
+        // left exactly as they were. Rockstar's own processes get their
+        // entries from every launch in that bottle either way.
         if launcher == .rockstar, hasSteam(bottle) {
-            bottle.saveBottleSettings()
             Logger.wineKit.info("Kept the Steam profile over Rockstar's for bottle '\(bottle.settings.name)'")
             return
+        }
+
+        // Enable launcher compatibility mode
+        if !bottle.settings.launcherCompatibilityMode || force {
+            bottle.settings.launcherCompatibilityMode = true
         }
 
         // Set detected launcher

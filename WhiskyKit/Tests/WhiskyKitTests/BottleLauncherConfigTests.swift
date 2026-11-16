@@ -150,6 +150,35 @@ final class BottleLauncherConfigTests: XCTestCase {
         XCTAssertEqual(launcherOverrides.first { $0.entry.dllName == "d3d12" }?.entry.mode, .disabled)
     }
 
+    func testRockstarWineD3DIsOnWhenTheKeyIsAbsent() throws {
+        let data = try PropertyListEncoder().encode(BottleLauncherConfig())
+        let decoded = try PropertyListDecoder().decode(BottleLauncherConfig.self, from: data)
+
+        XCTAssertNil(decoded.rockstarWineD3D)
+        XCTAssertTrue(BottleSettings().rockstarWineD3D)
+    }
+
+    func testUntouchedConfigEncodesWithoutTheRockstarKey() throws {
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let xml = try XCTUnwrap(String(data: encoder.encode(BottleLauncherConfig()), encoding: .utf8))
+
+        XCTAssertFalse(xml.contains("rockstarWineD3D"))
+    }
+
+    func testRockstarWineD3DOffRoundTrips() throws {
+        let url = FileManager.default.temporaryDirectory.appending(path: "rockstar_setting_\(UUID().uuidString).plist")
+        defer { try? FileManager.default.removeItem(at: url) }
+        var settings = BottleSettings()
+        settings.rockstarWineD3D = false
+
+        try settings.encode(to: url)
+        let xml = try String(contentsOf: url, encoding: .utf8)
+
+        XCTAssertTrue(xml.contains("rockstarWineD3D"))
+        XCTAssertFalse(try BottleSettings.decode(from: url).rockstarWineD3D)
+    }
+
     func testNoInventedNetworkVariables() {
         var settings = BottleSettings()
         settings.launcherCompatibilityMode = true

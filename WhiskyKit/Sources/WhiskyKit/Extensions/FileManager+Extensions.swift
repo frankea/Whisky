@@ -19,9 +19,21 @@
 import Foundation
 
 extension FileManager {
+    /// Replaces each DLL in `destinationDirectory` that `sourceDirectory` also
+    /// holds with the source's copy (``replaceFile(at:with:makeOriginalCopy:)``).
+    ///
+    /// - Parameters:
+    ///   - destinationDirectory: The folder whose DLLs are replaced.
+    ///   - sourceDirectory: The folder the replacements come from.
+    ///   - makeOriginalCopy: Whether to keep each original as `<name>.orig`.
+    ///   - excluding: DLL file names to leave as they are, compared without
+    ///     case: a slot something else fills, such as the `d3d11.dll` a bottle
+    ///     on the Rockstar launcher's swapped layout takes from Wine.
     func replaceDLLs(
-        in destinationDirectory: URL, withContentsIn sourceDirectory: URL, makeOriginalCopy: Bool = false
+        in destinationDirectory: URL, withContentsIn sourceDirectory: URL, makeOriginalCopy: Bool = false,
+        excluding: Set<String> = []
     ) throws {
+        let excluded = Set(excluding.map { $0.lowercased() })
         let enumerator = FileManager.default.enumerator(
             at: sourceDirectory, includingPropertiesForKeys: [.isRegularFileKey]
         )
@@ -32,7 +44,8 @@ extension FileManager {
             // (.DS_Store, license text). Using `return` here would abort the
             // whole copy on the first such entry, silently leaving later DLLs
             // uninstalled.
-            guard fileURL.pathExtension == "dll" else { continue }
+            guard fileURL.pathExtension == "dll", !excluded.contains(fileURL.lastPathComponent.lowercased())
+            else { continue }
             let originalURL = destinationDirectory.appending(path: fileURL.lastPathComponent)
             try FileManager.default.replaceFile(at: originalURL, with: fileURL, makeOriginalCopy: makeOriginalCopy)
         }

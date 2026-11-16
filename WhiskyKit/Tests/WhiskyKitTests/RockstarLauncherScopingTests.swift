@@ -22,15 +22,20 @@ import Testing
 
 extension ScopeRecorder {
     /// Rockstar's chain as `layout` gives it: `Launcher.exe` on Wine's own
-    /// Direct3D with the OpenGL renderer, or on DXVK where that cannot be
-    /// reached, and Social Club's Chromium helper on DXVK. Neither reaches
-    /// `d3d12` or NVIDIA's bridges.
+    /// Direct3D with the OpenGL renderer, from the runtime or from `system32`,
+    /// or on DXVK where neither can be reached, and Social Club's Chromium
+    /// helper on DXVK. Neither reaches `d3d12` or NVIDIA's bridges.
     func expectRockstarChain(layout: RockstarD3DLayout, sourceLocation: SourceLocation = #_sourceLocation) {
         let launcher = overrides(for: .program("Launcher.exe"))
         let helper = overrides(for: .program("SocialClubHelper.exe"))
-        let onWineD3D = layout == .builtin
+        let onWineD3D = layout.usesWineDirect3D
         for dll in ["d3d10core", "d3d11", "dxgi"] {
-            #expect(launcher?[dll] == (onWineD3D ? "b" : "n,b"), "Launcher.exe: \(dll)", sourceLocation: sourceLocation)
+            let expected = switch layout {
+            case .builtin: "b"
+            case .swapped: dll == "d3d10core" ? "b" : "n,b"
+            case .degraded: "n,b"
+            }
+            #expect(launcher?[dll] == expected, "Launcher.exe: \(dll)", sourceLocation: sourceLocation)
             #expect(helper?[dll] == "n,b", "SocialClubHelper.exe: \(dll)", sourceLocation: sourceLocation)
         }
         for dll in ["d3d12", "nvapi", "nvapi64", "nvngx"] {
@@ -120,6 +125,29 @@ final class RockstarLauncherScopingTests {
         #expect(degradedEntries.first { $0.scope == .program("SocialClubHelper.exe") }?.overrides == chromium)
         // Asks for no renderer, which takes back one Whisky wrote before.
         #expect(degradedEntries.first { $0.scope == .direct3D("Launcher.exe") }?.overrides == "")
+
+        // Wine's d3d11 and dxgi native from system32, d3d10core still the runtime's builtin.
+        let swapped = ScopeRecorder()
+        try await applySteamOverrides(
+            bottle, layout: .swapped(source: URL(filePath: "/originals/d3d11.dll")), recorder: swapped
+        )
+        let swappedEntries = try #require(swapped.writes.first)
+        #expect(swappedEntries.first { $0.scope == .program("Launcher.exe") }?.overrides
+            == "d3d10core=b;d3d11=n,b;d3d12=;d3d9=n,b;dxgi=n,b;nvapi=;nvapi64=;nvngx=")
+        #expect(swappedEntries.first { $0.scope == .program("SocialClubHelper.exe") }?.overrides == chromium)
+        #expect(swappedEntries.first { $0.scope == .direct3D("Launcher.exe") }?.overrides == "renderer=gl")
+    }
+
+    @Test("Every degraded reason writes Launcher.exe the same set", arguments: [
+        RockstarD3DLayout.Reason.disabledByUser, .sourceUnavailable("x"), .bottleUsesNativeD3D11,
+        .dxvkPlanGames(["Game"]), .unservedConsumers(["EADesktop.exe"]), .swapFailed("x")
+    ])
+    func everyDegradedReasonWritesTheSameSet(_ reason: RockstarD3DLayout.Reason) {
+        let launcherSet = "d3d10core=n,b;d3d11=n,b;d3d9=n,b;dxgi=n,b"
+        #expect(Wine.rockstarChainOverrides(role: .wineDirect3D, layout: .degraded(reason), launcherSet: launcherSet)
+            == Wine.rockstarChainOverrides(
+                role: .wineDirect3D, layout: .degraded(.gptkForwarders), launcherSet: launcherSet
+            ))
     }
 
     @Test("A bottle without Rockstar writes what it wrote before, and no Direct3D key")
@@ -142,7 +170,8 @@ final class RockstarLauncherScopingTests {
 
         let launch = try await Wine.prepareProgramLaunch(
             at: launcher, bottle: bottle, recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: false,
-            overrideWriter: recorder.writer, importer: recorder.importer
+            overrideWriter: recorder.writer, importer: recorder.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
 
         recorder.expectRockstarChain(layout: .builtin)
@@ -160,7 +189,8 @@ final class RockstarLauncherScopingTests {
 
         _ = try await Wine.prepareProgramLaunch(
             at: other, bottle: bottle, recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: false,
-            overrideWriter: recorder.writer, importer: recorder.importer
+            overrideWriter: recorder.writer, importer: recorder.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
 
         #expect(recorder.programScopes == ["launcher.exe"])
@@ -184,7 +214,8 @@ final class RockstarLauncherScopingTests {
 
         _ = try await Wine.prepareProgramLaunch(
             at: program, bottle: bottle, recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: false,
-            overrideWriter: recorder.writer, importer: recorder.importer
+            overrideWriter: recorder.writer, importer: recorder.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
 
         #expect(!Wine.isRockstarLauncher(program))
@@ -225,7 +256,8 @@ final class RockstarLauncherScopingTests {
 
         _ = try await Wine.prepareProgramLaunch(
             at: other, bottle: bottle, recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: false,
-            overrideWriter: recorder.writer, importer: recorder.importer
+            overrideWriter: recorder.writer, importer: recorder.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
 
         let entries = try #require(recorder.writes.first)
@@ -269,7 +301,8 @@ final class RockstarLauncherScopingTests {
             overridesApplyToDescendants: true, descendantExecutables: ["Game.exe"],
             descendantLaunchers: plan.startsLaunchers,
             recommendedBackend: .d3dMetal, builtinD3D12IsD3DMetal: false,
-            overrideWriter: recorder.writer, importer: recorder.importer
+            overrideWriter: recorder.writer, importer: recorder.importer,
+            rockstarRuntime: .unavailable(in: tempRoot)
         )
 
         recorder.expectRockstarChain(layout: .builtin)

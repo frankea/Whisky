@@ -80,6 +80,15 @@ public struct BottleLauncherConfig: Codable, Equatable {
     /// Some launchers (Rockstar) will not render UI without DXVK.
     var autoEnableDXVK: Bool = true
 
+    /// Whether the Rockstar Games Launcher may get Wine's own `d3d11` in this
+    /// bottle's `system32` while GPTK is deployed (#382); `nil` means on.
+    ///
+    /// Optional so that a bottle nobody changed it in keeps its settings file
+    /// as it was: the synthesized encoder writes an optional only when it is
+    /// set, where a `Bool` defaulting to `true` would add the key to every
+    /// bottle's file the next time anything else in it is saved.
+    var rockstarWineD3D: Bool?
+
     /// The last ``LauncherBackendMigration`` this bottle has been through.
     ///
     /// A bottle created by this version starts at the current one, since the
@@ -118,6 +127,7 @@ public struct BottleLauncherConfig: Codable, Equatable {
         self.gpuSpoofing = try container.decodeIfPresent(Bool.self, forKey: .gpuSpoofing) ?? true
         self.gpuVendor = container.decodeLenientIfPresent(GPUVendor.self, forKey: .gpuVendor) ?? .nvidia
         self.autoEnableDXVK = try container.decodeIfPresent(Bool.self, forKey: .autoEnableDXVK) ?? true
+        self.rockstarWineD3D = try container.decodeIfPresent(Bool.self, forKey: .rockstarWineD3D)
         self.backendMigration = try container.decodeIfPresent(Int.self, forKey: .backendMigration) ?? 0
         self.backendResetNotice = try container.decodeIfPresent(Bool.self, forKey: .backendResetNotice) ?? false
         self.backendSwitchedByLauncher = try container.decodeIfPresent(

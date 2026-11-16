@@ -596,6 +596,88 @@ final class WhiskyWineInstallerTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: stale.path))
     }
 
+    func testNextInstallRestoresPreviousRuntimeWhenLibrariesWasRecreated() throws {
+        // Another writer (a GPTK deploy, say) re-creates Libraries/ between the
+        // two renames, so neither the new runtime nor the old one can be moved
+        // into place. The next install must put the old runtime back over that
+        // unusable folder before extracting, not delete it with the staging.
+        let tempDir = try makeTempDir()
+        let tarball = try makeRuntimeTarball(in: tempDir)
+        let destination = tempDir.appendingPathComponent("dest")
+        _ = try makeInstalledRuntime(in: destination)
+        let runtime = destination.appendingPathComponent("Libraries")
+        let recreated = runtime.appendingPathComponent("Wine/lib/external")
+
+        var movesIntoPlace = 0
+        let moveItem: (URL, URL) throws -> Void = { source, target in
+            if target.standardizedFileURL.path == runtime.standardizedFileURL.path {
+                movesIntoPlace += 1
+                if movesIntoPlace == 1 {
+                    try FileManager.default.createDirectory(at: recreated, withIntermediateDirectories: true)
+                }
+            }
+            try FileManager.default.moveItem(at: source, to: target)
+        }
+
+        XCTAssertThrowsError(
+            try WhiskyWineInstaller.install(tarball: tarball, into: destination, moveItem: moveItem)
+        ) { error in
+            XCTAssertEqual(error as? WhiskyWineInstallError, .restoreFailed)
+        }
+        XCTAssertEqual(try stagingLeftovers(in: destination).count, 1)
+
+        let badTarball = tempDir.appendingPathComponent("bad").appendingPathExtension("tar.gz")
+        try Data("not a tarball".utf8).write(to: badTarball)
+        XCTAssertThrowsError(try WhiskyWineInstaller.install(tarball: badTarball, into: destination))
+
+        XCTAssertTrue(
+            FileManager.default.fileExists(atPath: runtime.appendingPathComponent("installed.txt").path),
+            "The previous runtime survives a later failed install"
+        )
+        XCTAssertFalse(FileManager.default.fileExists(atPath: recreated.path))
+        XCTAssertEqual(try stagingLeftovers(in: destination), [])
+    }
+
+    func testStaleCleanupDropsRetiredCopyWhenRuntimeIsUsable() throws {
+        let destination = try makeTempDir()
+        let runtime = destination.appendingPathComponent("Libraries")
+        try makeRuntime(in: runtime, plist: true, wine64: true)
+        let stale = destination.appendingPathComponent(".runtime-staging-\(UUID().uuidString)")
+        let retired = stale.appendingPathComponent("Libraries.previous")
+        try FileManager.default.createDirectory(at: retired, withIntermediateDirectories: true)
+        try Data("old".utf8).write(to: retired.appendingPathComponent("old.txt"))
+
+        WhiskyWineInstaller.cleanUpStaleStaging(in: destination)
+
+        XCTAssertTrue(WhiskyWineInstaller.isRuntimePresent(inLibraryFolder: runtime))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: runtime.appendingPathComponent("old.txt").path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: stale.path))
+    }
+
+    func testStaleCleanupKeepsFolderWhenUnusableRuntimeCannotBeMovedAside() throws {
+        let destination = try makeTempDir()
+        let runtime = destination.appendingPathComponent("Libraries")
+        let recreated = runtime.appendingPathComponent("Wine/lib/external")
+        try FileManager.default.createDirectory(at: recreated, withIntermediateDirectories: true)
+        let stale = destination.appendingPathComponent(".runtime-staging-\(UUID().uuidString)")
+        let retired = stale.appendingPathComponent("Libraries.previous")
+        try FileManager.default.createDirectory(at: retired, withIntermediateDirectories: true)
+
+        WhiskyWineInstaller.cleanUpStaleStaging(
+            in: destination,
+            moveItem: failingMoves(into: stale.appendingPathComponent("Libraries.unusable"))
+        )
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: retired.path), "The only copy is never deleted")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: recreated.path))
+
+        WhiskyWineInstaller.cleanUpStaleStaging(in: destination)
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: recreated.path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: stale.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: runtime.path), "A later cleanup restores it")
+    }
+
     /// A mover that refuses every move into `target`, and performs the rest.
     private func failingMoves(into target: URL) -> (URL, URL) throws -> Void {
         { source, destination in

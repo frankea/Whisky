@@ -20,6 +20,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Starting the Rockstar Games Launcher from the Programs tab in a Steam
   bottle no longer switches the whole bottle to DXVK, which took GTA V
   Enhanced and other Steam games off D3DMetal ([#389], [#382]).
+  Steam bottles that an earlier version had already switched get Steam's
+  profile back once, and go back to Recommended when D3DMetal is
+  installed ([#395]). If a Steam bottle still shows Steam as its launcher
+  but stayed on DXVK after you started the Rockstar launcher in it, set
+  its Graphics Backend back to Recommended: Whisky can't tell that apart
+  from DXVK you picked yourself.
+- Apply Launcher Fixes for the Rockstar Games Launcher in a Steam bottle
+  now reapplies Steam's settings and keeps the bottle's graphics backend,
+  instead of reporting fixes it never applied ([#395]).
 
 ## [3.10.1] - 2026-11-15 (App)
 
@@ -1642,6 +1651,7 @@ up to date.
 [#385]: https://github.com/frankea/Whisky/issues/385
 [#389]: https://github.com/frankea/Whisky/issues/389
 [#391]: https://github.com/frankea/Whisky/issues/391
+[#395]: https://github.com/frankea/Whisky/issues/395
 [@adurham]: https://github.com/adurham
 [@daydalek]: https://github.com/daydalek
 [@Dunn-Kim]: https://github.com/Dunn-Kim

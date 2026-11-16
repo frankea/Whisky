@@ -90,4 +90,48 @@ struct FileManagerAtomicReplaceTests {
         #expect(try Data(contentsOf: original) == Data("dxvk d3d11".utf8))
         #expect(!exists(temp))
     }
+
+    @Test("A symlinked destination is replaced by a file and its target keeps its bytes", arguments: [true, false])
+    func symlinkedDestinationIsReplaced(makeOriginalCopy: Bool) throws {
+        // What DXVK's own `setup_dxvk.sh --symlink` leaves in a bottle.
+        let target = tempDir.appending(path: "linked-d3d11.dll")
+        try FileManager.default.moveItem(at: original, to: target)
+        try FileManager.default.createSymbolicLink(at: original, withDestinationURL: target)
+
+        try FileManager.default.replaceFile(at: original, with: replacement, makeOriginalCopy: makeOriginalCopy)
+
+        let type = try FileManager.default.attributesOfItem(atPath: original.path(percentEncoded: false))[.type]
+        #expect(type as? FileAttributeType == .typeRegular)
+        #expect(try Data(contentsOf: original) == Data("dxvk d3d11".utf8))
+        #expect(try Data(contentsOf: target) == Data("wine d3d11".utf8))
+        #expect(!exists(temp))
+    }
+
+    @Test("A read-only destination is replaced", arguments: [true, false])
+    func readOnlyDestinationIsReplaced(makeOriginalCopy: Bool) throws {
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o444], ofItemAtPath: original.path(percentEncoded: false)
+        )
+
+        try FileManager.default.replaceFile(at: original, with: replacement, makeOriginalCopy: makeOriginalCopy)
+
+        #expect(try Data(contentsOf: original) == Data("dxvk d3d11".utf8))
+        #expect(!exists(temp))
+    }
+
+    @Test("A swap that fails after the temp is written removes the temp and keeps the destination")
+    func failedSwapRemovesTemp() throws {
+        // rename(2) will not put a file over a non-empty directory, so the
+        // copy into the temp succeeds and the swap is what fails.
+        try FileManager.default.removeItem(at: original)
+        try FileManager.default.createDirectory(at: original, withIntermediateDirectories: false)
+        let inside = original.appending(path: "keep.txt")
+        try Data("keep me".utf8).write(to: inside)
+
+        #expect(throws: (any Error).self) {
+            try FileManager.default.replaceFile(at: original, with: replacement, makeOriginalCopy: false)
+        }
+        #expect(try Data(contentsOf: inside) == Data("keep me".utf8))
+        #expect(!exists(temp))
+    }
 }

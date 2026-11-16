@@ -85,13 +85,20 @@ enum WineD3DSource: Equatable, Sendable {
     ///
     /// - `d3d10core` always comes from `lib/wine`: GPTK ships no replacement.
     /// - `d3d11` and `dxgi` come from `lib/wine` while that slot still holds
-    ///   Wine's builtin. Once a GPTK payload is deployed (or the slot
-    ///   byte-matches the store's forwarder, as it does part way through a
-    ///   deploy), they come from `originals/`, and only when its stamp names
-    ///   the engine that is installed now.
-    /// - Whatever is returned carries winebuild's builtin marker. That is the
-    ///   last check that the file is Wine's build and not a native DLL that
-    ///   happens to sit at the expected path.
+    ///   Wine's builtin. A missing slot there is reported as missing, not
+    ///   looked for elsewhere: with no payload in the tree, `originals/` has
+    ///   no business holding Wine's copy.
+    /// - They come from `originals/` instead, and only when its stamp names
+    ///   the engine that is installed now, once the slot is GPTK's: a payload
+    ///   is deployed, the slot byte-matches the store's forwarder (as it does
+    ///   part way through a deploy), or the slot holds a builtin-marked DLL
+    ///   that does not import `wined3d.dll` (see ``importsWined3d(_:)``).
+    /// - Whatever is returned carries winebuild's builtin marker. That rules
+    ///   out a native DLL that happens to sit at the expected path, but not
+    ///   Apple's forwarders: winebuild built those too, so they carry the
+    ///   same marker. Telling them from Wine's own `d3d11` and `dxgi` is the
+    ///   `wined3d.dll` import's job, which is why a slot that lacks it never
+    ///   resolves to ``libWine(_:)``.
     ///
     /// - Parameters:
     ///   - dllName: The DLL's file name, `"dxgi.dll"` or `"dxgi"`. Case is
@@ -119,10 +126,20 @@ enum WineD3DSource: Equatable, Sendable {
         }
 
         let payloadDeployed = GPTKImporter.isDeployed(inLibraryFolder: libraryFolder)
-        let slotIsGPTK = payloadDeployed
-            || GPTKImporter.isGPTKForwarder(libWine, matching: store.appending(path: "lib"))
-        if !slotIsGPTK, exists(libWine) {
-            return checked(.libWine(libWine))
+        let slotIsStoreForwarder = GPTKImporter.isGPTKForwarder(libWine, matching: store.appending(path: "lib"))
+        if !payloadDeployed, !slotIsStoreForwarder {
+            let fromLibWine = checked(.libWine(libWine))
+            guard case .libWine = fromLibWine else {
+                return fromLibWine
+            }
+            if importsWined3d(libWine) {
+                return fromLibWine
+            }
+            // A builtin-marked slot that is not wined3d's build is Apple's
+            // forwarder outliving its payload: a removal that found only
+            // stale backups leaves the forwarders and deletes the bridges, and
+            // a later import of another GPTK build stops them byte-matching
+            // the store. Wine's copy, if anywhere, is in originals/.
         }
 
         let fromOriginals = resolveOriginal(name, libraryFolder: libraryFolder, store: store)
@@ -164,21 +181,41 @@ enum WineD3DSource: Equatable, Sendable {
         return source
     }
 
+    /// Whether the DLL at `url` imports `wined3d.dll`, which Wine's own
+    /// `d3d11` and `dxgi` always do: both are thin layers over wined3d.
+    /// Apple's forwarders hand everything to D3DMetal's unix side and never
+    /// name it, though they carry the same builtin marker. The DLL name sits
+    /// in the import directory as plain ASCII, so a byte search finds it
+    /// without parsing the PE. `d3d10core` imports `d3d11`, not wined3d,
+    /// which is one reason this is only asked of the GPTK-replaced slots.
+    static func importsWined3d(_ url: URL) -> Bool {
+        guard let data = try? Data(contentsOf: url, options: .mappedIfSafe) else { return false }
+        return data.range(of: wined3dImportName) != nil
+    }
+
+    /// The import name winebuild writes for wined3d, lower case as Wine's
+    /// makefiles spell it.
+    private static let wined3dImportName = Data("wined3d.dll".utf8)
+
     private static func exists(_ url: URL) -> Bool {
         FileManager.default.fileExists(atPath: url.path(percentEncoded: false))
     }
 }
 
-/// Errors thrown by ``Wine/installStrippedCopy(at:from:)``.
-enum WineStrippedCopyError: LocalizedError, Equatable {
-    /// The source is not a builtin-marked Wine DLL, so stripping it would not
-    /// produce Wine's implementation as a native PE.
-    case sourceNotBuiltinMarked(String)
-
-    var errorDescription: String? {
+extension WineD3DSource.Reason: CustomStringConvertible {
+    /// A log-friendly sentence, without Swift's `Optional(...)` wrapping.
+    var description: String {
         switch self {
-        case let .sourceNotBuiltinMarked(name):
-            "\(name) does not carry the Wine builtin marker"
+        case .missingFile:
+            "the file is missing"
+        case let .staleOriginals(found, expected):
+            "originals are stamped for \(found ?? "no engine"), the installed engine is \(expected ?? "unknown")"
+        case .notBuiltinMarked:
+            "the file does not carry the Wine builtin marker"
+        case .handPlacedPayload:
+            "a hand-placed GPTK payload with no current backup"
+        case let .unsupportedDLL(name):
+            "\(name) is not resolved"
         }
     }
 }

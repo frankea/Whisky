@@ -96,6 +96,63 @@ struct WineD3DSourceTests {
         #expect(resolve("d3d10core.dll") == .unavailable(.missingFile))
     }
 
+    @Test("A missing d3d11 or dxgi slot without GPTK is reported, not looked for in originals")
+    func missingNonGPTKSlotIsNotTakenFromOriginals() throws {
+        // Current backups in the store, but no payload in the tree.
+        try deploy()
+        try GPTKImporter.remove(fromLibraryFolder: runtime, usingStore: store)
+        let originals = store.appending(path: "originals")
+        try FileManager.default.createDirectory(at: originals, withIntermediateDirectories: true)
+        for name in ["d3d11.dll", "dxgi.dll"] {
+            try FileManager.default.copyItem(at: peDir.appending(path: name), to: original(name))
+            try FileManager.default.removeItem(at: peDir.appending(path: name))
+        }
+        #expect(!GPTKImporter.isDeployed(inLibraryFolder: runtime))
+
+        #expect(resolve("d3d11.dll") == .unavailable(.missingFile))
+        #expect(resolve("dxgi.dll") == .unavailable(.missingFile))
+    }
+
+    @Test("Wine's builtin is told from Apple's forwarder by its wined3d import")
+    func wined3dImportTellsWineFromForwarder() throws {
+        #expect(WineD3DSource.importsWined3d(peDir.appending(path: "d3d11.dll")))
+        let forwarder = store.appending(path: "lib/wine/x86_64-windows/d3d11.dll")
+        #expect(Wine.carriesBuiltinMarker(forwarder))
+        #expect(!WineD3DSource.importsWined3d(forwarder))
+    }
+
+    @Test("A forwarder left behind with no bridges and no store match is never taken for Wine's")
+    func strandedForwarderIsNotLibWine() throws {
+        // A removal against originals stamped for an older engine drops the
+        // backups and the bridges but leaves Apple's forwarders in the slots.
+        try deploy()
+        try writeRuntimeVersion(at: runtime, 11, 20, 0)
+        try GPTKImporter.remove(fromLibraryFolder: runtime, usingStore: store)
+        #expect(!GPTKImporter.isDeployed(inLibraryFolder: runtime))
+        // Then another GPTK build is imported, so the slot no longer
+        // byte-matches the store either.
+        for name in ["d3d11.dll", "dxgi.dll"] {
+            var other = fakePE(builtin: true)
+            other.append(Data("another gptk build".utf8))
+            try other.write(to: store.appending(path: "lib/wine/x86_64-windows").appending(path: name))
+        }
+
+        #expect(resolve("d3d11.dll") == .unavailable(.missingFile))
+        #expect(resolve("dxgi.dll") == .unavailable(.missingFile))
+    }
+
+    @Test("A stranded forwarder with current backups resolves to those backups")
+    func strandedForwarderWithCurrentOriginals() throws {
+        try deploy()
+        try FileManager.default.removeItem(at: runtime.appending(path: "Wine/lib/wine/x86_64-unix/dxgi.so"))
+        var other = fakePE(builtin: true)
+        other.append(Data("another gptk build".utf8))
+        try other.write(to: store.appending(path: "lib/wine/x86_64-windows/d3d11.dll"))
+        #expect(!GPTKImporter.isDeployed(inLibraryFolder: runtime))
+
+        #expect(resolve("d3d11.dll") == .originals(original("d3d11.dll")))
+    }
+
     @Test("DLLs GPTK and Wine do not share in this way are not resolved")
     func unsupportedDLL() {
         #expect(resolve("d3d12.dll") == .unavailable(.unsupportedDLL("d3d12.dll")))

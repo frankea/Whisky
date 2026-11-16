@@ -1300,56 +1300,6 @@ public class Wine {
         try handle.write(contentsOf: Data(dosCode))
     }
 
-    /// Installs Wine's builtin at `source` into `destination` as a true native
-    /// PE: a copy with the builtin marker stripped, so the loader runs this
-    /// file instead of redirecting to whatever `lib/wine` holds.
-    ///
-    /// The destination is a DLL in a bottle's system directory, and a launch
-    /// with that DLL missing fails outright. So the destination is never
-    /// absent or half-written: the copy is made and stripped beside it under a
-    /// `.whisky-tmp` name and only then swapped in with a single
-    /// `replaceItemAt`. A failure at any step removes the temp and leaves the
-    /// destination exactly as it was.
-    ///
-    /// The source has to carry the builtin marker. A native file at the source
-    /// path is not Wine's build, and copying it in would put an unknown DLL in
-    /// front of every program in the bottle.
-    ///
-    /// Callers run this on every launch, so a destination that already is the
-    /// stripped copy of `source` is left alone rather than rewritten.
-    ///
-    /// - Parameters:
-    ///   - destination: Where the native copy goes.
-    ///   - source: Wine's builtin-marked DLL.
-    /// - Throws: ``WineStrippedCopyError/sourceNotBuiltinMarked(_:)`` when the
-    ///   source is missing or unmarked, or the file system error that stopped
-    ///   the copy or the swap.
-    static func installStrippedCopy(at destination: URL, from source: URL) throws {
-        guard carriesBuiltinMarker(source) else {
-            throw WineStrippedCopyError.sourceNotBuiltinMarked(source.lastPathComponent)
-        }
-        if isStrippedCopy(destination, of: source) {
-            return
-        }
-        let fileManager = FileManager.default
-        let temp = destination.appendingPathExtension("whisky-tmp")
-        do {
-            if fileManager.fileExists(atPath: temp.path(percentEncoded: false)) {
-                try fileManager.removeItem(at: temp)
-            }
-            try fileManager.copyItem(at: source, to: temp)
-            try stripBuiltinMarker(at: temp)
-            if fileManager.fileExists(atPath: destination.path(percentEncoded: false)) {
-                _ = try fileManager.replaceItemAt(destination, withItemAt: temp)
-            } else {
-                try fileManager.moveItem(at: temp, to: destination)
-            }
-        } catch {
-            try? fileManager.removeItem(at: temp)
-            throw error
-        }
-    }
-
     /// Deploys Wine's clean `dxgi.dll` into the prefix, with the builtin
     /// marker stripped so the loader accepts it as a true native PE.
     ///
@@ -1364,6 +1314,10 @@ public class Wine {
     ///
     /// This runs on every DXVK launch, so a prefix that already holds the
     /// stripped copy is left untouched rather than copied and patched again.
+    /// For the same reason an unavailable source logs one info line per
+    /// launch, not once per session: the reason can change between launches
+    /// (an engine update, a reimport), and the line is what explains why the
+    /// prefix kept its dxgi.
     static func deployCleanDXGI(prefixRoot: URL, source: WineD3DSource) {
         let sys32DXGI = prefixRoot.appending(path: "drive_c").appending(path: "windows")
             .appending(path: "system32").appending(path: "dxgi.dll")
@@ -1372,7 +1326,7 @@ public class Wine {
         case let .libWine(url), let .originals(url):
             sourceURL = url
         case let .unavailable(reason):
-            let why = String(describing: reason)
+            let why = reason.description
             Logger.wineKit.info("Left the prefix's dxgi.dll as it is, no clean dxgi: \(why, privacy: .public)")
             return
         }

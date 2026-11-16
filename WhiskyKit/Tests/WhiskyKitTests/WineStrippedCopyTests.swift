@@ -109,12 +109,58 @@ struct WineStrippedCopyTests {
     @Test("A missing source throws and never leaves the destination missing")
     func missingSourceLeavesDestination() throws {
         try FileManager.default.removeItem(at: source)
-        try fakePE(builtin: true).write(to: destination)
+        let before = fakePE(builtin: true)
+        try before.write(to: destination)
 
         #expect(throws: WineStrippedCopyError.self) {
             try Wine.installStrippedCopy(at: destination, from: source)
         }
-        #expect(exists(destination))
+        #expect(try Data(contentsOf: destination) == before)
+        #expect(!exists(temp))
+    }
+
+    @Test("A swap that fails after the temp is written removes the temp and keeps the destination")
+    func failedSwapRemovesTemp() throws {
+        // rename(2) will not put a file over a non-empty directory, so the
+        // copy and the strip succeed and only the swap fails.
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: false)
+        let inside = destination.appending(path: "keep.txt")
+        try Data("keep me".utf8).write(to: inside)
+
+        #expect(throws: (any Error).self) {
+            try Wine.installStrippedCopy(at: destination, from: source)
+        }
+        #expect(try Data(contentsOf: inside) == Data("keep me".utf8))
+        #expect(!exists(temp))
+    }
+
+    @Test("A symlinked destination is replaced by the stripped copy and its target keeps its bytes")
+    func symlinkedDestinationIsReplaced() throws {
+        let target = tempDir.appending(path: "linked-dxgi.dll")
+        let linked = Data("linked dxgi".utf8)
+        try linked.write(to: target)
+        try FileManager.default.createSymbolicLink(at: destination, withDestinationURL: target)
+
+        try Wine.installStrippedCopy(at: destination, from: source)
+
+        let type = try FileManager.default.attributesOfItem(atPath: destination.path(percentEncoded: false))[.type]
+        #expect(type as? FileAttributeType == .typeRegular)
+        #expect(Wine.isStrippedCopy(destination, of: source))
+        #expect(try Data(contentsOf: target) == linked)
+        #expect(!exists(temp))
+    }
+
+    @Test("A read-only destination is replaced")
+    func readOnlyDestinationIsReplaced() throws {
+        try fakePE(builtin: false).write(to: destination)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o444], ofItemAtPath: destination.path(percentEncoded: false)
+        )
+
+        try Wine.installStrippedCopy(at: destination, from: source)
+
+        #expect(Wine.isStrippedCopy(destination, of: source))
+        #expect(!exists(temp))
     }
 
     @Test("A temp left by an interrupted install is replaced, then cleaned up")

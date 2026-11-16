@@ -59,10 +59,38 @@ extension FileManager {
         }
         do {
             try copyItem(at: sourceURL, to: tempURL)
-            _ = try replaceItemAt(destinationURL, withItemAt: tempURL)
+            try moveIntoPlace(tempURL, over: destinationURL)
         } catch {
             try? removeItem(at: tempURL)
             throw error
+        }
+    }
+
+    /// Moves `tempURL` over `destinationURL` with a single `rename(2)`.
+    ///
+    /// `rename` swaps the directory entry in one step, so the destination
+    /// path names either the old file or the new one and is never absent.
+    /// It also replaces whatever the entry is: a symlink (a bottle where
+    /// DXVK's own `setup_dxvk.sh --symlink` linked its DLLs in) or a
+    /// read-only file, needing only write access to the directory.
+    /// `replaceItemAt` refuses both, and on the DXVK path a refused swap
+    /// fails the launch where removing and copying used to work. A hard
+    /// link elsewhere keeps its own contents, since only this entry moves.
+    ///
+    /// Both paths have to be on one volume, which a temp file created beside
+    /// the destination always is.
+    ///
+    /// - Parameters:
+    ///   - tempURL: The finished file to move into place.
+    ///   - destinationURL: The path it takes over, present or not.
+    /// - Throws: The `POSIXError` `rename` failed with, for example when the
+    ///   destination is a directory.
+    func moveIntoPlace(_ tempURL: URL, over destinationURL: URL) throws {
+        let status = Darwin.rename(
+            tempURL.path(percentEncoded: false), destinationURL.path(percentEncoded: false)
+        )
+        guard status == 0 else {
+            throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
         }
     }
 
@@ -88,10 +116,12 @@ extension FileManager {
     /// and a slot the prefix never had is not one to invent.
     ///
     /// The swap is atomic. The replacement is copied beside the original
-    /// under a `.whisky-tmp` name and moved over it with a single
-    /// `replaceItemAt`, so a crash or a failed copy part way through leaves
-    /// the original in place rather than a system directory without the DLL.
-    /// The temp is removed when anything fails.
+    /// under a `.whisky-tmp` name and moved over it with a single `rename`
+    /// (see ``moveIntoPlace(_:over:)``), so a crash or a failed copy part way
+    /// through leaves the original in place rather than a system directory
+    /// without the DLL. The temp is removed when anything fails. A symlink or
+    /// a read-only file at the destination is replaced like any other, as it
+    /// was when the original was removed before the copy.
     ///
     /// - Parameters:
     ///   - originalURL: The file to replace.

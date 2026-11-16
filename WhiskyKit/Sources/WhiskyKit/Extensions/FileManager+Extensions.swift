@@ -57,8 +57,13 @@ extension FileManager {
         if fileExists(atPath: tempURL.path(percentEncoded: false)) {
             try removeItem(at: tempURL)
         }
-        try copyItem(at: sourceURL, to: tempURL)
-        _ = try replaceItemAt(destinationURL, withItemAt: tempURL)
+        do {
+            try copyItem(at: sourceURL, to: tempURL)
+            _ = try replaceItemAt(destinationURL, withItemAt: tempURL)
+        } catch {
+            try? removeItem(at: tempURL)
+            throw error
+        }
     }
 
     /// Installs `sourceURL` at `destinationURL` only when the destination is
@@ -77,21 +82,33 @@ extension FileManager {
         return true
     }
 
+    /// Replaces the file at `originalURL` with a copy of `replacementURL`, but
+    /// only when there is a file there to replace. A missing destination is
+    /// left missing: this is how DXVK's DLLs go over Wine's own placeholders,
+    /// and a slot the prefix never had is not one to invent.
+    ///
+    /// The swap is atomic. The replacement is copied beside the original
+    /// under a `.whisky-tmp` name and moved over it with a single
+    /// `replaceItemAt`, so a crash or a failed copy part way through leaves
+    /// the original in place rather than a system directory without the DLL.
+    /// The temp is removed when anything fails.
+    ///
+    /// - Parameters:
+    ///   - originalURL: The file to replace.
+    ///   - replacementURL: The file to copy over it.
+    ///   - makeOriginalCopy: Whether to keep the original beside it as
+    ///     `<name>.orig`, replacing any earlier backup.
     func replaceFile(at originalURL: URL, with replacementURL: URL, makeOriginalCopy: Bool = true) throws {
-        if fileExists(atPath: originalURL.path(percentEncoded: false)) {
-            if makeOriginalCopy {
-                let copyURL = originalURL.appendingPathExtension("orig")
-
-                if fileExists(atPath: copyURL.path(percentEncoded: false)) {
-                    try FileManager.default.removeItem(at: copyURL)
-                }
-
-                try FileManager.default.moveItem(at: originalURL, to: copyURL)
-            } else {
-                try FileManager.default.removeItem(at: originalURL)
+        guard fileExists(atPath: originalURL.path(percentEncoded: false)) else { return }
+        if makeOriginalCopy {
+            let copyURL = originalURL.appendingPathExtension("orig")
+            if fileExists(atPath: copyURL.path(percentEncoded: false)) {
+                try removeItem(at: copyURL)
             }
-
-            try FileManager.default.copyItem(at: replacementURL, to: originalURL)
+            // A copy, not a move: the original has to stay in place until the
+            // replacement is ready to take its slot.
+            try copyItem(at: originalURL, to: copyURL)
         }
+        try installFile(at: originalURL, from: replacementURL)
     }
 }

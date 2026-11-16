@@ -60,6 +60,13 @@ class LauncherFixesTestCase: XCTestCase {
     func persistedSettings() throws -> BottleSettings {
         try BottleSettings.decode(from: metadataURL)
     }
+
+    /// Puts a Steam client into the bottle, as its installer leaves it.
+    func installSteam() throws {
+        let steam = bottleURL.appending(path: "drive_c/Program Files (x86)/Steam")
+        try FileManager.default.createDirectory(at: steam, withIntermediateDirectories: true)
+        try Data("MZ".utf8).write(to: steam.appending(path: "steam.exe"))
+    }
 }
 
 // MARK: - detectAndApply gating

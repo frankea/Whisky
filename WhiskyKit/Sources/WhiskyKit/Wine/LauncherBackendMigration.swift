@@ -40,6 +40,14 @@ import os.log
 ///   mode auto, Steam as the detected launcher, DXVK as the backend. The first
 ///   look at such a bottle marks it as switched by the profile, and every
 ///   bottle is stamped then, so the guess is made once.
+/// - A Steam bottle the Rockstar profile took over. From 3.8.0 to 3.10.1,
+///   starting Rockstar's launcher from the Programs tab, or forcing Apply
+///   Launcher Fixes for it, applied Rockstar's profile to a bottle with Steam:
+///   Rockstar became the detected launcher and, with Auto-enable DXVK on, the
+///   bottle went to DXVK. Since the backend changed, nothing marked that
+///   switch. Such a bottle, in launcher mode auto with Rockstar detected and
+///   Steam installed, gets Steam back as its launcher, and its DXVK is marked
+///   as the profile's, once.
 ///
 /// A qualifying bottle goes back to Recommended as soon as D3DMetal is
 /// installed: on load, or right after the payload is imported or deployed. A
@@ -48,12 +56,22 @@ import os.log
 public enum LauncherBackendMigration {
     /// The migration this version performs. A bottle stamped below it has not
     /// been through it yet. 2 marks old-profile bottles instead of skipping
-    /// them when the payload is missing.
-    public static let current = 2
+    /// them when the payload is missing; 3 gives Steam back the bottles the
+    /// Rockstar profile took over.
+    ///
+    /// Each step runs only on bottles stamped below its own version, so a
+    /// bottle stamped 2 never has its DXVK guessed at again.
+    public static let current = 3
 
-    /// Runs the migration on `bottle`: stamps it if it has not been through
-    /// it, then puts it back on Recommended if it qualifies and D3DMetal is
-    /// installed.
+    /// The version that marks bottles an older Steam profile switched.
+    static let steamProfileVersion = 2
+
+    /// The version that gives Steam back the bottles the Rockstar profile took over.
+    static let rockstarRepairVersion = 3
+
+    /// Runs the migration on `bottle`: runs the steps it has not been through
+    /// and stamps it, then puts it back on Recommended if it qualifies and
+    /// D3DMetal is installed.
     ///
     /// Saves the bottle's settings once when anything changed, and not at all
     /// otherwise, so it is cheap to run on every load and after every import.
@@ -71,9 +89,16 @@ public enum LauncherBackendMigration {
     ) -> Bool {
         var settings = bottle.settings
         var changed = false
-        if settings.launcherBackendMigration < current {
-            if wasSwitchedBySteamProfile(settings) {
+        let stamp = settings.launcherBackendMigration
+        if stamp < current {
+            if stamp < steamProfileVersion, wasSwitchedBySteamProfile(settings) {
                 settings.launcherSwitchedBackend = true
+            }
+            if stamp < rockstarRepairVersion, wasTakenOverByRockstarProfile(settings, bottleURL: bottle.url) {
+                giveBackToSteam(&settings)
+                Logger.wineKit.info(
+                    "Gave '\(settings.name, privacy: .public)' back to Steam from the Rockstar profile"
+                )
             }
             settings.launcherBackendMigration = current
             changed = true
@@ -113,5 +138,24 @@ public enum LauncherBackendMigration {
         settings.launcherMode == .auto
             && settings.detectedLauncher == .steam
             && settings.graphicsBackend == .dxvk
+    }
+
+    /// Whether the bottle is a Steam bottle the Rockstar profile took over:
+    /// launcher mode auto, Rockstar detected, and Steam installed. A bottle
+    /// with only Rockstar's launcher keeps Rockstar's profile.
+    static func wasTakenOverByRockstarProfile(_ settings: BottleSettings, bottleURL: URL) -> Bool {
+        settings.launcherMode == .auto
+            && settings.detectedLauncher == .rockstar
+            && SteamLibrary.detectInstall(bottleURL: bottleURL) != nil
+    }
+
+    /// Makes Steam the detected launcher again and, when the Rockstar profile
+    /// can have put the bottle on DXVK, marks that DXVK as the profile's, so
+    /// ``isRestorable(_:)`` puts it back on Recommended over D3DMetal.
+    static func giveBackToSteam(_ settings: inout BottleSettings) {
+        settings.detectedLauncher = .steam
+        if settings.graphicsBackend == .dxvk, settings.autoEnableDXVK {
+            settings.launcherSwitchedBackend = true
+        }
     }
 }

@@ -28,13 +28,6 @@ final class LauncherFixesRockstarTests: LauncherFixesTestCase {
     /// Rockstar's launcher, which ``LauncherType/detect(from:)`` resolves to Rockstar.
     let rockstarExe = URL(fileURLWithPath: "C:/Program Files/Rockstar Games/Launcher/Launcher.exe")
 
-    /// Puts a Steam client into the bottle, as its installer leaves it.
-    func installSteam() throws {
-        let steam = bottleURL.appending(path: "drive_c/Program Files (x86)/Steam")
-        try FileManager.default.createDirectory(at: steam, withIntermediateDirectories: true)
-        try Data("MZ".utf8).write(to: steam.appending(path: "steam.exe"))
-    }
-
     @MainActor
     func testRockstarLaunchDoesNotTakeASteamBottleOffD3DMetal() throws {
         // Rockstar's launcher from the Programs tab used to replace Steam's

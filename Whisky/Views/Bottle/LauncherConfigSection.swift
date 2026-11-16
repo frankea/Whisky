@@ -545,9 +545,11 @@ extension LauncherConfigSection {
         switch status {
         case .active:
             Text("launcher.config.rockstarWineD3D.status.active")
-        case .pending:
+        case .pending, .notApplied(.gptkForwarders):
             Text("launcher.config.rockstarWineD3D.status.pending")
-        case .off:
+        // `rockstarWineD3DStatus` reports these two as `.off` and `.pending`
+        // itself; they read the same here if one ever arrives as a reason.
+        case .off, .notApplied(.disabledByUser):
             Text("launcher.config.rockstarWineD3D.status.off")
         case .notApplied(.sourceUnavailable):
             Text("launcher.config.rockstarWineD3D.status.sourceUnavailable")
@@ -557,7 +559,7 @@ extension LauncherConfigSection {
             Text("launcher.config.rockstarWineD3D.status.dxvkPlanGames \(names.formatted(.list(type: .and)))")
         case let .notApplied(.unservedConsumers(names)):
             Text("launcher.config.rockstarWineD3D.status.unservedConsumers \(names.formatted(.list(type: .and)))")
-        case .notApplied(.swapFailed), .notApplied(.gptkForwarders), .notApplied(.disabledByUser):
+        case .notApplied(.swapFailed):
             Text("launcher.config.rockstarWineD3D.status.failed")
         }
     }

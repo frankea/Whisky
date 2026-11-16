@@ -240,6 +240,29 @@ public enum LauncherFixes {
         launcher == .rockstar && hasSteam(bottle) ? .steam : launcher
     }
 
+    /// Steam's profile without its backend step, for a Steam bottle that
+    /// Apply Launcher Fixes was asked to give Rockstar's
+    /// (``profileLauncher(for:in:)``).
+    ///
+    /// The backend is left as it is: a forced Steam apply would put an
+    /// explicit backend, or Recommended without the payload, on bottle-wide
+    /// DXVK, unmarked, which no Steam start in a bottle set up for Steam does
+    /// (#382). The one change is a DXVK a profile switched to, which goes back
+    /// to Recommended over D3DMetal, as with the migration and a Steam apply.
+    @MainActor
+    static func reapplySteamSettings(
+        to bottle: Bottle, recommendedBackend: GraphicsBackend = GraphicsBackendResolver.resolve()
+    ) {
+        bottle.settings.launcherCompatibilityMode = true
+        bottle.settings.detectedLauncher = .steam
+        bottle.settings.gpuSpoofing = true
+        if recommendedBackend == .d3dMetal, LauncherBackendMigration.isRestorable(bottle.settings) {
+            LauncherBackendMigration.restore(&bottle.settings)
+        }
+        bottle.saveBottleSettings()
+        Logger.wineKit.info("Reapplied Steam's settings for bottle '\(bottle.settings.name)', backend kept")
+    }
+
     /// Whether the bottle is a Steam bottle: tuned for Steam, or with Steam
     /// installed. Read before a profile replaces the detected launcher.
     @MainActor

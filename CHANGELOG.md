@@ -36,6 +36,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   again on the next launch. Accepting the update alert also goes straight
   to the download, which never started for anyone who hadn't answered the
   analytics question. Thanks to [@Legatia] for the fix ([#322], from [#320]).
+- When a network filter, firewall or Wi-Fi sign-in page answers in place of
+  the WhiskyWine download, setup now says so and names the sites to allow,
+  instead of "The data couldn't be read because it isn't in the correct
+  format" or a failed integrity check. Setup errors longer than one line are
+  no longer cut off ([#397], from [#311]).
 
 ## [3.10.1] - 2026-11-15 (App)
 
@@ -1608,6 +1613,7 @@ up to date.
 [#306]: https://github.com/frankea/Whisky/issues/306
 [#307]: https://github.com/frankea/Whisky/issues/307
 [#310]: https://github.com/frankea/Whisky/issues/310
+[#311]: https://github.com/frankea/Whisky/issues/311
 [#313]: https://github.com/frankea/Whisky/issues/313
 [#318]: https://github.com/frankea/Whisky/issues/318
 [#320]: https://github.com/frankea/Whisky/issues/320
@@ -1661,6 +1667,7 @@ up to date.
 [#389]: https://github.com/frankea/Whisky/issues/389
 [#391]: https://github.com/frankea/Whisky/issues/391
 [#395]: https://github.com/frankea/Whisky/issues/395
+[#397]: https://github.com/frankea/Whisky/issues/397
 [@adurham]: https://github.com/adurham
 [@daydalek]: https://github.com/daydalek
 [@Dunn-Kim]: https://github.com/Dunn-Kim

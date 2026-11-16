@@ -47,6 +47,10 @@ struct LauncherConfigSection: View {
                 if bottle.settings.launcherCompatibilityMode {
                     launcherCompatibilityControls
                 }
+
+                // Outside the compatibility controls: the Rockstar launcher's
+                // Direct3D does not depend on compatibility mode.
+                rockstarWineD3DRow
             }
             .padding(.vertical, 8)
         } label: {
@@ -513,6 +517,48 @@ struct DiagnosticsReportView: View {
                 alert.addButton(withTitle: String(localized: "button.ok"))
                 alert.runModal()
             }
+        }
+    }
+}
+
+// MARK: - Rockstar Wine Direct3D
+
+extension LauncherConfigSection {
+    /// The Rockstar Games Launcher's Wine Direct3D setting, shown only where
+    /// it means something: a bottle with the launcher while GPTK is deployed,
+    /// or one Whisky already swapped (#382).
+    @ViewBuilder
+    private var rockstarWineD3DRow: some View {
+        if let status = bottle.rockstarWineD3DStatus {
+            Divider()
+            Toggle("launcher.config.rockstarWineD3D.toggle", isOn: $bottle.settings.rockstarWineD3D)
+                .help("launcher.config.rockstarWineD3D.help")
+            rockstarWineD3DStatusText(status)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// One line on what the setting does in this bottle right now.
+    private func rockstarWineD3DStatusText(_ status: RockstarWineD3DStatus) -> Text {
+        switch status {
+        case .active:
+            Text("launcher.config.rockstarWineD3D.status.active")
+        case .pending:
+            Text("launcher.config.rockstarWineD3D.status.pending")
+        case .off:
+            Text("launcher.config.rockstarWineD3D.status.off")
+        case .notApplied(.sourceUnavailable):
+            Text("launcher.config.rockstarWineD3D.status.sourceUnavailable")
+        case .notApplied(.bottleUsesNativeD3D11):
+            Text("launcher.config.rockstarWineD3D.status.bottleUsesNativeD3D11")
+        case let .notApplied(.dxvkPlanGames(names)):
+            Text("launcher.config.rockstarWineD3D.status.dxvkPlanGames \(names.formatted(.list(type: .and)))")
+        case let .notApplied(.unservedConsumers(names)):
+            Text("launcher.config.rockstarWineD3D.status.unservedConsumers \(names.formatted(.list(type: .and)))")
+        case .notApplied(.swapFailed), .notApplied(.gptkForwarders), .notApplied(.disabledByUser):
+            Text("launcher.config.rockstarWineD3D.status.failed")
         }
     }
 }

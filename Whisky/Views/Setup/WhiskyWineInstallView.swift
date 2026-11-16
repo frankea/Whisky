@@ -219,7 +219,8 @@ struct WhiskyWineInstallView: View {
             do {
                 try WhiskyWineInstaller.install(from: tarball)
                 guard WhiskyWineInstaller.isWhiskyWineInstalled() else {
-                    // Extraction reported success but the runtime isn't usable.
+                    // The installer checks the extracted runtime before swapping
+                    // it in, so this only trips if it changed on disk since.
                     return .failure(reason: .runtimeIncomplete, message: nil, diagnosticMessage: nil)
                 }
                 // The install replaced Libraries, so any deployed GPTK payload
@@ -227,8 +228,7 @@ struct WhiskyWineInstallView: View {
                 GPTKImporter.deployStoredPayloadIfCapable()
                 return .success
             } catch {
-                let reason: Telemetry.InstallFailureReason =
-                    (error as? WhiskyWineInstallError) == .tarballNotFound ? .tarballMissing : .extractFailed
+                let reason = Self.failureReason(for: error)
                 // Tar errors have an English form for the diagnostics report.
                 let diagnosticMessage = (error as? TarError)?.diagnosticMessage ?? error.localizedDescription
                 return .failure(
@@ -238,6 +238,18 @@ struct WhiskyWineInstallView: View {
                 )
             }
         }.value
+    }
+
+    /// The coarse telemetry reason for an error thrown by the installer.
+    private nonisolated static func failureReason(for error: Error) -> Telemetry.InstallFailureReason {
+        switch error as? WhiskyWineInstallError {
+        case .tarballNotFound:
+            .tarballMissing
+        case .runtimeIncomplete:
+            .runtimeIncomplete
+        case .restoreFailed, nil:
+            .extractFailed
+        }
     }
 
     /// Trims a possibly long, multi-line underlying error (e.g. raw `tar` output)

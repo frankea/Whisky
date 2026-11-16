@@ -28,6 +28,9 @@ struct WelcomeView: View {
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
     var firstTime: Bool
+    /// Set during a runtime update: the installed runtime still counts as
+    /// installed, but Next has to lead to the download instead of Done.
+    var updatingRuntime: Bool = false
 
     /// Opt-in checkbox state; writing records the explicit choice.
     private var telemetryOptIn: Binding<Bool> {
@@ -100,13 +103,14 @@ struct WelcomeView: View {
                         .keyboardShortcut(.cancelAction)
                     }
                     Spacer()
-                    Button(rosettaInstalled && whiskyWineInstalled ? "setup.done" : "setup.next") {
+                    let needsRuntime = updatingRuntime || !whiskyWineInstalled
+                    Button(rosettaInstalled && !needsRuntime ? "setup.done" : "setup.next") {
                         if !rosettaInstalled {
                             path.append(.rosetta)
                             return
                         }
 
-                        if !whiskyWineInstalled {
+                        if needsRuntime {
                             path.append(.whiskyWineDownload)
                             return
                         }

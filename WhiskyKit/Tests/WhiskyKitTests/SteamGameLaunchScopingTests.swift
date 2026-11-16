@@ -176,7 +176,8 @@ final class SteamGameLaunchScopingTests {
         #expect(entry?["d3d12"] != "")
         #expect(entry?["dxgi"]?.hasPrefix("n") != true)
         #expect(entry?["d3d11"]?.hasPrefix("n") != true)
-        expectDXVK(recorder.overrides(for: .program("Launcher.exe")), "Launcher.exe")
+        // On this runtime's layout, read the way the launch reads it.
+        recorder.expectRockstarChain(layout: .resolve(payloadDeployed: true))
     }
 
     @Test("A game executable never displaces Steam's own entry")
@@ -271,11 +272,7 @@ final class SteamGameLaunchScopingTests {
 
         _ = try await prepareGameLaunch(bottle, launchers: [.rockstar], recorder: recorder)
 
-        for executable in ["Launcher.exe", "SocialClubHelper.exe"] {
-            let entry = recorder.overrides(for: .program(executable))
-            expectDXVK(entry, executable)
-            #expect(entry?["d3d12"] == "", "\(executable): d3d12")
-        }
+        recorder.expectRockstarChain(layout: .resolve(payloadDeployed: true))
     }
 
     @Test("Another game writes no Launcher.exe entry while Rockstar's launcher is absent")
@@ -304,6 +301,8 @@ final class SteamGameLaunchScopingTests {
 
         #expect(recorder.programScopes.filter { $0.lowercased() == "launcher.exe" }.count == 1)
         #expect(recorder.overrides(for: .program("Launcher.exe"))?["d3d11"] == nil)
+        // Its renderer stays the game's too: Rockstar's Direct3D key is not written.
+        #expect(recorder.overrides(for: .direct3D("Launcher.exe")) == nil)
         #expect(recorder.overrides(for: .program("SocialClubHelper.exe"))?["d3d12"] == "")
     }
 

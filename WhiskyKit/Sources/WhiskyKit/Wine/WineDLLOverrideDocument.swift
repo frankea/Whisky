@@ -35,6 +35,23 @@ import Foundation
 struct DLLOverrideRecord: Codable, Equatable {
     /// Lowercased registry key to the lowercased DLL names written there.
     var names: [String: Set<String>] = [:]
+    /// Lowercased key of settings to lowercased value name to the data
+    /// Whisky wrote there (``OwnedRegistryValueEdit``). A record saved before
+    /// these existed has none.
+    var values: [String: [String: String]] = [:]
+
+    private enum CodingKeys: String, CodingKey {
+        case names
+        case values
+    }
+
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        names = try container.decodeIfPresent([String: Set<String>].self, forKey: .names) ?? [:]
+        values = try container.decodeIfPresent([String: [String: String]].self, forKey: .values) ?? [:]
+    }
 
     static func url(in bottleURL: URL) -> URL {
         bottleURL.appending(path: ".dll-override-names.plist")
@@ -117,12 +134,18 @@ extension Wine {
     /// The one exception is winetricks' starred translation layer names
     /// (``starredBackendDLLNames``), which would otherwise outvote the backend.
     ///
+    /// Keys of settings follow in sections of their own, which never get a
+    /// managed or starred DLL name removed: only their owned values are
+    /// written or taken back (``ownedValueEdits(for:record:current:)``).
+    ///
     /// - Parameters:
-    ///   - scopes: Each registry key and the overrides it should hold.
+    ///   - scopes: Each `DllOverrides` key and the overrides it should hold.
     ///   - record: What earlier launches wrote beyond the managed names.
+    ///   - ownedValues: What to do with each value Whisky owns in a key of settings.
     static func registryDocument(
         for scopes: [(key: String, overrides: [String: String])],
-        record: DLLOverrideRecord = DLLOverrideRecord()
+        record: DLLOverrideRecord = DLLOverrideRecord(),
+        ownedValues: [OwnedRegistryValueEdit] = []
     ) -> String {
         var lines = ["Windows Registry Editor Version 5.00", ""]
         for scope in scopes {
@@ -144,6 +167,7 @@ extension Wine {
             }
             lines.append("")
         }
+        lines += ownedValueSections(ownedValues)
         return lines.joined(separator: "\r\n")
     }
 

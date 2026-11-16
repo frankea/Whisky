@@ -312,6 +312,69 @@ final class LauncherFixesScopingTests: LauncherFixesTestCase {
         XCTAssertFalse(bottle.settings.launcherBackendResetNotice)
     }
 
+    /// Rockstar's launcher, which ``LauncherType/detect(from:)`` resolves to Rockstar.
+    let rockstarExe = URL(fileURLWithPath: "C:/Program Files/Rockstar Games/Launcher/Launcher.exe")
+
+    /// Puts a Steam client into the bottle, as its installer leaves it.
+    func installSteam() throws {
+        let steam = bottleURL.appending(path: "drive_c/Program Files (x86)/Steam")
+        try FileManager.default.createDirectory(at: steam, withIntermediateDirectories: true)
+        try Data("MZ".utf8).write(to: steam.appending(path: "steam.exe"))
+    }
+
+    @MainActor
+    func testRockstarLaunchDoesNotTakeASteamBottleOffD3DMetal() throws {
+        // Rockstar's launcher from the Programs tab used to replace Steam's
+        // profile and switch the bottle to DXVK, taking GTA V Enhanced and every
+        // other Steam game off D3DMetal (#382).
+        let bottle = makeBottle()
+        bottle.settings.launcherCompatibilityMode = true
+        bottle.settings.detectedLauncher = .steam
+
+        XCTAssertFalse(LauncherFixes.detectAndApply(from: rockstarExe, for: bottle))
+
+        XCTAssertEqual(bottle.settings.detectedLauncher, .steam)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .recommended)
+        XCTAssertEqual(try persistedSettings().graphicsBackend, .recommended)
+    }
+
+    @MainActor
+    func testRockstarLaunchLeavesABottleWithSteamInstalledAlone() throws {
+        try installSteam()
+        let bottle = makeBottle()
+        bottle.settings.launcherCompatibilityMode = true
+
+        XCTAssertFalse(LauncherFixes.detectAndApply(from: rockstarExe, for: bottle))
+
+        XCTAssertNil(bottle.settings.detectedLauncher)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .recommended)
+    }
+
+    @MainActor
+    func testRockstarProfileKeepsABottleWithSteamOffDXVK() throws {
+        // Applied directly (troubleshooting, manual selection), the profile is
+        // still Rockstar's, but the bottle's games stay where they were.
+        try installSteam()
+        let bottle = makeBottle()
+
+        LauncherFixes.apply(to: bottle, launcher: .rockstar, recommendedBackend: .d3dMetal)
+
+        XCTAssertEqual(bottle.settings.detectedLauncher, .rockstar)
+        XCTAssertEqual(bottle.settings.graphicsBackend, .recommended)
+        XCTAssertFalse(bottle.settings.dxvk)
+    }
+
+    @MainActor
+    func testRockstarStillAppliesInABottleWithoutSteam() {
+        let bottle = makeBottle()
+        bottle.settings.launcherCompatibilityMode = true
+
+        XCTAssertTrue(LauncherFixes.detectAndApply(from: rockstarExe, for: bottle))
+
+        XCTAssertEqual(bottle.settings.detectedLauncher, .rockstar)
+        XCTAssertTrue(bottle.settings.dxvk)
+    }
+
     @MainActor
     func testUnmappedLaunchersStillSwitchTheBottle() {
         // Their helpers have no validated AppDefaults entries yet.

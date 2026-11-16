@@ -184,8 +184,7 @@ public enum DiagnosticExporter {
         timeline: RemediationTimeline? = nil,
         options: ExportOptions
     ) -> String {
-        var markdown = "## Whisky Diagnostic Report\n\n"
-        markdown += "**Generated:** \(Date().formatted())\n\n"
+        var markdown = "## Whisky Diagnostic Report\n\n**Generated:** \(Date().formatted())\n\n"
 
         markdown += generateSystemInfoSection()
         markdown += generateBottleConfigSection(bottle: bottle)
@@ -193,6 +192,7 @@ public enum DiagnosticExporter {
         markdown += generateMatchedPatternsSection(diagnosis: diagnosis)
         markdown += generateSuggestedRemediationsSection(diagnosis: diagnosis)
         markdown += generateRemediationHistorySection(timeline: timeline, options: options)
+        markdown += generateRockstarLayoutSection(bottle: bottle, options: options)
         markdown += generateEnvironmentKeysSection(bottle: bottle)
 
         return markdown

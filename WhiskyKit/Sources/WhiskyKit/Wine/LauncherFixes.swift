@@ -79,6 +79,15 @@ public enum LauncherFixes {
             return false
         }
 
+        // Rockstar's profile is bottle-wide DXVK, and a Steam bottle's games run
+        // on D3DMetal: starting Rockstar's launcher from the Programs tab took
+        // GTA V Enhanced and every other Steam game off it (#382). The launcher
+        // gets its own entries from the launch either way.
+        guard !(detectedLauncher == .rockstar && hasSteam(bottle)) else {
+            Logger.wineKit.debug("Kept the Steam profile over Rockstar's for bottle")
+            return false
+        }
+
         // Apply launcher-specific fixes and save synchronously
         apply(to: bottle, launcher: detectedLauncher)
 
@@ -147,11 +156,12 @@ public enum LauncherFixes {
             bottle.settings.gpuSpoofing = true
 
         case .rockstar:
-            // Rockstar REQUIRES DXVK to display logo and UI. Still bottle-wide
-            // (the launcher layer adds the preset too): only Launcher.exe and
-            // SocialClubHelper.exe get entries of their own, and the rest of the
-            // standalone launcher's processes have not been mapped.
-            if bottle.settings.autoEnableDXVK {
+            // Still bottle-wide (the launcher layer adds the preset too): only
+            // Launcher.exe and SocialClubHelper.exe get entries of their own,
+            // and the rest of the standalone launcher's processes have not been
+            // mapped. Never in a bottle with Steam, whose games would all leave
+            // D3DMetal with it; Rockstar's own processes have their entries there.
+            if bottle.settings.autoEnableDXVK, !hasSteam(bottle) {
                 bottle.settings.dxvk = true
             }
 
@@ -208,6 +218,12 @@ public enum LauncherFixes {
         Applied launcher fixes for \(launcher.rawValue) to bottle '\(bottle.settings.name)'. \
         Settings persisted successfully.
         """)
+    }
+
+    /// Whether the bottle is a Steam bottle: tuned for Steam, or with Steam installed.
+    @MainActor
+    private static func hasSteam(_ bottle: Bottle) -> Bool {
+        bottle.settings.detectedLauncher == .steam || SteamLibrary.detectInstall(bottleURL: bottle.url) != nil
     }
 
     /// The Steam profile's part in the bottle's backend.

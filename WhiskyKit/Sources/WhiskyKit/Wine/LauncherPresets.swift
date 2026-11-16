@@ -79,6 +79,15 @@ public struct LauncherFixDetail: Sendable {
     public let category: FixCategory
 }
 
+/// What one of a launcher's ``LauncherType/chainExecutables`` draws with.
+enum LauncherChainRole: Sendable {
+    /// Direct2D on a D3D10.1 device, which only Wine's own Direct3D makes
+    /// (``RockstarD3DLayout``).
+    case wineDirect3D
+    /// A Chromium process, which draws on DXVK like Steam's web helper.
+    case chromium
+}
+
 /// Represents different game launcher platforms with optimized configurations.
 ///
 /// This enum provides launcher-specific environment variable presets to address
@@ -306,15 +315,24 @@ public enum LauncherType: String, Codable, CaseIterable, Sendable, Identifiable 
     ///
     /// Rockstar's: a Rockstar title bought on Steam (Red Dead Redemption 2's
     /// `PlayRDR2.exe`) starts the Rockstar Games Launcher and Social Club inside
-    /// the Steam session. Both draw with Chromium and need DXVK the way Steam's
-    /// helper does. `Launcher.exe` also needs `d3d12` off: it asks D3D12 for
-    /// graphics information at startup, and with D3DMetal's `d3d12` reachable
-    /// that query hangs its shutdown, which keeps the game "running" in Steam
-    /// (#276). Social Club gets the same entry, the layout measured there.
+    /// the Steam session. They draw differently, so each has a role
+    /// (``chainRoles``). `Launcher.exe` draws its window with Direct2D on a
+    /// D3D10.1 device, which no backend Whisky ships can make, so it needs
+    /// Wine's own Direct3D (#382). Only `SocialClubHelper.exe` is Chromium, and
+    /// it needs DXVK the way Steam's helper does. Both keep `d3d12` off:
+    /// `Launcher.exe` asks D3D12 for graphics information at startup, and with
+    /// D3DMetal's `d3d12` reachable that query hangs its shutdown, which keeps
+    /// the game "running" in Steam (#276).
     public var chainExecutables: [String] {
+        chainRoles.map(\.executable)
+    }
+
+    /// Each of ``chainExecutables`` with what it draws with, which decides
+    /// the `AppDefaults` entry a launch writes it.
+    var chainRoles: [(executable: String, role: LauncherChainRole)] {
         switch self {
         case .rockstar:
-            ["Launcher.exe", "SocialClubHelper.exe"]
+            [("Launcher.exe", .wineDirect3D), ("SocialClubHelper.exe", .chromium)]
         case .steam, .epicGames, .eaApp, .battleNet, .ubisoft, .paradox, .rsiLauncher:
             []
         }

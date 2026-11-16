@@ -21,7 +21,8 @@ import Foundation
 import XCTest
 
 final class DownloadResponseSummaryTests: XCTestCase {
-    private let requestedURL = URL(string: "https://frankea.github.io/Whisky/WhiskyWineVersion-v4.plist")!
+    private let requestedURL = URL(string: "https://frankea.github.io/Whisky/WhiskyWineVersion-v4.plist")
+        ?? URL(fileURLWithPath: "/")
     private let blockPage = Data("""
     <!DOCTYPE html>
     <html><head><title>Blocked</title></head>

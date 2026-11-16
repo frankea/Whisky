@@ -508,6 +508,10 @@ Some programs that are not launchers draw their own window with Chromium (CEF or
 - A DXVK override set on `3DMark.exe` stays on the front end and no longer becomes the backend of 3DMark's benchmarks on Steam launches
 - In a bottle without Game Porting Toolkit (DXMT), DXVK and DXMT share system files, so what the front end starts also runs on DXVK until a DXMT program is next started from Whisky
 
+**3DMark's window draws but stays on its background:**
+- That is 3DMark's SystemInfo hardware scan, which does not finish under Wine. It is not a graphics problem: the window is already drawing on DXVK
+- Turn the scan off in 3DMark's settings file, `%LOCALAPPDATA%\UL\3DMark\app-settings.json` inside the bottle (`drive_c/users/crossover/AppData/Local/UL/3DMark/app-settings.json`): set `SCAN_SYSTEM_INFO` and `HARDWARE_MONITORING` to `false` while 3DMark is closed, then start it again. The full interface loads, though it can be slow to respond. The benchmarks themselves are separate programs and are not affected
+
 **Electron and NW.js apps:**
 - An Electron app (its folder holds `resources/app.asar` or `resources/app/package.json`, `icudtl.dat`, and a V8 snapshot, and the executable imports `ffmpeg.dll`) or an NW.js app (`nw.dll` and `icudtl.dat` beside it, and the executable imports `nw.dll` or `nw_elf.dll`) runs on DXVK under Recommended, the same way as a known front end. Its settings page names the file that identified it
 - An executable that imports Direct3D, DXGI, Vulkan or OpenGL itself is never matched, nor is anything under `drive_c/windows` or in a folder with more than 2,000 files. The uninstaller and helper programs beside an Electron app keep the bottle's backend

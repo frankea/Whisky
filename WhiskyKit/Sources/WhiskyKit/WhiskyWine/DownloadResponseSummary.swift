@@ -24,7 +24,8 @@ import Foundation
 /// request with their own web page and a success status, so the problem only
 /// shows when the body fails to parse. This keeps enough to tell that apart
 /// from a broken file on the server, without keeping the page itself: a
-/// filter's page, its path and its query can name the user or their network.
+/// filter's page, its path and its query can name the user. Only the host
+/// that answered is kept, to tell a local filter or portal from GitHub.
 public struct DownloadResponseSummary: Codable, Equatable, Sendable {
     /// How many leading bytes are inspected for HTML markers.
     static let sniffLength = 2_048

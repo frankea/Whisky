@@ -6,6 +6,27 @@
         <description>Whisky update feed</description>
         <language>en</language>
         <item>
+            <title>Whisky 3.10.2</title>
+            <pubDate>Mon, 16 Nov 2026 23:36:20 GMT</pubDate>
+            <sparkle:version>62</sparkle:version>
+            <sparkle:shortVersionString>3.10.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <p>Whisky 3.10.2 gets the Rockstar Games Launcher signing in, keeps the installed WhiskyWine runtime when an update fails, and explains downloads that a network blocks.</p>
+                <ul>
+                    <li><strong>The Rockstar Games Launcher signs in</strong>, with or without GPTK imported, and starting it in a Steam bottle no longer moves Steam games off D3DMetal.</li>
+                    <li><strong>A failed WhiskyWine update keeps the installed runtime</strong>, so every bottle keeps working and the update is offered again on the next launch.</li>
+                    <li><strong>Setup explains blocked downloads</strong> and names the sites a network filter needs to allow.</li>
+                </ul>
+                <p>See the <a href="https://github.com/frankea/Whisky/releases/tag/app-v3.10.2">release notes</a> for the full changelog.</p>
+            ]]></description>
+            <enclosure
+                url="https://github.com/frankea/Whisky/releases/download/app-v3.10.2/Whisky-3.10.2.dmg"
+                sparkle:edSignature="uzB2xcCt7q/QpwiPiz1Tg3SH5ciGCKmYuxLZVoJv4uAuYpWTvE9kWpzPNejTGS5zcEQ8w3X1Wv4D+4u4FrcZDA=="
+                length="12961437"
+                type="application/octet-stream" />
+        </item>
+        <item>
             <title>Whisky 3.10.1</title>
             <pubDate>Sun, 15 Nov 2026 21:29:34 +0000</pubDate>
             <sparkle:version>61</sparkle:version>

@@ -102,7 +102,7 @@ extension Wine {
         })
         candidates += frontEndCopyFolders(
             frontEndExecutables(bottleURL: bottle.url, steamRoot: steamRoot) + library.hosts,
-            bottle: bottle, excluded: excluded, unserved: &scan.unserved
+            bottle: bottle, recommendedBackend: recommendedBackend, excluded: excluded, unserved: &scan.unserved
         )
         scan.unserved += otherLauncherConsumers(bottleURL: bottle.url)
 
@@ -147,7 +147,9 @@ extension Wine {
 
     /// Scans each installed library game once: its plan executables' folders,
     /// which never get copies, its Chromium hosts and front ends, and whether
-    /// its plan, the one `-applaunch` would resolve, is DXVK.
+    /// its plan, the one `-applaunch` would resolve, loads `d3d11` native
+    /// first: DXVK, or overrides that ask for it
+    /// (``rockstarProgramUsesNativeD3D11(_:bottle:recommendedBackend:dxmtIsServed:)``).
     @MainActor
     private static func rockstarLibraryPass(
         bottle: Bottle,
@@ -162,9 +164,10 @@ extension Wine {
                 }
             }
             pass.hosts += scan.ownSettingsExecutables
-            let choice = SteamLauncher.launchPlan(appId: game.appId, scan: scan, bottle: bottle).overrides
-                .graphicsBackend ?? bottle.settings.graphicsBackend
-            if (choice == .recommended ? recommendedBackend : choice) == .dxvk {
+            let plan = SteamLauncher.launchPlan(appId: game.appId, scan: scan, bottle: bottle)
+            if rockstarProgramUsesNativeD3D11(
+                plan.overrides, bottle: bottle, recommendedBackend: recommendedBackend, dxmtIsServed: true
+            ) {
                 pass.dxvkPlanGames.append(game.name)
             }
         }
@@ -230,12 +233,15 @@ extension Wine {
     /// is unserved by its executable's name.
     @MainActor
     private static func frontEndCopyFolders(
-        _ executables: [URL], bottle: Bottle, excluded: Set<String>, unserved: inout [String]
+        _ executables: [URL], bottle: Bottle, recommendedBackend: GraphicsBackend, excluded: Set<String>,
+        unserved: inout [String]
     ) -> [RockstarD3DCopyFolder] {
         var seen = Set<String>()
         var folders: [RockstarD3DCopyFolder] = []
         for url in executables where seen.insert(url.path(percentEncoded: false).lowercased()).inserted {
-            guard rockstarGetsNativeD3D11(url, bottle: bottle) else { continue }
+            guard rockstarGetsNativeD3D11(url, bottle: bottle, recommendedBackend: recommendedBackend) else {
+                continue
+            }
             guard let key = dxmtGameFolderKey(url.deletingLastPathComponent(), bottleURL: bottle.url),
                   !excluded.contains(key.lowercased()), !isUnderRockstarLauncher(key)
             else {
@@ -254,15 +260,20 @@ extension Wine {
     /// Whether a launch gives `url` a native-first `d3d11`: a front end that
     /// Recommended steers to DXVK, under the same condition
     /// ``addFrontEndScopes(_:to:bottle:recommendedBackend:launcherSet:)``
-    /// writes it the launcher set, or a Chromium host whose own override is
-    /// DXVK, which a Steam launch writes as its own settings.
+    /// writes it the launcher set, or a Chromium host whose own settings, as
+    /// a Steam launch writes them for it, ask for `d3d11` native first. No
+    /// DXMT copies go beside a host, so a DXMT override counts as well: in a
+    /// Steam session it reads `system32`'s `d3d11`, DXVK's until the swap.
     @MainActor
-    static func rockstarGetsNativeD3D11(_ url: URL, bottle: Bottle) -> Bool {
+    static func rockstarGetsNativeD3D11(_ url: URL, bottle: Bottle, recommendedBackend: GraphicsBackend) -> Bool {
         let persisted = Program.persistedOverrides(for: url, bottleURL: bottle.url)
         if frontEndSteering(for: url) != nil {
             return frontEndWantsDXVK(choice: persisted?.graphicsBackend ?? bottle.settings.graphicsBackend)
         }
-        return persisted?.graphicsBackend == .dxvk
+        guard let persisted else { return false }
+        return rockstarProgramUsesNativeD3D11(
+            persisted, bottle: bottle, recommendedBackend: recommendedBackend, dxmtIsServed: false
+        )
     }
 
     /// Whether `folder` already holds a `d3d11.dll` or `d3d10core.dll` that is

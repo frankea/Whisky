@@ -96,6 +96,55 @@ final class RockstarSocialClubPrecreationTests {
         #expect(!RockstarD3DLayoutRecord.exists(in: fixture.bottle.url))
     }
 
+    @Test("A first run that never installed the launcher does not make the bottle Rockstar's")
+    func unfinishedFirstRunIsTakenBack() throws {
+        try firstRun()
+        #expect(!Wine.rockstarInstalled(bottleURL: fixture.bottle.url))
+        #expect(Wine.chainExecutables(for: .steam, bottleURL: fixture.bottle.url).isEmpty)
+
+        #expect(try fixture.startSteam() == nil)
+
+        #expect(!RockstarD3DFixture.exists(rockstarGames))
+        #expect(!RockstarD3DLayoutRecord.exists(in: fixture.bottle.url))
+        #expect(RockstarD3DFixture.contents(fixture.system32("d3d11.dll"))
+            == RockstarD3DFixture.dxvkBytes("x64", "d3d11.dll"))
+        #expect(fixture.bottle.rockstarWineD3DStatus(payloadDeployed: true) == nil)
+    }
+
+    @Test("Once Rockstar's uninstaller leaves only Whisky's copies, the swap is taken back for good")
+    func uninstalledRockstarIsTakenBack() throws {
+        try fixture.installRockstar()
+        #expect(try fixture.startSteam() == .swapped(source: fixture.d3d11Source))
+        try fixture.uninstallRockstar()
+        #expect(!Wine.rockstarInstalled(bottleURL: fixture.bottle.url))
+
+        #expect(try fixture.startSteam() == nil)
+
+        #expect(RockstarD3DFixture.holdsNoCopies(fixture.socialClub))
+        #expect(!RockstarD3DLayoutRecord.exists(in: fixture.bottle.url))
+        // Rockstar made the folder, so it stays; empty, it is no install either.
+        #expect(RockstarD3DFixture.exists(fixture.socialClub))
+        #expect(try fixture.startSteam() == nil)
+        #expect(!RockstarD3DLayoutRecord.exists(in: fixture.bottle.url))
+        #expect(RockstarD3DFixture.holdsNoCopies(fixture.socialClub))
+    }
+
+    @Test("A Rockstar Games folder with anything of Rockstar's in it is an install")
+    func anythingOfRockstarsIsAnInstall() throws {
+        let copy = fixture.socialClub.appending(path: "d3d11.dll")
+        try fixture.write(RockstarD3DFixture.dxvkBytes("x64", "d3d11.dll"), to: copy)
+        #expect(!Wine.rockstarInstalled(bottleURL: fixture.bottle.url))
+
+        try fixture.write(Data("cef".utf8), to: fixture.socialClub.appending(path: "libcef.dll"))
+        #expect(Wine.rockstarInstalled(bottleURL: fixture.bottle.url))
+        try FileManager.default.removeItem(at: fixture.socialClub.appending(path: "libcef.dll"))
+
+        try FileManager.default.createDirectory(
+            at: rockstarGames.appending(path: "Grand Theft Auto V"), withIntermediateDirectories: true
+        )
+        #expect(Wine.rockstarInstalled(bottleURL: fixture.bottle.url))
+    }
+
     @Test("A teardown before Rockstar installed anything removes both folders it created")
     func teardownRemovesEmptyFolders() throws {
         try firstRun()

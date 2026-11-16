@@ -57708,13 +57708,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "With GPTK installed, the Rockstar Games Launcher can only draw with Wine's own Direct3D. Whisky puts Wine's d3d11.dll in this bottle's system folder and gives Steam and Social Club their own copies of DXVK. Turn this off to keep DXVK in the system folder."
+            "value" : "With GPTK installed, the Rockstar Games Launcher draws only with Wine's own Direct3D, not with DXVK. Whisky puts Wine's d3d11.dll in this bottle's system folder and gives Steam and Social Club their own copies of DXVK. It cannot while every program in the bottle runs on DXVK, as Use DXVK for Rockstar Games Launcher makes them do in a bottle whose launcher is Rockstar's. Turn this off to keep DXVK in the system folder."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "With GPTK installed, the Rockstar Games Launcher can only draw with Wine's own Direct3D. Whisky puts Wine's d3d11.dll in this bottle's system folder and gives Steam and Social Club their own copies of DXVK. Turn this off to keep DXVK in the system folder."
+            "value" : "With GPTK installed, the Rockstar Games Launcher draws only with Wine's own Direct3D, not with DXVK. Whisky puts Wine's d3d11.dll in this bottle's system folder and gives Steam and Social Club their own copies of DXVK. It cannot while every program in the bottle runs on DXVK, as Use DXVK for Rockstar Games Launcher makes them do in a bottle whose launcher is Rockstar's. Turn this off to keep DXVK in the system folder."
           }
         }
       }
@@ -57740,13 +57740,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not applied: every program in this bottle runs on DXVK (its Graphics Backend or a DLL override)."
+            "value" : "Not applied: every program in this bottle loads native Direct3D 11 (DXVK or DXMT), from its Graphics Backend, a DLL override, or Use DXVK for Rockstar Games Launcher."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not applied: every program in this bottle runs on DXVK (its Graphics Backend or a DLL override)."
+            "value" : "Not applied: every program in this bottle loads native Direct3D 11 (DXVK or DXMT), from its Graphics Backend, a DLL override, or Use DXVK for Rockstar Games Launcher."
           }
         }
       }
@@ -57756,13 +57756,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not applied: these games run on DXVK here: %@. Set them to Recommended, or keep them in another bottle."
+            "value" : "Not applied: these games run on DXVK here: %@. Set them to D3DMetal, or keep them in another bottle."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not applied: these games run on DXVK here: %@. Set them to Recommended, or keep them in another bottle."
+            "value" : "Not applied: these games run on DXVK here: %@. Set them to D3DMetal, or keep them in another bottle."
           }
         }
       }
@@ -57836,13 +57836,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not applied: these programs need DXVK from the system folder: %@."
+            "value" : "Not applied: these programs or folders need DXVK from the system folder: %@."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not applied: these programs need DXVK from the system folder: %@."
+            "value" : "Not applied: these programs or folders need DXVK from the system folder: %@."
           }
         }
       }

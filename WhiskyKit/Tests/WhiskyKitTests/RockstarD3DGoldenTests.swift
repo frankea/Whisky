@@ -136,7 +136,7 @@ final class RockstarD3DGoldenTests {
         #expect(!RockstarD3DLayoutRecord.exists(in: wired.bottle.url))
     }
 
-    @Test("A Steam start in a Rockstar bottle without GPTK writes PR 1's builtin chain")
+    @Test("A Steam start in a Rockstar bottle without GPTK writes the builtin chain")
     func rockstarWithoutGPTKWritesTheBuiltinChain() async throws {
         try wired.installRockstar()
         let recorder = ScopeRecorder()

@@ -77,9 +77,10 @@ extension Wine {
     ///   - dxmtFolder: The DXMT payload.
     ///   - rockstar: The launch, for the Rockstar Games Launcher's Direct3D in
     ///     `system32` (``deployDXVK(bottle:from:rockstar:ops:)``); `nil`
-    ///     deploys DXVK exactly as before that existed. Only read when the
-    ///     launch deploys DXVK: a launch on DXMT has already put DXMT's
-    ///     `d3d11` into `system32`, and nothing here may write over it.
+    ///     deploys DXVK exactly as it was deployed before the swap existed.
+    ///     Only read when the launch deploys DXVK: a launch on DXMT has
+    ///     already put DXMT's `d3d11` into `system32`, and nothing here may
+    ///     write over it.
     /// - Returns: The layout the launch decided for Rockstar's `Launcher.exe`,
     ///   or `nil` when it decided none and the DLL override step resolves it.
     /// - Throws: An error if DXVK's files cannot be copied. The game folders never throw.

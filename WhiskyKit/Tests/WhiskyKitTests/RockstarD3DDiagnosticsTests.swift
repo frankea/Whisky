@@ -102,6 +102,8 @@ final class RockstarD3DDiagnosticsTests {
         #expect(report.contains("- **Swap record engine:** 4.8.2, differs (installed 4.8.3)"))
         #expect(report.contains("- **Swap record system32 d3d11:** not recorded (interrupted swap)"))
         #expect(report.contains("- **Swap record created folder:** Gone/Folder (gone)"))
+        // Without Rockstar, the next Steam start takes the swap back whatever the runtime allows.
+        #expect(report.contains("- **Layout now:** teardown (Rockstar is not installed)"))
         #expect(!report.contains("\u{2014}"))
     }
 
@@ -133,6 +135,10 @@ final class RockstarD3DDiagnosticsTests {
         #expect(bottle.rockstarWineD3DStatus(payloadDeployed: true) == .active)
         // After the app restarts, the record alone says active.
         bottle.rockstarD3DLayout = nil
+        #expect(bottle.rockstarWineD3DStatus(payloadDeployed: true) == .active)
+
+        // A launch that did not decide on the swap says nothing about it.
+        bottle.rockstarD3DLayout = .degraded(.gptkForwarders)
         #expect(bottle.rockstarWineD3DStatus(payloadDeployed: true) == .active)
 
         bottle.rockstarD3DLayout = .degraded(.dxvkPlanGames(["Game"]))

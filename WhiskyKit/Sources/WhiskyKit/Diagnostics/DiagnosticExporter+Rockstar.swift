@@ -229,7 +229,11 @@ extension DiagnosticExporter {
         }
         lines += "- **Wine Direct3D swap setting:** \(bottle.settings.rockstarWineD3D ? "on" : "off")\n"
         lines += "- **Layout at the last launch:** \(bottle.rockstarD3DLayout?.summary ?? "no launch this session")\n"
-        lines += "- **Layout now:** \(RockstarD3DLayout.resolve(inputs).summary)\n"
+        // A launch decides on the swap only in a bottle that is Rockstar's; in
+        // any other, the next one that keeps the layout takes it back.
+        let now = launch.engages(bottle)
+            ? RockstarD3DLayout.resolve(inputs).summary : "teardown (Rockstar is not installed)"
+        lines += "- **Layout now:** \(now)\n"
         for dll in ["d3d11.dll", "dxgi.dll"] {
             let source = WineD3DSource.resolve(dll, libraryFolder: runtime.libraryFolder, store: runtime.store)
             lines += "- **\(dll.dropLast(4)) source:** \(describe(source))\n"

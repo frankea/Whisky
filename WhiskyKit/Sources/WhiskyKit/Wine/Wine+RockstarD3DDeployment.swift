@@ -35,7 +35,13 @@ extension Wine {
     /// - Any other launch that deploys DXVK suspends it: DXVK takes
     ///   `system32\d3d11.dll` back for that session, since whatever it starts
     ///   may need it there, and the next launch that keeps the layout swaps
-    ///   it again. The copies and the record stay.
+    ///   it again. The copies and the record stay, and so do `Launcher.exe`'s
+    ///   swapped entry and renderer when the launch writes no Rockstar chain:
+    ///   a Rockstar start inside that session gets DXVK's `d3d11` with Wine's
+    ///   `dxgi`, the pair every DXVK process has, and cannot draw, as on any
+    ///   layout where Wine's own `d3d11` is out of reach. The settings keep
+    ///   showing the swap as active, which it is again from the next start
+    ///   of Steam or the launcher from Whisky.
     /// - In a bottle without Rockstar, and with no record of an earlier swap,
     ///   DXVK is deployed exactly as it always was.
     ///
@@ -151,38 +157,6 @@ extension Wine {
         inputs.dxvkPlanGames = scan.dxvkPlanGames
         inputs.unservedConsumers = scan.unserved
         return (inputs, scan)
-    }
-
-    /// Whether the bottle scope, which every process without an entry of its
-    /// own reads, asks for `d3d11` native first: a DXVK or DXMT backend, the
-    /// Rockstar profile's bottle-wide DXVK preset, or an override of the
-    /// user's. With the swap, all of those processes would get Wine's `d3d11`.
-    @MainActor
-    static func rockstarBottleUsesNativeD3D11(
-        bottle: Bottle, recommendedBackend: GraphicsBackend, builtinD3D12IsD3DMetal: Bool
-    ) -> Bool {
-        let overrides = constructWineEnvironment(
-            for: bottle, recommendedBackend: recommendedBackend, builtinD3D12IsD3DMetal: builtinD3D12IsD3DMetal
-        )["WINEDLLOVERRIDES"] ?? ""
-        return asksNativeFirst("d3d11", in: overrides)
-    }
-
-    /// Whether `overrides`, in `WINEDLLOVERRIDES` syntax, load `dll` native
-    /// first. A clause may name several DLLs (`d3d11,dxgi=n,b`); the last
-    /// clause naming `dll` wins, as in Wine.
-    static func asksNativeFirst(_ dll: String, in overrides: String) -> Bool {
-        var nativeFirst = false
-        for clause in overrides.split(separator: ";") {
-            let parts = clause.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
-            guard let names = parts.first,
-                  names.split(separator: ",").contains(where: {
-                      $0.trimmingCharacters(in: .whitespaces).lowercased() == dll
-                  })
-            else { continue }
-            let order = parts.count > 1 ? parts[1].trimmingCharacters(in: .whitespaces).lowercased() : ""
-            nativeFirst = order.hasPrefix("n")
-        }
-        return nativeFirst
     }
 
     /// Deploys DXVK for a launch that decided against the swap: a teardown
@@ -311,19 +285,41 @@ struct RockstarD3DLaunch {
     }
 
     /// Whether every DXVK consumer this launch starts is served while
-    /// `system32\d3d11.dll` is Wine's: Steam, whose own executable loads no
-    /// `d3d11` and whose Chromium gets copies, with or without `-applaunch`;
-    /// Rockstar's own `Launcher.exe`; and a front end in a folder holding
-    /// Whisky's copies, started from the Programs tab.
+    /// `system32\d3d11.dll` is Wine's: Steam's own executables, of which
+    /// `steam.exe` loads no `d3d11` and the Chromium gets copies, with or
+    /// without `-applaunch`; Rockstar's launcher folder, `Launcher.exe` and
+    /// `LauncherPatcher.exe` (the updater, which starts `Launcher.exe` when it
+    /// is done); and a front end in a folder holding Whisky's copies, started
+    /// from the Programs tab.
+    ///
+    /// Steam is recognised by its folder, not by ``LauncherType/detect(from:)``,
+    /// which takes any program with "steam" in its name or path for Steam's:
+    /// such a program gets DXVK's set, and with Wine's `d3d11` in `system32`
+    /// and no copy beside it, it would not get DXVK.
+    ///
+    /// The updater keeps the layout because what it starts is the launcher
+    /// the swap is for: suspended, `Launcher.exe` would start on DXVK in
+    /// `system32` with the degraded set, which is #382 again, and so would
+    /// every later Rockstar start in that Steam session. The updater itself
+    /// runs on its launch's set, which with the swap reaches Wine's `d3d11`;
+    /// no copy can go beside it, since `Launcher.exe` shares its folder.
     ///
     /// Anything else that deploys DXVK (another launcher, a program on a DXVK
     /// override, a Rockstar game started directly) needs DXVK in `system32`.
+    /// A Rockstar-store game started directly is one of them: it needs DXVK
+    /// there itself, and the launcher it starts cannot draw that session.
     func keepsLayout(record: RockstarD3DLayoutRecord?, bottleURL: URL) -> Bool {
-        if launcher == .steam || Wine.isRockstarLauncher(url) {
+        let folder = url.deletingLastPathComponent()
+        let folderKey = Wine.dxmtGameFolderKey(folder, bottleURL: bottleURL)?.lowercased()
+        if launcher == .steam, let folderKey, let steamRoot = SteamLibrary.detectInstall(bottleURL: bottleURL),
+           Wine.dxmtGameFolderKey(steamRoot, bottleURL: bottleURL)?.lowercased() == folderKey {
             return true
         }
-        guard let record, let key = Wine.dxmtGameFolderKey(url.deletingLastPathComponent(), bottleURL: bottleURL)
-        else { return false }
-        return record.copyFolderKeys.contains(key.lowercased())
+        if Wine.isRockstarLauncher(url)
+            || (launcher == .rockstar && Wine.isUnderRockstarLauncher(folder.path(percentEncoded: false))) {
+            return true
+        }
+        guard let record, let folderKey else { return false }
+        return record.copyFolderKeys.contains(folderKey)
     }
 }

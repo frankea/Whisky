@@ -45,12 +45,37 @@ extension Wine {
         return rockstarSession ? LauncherType.rockstar.chainExecutables : []
     }
 
-    /// Whether the bottle has a `Rockstar Games` folder in either Program Files.
+    /// Whether the bottle has a `Rockstar Games` folder in either Program
+    /// Files with something of Rockstar's in it.
+    ///
+    /// The Rockstar swap (#382) creates `Rockstar Games\Social Club` itself,
+    /// with DXVK's `d3d11.dll` and `d3d10core.dll` in it, ahead of the
+    /// launcher's first start. A folder holding nothing but that, or nothing
+    /// at all, is not Rockstar's: counted as an install, one first run that
+    /// never got as far as installing the launcher would keep every later
+    /// Steam start swapped and writing Rockstar's chain, and the teardown
+    /// once Rockstar's uninstaller has removed its own files could never
+    /// come, since Whisky's copies would be what kept the folder there.
     static func rockstarInstalled(bottleURL: URL) -> Bool {
         let driveC = bottleURL.appending(path: "drive_c")
         return ["Program Files", "Program Files (x86)"].contains { programFiles in
             let folder = driveC.appending(path: programFiles).appending(path: "Rockstar Games")
             return FileManager.default.fileExists(atPath: folder.path(percentEncoded: false))
+                && !holdsNothingOfRockstars(folder)
+        }
+    }
+
+    /// Whether `rockstarGames` holds nothing but Finder's `.DS_Store` and a
+    /// `Social Club` folder holding nothing but that and the swap's copies.
+    private static func holdsNothingOfRockstars(_ rockstarGames: URL) -> Bool {
+        func entries(_ url: URL) -> [String]? {
+            (try? FileManager.default.contentsOfDirectory(atPath: url.path(percentEncoded: false)))?
+                .filter { $0 != ".DS_Store" }
+        }
+        guard let names = entries(rockstarGames) else { return false }
+        return names.allSatisfy { name in
+            name.lowercased() == "social club"
+                && entries(rockstarGames.appending(path: name))?.allSatisfy(rockstarD3DCopyDLLs.contains) == true
         }
     }
 

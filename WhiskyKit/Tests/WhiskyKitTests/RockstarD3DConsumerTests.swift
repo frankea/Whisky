@@ -144,6 +144,22 @@ final class RockstarD3DConsumerTests {
         #expect(copyKeys.contains(key))
     }
 
+    @Test("A Chromium host whose own overrides ask for native d3d11 some other way is served", arguments: [
+        "legacy", "custom"
+    ])
+    func chromiumHostOnNativeOverridesIsServed(_ kind: String) throws {
+        let host = try chromiumHost()
+        var overrides = ProgramOverrides()
+        if kind == "legacy" {
+            overrides.dxvk = true
+        } else {
+            overrides.dllOverrides = [DLLOverrideEntry(dllName: "d3d11", mode: .nativeThenBuiltin)]
+        }
+        try fixture.setOverrides(overrides, for: host)
+
+        #expect(copyKeys.contains("\(RockstarD3DFixture.steamKey)/steamapps/common/Bench/bin/x64"))
+    }
+
     @Test("A folder holding DXMT's game copies is unserved")
     func dxmtFolderIsUnserved() throws {
         let host = try chromiumHost()
@@ -177,7 +193,8 @@ final class RockstarD3DConsumerTests {
             at: cef7x64.appending(path: "d3d10core.dll"),
             withDestinationURL: fixture.dxvk.appending(path: "x64/d3d10core.dll")
         )
-        try Data("dxvk".utf8).write(to: fixture.steamRoot.appending(path: "D3D11.dll"))
+        // DXVK's own bytes, so only the spelling makes it someone else's.
+        try RockstarD3DFixture.dxvkBytes("x64", "d3d11.dll").write(to: fixture.steamRoot.appending(path: "D3D11.dll"))
 
         let result = scan()
         #expect(result.unserved.sorted() == RockstarD3DFixture.steamCopyKeys.sorted())
@@ -231,6 +248,9 @@ final class RockstarD3DConsumerTests {
 
         [Software\\Wine\\AppDefaults\\EpicGamesLauncher.exe\\DllOverrides] 1731628800
         "d3d11"="b"
+
+        [Software\\Wine\\AppDefaults\\EADesktop.exe\\Extra\\DllOverrides] 1731628800
+        "d3d11"="n,b"
 
         [Software\\Wine\\AppDefaults\\SomeGame.exe\\DllOverrides] 1731628800
         "d3d11"="n,b"

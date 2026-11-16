@@ -42,6 +42,8 @@ final class FakeSteamClientDriver: SteamClientDriver {
 
     private(set) var listCalls = 0
     private(set) var hostCalls = 0
+    /// Reads of the host's `steam.exe` PIDs: one per pass of the client wait.
+    private(set) var hostPIDCalls = 0
     private(set) var startClientCalls = 0
     private(set) var fixesCalls = 0
     private(set) var launched: [Int] = []
@@ -63,6 +65,7 @@ final class FakeSteamClientDriver: SteamClientDriver {
     }
 
     func hostSteamPIDs() async -> Set<Int32> {
+        hostPIDCalls += 1
         if let hostSteamPIDOverride {
             return hostSteamPIDOverride
         }

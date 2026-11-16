@@ -24,6 +24,9 @@ struct RosettaView: View {
     @State var successful: Bool = true
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
+    /// Set during a runtime update, when the installed runtime is still in
+    /// place but a new one has to be downloaded after Rosetta.
+    var updatingRuntime: Bool = false
 
     var body: some View {
         VStack {
@@ -105,7 +108,7 @@ struct RosettaView: View {
 
     @MainActor
     func proceed() {
-        if !WhiskyWineInstaller.isWhiskyWineInstalled() {
+        if updatingRuntime || !WhiskyWineInstaller.isWhiskyWineInstalled() {
             path.append(.whiskyWineDownload)
             return
         }

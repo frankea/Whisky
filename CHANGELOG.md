@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The Running Processes page no longer shows "Checking for processes..."
   indefinitely when no app is running in the bottle, and says when only
   Wine's background processes are running ([#398]).
+- After you stop a bottle whose programs were started outside Whisky, its
+  orange "started outside Whisky" mark in the sidebar clears right away
+  instead of up to a minute later ([#399]).
 
 ## [3.10.2] - 2026-11-16 (App)
 
@@ -1682,6 +1685,7 @@ up to date.
 [#395]: https://github.com/frankea/Whisky/issues/395
 [#397]: https://github.com/frankea/Whisky/issues/397
 [#398]: https://github.com/frankea/Whisky/issues/398
+[#399]: https://github.com/frankea/Whisky/issues/399
 [@adurham]: https://github.com/adurham
 [@daydalek]: https://github.com/daydalek
 [@Dunn-Kim]: https://github.com/Dunn-Kim

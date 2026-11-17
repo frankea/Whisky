@@ -168,19 +168,37 @@ class ProcessesViewModel: ObservableObject {
 
     /// Lists the bottle's processes, giving up after ``listingTimeout``.
     ///
-    /// Giving up cancels the listing, which terminates its `tasklist.exe`.
+    /// Returns at the timeout without waiting for the listing to wind down, and
+    /// cancels the listing (which terminates its `tasklist.exe`) then, or when
+    /// polling stops. A listing cut short throws rather than returning what it had.
     private func listProcessesWithTimeout() async throws -> [WineProcess] {
         let bottle = bottle
+        let timeout = listingTimeout
         let listing = Task { @MainActor in try await Wine.listProcesses(for: bottle) }
-        let watchdog = Task { [listingTimeout] in
-            try await Task.sleep(for: listingTimeout)
+        let outcome = ListingOutcome()
+        var watchdog: Task<Void, Never>?
+        defer { watchdog?.cancel() }
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                outcome.continuation = continuation
+                Task { @MainActor in
+                    do {
+                        let result = try await listing.value
+                        outcome.finish(listing.isCancelled ? .failure(CancellationError()) : .success(result))
+                    } catch {
+                        outcome.finish(.failure(error))
+                    }
+                }
+                watchdog = Task { @MainActor in
+                    try? await Task.sleep(for: timeout)
+                    guard !Task.isCancelled else { return }
+                    listing.cancel()
+                    outcome.finish(.failure(CancellationError()))
+                }
+            }
+        } onCancel: {
             listing.cancel()
         }
-        defer { watchdog.cancel() }
-        let result = try await listing.value
-        // A listing the watchdog cut short may still return what it had; don't take it as the bottle's.
-        if listing.isCancelled { throw CancellationError() }
-        return result
     }
 
     /// Returns a sort order value for process kind grouping.
@@ -289,5 +307,17 @@ class ProcessesViewModel: ObservableObject {
         shutdownState = .idle
         await refreshProcessList()
         shutdownState = savedState
+    }
+}
+
+/// Hands a process listing's result to its caller once, whichever of the
+/// listing and its timeout finishes first.
+@MainActor
+private final class ListingOutcome {
+    var continuation: CheckedContinuation<[WineProcess], Error>?
+
+    func finish(_ result: Result<[WineProcess], Error>) {
+        continuation?.resume(with: result)
+        continuation = nil
     }
 }

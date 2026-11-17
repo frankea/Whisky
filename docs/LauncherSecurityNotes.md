@@ -143,9 +143,9 @@ The CEF sandbox **cannot function under Wine** because:
 
 **In UI (LauncherConfigSection.swift):**
 - Orange shield icon with "Security Note"
-- Notes that the Chromium sandbox is disabled (the in-app text still credits Launcher Compatibility; Whisky actually disables it for every launch)
-- "Only use with trusted launchers from reputable companies"
-- Visible warning when compatibility mode enabled
+- Says Whisky turns off the Chromium sandbox for every program it runs, because the sandbox can't work under Wine
+- "Only run launchers and programs from sources you trust"
+- Shown in the Launcher Compatibility section when compatibility mode is on
 
 ### 2. User Awareness ✅
 

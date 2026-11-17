@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - After you stop a bottle whose programs were started outside Whisky, its
   orange "started outside Whisky" mark in the sidebar clears right away
   instead of up to a minute later ([#399]).
+- The Security Note under Launcher Compatibility now says Whisky turns off
+  the Chromium sandbox for every program it runs, because the sandbox can't
+  work under Wine. It said only launcher compatibility did ([#401]).
 
 ## [3.10.2] - 2026-11-16 (App)
 
@@ -1686,6 +1689,7 @@ up to date.
 [#397]: https://github.com/frankea/Whisky/issues/397
 [#398]: https://github.com/frankea/Whisky/issues/398
 [#399]: https://github.com/frankea/Whisky/issues/399
+[#401]: https://github.com/frankea/Whisky/issues/401
 [@adurham]: https://github.com/adurham
 [@daydalek]: https://github.com/daydalek
 [@Dunn-Kim]: https://github.com/Dunn-Kim

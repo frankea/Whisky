@@ -6741,154 +6741,6 @@
         }
       }
     },
-    "Launcher compatibility disables the Chromium sandbox (required for Wine). This allows Steam, Epic, EA App, and Rockstar launchers to function, but embedded browser content runs with full process privileges. Only use with trusted launchers from reputable companies." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يعطّل توافق المشغّلات وضع العزل في Chromium (وهو مطلوب لـ Wine). يتيح ذلك عمل مشغّلات Steam وEpic وEA App وRockstar، لكن محتوى المتصفح المضمّن يعمل بامتيازات العملية الكاملة. استخدمه فقط مع مشغّلات موثوقة من شركات معروفة."
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Režim kompatibility launcherů vypíná sandbox Chromia (vyžaduje to Wine). Díky tomu fungují Steam, Epic, EA App i Rockstar, ale vestavěné webové stránky běží s plnými právy procesu. Používejte jej jen s důvěryhodnými launchery od známých firem."
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Launcher-kompatibilitet slår Chromium-sandkassen fra (nødvendigt for Wine). Det får launcherne fra Steam, Epic, EA App og Rockstar til at virke, men indlejret browserindhold kører med fulde procesrettigheder. Brug det kun sammen med launchere fra virksomheder, du har tillid til."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Launcher-Kompatibilität deaktiviert die Chromium-Sandbox (für Wine erforderlich). Dadurch funktionieren die Launcher von Steam, Epic, EA App und Rockstar, eingebettete Browserinhalte laufen jedoch mit vollen Prozessrechten. Verwende dies nur bei vertrauenswürdigen Launchern seriöser Anbieter."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Launcher compatibility disables the Chromium sandbox (required for Wine). This allows Steam, Epic, EA App, and Rockstar launchers to function, but embedded browser content runs with full process privileges. Only use with trusted launchers from reputable companies."
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Launcher compatibility disables the Chromium sandbox (required for Wine). This allows Steam, Epic, EA App, and Rockstar launchers to function, but embedded browser content runs with full process privileges. Only use with trusted launchers from reputable companies."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La compatibilidad de lanzadores desactiva el sandbox de Chromium (necesario para Wine). Así funcionan Steam, Epic, EA App y Rockstar, pero el contenido web incrustado se ejecuta con todos los privilegios del proceso. Úsalo solo con lanzadores de confianza de empresas conocidas."
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Käynnistinyhteensopivuus poistaa käytöstä Chromiumin hiekkalaatikon (Wine vaatii tämän). Näin Steam-, Epic-, EA App- ja Rockstar-käynnistimet toimivat, mutta upotettu selainsisältö saa täydet prosessioikeudet. Käytä vain luotettavien yhtiöiden käynnistimien kanssa."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La compatibilité des lanceurs désactive le bac à sable de Chromium (nécessaire pour Wine). Steam, Epic, EA App et Rockstar peuvent ainsi fonctionner, mais le contenu web intégré s'exécute avec tous les privilèges du processus. À n'utiliser qu'avec des lanceurs de confiance provenant d'entreprises reconnues."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La compatibilità launcher disattiva la sandbox di Chromium (necessaria per Wine). In questo modo Steam, Epic, EA App e Rockstar possono funzionare, ma i contenuti web integrati vengono eseguiti con tutti i privilegi del processo. Usala solo con launcher affidabili di aziende note."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ランチャー互換性を有効にすると、Wine に必要なため Chromium のサンドボックスが無効になります。これにより Steam、Epic、EA App、Rockstar のランチャーが動作しますが、埋め込みブラウザのコンテンツが完全なプロセス権限で実行されます。信頼できる企業のランチャーにのみ使用してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "런처 호환성을 켜면 Wine에 필요한 Chromium 샌드박스가 비활성화됩니다. 이렇게 하면 Steam, Epic, EA App, Rockstar 런처가 작동하지만, 내장 브라우저 콘텐츠가 전체 프로세스 권한으로 실행됩니다. 신뢰할 수 있는 회사의 런처에만 사용하십시오."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Launchercompatibiliteit schakelt de Chromium-sandbox uit (nodig voor Wine). Hierdoor werken de launchers van Steam, Epic, EA App en Rockstar, maar ingesloten browserinhoud draait met volledige procesrechten. Gebruik dit alleen bij vertrouwde launchers van betrouwbare bedrijven."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tryb zgodności launcherów wyłącza piaskownicę Chromium (wymaga tego Wine). Dzięki temu działają Steam, Epic, EA App i Rockstar, ale osadzone strony internetowe działają z pełnymi uprawnieniami procesu. Używaj go tylko z zaufanymi launcherami znanych firm."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A compatibilidade de launchers desativa o sandbox do Chromium (necessário para o Wine). Isso permite que os launchers Steam, Epic, EA App e Rockstar funcionem, mas o conteúdo web incorporado roda com todos os privilégios do processo. Use somente com launchers confiáveis de empresas conhecidas."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A compatibilidade de launchers desativa a sandbox do Chromium (necessária para o Wine). Assim, os launchers Steam, Epic, EA App e Rockstar conseguem funcionar, mas o conteúdo web integrado é executado com todos os privilégios do processo. Use apenas com launchers de confiança de empresas conceituadas."
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compatibilitatea launcherelor dezactivează sandboxul Chromium (necesar pentru Wine). Astfel, launcherele Steam, Epic, EA App și Rockstar pot funcționa, dar conținutul web integrat rulează cu toate privilegiile procesului. Folosește doar cu launchere de încredere, de la companii cunoscute."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Режим совместимости лаунчеров отключает песочницу Chromium (это требуется для Wine). Благодаря этому работают Steam, Epic, EA App и Rockstar, но встроенные веб-страницы выполняются с полными правами процесса. Используйте его только с проверенными лаунчерами от известных компаний."
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Launcher-kompatibilitet stänger av Chromium-sandlådan (krävs för Wine). Det gör att launchers från Steam, Epic, EA App och Rockstar fungerar, men inbäddat webbinnehåll körs med fulla processrättigheter. Använd det bara med launchers du litar på, från välrenommerade företag."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Başlatıcı uyumluluğu, Chromium korumalı alanını devre dışı bırakır (Wine için gereklidir). Bu sayede Steam, Epic, EA App ve Rockstar başlatıcıları çalışabilir; ancak gömülü tarayıcı içeriği tam işlem ayrıcalıklarıyla çalışır. Yalnızca güvenilir firmaların başlatıcılarıyla kullanın."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Режим сумісності лаунчерів вимикає пісочницю Chromium (це потрібно для Wine). Завдяки цьому працюють Steam, Epic, EA App і Rockstar, але вбудовані вебсторінки виконуються з повними правами процесу. Використовуйте його лише з надійними лаунчерами від відомих компаній."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chế độ tương thích trình khởi chạy sẽ tắt sandbox của Chromium (Wine bắt buộc phải làm vậy). Nhờ đó Steam, Epic, EA App và Rockstar hoạt động được, nhưng nội dung trình duyệt nhúng sẽ chạy với toàn quyền của tiến trình. Chỉ dùng với trình khởi chạy đáng tin cậy từ các công ty uy tín."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "启动器兼容性会停用 Chromium 沙盒（Wine 需要如此）。这样 Steam、Epic、EA App 和 Rockstar 启动器才能正常运行，但内嵌的浏览器内容会以完整进程权限运行。请仅对来自可信公司的启动器使用。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "啟動器相容性會停用 Chromium 沙箱（Wine 必須如此）。這樣 Steam、Epic、EA App 與 Rockstar 啟動器才能運作，但內嵌的瀏覽器內容會以完整程序權限執行。請僅對可信任公司的啟動器使用。"
-          }
-        }
-      }
-    },
     "Launcher fixes applied: %@" : {
 
     },
@@ -58890,6 +58742,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disables Steam Runtime (incompatible with Wine on macOS 15.4+)"
+          }
+        }
+      }
+    },
+    "launcher.securityNote.sandbox" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whisky turns off the Chromium sandbox for every program it runs, because the sandbox can't work under Wine. That lets Steam, Epic, EA App, Rockstar and other Chromium-based launchers start, but their built-in browser content runs without the sandbox's protection. Only run launchers and programs from sources you trust."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whisky turns off the Chromium sandbox for every program it runs, because the sandbox can't work under Wine. That lets Steam, Epic, EA App, Rockstar and other Chromium-based launchers start, but their built-in browser content runs without the sandbox's protection. Only run launchers and programs from sources you trust."
           }
         }
       }

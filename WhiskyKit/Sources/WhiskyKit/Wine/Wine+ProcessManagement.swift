@@ -91,6 +91,9 @@ public extension Wine {
         let output = try await runWineWithBottle(
             ["tasklist.exe", "/FO", "CSV"], bottle: bottle, createsLogFile: false, isHelper: false
         )
+        // Cancelling ends the listing early with whatever output had arrived,
+        // often none; that is not a listing of the bottle.
+        try Task.checkCancellation()
         let processes = withoutWhiskyHelpers(parseTasklistOutput(output))
         WineHelperActivity.shared.recordListing(processes, bottleURL: bottle.url)
         return processes

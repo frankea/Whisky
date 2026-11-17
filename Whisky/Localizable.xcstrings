@@ -67391,6 +67391,22 @@
         }
       }
     },
+    "process.empty.apps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No apps running. Choose All to see Wine's background processes."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No apps running. Choose All to see Wine's background processes."
+          }
+        }
+      }
+    },
     "process.filter.all" : {
       "localizations" : {
         "ar" : {

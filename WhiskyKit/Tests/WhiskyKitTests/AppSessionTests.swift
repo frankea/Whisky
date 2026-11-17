@@ -26,22 +26,29 @@ struct StartupOrphanSweepTests {
     private let otherBottle = URL(fileURLWithPath: "/Users/test/Library/Containers/Whisky/Bottles/B")
     private let start = Date(timeIntervalSince1970: 1_800_000_000)
 
+    /// A run that started at `start`, was last seen alive 10 minutes later, and crashed.
     private func crashedRun(launchedIn bottles: [URL]) -> AppSessionRecord {
         AppSessionRecord(
-            startedAt: start, endedCleanly: false, bottlePaths: Set(bottles.map(AppSessionRecord.key(for:)))
+            startedAt: start,
+            lastSeen: start.addingTimeInterval(600),
+            endedCleanly: false,
+            bottlePaths: Set(bottles.map(AppSessionRecord.key(for:)))
         )
     }
 
+    /// A wineserver the crashed run started, five minutes into it.
+    private var serverOfThatRun: Date { start.addingTimeInterval(300) }
+
     private func action(
         for url: URL? = nil,
-        running: Bool = true,
+        startedAt: Date?? = nil,
         stopsOnQuit: Bool = true,
         previous: AppSessionRecord?,
         launchedThisSession: Bool = false
     ) -> StartupOrphanSweep.Action {
         StartupOrphanSweep.action(
             for: url ?? bottle,
-            wineserverRunning: running,
+            wineserverStartedAt: startedAt ?? serverOfThatRun,
             stopsOnQuit: stopsOnQuit,
             previousSession: previous,
             launchedThisSession: launchedThisSession
@@ -78,7 +85,21 @@ struct StartupOrphanSweepTests {
 
     @Test("A bottle without a running wineserver needs nothing")
     func idleBottleIsLeft() {
-        #expect(action(running: false, previous: crashedRun(launchedIn: [bottle])) == .leave)
+        #expect(action(startedAt: .some(nil), previous: crashedRun(launchedIn: [bottle])) == .leave)
+    }
+
+    @Test("A wineserver started after the crashed run was last seen is someone else's (whisky run after a crash)")
+    func serverStartedAfterTheCrashIsLeft() {
+        let record = crashedRun(launchedIn: [bottle])
+        let afterCrash = record.lastSeen.addingTimeInterval(StartupOrphanSweep.heartbeatGrace + 1)
+        #expect(action(startedAt: afterCrash, previous: record) == .leave)
+    }
+
+    @Test("A wineserver that came up within the grace after the last heartbeat is still that run's")
+    func serverWithinGraceIsStopped() {
+        let record = crashedRun(launchedIn: [bottle])
+        let justAfter = record.lastSeen.addingTimeInterval(StartupOrphanSweep.heartbeatGrace)
+        #expect(action(startedAt: justAfter, previous: record) == .stop)
     }
 
     @Test("A game this run already launched (whisky:// link, Dock pin) is left running")
@@ -174,10 +195,62 @@ struct AppSessionStoreTests {
         #expect(defaults.data(forKey: AppSessionStore.defaultsKey) == nil)
     }
 
+    @Test("Heartbeats and launches move lastSeen; begin() records the process ID")
+    func heartbeatAndProcessID() throws {
+        let defaults = try makeDefaults()
+        let store = AppSessionStore(defaults: defaults)
+        store.begin(at: Date(timeIntervalSince1970: 100), processID: 4_242)
+        store.heartbeat(at: Date(timeIntervalSince1970: 120))
+        var stored = try #require(store.storedRecord())
+        #expect(stored.processID == 4_242)
+        #expect(stored.lastSeen == Date(timeIntervalSince1970: 120))
+
+        store.setLaunchSession(true, for: bottle, at: Date(timeIntervalSince1970: 130))
+        stored = try #require(store.storedRecord())
+        #expect(stored.lastSeen == Date(timeIntervalSince1970: 130))
+        #expect(stored.contains(bottle))
+    }
+
+    @Test("Reading the stored record does not start a run")
+    func storedRecordIsReadOnly() throws {
+        let defaults = try makeDefaults()
+        #expect(AppSessionStore(defaults: defaults).storedRecord() == nil)
+        let store = AppSessionStore(defaults: defaults)
+        _ = store.storedRecord()
+        store.heartbeat()
+        #expect(defaults.data(forKey: AppSessionStore.defaultsKey) == nil)
+    }
+
     @Test("An unreadable record counts as no previous run")
     func unreadableRecordIsIgnored() throws {
         let defaults = try makeDefaults()
         defaults.set(Data("not a plist".utf8), forKey: AppSessionStore.defaultsKey)
         #expect(AppSessionStore(defaults: defaults).begin() == nil)
+    }
+}
+
+@Suite("Wineserver start time")
+struct WineserverStartDateTests {
+    @Test("Reads the socket's creation date from the folder named after the prefix's device and inode")
+    func readsSocketCreationDate() throws {
+        let base = FileManager.default.temporaryDirectory.appending(path: "ws-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: base) }
+        let prefix = base.appending(path: "Bottle")
+        let root = base.appending(path: "root")
+        try FileManager.default.createDirectory(at: prefix, withIntermediateDirectories: true)
+
+        #expect(Wine.wineserverStartDate(forPrefix: prefix, root: root) == nil)
+
+        var info = stat()
+        #expect(stat(prefix.path(percentEncoded: false), &info) == 0)
+        let device = String(UInt64(bitPattern: Int64(info.st_dev)), radix: 16)
+        let folder = root.appending(path: "server-\(device)-\(String(UInt64(info.st_ino), radix: 16))")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let socket = folder.appending(path: "socket")
+        try Data().write(to: socket)
+        let created = try #require(try socket.resourceValues(forKeys: [.creationDateKey]).creationDate)
+
+        #expect(Wine.wineserverStartDate(forPrefix: prefix, root: root) == created)
+        #expect(Wine.wineserverStartDate(forPrefix: base.appending(path: "missing"), root: root) == nil)
     }
 }

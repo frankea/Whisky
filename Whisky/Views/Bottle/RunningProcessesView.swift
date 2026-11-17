@@ -78,7 +78,8 @@ struct RunningProcessesView: View {
                 Text("process.checking")
                     .foregroundStyle(.secondary)
             } else {
-                Text("process.empty")
+                // Under the Apps filter, background processes can be running while no app is.
+                Text(viewModel.processes.isEmpty ? LocalizedStringKey("process.empty") : "process.empty.apps")
                     .foregroundStyle(.secondary)
                 Button("process.action.refresh") {
                     Task { await viewModel.refreshProcessList() }

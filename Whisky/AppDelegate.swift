@@ -31,6 +31,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// The previous run's record, read before this run's replaces it.
     private var previousSession: AppSessionRecord?
     private var launchSessionObserver: NSObjectProtocol?
+    private var heartbeatTask: Task<Void, Never>?
 
     func application(_ application: NSApplication, open urls: [URL]) {
         // Test if automatic window tabbing is enabled
@@ -56,7 +57,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             await TempFileTracker.shared.cleanupOldFiles(olderThan: 24 * 60 * 60)
         }
 
-        previousSession = sessionStore.begin()
+        startSessionRecord()
         let sessionStore = sessionStore
         launchSessionObserver = NotificationCenter.default.addObserver(
             forName: ProcessRegistry.didChangeNotification, object: nil, queue: .main
@@ -68,6 +69,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Stop what a crashed or force-quit previous run left running
         Task {
             await self.sweepOrphanProcesses()
+        }
+    }
+
+    /// Starts this run's session record, unless another copy of Whisky is
+    /// running and owns the stored one: that copy is alive, not crashed, so its
+    /// bottles are not this run's to stop and its record is not this run's to replace.
+    private func startSessionRecord() {
+        let ownPID = ProcessInfo.processInfo.processIdentifier
+        if let otherPID = sessionStore.storedRecord()?.processID, otherPID != ownPID,
+           let other = NSRunningApplication(processIdentifier: otherPID),
+           other.bundleIdentifier == Bundle.main.bundleIdentifier, !other.isTerminated {
+            logger.info("Another copy of Whisky is running; leaving its session record alone")
+            return
+        }
+        previousSession = sessionStore.begin(processID: ownPID)
+        let sessionStore = sessionStore
+        heartbeatTask = Task.detached(priority: .utility) {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: AppSessionStore.heartbeatInterval)
+                sessionStore.heartbeat()
+            }
         }
     }
 
@@ -174,10 +196,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// Stops what the previous run left running when it crashed or was force-quit.
     ///
     /// A clean quit stops the bottles its kill-on-quit policy covers; this does
-    /// the same for a run that never got to quit, and only in bottles that run
-    /// had launched something in. A wineserver nobody here started, such as a
-    /// game started from the `whisky` command, a shortcut or a Terminal while
-    /// Whisky was closed, keeps running; the sidebar offers to stop it.
+    /// the same for a run that never got to quit, only in bottles that run had
+    /// launched something in, and only for a wineserver that was already up
+    /// while it was alive (``StartupOrphanSweep``). A wineserver nobody here
+    /// started, such as a game started from the `whisky` command, a shortcut or
+    /// a Terminal while Whisky was closed, keeps running; the sidebar offers to stop it.
     @MainActor
     private func sweepOrphanProcesses() async {
         guard let previousSession, !previousSession.endedCleanly else { return }
@@ -188,7 +211,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let wineserverRunning = await Wine.isWineserverRunning(for: bottle)
             let action = StartupOrphanSweep.action(
                 for: bottle.url,
-                wineserverRunning: wineserverRunning,
+                wineserverStartedAt: wineserverRunning ? Wine.wineserverStartDate(forPrefix: bottle.url) : nil,
                 stopsOnQuit: bottle.settings.killOnQuit.stopsOnQuit(globalKill: Self.killOnTerminate),
                 previousSession: previousSession,
                 launchedThisSession: ProcessRegistry.shared.lastLaunch(for: bottle.url) != nil

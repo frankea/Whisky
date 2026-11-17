@@ -29,7 +29,7 @@ class ProcessesViewModel: ObservableObject {
     @Published var processes: [WineProcess] = []
     /// Whether the polling loop is active.
     @Published var isPolling: Bool = false
-    /// Whether a listing has finished since polling started. Until then an
+    /// Whether a listing has succeeded since polling started. Until then an
     /// empty list means "not checked yet", not "nothing running".
     @Published private(set) var hasLoaded: Bool = false
     /// Current shutdown state for UI feedback.
@@ -115,9 +115,6 @@ class ProcessesViewModel: ObservableObject {
     func refreshProcessList() async {
         // Skip refresh during shutdown to avoid race conditions
         guard shutdownState == .idle else { return }
-        // Success, failure or timeout alike: the page has now checked.
-        defer { hasLoaded = true }
-
         do {
             var parsed = try await listProcessesWithTimeout()
 
@@ -162,6 +159,7 @@ class ProcessesViewModel: ObservableObject {
             }
 
             processes = parsed
+            hasLoaded = true
         } catch {
             logger.error("Failed to refresh process list: \(error.localizedDescription)")
             // Keep previous process list on error
@@ -179,7 +177,10 @@ class ProcessesViewModel: ObservableObject {
             listing.cancel()
         }
         defer { watchdog.cancel() }
-        return try await listing.value
+        let result = try await listing.value
+        // A listing the watchdog cut short may still return what it had; don't take it as the bottle's.
+        if listing.isCancelled { throw CancellationError() }
+        return result
     }
 
     /// Returns a sort order value for process kind grouping.

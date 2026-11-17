@@ -1,7 +1,7 @@
 # Steam Compatibility Guide
 
 **Feature:** Launcher Compatibility System (frankea/Whisky#41)
-**Last Updated:** January 12, 2026
+**Last Updated:** November 16, 2026
 
 > **Note:** This documentation references issue numbers from both this fork (frankea/Whisky) and the original upstream project (whisky-app/whisky). Upstream references are kept for historical context. Please report new issues to [frankea/Whisky](https://github.com/frankea/Whisky/issues).
 
@@ -23,13 +23,13 @@ Steam is the most widely used game launcher in Whisky, but also has the most com
    - Location: Default
 
 2. **Enable Launcher Compatibility:**
-   - Config → Launcher Compatibility
+   - Bottle Configuration → Launcher Compatibility
    - Toggle "Launcher Compatibility Mode" **ON**
    - Detection Mode: **Automatic**
 
 3. **Verify Auto-Detection:**
    - When you launch Steam, it should auto-detect
-   - "Detected Launcher: Steam" will appear
+   - "Detected: Steam" will appear, and the section title shows "(Steam)"
 
 ### Step 2: Install Steam
 
@@ -50,8 +50,9 @@ Steam is the most widely used game launcher in Whisky, but also has the most com
 
 1. **Leave the graphics backend on Recommended:**
    - Steam's own processes (steam.exe, steamwebhelper.exe, steamservice.exe,
-     GameOverlayUI.exe) get DXVK through per-executable overrides, so the
-     client draws on DXVK while the games it starts keep the bottle's backend.
+     and the overlay, gameoverlayui64.exe) get DXVK through per-executable
+     overrides, so the client draws on DXVK while the games it starts keep the
+     bottle's backend.
      With the D3DMetal payload that is D3DMetal, which DirectX 12 games need.
    - A game started from Whisky's library, `whisky launch` or a whisky:// link
      gets its own settings (Programs tab and game database) in per-executable
@@ -62,18 +63,16 @@ Steam is the most widely used game launcher in Whisky, but also has the most com
    - Setting the whole bottle to DXVK turns d3d12 off for every game when the
      payload is deployed; only do it for a bottle whose games all want DXVK.
 
-2. **Enable GPU Spoofing:**
-   - Config → Launcher Compatibility
-   - GPU Spoofing: **ON**
-   - Vendor: **NVIDIA** (best compatibility)
+2. **GPU Spoofing:**
+   - On by default (Bottle Configuration → Launcher Compatibility). Leave it on.
 
 ### Step 4: Verify Configuration
 
-1. **Generate Diagnostics:**
-   - Config → Launcher Compatibility
-   - Click "Generate Diagnostics Report"
+1. **Check the Active Fixes:**
+   - Bottle Configuration → Launcher Compatibility
+   - Expand "Active Environment Overrides"
 
-2. **Check Critical Settings:**
+2. **Check Critical Settings:** (listed there)
    ```
    STEAM_DISABLE_CEF_SANDBOX = 1  ✅ (Wine compatibility)
    STEAM_RUNTIME = 0              ✅ (Wine compatibility)
@@ -84,8 +83,11 @@ Steam is the most widely used game launcher in Whisky, but also has the most com
    and region.
 
 3. **Look for Warnings:**
-   - ✅ "Configuration is optimal" → Good to go!
+   - ✅ No "Configuration Warnings" list → Good to go!
    - ⚠️ Any warnings → Follow recommendations
+
+For a report to attach to an issue, use "View Diagnostics" (latest crash
+diagnosis, or the stability report when there is none).
 
 ---
 
@@ -103,18 +105,21 @@ Steam is the most widely used game launcher in Whisky, but also has the most com
 
 #### Root Cause:
 Steam's Chromium Embedded Framework (CEF) web helper can fail under Wine.
-Launcher Compatibility applies Steam-specific fixes such as disabling the CEF
-sandbox.
+Whisky disables the CEF sandbox for every program it runs, and Steam's own
+processes get DXVK through per-executable entries whenever Steam is installed
+in the bottle, so neither depends on Launcher Compatibility. Launcher
+Compatibility adds Steam's preset (STEAM_RUNTIME=0, DXVK_ASYNC=1) and GPU
+spoofing.
 
 #### Solution:
 
-1. Config → Launcher Compatibility → Enable
-2. Generate diagnostics → Verify `STEAM_DISABLE_CEF_SANDBOX=1`
+1. Bottle Configuration → Launcher Compatibility → turn on Launcher Compatibility Mode
+2. Expand "Active Environment Overrides" → Verify `STEAM_DISABLE_CEF_SANDBOX=1`
 
 **Locale:** Earlier versions forced `LC_ALL=en_US.UTF-8` for Steam to avoid
 this crash. That crash did not reproduce in current testing: steamwebhelper
 started and the login page loaded under German and Japanese locales on both
-the stable and beta engines, the same as under English. The Steam preset now
+the older 3.1.1 engine and a 4.8 beta of the current engine, the same as under English. The Steam preset now
 sets no locale. Leave Locale Override on **Auto** to give Steam and the games
 it starts your Mac's language and region, or pick another locale there.
 Steam's own interface language is a Steam setting (Steam > Settings >
@@ -197,13 +202,13 @@ Network keepalive timeouts and SSL handshake issues.
 
 #### Solution:
 
-**Enable DXVK:**
-1. Config → DXVK → Toggle ON
-2. Enable "DXVK Async"
+**Check the backend:**
+1. Bottle Configuration → Graphics: leave the backend on **Recommended** (Steam's own processes get DXVK either way)
+2. Nothing to toggle for Steam itself: the Steam preset already sets `DXVK_ASYNC=1` (listed under Active Environment Overrides). The DXVK Async switch in Graphics → Advanced only applies, and can only be changed, when the bottle's backend is DXVK.
 3. Restart Steam
 
 **Adjust DPI (if blurry):**
-1. Config → Wine → DPI Configuration
+1. Bottle Configuration → Wine → DPI Scaling → Configure...
 2. Try 96 DPI (standard) or 192 DPI (Retina)
 
 **Why This Helps:**
@@ -225,19 +230,18 @@ DXVK provides better GPU acceleration for Steam's UI rendering, reducing stutter
 
 #### Solution:
 
-1. **Kill Steam Process:**
-   - Bottle → "Kill All Processes"
+1. **Stop Steam:**
+   - Open the bottle's Running Processes page and click "Stop Bottle"
 
 2. **Enable Compatibility Mode:**
    - If not already enabled
 
 3. **Check Graphics Settings:**
-   - Enable DXVK
-   - Disable Metal Validation (if enabled)
-   - Enable Sequoia Compat Mode (macOS 15+)
+   - Graphics backend on Recommended
+   - Metal Validation off (Graphics → Advanced)
 
 4. **Verify CEF Sandbox:**
-   - Generate diagnostics
+   - Launcher Compatibility → expand "Active Environment Overrides"
    - Must have `CEF_DISABLE_SANDBOX=1`
 
 **If Still Invisible:**
@@ -247,6 +251,16 @@ DXVK provides better GPU acceleration for Steam's UI rendering, reducing stutter
 **Related Issues:**
 - whisky-app/whisky#1183 (No UI)
 - whisky-app/whisky#1009 (Blank window)
+
+---
+
+### Rockstar Games on Steam
+
+GTA V, Red Dead Redemption 2 and other Rockstar titles start the Rockstar
+Games Launcher inside Steam. Whisky runs that launcher on Wine's own
+Direct3D; with Game Porting Toolkit imported, leave "Wine Direct3D for Rockstar Games Launcher" on (it appears in Launcher Compatibility once the Rockstar launcher is installed in the bottle). If your Steam
+bottle ended up on DXVK after you started the Rockstar launcher in it, set
+Graphics Backend back to Recommended.
 
 ---
 
@@ -265,12 +279,11 @@ Apple changed mach port and threading behavior in macOS 15.4, breaking Wine's pr
 
 #### Solution:
 
-1. **Enable Sequoia Compatibility:**
-   - Config → Metal → "Sequoia Compat Mode" ON
+1. **No setting needed:**
+   - Whisky applies its macOS 15.4 fixes (WINEFSYNC=0, STEAM_RUNTIME=0, and ESync when no sync mode is set) to every launch automatically.
 
 2. **Verify macOS Fixes:**
-   - Generate diagnostics
-   - macOS Version should show 15.4 or higher
+   - Launcher Compatibility (with Launcher Compatibility Mode on) → expand "Active Environment Overrides"
    - Check for these environment variables:
      ```
      WINEFSYNC = 0
@@ -315,7 +328,7 @@ For specific games launched through Steam:
 **Status:** Generally works with compatibility mode
 
 **Tips:**
-- Enable DXVK for better performance
+- Leave the backend on Recommended (Steam itself already runs on DXVK)
 - Use controller before launching Big Picture
 - Exit via Steam menu, not force quit
 
@@ -342,10 +355,10 @@ For specific games launched through Steam:
 
 ### For Best Frame Rates
 
-1. **DXVK Settings:**
-   - DXVK: ON
-   - DXVK Async: ON
-   - DXVK HUD: OFF (unless debugging)
+1. **Graphics Settings:**
+   - Backend: Recommended (switch a single game to DXVK in its own program settings if it runs better there)
+   - DXVK Async: set by the Steam preset; the Graphics → Advanced switch applies only to a bottle or game on DXVK
+   - DXVK HUD: Off (unless debugging)
 
 2. **Shader Cache:**
    - Enable shader cache (after first run)
@@ -354,7 +367,7 @@ For specific games launched through Steam:
 ### For Best Stability
 
 1. **Enhanced Sync:**
-   - Config → Wine → Enhanced Sync → ESync
+   - Bottle Configuration → Wine → Enhanced Sync → ESync
 
 2. **Windows Version:**
    - Windows 10 (most tested)
@@ -376,9 +389,8 @@ Before reporting Steam issues, verify:
 
 - [ ] Launcher Compatibility Mode enabled
 - [ ] Locale Override on Auto (or the language you want Steam in)
-- [ ] DXVK enabled
-- [ ] Sequoia Compat Mode (macOS 15+)
-- [ ] Generated diagnostic report
+- [ ] Graphics backend on Recommended
+- [ ] Viewed diagnostics (View Diagnostics in Launcher Compatibility)
 - [ ] Checked configuration warnings
 - [ ] Tested in clean bottle
 - [ ] Verified Steam runs at all (not Wine issue)
@@ -445,7 +457,7 @@ Before reporting Steam issues, verify:
 ### Information to Include:
 
 1. **Diagnostic Report:**
-   - Always generate and attach
+   - Open it with "View Diagnostics" (Launcher Compatibility) and attach it
 
 2. **Steam Version:**
    - Help → About Steam
@@ -471,7 +483,7 @@ Before reporting Steam issues, verify:
 **System:**
 - macOS 15.4.1
 - M2 Pro MacBook Pro
-- Whisky version 2.x
+- Whisky version 3.10.2
 - Steam version: Dec 2025 build
 
 **Configuration:**
@@ -499,12 +511,11 @@ Before reporting Steam issues, verify:
 - https://help.steampowered.com/
 
 ### Whisky Resources:
-- Issue Tracking: frankea/Whisky#41
+- Report issues: https://github.com/frankea/Whisky/issues (history: frankea/Whisky#41)
 - Troubleshooting: [LauncherTroubleshooting.md](LauncherTroubleshooting.md)
-- Security Notes: [LAUNCHER_SECURITY_NOTES.md](../LAUNCHER_SECURITY_NOTES.md)
+- Security Notes: [LauncherSecurityNotes.md](LauncherSecurityNotes.md)
 
 ### Community:
-- GitHub Discussions: frankea/Whisky
 - Upstream: whisky-app/whisky
 
 ---
@@ -602,8 +613,8 @@ Windows Version: Windows 10
 Mode: Enabled
 Detection: Automatic
 Locale: Auto (your Mac's language and region)
-GPU Spoofing: Enabled (NVIDIA)
-DXVK for Rockstar: Yes
+GPU Spoofing: Enabled
+Wine Direct3D for Rockstar Games Launcher: On (shown when GPTK is installed and the Rockstar launcher is in the bottle; needed by Rockstar titles bought on Steam)
 ```
 
 **Graphics:**
@@ -623,11 +634,10 @@ Enhanced Sync: ESync
 AVX: Enabled (Apple Silicon if game requires)
 ```
 
-**Metal:**
+**Graphics → Advanced (Metal):**
 ```
-Sequoia Compat Mode: ON (macOS 15+)
-Metal HUD: OFF
-Validation: OFF
+Metal HUD: Off
+Metal Validation: Off
 ```
 
 ---
@@ -645,7 +655,7 @@ Validation: OFF
 - Test Steam still launches
 - Verify steamwebhelper works
 - Check downloads complete
-- Re-generate diagnostics if issues
+- Use View Diagnostics if issues
 
 **After Wine Updates:**
 - Test compatibility
@@ -673,8 +683,8 @@ Validation: OFF
 ### If Steam Completely Broken:
 
 **Option 1: Reset Steam in Bottle**
-1. Bottle → Open in Finder
-2. Navigate to `drive_c/Program Files (x86)/Steam/`
+1. Bottle → Open C: Drive
+2. Navigate to `Program Files (x86)/Steam/`
 3. Delete `steam.exe` and `steamwebhelper.exe`
 4. Run SteamSetup.exe again (reinstall)
 
@@ -693,8 +703,10 @@ If you backed up Metadata.plist:
 
 **Game Saves Location:**
 ```
-~/Library/Application Support/[Bottle]/drive_c/users/[username]/My Documents/
+~/Library/Containers/com.franke.Whisky/Bottles/[Bottle]/drive_c/users/[username]/Documents/
 ```
+
+For a bottle stored elsewhere, use Open C: Drive and go to `users/[username]/Documents`.
 
 Most games store saves in Documents folder. Back up before recreating bottles.
 
@@ -731,6 +743,6 @@ The launcher compatibility system addresses the majority of Steam issues documen
 **For additional help, see:**
 - [LauncherTroubleshooting.md](LauncherTroubleshooting.md) - All launchers
 - [LauncherSecurityNotes.md](LauncherSecurityNotes.md) - Security info
-- GitHub: frankea/Whisky#41 - Report issues
+- GitHub: https://github.com/frankea/Whisky/issues - Report issues
 
 **Happy gaming on Steam via Whisky!** 🎮

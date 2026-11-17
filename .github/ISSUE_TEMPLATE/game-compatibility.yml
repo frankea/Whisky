@@ -30,12 +30,13 @@ body:
     id: rating
     attributes:
       label: Compatibility rating you'd give it
-      description: Match the GameDB rating system.
+      description: Close to the ratings shown in Game Configurations (Works, Playable, Broken, Not Supported); "Doesn't launch" is an extra option for reports.
       options:
         - "Works — runs perfectly with no issues"
         - "Playable — runs with minor issues or required tweaks"
         - "Broken — crashes, freezes, or unplayable"
         - "Doesn't launch — installer or launcher fails before game loads"
+        - "Not Supported: blocked by anti-cheat or a kernel driver"
     validations:
       required: true
   - type: textarea
@@ -56,19 +57,21 @@ body:
     id: graphics-backend
     attributes:
       label: Graphics backend tried
+      description: If you use DXVK, say in the steps above whether DXVK Async is on.
       options:
         - "Recommended (auto)"
         - "D3DMetal"
+        - "DXMT"
         - "DXVK"
-        - "DXVK with Async"
         - "WineD3D"
+        - "Don't know"
     validations:
       required: true
   - type: input
     id: gamedb-id
     attributes:
       label: GameDB entry id (if you applied one)
-      description: From the URL in the Game Configurations browser, e.g. `baldurs-gate-3`. Leave blank if no recommended config exists yet.
+      description: Shown in **Bottle Configuration → Applied Game Configuration** after you apply one, e.g. `baldurs-gate-3`. Leave blank if no recommended config exists yet.
       placeholder: "e.g., baldurs-gate-3 — or leave blank"
     validations:
       required: false
@@ -77,7 +80,7 @@ body:
     attributes:
       label: Wine log (relevant excerpt)
       description: |
-        Press **⌘L** in Whisky to open the most recent Wine log. Paste the parts around the crash / error.
+        Press **⌘L** (File → Open Logs Folder) to open Whisky's logs folder in Finder, open the newest log, and paste the parts around the crash / error.
       render: bash
     validations:
       required: false
@@ -85,7 +88,7 @@ body:
     id: whisky-version
     attributes:
       label: Whisky version
-      placeholder: "e.g., 3.0.1"
+      placeholder: "e.g., 3.10.2"
     validations:
       required: true
   - type: dropdown
@@ -125,7 +128,7 @@ body:
       options:
         - label: I checked the in-app Game Configurations browser for an existing config.
           required: true
-        - label: I'm running **this fork** (`frankea/Whisky`, confirmed via **Whisky → About**) — not the archived original that the default `brew install --cask whisky` installs.
+        - label: I'm running **this fork** (`frankea/Whisky`, confirmed via **Whisky → About Whisky**, version 3.0 or later), not the archived original that the default `brew install --cask whisky` installs.
           required: true
         - label: I searched existing issues for this game.
           required: true

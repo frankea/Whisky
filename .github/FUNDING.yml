@@ -1,7 +1,7 @@
 # Funding for Whisky (this fork)
 #
 # Maintained by @frankea. This project has NO affiliate or revenue-sharing arrangement with anyone.
-# The custom link points to Gcenx, who maintains the macOS Wine and DXVK-macOS builds Whisky bundles —
+# The custom link points to Gcenx, who maintains DXVK-macOS (bundled by Whisky) and the macOS Wine builds behind Whisky's earlier engines;
 # it's a direct donation to that upstream contributor, not income for this fork.
 
 github: frankea

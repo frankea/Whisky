@@ -1,19 +1,19 @@
 # README demo screencast
 
-The README has a commented-out `<img>` slot near the Overview section
-that points at `images/demo.gif`. Drop a recorded gif at that path and
-uncomment the line to ship it.
+The README shows `images/demo.gif` near the top of the Overview section.
+To refresh it, record a new take with the storyboard below and replace
+the file at that path; the README needs no change.
 
 ## Storyboard (10 seconds)
 
 | t      | beat                                              | screen content                            |
 | ------ | ------------------------------------------------- | ----------------------------------------- |
-| 0.0 s  | Whisky already foregrounded, empty bottle list    | Sidebar + empty content area              |
-| 1.0 s  | Click "Create Bottle"                             | Create-bottle sheet appears               |
+| 0.0 s  | Whisky foregrounded, no bottles yet               | Sidebar plus the "Create your first bottle to get started" prompt |
+| 1.0 s  | Click "Create Bottle" (or the + toolbar button)   | Create-bottle sheet appears               |
 | 2.0 s  | Type a name (e.g. "Demo")                         | Name field active, cursor visible         |
 | 3.5 s  | Pick Windows 10 from the version picker           | Picker open, "Windows 10" highlighted     |
 | 5.0 s  | Click "Create"; bottle appears in sidebar         | Sidebar gains the new entry               |
-| 6.5 s  | Open bottle, click "Run Program"                  | File picker opens                         |
+| 6.5 s  | Open the bottle, click "Run..."                   | File picker opens                         |
 | 8.0 s  | Pick a tiny demo `.exe` (e.g. `notepad.exe`)      | App launches in its own window            |
 | 10.0 s | Notepad visible on screen, text typed in it       | "Hello from Whisky" or similar            |
 
@@ -46,9 +46,6 @@ length; the visual flow is self-explanatory.
 
 ## After recording
 
-Edit `README.md`, find the `<!-- TODO: drop demo.gif … -->` block, and
-uncomment the `<img>` tag below it. Commit `images/demo.gif` and the
-README change in the same commit.
-
-If the gif feels stale six months from now, re-record. Don't ship a
+Commit the new `images/demo.gif` on its own. If the gif feels stale six
+months from now, re-record. Don't ship a
 year-old screencast that shows a UI that's since drifted.

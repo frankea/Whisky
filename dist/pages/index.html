@@ -35,7 +35,7 @@
   "operatingSystem": "macOS 15.0+",
   "applicationCategory": "GameApplication",
   "applicationSubCategory": "Wine wrapper",
-  "softwareVersion": "3.6.0",
+  "softwareVersion": "3.10.2",
   "license": "https://www.gnu.org/licenses/gpl-3.0.html",
   "downloadUrl": "https://github.com/frankea/Whisky/releases/latest",
   "url": "https://github.com/frankea/Whisky",
@@ -148,7 +148,7 @@ img.screenshot {
 </p>
 
 <img class="screenshot" src="https://raw.githubusercontent.com/frankea/Whisky/main/images/new-bottle-screenshot.png" alt="Creating a new Wine bottle in Whisky" loading="lazy" width="1200">
-<img class="screenshot" src="https://raw.githubusercontent.com/frankea/Whisky/main/images/config-screenshot.png" alt="Whisky bottle configuration — graphics backend, Wine, and performance settings" loading="lazy" width="1200">
+<img class="screenshot" src="https://raw.githubusercontent.com/frankea/Whisky/main/images/config-screenshot.png" alt="Whisky bottle configuration showing Wine and DXVK settings" loading="lazy" width="1200">
 
 <h2>Install via Homebrew</h2>
 <pre><code>brew install --cask frankea/whisky/whisky</code></pre>
@@ -156,9 +156,10 @@ img.screenshot {
 
 <h2>Requirements</h2>
 <ul>
-  <li>Apple Silicon Mac (M1, M2, M3, M4)</li>
+  <li>Any Apple Silicon Mac (M-series, or the A18 Pro in MacBook Neo)</li>
   <li>macOS Sequoia 15.0 or later</li>
-  <li>~1.3 GB disk space for the Wine engine (a ~460 MB download)</li>
+  <li>About 1.5 GB disk space for the Wine engine (a ~480 MB download)</li>
+  <li>Rosetta 2 (Whisky installs it during first-run setup)</li>
 </ul>
 
 <h2>What's included</h2>
@@ -176,7 +177,7 @@ img.screenshot {
 <ul>
   <li><strong>D3DMetal</strong> (what "Recommended" uses once you import it): Apple's Direct3D 11 and 12 to Metal layer from the Game Porting Toolkit. Download the toolkit from Apple, import it in Settings, and Whisky deploys it into the engine. Required for DirectX 12 games. Needs Whisky 3.10.0 or later.</li>
   <li><strong>DXMT</strong> (what "Recommended" uses without D3DMetal): Direct3D 11 to Metal, deployed per bottle so one bottle's choice never affects another.</li>
-  <li><strong>DXVK</strong>: Direct3D to Vulkan (via MoltenVK), a broad-compatibility fallback for titles DXMT doesn't handle. Pinned at the macOS-compatible 1.10.3 <em>by design</em>: the DXVK 2.x line needs Vulkan features macOS doesn't expose, so a higher version number simply wouldn't run here.</li>
+  <li><strong>DXVK</strong>: Direct3D to Vulkan (via MoltenVK), a broad-compatibility fallback for titles DXMT doesn't handle. "Recommended" also picks DXVK for game launchers such as Steam and for apps built on Chromium or Electron, whose windows only draw on DXVK; the games they start keep the bottle's backend. Pinned at the macOS-compatible 1.10.3 <em>by design</em>: the DXVK 2.x line needs Vulkan features macOS doesn't expose, so a higher version number simply wouldn't run here.</li>
 </ul>
 <p class="muted"><strong>Anti-cheat:</strong> games using kernel-level anti-cheat (EAC, BattlEye, and similar) generally do not run under any Wine-based wrapper on macOS, including Whisky. This is a Wine-wide limitation, not specific to this fork.</p>
 
@@ -202,7 +203,7 @@ img.screenshot {
 
 <hr>
 
-<p class="muted">Whisky is GPL v3 licensed. Source code, releases, and issue tracker on <a href="https://github.com/frankea/Whisky">GitHub</a>. Whisky is possible thanks to <a href="https://github.com/Gcenx/DXVK-macOS">DXVK-macOS</a>, <a href="https://github.com/marzent/wine-msync">msync</a>, <a href="https://github.com/KhronosGroup/MoltenVK">MoltenVK</a>, <a href="https://github.com/sparkle-project/Sparkle">Sparkle</a>, <a href="https://www.codeweavers.com/crossover">CrossOver</a>, and Apple's D3DMetal.</p>
+<p class="muted">Whisky is GPL v3 licensed. Source code, releases, and issue tracker on <a href="https://github.com/frankea/Whisky">GitHub</a>. Whisky is possible thanks to <a href="https://github.com/dappermint/winecx-gptk">winecx-gptk</a>, <a href="https://github.com/3Shain/dxmt">DXMT</a>, <a href="https://github.com/Gcenx/DXVK-macOS">DXVK-macOS</a>, <a href="https://github.com/marzent/wine-msync">msync</a>, <a href="https://github.com/KhronosGroup/MoltenVK">MoltenVK</a>, <a href="https://github.com/sparkle-project/Sparkle">Sparkle</a>, <a href="https://www.codeweavers.com/crossover">CrossOver</a>, and Apple's D3DMetal.</p>
 
 </main>
 </body>

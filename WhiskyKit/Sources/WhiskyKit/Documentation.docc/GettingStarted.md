@@ -39,10 +39,16 @@ import WhiskyKit
 
 // Check if WhiskyWine is installed
 if !WhiskyWineInstaller.isWhiskyWineInstalled() {
-    // Download and install WhiskyWine
+    // Read the version and sha256 from DistributionConfig.versionPlistURL, download
+    // DistributionConfig.librariesURL(version:), then check it against that sha256.
     let tarballURL = // ... download WhiskyWine tarball
+    let expectedSHA256 = // ... sha256 from the version plist
+    guard WhiskyWineInstaller.integrityResult(forFileAt: tarballURL, expectedSHA256: expectedSHA256) == .match else { return }
     do {
         try WhiskyWineInstaller.install(from: tarballURL)
+        if WhiskyWineInstaller.isWhiskyWineInstalled() {
+            WhiskyWineInstaller.cleanupTarball(at: tarballURL)
+        }
     } catch {
         print("Install failed: \(error.localizedDescription)")
     }
@@ -111,7 +117,9 @@ import WhiskyKit
 
 @MainActor
 func discoverPrograms(in bottle: Bottle) {
-    // Programs are automatically populated when loading a bottle
+    // WhiskyKit does not scan for programs: `bottle.programs` is empty until
+    // your app fills it, for example with Program(url:bottle:) for each .exe
+    // it finds under the bottle's drive_c folder.
     for program in bottle.programs {
         print("Found: \(program.name)")
         
@@ -137,8 +145,9 @@ import WhiskyKit
 
 @MainActor
 func configurePerformance(bottle: Bottle) {
-    // Enable DXVK for better DirectX performance
-    bottle.settings.dxvk = true
+    // Pick the graphics backend. .recommended (the default) chooses per launch;
+    // .dxvk forces DXVK for every program in the bottle.
+    bottle.settings.graphicsBackend = .dxvk
     bottle.settings.dxvkAsync = true
     
     // Enable Metal HUD for debugging
@@ -148,6 +157,6 @@ func configurePerformance(bottle: Bottle) {
 
 ## Next Steps
 
-- Learn about the <doc:Architecture> to understand how WhiskyKit components work together
+- Learn about the <doc:ArchitectureOverview> to understand how WhiskyKit components work together
 - Explore ``BottleSettings`` for all available configuration options
 - See ``Wine`` for advanced Wine process management

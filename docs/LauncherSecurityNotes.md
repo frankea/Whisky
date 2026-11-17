@@ -8,7 +8,7 @@
 
 ## Overview
 
-The launcher compatibility system disables the Chromium Embedded Framework (CEF) sandbox for Wine processes. This document explains the security implications and rationale.
+Whisky disables the Chromium Embedded Framework (CEF) sandbox for every Wine process it launches, as one of its macOS platform fixes (not only when Launcher Compatibility Mode is on). This document explains the security implications and rationale.
 
 ---
 
@@ -82,7 +82,7 @@ The CEF sandbox **cannot function under Wine** because:
 │  ┌──────────────────────────────────┐   │
 │  │ CEF (steamwebhelper)             │   │
 │  │ - Full process privileges        │   │
-│  │ - Can access Wine prefix         │   │
+│  │ - Can access your Mac files      │   │
 │  │ - Shares memory space            │   │
 │  └──────────────────────────────────┘   │
 └─────────────────────────────────────────┘
@@ -98,7 +98,7 @@ The CEF sandbox **cannot function under Wine** because:
 **Mitigating Factors:**
 1. **Trusted Launchers**: Steam, Epic, EA, Rockstar are reputable companies
 2. **Limited Attack Surface**: Launchers mostly load first-party content
-3. **Wine Isolation**: Wine processes don't have direct macOS system access
+3. **No Extra Isolation from Wine**: Wine processes run with your macOS user account's permissions, and the Z: drive maps your Mac's filesystem, so an exploit in a launcher's browser could reach your files, not only the bottle.
 4. **User Control**: Users choose what launchers to run
 
 **Realistic Risk Assessment:**
@@ -139,18 +139,11 @@ The CEF sandbox **cannot function under Wine** because:
 
 ### 1. Comprehensive Documentation ✅
 
-**In Code (MacOSCompatibility.swift):**
-```swift
-// SECURITY NOTE: This disables CEF's security sandbox...
-// Security Implications:
-// - Embedded browser content runs with full process privileges
-// - A browser exploit could compromise the Wine process
-// - Users should only use trusted launchers...
-```
+**In Code (MacOSCompatibility.swift):** the `MacOSCompatibilityFixes` documentation has a "Security Note on CEF Sandbox" section explaining that Wine lacks the kernel calls the sandbox needs and that disabling it is a deliberate trade-off.
 
 **In UI (LauncherConfigSection.swift):**
 - Orange shield icon with "Security Note"
-- Clear explanation of CEF sandbox disable
+- Notes that the Chromium sandbox is disabled (the in-app text still credits Launcher Compatibility; Whisky actually disables it for every launch)
 - "Only use with trusted launchers from reputable companies"
 - Visible warning when compatibility mode enabled
 
@@ -160,7 +153,7 @@ Users see security notice when enabling launcher compatibility:
 - 🛡️ Icon indicates security consideration
 - Clear explanation of implications
 - Guidance to use trusted launchers only
-- Opt-in (user must explicitly enable)
+- Shown while Launcher Compatibility Mode is on
 
 ### 3. Logging ✅
 
@@ -172,12 +165,11 @@ Logger.wineKit.debug("""
     """)
 ```
 
-### 4. Opt-In Design ✅
+### 4. Where It Applies
 
-- Launcher compatibility mode **disabled by default**
-- Users must explicitly enable it
-- Security notice shown immediately upon enabling
-- Cannot miss the warning
+- Whisky disables the CEF sandbox for every program it launches, in every bottle, as one of its macOS platform fixes. It does not depend on Launcher Compatibility Mode.
+- Launcher Compatibility Mode is off by default for new bottles and adds launcher-specific fixes on top. Starting a Steam game with Play turns it on for that bottle when the bottle's launcher detection is set to Automatic.
+- The security note is shown in the Launcher Compatibility section while the mode is on.
 
 ---
 
@@ -189,13 +181,13 @@ Logger.wineKit.debug("""
 - Use with major launchers (Steam, Epic, EA, Rockstar, Ubisoft, Battle.net)
 - Keep launchers updated to latest versions
 - Be cautious clicking unknown links in launcher browsers
-- Use launcher compatibility only when needed
+- Keep launchers in their own bottles, since the CEF sandbox is off for every program Whisky runs
 
 ❌ **Don't:**
 - Use with unknown/untrusted launcher software
 - Browse untrusted websites through launcher browsers
 - Run launchers from unverified sources
-- Enable for bottles with sensitive data if not needed
+- Keep sensitive files in bottles that run launchers or other Chromium-based programs
 
 ### Risk Mitigation
 
@@ -220,9 +212,9 @@ Logger.wineKit.debug("""
 **Idea:** Modal alert on first enable  
 **Rejected:** Annoying, users will click through
 
-### 4. Sandboxed Wine (Chosen Approach)
-**Idea:** Rely on macOS app sandbox + documentation  
-**Status:** Implemented with clear warnings
+### 4. Documentation and Warnings (Chosen Approach)
+**Idea:** Disable the CEF sandbox where Wine needs it, and explain the trade-off in code and in the app  
+**Status:** Implemented. Whisky.app is not App Sandboxed, so Wine processes run with your user account's permissions.
 
 ---
 
@@ -280,7 +272,7 @@ Logger.wineKit.debug("""
 **Security Posture:**
 - ✅ Documented in code with comprehensive notes
 - ✅ Visible UI warning when enabled
-- ✅ Opt-in design (disabled by default)
+- ⚠️ Applies to every launch, not only with Launcher Compatibility Mode on
 - ✅ Debug logging when applied
 - ✅ Guidance for safe usage
 - ✅ Follows industry standard practice

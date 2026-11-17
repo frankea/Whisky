@@ -18,7 +18,7 @@ WhiskyKit is organized into several logical layers, each responsible for a speci
 │  └─────────────┘  └──────────────┘  └───────────────────┘  │
 │  ┌─────────────┐  ┌──────────────┐                         │
 │  │   Program   │  │   PE File    │                         │
-│  │  Discovery  │  │   Parsing    │                         │
+│  │    Model    │  │   Parsing    │                         │
 │  └─────────────┘  └──────────────┘                         │
 ├─────────────────────────────────────────────────────────────┤
 │                     Wine Runtime                             │
@@ -51,8 +51,8 @@ MyBottle/
 │   ├── Program Files/
 │   └── users/
 ├── Program Settings/       # Per-program plist files
-│   ├── game.exe.plist      # Settings for game.exe
-│   └── launcher.exe.plist  # Settings for launcher.exe
+│   ├── game-1a2b3c4d.plist      # Settings for game.exe (name + hash of its path)
+│   └── launcher-5e6f7a8b.plist  # Settings for launcher.exe
 └── ...                     # Wine registry and other files
 ```
 
@@ -63,7 +63,7 @@ The ``Wine`` class provides the interface to the Wine runtime:
 - **Process Management**: Start and monitor Wine processes
 - **Environment Setup**: Configure environment variables for DirectX, Metal, and performance
 - **Logging**: Capture output and errors from Wine processes
-- **DXVK Integration**: Install and enable DXVK for Direct3D-to-Vulkan translation
+- **Graphics Backends**: Resolve the launch's backend (Recommended, D3DMetal, DXVK, DXMT or WineD3D), copy its files into the prefix, and write per-executable DLL overrides into the prefix registry
 
 Key execution flow:
 
@@ -72,14 +72,22 @@ runProgram(url, bottle)
        │
        ▼
 ┌──────────────────┐
-│ Enable DXVK if   │
-│ configured       │
+│ Resolve graphics │
+│ backend, deploy  │
+│ its files        │
 └────────┬─────────┘
          │
          ▼
 ┌──────────────────┐
 │ Construct Wine   │
 │ environment vars │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│ Write DLL        │
+│ overrides to the │
+│ registry         │
 └────────┬─────────┘
          │
          ▼
@@ -92,9 +100,9 @@ runProgram(url, bottle)
    AsyncStream<ProcessOutput>
 ```
 
-### Program Discovery
+### Program Model
 
-Programs are Windows executables found within a bottle:
+Programs represent Windows executables in a bottle (WhiskyKit does not scan for them; the app fills `Bottle.programs`):
 
 - ``Program`` represents an executable (.exe) file
 - ``ProgramSettings`` stores per-program configuration
@@ -105,15 +113,24 @@ Programs are Windows executables found within a bottle:
 WhiskyKit includes a complete Windows PE (Portable Executable) file parser:
 
 - ``PEFile`` - Main parser for .exe and .dll files
-- ``COFFFileHeader`` - COFF header parsing
-- ``OptionalHeader`` - PE optional header with magic number
-- ``Section`` - PE section table parsing
+- ``PEFile/COFFFileHeader`` - COFF header parsing
+- ``PEFile/OptionalHeader`` - PE optional header with magic number
+- ``PEFile/Section`` - PE section table parsing
 - Resource parsing for icon extraction
 
 This enables:
 - Detecting 32-bit vs 64-bit executables
 - Extracting application icons
 - Reading executable metadata
+
+### Other Subsystems
+
+- **Steam/**: finds Steam installs and games in a bottle and launches them through the Steam client (``SteamLauncher``, `SteamClientOrchestrator`, `GameRouting`)
+- **Launcher compatibility**: ``LauncherType`` detection and `LauncherFixes` profiles for Steam, Rockstar, EA App, Epic and others
+- **GameDatabase/**: bundled per-game configurations and their applicator
+- **Troubleshooting/** and **Diagnostics/**: guided troubleshooting flows, crash classification and diagnostic export
+- **WhiskyWine/**: runtime install and update (``WhiskyWineInstaller``) and GPTK import (`GPTKImporter`)
+- **Process tracking**: `ProcessRegistry` for processes Whisky starts, and `AppSessionStore` so a launch after a crash stops only what the crashed run left behind
 
 ## Thread Safety
 
@@ -158,12 +175,17 @@ bottle.settings.dxvk = true
 
 ### Environment Construction
 
-When running a program, WhiskyKit builds a complete environment:
+When running a program, WhiskyKit builds the environment with ``EnvironmentBuilder`` from ordered layers; a later layer wins when two set the same key:
 
-1. Base Wine environment (WINEPREFIX, PATH)
-2. Bottle-level settings (DXVK, Metal, sync mode)
-3. Program-level settings (locale, custom variables)
-4. User-provided overrides
+1. Base (WINEPREFIX, default WINEDEBUG)
+2. Platform (macOS compatibility fixes, host time zone)
+3. Bottle-managed settings (graphics backend, DXVK, Metal, sync, performance, input)
+4. Launcher compatibility overrides
+5. GameDB profile for this launch
+6. Bottle user variables (reserved, not set today)
+7. Program settings and the environment passed to `Wine.runProgram(environment:)`
+8. Launch-time feature injectors (diagnostic WINEDEBUG presets)
+9. Call-site overrides (reserved for direct callers)
 
 ## Extension Points
 

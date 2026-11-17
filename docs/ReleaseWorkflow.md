@@ -123,13 +123,25 @@ Update both fields in `Whisky.xcodeproj/project.pbxproj` (every occurrence):
 
 ### 2. Update the changelog
 
-Move items from `[Unreleased]` to a new `[X.Y.Z] - YYYY-MM-DD (App)` section in `CHANGELOG.md`.
+Move items from `[Unreleased]` to a new `[X.Y.Z] - YYYY-MM-DD (App)` section in `CHANGELOG.md`, then run `scripts/changelog-links.py` to add the new version's release link, point the `[Unreleased]` compare link at `app-vX.Y.Z`, and link any new issue and user references. `scripts/changelog-links.py --check` exits non-zero if anything is left unlinked.
 
 ### 3. Build, sign, notarize, package
 
+Before running the build, commit the version bump and changelog and push them so CI checks them while the release builds:
+
 ```sh
-scripts/release.sh X.Y.Z
+git add Whisky.xcodeproj/project.pbxproj CHANGELOG.md
+git commit -m "release: X.Y.Z"
+git push
 ```
+
+Then run the release script:
+
+```sh
+caffeinate -d -i scripts/release.sh X.Y.Z
+```
+
+(`caffeinate -d -i` keeps the Mac and its display awake through the notarization wait, which can take several minutes. If the screen locks partway through, notarytool can lose access to its keychain profile.)
 
 The script:
 
@@ -140,17 +152,22 @@ The script:
 5. Signs the DMG with the Developer ID Application certificate.
 6. Submits the DMG to Apple's notary service and waits for the verdict (typically 5–15 minutes).
 7. Staples the notarization ticket.
-8. Verifies the stapled DMG passes `spctl --assess`.
+8. Validates the stapled ticket with `stapler validate`, then prints the `spctl --assess` verdict and the DMG's SHA-256. The spctl check is informational: the script does not stop when it fails, so read its output (it should say `accepted` and `source=Notarized Developer ID`).
 
 The artifact lands at `build/release/Whisky-X.Y.Z.dmg`.
 
 ### 4. Sign the DMG for Sparkle
 
 ```sh
-~/Library/Developer/Xcode/DerivedData/Whisky-*/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update build/release/Whisky-X.Y.Z.dmg
+SPARKLE_BIN=$(ls -dt ~/Library/Developer/Xcode/DerivedData/Whisky-*/SourcePackages/artifacts/sparkle/Sparkle/bin 2>/dev/null | head -1)
+"$SPARKLE_BIN/sign_update" build/release/Whisky-X.Y.Z.dmg
 ```
 
-Capture the printed `sparkle:edSignature` and `length`.
+Capture the printed `sparkle:edSignature` and `length`, then check the signature before it goes into the appcast:
+
+```sh
+"$SPARKLE_BIN/sign_update" --verify build/release/Whisky-X.Y.Z.dmg "<edSignature>"
+```
 
 ### 5. Add an appcast entry
 
@@ -174,28 +191,31 @@ Edit `dist/pages/appcast.xml` and add a new `<item>` near the top of `<channel>`
 
 ### 6. Commit, tag, and release
 
+The `release: X.Y.Z` commit was pushed in step 3. Once the appcast entry is written, commit it on its own, tag that commit and push only the tag. Publish the GitHub release before pushing `main`: pushing `dist/pages/appcast.xml` deploys Pages, and an appcast that points at a DMG that is not uploaded yet sends Sparkle clients to a missing file.
+
 ```sh
-git add Whisky.xcodeproj/project.pbxproj CHANGELOG.md dist/pages/appcast.xml
-git commit -m "release: X.Y.Z"
-git push
+git add dist/pages/appcast.xml
+git commit -m "appcast: Whisky X.Y.Z"
 git tag -a app-vX.Y.Z -m "Whisky X.Y.Z"
 git push origin app-vX.Y.Z
 
-gh release create app-vX.Y.Z \
+gh release create app-vX.Y.Z --verify-tag \
   --repo frankea/Whisky \
   --title "Whisky X.Y.Z" \
   --notes "..." \
   build/release/Whisky-X.Y.Z.dmg
+
+git push
 ```
 
-The push to `main` triggers `.github/workflows/Documentation.yml`, which redeploys Pages with the updated appcast within ~1–2 minutes. Sparkle clients pick up the update on next launch.
+The push to `main` triggers `.github/workflows/Documentation.yml`, which redeploys Pages with the updated appcast in about three minutes. Installed copies see the update at their next scheduled Sparkle check (about once a day by default), or right away from **Whisky > Check for Updates...**.
 
 ### 7. Homebrew tap (automatic)
 
 Publishing the `app-vX.Y.Z` release fires `.github/workflows/UpdateHomebrewTap.yml`,
 which downloads the DMG, computes its sha256, and bumps the
 [frankea/homebrew-whisky](https://github.com/frankea/homebrew-whisky) cask so
-`brew install --cask frankea/whisky/whisky` tracks the new version. No manual edit needed.
+`brew install --cask frankea/whisky/whisky` tracks the new version. After publishing, confirm the run succeeded (`gh run list -R frankea/Whisky --workflow UpdateHomebrewTap.yml -L 1`). If it failed, re-run it with `gh workflow run "Update Homebrew Tap" -R frankea/Whisky -f tag=app-vX.Y.Z`, or bump `version` and `sha256` in `Casks/whisky.rb` in the tap by hand.
 
 This requires a one-time repository secret **`BREW_TOKEN`** — a personal access token
 (classic `repo`, or fine-grained with **Contents: write**) for `frankea/homebrew-whisky`;
@@ -237,7 +257,8 @@ is no assembly step:
    Libraries.tar.gz` with the same verified tarball (no rebuild).
 5. Update `dist/pages/WhiskyWineVersion-v4.plist` (version, `gptkCapable`, DXVK and DXMT versions, and
    the SHA-256 of the exact published asset), the 4.x table in [`DEPENDENCIES.md`](DEPENDENCIES.md),
-   and `WINE_PINNED` in `.github/workflows/RuntimeTrack.yml`.
+   and `WINE_PINNED` in `.github/workflows/RuntimeTrack.yml`, set to the upstream dappermint/winecx-gptk
+   `runtime-v*` tag whose tree the engine was built from (not Whisky's engine version).
 6. Commit and push. The Documentation workflow republishes Pages, and apps on 3.10.0 or later prompt to
    update on their next engine check. Confirm the run succeeded and that
    `curl -fsS https://frankea.github.io/Whisky/WhiskyWineVersion-v4.plist` serves the new version and
@@ -255,17 +276,28 @@ The 3.x runtime is **assembled from upstream binaries, not built from source**; 
 [`DEPENDENCIES.md`](DEPENDENCIES.md) for the authoritative list of components,
 their pinned versions, and where each comes from. Only a security fix should change it:
 
-1. **Assemble `Libraries.tar.gz`** from the pinned upstream binaries. The archive unpacks to a
+1. **Assemble `Libraries.tar.gz`** with `scripts/assemble-runtime.sh X.Y.Z`. The archive unpacks to a
    `Libraries/` tree the app expects (`Libraries/Wine/bin/…` is the Wine binary dir per
-   `WhiskyWineInstaller.binFolder`). To reproduce a build:
-   - Download the pinned **Wine** build (Gcenx `macOS_Wine_builds`) and unpack it as `Libraries/Wine/`.
-   - Add the pinned **DXVK-macOS** DLLs and **DXMT** prebuilt release into the runtime per the Gcenx
-     layout.
-   - Place **D3DMetal** as extracted from Apple's Game Porting Toolkit. ⚠️ Redistribution is governed by
-     Apple's GPTK license — confirm terms before publishing.
-   - Record the exact versions you used back into `docs/DEPENDENCIES.md`, and bump the matching
-     `*_PINNED` tags in `.github/workflows/RuntimeTrack.yml` so drift detection stays accurate.
-   - `tar -czf Libraries.tar.gz Libraries/` (mind the `Tar` pipe-drain pitfall noted below).
+   `WhiskyWineInstaller.binFolder`).
+   - The script needs the archived DXMT 0.80 payload on disk (`DXMT_ARCHIVE_DIR`, by default
+     `~/Projects/Whisky-runtime-archive/dxmt-v0.80`) and checks it against its `SHA256SUMS`. It then
+     downloads and digest-checks the base release pinned in the script (`BASE_TAG`), stages DXMT's
+     d3d11/dxgi/d3d10core trio as native DLLs in `Libraries/DXMT/{x64,x32}`, installs `winemetal` as a
+     builtin, rewrites the inner `WhiskyWineVersion.plist`, and repacks without AppleDouble entries or
+     extended attributes.
+   - It prints the archive's path and SHA-256 and a smoke-test checklist; run that checklist (a DXMT
+     bottle launching a D3D11 title) before publishing.
+   - The output is named `Libraries-vX.Y.Z.tar.gz`; publish it under the exact name `Libraries.tar.gz`,
+     because the app downloads that filename.
+   - The script only layers DXMT onto the base release (`BASE_TAG`/`BASE_SHA256`). Wine, DXVK and
+     MoltenVK come unchanged from that base, and `DXVK_VERSION` is only the label written into the
+     plist. Changing any of them means producing and publishing a new base archive first, then pointing
+     `BASE_TAG`/`BASE_SHA256` at it. Record the versions in [`DEPENDENCIES.md`](DEPENDENCIES.md).
+   - D3DMetal is not bundled in the published runtime, and this engine cannot run it: the app deploys a
+     user-imported Game Porting Toolkit payload only into a GPTK-capable (4.x) engine.
+   - Do not change `RuntimeTrack.yml` for a 3.x release: its Wine pin tracks the 4.x engine, and the
+     frozen 3.x engine is not tracked (the script's printed follow-up still mentions `DXMT_PINNED`;
+     leave it at `v0.80`).
 2. Tag with the bare version `vX.Y.Z` (no `app-` prefix).
 3. `gh release create vX.Y.Z --title "Wine Libraries vX.Y.Z" Libraries.tar.gz`.
 4. Compute the SHA-256 of the **exact published asset** — the app verifies the download against this
@@ -273,8 +305,9 @@ their pinned versions, and where each comes from. Only a security fix should cha
    ```sh
    shasum -a 256 Libraries.tar.gz
    ```
-5. Update `dist/pages/WhiskyWineVersion.plist` with the version, bundled DXVK version, and the digest
-   from the previous step. Record the same digest in [`DEPENDENCIES.md`](DEPENDENCIES.md):
+5. Update `dist/pages/WhiskyWineVersion.plist` with the version, the bundled DXVK and DXMT versions
+   (`dxvkVersion` and `dxmtVersion`), and the digest from the previous step. Record the same digest in
+   [`DEPENDENCIES.md`](DEPENDENCIES.md):
    ```xml
    <dict>
        <key>version</key>
@@ -283,6 +316,8 @@ their pinned versions, and where each comes from. Only a security fix should cha
            <key>minor</key><integer>Y</integer>
            <key>patch</key><integer>Z</integer>
        </dict>
+       <key>dxmtVersion</key>
+       <string>0.80</string>
        <key>dxvkVersion</key>
        <string>1.10.3</string>
        <key>sha256</key>

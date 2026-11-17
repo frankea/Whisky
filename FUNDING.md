@@ -18,7 +18,7 @@ but if you value the work, supporting them directly is worthwhile:
 
 - **CrossOver / CodeWeavers** — the commercial Wine product Whisky's stack ultimately derives from.
   [codeweavers.com/crossover](https://www.codeweavers.com/crossover).
-- **Gcenx** — maintains the macOS Wine and DXVK-macOS builds Whisky bundles.
+- **Gcenx**: maintains DXVK-macOS, which Whisky bundles, and the macOS Wine builds behind Whisky's earlier engines.
   [ko-fi.com/gcenx](https://ko-fi.com/gcenx).
 
 ## What funding does *not* buy

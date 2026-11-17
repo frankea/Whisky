@@ -39,8 +39,8 @@ body:
     attributes:
       label: Wine logs
       description: |
-        Press **⌘L** in Whisky to open the most recent Wine log, then paste the relevant excerpt here.
-        For crashes/freezes, attach the diagnostic export from **Bottle Configuration → View Diagnostics**.
+        Press **⌘L** (File → Open Logs Folder) to open Whisky's logs folder in Finder, open the newest log, and paste the relevant excerpt here.
+        For crashes or freezes, attach the report from **Bottle Configuration → Diagnostics → Export Diagnostic Report…**, or from **Bottle Configuration → Stability → Generate Stability Diagnostics** if no crash has been diagnosed.
       render: bash
     validations:
       required: false
@@ -49,7 +49,7 @@ body:
     attributes:
       label: Whisky version
       description: From **Whisky → About Whisky**.
-      placeholder: "e.g., 3.0.1"
+      placeholder: "e.g., 3.10.2"
     validations:
       required: true
   - type: dropdown
@@ -73,12 +73,12 @@ body:
     id: graphics-backend
     attributes:
       label: Graphics backend in use
-      description: From **Bottle Configuration → Graphics**. Recommended just means whatever the auto-resolver picked — note the actual backend if you know it.
+      description: From **Bottle Configuration → Graphics**. Recommended just means whatever the auto-resolver picked; note the actual backend if you know it. If you use DXVK, say in the description whether DXVK Async is on.
       options:
         - "Recommended (auto)"
         - "D3DMetal"
+        - "DXMT"
         - "DXVK"
-        - "DXVK with Async"
         - "WineD3D"
         - "Don't know"
     validations:
@@ -87,8 +87,8 @@ body:
     id: wine-version
     attributes:
       label: Wine runtime version
-      description: From **Bottle Configuration → Wine** (the WhiskyWine runtime version).
-      placeholder: "e.g., 11.0"
+      description: Shown as "WhiskyWine Version" in the report from **Bottle Configuration → Stability → Generate Stability Diagnostics**.
+      placeholder: "e.g., 4.8.3"
     validations:
       required: false
   - type: checkboxes
@@ -97,7 +97,7 @@ body:
       options:
         - label: I searched existing issues and didn't find a duplicate.
           required: true
-        - label: I'm running **this fork** (`frankea/Whisky`, confirmed via **Whisky → About**) — not the archived original that the default `brew install --cask whisky` installs.
+        - label: I'm running **this fork** (`frankea/Whisky`, confirmed via **Whisky → About Whisky**, version 3.0 or later), not the archived original that the default `brew install --cask whisky` installs.
           required: true
         - label: I confirmed this is **not** a game-specific compatibility issue (use the other template if it is).
           required: true

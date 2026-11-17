@@ -43,21 +43,25 @@ This security policy applies to:
 ### Out of Scope
 
 The following are generally out of scope:
-- Vulnerabilities in Wine itself (report to [WineHQ](https://wiki.winehq.org/Bugs))
+- Vulnerabilities in Wine itself (report to [WineHQ](https://gitlab.winehq.org/wine/wine/-/wikis/Bugs))
 - Vulnerabilities in DXVK (report to the respective project)
 - Issues in third-party dependencies (report upstream, then notify us)
 
 ### Wine / DXVK Vulnerability Response
 
-Whisky bundles a Wine runtime (Wine, DXVK, D3DMetal, and related components) that it does not develop.
+Whisky downloads a Wine runtime (Wine, DXVK, DXMT, MoltenVK and related components) that it does not develop,
+and can use Apple's D3DMetal from a Game Porting Toolkit payload that you import yourself.
 A vulnerability in those components is fixed upstream, not here — but it still reaches Whisky users, so
 we track it as a runtime-currency concern rather than a closed door:
 
-- Bundled component versions are pinned and checked against their upstream sources, so a new upstream
-  build carrying a security fix is surfaced rather than missed.
-- A **critical** vulnerability in a bundled component (one exploitable through normal Whisky use) is a
-  trigger to rebuild the runtime archive on the patched upstream version and cut a new app release out
-  of band, rather than waiting for the next scheduled runtime update.
+- Wine and DXVK are pinned and checked weekly against their upstream releases (`RuntimeTrack.yml`), so a
+  new upstream build carrying a security fix is surfaced rather than missed. The other runtime components
+  (MoltenVK, SDL2, gstreamer, Wine Gecko and Wine Mono) are not tracked automatically, and D3DMetal, which
+  comes from Apple's Game Porting Toolkit, is checked by hand. DXMT is frozen at 0.80, the last
+  MIT-licensed release, and later upstream releases, including their fixes, are not adopted.
+- A **critical** vulnerability in a bundled component other than DXMT (one exploitable through normal
+  Whisky use) is a trigger to rebuild the runtime archive on the patched upstream version and cut a new
+  app release out of band, rather than waiting for the next scheduled runtime update.
 - Non-critical upstream fixes are picked up as part of the normal runtime-update cadence.
 
 If you believe a bundled-runtime vulnerability is being mishandled or under-prioritized in Whisky's

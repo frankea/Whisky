@@ -1098,9 +1098,10 @@ public class Wine {
     /// The awaitable form of ``killBottle(bottle:)``, for a caller that must
     /// know the bottle is down before it re-checks it.
     ///
-    /// `wineserver -k` returns once the server has exited, so when this returns
-    /// the bottle is down, and it says so on ``ProcessRegistry/didChangeNotification``
-    /// for views that show the bottle as running or orphaned.
+    /// `wineserver -k` returns once the server has exited. Afterwards this posts
+    /// ``ProcessRegistry/didChangeNotification`` for the bottle, whether or not
+    /// the kill worked: views showing it as running or orphaned re-check by
+    /// probing the wineserver, so a failed kill still reads as running.
     ///
     /// - Parameter bottle: The ``Bottle`` whose processes should be terminated.
     @MainActor

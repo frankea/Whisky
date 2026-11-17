@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Opening Whisky no longer stops games and programs that are already
+  running in its bottles, such as ones started with the `whisky` command, a
+  Whisky shortcut or Steam while the app was closed. When Whisky crashes or
+  is force-quit, the next launch still stops what that run had started, as
+  quitting normally would have, and nothing else ([#398]).
+- The Running Processes page no longer shows "Checking for processes..."
+  indefinitely when no app is running in the bottle, and says when only
+  Wine's background processes are running ([#398]).
+
 ## [3.10.2] - 2026-11-16 (App)
 
 ### Fixed
@@ -1671,6 +1681,7 @@ up to date.
 [#391]: https://github.com/frankea/Whisky/issues/391
 [#395]: https://github.com/frankea/Whisky/issues/395
 [#397]: https://github.com/frankea/Whisky/issues/397
+[#398]: https://github.com/frankea/Whisky/issues/398
 [@adurham]: https://github.com/adurham
 [@daydalek]: https://github.com/daydalek
 [@Dunn-Kim]: https://github.com/Dunn-Kim

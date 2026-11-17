@@ -318,9 +318,13 @@ public final class ProcessRegistry: @unchecked Sendable {
 
     /// Posts ``didChangeNotification`` on the main thread, where views observe it.
     ///
+    /// Also posted once a bottle's wineserver has been stopped
+    /// (``Wine/killBottle(bottle:)``), whether or not anything here tracked
+    /// what it ran, so views showing the bottle as running or orphaned re-check.
+    ///
     /// Never call this while holding ``lock``: on the main thread the post is
     /// synchronous, and an observer that reads the registry would deadlock.
-    private func postChange(for bottleURL: URL) {
+    func postChange(for bottleURL: URL) {
         let post: @Sendable () -> Void = {
             NotificationCenter.default.post(
                 name: Self.didChangeNotification, object: nil, userInfo: [Self.bottleURLKey: bottleURL]

@@ -166,6 +166,24 @@ final class ProcessRegistrySessionTests: XCTestCase {
         XCTAssertEqual(recorder.urls.filter { $0 == bottleURL }.count, 3)
     }
 
+    func testStoppingABottleAnnouncesItEvenWithNothingTracked() async {
+        let recorder = AnnouncementRecorder()
+        let observer = NotificationCenter.default.addObserver(
+            forName: ProcessRegistry.didChangeNotification, object: nil, queue: nil
+        ) { note in
+            if let url = note.userInfo?[ProcessRegistry.bottleURLKey] as? URL {
+                recorder.append(url)
+            }
+        }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        // Nothing registered: a program started outside Whisky. The sidebar
+        // still has to hear that the bottle was stopped.
+        await Wine.terminateBottle(bottle)
+
+        XCTAssertEqual(recorder.urls.filter { $0 == bottleURL }.count, 1)
+    }
+
     // MARK: - Tracked launches
 
     func testTrackedLaunchIsRegisteredWithItsPID() async throws {

@@ -84,6 +84,7 @@ final class BottleVM: ObservableObject {
 
     var bottlesList = BottleData()
     @Published var bottles: [Bottle] = []
+    private(set) var hasLoadedBottles = false // Whether loadBottles() has run once this launch.
     @Published var bottleCreationAlert: BottleCreationAlert?
 
     struct BottleCreationAlert: Identifiable {
@@ -101,6 +102,7 @@ final class BottleVM: ObservableObject {
         // conflicting actions during move/export/duplicate.
         let inFlight = Dictionary(bottles.filter(\.inFlight).map { ($0.url, $0) }) { first, _ in first }
         bottles = bottlesList.loadBottles().map { inFlight[$0.url] ?? $0 }
+        hasLoadedBottles = true
         migrateLauncherBackends()
     }
 

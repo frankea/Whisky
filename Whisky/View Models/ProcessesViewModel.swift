@@ -29,6 +29,9 @@ class ProcessesViewModel: ObservableObject {
     @Published var processes: [WineProcess] = []
     /// Whether the polling loop is active.
     @Published var isPolling: Bool = false
+    /// Whether a listing has succeeded since polling started. Until then an
+    /// empty list means "not checked yet", not "nothing running".
+    @Published private(set) var hasLoaded: Bool = false
     /// Current shutdown state for UI feedback.
     @Published var shutdownState: ShutdownState = .idle
     /// Filter mode for the process list.
@@ -41,6 +44,9 @@ class ProcessesViewModel: ObservableObject {
     private var pollingTask: Task<Void, Never>?
     private let bottle: Bottle
     private let pollingInterval: TimeInterval = 3.0
+    /// How long one listing may take before it is abandoned, so a `tasklist.exe`
+    /// that never returns can't stall every later poll.
+    private let listingTimeout: Duration = .seconds(15)
 
     private let logger = Logger(
         subsystem: Bundle.whiskyBundleIdentifier,
@@ -86,6 +92,7 @@ class ProcessesViewModel: ObservableObject {
     func startPolling() {
         guard pollingTask == nil else { return }
         isPolling = true
+        hasLoaded = false
 
         pollingTask = Task { [weak self] in
             while !Task.isCancelled {
@@ -108,9 +115,8 @@ class ProcessesViewModel: ObservableObject {
     func refreshProcessList() async {
         // Skip refresh during shutdown to avoid race conditions
         guard shutdownState == .idle else { return }
-
         do {
-            var parsed = try await Wine.listProcesses(for: bottle)
+            var parsed = try await listProcessesWithTimeout()
 
             // Merge with registry data
             let registryProcesses = ProcessRegistry.shared.getProcesses(for: bottle)
@@ -153,9 +159,45 @@ class ProcessesViewModel: ObservableObject {
             }
 
             processes = parsed
+            hasLoaded = true
         } catch {
             logger.error("Failed to refresh process list: \(error.localizedDescription)")
             // Keep previous process list on error
+        }
+    }
+
+    /// Lists the bottle's processes, giving up after ``listingTimeout``.
+    ///
+    /// Returns at the timeout without waiting for the listing to wind down, and
+    /// cancels the listing (which terminates its `tasklist.exe`) then, or when
+    /// polling stops. A listing cut short throws rather than returning what it had.
+    private func listProcessesWithTimeout() async throws -> [WineProcess] {
+        let bottle = bottle
+        let timeout = listingTimeout
+        let listing = Task { @MainActor in try await Wine.listProcesses(for: bottle) }
+        let outcome = ListingOutcome()
+        var watchdog: Task<Void, Never>?
+        defer { watchdog?.cancel() }
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                outcome.continuation = continuation
+                Task { @MainActor in
+                    do {
+                        let result = try await listing.value
+                        outcome.finish(listing.isCancelled ? .failure(CancellationError()) : .success(result))
+                    } catch {
+                        outcome.finish(.failure(error))
+                    }
+                }
+                watchdog = Task { @MainActor in
+                    try? await Task.sleep(for: timeout)
+                    guard !Task.isCancelled else { return }
+                    listing.cancel()
+                    outcome.finish(.failure(CancellationError()))
+                }
+            }
+        } onCancel: {
+            listing.cancel()
         }
     }
 
@@ -265,5 +307,17 @@ class ProcessesViewModel: ObservableObject {
         shutdownState = .idle
         await refreshProcessList()
         shutdownState = savedState
+    }
+}
+
+/// Hands a process listing's result to its caller once, whichever of the
+/// listing and its timeout finishes first.
+@MainActor
+private final class ListingOutcome {
+    var continuation: CheckedContinuation<[WineProcess], Error>?
+
+    func finish(_ result: Result<[WineProcess], Error>) {
+        continuation?.resume(with: result)
+        continuation = nil
     }
 }

@@ -90,6 +90,10 @@ struct BottleListEntry: View {
             guard note.userInfo?[ProcessRegistry.bottleURLKey] as? URL == bottle.url else { return }
             Task { await probeRunningState() }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .zombieProcessesCleaned)) { _ in
+            // The launch sweep stopped what the last run left running.
+            Task { await probeRunningState() }
+        }
         .onChange(of: refresh, initial: true) {
             name = bottle.settings.name
             Task { await probeRunningState() }

@@ -1097,6 +1097,21 @@ public class Wine {
         }
     }
 
+    /// Kills a bottle's wineserver and returns once the kill command has.
+    ///
+    /// The awaitable form of ``killBottle(bottle:)``, for a caller that must
+    /// know the bottle is down before it re-checks it.
+    ///
+    /// - Parameter bottle: The ``Bottle`` whose processes should be terminated.
+    @MainActor
+    public static func terminateBottle(_ bottle: Bottle) async {
+        do {
+            _ = try await runWineserver(["-k"], bottle: bottle)
+        } catch {
+            Logger.wineKit.error("Failed to kill bottle '\(bottle.settings.name)': \(error.localizedDescription)")
+        }
+    }
+
     /// Kills a bottle's wineserver and blocks until the kill command returns.
     ///
     /// For `applicationWillTerminate`: a `Task` queued there never runs

@@ -26,6 +26,13 @@ private let logger = Logger(subsystem: Bundle.whiskyBundleIdentifier, category: 
 class AppDelegate: NSObject, NSApplicationDelegate {
     @AppStorage("hasShownMoveToApplicationsAlert") private var hasShownMoveToApplicationsAlert = false
 
+    /// This run's record: whether it quit cleanly and which bottles it launched in.
+    private let sessionStore = AppSessionStore()
+    /// The previous run's record, read before this run's replaces it.
+    private var previousSession: AppSessionRecord?
+    private var launchSessionObserver: NSObjectProtocol?
+    private var heartbeatTask: Task<Void, Never>?
+
     func application(_ application: NSApplication, open urls: [URL]) {
         // Test if automatic window tabbing is enabled
         // as it is disabled when ContentView appears
@@ -50,12 +57,39 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             await TempFileTracker.shared.cleanupOldFiles(olderThan: 24 * 60 * 60)
         }
 
-        // Startup orphan process detection
-        // Probe each known bottle's wineserver to detect processes from previous sessions
+        startSessionRecord()
+        let sessionStore = sessionStore
+        launchSessionObserver = NotificationCenter.default.addObserver(
+            forName: ProcessRegistry.didChangeNotification, object: nil, queue: .main
+        ) { note in
+            guard let bottleURL = note.userInfo?[ProcessRegistry.bottleURLKey] as? URL else { return }
+            sessionStore.setLaunchSession(ProcessRegistry.shared.lastLaunch(for: bottleURL) != nil, for: bottleURL)
+        }
+
+        // Stop what a crashed or force-quit previous run left running
         Task {
-            // Wait for bottles to load (BottleVM needs time to initialize)
-            try? await Task.sleep(for: .seconds(2))
             await self.sweepOrphanProcesses()
+        }
+    }
+
+    /// Starts this run's session record, unless another copy of Whisky is
+    /// running and owns the stored one: that copy is alive, not crashed, so its
+    /// bottles are not this run's to stop and its record is not this run's to replace.
+    private func startSessionRecord() {
+        let ownPID = ProcessInfo.processInfo.processIdentifier
+        if let otherPID = sessionStore.storedRecord()?.processID, otherPID != ownPID,
+           let other = NSRunningApplication(processIdentifier: otherPID),
+           other.bundleIdentifier == Bundle.main.bundleIdentifier, !other.isTerminated {
+            logger.info("Another copy of Whisky is running; leaving its session record alone")
+            return
+        }
+        previousSession = sessionStore.begin(processID: ownPID)
+        let sessionStore = sessionStore
+        heartbeatTask = Task.detached(priority: .utility) {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: AppSessionStore.heartbeatInterval)
+                sessionStore.heartbeat()
+            }
         }
     }
 
@@ -75,16 +109,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Per-bottle kill-on-quit with policy overrides
         for bottle in BottleVM.shared.bottles {
             let bottlePolicy = bottle.settings.killOnQuit
-            let shouldKill: Bool = switch bottlePolicy {
-            case .inherit:
-                globalKill
-            case .alwaysKill:
-                true
-            case .neverKill:
-                false
-            }
-
-            if shouldKill {
+            if bottlePolicy.stopsOnQuit(globalKill: globalKill) {
                 // Synchronous: the app exits when this delegate returns.
                 Wine.killBottleAndWait(bottle: bottle)
                 ProcessRegistry.shared.clearRegistry(for: bottle.url)
@@ -99,6 +124,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         for (fileURL, _) in trackedFiles {
             try? FileManager.default.removeItem(at: fileURL)
         }
+
+        // Last: a run that dies before this point counts as not ended cleanly.
+        sessionStore.endCleanly()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -165,45 +193,48 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
 
+    /// Stops what the previous run left running when it crashed or was force-quit.
+    ///
+    /// A clean quit stops the bottles its kill-on-quit policy covers; this does
+    /// the same for a run that never got to quit, only in bottles that run had
+    /// launched something in, and only for a wineserver that was already up
+    /// while it was alive (``StartupOrphanSweep``). A wineserver nobody here
+    /// started, such as a game started from the `whisky` command, a shortcut or
+    /// a Terminal while Whisky was closed, keeps running; the sidebar offers to stop it.
     @MainActor
     private func sweepOrphanProcesses() async {
-        var cleanedCount = 0
+        guard let previousSession, !previousSession.endedCleanly else { return }
+        await waitForBottles()
 
-        for bottle in BottleVM.shared.bottles {
-            let isRunning = await Wine.isWineserverRunning(for: bottle)
-            guard isRunning else { continue }
-
-            let bottleName = bottle.settings.name
-            let policy = bottle.settings.killOnQuit
-            let globalKill = Self.killOnTerminate
-            let shouldAutoClean: Bool = switch policy {
-            case .inherit: globalKill
-            case .alwaysKill: true
-            case .neverKill: false
-            }
-
-            if shouldAutoClean {
-                // Auto-clean orphans per kill-on-quit policy
-                Wine.killBottle(bottle: bottle)
-                cleanedCount += 1
-                logger.info(
-                    "Auto-cleaned orphan processes in bottle '\(bottleName)' (kill-on-quit policy active)"
-                )
-            } else {
-                // Flag only -- do NOT auto-clean
-                logger.info(
-                    "Detected orphan Wine processes in bottle '\(bottleName)' (flagged, not auto-cleaned)"
-                )
-            }
+        var stoppedCount = 0
+        for bottle in BottleVM.shared.bottles where previousSession.contains(bottle.url) {
+            let wineserverRunning = await Wine.isWineserverRunning(for: bottle)
+            let action = StartupOrphanSweep.action(
+                for: bottle.url,
+                wineserverStartedAt: wineserverRunning ? Wine.wineserverStartDate(forPrefix: bottle.url) : nil,
+                stopsOnQuit: bottle.settings.killOnQuit.stopsOnQuit(globalKill: Self.killOnTerminate),
+                previousSession: previousSession,
+                launchedThisSession: ProcessRegistry.shared.lastLaunch(for: bottle.url) != nil
+            )
+            guard action == .stop else { continue }
+            await Wine.terminateBottle(bottle)
+            ProcessRegistry.shared.clearRegistry(for: bottle.url)
+            stoppedCount += 1
+            logger.info("Stopped bottle '\(bottle.settings.name)' left running by Whisky's last run")
         }
 
-        // Post notification for cleaned orphans (toast display in ContentView)
-        if cleanedCount > 0 {
-            NotificationCenter.default.post(
-                name: .zombieProcessesCleaned,
-                object: nil,
-                userInfo: ["count": cleanedCount]
-            )
+        if stoppedCount > 0 {
+            NotificationCenter.default.post(name: .zombieProcessesCleaned, object: nil)
+        }
+    }
+
+    /// Waits until the bottle list has loaded, at most ten seconds.
+    @MainActor
+    private func waitForBottles() async {
+        var waits = 0
+        while !BottleVM.shared.hasLoadedBottles, waits < 40 {
+            try? await Task.sleep(for: .milliseconds(250))
+            waits += 1
         }
     }
 
@@ -231,7 +262,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 extension Notification.Name {
-    /// Posted when orphaned Wine processes are cleaned up at launch.
-    /// Contains userInfo key "count" (Int) with the number of processes killed.
+    /// Posted when bottles the previous run left running have been stopped at
+    /// launch. The sidebar re-checks its bottles on it.
     static let zombieProcessesCleaned = Notification.Name("zombieProcessesCleaned")
 }

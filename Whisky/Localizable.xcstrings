@@ -25993,150 +25993,18 @@
         }
       }
     },
-    "cleanup.zombies.toast" : {
+    "cleanup.leftovers.toast" : {
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تم تنظيف %lld عملية Wine متبقية"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vyčištěno zbylých procesů Wine: %lld"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ryddede op i %lld efterladte Wine-processer"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld übrig gebliebene Wine-Prozesse bereinigt"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cleaned up %lld leftover Wine processes"
+            "value" : "Stopped the Wine programs Whisky's last session left running."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cleaned up %lld leftover Wine processes"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se han limpiado %lld procesos de Wine residuales"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Siivottiin %lld jäljelle jäänyttä Wine-prosessia"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld processus Wine résiduels nettoyés"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rimossi %lld processi Wine residui"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "残っていた Wine のプロセスを %lld 個整理しました"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "남아 있던 Wine 프로세스 %lld개를 정리했습니다"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld achtergebleven Wine-processen opgeruimd"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usunięto pozostałe procesy Wine: %lld"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld processos residuais do Wine foram limpos"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limpos %lld processos do Wine residuais"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "S-au curățat %lld procese Wine rămase"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Очищено оставшихся процессов Wine: %lld"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rensade %lld kvarvarande Wine-processer"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kalan %lld Wine işlemi temizlendi"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Очищено залишкових процесів Wine: %lld"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đã dọn %lld tiến trình Wine còn sót"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已清理 %lld 个遗留的 Wine 进程"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已清理 %lld 個殘留的 Wine 程序"
+            "value" : "Stopped the Wine programs Whisky's last session left running."
           }
         }
       }
@@ -67519,6 +67387,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "沒有執行中的程序"
+          }
+        }
+      }
+    },
+    "process.empty.apps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No apps running. Choose All to see Wine's background processes."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No apps running. Choose All to see Wine's background processes."
           }
         }
       }

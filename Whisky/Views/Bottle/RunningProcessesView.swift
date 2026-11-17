@@ -72,7 +72,7 @@ struct RunningProcessesView: View {
 
     private var emptyStateView: some View {
         VStack(spacing: 12) {
-            if viewModel.isPolling {
+            if viewModel.isPolling, !viewModel.hasLoaded {
                 ProgressView()
                     .controlSize(.small)
                 Text("process.checking")

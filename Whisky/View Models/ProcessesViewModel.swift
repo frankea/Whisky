@@ -29,6 +29,9 @@ class ProcessesViewModel: ObservableObject {
     @Published var processes: [WineProcess] = []
     /// Whether the polling loop is active.
     @Published var isPolling: Bool = false
+    /// Whether a listing has finished since polling started. Until then an
+    /// empty list means "not checked yet", not "nothing running".
+    @Published private(set) var hasLoaded: Bool = false
     /// Current shutdown state for UI feedback.
     @Published var shutdownState: ShutdownState = .idle
     /// Filter mode for the process list.
@@ -41,6 +44,9 @@ class ProcessesViewModel: ObservableObject {
     private var pollingTask: Task<Void, Never>?
     private let bottle: Bottle
     private let pollingInterval: TimeInterval = 3.0
+    /// How long one listing may take before it is abandoned, so a `tasklist.exe`
+    /// that never returns can't stall every later poll.
+    private let listingTimeout: Duration = .seconds(15)
 
     private let logger = Logger(
         subsystem: Bundle.whiskyBundleIdentifier,
@@ -86,6 +92,7 @@ class ProcessesViewModel: ObservableObject {
     func startPolling() {
         guard pollingTask == nil else { return }
         isPolling = true
+        hasLoaded = false
 
         pollingTask = Task { [weak self] in
             while !Task.isCancelled {
@@ -108,9 +115,11 @@ class ProcessesViewModel: ObservableObject {
     func refreshProcessList() async {
         // Skip refresh during shutdown to avoid race conditions
         guard shutdownState == .idle else { return }
+        // Success, failure or timeout alike: the page has now checked.
+        defer { hasLoaded = true }
 
         do {
-            var parsed = try await Wine.listProcesses(for: bottle)
+            var parsed = try await listProcessesWithTimeout()
 
             // Merge with registry data
             let registryProcesses = ProcessRegistry.shared.getProcesses(for: bottle)
@@ -157,6 +166,20 @@ class ProcessesViewModel: ObservableObject {
             logger.error("Failed to refresh process list: \(error.localizedDescription)")
             // Keep previous process list on error
         }
+    }
+
+    /// Lists the bottle's processes, giving up after ``listingTimeout``.
+    ///
+    /// Giving up cancels the listing, which terminates its `tasklist.exe`.
+    private func listProcessesWithTimeout() async throws -> [WineProcess] {
+        let bottle = bottle
+        let listing = Task { @MainActor in try await Wine.listProcesses(for: bottle) }
+        let watchdog = Task { [listingTimeout] in
+            try await Task.sleep(for: listingTimeout)
+            listing.cancel()
+        }
+        defer { watchdog.cancel() }
+        return try await listing.value
     }
 
     /// Returns a sort order value for process kind grouping.

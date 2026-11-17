@@ -59,6 +59,17 @@ public enum KillOnQuitPolicy: String, Codable, CaseIterable, Sendable {
     case alwaysKill = "always"
     /// Never kill Wine processes on quit
     case neverKill = "never"
+
+    /// Whether quitting Whisky stops the bottle's Wine processes.
+    ///
+    /// - Parameter globalKill: The global "Terminate Wine processes when Whisky closes" setting.
+    public func stopsOnQuit(globalKill: Bool) -> Bool {
+        switch self {
+        case .inherit: globalKill
+        case .alwaysKill: true
+        case .neverKill: false
+        }
+    }
 }
 
 /// Configuration settings for per-bottle cleanup and clipboard behavior.

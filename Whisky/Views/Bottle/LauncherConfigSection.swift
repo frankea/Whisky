@@ -152,15 +152,12 @@ extension LauncherConfigSection {
                     .fontWeight(.semibold)
                     .foregroundColor(.orange)
 
-                Text("""
-                Launcher compatibility disables the Chromium sandbox (required for Wine). \
-                This allows Steam, Epic, EA App, and Rockstar launchers to function, but \
-                embedded browser content runs with full process privileges. Only use with \
-                trusted launchers from reputable companies.
-                """)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+                // Whisky sets CEF_DISABLE_SANDBOX for every launch (MacOSCompatibilityFixes),
+                // not only with launcher compatibility on, so the note says so.
+                Text("launcher.securityNote.sandbox")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.vertical, 8)

@@ -1089,11 +1089,7 @@ public class Wine {
     @MainActor
     public static func killBottle(bottle: Bottle) {
         Task {
-            do {
-                _ = try await runWineserver(["-k"], bottle: bottle)
-            } catch {
-                Logger.wineKit.error("Failed to kill bottle '\(bottle.settings.name)': \(error.localizedDescription)")
-            }
+            await terminateBottle(bottle)
         }
     }
 
@@ -1101,6 +1097,11 @@ public class Wine {
     ///
     /// The awaitable form of ``killBottle(bottle:)``, for a caller that must
     /// know the bottle is down before it re-checks it.
+    ///
+    /// `wineserver -k` returns once the server has exited. Afterwards this posts
+    /// ``ProcessRegistry/didChangeNotification`` for the bottle, whether or not
+    /// the kill worked: views showing it as running or orphaned re-check by
+    /// probing the wineserver, so a failed kill still reads as running.
     ///
     /// - Parameter bottle: The ``Bottle`` whose processes should be terminated.
     @MainActor
@@ -1110,6 +1111,7 @@ public class Wine {
         } catch {
             Logger.wineKit.error("Failed to kill bottle '\(bottle.settings.name)': \(error.localizedDescription)")
         }
+        ProcessRegistry.shared.postChange(for: bottle.url)
     }
 
     /// Kills a bottle's wineserver and blocks until the kill command returns.

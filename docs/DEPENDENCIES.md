@@ -34,15 +34,15 @@ engine; only a security fix should change it.
 
 | Component | Bundled version | Upstream source | Notes |
 |-----------|-----------------|-----------------|-------|
-| **Wine** | 11.0 (Gcenx `11.0_1` repack) | [Gcenx/macOS_Wine_builds](https://github.com/Gcenx/macOS_Wine_builds/releases) | Wine ships a new stable each January; 11.0 = Jan 2026. The Gcenx tag is `11.0_1` (a repack of the same Wine 11.0; the bare `11.0` tag was retired) — `RuntimeTrack.yml` pins that exact tag. |
+| **Wine** | 11.0 (Gcenx `11.0_1` repack) | [Gcenx/macOS_Wine_builds](https://github.com/Gcenx/macOS_Wine_builds/releases) | Wine ships a new stable each January; 11.0 = Jan 2026. The Gcenx tag is `11.0_1` (a repack of the same Wine 11.0; the bare `11.0` tag was retired). This engine is frozen, so `RuntimeTrack.yml` no longer tracks it. |
 | **DXVK (macOS)** | 1.10.3 | [Gcenx/DXVK-macOS](https://github.com/Gcenx/DXVK-macOS/releases) | Frozen at 1.10.x **by design** — the DXVK 2.x line needs Vulkan 1.3 features MoltenVK/macOS don't expose. Not stale; do not "upgrade" to upstream 2.x. |
 | **DXMT** | 0.80 | [3Shain/dxmt](https://github.com/3Shain/dxmt/releases) | Direct3D 11 → Metal. Bundled from the project's prebuilt v0.80 release, the **last MIT-licensed** build (everything after the v0.80 tag is LGPL). **Whisky stays on 0.80 permanently** (decided November 2026, see #138): later DXMT releases are not adopted, including fixes made upstream after 0.80, and `RuntimeTrack.yml` reports DXMT as frozen instead of filing drift. The release ships only the `wine_builtin_dll=true` asset (trio carries winebuild's "Wine builtin DLL" header marker, meant for a *global* `lib/wine` install). For **per-bottle** selection, `scripts/assemble-runtime.sh` strips that marker from `d3d11`/`dxgi`/`d3d10core` (x64+x32), deterministically reproducing the project's `wine_builtin_dll=false` (native) variant, and stages them in `Libraries/DXMT/{x64,x32}`. The app then copies the native trio into each bottle's `system32`/`syswow64` with `dxgi,d3d11,d3d10core=n,b`, exactly like DXVK. When Steam `-applaunch` carries a game whose plan is DXMT, `system32` keeps DXVK for Steam and the native trio for the game's architecture is also copied beside the game's executables, which Wine's loader searches first; the copies are tracked by SHA-256 in the bottle's `.dxmt-game-folder-copies.plist` and removed once the game's plan moves to another backend, on its next launch from Whisky or the next start of Steam (#378). `winemetal` stays a builtin: its `winemetal.dll` is synced into both Wine windows trees (paired with `winemetal.so` in the unix tree) and the app copies it into the prefix as the import redirect. Selectable per-bottle/per-program in app ≥ 3.4.0 (Experimental); requires a runtime assembled by the current script (the older builtin-variant payload is gated off, since it would silently redirect to wined3d). |
-| **D3DMetal** | from Apple Game Porting Toolkit | [Apple GPTK](https://developer.apple.com/games/game-porting-toolkit/) | **Apple-proprietary. Extracted, never built.** Redistribution is governed by Apple's GPTK license — review terms before bumping. Not bundled in the published runtime; used only when a GPTK payload is present on disk. Since app 3.5.2 the "Recommended" backend resolves to DXMT (or DXVK) when the payload is absent, and the picker greys D3DMetal out rather than offering a silent wined3d fallback. |
+| **D3DMetal** | from Apple Game Porting Toolkit | [Apple GPTK](https://developer.apple.com/games/game-porting-toolkit/) | **Apple-proprietary. Extracted, never built.** Redistribution is governed by Apple's GPTK license; review terms before bumping. Not bundled in the published runtime, and this engine cannot run it: a GPTK payload imported in Settings is stored but only deployed once a GPTK-capable engine (4.x) is installed. Since app 3.5.2 the "Recommended" backend resolves to DXMT (or DXVK) when the payload is absent, and the picker greys D3DMetal out rather than offering a silent wined3d fallback. |
 | **MoltenVK** | (confirm against published archive) | [KhronosGroup/MoltenVK](https://github.com/KhronosGroup/MoltenVK/releases) | Vulkan→Metal; underpins the DXVK path. |
-| **msync** | (confirm against published archive) | [marzent/wine-msync](https://github.com/marzent/wine-msync) | Mach-based synchronization patch in the Gcenx build. |
+| **msync** | not included | n/a | This engine's Wine reads neither `WINEMSYNC` nor `WINEESYNC`, so the Enhanced Sync setting has no effect on Wine here. The 4.x engine implements msync. |
 
-> The exact MoltenVK/msync versions live inside the published `Libraries.tar.gz`, not this repo. When
-> you cut a runtime release, read them off the build and fill them in here so this table is authoritative.
+> The exact MoltenVK version lives inside the published `Libraries.tar.gz`, not this repo. When
+> you cut a runtime release, read it off the build and fill it in here so this table is authoritative.
 
 ### Archive integrity
 
@@ -74,6 +74,19 @@ every install through a normal app update, with no runtime re-download.
 | **winetricks** | `20260125` | [Winetricks/winetricks](https://github.com/Winetricks/winetricks/releases/tag/20260125) | Self-contained POSIX shell script (LGPL-2.1+). Drives dependency installs (VC++, .NET, DirectX, fonts) and verb queries. Invoked as `bash winetricks <verb>` with the bundled `cabextract` and the runtime's `Wine/bin` on `PATH`. Bump by re-fetching `src/winetricks` at a newer release tag and regenerating `verbs.txt`. |
 | **verbs.txt** | generated from winetricks `20260125` | produced by `winetricks list-all` | Verb catalog shown in the Winetricks browser. Regenerate whenever winetricks is bumped: `sh Libraries/winetricks list-all` (drop the leading platform-warning line so the file starts at the first `=====` category header). |
 | **cabextract** | prebuilt arm64 binary | [cabextract.org.uk](https://www.cabextract.org.uk/) | Extracts Microsoft `.cab` archives; a hard dependency of many winetricks verbs. Committed as a code-signed-on-copy Mach-O executable. |
+
+## Swift packages
+
+Resolved in `Whisky.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`. Dependabot
+watches only `WhiskyKit/Package.swift`, so the packages the Xcode project adds (Sparkle, posthog-ios,
+swift-argument-parser) are bumped by hand.
+
+| Package | Version | Used for |
+|---|---|---|
+| [Sparkle](https://github.com/sparkle-project/Sparkle) | 2.10.1 | In-app updates (includes the fixes for GHSA-g3hp-f6mg-559v and GHSA-hg88-v3cw-3qrh, first patched in 2.9.2; stay at 2.9.2 or later) |
+| [posthog-ios](https://github.com/PostHog/posthog-ios) | 3.59.3 | Opt-in telemetry (see [SECURITY.md](../SECURITY.md)) |
+| [swift-argument-parser](https://github.com/apple/swift-argument-parser) | 1.5.0 | The WhiskyCmd command line tool |
+| [SemanticVersion](https://github.com/SwiftPackageIndex/SemanticVersion) | 0.4.0 | Version comparison (a WhiskyKit dependency, so Dependabot tracks it) |
 
 ## Tracking cadence
 

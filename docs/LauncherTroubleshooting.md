@@ -1,7 +1,7 @@
 # Launcher Troubleshooting Guide
 
 **Feature:** Launcher Compatibility System (frankea/Whisky#41)
-**Last Updated:** January 12, 2026
+**Last Updated:** November 16, 2026
 
 > **Note:** This documentation references issue numbers from both this fork (frankea/Whisky) and the original upstream project (whisky-app/whisky). Upstream references are kept for historical context. Please report new issues to [frankea/Whisky](https://github.com/frankea/Whisky/issues).
 
@@ -11,7 +11,7 @@
 
 If you're experiencing launcher issues:
 
-1. Open your bottle → **Config** tab
+1. Open your bottle → **Bottle Configuration**
 2. Expand **Launcher Compatibility** section
 3. Enable **Launcher Compatibility Mode**
 4. Set **Detection Mode** to **Automatic**
@@ -35,15 +35,15 @@ If problems persist, see launcher-specific sections below.
 **Solution:**
 
 1. **Enable Launcher Compatibility Mode:**
-   - Open bottle → Config → Launcher Compatibility
+   - Open bottle → Bottle Configuration → Launcher Compatibility
    - Toggle "Launcher Compatibility Mode" ON
 
 2. **Check Configuration:**
-   - Click "Generate Diagnostics Report"
-   - Verify `STEAM_DISABLE_CEF_SANDBOX=1`
+   - Expand **Active Environment Overrides** in the same section
+   - Verify `STEAM_DISABLE_CEF_SANDBOX=1` is listed
 
 **About Locale:**
-Earlier versions forced `LC_ALL=en_US.UTF-8` for Steam to avoid this crash. That crash did not reproduce in current testing (steamwebhelper started and the login page loaded under German and Japanese locales on both the stable and beta engines), so the Steam preset now sets no locale. With Locale Override on **Auto**, Steam and the games it starts get your Mac's language and region as their Windows locale; pick another locale there to change that. Steam's own interface language is a Steam setting (Steam > Settings > Interface). If Steam's window fails to load under your locale, set Locale Override to English (en_US) and please report it.
+Earlier versions forced `LC_ALL=en_US.UTF-8` for Steam to avoid this crash. That crash did not reproduce in current testing (steamwebhelper started and the login page loaded under German and Japanese locales on both the older 3.1.1 engine and a 4.8 beta of the current engine), so the Steam preset now sets no locale. With Locale Override on **Auto**, Steam and the games it starts get your Mac's language and region as their Windows locale; pick another locale there to change that. Steam's own interface language is a Steam setting (Steam > Settings > Interface). If Steam's window fails to load under your locale, set Locale Override to English (en_US) and please report it.
 
 **Related Upstream Issues:**
 - whisky-app/whisky#946 (steamwebhelper crash)
@@ -92,26 +92,14 @@ Stalls usually come from a damaged download cache or a busy content server. Stea
 
 **Solution:**
 
-1. **Enable DXVK (REQUIRED):**
-   - Open bottle → Config → DXVK
-   - Toggle "DXVK" ON
-   - This is **REQUIRED** for Rockstar's logo to render
+Current Whisky handles this by itself. On every launch of the Rockstar Games Launcher (from the Programs tab, or when Steam or a Rockstar game on Steam starts it), Whisky runs `Launcher.exe` on Wine's own Direct3D with the OpenGL renderer, the only setup its window draws on, and runs Social Club's `SocialClubHelper.exe` on DXVK. Direct3D 12 and the NVIDIA bridges are kept away from both.
 
-2. **Enable Launcher Compatibility:**
-   - Config → Launcher Compatibility
-   - Enable Launcher Compatibility Mode
-   - Set Detection Mode to Automatic or manually select "Rockstar Games Launcher"
-
-3. **Verify Configuration:**
-   - Generate diagnostics report
-   - Verify `DXVK: Enabled`
-   - Verify `WINEDLLOVERRIDES=dxgi,d3d9,d3d10core,d3d11=n,b`
-
-**Alternative Workaround:**
-Use `LauncherPatcher.exe` instead of `Launcher.exe` (community workaround)
+1. **Update Whisky** to 3.10.2 or later.
+2. **With Game Porting Toolkit imported** (Settings > Game Porting Toolkit): Whisky puts Wine's own `d3d11.dll` in the bottle's system folder and gives Steam and Social Club their own copies of DXVK. The **Wine Direct3D for Rockstar Games Launcher** setting in the bottle's Launcher Compatibility section controls this, and the line under it says whether it is active or why it is not applied. It is not applied while every program in the bottle runs on DXVK. In a bottle whose launcher is Rockstar's, **Use DXVK for Rockstar Games Launcher** switches the bottle to DXVK, so turn that off and set the bottle's Graphics Backend back to Recommended, or keep the launcher in a Steam bottle.
+3. **In a Steam bottle:** starting the launcher no longer switches the bottle to DXVK. If an earlier version left a Steam bottle on DXVK after you started the Rockstar launcher in it, set its Graphics Backend back to Recommended.
 
 **Why This Happens:**
-Rockstar's logo screen uses DirectX rendering that requires DXVK translation. Without DXVK, the rendering fails silently and hangs.
+The launcher draws its window with Direct2D on a Direct3D 10.1 device, which DXVK, DXMT and D3DMetal cannot create. Only Wine's own Direct3D on the OpenGL renderer draws it.
 
 **Related Upstream Issues:**
 - whisky-app/whisky#835 (Logo freeze - 47 comments!)
@@ -131,18 +119,17 @@ Rockstar's logo screen uses DirectX rendering that requires DXVK translation. Wi
 **Solution:**
 
 1. **Enable GPU Spoofing:**
-   - Open bottle → Config → Launcher Compatibility
+   - Open bottle → Bottle Configuration → Launcher Compatibility
    - Enable Launcher Compatibility Mode
    - Toggle "GPU Spoofing" ON
-   - Select "NVIDIA" vendor (recommended)
+   - GPU Spoofing is on by default, and Whisky turns it on when it detects EA App. The GPU Vendor choice does not change the result.
 
 2. **Verify GPU Spoofing:**
-   - Generate diagnostics report
-   - Check that GPU Spoofing shows as enabled
+   - Check that the GPU Spoofing toggle is on
 
 3. **Check Locale:**
-   - Set Locale Override to **English**
-   - EA App's Chromium UI needs proper locale
+   - Leave Locale Override on **Auto** (EA App gets US English by default) or set it to **English**
+   - Another locale can break EA App's Chromium UI
 
 **Why This Happens:**
 EA App performs GPU capability checks via DirectX. Wine's incomplete driver reporting causes the launcher to think your GPU is unsupported.
@@ -163,13 +150,16 @@ EA App performs GPU capability checks via DirectX. Wine's incomplete driver repo
 
 **Solution:**
 
-1. **Enable Launcher Compatibility:**
-   - Config → Launcher Compatibility → Enable
-   - Locale Override → **English**
+1. **Check the graphics backend:**
+   - Bottle Configuration > Graphics: keep Graphics Backend on **Recommended**, which runs Epic Games Launcher on DXVK while games keep the bottle's backend. A bottle or program set to D3DMetal or DXMT leaves the launcher's Chromium window blank.
 
-2. **Verify CEF Sandbox:**
-   - Generate diagnostics
-   - Check `CEF_DISABLE_SANDBOX=1`
+2. **Enable Launcher Compatibility:**
+   - Bottle Configuration > Launcher Compatibility > Launcher Compatibility Mode on
+   - Locale Override: Auto or English
+
+3. **Verify CEF Sandbox:**
+   - Expand **Active Environment Overrides** in the Launcher Compatibility section
+   - Check `CEF_DISABLE_SANDBOX=1` is listed under Platform Fixes
 
 **Why This Happens:**
 Epic's Chromium Embedded Framework conflicts with Wine's threading model. Disabling the CEF sandbox resolves the conflicts.
@@ -186,10 +176,9 @@ Epic's Chromium Embedded Framework conflicts with Wine's threading model. Disabl
 
 **Solution:**
 
-1. **Enable DXVK Async:**
-   - Config → DXVK
-   - Enable DXVK
-   - Toggle "DXVK Async" ON
+1. **Use DXVK with DXVK Async:**
+   - With Launcher Compatibility Mode on, Whisky sets this up when it detects Ubisoft Connect
+   - To check: Bottle Configuration > Graphics, set Graphics Backend to DXVK, switch to Advanced, and make sure **DXVK Async** under DXVK Configuration is on
 
 **Related Upstream Issues:**
 - whisky-app/whisky#1004 (Beta update issues)
@@ -208,7 +197,7 @@ Epic's Chromium Embedded Framework conflicts with Wine's threading model. Disabl
 **Solution:**
 
 1. **Enable Launcher Compatibility:**
-   - Full compatibility mode with English locale
+   - Full compatibility mode, with Locale Override on Auto or English
 
 **Why This Happens:**
 Battle.net's web-based authentication requires proper Chromium rendering.
@@ -247,16 +236,14 @@ workaround earlier versions set is read by no shipped runtime, so it was removed
 
 **Solution:**
 
-1. **Enable Sequoia Compatibility Mode:**
-   - Config → Metal → "Sequoia Compat Mode" ON
+1. **No setting is needed:** Whisky applies its macOS 15.4 fixes (`WINEFSYNC=0`, `STEAM_RUNTIME=0`, and `WINEESYNC=1` when no sync mode is set) on every launch.
 
-2. **Verify macOS Fixes Applied:**
-   - Generate diagnostics report
-   - Check macOS version detection
+2. **Verify the fixes are applied:**
+   - Bottle Configuration > Launcher Compatibility (with Launcher Compatibility Mode on, which shows the list) > Active Environment Overrides > Platform Fixes
    - Check `WINEFSYNC=0`
 
 **Why This Happens:**
-Apple changed threading and mach port behavior in macOS 15.4. The compatibility mode applies Wine environment fixes for these changes.
+Apple changed threading and mach port behavior in macOS 15.4. Whisky applies Wine environment fixes for these changes.
 
 **Related Upstream Issues:**
 - whisky-app/whisky#1372 (macOS 15.4.1 breaks Steam)
@@ -267,63 +254,28 @@ Apple changed threading and mach port behavior in macOS 15.4. The compatibility 
 
 ## Diagnostic Report Usage
 
-### Generating Reports
+### Checking What Whisky Applies
 
-1. **Open Config:**
-   - Bottle → Config → Launcher Compatibility
-
-2. **Generate Report:**
-   - Click "Generate Diagnostics Report" button
-   - Review configuration in popup window
-
-3. **Export Options:**
-   - **Copy to Clipboard:** For pasting in GitHub issues
-   - **Export to File:** Save for later reference
-
-### Reading Reports
-
-Key sections to check:
-
-**System Information:**
-```
-macOS Version: 15.4.1
-Wine Version: 9.0
-Architecture: Apple Silicon (arm64)
-Rosetta 2: ✅ Installed
-```
-
-**Launcher Configuration:**
-```
-Compatibility Mode: ✅ Enabled
-Detected Launcher: Steam
-Launcher Locale: Auto
-GPU Spoofing: ✅ Enabled (NVIDIA)
-```
-
-**Environment Variables:**
-Look for:
-- `STEAM_DISABLE_CEF_SANDBOX=1` (CEF fix)
-- `MESA_GL_VERSION_OVERRIDE=4.6` (GPU spoofing)
-
-**Validation Results:**
-- ✅ Configuration is optimal
-- ⚠️  Warnings indicate potential issues
+1. Open the bottle, then **Bottle Configuration** > **Launcher Compatibility**, with **Launcher Compatibility Mode** on.
+2. Expand **Active Environment Overrides**. It lists each environment variable the detected launcher's preset sets (for example `STEAM_DISABLE_CEF_SANDBOX=1` for Steam) and the **Platform Fixes** Whisky applies on your macOS version (for example `WINEFSYNC=0` on macOS 15.4 and later), each with the reason.
+3. Click **View Diagnostics** to open the latest crash diagnosis for the bottle, or the Stability Diagnostics Report when no crash has been diagnosed. The Stability Diagnostics Report window has **Copy to Clipboard** and **Export to File**.
 
 ---
 
 ## Configuration Warnings Explained
 
-### ⚠️ "DXVK should be enabled for Steam"
-**Impact:** Steam UI may stutter  
-**Solution:** Enable DXVK in Config → DXVK
-
-### ❌ "DXVK REQUIRED for Rockstar Launcher"
-**Impact:** Logo won't display, launcher unusable  
-**Solution:** Enable DXVK immediately (critical)
+### ⚠️ "GPU spoofing helps with game compatibility checks" (Steam)
+**Solution:** Turn GPU Spoofing back on in Launcher Compatibility.
 
 ### ❌ "GPU spoofing REQUIRED for EA App"
 **Impact:** Black screen, "GPU not supported"  
-**Solution:** Enable GPU Spoofing (critical)
+**Solution:** Turn GPU Spoofing on.
+
+### ⚠️ "en_US locale recommended for EA App launcher UI" / "...for Epic Games launcher" / "...for Battle.net"
+**Solution:** Set Locale Override to Auto or English.
+
+### ❌ "DXVK REQUIRED for Rockstar Launcher"
+Shown when neither the backend nor Use DXVK for Rockstar Games Launcher gives the launcher DXVK. Since 3.10.2 Whisky runs the launcher's own window on Wine's Direct3D by itself; see the Rockstar section above.
 
 ---
 
@@ -333,13 +285,9 @@ Look for:
 
 If launchers become misconfigured:
 
-1. **Disable Launcher Compatibility Mode**
-2. **Delete Bottle Metadata:**
-   - Right-click bottle → Show in Finder
-   - Delete `Metadata.plist`
-3. **Recreate Bottle:**
-   - Whisky will regenerate with defaults
-4. **Re-enable Launcher Compatibility**
+1. In Launcher Compatibility, set **Detection Mode** to **Manual**, pick **None** as Launcher Type, then set it back to **Automatic** and start the launcher again so Whisky detects it fresh.
+2. Or use **Start Guided Troubleshooting** (Bottle Configuration > Diagnostics), whose launcher steps can reapply the launcher's fixes.
+3. Deleting the bottle's `Metadata.plist` resets every bottle setting (name, pins, graphics backend and more), not only launcher settings. Back it up first if you try it.
 
 ### Check Wine Logs
 
@@ -366,12 +314,12 @@ Launcher crashes may leave clues in Wine logs:
 Ensure Wine is properly installed:
 
 1. **Check Wine Version:**
-   - Terminal: `wine64 --version`
-   - Should show version 9.0 or later
+   - Terminal: `"$HOME/Library/Application Support/com.franke.Whisky/Libraries/Wine/bin/wine64" --version`
+   - The default engine (Wine Libraries 4.8.3) prints `wine-11.19`
 
 2. **Verify WhiskyWine:**
-   - Check `/Users/[username]/Library/Application Support/com.franke.Whisky/Libraries/Wine/`
-   - Should contain `bin/`, `lib/`, `share/` directories
+   - Check `~/Library/Application Support/com.franke.Whisky/Libraries/`
+   - It should contain `Wine/` (with `bin/`, `lib/`, `share/`), `DXVK/`, `DXMT/` and `WhiskyWineVersion.plist`
 
 ### Test in Clean Bottle
 
@@ -400,7 +348,7 @@ Isolate launcher issues:
 - ✅ Launcher Compatibility Mode
 
 **Recommended:**
-- ✅ DXVK (improves UI performance)
+- ✅ Graphics Backend: Recommended when Game Porting Toolkit is imported (Whisky runs Steam and its web helper on DXVK by itself, and games keep D3DMetal). Without Game Porting Toolkit, Whisky switches a Steam bottle to DXVK itself
 - ✅ Locale: Auto (your Mac's language and region; the Steam preset sets no locale)
 
 **Critical Settings:**
@@ -410,17 +358,15 @@ Isolate launcher issues:
 
 ### Rockstar Games Launcher
 **Must Have:**
-- ✅ DXVK (REQUIRED - logo won't display without it)
+- ✅ Whisky 3.10.2 or later (it runs `Launcher.exe` on Wine's own Direct3D with the OpenGL renderer, and `SocialClubHelper.exe` on DXVK, on every launch)
 - ✅ Launcher Compatibility Mode
 
 **Recommended:**
-- ✅ Locale: English
+- ✅ Locale: Auto (the Rockstar preset already uses US English)
+- ✅ With Game Porting Toolkit imported: **Wine Direct3D for Rockstar Games Launcher** on (the default). In a bottle whose launcher is Rockstar's, turn **Use DXVK for Rockstar Games Launcher** off and keep Graphics Backend on Recommended
 
 **Critical Settings:**
-- DXVK cannot be disabled
-
-**Alternative:**
-Use `LauncherPatcher.exe` instead of `Launcher.exe`
+- In a Steam bottle with Game Porting Toolkit imported, keep Graphics Backend on Recommended so Steam games keep D3DMetal
 
 ---
 
@@ -430,8 +376,7 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 - ✅ Launcher Compatibility Mode
 
 **Recommended:**
-- ✅ GPU Vendor: NVIDIA
-- ✅ Locale: English
+- ✅ Locale: Auto or English
 
 **Critical Settings:**
 - GPU Spoofing enabled
@@ -441,7 +386,7 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 ### Epic Games Store
 **Must Have:**
 - ✅ Launcher Compatibility Mode
-- ✅ Locale: English
+- ✅ Locale: Auto or English
 
 **Recommended:**
 - ✅ GPU Spoofing
@@ -466,7 +411,7 @@ Use `LauncherPatcher.exe` instead of `Launcher.exe`
 ### Battle.net
 **Must Have:**
 - ✅ Launcher Compatibility Mode
-- ✅ Locale: English
+- ✅ Locale: Auto or English
 
 **Recommended:**
 - ✅ DXVK
@@ -528,10 +473,10 @@ Some programs that are not launchers draw their own window with Chromium (CEF or
 
 ### Before Reporting Issues
 
-1. **Generate Diagnostic Report:**
-   - Config → Launcher Compatibility
-   - Click "Generate Diagnostics Report"
-   - Export to file
+1. **Collect diagnostics:**
+   - After a crash: Bottle Configuration > Diagnostics > **Export Diagnostic Report…** (or **View Latest Diagnosis**)
+   - Otherwise: Bottle Configuration > Stability > **Generate Stability Diagnostics**, then **Export to File**
+   - **Start Guided Troubleshooting** in the Diagnostics section, or Help > Troubleshoot…, walks through checks for common problems, launcher problems included
 
 2. **Check Configuration Warnings:**
    - Review any ⚠️ or ❌ warnings shown
@@ -576,7 +521,7 @@ Include in your issue report:
 
 ### CEF Sandbox Disabled
 
-Launcher compatibility mode disables the Chromium sandbox (required for Wine).
+Whisky disables the Chromium (CEF) sandbox for every program it runs, because the sandbox cannot work under Wine. Launcher Compatibility Mode does not change this.
 
 **Implications:**
 - Embedded browser content runs with process privileges
@@ -602,7 +547,7 @@ See [LauncherSecurityNotes.md](LauncherSecurityNotes.md) for detailed security a
    - Recommended for all launchers
 
 2. **Enable Shader Cache:**
-   - Config → Performance
+   - Bottle Configuration → Performance
    - "Shader Cache" ON (reduces stuttering after first run)
 
 ### Stability Tips
@@ -632,7 +577,7 @@ Before making changes:
    ```
 
 3. **Document Working Config:**
-   - Screenshot Config tabs
+   - Screenshot the Bottle Configuration page
    - Note what worked
 
 ---
@@ -652,7 +597,7 @@ Before making changes:
 **A:** No. The overhead is negligible (<1ms per launch). Environment variable setup is very fast.
 
 ### Q: Can I customize individual launcher settings?
-**A:** Currently, settings apply to the detected launcher. Per-game overrides may be added in future versions.
+**A:** Launcher fixes apply to the whole bottle. Individual programs can override the graphics backend, DXVK and Metal options, locale, DLL overrides, environment variables and more on their own settings page in the Programs tab.
 
 ### Q: Why do some launchers use an English locale?
 **A:** The Rockstar, EA App, Epic Games, and Battle.net presets set en_US.UTF-8 to avoid locale problems reported for those launchers. Steam's preset sets no locale, so with Locale Override on Auto, Steam and the games it starts get your Mac's language and region. Launcher bottles that older versions of Whisky set to English are put back on Auto once. Locale Override can pick a specific locale for any launcher.
@@ -661,12 +606,13 @@ Before making changes:
 
 ## Version Compatibility
 
-| macOS Version | Compatibility Level | Known Issues |
+| macOS Version | Compatibility Level | Notes |
 |---------------|-------------------|--------------|
 | 15.0-15.2 | ✅ Full | None known |
-| 15.3 | ✅ Full | Graphics validation (handled) |
-| 15.4+ | ✅ Full | Sync mode and Steam Runtime (handled) |
-| < 15.0 | ⚠️ Limited | Sequoia fixes not available |
+| 15.3 | ✅ Full | Metal validation turned off (handled automatically) |
+| 15.4 and later, including macOS 26 | ✅ Full | Sync mode and Steam Runtime fixes (handled automatically) |
+
+Whisky requires macOS 15.0 or later.
 
 ---
 
@@ -679,6 +625,6 @@ Before making changes:
 
 ---
 
-**Last Updated:** January 12, 2026  
+**Last Updated:** November 16, 2026  
 **Feature Version:** 1.0.0  
-**Covers:** Steam, Rockstar, EA App, Epic, Ubisoft, Battle.net, Paradox, RSI Launcher
+**Covers:** Steam, Rockstar, EA App, Epic, Ubisoft, Battle.net, Paradox, RSI Launcher, Chromium apps

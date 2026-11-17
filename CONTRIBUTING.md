@@ -4,13 +4,13 @@ Thanks for your interest! First, make a fork of Whisky, create a new branch for 
 
 ## Build Environment
 
-Whisky is built using **Xcode 16** on **macOS Sequoia 15.0** or later. All external dependencies are handled through the Swift Package Manager.
+Whisky is built with **Xcode 26** or later; CI uses the latest stable Xcode on macOS 26. The app uses macOS 26 SDK features (Liquid Glass controls and an Icon Composer app icon), so Xcode 16 cannot build it, and if the asset compiler crashes on the app icon, update Xcode (Xcode 26.3 on macOS 15 is known to fail, see #310). The built app runs on Apple Silicon Macs with **macOS Sequoia 15.0** or later. All external dependencies are handled through the Swift Package Manager.
 
 ## Code Style
 
 ### Linting with SwiftLint
 
-Every Whisky commit is automatically linted using SwiftLint. You can run these checks locally by building in Xcode; violations will appear as errors or warnings. For your pull request to be merged, you must meet all requirements outlined by SwiftLint and have no violations.
+Every Whisky commit is automatically linted using SwiftLint in strict mode, so warnings fail CI just like errors. Install SwiftLint first with `brew install swiftlint`, because the app's SwiftLint build phase looks for it on the default PATH and in /opt/homebrew/bin and stops the build if it is missing (the `nix develop` shell also provides SwiftLint, but only for `xcodebuild` and `swiftlint` run from that shell, not for Xcode.app). Building in Xcode then runs `swiftlint --strict`, and you can also run `swiftlint lint --strict` from the repository root. For your pull request to be merged, you must have no SwiftLint violations.
 
 ### Formatting with SwiftFormat
 
@@ -73,17 +73,29 @@ PR** — hand-editing the string catalog tends to re-serialize the whole file
 (producing huge, unreviewable diffs) and can silently drop existing
 translations.
 
+Strings used from the app target are picked up by Xcode when you build.
+Strings used from WhiskyKit are not: add each WhiskyKit key to
+`Whisky/Localizable.xcstrings` by hand with `"extractionState" : "manual"` and
+an English value, placed at its alphabetical position. Don't re-sort or
+regenerate the whole catalog with a script.
+
+After adding or changing English strings, run `./scripts/british-english.py`
+and commit the result. It regenerates only the en-GB entries from English, and
+CI's Localization check fails if they are out of date. This generated en-GB
+update is the one exception to the rule about not editing other languages.
+
 Translations are managed through Crowdin and synced automatically: the
 [`Crowdin`](.github/workflows/Crowdin.yml) workflow uploads new English strings
-to the project's Crowdin, and opens a `New translations from Crowdin` pull
-request when translators add or update strings. To help translate, contribute
+to the project's Crowdin whenever a push to `main` changes the string catalog,
+and once a week (or when run manually) opens or updates a `New translations
+from Crowdin` pull request with any new translations. To help translate, contribute
 through the [Whisky Crowdin project](https://crowdin.com/project/frankea-whisky)
 rather than opening a PR here. If Crowdin asks you to join, use the access
 request prompt on the project page.
 
 ## Changelog
 
-We maintain a [CHANGELOG.md](CHANGELOG.md) following the [Keep a Changelog](https://keepachangelog.com/) format. When making user-facing changes, please update the changelog under the `[Unreleased]` section.
+We maintain a [CHANGELOG.md](CHANGELOG.md) following the [Keep a Changelog](https://keepachangelog.com/) format. For user-facing changes, you can describe the change in your pull request and the maintainer will add the entry under `[Unreleased]` when merging, or add it yourself. If you add one, run `scripts/changelog-links.py` afterwards so `#123` references become links.
 
 ### Citing upstream issues
 
@@ -196,7 +208,7 @@ swiftformat --lint .
 
 ## Review Process
 
-Once your pull request passes CI checks (SwiftLint, SwiftFormat, and builds), it will be ready for review.
+Once your pull request passes CI (SwiftLint, SwiftFormat, the Localization check, the Whisky, WhiskyCmd and WhiskyThumbnail builds, WhiskyKit tests, WhiskyUITests, CodeQL, and the secret scan), it will be ready for review.
 
 ### Review Checklist
 
@@ -205,6 +217,6 @@ Once your pull request passes CI checks (SwiftLint, SwiftFormat, and builds), it
 - [ ] SwiftFormat clean (`swiftformat --lint .`)
 - [ ] SwiftLint clean (build shows no violations)
 - [ ] Documentation updated (if adding features)
-- [ ] Changelog updated (if user-facing changes)
+- [ ] User-facing change described in the PR, or a changelog entry added
 
 Thank you for contributing to Whisky!

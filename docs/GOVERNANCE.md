@@ -37,9 +37,11 @@ building and signing it.
 - **Releases depend on one person's availability.** If @frankea is unavailable for a stretch, expect
   no new releases until they're back. Existing installs keep working.
 - **Bug triage is best-effort.** See [`SUPPORT.md`](SUPPORT.md) for what to realistically expect.
-- **The runtime is consumed, not owned.** Whisky bundles Wine/DXVK/D3DMetal/DXMT binaries from upstream
-  projects (see [`DEPENDENCIES.md`](DEPENDENCIES.md)). If those upstreams stall,
-  Whisky's runtime currency is affected — this fork does not build Wine itself.
+- **The runtime is consumed, not owned.** Whisky's runtime bundles Wine, DXVK, DXMT and MoltenVK from
+  upstream projects (see [`DEPENDENCIES.md`](DEPENDENCIES.md)); D3DMetal is not bundled and comes from
+  Apple's Game Porting Toolkit, which you import yourself. The Wine engine is built by CI from a mirror
+  of dappermint/winecx-gptk with a few Whisky patches, not developed here, so if those upstreams stall,
+  Whisky's runtime currency is affected.
 
 ## If you want to reduce that risk
 

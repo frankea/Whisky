@@ -41,7 +41,9 @@ Whisky provides a clean and easy-to-use graphical wrapper for Wine built in nati
 
 ## Key Features
 
-- **Wine 11.19 engine** - Built from CrossOver's sources, and able to run Apple's D3DMetal from the Game Porting Toolkit
+- **Wine 11.19 engine** - Built from CrossOver's sources. Import Apple's Game Porting Toolkit in **Settings → Game Porting Toolkit** and Whisky deploys D3DMetal for DirectX 12 games
+- **Game library** - Your Steam games and pinned programs on one page, with launch links (`whisky://launch?steam=<appid>`) and Dock menu shortcuts
+- **Command line tool** - Install `whisky` from the Whisky menu (**Install Whisky CLI...**) to create bottles, run programs and launch Steam games from Terminal
 - **DXMT & DXVK Graphics** - DirectX 11 through native Metal translation (DXMT) out of the box, with DXVK over MoltenVK as the universal fallback
 - **Launcher Compatibility** - Built-in support for Steam, Epic, EA App, Rockstar, Battle.net, and more
 - **Controller Support** - SDL environment variable controls for gamepad detection and mapping issues
@@ -50,8 +52,10 @@ Whisky provides a clean and easy-to-use graphical wrapper for Wine built in nati
 
 ## System Requirements
 
-- **CPU**: Apple Silicon (M-series chips)
+- **CPU**: Apple Silicon (any M-series chip, or the A18 Pro in MacBook Neo)
 - **OS**: macOS Sequoia 15.0 or later
+- **Rosetta 2**: installed automatically during first-run setup
+- **Disk**: about 1.5 GB for the Wine engine (a ~480 MB download), plus your bottles
 
 ## Installation
 
@@ -69,7 +73,7 @@ This taps [frankea/homebrew-whisky](https://github.com/frankea/homebrew-whisky) 
 
 1. Download the latest **[Whisky-X.Y.Z.dmg](https://github.com/frankea/Whisky/releases/latest)** (signed and notarized — Gatekeeper-approved).
 2. Open the DMG and drag **Whisky.app** to **/Applications**.
-3. Launch Whisky. On first run it downloads the Wine runtime (~330 MB) and sets up your default bottle.
+3. Launch Whisky. On first run it installs Rosetta 2 if needed and downloads the Wine runtime (~480 MB). Then click **Create Bottle** to make your first bottle.
 
 In-app updates are delivered through Sparkle from `https://frankea.github.io/Whisky/appcast.xml`.
 
@@ -80,16 +84,16 @@ The original [whisky-app/whisky](https://github.com/whisky-app/whisky) was archi
 To switch:
 
 1. Install this fork: `brew install --cask frankea/whisky/whisky` or follow the manual steps above.
-2. Open it and choose **File → Migrate from the Original Whisky**. It finds the bottles the original app left in `~/Library/Containers/com.isaacmarovitz.Whisky/` and imports the ones you pick. Bottles are referenced **in place** — nothing is moved or copied — so the original app keeps working if you'd like to keep it around.
+2. Open it. The first time Whisky finds bottles in `~/Library/Containers/com.isaacmarovitz.Whisky/` that it hasn't imported yet, it offers to import them, and you can do it any time with **File → Migrate from the Original Whisky…**. Pick the bottles you want. Bottles are referenced **in place** (nothing is moved or copied), so the original app keeps working if you'd like to keep it around.
 3. *(Optional)* Once you're happy, remove the original app: drag **/Applications/Whisky.app** to the Trash, or `brew uninstall --cask whisky` if you installed it via Homebrew. Your bottles stay put.
 
-The original app uses a different bundle identifier (`com.franke.Whisky` here vs. `com.isaacmarovitz.Whisky`), which is why bottles aren't shared automatically. The old **Bottle → Export** / **File → Import Bottle** route still works if you'd rather move bottles by hand or onto another Mac. With no critical bottles, you can skip migration entirely — the new app creates a fresh bottle on first launch.
+The original app uses a different bundle identifier (`com.franke.Whisky` here vs. `com.isaacmarovitz.Whisky`), which is why bottles aren't shared automatically. You can also move bottles by hand or onto another Mac: right-click a bottle in the sidebar and choose **Export as Archive...**, unpack the archive on the other Mac, then add the folder with **File → Import Bottle**. If you have no bottles worth keeping, you can skip migration entirely and create a new bottle in this app.
 
 ## Uninstalling
 
-Dragging **Whisky.app** to the Trash (or `brew uninstall --cask frankea/whisky/whisky`) removes the app but leaves the Wine runtime, your bottles, and app data behind — by design, so reinstalling doesn't re-download ~330 MB or lose your bottles.
+Dragging **Whisky.app** to the Trash (or `brew uninstall --cask frankea/whisky/whisky`) removes the app but leaves the Wine runtime, your bottles, and app data behind, by design, so reinstalling doesn't re-download the ~480 MB runtime or lose your bottles.
 
-> ⚠️ **Back up your bottles first if you want to keep them.** Removing the container below deletes every bottle stored in its default location. Bottles you created in a custom folder live wherever you put them — check **Bottle → Reveal in Finder** before deleting anything.
+> ⚠️ **Back up your bottles first if you want to keep them.** Removing the container below deletes every bottle stored in its default location. Bottles you created in a custom folder live wherever you put them: right-click each bottle in the sidebar and choose **Show in Finder** before deleting anything.
 
 To remove Whisky **completely**, delete the app and then these paths (all under `~/Library`):
 
@@ -101,7 +105,7 @@ rm -rf "/Applications/Whisky.app"          # or: brew uninstall --cask frankea/w
 rm -rf ~/Library/Containers/com.franke.Whisky
 rm -rf ~/Library/Containers/com.franke.Whisky.WhiskyThumbnail
 
-# 3. The Wine runtime (~330 MB) and other app support
+# 3. The Wine runtime (about 1.5 GB), an imported Game Porting Toolkit, and other app support
 rm -rf ~/Library/Application\ Support/com.franke.Whisky
 
 # 4. Caches, logs, preferences, and saved state
@@ -109,7 +113,12 @@ rm -rf ~/Library/Caches/com.franke.Whisky
 rm -rf ~/Library/Logs/com.franke.Whisky
 rm -rf ~/Library/HTTPStorages/com.franke.Whisky
 rm -f  ~/Library/Preferences/com.franke.Whisky.plist
+
+# 5. The command line tool, if you installed it from the Whisky menu
+sudo rm -f /usr/local/bin/whisky
 ```
+
+If you installed with Homebrew, `brew uninstall --zap --cask frankea/whisky/whisky` removes the app and most of these folders, including the default bottle location, so back up bottles first.
 
 If you also installed bottles in a **custom location**, delete those folders too. Migrated bottles that still belong to the original app live under `~/Library/Containers/com.isaacmarovitz.Whisky` and are left untouched by the steps above.
 
@@ -166,7 +175,7 @@ WhiskyKit, the core framework powering Whisky, has comprehensive API documentati
 
 - **[WhiskyKit API Documentation](https://frankea.github.io/Whisky/documentation/whiskykit/)** - Full API reference with usage examples
 - **[Getting Started Guide](https://frankea.github.io/Whisky/documentation/whiskykit/gettingstarted)** - Learn how to integrate WhiskyKit
-- **[Architecture Overview](https://frankea.github.io/Whisky/documentation/whiskykit/architecture)** - Understand how WhiskyKit components work together
+- **[Architecture Overview](https://frankea.github.io/Whisky/documentation/whiskykit/architectureoverview)** - Understand how WhiskyKit components work together
 
 ### Troubleshooting
 
@@ -209,7 +218,8 @@ above.
 
 Whisky is possible thanks to the magic of several projects:
 
-- [msync](https://github.com/marzent/wine-msync) by marzent
+- [winecx-gptk](https://github.com/dappermint/winecx-gptk) by dappermint (the Wine 11.19 engine, including its msync)
+- [msync](https://github.com/marzent/wine-msync) by marzent (the original msync for macOS Wine)
 - [DXVK-macOS](https://github.com/Gcenx/DXVK-macOS) by Gcenx and doitsujin
 - [DXMT](https://github.com/3Shain/dxmt) by 3Shain
 - [MoltenVK](https://github.com/KhronosGroup/MoltenVK) by KhronosGroup

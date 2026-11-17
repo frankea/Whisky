@@ -50,6 +50,7 @@ body:
       label: Graphics backend
       options:
         - "Recommended (auto)"
+        - "D3DMetal (Game Porting Toolkit imported)"
         - "DXMT"
         - "DXVK"
         - "WineD3D"
@@ -98,5 +99,5 @@ body:
       options:
         - label: I tested this config on a fresh bottle (not one carrying unrelated tweaks).
           required: true
-        - label: I'm running this fork (`frankea/Whisky`, confirmed via **Whisky → About**).
+        - label: I'm running this fork (`frankea/Whisky`, confirmed via **Whisky → About Whisky**, version 3.0 or later).
           required: true

@@ -16,7 +16,6 @@ Successfully implemented a comprehensive, production-ready launcher compatibilit
 - **Total Lines Modified:** 50 lines
 - **New Files Created:** 9 files
 - **Files Modified:** 6 files
-- **Unit Tests Added:** 35 tests (100% passing)
 - **Test Coverage:** Comprehensive coverage of core functionality
 
 ### Time Investment
@@ -56,7 +55,7 @@ The implementation follows a layered architecture with clear separation of conce
 
 ### 1. Core System (WhiskyKit)
 
-#### LauncherPresets.swift (210 lines)
+#### LauncherPresets.swift
 **Purpose:** Defines launcher-specific environment configurations
 
 **Key Features:**
@@ -84,11 +83,14 @@ Steam:
 
 Rockstar:
 - WINE_LARGE_ADDRESS_AWARE=1 (launcher initialization)
-- DXVK DLL overrides via requiresDXVK (logo rendering)
+- LC_ALL=en_US.UTF-8 (launcher UI locale)
+- Launcher.exe runs on Wine's own Direct3D and SocialClubHelper.exe on DXVK, each through its own per-executable entry; requiresDXVK still puts the bottle on DXVK for the standalone launcher's other processes (not in a Steam bottle)
 
 EA App:
-- LC_ALL=en_US.UTF-8 (launcher UI locale)
-- CEF_DISABLE_SANDBOX=1 (launcher UI)
+- LC_ALL=en_US.UTF-8 and LANG=en_US.UTF-8 (launcher UI locale)
+
+All launchers (platform fixes, every launch):
+- CEF_DISABLE_SANDBOX=1 and STEAM_DISABLE_CEF_SANDBOX=1
 ```
 
 #### ChromiumFrontEnd.swift
@@ -124,14 +126,14 @@ EA App:
 - On a Whisky Library Play (`steam.exe -applaunch`), a match in the game's folder gets the launcher set in its own entry, ahead of the game's plan, like a table row. It stays among the plan's executables, since it is often the game itself and its settings still shape the plan
 - The CEF suggestion uses the same parser: `libcef.dll` beside the executable, imported by it, and no graphics import
 
-#### GPUDetection.swift (180 lines)
+#### GPUDetection.swift
 **Purpose:** GPU capability spoofing for launcher compatibility checks
 
 **Key Features:**
 - Three vendor profiles (NVIDIA, AMD, Intel)
 - OpenGL 4.6 capability reporting
 - Ray tracing (DXR) support indication
-- MoltenVK Vulkan configuration
+- OpenGL 4.6 version override (MESA_GL_VERSION_OVERRIDE, MESA_GLSL_VERSION_OVERRIDE)
 - Validation utilities
 
 **GPU Vendor IDs:**
@@ -143,7 +145,7 @@ The spoof no longer exports these IDs: the `GPU_VENDOR_ID`, `GPU_DEVICE_ID`,
 `GPU_DESCRIPTION`, `GPU_MEMORY_SIZE` and `D3DM_SHADER_MODEL` keys it used to set
 are read by no shipped runtime.
 
-#### BottleLauncherConfig.swift (105 lines)
+#### BottleLauncherConfig.swift
 **Purpose:** Configuration structure for launcher settings
 
 **Settings Managed:**
@@ -163,16 +165,12 @@ are read by no shipped runtime.
 **New Public Properties:**
 - 8 new launcher-related accessors
 - Private `launcherConfig: BottleLauncherConfig`
-- `applyLauncherCompatibility()` method
-- Environment variable merging logic
+- `populateLauncherManagedLayer(builder:builtinD3D12IsD3DMetal:)`, which fills the launcherManaged layer of `EnvironmentBuilder`
 
-**Environment Application Order:**
-1. Launcher-specific overrides
-2. Locale fixes
+**Launcher Layer Order:**
+1. Launcher preset overrides (and the DXVK DLL overrides when the launcher requires DXVK)
+2. Locale Override, when not Auto
 3. GPU spoofing
-4. Network configuration
-5. SSL/TLS settings
-6. Connection pooling
 
 #### MacOSCompatibility.swift (Modified)
 **Changes:** Enhanced macOS-specific fixes
@@ -202,21 +200,20 @@ Earlier versions also set `D3DM_VALIDATION`, `WINE_DISABLE_NTDLL_THREAD_REGS`,
 `WINE_DISABLE_FAST_PATH`, `WINE_MACH_PORT_TIMEOUT` and `WINE_MACH_PORT_RETRY_COUNT`.
 No shipped runtime reads any of them, so they were removed.
 
-#### Wine.swift (Modified)
+#### Wine+DXVKDeployment.swift
 **Changes:** Auto-enable DXVK for launcher requirements
 
-**Logic Added:**
 ```swift
-let shouldEnableDXVK = 
-    bottle.settings.dxvk ||
-    (bottle.settings.autoEnableDXVK && 
-     bottle.settings.detectedLauncher?.requiresDXVK == true)
+effectiveBackend == .dxvk
+    || legacyProgramDXVK
+    || launcherCarriesDescendantPlan
+    || (autoEnableDXVK && detectedLauncher?.requiresDXVK == true)
 ```
 
 ### 2. Application Layer (Whisky)
 
-#### LauncherDetection.swift (280 lines)
-**Purpose:** Heuristic launcher detection and configuration application
+#### LauncherDetector.swift and LauncherFixes.swift (WhiskyKit)
+**Purpose:** `LauncherType.detect(from:)` matches the executable's name and path (RSI Launcher first; games under steamapps/common are never Steam). `LauncherFixes.detectAndApply(from:for:)` refines a bottle already in Automatic mode, and `LauncherFixes.apply(to:launcher:force:recommendedBackend:)` applies a profile directly.
 
 **Detection Strategy:**
 1. Filename pattern matching (case-insensitive)
@@ -244,49 +241,14 @@ Epic Games:
 - Path contains "/epic games/"
 ```
 
-**Key Methods:**
-- `detectLauncher(from:)` → Optional<LauncherType>
-- `applyLauncherFixes(for:launcher:force:)` → Void
-- `validateBottleForLauncher(_:launcher:)` → [String]
+#### LauncherDetection.swift (app)
+- `validateBottleForLauncher(_:launcher:)` → [LauncherConfigWarning]
 - `generateConfigSummary(for:launcher:)` → String
 
-#### LauncherDiagnostics.swift (290 lines)
-**Purpose:** Comprehensive diagnostics and troubleshooting
+#### Diagnostics
+The original LauncherDiagnostics report is no longer shown in the app. "View Diagnostics" in the Launcher Compatibility section opens the bottle's latest crash diagnosis, or the stability report (StabilityDiagnostics in WhiskyKit: system info, bottle and launcher summary, environment keys without values, recent logs) when there is none.
 
-**Report Sections:**
-1. **System Information**
-   - macOS version
-   - Wine version
-   - Architecture (arm64/x86_64)
-   - Rosetta 2 status
-
-2. **Bottle Configuration**
-   - Launcher compatibility settings
-   - Graphics configuration
-   - Performance settings
-   - DXVK state
-
-3. **Environment Variables**
-   - Complete snapshot
-   - Sorted alphabetically
-   - Value truncation for readability
-
-4. **Validation Results**
-   - Configuration warnings
-   - GPU spoofing validation
-   - Launcher-specific checks
-
-5. **Recommendations**
-   - Critical issues highlighted
-   - Optimization suggestions
-   - macOS-specific advice
-
-**Export Capabilities:**
-- Copy to clipboard
-- Export to text file
-- Timestamped filenames
-
-#### LauncherConfigSection.swift (270 lines)
+#### LauncherConfigSection.swift
 **Purpose:** SwiftUI configuration UI
 
 **UI Components:**
@@ -310,7 +272,7 @@ Epic Games:
 5. **Locale Override**
    - Dropdown with all locales
    - Native language display
-   - Help text for steamwebhelper fix
+   - Help text: sets the Windows locale for every program in the bottle; Auto keeps the launcher's default
 
 6. **GPU Spoofing**
    - Toggle with vendor picker
@@ -320,14 +282,19 @@ Epic Games:
 7. **Use DXVK for Rockstar Games Launcher**
    - Rockstar is the only launcher with `requiresDXVK`; other launchers get DXVK from the Recommended backend
 
-8. **Diagnostics Button**
-   - One-click report generation
-   - Sheet presentation
+8. **Active Environment Overrides**
+   - Expandable list of the launcher's fixes and the macOS platform fixes, each with its value and reason
 
-9. **Configuration Warnings**
-   - Real-time validation
-   - Color-coded warnings
-   - Specific recommendations
+9. **View Diagnostics**
+   - Opens the latest crash diagnosis, or the stability report when there is none
+
+10. **Configuration Warnings**
+    - Real-time validation
+    - Color-coded warnings
+    - Specific recommendations
+
+11. **Wine Direct3D for Rockstar Games Launcher**
+    - Shown outside the compatibility controls when the bottle has the Rockstar Games Launcher and GPTK is installed; puts Wine's own d3d11 in system32 for Launcher.exe (#382)
 
 **State Management:**
 - `@ObservedObject var bottle: Bottle`
@@ -345,92 +312,25 @@ Epic Games:
 private var launcherSectionExpanded: Bool = false
 
 // In body:
-LauncherConfigSection(bottle: bottle, isExpanded: $launcherSectionExpanded)
+LauncherConfigSection(
+    bottle: bottle,
+    isExpanded: $launcherSectionExpanded,
+    onViewDiagnostics: { loadLatestDiagnosisAndView(onUnavailable: showStabilityReport) }
+)
 ```
 
-**Position:** Between WineConfigSection and DXVKConfigSection
+**Position:** Between WineConfigSection and InputConfigSection
 
-#### BottleView.swift (Modified)
-**Changes:** Auto-detect launchers on program run
+#### Run paths
+**Changes:** Auto-detect launchers before a program runs
 
-**Logic Added:**
-```swift
-if bottle.settings.launcherCompatibilityMode &&
-   bottle.settings.launcherMode == .auto {
-    if let detectedLauncher = LauncherDetection.detectLauncher(from: url) {
-        if bottle.settings.detectedLauncher != detectedLauncher {
-            LauncherDetection.applyLauncherFixes(
-                for: bottle,
-                launcher: detectedLauncher
-            )
-        }
-    }
-}
-```
-
-**Timing:** Before Wine.runProgram() call
-
-#### FileOpenView.swift (Modified)
-**Changes:** Auto-detect launchers on file open
-
-**Implementation:** Same detection logic as BottleView
-**Context:** Task.detached with MainActor.run wrapper
+`LauncherFixes.detectAndApply(from: url, for: bottle)` is called on the main actor, before `Wine.runProgram`, from BottleActionBar (Run...), FileOpenView, and `Program`'s launch path. It only acts when compatibility mode is on, in Automatic mode, for a launcher not already configured.
 
 ## Testing Coverage
 
-### Unit Tests Summary
+### Unit Tests
 
-#### LauncherPresetTests.swift (12 tests)
-✅ `testSteamPresetLeavesTheLocaleToTheMac`
-✅ `testSteamPresetDisablesSandbox`
-✅ `testSteamPresetIncludesNetworkFixes`
-✅ `testRockstarRequiresDXVK`
-✅ `testEAAppRequiresGPUDetection`
-✅ `testEpicGamesPreset`
-✅ `testUbisoftPreset`
-✅ `testBattleNetPreset`
-✅ `testParadoxPreset`
-✅ `testRecommendedLocales`
-✅ `testFixesDescription`
-✅ `testLauncherTypeIdentifiable`
-
-**Coverage:** Environment variable generation, launcher requirements, metadata
-
-#### GPUDetectionTests.swift (12 tests)
-✅ `testNVIDIAVendorID`
-✅ `testAMDVendorID`
-✅ `testIntelVendorID`
-✅ `testGPUSpoofingOmitsUnreadVendorKeys`
-✅ `testGPUSpoofingOmitsUnreadFeatureLevelKeys`
-✅ `testGPUSpoofingIncludesOpenGLVersion`
-✅ `testGPUSpoofingIncludesRayTracing`
-✅ `testAppleSiliconSpoofing`
-✅ `testSpoofWithVendor`
-✅ `testValidateSpoofingEnvironment`
-✅ `testAllVendorsHaveDeviceIDs`
-
-**Coverage:** GPU spoofing configuration, validation, vendor profiles
-
-#### BottleLauncherConfigTests.swift (10 tests)
-✅ `testDefaultLauncherConfig`
-✅ `testLauncherConfigCodable`
-✅ `testLauncherModeEnum`
-✅ `testBottleSettingsIncludesLauncherConfig`
-✅ `testBottleSettingsLauncherConfigModification`
-✅ `testEnvironmentVariablesWithLauncherCompatibility`
-✅ `testEnvironmentVariablesWithoutLauncherCompatibility`
-✅ `testAutoEnableDXVKForRockstar`
-✅ `testSSLTLSConfiguration`
-
-**Coverage:** Settings integration, serialization, environment merging
-
-### Test Execution Results
-
-```
-Test Suite 'All tests' passed
-Executed 35 tests, with 0 failures (0 unexpected)
-Total time: 0.523 seconds
-```
+Launcher tests live in WhiskyKit/Tests/WhiskyKitTests (LauncherPresetTests, GPUDetectionTests, BottleLauncherConfigTests, LauncherFixesTests, LauncherDetectionTests and others); run `swift test --package-path WhiskyKit --filter 'Launcher|GPUDetection'`.
 
 ### Manual Testing Checklist
 
@@ -464,9 +364,9 @@ Total time: 0.523 seconds
 **Impact:** Whisky offers no network timeout setting
 
 ### 4. macOS Version Support
-**Issue:** Pre-15.0 systems get limited benefit  
-**Mitigation:** Base fixes still apply  
-**Impact:** Medium - most users on 15.x+
+**Issue:** Some fixes only apply from macOS 15.3 or 15.4  
+**Mitigation:** Whisky requires macOS 15.0 or later and applies each fix from the version it is needed on  
+**Impact:** Low
 
 ## Performance Characteristics
 
@@ -513,9 +413,8 @@ Total time: 0.523 seconds
 
 ### Settings Migration
 - New settings have sensible defaults
-- Missing keys default to disabled/auto
-- Existing bottles unaffected
-- No schema version bump required
+- Missing keys take their defaults (GPU spoofing and Rockstar DXVK on, compatibility mode off, Automatic, Auto locale)
+- Bottles from older versions go through LauncherBackendMigration and LauncherLocaleMigration once
 
 ### API Compatibility
 - No public API changes (only additions)
@@ -525,7 +424,7 @@ Total time: 0.523 seconds
 ### UI Compatibility
 - New section collapsed by default
 - Doesn't affect existing configurations
-- Optional feature (opt-in)
+- Off by default for new bottles; turned on automatically when Play starts a Steam game in a bottle whose launcher detection is Automatic, or when Apply Launcher Fixes runs
 
 ## Future Enhancement Roadmap
 
@@ -616,7 +515,7 @@ Total time: 0.523 seconds
 
 The launcher compatibility system represents a significant improvement to Whisky's capability to run game launchers reliably. The implementation is production-ready, well-tested, and architected for future expansion. The dual-mode system balances automation with user control, while comprehensive diagnostics enable effective troubleshooting.
 
-**Status:** ✅ Ready for review and integration testing
+**Status:** Merged in #53 (commit 2e9f4d92, January 12, 2026). This document records the original design; later sections note where the code has since changed.
 
 **Next Steps:**
 1. PR review and feedback incorporation
@@ -630,4 +529,4 @@ The launcher compatibility system represents a significant improvement to Whisky
 **Implementation completed:** January 12, 2026  
 **Branch:** `feature/launcher-compatibility-system`  
 **Pull Request:** #53 - https://github.com/frankea/Whisky/pull/53  
-**Commit:** 88016fbe
+**Commit:** 2e9f4d92 (squash merge)

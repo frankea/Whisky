@@ -34,7 +34,7 @@ the engine, error pattern, and known-good Wine practice — **not** configs
 that maintainers have personally validated by running the game.
 
 The in-app Game DB UI surfaces this with:
-- A `Community-suggested config` banner above the recommended config.
+- A `Community config, not maintainer-verified` banner above the recommended config.
 - The `Unverified` rating badge in gray.
 
 When a recipe doesn't work for you, please file an issue against this
@@ -49,8 +49,8 @@ upstream patch; the rest are features or docs, tracked individually.
 
 | Upstream PR | Intent | Status in this fork |
 |---|---|---|
-| [#1374](https://github.com/whisky-app/whisky/pull/1374) | Nil the pipe readability handler to stop a high-CPU spin (#917) | **Fixed**, bettered — the handler removes itself on EOF *and* at termination (`Process+Extensions.swift`; Closes #917) |
-| [#1305](https://github.com/whisky-app/whisky/pull/1305) | Stop the 100%-CPU spin in `nextLine` (#1010) | **Fixed** — `nextLine` replaced by a 3-way `nextOutput()` enum that disarms the read source on EOF (Closes #1010) |
+| [#1374](https://github.com/whisky-app/whisky/pull/1374) | Nil the pipe readability handler to stop a high-CPU spin (#917) | **Fixed**, bettered: a pipe's readability handler is removed as soon as that pipe reaches end of file, and the launch returns at process exit without waiting on the pipes (`ProcessOutputReader.swift`; Closes #917) |
+| [#1305](https://github.com/whisky-app/whisky/pull/1305) | Stop the 100%-CPU spin in `nextLine` (#1010) | **Fixed**: `nextLine` was replaced by non-blocking reads (`readChunk()` returns data, end of file, or would-block) in `ProcessOutputReader.swift`, which stops reading a pipe once it reaches end of file (Closes #1010) |
 | [#1264](https://github.com/whisky-app/whisky/pull/1264) | Make `WhiskyCmd run` actually launch the program (#1088, #1140) | **Fixed** — the CLI was rearchitected onto awaited `Wine.runProgram`, so the AppleScript-exits-early race and the env-var quote-escaping bug can't occur |
 | [#1339](https://github.com/whisky-app/whisky/pull/1339) | In-app Wine process monitor | **Present**, bettered — a per-bottle Processes page (name / PID / memory + graceful and force quit), not a separate window |
 | [#574](https://github.com/whisky-app/whisky/pull/574) | Async bottle / program-list loading | **Adopted** — `updateInstalledPrograms()` now walks `Program Files` and parses PE off the main actor, with a progress indicator while scanning |
@@ -74,8 +74,10 @@ python scripts/audit_upstream.py
 # Force a fresh fetch from the upstream API
 python scripts/audit_upstream.py --refresh
 
-# Show "newly addressed" against an older ref
-python scripts/audit_upstream.py --diff-against app-v3.0.1
+# Show "newly addressed" against an older commit. The ref must contain a
+# committed .planning/audit/classified.json; .planning/ is gitignored, so no
+# release tag has one (only the early audit commits, such as 572f0e9d, do)
+python scripts/audit_upstream.py --diff-against <ref>
 ```
 
 Outputs land under `.planning/audit/` (gitignored — local working notes):

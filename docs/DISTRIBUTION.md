@@ -14,17 +14,12 @@ news: the homebrew-cask `whisky` cask is **already `deprecate!`d** (date `2025-0
 silent dead install. But it still installs v2.3.5, its `homepage` still points at getwhisky.app, and
 there's no pointer to this fork.
 
-**Action — open a PR against [homebrew/homebrew-cask](https://github.com/Homebrew/homebrew-cask)** to add
-a successor pointer. Realistic asks, easiest first:
-
-> The `whisky` cask is already deprecated (unmaintained, 2025-04-09). `frankea/Whisky` is an actively
-> maintained fork (signed + notarized DMGs, in-app Sparkle updates). Requesting one of:
-> (a) add a `caveats` note pointing users to `brew install --cask frankea/whisky/whisky`;
-> (b) repoint the cask's `url`/`homepage` to the fork's releases; or
-> (c) `disable!` the cask with that pointer.
-
-The `caveats`-pointer ask (a) is the lowest-friction and most likely to be accepted; a full repoint (b)
-is more sensitive. Until then, keep the README's "Getting the right Whisky" warning prominent and the
+**Status:** asked in [Homebrew/homebrew-cask#262288](https://github.com/Homebrew/homebrew-cask/issues/262288)
+(May 2026) and closed. Homebrew's maintainers replied that a separate `frankea-whisky` cask needs the
+fork to meet their notability requirements, and that taking over the `whisky` token or naming the fork in
+the cask's deprecation notice needs the original project to name this fork as its successor. The
+successor note from the original project (section 2) is what unblocks this. Until then, keep the
+README's warning about the default `whisky` cask (under Installation > Homebrew) prominent and the
 qualified tap (`frankea/whisky/whisky`) as the documented path.
 
 ## 2. Search & domain
@@ -53,8 +48,9 @@ The macOS-gaming audience lives in a few places. Seeding them is the cheapest re
 
 ## 4. Lower the switching cost
 
-- One-click **File → Migrate from the Original Whisky** imports the original app's bottles in place
-  (shipped in 3.1.0).
+- At launch, Whisky offers once to import the original app's bottles when it finds any that aren't
+  registered yet (since 3.9.0), and **File → Migrate from the Original Whisky** does it any time (since
+  3.1.0). Bottles are imported in place; nothing is moved or copied.
 - Lead with that in any launch post — "keep your existing bottles, one click" is the message that
   converts archived-app users.
 

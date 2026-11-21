@@ -81,6 +81,20 @@ extension Wine {
                 reason: "Host timezone forwarding"
             )
         }
+        // Wine's ntdll loads Apple's libd3dshared.dylib from this path and from
+        // nowhere else. With it loaded, ntdll registers each Windows module as
+        // non-native code and uses the Windows calling convention for calls
+        // that come from the dylib. Without it, D3DMetal games can hang at
+        // start with "Exception c0000005 in system thread". Set for every
+        // backend, because a launcher on DXVK starts games on D3DMetal and
+        // they inherit its environment.
+        if builtinD3D12IsD3DMetal {
+            let dylib = GPTKImporter.sharedLibrary(inLibraryFolder: WhiskyWineInstaller.libraryFolder)
+            builder.set(
+                "CX_APPLEGPTK_LIBD3DSHARED_PATH", dylib.path(percentEncoded: false), layer: .platform,
+                reason: "Lets Wine load Apple's libd3dshared.dylib for D3DMetal"
+            )
+        }
         // Handle conditional WINEESYNC (depends on existing environment state)
         var platformConditional: [String: String] = [:]
         applyMacOSCompatibilityFixes(to: &platformConditional)

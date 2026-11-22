@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The Security Note under Launcher Compatibility now says Whisky turns off
   the Chromium sandbox for every program it runs, because the sandbox can't
   work under Wine. It said only launcher compatibility did ([#401]).
+- With the Game Porting Toolkit imported, Whisky now tells Wine where
+  Apple's `libd3dshared.dylib` is, so the engine turns on its D3DMetal
+  support code. Without it, some D3DMetal games, such as Red Dead
+  Redemption 2, could hang at start ([#407]).
 
 ## [3.10.2] - 2026-11-16 (App)
 
@@ -1690,6 +1694,7 @@ up to date.
 [#398]: https://github.com/frankea/Whisky/issues/398
 [#399]: https://github.com/frankea/Whisky/issues/399
 [#401]: https://github.com/frankea/Whisky/issues/401
+[#407]: https://github.com/frankea/Whisky/issues/407
 [@adurham]: https://github.com/adurham
 [@daydalek]: https://github.com/daydalek
 [@Dunn-Kim]: https://github.com/Dunn-Kim

@@ -59,10 +59,18 @@ extension GPTKImporter {
     static func isDeployed(inLibraryFolder folder: URL) -> Bool {
         let lib = folder.appending(path: "Wine").appending(path: "lib")
         let bridge = lib.appending(path: "wine").appending(path: "x86_64-unix").appending(path: "dxgi.so")
-        let dylib = lib.appending(path: "external").appending(path: "libd3dshared.dylib")
+        let dylib = sharedLibrary(inLibraryFolder: folder)
         let fileManager = FileManager.default
         return fileManager.fileExists(atPath: bridge.path(percentEncoded: false)) &&
             fileManager.fileExists(atPath: dylib.path(percentEncoded: false))
+    }
+
+    /// Apple's `libd3dshared.dylib` in the runtime tree under `folder`. Every
+    /// unix bridge is a link to it, and Wine's ntdll loads it from the path
+    /// in `CX_APPLEGPTK_LIBD3DSHARED_PATH`.
+    static func sharedLibrary(inLibraryFolder folder: URL) -> URL {
+        folder.appending(path: "Wine").appending(path: "lib")
+            .appending(path: "external").appending(path: "libd3dshared.dylib")
     }
 
     /// Deploys the stored payload into the runtime tree per Apple's documented

@@ -406,13 +406,13 @@ def apply_decision(c: Classification, decision: dict) -> bool:
     if new_status == c.status and not c.matched_requirements:
         # status unchanged but pull in evidence
         c.matched_requirements = decision.get("matched_requirement_ids", [])
-        c.rationale = decision.get("rationale", c.rationale)[:240]
+        c.rationale = (decision.get("rationale") or c.rationale)[:240]
         c.reviewed = True
         return False
     c.status = new_status
     c.confidence = decision.get("confidence", "low")
     c.matched_requirements = decision.get("matched_requirement_ids", [])
-    c.rationale = decision.get("rationale", c.rationale)[:240]
+    c.rationale = (decision.get("rationale") or c.rationale)[:240]
     c.reviewed = True
     return True
 

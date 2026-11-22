@@ -9,9 +9,7 @@ report under .planning/audit/. See .planning/audit/README.md.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
-import os
 import re
 import subprocess
 import sys
@@ -25,12 +23,10 @@ SNAPSHOT_PATH = AUDIT_DIR / "snapshot.json"
 CLASSIFIED_PATH = AUDIT_DIR / "classified.json"
 REPORT_PATH = AUDIT_DIR / "AUDIT_REPORT.md"
 OVERRIDES_PATH = AUDIT_DIR / "overrides.json"
-LLM_CACHE_PATH = AUDIT_DIR / ".llm_cache.json"
 REQUIREMENTS_PATH = REPO_ROOT / ".planning" / "milestones" / "v1.0-REQUIREMENTS.md"
 
 UPSTREAM_REPO = "whisky-app/whisky"
 BODY_EXCERPT_BYTES = 2048
-LLM_BATCH_SIZE = 20
 
 # ---------------------------------------------------------------------------
 # Heuristic configuration
@@ -136,7 +132,7 @@ class Classification:
     evidence: list[dict] = field(default_factory=list)
     rationale: str = ""
     overridden: bool = False
-    llm_used: bool = False
+    reviewed: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -403,145 +399,7 @@ def apply_overrides(classifications: list[Classification], overrides: dict) -> N
             c.overridden = True
 
 
-# ---------------------------------------------------------------------------
-# Optional LLM pass
-# ---------------------------------------------------------------------------
-
-
-def llm_classify(
-    issues: list[Issue],
-    classifications: list[Classification],
-    reqs: dict[str, dict],
-) -> int:
-    """Run Claude Haiku on issues currently classified as 'unverified'.
-
-    Returns the number of issues whose status changed.
-    """
-    try:
-        import anthropic  # type: ignore
-    except ImportError:
-        sys.stderr.write("[error] anthropic SDK not installed; pip install -r requirements-audit.txt\n")
-        return 0
-
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        sys.stderr.write("[error] ANTHROPIC_API_KEY not set\n")
-        return 0
-
-    by_number = {c.number: c for c in classifications}
-    targets = [i for i in issues if by_number[i.number].status == "unverified"]
-    if not targets:
-        sys.stderr.write("[info] no unverified issues to classify\n")
-        return 0
-
-    cache = json.loads(LLM_CACHE_PATH.read_text()) if LLM_CACHE_PATH.exists() else {}
-    requirements_hash = hashlib.sha1(
-        REQUIREMENTS_PATH.read_text().encode()
-    ).hexdigest()[:12]
-
-    client = anthropic.Anthropic(api_key=api_key)
-    system_text = build_llm_system_prompt(reqs)
-
-    changed = 0
-    pending: list[Issue] = []
-    for iss in targets:
-        body_hash = hashlib.sha1(iss.body_excerpt.encode()).hexdigest()[:12]
-        cache_key = f"{iss.number}:{body_hash}:{requirements_hash}"
-        if cache_key in cache:
-            decision = cache[cache_key]
-        else:
-            pending.append(iss)
-            continue
-        if apply_llm_decision(by_number[iss.number], decision):
-            changed += 1
-
-    sys.stderr.write(f"[info] {len(targets)} unverified, {len(pending)} need LLM, {changed} changed from cache\n")
-
-    for batch_start in range(0, len(pending), LLM_BATCH_SIZE):
-        batch = pending[batch_start: batch_start + LLM_BATCH_SIZE]
-        sys.stderr.write(
-            f"[info] LLM batch {batch_start // LLM_BATCH_SIZE + 1}"
-            f" / {(len(pending) + LLM_BATCH_SIZE - 1) // LLM_BATCH_SIZE}\n"
-        )
-        decisions = llm_call(client, system_text, batch)
-        for iss in batch:
-            decision = decisions.get(str(iss.number)) or decisions.get(iss.number)
-            if not decision:
-                continue
-            body_hash = hashlib.sha1(iss.body_excerpt.encode()).hexdigest()[:12]
-            cache_key = f"{iss.number}:{body_hash}:{requirements_hash}"
-            cache[cache_key] = decision
-            if apply_llm_decision(by_number[iss.number], decision):
-                changed += 1
-        LLM_CACHE_PATH.write_text(json.dumps(cache, indent=2))
-
-    return changed
-
-
-def build_llm_system_prompt(reqs: dict[str, dict]) -> str:
-    bullet_reqs = "\n".join(
-        f"- **{rid}** ({info['category']}, shipped={info['shipped']}): {info['description']}"
-        for rid, info in sorted(reqs.items())
-    )
-    return f"""You are auditing whether the Whisky fork at frankea/Whisky has addressed an upstream issue from the archived whisky-app/whisky.
-
-The fork shipped these v1.0 requirements (all marked shipped=True are live in current main):
-
-{bullet_reqs}
-
-Out-of-scope categories (these should be classified `wont-fix-out-of-scope`):
-- Wine/GPTK source code patches
-- DXMT compilation/bundling
-- Anti-cheat (Denuvo, Easy Anti-Cheat, BattlEye)
-- Kernel-mode driver support
-- Mobile (iOS/Android)
-- Game-specific Wine patches
-- Full community compatibility database
-
-For each issue you receive, return a single JSON object per issue with these fields:
-- `number` (int, copied verbatim)
-- `status` (one of: `addressed-categorical`, `wont-fix-out-of-scope`, `unverified`)
-- `matched_requirement_ids` (list of strings; can be empty)
-- `confidence` (one of: `high`, `medium`, `low`)
-- `rationale` (≤200 characters; concrete reasoning)
-
-Reply with a single JSON object whose keys are issue numbers (as strings) and whose values are the per-issue objects. No prose, no markdown fences, no leading text.
-"""
-
-
-def llm_call(client, system_text: str, batch: list[Issue]) -> dict:
-    items = [
-        {
-            "number": iss.number,
-            "title": iss.title,
-            "labels": iss.labels,
-            "state": iss.state,
-            "body": iss.body_excerpt,
-        }
-        for iss in batch
-    ]
-    user_msg = (
-        "Classify these upstream issues. Reply with a single JSON object keyed by issue number.\n\n"
-        f"```json\n{json.dumps(items, indent=2)}\n```"
-    )
-    response = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=4096,
-        system=[{"type": "text", "text": system_text, "cache_control": {"type": "ephemeral"}}],
-        messages=[{"role": "user", "content": user_msg}],
-    )
-    text = "".join(block.text for block in response.content if block.type == "text")
-    text = text.strip()
-    if text.startswith("```"):
-        text = text.split("\n", 1)[1].rsplit("```", 1)[0]
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError as exc:
-        sys.stderr.write(f"[warn] LLM returned non-JSON: {exc}\n{text[:300]}\n")
-        return {}
-
-
-def apply_llm_decision(c: Classification, decision: dict) -> bool:
+def apply_decision(c: Classification, decision: dict) -> bool:
     new_status = decision.get("status")
     if new_status not in {"addressed-categorical", "wont-fix-out-of-scope", "unverified"}:
         return False
@@ -549,13 +407,13 @@ def apply_llm_decision(c: Classification, decision: dict) -> bool:
         # status unchanged but pull in evidence
         c.matched_requirements = decision.get("matched_requirement_ids", [])
         c.rationale = decision.get("rationale", c.rationale)[:240]
-        c.llm_used = True
+        c.reviewed = True
         return False
     c.status = new_status
     c.confidence = decision.get("confidence", "low")
     c.matched_requirements = decision.get("matched_requirement_ids", [])
     c.rationale = decision.get("rationale", c.rationale)[:240]
-    c.llm_used = True
+    c.reviewed = True
     return True
 
 
@@ -723,12 +581,12 @@ def render_report(
         if any(ev.get("type") == "git-log" for ev in c.evidence)
     )
     overridden = sum(1 for c in classifications if c.overridden)
-    llm_touched = sum(1 for c in classifications if c.llm_used)
+    reviewed_count = sum(1 for c in classifications if c.reviewed)
     lines.append(
         f"Citation breakdown: **{cited_in_changelog}** in CHANGELOG, "
         f"**{git_log_hits}** in git log, "
         f"**{overridden}** manual overrides, "
-        f"**{llm_touched}** LLM-classified."
+        f"**{reviewed_count}** classified from a decisions file."
     )
     lines.append("")
     return "\n".join(lines)
@@ -767,15 +625,14 @@ def diff_against(ref: str) -> None:
 # ---------------------------------------------------------------------------
 
 
-def apply_agent_results(
+def apply_decisions_file(
     classifications: list[Classification],
     decisions: dict,
 ) -> int:
-    """Apply pre-computed decisions (e.g. produced by Claude Code subagents).
+    """Apply pre-computed decisions from a reviewed JSON file.
 
     `decisions` is keyed by issue number (string or int). Each value is
-    `{status, matched_requirement_ids, confidence, rationale}` matching the
-    LLM pass schema. Only updates issues currently marked `unverified`.
+    `{status, matched_requirement_ids, confidence, rationale}`. Only updates issues currently marked `unverified`.
     """
     by_number = {c.number: c for c in classifications}
     changed = 0
@@ -787,7 +644,7 @@ def apply_agent_results(
         c = by_number.get(num)
         if c is None or c.status != "unverified":
             continue
-        if apply_llm_decision(c, decision):
+        if apply_decision(c, decision):
             changed += 1
     return changed
 
@@ -824,15 +681,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--refresh", action="store_true",
                         help="Force re-fetch of upstream snapshot")
-    parser.add_argument("--llm", action="store_true",
-                        help="Run LLM classifier on the unverified bucket via Anthropic API")
-    parser.add_argument("--agent-results", metavar="FILE",
-                        help="Load pre-computed decisions from JSON file (skips Anthropic API). "
+    parser.add_argument("--decisions", metavar="FILE",
+                        help="Load pre-computed decisions from a JSON file. "
                              "File format: {issue_number: {status, matched_requirement_ids, "
                              "confidence, rationale}}.")
     parser.add_argument("--export-unverified", metavar="DIR",
                         help="Write unverified issues to chunked JSON batches under DIR for "
-                             "offline classification by Claude Code subagents, then exit.")
+                             "offline review, then exit.")
     parser.add_argument("--batch-size", type=int, default=70,
                         help="Issues per batch when --export-unverified is used (default: 70)")
     parser.add_argument("--diff-against", metavar="REF",
@@ -874,14 +729,11 @@ def main() -> None:
         )
         return
 
-    if args.agent_results:
-        decisions = json.loads(Path(args.agent_results).read_text())
-        changed = apply_agent_results(classifications, decisions)
-        sys.stderr.write(f"[info] agent-results pass changed {changed} classifications\n")
+    if args.decisions:
+        decisions = json.loads(Path(args.decisions).read_text())
+        changed = apply_decisions_file(classifications, decisions)
+        sys.stderr.write(f"[info] decisions file changed {changed} classifications\n")
 
-    if args.llm:
-        changed = llm_classify(issues, classifications, reqs)
-        sys.stderr.write(f"[info] LLM pass changed {changed} classifications\n")
 
     counts = Counter(c.status for c in classifications)
     sys.stderr.write(f"[info] final tally: {dict(counts)}\n")

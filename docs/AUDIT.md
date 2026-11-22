@@ -112,8 +112,7 @@ Going forward, the workflow is:
   marked `wont-fix-out-of-scope` from the app side; they would only
   become tractable via a Wine Libraries pipeline change.
 - **Body excerpts capped at 2 KB** in the snapshot. Long bug reports
-  lose context; subagent-driven retriage can fetch full bodies on
-  demand.
+  lose context; a manual retriage can fetch full bodies on demand.
 - **Label drift.** Upstream labels were inconsistent; categorization is
   best effort.
 - **No automated upstream-PR correlation.** The tool doesn't trace

@@ -41,12 +41,25 @@ jobs:
   lint:
     name: SwiftLint
     runs-on: ubuntu-latest
+    # The Swift image supplies SourceKit, which some rules need; the static
+    # SwiftLint build skips those rules instead.
+    container: swift:6.2-noble
+    env:
+      SWIFTLINT_VERSION: "0.65.1"
+      SWIFTLINT_SHA256: caeed6f4a679c35539ffaf124f6c4ab4a8416917f7d8796279dc52b74026059d
     steps:
       - uses: actions/checkout@v6
+      - name: Install SwiftLint
+        run: |
+          apt-get update -qq && apt-get install -y -qq curl unzip > /dev/null
+          curl -fsSL -o swiftlint.zip \
+            "https://github.com/realm/SwiftLint/releases/download/${SWIFTLINT_VERSION}/swiftlint_linux_amd64.zip"
+          echo "${SWIFTLINT_SHA256}  swiftlint.zip" | sha256sum -c -
+          unzip -q swiftlint.zip swiftlint -d /usr/local/bin
+          rm swiftlint.zip
+          swiftlint version
       - name: SwiftLint
-        uses: norio-nomura/action-swiftlint@9f4dcd7fd46b4e75d7935cf2f4df406d5cae3684 # 3.2.1
-        with:
-          args: --strict
+        run: swiftlint lint --strict
 
   # Format check job runs in parallel with lint
   format:

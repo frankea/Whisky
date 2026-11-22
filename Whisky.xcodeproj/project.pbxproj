@@ -1567,7 +1567,7 @@
 			repositoryURL = "https://github.com/apple/swift-argument-parser.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.2.3;
+				minimumVersion = 1.8.2;
 			};
 		};
 		7A0510A12F5A000000000001 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
@@ -1583,7 +1583,7 @@
 			repositoryURL = "https://github.com/SwiftPackageIndex/SemanticVersion";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.3.6;
+				minimumVersion = 0.5.3;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

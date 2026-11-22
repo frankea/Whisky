@@ -9,16 +9,18 @@ See [`ReleaseWorkflow.md`](ReleaseWorkflow.md) for the assembly + publish proced
 [`.github/workflows/RuntimeTrack.yml`](../.github/workflows/RuntimeTrack.yml) for the automation that
 flags when a bundled component falls behind upstream.
 
-## Bundled in runtime `v4.8.3` (default for app 3.10.0 and later)
+## Bundled in runtime `v4.8.5` (default for app 3.10.0 and later)
 
 Built from source by CI on [frankea/winecx-gptk](https://github.com/frankea/winecx-gptk) (a mirror of
-dappermint/winecx-gptk carrying Whisky's macOS 15 floor and winebus SDL build change, plus the fiber
-fix from dappermint/winecx-gptk#25), commit `12af865`, from upstream `58b27bf`
-(the tree behind upstream's `runtime-v4.8.1`). Served by `dist/pages/WhiskyWineVersion-v4.plist`.
+dappermint/winecx-gptk carrying Whisky's macOS 15 floor and winebus SDL build change, plus the
+patches in its `patches/` folder: the fiber fix from dappermint/winecx-gptk#25, the gdi32 GPU
+scheduling priority stubs for Steam (#403), and the IP_TOS/IP_TTL control messages (#326)),
+commit `b15ffc5`, from upstream `58b27bf` (the tree behind upstream's `runtime-v4.8.1`).
+Served by `dist/pages/WhiskyWineVersion-v4.plist`.
 
 | Component | Bundled version | Upstream source | Notes |
 |-----------|-----------------|-----------------|-------|
-| **Wine** | 11.19, CrossOver-based winecx `9f3f644` | [dappermint/winecx-gptk](https://github.com/dappermint/winecx-gptk) | Tracks upstream Wine releases with CrossOver's macOS patches rebased on top. Built at `MACOSX_DEPLOYMENT_TARGET=15.0` on a hosted macos-15 runner. Carries the fiber fix from dappermint/winecx-gptk#25 until it lands upstream. |
+| **Wine** | 11.19, CrossOver-based winecx `9f3f644` | [dappermint/winecx-gptk](https://github.com/dappermint/winecx-gptk) | Tracks upstream Wine releases with CrossOver's macOS patches rebased on top. Built at `MACOSX_DEPLOYMENT_TARGET=15.0` on a hosted macos-15 runner. Carries the mirror's out-of-tree patches listed above until they land upstream. |
 | **DXVK (macOS)** | 1.10.3 | [Gcenx/DXVK-macOS](https://github.com/Gcenx/DXVK-macOS/releases) | Same frozen 1.10.x line as the 3.x engine. The runtime also ships DXVK's 32-bit `dxgi.dll`, but the app keeps Wine's builtin dxgi in `syswow64` (DXVK's d3d11 runs on it), so that file goes unused. No `d3d9` on purpose (Wine's builtin d3d9 is used). |
 | **DXMT** | 0.80 | [3Shain/dxmt](https://github.com/3Shain/dxmt/releases) | Frozen at the last MIT release, as below. |
 | **MoltenVK** | 1.4.2 | [KhronosGroup/MoltenVK](https://github.com/KhronosGroup/MoltenVK/releases) | |
@@ -48,6 +50,7 @@ engine; only a security fix should change it.
 
 | Artifact | SHA-256 |
 |----------|---------|
+| `Libraries.tar.gz` (`v4.8.5`) | `ec81fe6a9be31104b631ff1de0f2b23f174d0d77e0c124f80def84fe535a1905` |
 | `Libraries.tar.gz` (`v4.8.3`) | `08ffabd7b7c352470faee2b1d51061b341316e401439ca805c5302acc2fb8818` |
 | `Libraries.tar.gz` (`v3.1.1`) | `01f3a1b43b98065fe20c529c1023b61dd79a6d2ad93bba6040865f646481ccf3` |
 | `Libraries.tar.gz` (`v3.1.0`) | `86e2d54a60736f27e6ce82cacf2a91e500c20f6d32ae959a16afd912e6b03096` |

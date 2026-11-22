@@ -9,7 +9,7 @@
 	<key>gptkCapable</key>
 	<true/>
 	<key>sha256</key>
-	<string>08ffabd7b7c352470faee2b1d51061b341316e401439ca805c5302acc2fb8818</string>
+	<string>ec81fe6a9be31104b631ff1de0f2b23f174d0d77e0c124f80def84fe535a1905</string>
 	<key>version</key>
 	<dict>
 		<key>major</key>
@@ -17,7 +17,7 @@
 		<key>minor</key>
 		<integer>8</integer>
 		<key>patch</key>
-		<integer>3</integer>
+		<integer>5</integer>
 	</dict>
 </dict>
 </plist>

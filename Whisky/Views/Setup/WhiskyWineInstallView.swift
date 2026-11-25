@@ -171,6 +171,10 @@ struct WhiskyWineInstallView: View {
             // Only cleanup tarball after verified successful installation
             // This preserves it for retry attempts if installation fails
             WhiskyWineInstaller.cleanupTarball(at: capturedTarURL)
+            if release != nil {
+                // A named release downloads into a folder of its own, so drop that folder too.
+                try? FileManager.default.removeItem(at: capturedTarURL.deletingLastPathComponent())
+            }
             // The install may have brought D3DMetal with it (a stored GPTK
             // payload redeploys), which lets Steam bottles off bottle-wide DXVK.
             BottleVM.shared.migrateLauncherBackends()

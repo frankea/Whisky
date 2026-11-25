@@ -41,6 +41,16 @@ struct GPTKImporterTests {
         #expect(GPTKImporter.locatePayload(under: lib) == lib)
     }
 
+    @Test("Locates the payload inside a Game Porting Toolkit app bundle (#413)")
+    func locateInsideAppBundle() throws {
+        let app = tempDir.appending(path: "Game Porting Toolkit.app")
+        let lib = app.appending(path: "Contents").appending(path: "Resources")
+            .appending(path: "wine").appending(path: "lib")
+        try makePayload(at: lib)
+
+        #expect(GPTKImporter.locatePayload(under: app) == lib)
+    }
+
     @Test("Locate returns nil when nothing payload-shaped exists")
     func locateNothing() {
         #expect(GPTKImporter.locatePayload(under: tempDir) == nil)

@@ -55230,6 +55230,22 @@
         }
       }
     },
+    "gptk.error.appWithoutPayload %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” doesn't contain Apple's D3DMetal files, so it can't be imported. Choose the Game Porting Toolkit disk image (.dmg) you downloaded from Apple instead."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” doesn't contain Apple's D3DMetal files, so it can't be imported. Choose the Game Porting Toolkit disk image (.dmg) you downloaded from Apple instead."
+          }
+        }
+      }
+    },
     "gptk.error.attachFailed" : {
       "localizations" : {
         "ar" : {
@@ -55723,13 +55739,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No Game Porting Toolkit payload was found at this location. Select Apple's evaluation environment disk image or its redist folder."
+            "value" : "No Game Porting Toolkit payload was found here. Choose the Game Porting Toolkit disk image (.dmg) you downloaded from Apple, the Evaluation environment disk image inside it, or its redist folder."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No Game Porting Toolkit payload was found at this location. Select Apple's evaluation environment disk image or its redist folder."
+            "value" : "No Game Porting Toolkit payload was found here. Choose the Game Porting Toolkit disk image (.dmg) you downloaded from Apple, the Evaluation environment disk image inside it, or its redist folder."
           }
         },
         "es" : {
@@ -72582,6 +72598,22 @@
         }
       }
     },
+    "settings.gptk.download" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download Game Porting Toolkit from Apple"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download Game Porting Toolkit from Apple"
+          }
+        }
+      }
+    },
     "settings.gptk.engine.alsoNeeded" : {
       "localizations" : {
         "en" : {
@@ -72906,6 +72938,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "匯入失敗"
+          }
+        }
+      }
+    },
+    "settings.gptk.import.help" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download Game Porting Toolkit from Apple (sign in with your Apple Account), then click “Import from Game Porting Toolkit…” and choose the downloaded .dmg file. You don't need to open it first. Whisky also accepts the Evaluation environment disk image inside it, its redist folder, or an app that bundles D3DMetal, such as a Homebrew “Game Porting Toolkit.app”."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download Game Porting Toolkit from Apple (sign in with your Apple Account), then click “Import from Game Porting Toolkit…” and choose the downloaded .dmg file. You don't need to open it first. Whisky also accepts the Evaluation environment disk image inside it, its redist folder, or an app that bundles D3DMetal, such as a Homebrew “Game Porting Toolkit.app”."
           }
         }
       }

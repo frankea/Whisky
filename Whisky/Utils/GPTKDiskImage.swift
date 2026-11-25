@@ -23,9 +23,10 @@ import WhiskyKit
 ///
 /// The user may hand us the outer Game Porting Toolkit image (which contains
 /// the evaluation-environment image), the evaluation-environment image
-/// itself, an already-mounted volume, or a bare folder. Everything resolves
-/// to the `redist/lib` payload root, plus the list of mount points to detach
-/// once the import completes.
+/// itself, an already-mounted volume, a bare folder, or an app named
+/// "Game Porting Toolkit.app" (#413). Everything resolves to the `lib`
+/// payload root, plus the list of mount points to detach once the import
+/// completes.
 enum GPTKDiskImage {
     /// A resolved payload location and the mounts holding it open.
     struct ResolvedPayload {
@@ -35,11 +36,16 @@ enum GPTKDiskImage {
 
     enum DiskImageError: LocalizedError {
         case attachFailed(String)
+        /// An app was chosen that doesn't carry D3DMetal, such as a wrapper
+        /// that only shares the toolkit's name.
+        case appWithoutPayload(String)
 
         var errorDescription: String? {
             switch self {
             case let .attachFailed(detail):
                 String(localized: "gptk.error.attachFailed") + " " + detail
+            case let .appWithoutPayload(name):
+                String(localized: "gptk.error.appWithoutPayload \(name)")
             }
         }
     }
@@ -47,32 +53,52 @@ enum GPTKDiskImage {
     /// Resolves `url` (image or folder) to a GPTK payload root, attaching
     /// images as needed. Callers must ``detach(_:)`` every returned mount.
     static func resolvePayload(at url: URL) throws -> ResolvedPayload {
-        guard url.pathExtension.lowercased() == "dmg" else {
-            guard let lib = GPTKImporter.locatePayload(under: url) else {
-                throw GPTKImportError.payloadNotFound
-            }
+        if let lib = GPTKImporter.locatePayload(under: url) {
             return ResolvedPayload(libRoot: lib, mounts: [])
+        }
+
+        let isDiskImage = url.pathExtension.lowercased() == "dmg"
+        let isApp = url.pathExtension.lowercased() == "app"
+        guard isDiskImage || isApp else {
+            throw GPTKImportError.payloadNotFound
         }
 
         var mounts: [URL] = []
         do {
-            let outer = try attach(url)
-            mounts.append(outer)
-            if let lib = GPTKImporter.locatePayload(under: outer) {
-                return ResolvedPayload(libRoot: lib, mounts: mounts)
+            // An app may still carry the evaluation environment as an image
+            // in its resources; a disk image is attached and searched.
+            let searchRoots: [URL]
+            if isDiskImage {
+                let outer = try attach(url)
+                mounts.append(outer)
+                if let lib = GPTKImporter.locatePayload(under: outer) {
+                    return ResolvedPayload(libRoot: lib, mounts: mounts)
+                }
+                searchRoots = [outer]
+            } else {
+                let contents = url.appending(path: "Contents")
+                searchRoots = [
+                    contents.appending(path: "Resources"),
+                    contents.appending(path: "SharedSupport")
+                ]
             }
 
             // The outer GPTK image carries the evaluation environment as a
             // nested image; attach the first one that yields a payload.
-            let contents = try FileManager.default.contentsOfDirectory(
-                at: outer, includingPropertiesForKeys: nil
-            )
-            for nested in contents where nested.pathExtension.lowercased() == "dmg" {
-                let inner = try attach(nested)
-                mounts.append(inner)
-                if let lib = GPTKImporter.locatePayload(under: inner) {
-                    return ResolvedPayload(libRoot: lib, mounts: mounts)
+            for root in searchRoots {
+                let contents = (try? FileManager.default.contentsOfDirectory(
+                    at: root, includingPropertiesForKeys: nil
+                )) ?? []
+                for nested in contents where nested.pathExtension.lowercased() == "dmg" {
+                    let inner = try attach(nested)
+                    mounts.append(inner)
+                    if let lib = GPTKImporter.locatePayload(under: inner) {
+                        return ResolvedPayload(libRoot: lib, mounts: mounts)
+                    }
                 }
+            }
+            if isApp {
+                throw DiskImageError.appWithoutPayload(url.deletingPathExtension().lastPathComponent)
             }
             throw GPTKImportError.payloadNotFound
         } catch {

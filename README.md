@@ -41,7 +41,7 @@ Whisky provides a clean and easy-to-use graphical wrapper for Wine built in nati
 
 ## Key Features
 
-- **Wine 11.19 engine** - Built from CrossOver's sources. Import Apple's Game Porting Toolkit in **Settings → Game Porting Toolkit** and Whisky deploys D3DMetal for DirectX 12 games
+- **Wine 11.19 engine** - Built from CrossOver's sources. Download Apple's [Game Porting Toolkit](https://developer.apple.com/games/game-porting-toolkit/) disk image, choose that .dmg in **Settings → Game Porting Toolkit → Import from Game Porting Toolkit…**, and Whisky deploys D3DMetal for DirectX 12 games
 - **Game library** - Your Steam games and pinned programs on one page, with launch links (`whisky://launch?steam=<appid>`) and Dock menu shortcuts
 - **Command line tool** - Install `whisky` from the Whisky menu (**Install Whisky CLI...**) to create bottles, run programs and launch Steam games from Terminal
 - **DXMT & DXVK Graphics** - DirectX 11 through native Metal translation (DXMT) out of the box, with DXVK over MoltenVK as the universal fallback

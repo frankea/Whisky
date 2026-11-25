@@ -84,13 +84,14 @@ enum GPTKDiskImage {
             }
 
             // The outer GPTK image carries the evaluation environment as a
-            // nested image; attach the first one that yields a payload.
+            // nested image; attach the first one that yields a payload. An
+            // image that won't attach is skipped, since a later one may hold it.
             for root in searchRoots {
                 let contents = (try? FileManager.default.contentsOfDirectory(
                     at: root, includingPropertiesForKeys: nil
                 )) ?? []
                 for nested in contents where nested.pathExtension.lowercased() == "dmg" {
-                    let inner = try attach(nested)
+                    guard let inner = try? attach(nested) else { continue }
                     mounts.append(inner)
                     if let lib = GPTKImporter.locatePayload(under: inner) {
                         return ResolvedPayload(libRoot: lib, mounts: mounts)

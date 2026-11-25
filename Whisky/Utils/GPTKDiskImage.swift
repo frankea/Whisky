@@ -83,20 +83,8 @@ enum GPTKDiskImage {
                 ]
             }
 
-            // The outer GPTK image carries the evaluation environment as a
-            // nested image; attach the first one that yields a payload. An
-            // image that won't attach is skipped, since a later one may hold it.
-            for root in searchRoots {
-                let contents = (try? FileManager.default.contentsOfDirectory(
-                    at: root, includingPropertiesForKeys: nil
-                )) ?? []
-                for nested in contents where nested.pathExtension.lowercased() == "dmg" {
-                    guard let inner = try? attach(nested) else { continue }
-                    mounts.append(inner)
-                    if let lib = GPTKImporter.locatePayload(under: inner) {
-                        return ResolvedPayload(libRoot: lib, mounts: mounts)
-                    }
-                }
+            if let lib = attachFirstNestedPayload(in: searchRoots, mounts: &mounts) {
+                return ResolvedPayload(libRoot: lib, mounts: mounts)
             }
             if isApp {
                 throw DiskImageError.appWithoutPayload(url.deletingPathExtension().lastPathComponent)
@@ -108,6 +96,26 @@ enum GPTKDiskImage {
             }
             throw error
         }
+    }
+
+    /// The outer GPTK image carries the evaluation environment as a nested
+    /// image; attaches the images in `roots` until one yields a payload. An
+    /// image that won't attach is skipped, since a later one may hold it.
+    /// Every image attached is added to `mounts`, payload or not.
+    private static func attachFirstNestedPayload(in roots: [URL], mounts: inout [URL]) -> URL? {
+        for root in roots {
+            let contents = (try? FileManager.default.contentsOfDirectory(
+                at: root, includingPropertiesForKeys: nil
+            )) ?? []
+            for nested in contents where nested.pathExtension.lowercased() == "dmg" {
+                guard let inner = try? attach(nested) else { continue }
+                mounts.append(inner)
+                if let lib = GPTKImporter.locatePayload(under: inner) {
+                    return lib
+                }
+            }
+        }
+        return nil
     }
 
     /// Attaches a disk image read-only and returns its mount point.

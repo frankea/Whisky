@@ -33,6 +33,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Apple's `libd3dshared.dylib` is, so the engine turns on its D3DMetal
   support code. Without it, some D3DMetal games, such as Red Dead
   Redemption 2, could hang at start ([#407]).
+- Importing the Game Porting Toolkit in Settings no longer greys out
+  "Game Porting Toolkit.app" in the file picker. Whisky imports D3DMetal from
+  an app that carries it, such as the Homebrew build, and an app that doesn't
+  gets an error that says to choose Apple's .dmg instead. Settings now says
+  which file to choose and links to Apple's download page ([#413]).
 
 ## [3.10.2] - 2026-11-16 (App)
 
@@ -1704,6 +1709,7 @@ up to date.
 [#401]: https://github.com/frankea/Whisky/issues/401
 [#407]: https://github.com/frankea/Whisky/issues/407
 [#411]: https://github.com/frankea/Whisky/issues/411
+[#413]: https://github.com/frankea/Whisky/issues/413
 [@adurham]: https://github.com/adurham
 [@daydalek]: https://github.com/daydalek
 [@Dunn-Kim]: https://github.com/Dunn-Kim

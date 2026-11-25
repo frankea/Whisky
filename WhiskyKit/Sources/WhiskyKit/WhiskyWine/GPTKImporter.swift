@@ -156,13 +156,18 @@ public enum GPTKImporter {
 
     /// Finds Apple's `lib` payload root at or under `url`.
     ///
-    /// Accepts the `lib` folder itself, a `redist` folder, or a mounted
-    /// evaluation-environment volume root.
+    /// Accepts the `lib` folder, a `redist` folder, a mounted evaluation-environment
+    /// volume root, or an app carrying the payload in its resources. Homebrew's
+    /// "Game Porting Toolkit.app" keeps it in `Contents/Resources/wine/lib` (#413).
     public static func locatePayload(under url: URL) -> URL? {
+        let resources = url.appending(path: "Contents").appending(path: "Resources")
         let candidates = [
             url,
             url.appending(path: "lib"),
-            url.appending(path: "redist").appending(path: "lib")
+            url.appending(path: "redist").appending(path: "lib"),
+            resources.appending(path: "wine").appending(path: "lib"),
+            resources.appending(path: "redist").appending(path: "lib"),
+            resources.appending(path: "lib")
         ]
         return candidates.first(where: isPayloadRoot)
     }

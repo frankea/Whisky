@@ -175,7 +175,7 @@ img.screenshot {
 <h2>Graphics backends</h2>
 <p>Whisky translates Direct3D to the Mac GPU with translation layers you pick per bottle:</p>
 <ul>
-  <li><strong>D3DMetal</strong> (what "Recommended" uses once you import it): Apple's Direct3D 11 and 12 to Metal layer from the Game Porting Toolkit. Download the toolkit from Apple, import it in Settings, and Whisky deploys it into the engine. Required for DirectX 12 games. Needs Whisky 3.10.0 or later.</li>
+  <li><strong>D3DMetal</strong> (what "Recommended" uses once you import it): Apple's Direct3D 11 and 12 to Metal layer from the Game Porting Toolkit. Download the toolkit's disk image (.dmg) from <a href="https://developer.apple.com/games/game-porting-toolkit/">Apple</a>, then in Whisky open Settings, click “Import from Game Porting Toolkit…” and choose that .dmg (no need to open it first). Whisky deploys it into the engine. Required for DirectX 12 games. Needs Whisky 3.10.0 or later.</li>
   <li><strong>DXMT</strong> (what "Recommended" uses without D3DMetal): Direct3D 11 to Metal, deployed per bottle so one bottle's choice never affects another.</li>
   <li><strong>DXVK</strong>: Direct3D to Vulkan (via MoltenVK), a broad-compatibility fallback for titles DXMT doesn't handle. "Recommended" also picks DXVK for game launchers such as Steam and for apps built on Chromium or Electron, whose windows only draw on DXVK; the games they start keep the bottle's backend. Pinned at the macOS-compatible 1.10.3 <em>by design</em>: the DXVK 2.x line needs Vulkan features macOS doesn't expose, so a higher version number simply wouldn't run here.</li>
 </ul>

@@ -54,6 +54,7 @@ struct GPTKSettingsSection: View {
             } else {
                 Text("settings.gptk.status.none")
                     .foregroundStyle(.secondary)
+                importHelp
             }
 
             if readiness.needsCapableEngine {
@@ -103,7 +104,9 @@ struct GPTKSettingsSection: View {
         }
         .fileImporter(
             isPresented: $showImporter,
-            allowedContentTypes: [.diskImage, .folder]
+            // Apps are packages, not folders, so without .applicationBundle the
+            // picker greys out "Game Porting Toolkit.app" (#413).
+            allowedContentTypes: [.diskImage, .folder, .applicationBundle]
         ) { result in
             guard case let .success(url) = result else { return }
             importPayload(from: url)
@@ -132,6 +135,22 @@ struct GPTKSettingsSection: View {
             Button("button.ok", role: .cancel) {}
         } message: {
             Text("settings.gptk.imported.engineNeeded.message")
+        }
+    }
+
+    /// What to download and which file to pick, shown until a payload is
+    /// stored. Apple's download is a disk image, and people who have opened
+    /// it before reach for the app instead (#413).
+    private var importHelp: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("settings.gptk.import.help")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if let url = URL(string: "https://developer.apple.com/games/game-porting-toolkit/") {
+                Link("settings.gptk.download", destination: url)
+                    .font(.callout)
+            }
         }
     }
 

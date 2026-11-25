@@ -6,6 +6,29 @@
         <description>Whisky update feed</description>
         <language>en</language>
         <item>
+            <title>Whisky 3.10.3</title>
+            <pubDate>Wed, 25 Nov 2026 21:52:19 GMT</pubDate>
+            <sparkle:version>63</sparkle:version>
+            <sparkle:shortVersionString>3.10.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <p>Whisky 3.10.3 stops opening the app from closing games that are already running, helps D3DMetal games such as Red Dead Redemption 2 start, and completes the Simplified Chinese translation.</p>
+                <ul>
+                    <li><strong>Opening Whisky leaves running games alone.</strong> Programs started with the whisky command, a shortcut or Steam while the app was closed keep running. After a crash, only what that run started is stopped.</li>
+                    <li><strong>D3DMetal games start more reliably with GPTK imported</strong>, including Red Dead Redemption 2, which could hang at start.</li>
+                    <li><strong>Importing the Game Porting Toolkit is easier.</strong> The file picker no longer greys out "Game Porting Toolkit.app", and Settings says which file to download and choose.</li>
+                    <li><strong>Running Processes and the sidebar stay accurate</strong>: no more endless "Checking for processes...", and the "started outside Whisky" mark clears as soon as the bottle stops.</li>
+                    <li><strong>Simplified Chinese is fully translated</strong>, with more French and Polish too.</li>
+                </ul>
+                <p>See the <a href="https://github.com/frankea/Whisky/releases/tag/app-v3.10.3">release notes</a> for the full changelog.</p>
+            ]]></description>
+            <enclosure
+                url="https://github.com/frankea/Whisky/releases/download/app-v3.10.3/Whisky-3.10.3.dmg"
+                sparkle:edSignature="L403Mz56YE37RqOSY8r0++fQBM2YBtqaiNhUb4CN4QV1xWAUBy1jRrBy0dncqQUyoPNsU1qdyAVbJdqWC0jcCw=="
+                length="13055378"
+                type="application/octet-stream" />
+        </item>
+        <item>
             <title>Whisky 3.10.2</title>
             <pubDate>Mon, 16 Nov 2026 23:36:20 GMT</pubDate>
             <sparkle:version>62</sparkle:version>

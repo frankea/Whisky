@@ -75154,6 +75154,376 @@
         }
       }
     },
+    "settings.betaEngine" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta Engine"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta Engine"
+          }
+        }
+      }
+    },
+    "settings.betaEngine.checkNewer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check for Newer Beta"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check for Newer Beta"
+          }
+        }
+      }
+    },
+    "settings.betaEngine.confirm.install" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install Beta"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install Beta"
+          }
+        }
+      }
+    },
+    "settings.betaEngine.confirm.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whisky downloads the beta, verifies it, and only then swaps it in. Your bottles stay as they are, and you can switch back to the stable engine in Settings at any time."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whisky downloads the beta, verifies it, and only then swaps it in. Your bottles stay as they are, and you can switch back to the stable engine in Settings at any time."
+          }
+        }
+      }
+    },
+    "settings.betaEngine.confirm.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install beta engine %@?"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install beta engine %@?"
+          }
+        }
+      }
+    },
+    "settings.betaEngine.error.http" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub answered with HTTP %lld. Try again later."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub answered with HTTP %lld. Try again later."
+          }
+        }
+      }
+    },
+    "settings.betaEngine.error.stableUnknown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't read which engine is current. Check your connection and try again."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't read which engine is current. Check your connection and try again."
+          }
+        }
+      }
+    },
+    "settings.betaEngine.error.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't Check for Beta Engines"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't Check for Beta Engines"
+          }
+        }
+      }
+    },
+    "settings.betaEngine.help" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta engines carry fixes that are waiting for testers. They can also break things that work today, so you can switch back to the stable engine here at any time. Your bottles stay as they are."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta engines carry fixes that are waiting for testers. They can also break things that work today, so you can switch back to the stable engine here at any time. Your bottles stay as they are."
+          }
+        }
+      }
+    },
+    "settings.betaEngine.installed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installed Engine"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installed Engine"
+          }
+        }
+      }
+    },
+    "settings.betaEngine.installed.beta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (beta)"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (beta)"
+          }
+        }
+      }
+    },
+    "settings.betaEngine.installed.none" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not installed"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not installed"
+          }
+        }
+      }
+    },
+    "settings.betaEngine.none" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There's no beta engine newer than the stable engine right now."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There's no beta engine newer than the stable engine right now."
+          }
+        }
+      }
+    },
+    "settings.betaEngine.onBeta.help" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're testing a beta engine. Thanks! Tell us how it goes on its release page, and switch back to stable if something breaks."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're testing a beta engine. Thanks! Tell us how it goes on its release page, and switch back to stable if something breaks."
+          }
+        }
+      }
+    },
+    "settings.betaEngine.releaseNotes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Release Notes"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Release Notes"
+          }
+        }
+      }
+    },
+    "settings.betaEngine.returnToStable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch Back to Stable"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch Back to Stable"
+          }
+        }
+      }
+    },
+    "settings.betaEngine.returnToStable.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whisky downloads the stable engine and replaces the beta with it. Your bottles stay as they are."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whisky downloads the stable engine and replaces the beta with it. Your bottles stay as they are."
+          }
+        }
+      }
+    },
+    "settings.betaEngine.returnToStable.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch back to the stable engine?"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch back to the stable engine?"
+          }
+        }
+      }
+    },
+    "settings.betaEngine.running.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Programs are still running in %@. Quit them before changing the engine."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Programs are still running in %@. Quit them before changing the engine."
+          }
+        }
+      }
+    },
+    "settings.betaEngine.running.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit Running Programs First"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit Running Programs First"
+          }
+        }
+      }
+    },
+    "settings.betaEngine.superseded" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stable engine %@ includes this beta's fixes. Switching back to stable is recommended."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stable engine %@ includes this beta's fixes. Switching back to stable is recommended."
+          }
+        }
+      }
+    },
+    "settings.betaEngine.try" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try Beta Engine…"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try Beta Engine…"
+          }
+        }
+      }
+    },
+    "settings.betaEngine.upToDate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You already have the newest beta engine."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You already have the newest beta engine."
+          }
+        }
+      }
+    },
     "settings.general" : {
       "localizations" : {
         "ar" : {

@@ -47,6 +47,7 @@
 		C1A2B3C4E5F60601A9B0B1D8 /* BottleActionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4E5F60601A9B0B1D9 /* BottleActionBar.swift */; };
 		6E40498329CCA91B006E3F1B /* Bottle+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E40498229CCA91B006E3F1B /* Bottle+Extensions.swift */; };
 		6E49E0212AECB7DB00009CAC /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E49E0202AECB7DB00009CAC /* SettingsView.swift */; };
+		B7E1A0C2D3F4051627384950 /* BetaEngineSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7E1A0C2D3F4051627384951 /* BetaEngineSection.swift */; };
 		D4E5F6A7B8C90113A9B0C1F4 /* GPTKSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E5F6A7B8C90113A9B0C1F5 /* GPTKSettingsSection.swift */; };
 		6E50D98329CD6066008C39F6 /* BottleVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E50D98229CD6066008C39F6 /* BottleVM.swift */; };
 		6E50D98529CDF25B008C39F6 /* BottleCreationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E50D98429CDF25B008C39F6 /* BottleCreationView.swift */; };
@@ -247,6 +248,7 @@
 		C1A2B3C4E5F60601A9B0B1D9 /* BottleActionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottleActionBar.swift; sourceTree = "<group>"; };
 		6E40498229CCA91B006E3F1B /* Bottle+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bottle+Extensions.swift"; sourceTree = "<group>"; };
 		6E49E0202AECB7DB00009CAC /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B7E1A0C2D3F4051627384951 /* BetaEngineSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BetaEngineSection.swift; sourceTree = "<group>"; };
 		D4E5F6A7B8C90113A9B0C1F5 /* GPTKSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPTKSettingsSection.swift; sourceTree = "<group>"; };
 		6E50D98229CD6066008C39F6 /* BottleVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottleVM.swift; sourceTree = "<group>"; };
 		6E50D98429CDF25B008C39F6 /* BottleCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottleCreationView.swift; sourceTree = "<group>"; };
@@ -545,6 +547,7 @@
 			isa = PBXGroup;
 			children = (
 				6E49E0202AECB7DB00009CAC /* SettingsView.swift */,
+				B7E1A0C2D3F4051627384951 /* BetaEngineSection.swift */,
 				D4E5F6A7B8C90113A9B0C1F5 /* GPTKSettingsSection.swift */,
 			);
 			path = Settings;
@@ -1048,6 +1051,7 @@
 				D7B1C2E3F4A50801A9B0E1F3 /* LibraryModel.swift in Sources */,
 				6E2B25C12B0E20F50084A67A /* PinAddView.swift in Sources */,
 				6E49E0212AECB7DB00009CAC /* SettingsView.swift in Sources */,
+				B7E1A0C2D3F4051627384950 /* BetaEngineSection.swift in Sources */,
 				D4E5F6A7B8C90113A9B0C1F4 /* GPTKSettingsSection.swift in Sources */,
 				6E7C07C02AAF570100F6E66B /* FileOpenView.swift in Sources */,
 				6E6C0CF22A419A6800356232 /* WelcomeView.swift in Sources */,

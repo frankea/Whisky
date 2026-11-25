@@ -29,6 +29,9 @@ struct WhiskyWineInstallView: View {
     @Binding var showSetup: Bool
     /// Shared diagnostics recorder for the setup flow, capturing events across download and install stages.
     @Binding var diagnostics: WhiskyWineSetupDiagnostics
+    /// The specific engine build being installed, such as an opt-in beta.
+    /// `nil` for the engine the version feed names.
+    var release: EngineRelease?
     /// Delay to show the success checkmark before dismissing setup.
     private static let installSuccessDelay: Duration = .seconds(2)
 
@@ -143,7 +146,7 @@ struct WhiskyWineInstallView: View {
 
             let capturedTarURL = tarLocation
             diagnostics.record("Invoking WhiskyWineInstaller.install(from:) in detached task")
-            let outcome = await Self.performInstall(tarball: capturedTarURL)
+            let outcome = await Self.performInstall(tarball: capturedTarURL, release: release)
             let isInstalled = outcome.installed
             if case let .failure(_, _, diagnosticMessage?) = outcome {
                 diagnostics.record("Install failed: \(diagnosticMessage)")
@@ -214,7 +217,7 @@ struct WhiskyWineInstallView: View {
 
     /// Runs the install and post-install verification off the main actor,
     /// keeping the plist read off the main thread.
-    private static func performInstall(tarball: URL) async -> InstallOutcome {
+    private static func performInstall(tarball: URL, release: EngineRelease?) async -> InstallOutcome {
         await Task.detached {
             do {
                 try WhiskyWineInstaller.install(from: tarball)
@@ -222,6 +225,14 @@ struct WhiskyWineInstallView: View {
                     // The installer checks the extracted runtime before swapping
                     // it in, so this only trips if it changed on disk since.
                     return .failure(reason: .runtimeIncomplete, message: nil, diagnosticMessage: nil)
+                }
+                // The engine plist stamps only major.minor.patch, so a beta
+                // reads like the stable build it may become. The record is how
+                // Settings knows it is a beta and offers the way back. The
+                // engine itself installed, so a failed write is not a failed
+                // install.
+                if let release, release.version.isPreRelease {
+                    try? BetaEngine.recordInstalled(release)
                 }
                 // The install replaced Libraries, so any deployed GPTK payload
                 // went with it; the store outlives it and redeploys here.

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Settings has a new Beta Engine section. Try Beta Engine installs the
+  newest beta engine in one click, checked against its published hash,
+  and Switch Back to Stable returns to the regular engine the same way.
+  Your bottles stay as they are, and nothing needs Terminal anymore
+  ([#419]).
+
 ## [3.10.3] - 2026-11-25 (App)
 
 ### Changed
@@ -1710,6 +1717,7 @@ up to date.
 [#407]: https://github.com/frankea/Whisky/issues/407
 [#411]: https://github.com/frankea/Whisky/issues/411
 [#413]: https://github.com/frankea/Whisky/issues/413
+[#419]: https://github.com/frankea/Whisky/issues/419
 [@adurham]: https://github.com/adurham
 [@daydalek]: https://github.com/daydalek
 [@Dunn-Kim]: https://github.com/Dunn-Kim

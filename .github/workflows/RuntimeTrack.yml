@@ -21,8 +21,8 @@ env:
   # repo (owner/name)         pinned upstream tag we currently bundle
   # Wine is the GPTK-capable 4.x engine, built on the frankea/winecx-gptk mirror
   # from dappermint/winecx-gptk's tree. The pin is the upstream runtime release
-  # whose tree the current engine was built from (v4.8.5 is upstream 58b27bf, the
-  # tree behind runtime-v4.8.1, plus the floor patch and the mirror's patches/). It must match an existing
+  # whose tree the current engine was built from (v4.8.3 is upstream 58b27bf, the
+  # tree behind runtime-v4.8.1, plus the floor patch). It must match an existing
   # upstream tag exactly, or the check reads "behind" forever and files weekly.
   # The stock 3.1.1 engine for apps before 3.10.0 is frozen and not tracked.
   WINE_REPO: dappermint/winecx-gptk

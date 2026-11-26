@@ -6,6 +6,26 @@
         <description>Whisky update feed</description>
         <language>en</language>
         <item>
+            <title>Whisky 3.10.4</title>
+            <pubDate>Thu, 26 Nov 2026 15:37:40 GMT</pubDate>
+            <sparkle:version>64</sparkle:version>
+            <sparkle:shortVersionString>3.10.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <p>Whisky 3.10.4 lets you try beta engines from Settings, with no Terminal.</p>
+                <ul>
+                    <li><strong>Try Beta Engine</strong> in Settings installs the newest beta engine in one click, checked against its published hash.</li>
+                    <li><strong>Switch Back to Stable</strong> returns to the regular engine the same way. Your bottles stay as they are.</li>
+                </ul>
+                <p>See the <a href="https://github.com/frankea/Whisky/releases/tag/app-v3.10.4">release notes</a> for the full changelog.</p>
+            ]]></description>
+            <enclosure
+                url="https://github.com/frankea/Whisky/releases/download/app-v3.10.4/Whisky-3.10.4.dmg"
+                sparkle:edSignature="PK3tmM9DYszLlDTgyZC8JveN2wOUH0Vt64j9zPCfT4wmyE1e0WTNWICyh5cdIKWKY03h89C0hNfN/RAdz3lJDA=="
+                length="13161039"
+                type="application/octet-stream" />
+        </item>
+        <item>
             <title>Whisky 3.10.3</title>
             <pubDate>Wed, 25 Nov 2026 21:52:19 GMT</pubDate>
             <sparkle:version>63</sparkle:version>

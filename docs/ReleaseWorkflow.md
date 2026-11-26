@@ -246,10 +246,18 @@ is no assembly step:
    the macOS 15 floor and winebus SDL change in `.github/workflows/build.yml`, and
    `patches/0001-ntdll-kernelbase-keep-the-fiber-pointer-at-gs-0x20-on-macOS.patch` from
    dappermint/winecx-gptk#25 (drop it once that lands upstream). Then dispatch the hosted release
-   build: `gh workflow run build.yml -R frankea/winecx-gptk -f opt=release -f runner=hosted`.
+   build: `gh workflow run build.yml -R frankea/winecx-gptk -f opt=release -f runner=hosted
+   -f runtime_version=X.Y.Z`. `opt=release` (-O3) is not the default, and the workflow refuses a
+   pinned `runtime_version` without it: v4.8.5 went out at -O2, so every DLL differed from the
+   -O3 v4.8.3 it was meant to patch, and it broke games that ran on v4.8.3 (#420).
 2. Audit the artifact: every binary's `minos` at or below 15.0, no `_pipe2` import, no AppleDouble
    entries, `winebus.so` without "SDL support not compiled in", `libSDL2-2.0.0.dylib` present, and the
-   build log's patch step applied the fiber patch.
+   build log's patch step applied the fiber patch. Then run
+   `scripts/check-engine-tarball.sh Libraries.tar.gz <current stable tarball> '<patched files regex>'`:
+   it fails unless the tarball's plist records `buildOptimization` -O3, and lists every file whose
+   size changed against the current stable engine. A build that is the stable engine plus a few
+   patches should only change the files those patches touch; hundreds of changed DLLs mean the
+   build differs in some other way, and it must not ship.
 3. Publish it as a prerelease `vX.Y.Z-beta.N` first and test it (Steam's UI without a GPTK payload,
    and a DX12 title through D3DMetal). The plist self-stamps the version, so the stable tag must
    match it exactly.

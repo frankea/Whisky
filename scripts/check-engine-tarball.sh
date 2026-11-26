@@ -29,6 +29,13 @@ previous=${2:-}
 expected=${3:-'WhiskyWineVersion\.plist$'}
 status=0
 
+# grep exits 2 on a malformed expression, which the "|| true" below would read
+# as "nothing unexpected changed"
+if printf '' | grep -E "$expected" >/dev/null 2>&1; [ $? -eq 2 ]; then
+    echo "invalid EXPECTED_REGEX: $expected" >&2
+    exit 2
+fi
+
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
@@ -50,7 +57,12 @@ else
     status=1
 fi
 
-if tar -tzf "$candidate" | grep -q '/\._'; then
+# listed by python rather than tar: macOS bsdtar folds ._ entries into the file
+# they describe and never lists them. to a file first, since with pipefail
+# grep -q quitting at its first match would make the pipeline count as no match
+python3 -c 'import sys, tarfile; print("\n".join(tarfile.open(sys.argv[1]).getnames()))' \
+    "$candidate" > "$work/listing.txt"
+if grep -Eq '(^|/)\._' "$work/listing.txt"; then
     echo "AppleDouble entries: present (FAIL: repack with COPYFILE_DISABLE=1)"
     status=1
 fi

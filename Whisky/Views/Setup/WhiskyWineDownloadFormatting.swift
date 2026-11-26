@@ -134,3 +134,16 @@ extension WhiskyWineDownloadView {
         )
     }
 }
+
+extension WhiskyWineDownloadView {
+    /// Where this download's archive goes. A specific release gets a folder of
+    /// its own, so a partial stable download and a partial beta never share a
+    /// file (or the resume record that goes with it).
+    var archiveURL: URL {
+        guard let release else { return Self.archiveDestination }
+        return Self.archiveDestination
+            .deletingLastPathComponent()
+            .appending(path: release.tag)
+            .appending(path: "Libraries.tar.gz")
+    }
+}

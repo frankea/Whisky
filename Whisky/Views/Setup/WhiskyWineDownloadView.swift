@@ -46,6 +46,8 @@ struct WhiskyWineDownloadView: View {
     @Binding var path: [SetupStage]
     @Binding var showSetup: Bool
     @Binding var diagnostics: WhiskyWineSetupDiagnostics
+    /// A specific build to download, such as an opt-in beta; `nil` downloads what the version feed names.
+    var release: EngineRelease?
 
     /// Stable on-disk home for the runtime archive. Living in Caches rather
     /// than the ephemeral temp directory means a partially downloaded archive
@@ -214,6 +216,15 @@ extension WhiskyWineDownloadView {
 
     @MainActor
     private func fetchVersionAndDownload() async {
+        if let release {
+            expectedSHA256 = release.sha256
+            diagnostics.record("Resolved release \(release.tag)")
+            diagnostics.downloadURL = release.downloadURL.absoluteString
+            if await !reuseExistingArchiveIfValid() {
+                startDownload(from: release.downloadURL)
+            }
+            return
+        }
         guard let versionURL = URL(string: DistributionConfig.versionPlistURL) else {
             setDownloadFailure(String(localized: "setup.whiskywine.error.invalidVersionURL"))
             return
@@ -268,7 +279,7 @@ extension WhiskyWineDownloadView {
     /// - Returns: `true` when the setup flow already moved on to install.
     @MainActor
     private func reuseExistingArchiveIfValid() async -> Bool {
-        let destination = Self.archiveDestination
+        let destination = archiveURL
         guard let expected = expectedSHA256,
               FileManager.default.fileExists(atPath: destination.path(percentEncoded: false))
         else { return false }
@@ -293,7 +304,7 @@ extension WhiskyWineDownloadView {
         diagnostics.record("Starting download")
         startTime = Date()
         sessionBaselineBytes = nil
-        let destination = Self.archiveDestination
+        let destination = archiveURL
         downloadTask = Task { @MainActor in
             do {
                 try await Self.downloader.download(
